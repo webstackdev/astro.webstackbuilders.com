@@ -41,6 +41,8 @@ Don't auto-rollback on every minor anomaly—you'll never finish decommissioning
 
 You don't want to go into a scream test blind. Spending a few weeks on passive discovery—analyzing traffic patterns and tracing requests—reduces surprises and identifies consumers you can notify directly.
 
+<Newsletter />
+
 ### Identifying Callers
 
 Your access logs and service mesh telemetry already contain the information you need. The identification method depends on your infrastructure: IP addresses work for internal services with stable IPs, service name headers work if your mesh requires them, mTLS client certificates are ideal when available, and API keys identify external consumers.
@@ -98,12 +100,20 @@ The 30-day grace period before cleanup isn't optional. It's the window where you
 
 If you need to rollback, reverse the shutdown steps in order. Don't call it done until you've confirmed error rates in dependent services have returned to baseline and latency metrics look normal—health checks alone won't catch all problems.
 
+<Download
+  resource="service-decommissioning-scream-test-shutdown"
+  title="Decommissioning Services: The Art of Turning Off"
+  description="Scream tests, traffic analysis, and soft shutdowns for services nobody remembers but everyone depends on."
+  listItems={[
+    { text: "Scream test phase checklist" },
+    { text: "Dependency discovery query pack" },
+    { text: "Safe shutdown rollback plan" },
+    { text: "Decommission communication templates" }
+  ]}
+/>
+
 ## Why This Matters
 
 The scream test transforms unknown risk into known risk. By the time you actually remove a service, you've already discovered every consumer that matters and given them time to migrate. The alternative—guessing, or leaving zombie services running forever—costs more in the long run.
 
 The organization that gets good at turning things off is the organization that can move quickly when building new things. Every zombie service you eliminate is one less thing to patch, one less entry in your compliance scope, and one less box on the architecture diagram confusing new engineers.
-
----
-
-This article covers the core scream test methodology. The complete guide includes detailed communication templates, stakeholder escalation handling, data retention strategies by compliance requirement, database archival workflows, post-decommissioning cost validation, and lessons learned documentation. Download the full PDF for the complete playbook on decommissioning services safely.

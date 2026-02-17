@@ -103,6 +103,8 @@ Code: Optimized Dockerfile with dependency layer before source copy.
 
 Now the npm ci layer only rebuilds when package.json or package-lock.json changes. Source code changes only invalidate the final two layers.
 
+<Newsletter />
+
 Multi-stage builds take this further by separating concerns into distinct phases:
 
 ```dockerfile title="Dockerfile"
@@ -190,6 +192,26 @@ Code: Branch-isolated cache key with fallback to main branch.
 
 Each branch writes to its own cache namespace, but PRs can still restore from the main branch cache for efficiency. Main branch builds never read from PR caches.
 
+<Download
+  resource="ci-pipeline-caching-docker-layers-dependency-cache"
+  title="Download the CI Pipeline Caching Guide"
+  description="Get the complete caching playbook for fast builds, safe artifact reuse, and deterministic dependency behavior across CI workflows."
+  listItems={[
+    {
+      text: "Cache key design workbook",
+    },
+    {
+      text: "Docker layer optimization patterns",
+    },
+    {
+      text: "Branch isolation cache strategy",
+    },
+    {
+      text: "Cache debugging runbook checklist",
+    },
+  ]}
+/>
+
 ### Non-Determinism
 
 Caching assumes determinism: the same inputs produce the same outputs. Common violations include using `npm install` instead of `npm ci` (which allows version resolution to vary), embedding timestamps in artifacts, downloading "latest" versions of tools, and using unpinned system packages like `RUN apt-get install python3` without specifying a version.
@@ -205,9 +227,3 @@ Cache pollution and non-determinism are insidious—builds pass but artifacts ar
 CI caching can reduce build times by 70-90%, but only if done correctly. Design your cache keys to capture everything that affects build output. Order your Dockerfile layers from stable to volatile. Measure your CHR continuously—if it drops below 80%, investigate. And when something breaks in production that worked in CI, check whether a stale cache might be the cause.
 
 The goal isn't just fast builds. It's fast builds that produce correct artifacts. Get the cache keys right, and you get both.
-
----
-
-**CTA Title**: The Complete Guide to CI Pipeline Caching
-
-**CTA Body**: This article covers the fundamentals, but there's more to master. The complete guide includes dependency caching patterns for Node.js, Python, Ruby, Go, and Rust; BuildKit cache mounts and remote cache backends; advanced patterns like cache warming and distributed caching; platform-specific workflows for GitHub Actions and GitLab CI; and metrics for measuring cache effectiveness. Download the PDF for the full deep-dive.

@@ -74,6 +74,8 @@ Table: Bad label examples to avoid.
 
 The decision framework is straightforward. First, ask: is the value set bounded and known? If no, stop—use traces or logs instead. Second: will you aggregate by this label? If no, you're adding cardinality without value. Third: is it useful for alerting or SLOs? If it passes all three checks, it's a good label.
 
+<Newsletter />
+
 ### Normalization: The Key Technique
 
 The practical solution is _normalization_: transforming dynamic, unbounded values into bounded categories before they become label values.
@@ -146,6 +148,18 @@ During a cardinality crisis, your first priority is restoring monitoring, not fi
 
 After stability returns, conduct a proper root cause analysis. Which metric exploded? Which label was unbounded? When was it introduced? Why wasn't it caught before production? Then implement prevention: cardinality review in PRs, alerts on series count growth, and emergency configs ready to deploy.
 
+<Download
+  resource="prometheus-high-cardinality-metrics-label-design"
+  title="High-Cardinality Metrics: Prometheus Label Horror"
+  description="What happens when unbounded label values explode your metrics storage, and how to design around it."
+  listItems={[
+    { text: "Cardinality risk review checklist" },
+    { text: "Safe label design patterns" },
+    { text: "Series growth alert rules" },
+    { text: "OOM incident response runbook" }
+  ]}
+/>
+
 ## The Bottom Line
 
 Every label you add must answer two questions: _what bounded set of values will this have_, and _what aggregation does it enable?_ If you can't answer both, don't add the label.
@@ -153,9 +167,3 @@ Every label you add must answer two questions: _what bounded set of values will 
 I've never seen a cardinality incident that wasn't preventable. The unbounded label was always obvious in hindsight. The teams that avoid these incidents aren't smarter—they just have better guardrails.
 
 Don't wait for the 3 AM page. Audit your metrics now. Find the labels that grow with your data. Fix them before they fix you.
-
----
-
-**Go Deeper: The Complete Guide to Prometheus Cardinality**
-
-This article covers the essentials, but there's much more to production-grade cardinality management. The full guide includes detailed alerting rules for cardinality monitoring, recording rules for pre-aggregating high-cardinality metrics, server-side label transformation patterns, hierarchical aggregation strategies for multi-cluster deployments, and a complete emergency response runbook with step-by-step debugging commands. Download the PDF to get the complete playbook for keeping your Prometheus healthy.

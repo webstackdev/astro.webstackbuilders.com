@@ -77,6 +77,8 @@ Most performance dashboards default to showing average latency. Averages are alm
 
 An average latency of 100ms might mean all requests completed in roughly 100ms. Or it might mean 90% finished in 50ms while 10% took 550ms. Same average, completely different user experience. In the second scenario, one in ten users has a terrible time, but your dashboard shows green.
 
+<Newsletter />
+
 Averages collapse under outliers in both directions. A single 10-second timeout in a thousand requests shifts the average dramatically, even though 99.9% of users were fine. Conversely, if that timeout represents a real failure mode hitting 1% of production users, the average hides it.
 
 _Percentiles_ tell a more honest story:
@@ -122,6 +124,18 @@ Coordinated omission and average-worship are the most common problems, but they'
 
 Each of these deserves deeper treatment than space allows here. The point is that performance testing has many failure modes, and getting impressive numbers is easy—getting _meaningful_ numbers requires understanding all the ways benchmarks can mislead.
 
+<Download
+  resource="performance-testing-load-models-benchmark-accuracy"
+  title="Performance Tests That Do Not Lie"
+  description="Load models, warmup procedures, and result interpretation that give you performance data you can trust."
+  listItems={[
+    { text: "Load model design worksheet" },
+    { text: "Warmup and steady-state checklist" },
+    { text: "Percentile reporting playbook" },
+    { text: "CI performance gate template" }
+  ]}
+/>
+
 ## Building Benchmarks That Predict Production
 
 The path forward is methodical: use open-loop load generation, report percentiles, run tests long enough to see steady-state behavior, match your test environment to production, and run multiple iterations. Integrate quick checks into CI pipelines to catch regressions before they merge. Run comprehensive nightly suites on production-equivalent infrastructure.
@@ -131,9 +145,3 @@ The question isn't "how fast is my system?" but "how will it behave under produc
 A benchmark that produces smaller numbers but actually predicts production is infinitely more valuable than one that produces impressive numbers and predicts nothing.
 
 If you want to go deeper—load model design, warmup procedures, statistical rigor, CI integration—I've written a comprehensive guide covering everything you need to build a complete performance testing practice.
-
----
-
-**CTA Title:** The Complete Guide to Performance Testing That Works
-
-**CTA Body:** This article covers the two most critical performance testing mistakes, but there's much more to building a reliable benchmark suite. The full guide dives deep into load model design, warmup procedures, statistical analysis techniques, environment parity strategies, and CI integration patterns—complete with working code examples for k6, GitHub Actions, and Python analysis scripts. Download the complete guide to build performance tests you can actually trust.

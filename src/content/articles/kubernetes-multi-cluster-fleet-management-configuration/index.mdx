@@ -119,6 +119,8 @@ The `postBuild.substituteFrom` feature injects cluster-specific values from Conf
 
 Flux's model works well when you think in terms of "configuration layers that build on each other." It scales better than ArgoCD for very large fleets (1000+ clusters) because there's no central controller bottleneck. The trade-off is less centralized visibility—there's no built-in UI showing fleet-wide status.
 
+<Newsletter />
+
 ### Which to Choose?
 
 The decision isn't about features—both tools can handle most multi-cluster scenarios. It's primarily about mental model. If you think "deploy this app to these clusters," ArgoCD ApplicationSets match that framing. If you think "base config plus environment overlay plus cluster tweaks," Flux's Kustomization hierarchy fits better.
@@ -196,14 +198,28 @@ _Start drift detection on day one._ It's far easier to maintain consistency than
 
 _Match auto-remediation to risk tolerance._ Auto-heal everything in dev and staging where the cost of mistakes is low. In production, alert and review. The goal is catching drift quickly, not necessarily fixing it automatically.
 
+<Download
+  resource="kubernetes-multi-cluster-fleet-management-configuration"
+  title="Download the Multi-Cluster Fleet Guide"
+  description="Get the complete fleet-operations playbook for GitOps consistency, drift prevention, and cluster-wide change coordination."
+  listItems={[
+    {
+      text: "ArgoCD versus Flux matrix",
+    },
+    {
+      text: "Fleet drift detection runbook",
+    },
+    {
+      text: "Policy enforcement design templates",
+    },
+    {
+      text: "Progressive rollout wave strategy",
+    },
+  ]}
+/>
+
 Fleet management maturity isn't about which tool you use—ArgoCD and Flux both work. It's measured by how confidently you can answer: "What's different between these clusters, and is that difference intentional?"
 
 [^opa-gatekeeper]: OPA (Open Policy Agent) is an open-source, general-purpose policy engine that unifies policy enforcement across the stack, using a declarative language called Rego to define complex rules. Gatekeeper is a specialized project that integrates OPA into Kubernetes—it acts as a validating admission controller, intercepting requests to the Kubernetes API and checking them against OPA policies before resources are created or modified.
 
 [^kyverno]: Kyverno is a Kubernetes-native policy engine. Unlike Gatekeeper, it doesn't require learning Rego; policies are written in standard YAML. It can validate, mutate (modify), and generate resources, as well as verify container image signatures.
-
----
-
-**Go Deeper: The Complete Multi-Cluster Guide**
-
-This article covers the essential ArgoCD vs Flux decision and drift detection fundamentals. The complete guide includes progressive rollout strategies for deploying changes across clusters in waves, detailed Kustomize vs Helm templating patterns for configuration management, policy engine deep-dives with Gatekeeper and Kyverno examples, and fleet-wide operational patterns for emergency patching and coordinated upgrades.

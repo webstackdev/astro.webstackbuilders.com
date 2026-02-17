@@ -82,6 +82,8 @@ backend slow_api
 
 The `timeout queue` setting deserves attention. When all backend servers reach their connection limit, HAProxy queues incoming requests rather than rejecting them immediately. This is usually what you want—a brief spike shouldn't return errors if backends will be available in a few seconds. But if the queue timeout is too long, users wait forever for requests that will eventually fail anyway.
 
+<Newsletter />
+
 When translating configurations between Nginx and HAProxy, the following table maps the key timeout settings. They're not exact equivalents—Nginx's per-read semantics differ from HAProxy's total-time semantics—but this helps when translating configurations.
 
 | Phase | Nginx | HAProxy | Recommended |
@@ -168,10 +170,16 @@ Quick decision guide: If you're seeing 400 Bad Request errors, increase `client_
 
 Timeouts and buffers are where traffic patterns meet system limits—they're the highest-impact tuning you can do. But production proxy configuration goes deeper. Connection pooling dramatically reduces backend latency by reusing TCP connections. SSL/TLS optimization (session caching, OCSP stapling) cuts handshake time. Rate limiting protects backends from abuse. Monitoring with upstream timing metrics makes problems visible before they become outages.
 
+<Download
+  resource="nginx-haproxy-reverse-proxy-production-tuning"
+  title="Reverse Proxy Hardening: Timeouts, Buffers, Defaults"
+  description="Why default nginx and HAProxy configurations fail under load and how to tune them for production."
+  listItems={[
+      { text: "Timeout baseline tuning matrix" },
+      { text: "Buffer sizing troubleshooting guide" },
+      { text: "Connection pool optimization checklist" },
+      { text: "Proxy metrics alerting pack" }
+  ]}
+/>
+
 The pattern is the same across all these areas: establish baseline metrics, identify bottlenecks, adjust configuration, measure again. Test under failure conditions—simulate slow backends, connection storms, oversized payloads. The problems you find in testing won't page you at 3 AM.
-
----
-
-**Want the complete picture?**
-
-This article covers the two most impactful areas of reverse proxy tuning, but there's much more to production hardening. Our comprehensive guide dives deep into connection pooling and keep-alive optimization, SSL/TLS performance tuning, load balancing algorithms and health checks, monitoring with Prometheus metrics and alerting rules, and complete production configurations for both Nginx and HAProxy. Download the full guide to get production-ready configurations you can adapt to your infrastructure.

@@ -99,6 +99,8 @@ The cardinal rule of CA rotation: add the new CA to trust stores BEFORE issuing 
 
 Automated rotation should handle expiration seamlessly. But "should" isn't "will." Rotation can fail silently—a misconfigured issuer, a network partition, a crashed controller. You need monitoring to catch these failures before they become outages.
 
+<Newsletter />
+
 For Istio workloads, the `istio_agent_cert_expiry_seconds` metric exposes time until certificate expiration. For cert-manager, `certmanager_certificate_expiration_timestamp_seconds` provides the expiration timestamp.
 
 ```yaml title="prometheus-cert-alerts.yaml"
@@ -198,12 +200,18 @@ Start with expiry (most common), then chain validation, then SANs, then key usag
 
 The goal is automation so complete that certificate rotation becomes invisible—happening continuously in the background without human intervention or service disruption.
 
+<Download
+  resource="mtls-certificate-rotation-service-mesh-authentication"
+  title="mTLS for Service-to-Service Communication"
+  description="Certificate rotation, trust hierarchies, and the operational footguns that make mTLS harder than it looks."
+  listItems={[
+    { text: "Certificate hierarchy design patterns" },
+    { text: "Rotation drill runbook template" },
+    { text: "Handshake failure debug workflow" },
+    { text: "Expiry monitoring alert pack" }
+  ]}
+/>
+
 Certificate TTLs are a tradeoff. Short-lived certificates (24 hours) limit the damage from a compromised certificate but require robust automation. Longer certificates (7 days) are more forgiving of automation failures but increase your exposure window.
 
 Start with permissive mode, add monitoring before enforcement, and run a rotation drill before you need it for real. Your first rotation drill should happen within 30 days of enabling mTLS—before you've forgotten the deployment details and before the first real expiration hits. When your certificates rotate and nobody notices, you've built a mature mTLS operation.
-
----
-
-**Go Deeper: The Complete mTLS Operations Guide**
-
-This article covers the operational essentials—certificate lifecycle, monitoring, and debugging. The full guide includes trust hierarchy design (two-tier vs. three-tier vs. federated), the SPIFFE identity framework, complete Istio configuration with PeerAuthentication and AuthorizationPolicy, and step-by-step operational runbooks for both routine rotation and emergency recovery. Download the PDF to get the complete reference.

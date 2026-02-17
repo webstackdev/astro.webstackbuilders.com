@@ -51,6 +51,8 @@ Don't skip intermediate versions when the gap is large. Jumping from Node 14 to 
 
 Eventually you'll encounter a dependency that has no path forward: no version compatible with your target runtime, no maintained fork, no drop-in replacement. The maintainer has moved on, the repository is archived, and your upgrade is blocked by code that no one owns.
 
+<Newsletter />
+
 Not every old package is abandoned. Some packages are simply stable—they do one thing well, they're done, and they don't need updates. The signal isn't age alone; it's the combination of age, unresponsiveness, and incompatibility. Red flags include: no releases in two or more years, open issues with no maintainer response, and—most relevant to EOL upgrades—failure to work on current runtime versions.
 
 Your options, roughly in order of preference:
@@ -99,14 +101,28 @@ Overrides and patches are temporary measures, not permanent solutions. Track pat
 
 The teams that struggle with EOL upgrades wait until the deadline is imminent, then try to do everything at once. The teams that handle them smoothly treat upgrades as continuous maintenance—small, frequent updates rather than multi-year gaps that accumulate compounding breakage.
 
+<Download
+  resource="eol-runtime-upgrade-dependency-hell-migration"
+  title="Download the EOL Runtime Upgrade Guide"
+  description="Get the complete migration playbook for runtime upgrades, transitive blocker resolution, and staged compatibility rollout plans."
+  listItems={[
+    {
+      text: "Dependency blocker triage matrix",
+    },
+    {
+      text: "Abandoned package fallback strategies",
+    },
+    {
+      text: "Override and patch workflows",
+    },
+    {
+      text: "Incremental upgrade execution runbook",
+    },
+  ]}
+/>
+
 The approach that works: map the dependency graph before you start writing code. Identify and classify blockers by type. Sequence the work so that unblocking changes come first, core library upgrades come second, and the runtime change itself comes last. Test against both old and new runtimes in CI throughout the project.
 
 The overrides, patches, and forks described in this article are stopgaps, not destinations. They buy time for a proper fix while keeping you off EOL runtimes. If you find yourself maintaining patched dependencies for months, that's a signal to invest in proper replacement or contribute the fix upstream.
 
 Remember: the blocker is almost never your code. Once you accept that and start looking three or four levels deep in the dependency tree, the path forward becomes clear.
-
----
-
-__Go Deeper: The Complete EOL Upgrade Playbook__
-
-This article covers the core strategies for unblocking stuck upgrades. The full guide includes detailed coverage of .NET Framework to .NET Core migration, Node.js version-specific breaking changes, Linux distribution upgrades and the glibc problem, CI matrix testing for compatibility validation, and a complete upgrade runbook template with pre-flight checklists and rollback procedures. Download the PDF for the complete methodology.

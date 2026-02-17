@@ -133,6 +133,8 @@ Code: Idempotent insertion using unique constraint on event_id.
 
 Pick idempotency keys if you're using PostgreSQL or TimescaleDB—they support unique constraints natively and give you exact deduplication. Use time-window deduplication if you're on ClickHouse or Prometheus where unique constraints aren't available. The storage cost of keeping event IDs is negligible compared to the cost of billing disputes.
 
+<Newsletter />
+
 ## Enforcing Quotas Before Costs Explode
 
 ### Rate Limits vs Quotas
@@ -227,6 +229,26 @@ When the billing period ends and quotas reset to zero, requests immediately succ
 
 Implement this in your application logic: if a request is denied due to quota but the timestamp is within 5 minutes of the period boundary, check if the next period has started. If so, allow the request and count it against the new period. This prevents frustrating "429 errors at midnight" support tickets.
 
+<Download
+  resource="api-usage-metering-quotas-cost-attribution"
+  title="Download the API Cost Management Guide"
+  description="Get the complete implementation guide for API metering, quota controls, and chargeback models that improve cost accountability."
+  listItems={[
+    {
+      text: "Metering architecture design patterns",
+    },
+    {
+      text: "Quota enforcement implementation strategies",
+    },
+    {
+      text: "Chargeback model decision framework",
+    },
+    {
+      text: "Pricing and reconciliation workflows",
+    },
+  ]}
+/>
+
 ## Getting Started: Your First 30 Days
 
 You don't need to implement everything at once. Here's the path that works:
@@ -246,9 +268,3 @@ Start small: one API, request count only, read-only dashboard. Learn from 30 day
 </Callout>
 
 The mistake I've seen repeatedly: teams try to implement metering, quotas, cost attribution, billing integration, and organizational rollout simultaneously. It's too much. Build the metering foundation first. Everything else becomes easier once you have usage data.
-
----
-
-**Want the complete implementation guide?** This article covers the foundation—metering and quotas. The full deep-dive includes cost attribution models, billing platform integration (Stripe, AWS Marketplace), organizational rollout strategies, pricing model evolution, dispute handling, and a complete implementation checklist with 20+ code examples.
-
-Download the complete guide: API Cost Management: Metering, Quotas, and Chargebacks

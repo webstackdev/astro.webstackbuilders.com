@@ -82,6 +82,8 @@ Code: The key diagnostic—compare resolution with and without trailing dot.
 
 What counts as "significantly faster"? If the FQDN version (with the trailing dot) resolves in 50-100ms while the non-FQDN version takes 2-5 seconds, you've found your problem. The difference tells you exactly how much overhead the search domains add. In severe cases, I've seen the non-FQDN version take 15+ seconds while the FQDN version returns in under 100ms.
 
+<Newsletter />
+
 Once you've confirmed ndots is the issue, you have two fixes. The first is adjusting the pod's DNS configuration:
 
 ```yaml title="pod-dnsconfig.yaml"
@@ -154,6 +156,26 @@ When connectivity issues arise and you suspect DNS, here's the fastest path to c
 
 3. **Interpret the results**: If the FQDN (with dot) is 10x+ faster, apply one of the fixes above
 
+<Download
+  resource="kubernetes-dns-debugging-ndots-coredns-troubleshooting"
+  title="Download the Kubernetes DNS Guide"
+  description="Get the complete DNS troubleshooting playbook for ndots latency, CoreDNS tuning, and resolver-path diagnostics."
+  listItems={[
+    {
+      text: "Ndots diagnosis quick checklist",
+    },
+    {
+      text: "CoreDNS tuning configuration guide",
+    },
+    {
+      text: "Node-local DNS caching setup",
+    },
+    {
+      text: "DNS incident debugging workflow",
+    },
+  ]}
+/>
+
 If the ndots test doesn't show a significant difference, the problem lies elsewhere—check CoreDNS health with `kubectl get pods -n kube-system -l k8s-app=kube-dns` and examine its logs for errors.
 
 <Callout type="warning" title="Always Test From Inside a Pod">
@@ -161,10 +183,3 @@ Node-level DNS and pod-level DNS are configured differently. A successful `nsloo
 </Callout>
 
 The ndots issue is the most common DNS problem in Kubernetes, but it's not the only one. If you're dealing with high-traffic clusters, CoreDNS performance tuning and node-local DNS caching can provide additional improvements. But for most teams, fixing ndots eliminates 90% of DNS-related latency issues.
-
----
-
-**CTA Title:** Go Deeper: The Complete Kubernetes DNS Guide
-
-**CTA Body:** This article covers the most common DNS issue in Kubernetes, but there's more to the story. The complete guide includes CoreDNS tuning for high-traffic clusters, node-local DNS caching that reduces latency by 80-90%, custom DNS entries for legacy systems, and advanced debugging workflows. Download the full guide to get the complete picture.
-

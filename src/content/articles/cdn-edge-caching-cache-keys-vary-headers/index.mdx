@@ -116,6 +116,8 @@ Table: Vary header guidance for common headers.
 
 `Accept-Encoding` is safe because there are only a few compression algorithms. `Accept-Language` is risky because browsers send values like `en-US, en;q=0.9, de;q=0.8`—technically unique per user's language preferences. If you vary on it, normalize the header first to extract just the primary language.
 
+<Newsletter />
+
 ### The Cookie Vary Trap
 
 The most common Vary mistake is `Vary: Cookie`. It seems logical—if your response depends on cookies, tell the cache to vary on them. But cookies include session IDs, authentication tokens, and tracking identifiers that are unique per user. Even when the actual content-affecting cookie (`preferences=dark`) is the same, the unique session IDs create separate cache entries.
@@ -212,6 +214,26 @@ function handler(event: any): any {
 
 With these headers normalized or stripped, your origin never sees the attack vectors that could poison your cache.
 
+<Download
+  resource="cdn-edge-caching-cache-keys-vary-headers"
+  title="Download the Edge Caching Guide"
+  description="Get the complete CDN caching framework for safe cache keys, Vary controls, and high-hit-ratio correctness."
+  listItems={[
+    {
+      text: "Cache key design checklist",
+    },
+    {
+      text: "Vary header normalization patterns",
+    },
+    {
+      text: "Personalization safety guardrails",
+    },
+    {
+      text: "Poisoning prevention hardening guide",
+    },
+  ]}
+/>
+
 ## Getting It Right
 
 Both of these bugs—and most CDN issues you'll encounter—stem from the same root cause: a mismatch between what's in the cache key and what actually affects the response.
@@ -219,9 +241,3 @@ Both of these bugs—and most CDN issues you'll encounter—stem from the same r
 A properly-configured cache with 70% hit ratio beats a misconfigured cache with 95% hit ratio. The latter is serving wrong content to 95% of users—or worse, leaking private data between users.
 
 Start with serving correct content: audit your cache keys, normalize your Vary headers, and verify that personalized content can never be cached. Once you've established that foundation, you can optimize for performance with confidence.
-
----
-
-**CTA Title:** Get the Complete CDN Caching Guide
-
-**CTA Body:** This article covers the fundamentals of serving correct content from your CDN—but there's more to production configuration. Our comprehensive guide includes cache invalidation strategies (TTL, purge APIs, cache tags), stale-while-revalidate patterns, cache warming after deployments, geographic and currency handling, performance monitoring dashboards, and a complete implementation checklist. Download the PDF to get the full picture.

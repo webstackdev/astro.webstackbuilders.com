@@ -105,6 +105,8 @@ Code: Security-sensitive settings default to the protective option.
 
 Users can opt out for development environments; they shouldn't have to opt _in_ for production safety. The module should make the secure path the easy path.
 
+<Newsletter />
+
 ## What You Can Change Without Breaking Consumers
 
 Here's where module maintenance gets tricky. You want to improve your module — fix bugs, add features, clean up technical debt. But every change risks breaking someone's deployment. Understanding which changes are safe and which require a major version bump saves you from angry Slack messages.
@@ -194,6 +196,18 @@ Code: Precondition enforcing that HTTPS listeners require a certificate.
 
 This catches the case where someone enables HTTPS but forgets to provide a certificate — before Terraform tries to create a broken listener.
 
+<Download
+  resource="terraform-module-design-defaults-versioning-interfaces"
+  title="Terraform Module Interfaces: Defaults and Versioning"
+  description="Designing module interfaces that are easy to use, hard to misuse, and can evolve without breaking consumers."
+  listItems={[
+    { text: "Interface design decision framework" },
+    { text: "Versioning and migration checklist" },
+    { text: "Validation pattern code recipes" },
+    { text: "Module contract test starter" }
+  ]}
+/>
+
 ## What Makes Modules Worth Using
 
 The patterns here aren't complicated: default to safe values, validate inputs early, and version changes honestly. The discipline is applying them consistently.
@@ -201,7 +215,3 @@ The patterns here aren't complicated: default to safe values, validate inputs ea
 Every required variable you add is friction. Every breaking change without a migration path is trust eroded. Every validation you skip is a support ticket waiting to happen.
 
 Your module's interface is the only part most consumers will ever see. When it's thoughtfully designed — easy to start with, hard to misconfigure, predictable to upgrade — it becomes infrastructure that teams reach for instead of work around.
-
----
-
-This article covers the essentials of module interface design: defaults, breaking changes, and validation. The complete guide goes deeper into output design patterns, module composition strategies, version constraint selection, and contract testing with Terraform's native test framework. Download the PDF for the full treatment of building modules that scale across teams.

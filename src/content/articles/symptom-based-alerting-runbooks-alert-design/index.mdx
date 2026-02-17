@@ -64,6 +64,8 @@ Symptom-based alerting answers _what_ to alert on. Burn rates answer _when_.
 
 The problem with raw thresholds is they lack context. A 1% error rate sounds scary, but is it? If your SLO allows 0.1% errors over a month, that 1% rate means you're burning through your error budget 10x faster than sustainable. You have about 3 days before you exhaust your monthly budget. Urgent, but not a 2 AM emergency.
 
+<Newsletter />
+
 Burn rate measures how fast you're consuming your error budget relative to a sustainable pace. A _1x burn rate_ means you'll exactly exhaust your budget by month's end—sustainable but leaves no margin. A _14.4x burn rate_ means you'll exhaust your entire monthly budget in just 2 hours. That's an emergency.
 
 The math: if your monthly budget is 0.1% errors and you're currently seeing 1.44% errors (14.4 × 0.1%), you're burning 14.4x faster than sustainable. At that rate, your 30-day budget disappears in 30 days ÷ 14.4 ≈ 2 hours.
@@ -107,6 +109,18 @@ For example, a 14.4x burn rate alert might require both conditions to be true: t
 
 The symptom vs cause distinction and burn rate math are the technical foundation, but sustainable alerting requires organizational practices too.
 
+<Download
+  resource="symptom-based-alerting-runbooks-alert-design"
+  title="Alert Fatigue: Symptom-Based Alerting That Works"
+  description="Designing alerts that wake people up for real problems and include runbooks for resolution."
+  listItems={[
+    { text: "Symptom alert design checklist" },
+    { text: "Burn rate threshold calculator" },
+    { text: "Runbook template starter pack" },
+    { text: "Monthly alert hygiene rubric" }
+  ]}
+/>
+
 _Every alert needs a runbook._ If you can't write down how to diagnose and remediate an alert, you don't understand it well enough to wake someone up for it. The runbook doesn't need to be exhaustive—a summary of user impact, links to relevant dashboards, common causes ranked by likelihood, and escalation criteria are enough. The point is that a 2 AM responder shouldn't have to reverse-engineer what the alert means.
 
 _Track your actionable rate._ If fewer than 80% of your alerts require human intervention to resolve, you have a noise problem. An alert that auto-recovers, requires no action, or fires for non-issues is training your team to ignore the pager. Track this metric weekly and treat declining actionable rates as a priority issue.
@@ -118,7 +132,3 @@ The goal isn't zero alerts—it's ensuring every alert that fires represents a r
 </Callout>
 
 Alert fatigue isn't a discipline problem you can train your way out of. It's a design problem you can engineer your way out of. Page on symptoms, ticket on causes, and let burn rates determine urgency.
-
----
-
-This article covers the essentials of symptom-based alerting and SLO burn rates, but there's much more to building a sustainable alerting practice. The complete guide includes detailed runbook templates with diagnosis and remediation steps, Alertmanager routing configurations for severity and team-based routing, escalation policy design, dynamic threshold tuning strategies using standard deviation and week-over-week comparisons, and a complete framework for monthly alert hygiene reviews. Download the full guide to get the implementation details and ready-to-use configurations.

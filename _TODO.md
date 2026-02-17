@@ -132,7 +132,6 @@ https://mermaid.js.org/config/directives.html
 - /newsletter
 - /newsletter/confirm/[token]
 - /offline
-- /privacy/my-data
 - /search
 - /tags/[tag]
 - Bug reporter modal
@@ -258,3 +257,24 @@ This article has different approaches to [print pagination](https://www.customjs
 - Add links to the privacy policy page to go to preferences and my-data
 
 - The four service offerings should be clickable links that take you to the Contact page and pre-fill in the form with the service the person is interested in. The Contact project scopes could have the four services offerings and a "general questions" option.
+
+- Sticky the table of contents. It should scroll down to the bottom and then stay in place, and scroll up to the top when scrolling up. Should be pushed up the footer when it comes into the viewpoint on scroll down.
+
+- Color headings blue and use the SVG icon instead of the image. Color if the blue shade.
+
+- Social shares - module CSS doesn't appear correct with nested button hover classes, not sure how network name is generated or styled but it needs improvement. Should be rendered inside article content column, not across both content and TOC columns.
+
+
+ ### Component Stylings
+
+The bottom margin issues on CTAs need to handle paragraphs differently than headers. Headers are properly spaced now; paragraphs are flush with the CTA with no top margin.
+
+- Download CTA needs some styling tweaks. The checkmark on the two-column list component is too low on multi-line list items. It needs some bottom margin.
+
+- Newsletter CTA needs some bottom margin.
+
+- Callouts should get round corners like the Download and Newsletter CTAs
+
+- Tags need styled at the top of articles item view pages
+
+<Newsletter />

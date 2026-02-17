@@ -55,6 +55,8 @@ Traditional artifact signing with GPG or PGP creates an operational burden that 
 
 Keyless signing flips this model entirely. Instead of managing keys, you prove your identity through OIDC—the same system that powers "Sign in with GitHub." Sigstore (which provides the Cosign tool) issues a short-lived certificate tied to that identity, you sign with it, and the signature is recorded in a public transparency log called Rekor. Verification checks the log rather than a distributed public key.
 
+<Newsletter />
+
 The result: no keys to manage, no rotation headaches, and signatures tied to specific identities at specific times. Sigstore is a free, open-source, public-good service operated by the Open Source Security Foundation. There's no vendor lock-in or subscription cost—it exists to make supply chain security accessible to everyone.
 
 Here's a complete GitHub Actions workflow that builds a container image and signs it with keyless Cosign:
@@ -156,6 +158,18 @@ Start enforcement in staging before production. Track verification success rates
 
 What I've covered here—keyless signing with Cosign and basic verification gates—is Phase 2 of a broader supply chain security journey. It blocks most external attackers without changing how developers work.
 
+<Download
+  resource="slsa-build-provenance-artifact-signing-supply-chain"
+  title="Build Provenance and Signing: A Practical Baseline"
+  description="Supply chain security basics that you can implement without a dedicated security team or expensive tooling."
+  listItems={[
+    { text: "Keyless signing setup checklist" },
+    { text: "Provenance verification policy examples" },
+    { text: "Admission enforcement rollout plan" },
+    { text: "SBOM and scan integration guide" }
+  ]}
+/>
+
 From here, you can layer in additional protections. Here's what each provides:
 
 - _SLSA provenance generators_ create cryptographically-signed attestations linking artifacts to specific commits and build configurations. The [`slsa-framework`](https://github.com/slsa-framework/slsa-github-generator) organization provides official generators for GitHub Actions.
@@ -167,9 +181,3 @@ From here, you can layer in additional protections. Here's what each provides:
 - _Level 3 hardening_ introduces two-person review requirements and isolated build environments for your most security-critical components.
 
 Each step provides incremental improvement. A signed artifact with basic provenance is infinitely more secure than an unsigned one. Don't let perfect be the enemy of good.
-
----
-
-__CTA Title:__ Get the Complete Implementation Guide
-
-__CTA Body:__ This article covers keyless signing—the fastest path to meaningful supply chain security. The full guide goes deeper: SLSA provenance workflows with GitHub's official generators, KMS-backed signing for compliance scenarios, Kubernetes admission policies with the Sigstore Policy Controller, SBOM generation and vulnerability scanning, and a phased implementation checklist with troubleshooting for common issues. Download the PDF for everything you need to implement a practical supply chain security baseline.

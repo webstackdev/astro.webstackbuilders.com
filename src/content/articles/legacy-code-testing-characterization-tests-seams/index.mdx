@@ -86,6 +86,8 @@ _Subclass seams_ work by extracting behavior into a protected method, then overr
 
 _Preprocessor seams_ apply anywhere you use environment-based branching. Rails' `Rails.env.test?`, Laravel's `app()->environment('testing')`, and Node's `process.env.NODE_ENV === 'test'` are all effectively preprocessor seams. Use them sparingly—they litter production code with test concerns.
 
+<Newsletter />
+
 ### Identifying Seams in Legacy Code
 
 When you're staring at a tightly coupled class, finding seams requires a systematic scan. Look for object instantiation with `new` or `.new`—each one is a potential object seam waiting to be parameterized. Look for class method calls like `SomeClass.do_thing`—each one could become an instance delegator. Look for global access patterns: singletons, environment variables, file reads, network calls.
@@ -129,6 +131,18 @@ With both in place, you can isolate and test without understanding the full syst
 
 This is the foundation. Deeper techniques—Extract and Override for quick dependency breaking, Parameterize Constructor for clean DI patterns, Strangler Fig for system-level migration—all build on characterization tests and seams. But start here. Get your first characterization test passing. Find your first seam. The rest follows.
 
+<Download
+  resource="legacy-code-testing-characterization-tests-seams"
+  title="Adding Tests to Untestable Legacy Code"
+  description="Techniques for getting a test harness around code that was never designed for testability."
+  listItems={[
+    { text: "Characterization test starter kit" },
+    { text: "Seam identification quick checklist" },
+    { text: "Dependency breaking pattern catalog" },
+    { text: "Legacy testing rollout plan" }
+  ]}
+/>
+
 ## Conclusion
 
 The myth of "untestable" code usually means "code that's hard to test with conventional techniques." Characterization tests and seams change the equation entirely—they let you observe, document, and isolate without first having to understand every line.
@@ -136,17 +150,3 @@ The myth of "untestable" code usually means "code that's hard to test with conve
 Start with characterization tests. Run the code, capture what happens, lock it down. Don't judge whether the behavior is correct—just document it. Then find seams: the constructor parameters, the class methods, the environment flags that let you substitute behavior without editing the code you're protecting.
 
 These foundations enable everything else: dependency breaking, incremental extraction, system-level migration. But they're also sufficient on their own to turn "untestable" into testable. The question isn't _can_ you test legacy code—it's whether the investment is worth it for code that may never change.
-
----
-
-**Go Deeper: The Complete Legacy Code Testing Guide**
-
-This article covers the foundational techniques, but there's much more to legacy code testing. The complete guide includes:
-
-- _Dependency breaking techniques_: Extract and Override, Parameterize Constructor, and Instance Delegator patterns with full code examples
-- _The Strangler Fig pattern_: How to incrementally replace legacy systems at the module and service level
-- _Golden master testing_: Capturing complex outputs when individual assertions aren't practical
-- _Coverage prioritization_: Where to focus testing effort based on change risk and bug history
-- _Test organization_: Structuring characterization tests, regression tests, and unit tests for legacy codebases
-
-Download the complete PDF guide for the full deep-dive with extended code examples and decision frameworks.

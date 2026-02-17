@@ -54,6 +54,8 @@ You can also catch deprecated APIs before they reach the cluster. Tools like Plu
 
 Kubernetes components have strict version compatibility requirements. The API server can be at most one minor version ahead of the controller-manager and scheduler, which can be at most one minor version ahead of the kubelet. This means you can't upgrade everything simultaneously - there's a required sequence.
 
+<Newsletter />
+
 This is by design. Kubernetes explicitly allows version skew during upgrades. If you're upgrading from 1.28 to 1.29, you'll temporarily have 1.29 API servers serving requests alongside 1.28 kubelets - and that's fine.
 
 _Phase 1: Preparation_ (30 minutes). Run final health checks. Take a fresh etcd backup. Notify on-call, update the status page, and pause non-critical deployments.
@@ -113,10 +115,26 @@ Managed Kubernetes services (EKS, GKE, AKS) often don't support control plane do
 
 The teams that handle upgrades well share common practices: they prepare thoroughly with deprecated API detection and compatibility checks; they follow strict upgrade ordering; they have tested rollback procedures ready _before_ they start; and they validate comprehensively after each phase.
 
+<Download
+  resource="kubernetes-cluster-upgrade-playbook-risk-reduction"
+  title="Download the Kubernetes Upgrade Playbook"
+  description="Get the complete cluster-upgrade guide for risk reduction, rollback readiness, and repeatable maintenance operations."
+  listItems={[
+    {
+      text: "Pre-upgrade readiness checklist",
+    },
+    {
+      text: "Version skew sequencing guide",
+    },
+    {
+      text: "Rollback trigger decision tree",
+    },
+    {
+      text: "Post-upgrade validation suite",
+    },
+  ]}
+/>
+
 Making upgrades boring requires investing in the infrastructure around them. Automated API scanning catches deprecated APIs in CI before they reach the cluster. Practiced rollback procedures mean you can recover quickly when things go wrong. Comprehensive validation gives you confidence that the upgrade succeeded.
 
 The goal isn't to eliminate risk - it's to make risk manageable and predictable. Quarterly upgrades, practiced procedures, and quick rollback capability transform upgrades from scary events into regular maintenance.
-
----
-
-This article covers the pre-upgrade checklist, upgrade sequencing, and rollback procedures. The complete guide goes deeper on canary cluster patterns and staged rollout schedules across multiple clusters, blue-green node pool strategies with detailed scripts, post-upgrade validation suites covering infrastructure, networking, storage, and observability, and complete etcd backup and restore procedures. Download the PDF for the full implementation playbook.

@@ -114,6 +114,8 @@ _Week 2 (Migrate)_: Run a backfill job to copy `email` values to `email_address`
 
 _Week 3 (Contract)_: After all old pods are gone and you've verified nothing reads `email`, deploy code that only uses `email_address`. Then run a migration to drop the `email` column.
 
+<Newsletter />
+
 Total time: 2-3 weeks for a "simple" rename. This is why you think carefully before renaming columns in production.
 
 Here's the application code during the expand phase—the dual-write pattern:
@@ -185,10 +187,24 @@ The biggest migration failures happen when teams treat schema changes like appli
 
 Database migrations don't have to be the scariest part of your deployment pipeline. The expand-contract pattern transforms risky schema changes into routine operations by decomposing one dangerous change into multiple safe ones.
 
+<Download
+  resource="database-schema-migrations-continuous-deployment-zero-downtime"
+  title="Download the Database Migrations Guide"
+  description="Get the complete zero-downtime migration playbook for expand-contract rollouts, lock-aware planning, and rollback-safe sequencing."
+  listItems={[
+    {
+      text: "Expand-contract rollout templates",
+    },
+    {
+      text: "Lock risk assessment checklist",
+    },
+    {
+      text: "Migration sequencing runbook",
+    },
+    {
+      text: "Rollback safety decision tree",
+    },
+  ]}
+/>
+
 The core principles: give migrations their own safety gates separate from application code. Maintain backward compatibility so old and new code can coexist during rolling deployments. Use non-blocking DDL operations wherever possible. Always have a rollback plan. And accept that a "simple rename" taking three deployments is the cost of never having a migration-induced outage.
-
----
-
-CTA_TITLE: Want the Complete Implementation Guide?
-
-CTA_BODY: This article covers the fundamentals of zero-downtime migrations. The full guide goes deeper with CI/CD pipeline integration patterns, automated safety checks that gate dangerous migrations for human review, live schema change tools like gh-ost and pt-online-schema-change for MySQL, framework-specific configuration across Rails, Django, Laravel, and .NET, plus production monitoring strategies and pre-migration checklists. Download the complete PDF to get the full implementation playbook.

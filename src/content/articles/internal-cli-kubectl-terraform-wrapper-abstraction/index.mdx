@@ -64,6 +64,8 @@ Two features are essential. First, `--wrapper-debug` shows exactly what command 
 
 Notice what a transparent wrapper _doesn't_ do: it doesn't parse kubectl's output, it doesn't assume specific flag formats, and it doesn't try to interpret what the user is doing beyond the minimum needed for guard rails. This restraint is what makes it maintainable. When kubectl adds a new flag in version 1.32, the wrapper doesn't need to change - the flag passes through automatically.
 
+<Newsletter />
+
 ### Context Injection Done Right
 
 Earlier I mentioned context injection as a legitimate use case - auto-selecting environment configs based on git branch or directory. But this is also where wrappers most often go wrong. Remember the `tf-deploy` incident? The rule is simple: _always show the injected context, never hide it_.
@@ -129,10 +131,26 @@ Not every wrapper needs to last forever. Sometimes the underlying tool improves 
 
 Healthy deprecation means providing a migration path, not just deleting the repo. Announce a sunset timeline - 90 days is usually enough for teams to adapt. Add deprecation warnings that show the equivalent raw command, so developers learn the underlying syntax as they transition. Keep the wrapper functional during the transition period, but stop adding features.
 
+<Download
+  resource="internal-cli-kubectl-terraform-wrapper-abstraction"
+  title="Download the Internal CLI Design Guide"
+  description="Get the complete abstraction playbook for safe wrapper design, transparent passthrough behavior, and long-term maintenance decisions."
+  listItems={[
+    {
+      text: "Wrapper decision criteria checklist",
+    },
+    {
+      text: "Transparent passthrough architecture patterns",
+    },
+    {
+      text: "Guard rail implementation templates",
+    },
+    {
+      text: "Wrapper deprecation transition plan",
+    },
+  ]}
+/>
+
 That `tf-deploy` wrapper from the opening? It was eventually deprecated. The team added the context display and confirmation prompts that should have been there from the start, ran it in parallel with raw terraform for a quarter, then sunset it entirely. The interesting part: developers kept the habits. They still pause and verify their environment before destructive operations - they just do it with native terraform commands now.
 
 The goal is making yourself unnecessary. If your kubectl wrapper taught the team to think about context and guard rails, they'll carry those habits to raw kubectl. That's a success, even if the wrapper itself is retired.
-
----
-
-**Ready to dive deeper?** This article covers the essentials of building maintainable CLI wrappers, but there's much more to explore. Our comprehensive guide includes complete Python code examples for transparent wrapper architecture, detailed guard rail implementation patterns, packaging and distribution strategies including man page generation, CI testing approaches with nox and pytest, and a full deprecation playbook. Download the complete guide to get the implementation details you need.
