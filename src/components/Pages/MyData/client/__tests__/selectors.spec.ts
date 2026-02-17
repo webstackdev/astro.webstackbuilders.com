@@ -21,9 +21,36 @@ const myDataContent = {
     title: 'My Data & Privacy Rights',
     description: 'Under GDPR, you have the right to access and control your personal data.',
   },
+  intro: 'Review your rights and submit a request for access or deletion of your personal data.',
   introLinks: {
     privacyPolicyText: 'Privacy Policy',
     consentPreferencesText: 'Consent Preferences',
+  },
+  accessData: {
+    heading: 'Access your data',
+    description: 'Submit your email to receive a secure access link.',
+    label: 'Email address',
+    buttonText: 'Request access',
+  },
+  deleteData: {
+    heading: 'Delete your data',
+    description: 'Submit a deletion request for your account data.',
+    label: 'Email address',
+    buttonText: 'Request deletion',
+    confirmText: 'I understand this action is irreversible.',
+  },
+  next: {
+    heading: 'What happens next',
+    items: [
+      {
+        lead: 'Verification',
+        text: 'We verify request ownership before processing.',
+      },
+      {
+        lead: 'Response',
+        text: 'You receive follow-up instructions by email.',
+      },
+    ],
   },
 }
 
