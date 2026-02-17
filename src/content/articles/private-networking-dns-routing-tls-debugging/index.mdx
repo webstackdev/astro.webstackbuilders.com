@@ -47,6 +47,8 @@ The key insight: failure modes bleed across layers. A timeout could be routing (
 
 For intermittent failures, you may need to iterate through this sequence multiple times, as the failing layer can change between attempts.
 
+<Newsletter />
+
 ## DNS: Where Most Failures Start
 
 Cloud VMs don't use public DNS by default. AWS VPCs get a resolver at the VPC CIDR base address plus two—so `10.0.0.2` for a `10.0.0.0/16` VPC. This resolver handles Route 53 private hosted zones and falls back to public DNS for external names. GCP uses the metadata server at `169.254.169.254`, Azure uses `168.63.129.16`. If your application is configured to use `8.8.8.8` or another public resolver, it bypasses private DNS entirely.
@@ -96,10 +98,16 @@ Cloud networks often don't return ICMP unreachable for routing failures—packet
 
 This debugging sequence—DNS, routing, connectivity, TLS, application—handles most private networking failures you'll encounter. But some scenarios require deeper knowledge: TLS certificate management with private CAs (including the trust store configurations that trip up every language differently), cross-VPC connectivity patterns and their tradeoffs (when peering breaks down vs. when transit gateway adds unnecessary complexity), and the specific failure modes of private endpoint migrations.
 
+<Download
+  resource="private-networking-dns-routing-tls-debugging"
+  title="Private Networking: DNS, Routing, and TLS Failures"
+  description="Debugging the networking issues that appear when services move to private connectivity."
+  listItems={[
+    { text: "Private DNS verification checklist" },
+    { text: "Routing and NACL debug flow" },
+    { text: "TLS handshake troubleshooting guide" },
+    { text: "Endpoint migration preflight template" }
+  ]}
+/>
+
 The teams that handle private networking well aren't the ones with the fanciest tools. They're the ones who've internalized this playbook before the first production incident. When something breaks at 3am, you don't want to be guessing which layer failed.
-
----
-
-__Title:__ The Complete Private Networking Debugging Guide
-
-__Description:__ This article covers the essential debugging sequence for private networking issues. The complete guide goes deeper: TLS certificate management with private and public CAs, cross-VPC connectivity patterns and their tradeoffs, private endpoint migration checklists, and detailed troubleshooting for VPC peering, transit gateway, and Private Link. Download the full guide to build your team's debugging playbook before the next incident.

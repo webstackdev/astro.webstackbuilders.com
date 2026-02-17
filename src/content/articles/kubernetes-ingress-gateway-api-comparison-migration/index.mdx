@@ -106,6 +106,8 @@ Gateway API's layered architecture also enables something Ingress can't: applica
 
 The decision depends on your current situation, not abstract feature comparisons.
 
+<Newsletter />
+
 ### When to Stick with Ingress
 
 Your routing needs are simple—host-based routing, path prefixes, TLS termination. If everything lives in one namespace (or a small number managed by one team) and your current setup works without friction, Ingress is fine. There's no deprecation timeline. The Kubernetes networking SIG has confirmed both APIs will coexist indefinitely.
@@ -152,12 +154,28 @@ The key insight: migration is a project, not a weekend task. Budget time for ann
 
 Choose based on your actual problems, not industry trends. If Ingress works for your routing needs and you don't have concrete pain points, keep using it. If you're fighting annotation portability, need multi-team self-service routing, or require non-HTTP protocols, Gateway API solves real problems.
 
+<Download
+  resource="kubernetes-ingress-gateway-api-comparison-migration"
+  title="Download the Ingress vs Gateway API Guide"
+  description="Get the complete routing playbook for API selection, migration planning, and controller-compatible implementation patterns."
+  listItems={[
+    {
+      text: "Routing capability comparison matrix",
+    },
+    {
+      text: "Annotation migration mapping guide",
+    },
+    {
+      text: "Controller support readiness checklist",
+    },
+    {
+      text: "Phased migration execution plan",
+    },
+  ]}
+/>
+
 If you're not sure where to start: audit your current Ingress resources. Count the custom annotations. If you're using mostly standard fields (hosts, paths, TLS) and everything lives in a handful of namespaces managed by one team, Ingress is probably fine. If you're using controller-specific annotations for traffic splitting, header manipulation, or rate limiting—and especially if you've ever considered switching controllers—Gateway API is worth the investment.
 
 For greenfield projects without strong opinions, Gateway API is a reasonable default. It's mature enough for production, and starting there avoids a future migration. But "future-proofing" isn't a good reason to migrate existing stable workloads.
 
 Both APIs will coexist for years. Make the decision based on requirements, not hype.
-
----
-
-This article covers the essential decision framework for choosing between Ingress and Gateway API. For teams ready to implement, the complete guide includes detailed YAML examples for all routing patterns, a comprehensive migration checklist with effort estimates, annotation conversion tables, controller support matrices, and a four-phase migration plan with rollback procedures at each stage. Download the full technical deep-dive to get the implementation details your team needs.

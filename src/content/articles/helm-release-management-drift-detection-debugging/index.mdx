@@ -68,6 +68,8 @@ helm diff upgrade myapp ./chart -f values.yaml --namespace production
 
 But checking manually doesn't scale. For production clusters, you want automated drift detection that runs on a schedule and alerts you when something has changed.
 
+<Newsletter />
+
 Here's a Python script that checks all releases across namespaces and reports any drift:
 
 ```python title="scheduled-drift-check.py"
@@ -172,12 +174,26 @@ Before deleting any resources to fix a failed release, always check if there are
 
 Drift is inevitable in any cluster where humans and automation coexist. The goal isn't to eliminate it entirely but to detect it early and have clear remediation procedures when it causes problems.
 
+<Download
+  resource="helm-release-management-drift-detection-debugging"
+  title="Download the Helm Operations Guide"
+  description="Get the complete release-management playbook for Helm drift detection, rollback recovery, and reliable upgrade workflows."
+  listItems={[
+      {
+          text: "Drift detection automation patterns",
+      },
+      {
+          text: "Failed rollback triage workflow",
+      },
+      {
+          text: "Release inventory governance guide",
+      },
+      {
+          text: "GitOps integration decision matrix",
+      },
+  ]}
+/>
+
 The key practices are straightforward: run `helm diff` before every upgrade (automate this in CI), schedule regular drift detection across your fleet, and when failures happen, follow a systematic diagnosis workflow instead of making changes blindly.
 
 For teams running dozens or hundreds of Helm releases, GitOps tools like Flux and Argo CD can enforce desired state continuously, but they come with their own complexity. The fundamentals of understanding Helm state and detecting drift remain essential regardless of what tooling you use.
-
----
-
-CTA_TITLE: Get the Complete Helm Operations Guide
-
-CTA_BODY: This article covers the essentials of Helm drift detection and debugging. The full guide includes detailed sections on release inventory management with Prometheus metrics, upgrade strategies including atomic and canary deployments, a complete debugging flowchart for failed releases, and GitOps integration patterns with Flux and Argo CD. Download the complete PDF to get the full operational playbook for managing Helm releases at scale.

@@ -54,6 +54,8 @@ Figure: Shadow traffic architecture for parallel validation
 
 The comparison engine is where the real intelligence lives. Naive byte-for-byte comparison fails immediately - timestamps differ, generated IDs change, and floating-point precision varies between platforms. Effective comparison requires semantic normalization.
 
+<Newsletter />
+
 Here's a Python implementation that handles common normalization challenges:
 
 ```python title="comparison_engine.py"
@@ -132,10 +134,18 @@ The combination of shadow traffic validation and automatic rollback transforms m
 
 This approach succeeds because it reframes migration as an observability challenge. Instead of asking "did we build the right thing?" you're asking "can we prove the new service behaves correctly?" Shadow traffic provides that proof. Automatic rollback ensures that any gaps in that proof don't become production incidents.
 
+<Download
+  resource="strangler-fig-migration-complete-guide"
+  title="Strangler Fig Migrations: From Observability to Shutdown"
+  description="Incrementally migrating to new infrastructure by building observability before cutting traffic. A complete walkthrough using auth extraction as the running example."
+  listItems={[
+    { text: "Migration phase planning template" },
+    { text: "Shadow traffic validation guide" },
+    { text: "Automatic rollback policy pack" },
+    { text: "Legacy shutdown readiness checklist" }
+  ]}
+/>
+
 This approach takes longer than a big-bang rewrite would _if the rewrite succeeded_. But the rewrite rarely succeeds on the first attempt. When you account for the discovery of undocumented behavior, the fixes for edge cases that only appear in production, and the inevitable rollbacks, incremental migration with continuous validation is almost always faster.
 
 The real win isn't just a successful migration - it's the operational confidence you build along the way. When your next legacy system needs modernization, you'll have the patterns, tooling, and organizational muscle memory to approach it as routine work rather than an existential risk.
-
----
-
-This article covers the core validation and traffic shifting strategies that make strangler fig migrations safe. For the complete implementation guide - including instrumentation setup, dual-write data migration patterns, and legacy system decommissioning checklists - download our comprehensive deep-dive on this topic.

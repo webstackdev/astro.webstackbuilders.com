@@ -49,6 +49,8 @@ The cached Secret is encrypted in etcd only if you've configured encryption at r
 
 For most workloads—web applications, APIs, microservices—15-30 minutes of staleness is acceptable. Connection pools cache connections anyway, so this staleness window rarely causes immediate failures. ESO's graceful degradation keeps services running through outages, which is usually the right tradeoff.
 
+<Newsletter />
+
 ## CSI Driver: Loud Failures
 
 The Secrets Store CSI Driver takes the opposite approach. Instead of syncing secrets to Kubernetes Secret objects, it mounts them directly into pods as volumes. When a pod starts, the CSI driver intercepts the volume mount, authenticates to Vault using the pod's service account, fetches the secrets, and presents them as files in the container's filesystem.
@@ -99,6 +101,18 @@ The diagram includes init containers as an option for custom fallback logic—us
 
 For most organizations, ESO is the right default. It's operationally simpler, GitOps-friendly (ExternalSecrets are declarative resources you commit to version control), and its failure mode keeps services running. Reserve CSI for specific applications with strict compliance requirements or real-time credential needs.
 
+<Download
+  resource="kubernetes-secrets-external-secrets-operator-csi-vault"
+  title="Kubernetes Secrets: ESO vs CSI vs Init Containers"
+  description="Comparing secret injection patterns and their failure modes when connecting Vault or cloud secret managers."
+  listItems={[
+      { text: "Secret pattern comparison matrix" },
+      { text: "ESO configuration starter templates" },
+      { text: "CSI failure mode runbooks" },
+      { text: "Rotation and audit checklist" }
+  ]}
+/>
+
 The mistake isn't choosing either pattern. It's not understanding which failure mode you've chosen. The team that slept through the 3 AM Vault outage didn't get lucky—they understood that ESO's cached secrets would keep their services running. The team that got paged made a valid choice too; for their payment system, blocking on fresh credentials was the right call. Their runbooks reflected it.
 
 Whatever you choose, document it. When the next outage happens, your incident responders shouldn't be learning your secret injection architecture for the first time.
@@ -106,7 +120,3 @@ Whatever you choose, document it. When the next outage happens, your incident re
 <Callout type="success">
 Start with ESO for the majority of workloads, with a 15-minute refresh interval, and monitor sync status with alerts on stale ExternalSecrets. Add CSI for specific high-security applications where staleness is unacceptable. This gives you operational simplicity with escape hatches for edge cases.
 </Callout>
-
----
-
-This article covers the core decision framework for Kubernetes secret injection. For implementation details—ClusterSecretStore configuration, ExternalSecret templating, CSI SecretProviderClass setup, init container patterns with fallback logic, security hardening, and monitoring alerts—download our comprehensive guide that walks through each pattern with production-ready examples.

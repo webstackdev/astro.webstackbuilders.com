@@ -37,6 +37,8 @@ Pool sizing isn't guesswork—it's queuing theory. Little's Law provides the fou
 
 If your application handles 100 queries per second with an average query time of 50ms, you need $100 \times 0.05 = 5$ connections on average. Simple, right?
 
+<Newsletter />
+
 Here's where it gets tricky: Little's Law uses averages, but averages hide variance. Query times vary. Traffic spikes. A pool sized for average load will saturate during peaks. This is why the practical formula substitutes P99 query time for average—you want enough connections to handle 99% of queries without queueing. Then multiply by a _burst factor_ (typically 2-3× for web traffic) to handle traffic spikes above your measured peak.
 
 The practical formula:
@@ -116,6 +118,18 @@ Table: Saturation metric thresholds.
 
 If you're using PgBouncer (and at scale, you should be), it exposes its own saturation signals via the `SHOW POOLS` admin command. The key metrics: `cl_waiting` shows clients waiting for a server connection—any sustained value above zero means your pool can't keep up. `sv_idle` counts available server connections; when this hits zero, every new request queues. `maxwait` reports the longest current wait time in seconds—this is your canary. If `maxwait` climbs while `sv_idle` sits at zero, you're saturated and need to either increase `default_pool_size` or optimize the queries holding connections.
 
+<Download
+  resource="postgresql-connection-pooling-saturation-sizing"
+  title="PostgreSQL Connections: Pooling and Saturation"
+  description="Connection pool sizing, timeout configuration, and the saturation signals that predict database problems."
+  listItems={[
+    { text: "Pool sizing calculation worksheet" },
+    { text: "PgBouncer tuning starter config" },
+    { text: "Saturation alert threshold pack" },
+    { text: "Connection incident recovery runbook" }
+  ]}
+/>
+
 ## Before the 3am Call
 
 Connection management comes down to three principles: connections are expensive so keep them minimal, size pools with math instead of guesswork, and monitor saturation before it becomes exhaustion.
@@ -123,9 +137,3 @@ Connection management comes down to three principles: connections are expensive 
 But knowing _what_ to monitor is only half the battle. When saturation does hit—and it will—you need to understand the cascade that follows and have recovery strategies ready. Connection exhaustion doesn't fail gracefully. It cascades through retry storms, health check failures, and orchestrator restarts that compound the problem.
 
 The difference between a slow day and a multi-hour outage often comes down to whether you've implemented circuit breakers and retry budgets before you needed them.
-
----
-
-__CTA Title:__ The Complete PostgreSQL Connection Management Guide
-
-__CTA Body:__ This article covers the essentials of pool sizing and saturation monitoring. The full guide goes deeper: PgBouncer configuration and pooling modes, the five stages of connection exhaustion cascade, circuit breaker and retry budget implementations with code samples, step-by-step recovery procedures for total connection collapse, and reference SQL queries for incident response. Get the complete technical deep-dive delivered to your inbox.

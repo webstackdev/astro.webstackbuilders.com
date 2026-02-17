@@ -53,6 +53,8 @@ Code: Commands for diagnosing state-specific issues.
 
 The refresh-only plan is particularly useful: it compares state to reality without considering your configuration changes. If it shows drift, you know the problem is state-vs-reality divergence.
 
+<Newsletter />
+
 ## Recovery Procedures
 
 The right recovery procedure depends on what's broken. Here's how to handle each scenario.
@@ -166,6 +168,18 @@ Code: Recovering state from S3 version history.
 
 A successful recovery should result in a plan showing no changes, or minimal drift from whatever happened between the backup and now.
 
+<Download
+  resource="terraform-state-locking-corruption-recovery-backend"
+  title="Terraform State: Failure Modes and Recovery"
+  description="State locking, backend configuration, and recovery strategies for when state corruption happens."
+  listItems={[
+    { text: "State recovery incident checklist" },
+    { text: "Backend hardening configuration guide" },
+    { text: "Import and state surgery playbook" },
+    { text: "Quarterly disaster drill script" }
+  ]}
+/>
+
 ## Prevention Checklist
 
 Most state problems are preventable. These practices eliminate the patterns that cause corruption:
@@ -178,9 +192,3 @@ Most state problems are preventable. These practices eliminate the patterns that
 - _Practice recovery quarterly._ Restore from backup in a test environment. Import a throwaway resource. Force-unlock a test state. When the incident happens, these commands should be muscle memory.
 
 The failure modes are well-documented, and so are the fixes. With the right backend configuration and practiced recovery procedures, you can turn a potential multi-day outage into a 15-minute recovery.
-
----
-
-__Get the Complete Guide__
-
-This article covers the essentials of state recovery, but there's more to production-ready Terraform state management. The full guide includes detailed backend comparison tables, a complete production-ready S3 backend module with KMS encryption and lifecycle policies, state organization patterns for multi-environment setups, and automated backup scripts for cross-region redundancy. Download the deep-dive PDF for the complete implementation details.

@@ -117,6 +117,8 @@ That contract gets published to a Pact Broker, where the provider fetches it and
 
 The contract becomes a living artifact that both sides test against. Consumers can't expect something they haven't declared. Providers can't break something they've verified they support.
 
+<Newsletter />
+
 ## The Deployment Safety Net
 
 Contracts alone don't prevent bad deployments. The real power comes from tracking which versions are compatible and blocking deployments that would break compatibility.
@@ -159,12 +161,26 @@ The `can-i-deploy` command moves deployment decisions from "hope and pray" to "v
 
 Contract testing fills the gap between fast unit tests and slow integration tests. It catches the specific category of bugs that matter most in distributed systems: API incompatibilities between services that only manifest when deployed together.
 
+<Download
+  resource="consumer-driven-contract-testing-pact-internal-apis"
+  title="Download the Contract Testing Guide"
+  description="Get the complete implementation playbook for consumer-driven contracts, provider verification, and safe multi-service deployments."
+  listItems={[
+    {
+      text: "Pact workflow setup checklist",
+    },
+    {
+      text: "Matcher design best practices",
+    },
+    {
+      text: "Provider state management guide",
+    },
+    {
+      text: "Can-i-deploy policy runbook",
+    },
+  ]}
+/>
+
 The approach requires some organizational shift. Consumer teams must write contracts that capture their actual dependencies. Provider teams must run verification as part of their CI pipeline. Both sides must publish results to a shared broker. But the payoff is substantial: confident deployments without coordinating across every team, without maintaining heavyweight test environments, and without discovering breaks in production.
 
 The `userId` incident that opened this article? With contract testing in place, it becomes a failed PR instead of a weekend incident. The build breaks, the developer sees which consumers would be affected, and they make an informed choice about how to proceed. That's the difference between integration tests and contracts: one tells you something broke, the other tells you before you break it.
-
----
-
-**Go Deeper: The Complete Guide to Contract Testing**
-
-This article covers the core concepts, but implementing contract testing across your organization involves more decisions: setting up the Pact Broker, writing effective matchers, managing provider states, integrating with CI/CD pipelines, and scaling across dozens of services. Our comprehensive guide walks through each step with production-ready examples, including Docker Compose configurations, GitHub Actions workflows, and strategies for handling the edge cases that trip up most teams. Download the full guide to get your contract testing implementation right the first time.

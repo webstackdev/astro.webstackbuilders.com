@@ -149,6 +149,8 @@ The `volumeThreshold` parameter prevents the circuit from opening on the first f
 
 An open circuit needs a fallback strategy. For read operations, serving cached data maintains a functional user experience. For optional features like recommendations, returning an empty response is better than breaking the entire page. For operations where hiding the failure would cause worse problems—like payment processing—fail fast and let the user know.
 
+<Newsletter />
+
 ## Retry Budgets
 
 Circuit breakers protect against sustained failures, but they don't address the retry amplification problem directly. A service can still overwhelm a downstream dependency with retries _before_ the circuit opens. Retry budgets solve this by limiting the total number of retries across all requests, not just per-request.
@@ -198,6 +200,26 @@ Code: Retry budget implementation tracking successes and limiting retries to a p
 
 Circuit breakers and retry budgets complement each other. The circuit breaker detects when a service is unhealthy and stops calling it entirely. The retry budget prevents overwhelming a service _before_ the circuit opens. Together, they provide layered protection.
 
+<Download
+  resource="circuit-breaker-retry-budget-cascade-failure-prevention"
+  title="Download the Circuit Breaker Guide"
+  description="Get the complete resilience playbook for retry budgets, circuit states, and cascade-failure prevention across service chains."
+  listItems={[
+    {
+      text: "Retry amplification math workbook",
+    },
+    {
+      text: "Circuit threshold tuning checklist",
+    },
+    {
+      text: "Fallback design pattern catalog",
+    },
+    {
+      text: "On-call debugging runbook",
+    },
+  ]}
+/>
+
 The interaction works like this: requests first pass through the retry budget check, then through the circuit breaker. If the circuit is open, the request fails immediately. If the circuit is closed but the retry budget is exhausted, retries are blocked but the initial request still goes through. This ensures you don't completely stop calling a service just because you've used up your retry allowance.
 
 <Callout type="tip">
@@ -209,9 +231,3 @@ Start with conservative settings: a 50% error threshold for circuit breakers and
 How do you tune circuit breaker thresholds without disrupting production? What observability do you need to debug circuit breaker behavior during an incident? How do service meshes like Istio and Linkerd handle these patterns differently? And what about the anti-patterns that can make your resilience mechanisms backfire—like retrying through an open circuit or setting identical timeouts across your service chain?
 
 The real complexity isn't in understanding the patterns. It's in operating them at scale, coordinating settings across teams, and building the muscle memory to interpret circuit breaker telemetry during a 3 AM page.
-
----
-
-**Ready to Master Cascade Failure Prevention?**
-
-This article covered the essentials of circuit breakers and retry budgets, but there's much more to learn. Download our comprehensive guide for deep dives into fallback strategy implementation, Prometheus alerting configurations, service mesh integration patterns, anti-pattern avoidance, and real-world debugging checklists. Whether you're implementing these patterns for the first time or tuning an existing deployment, the extended guide provides the operational detail you need to build systems that fail gracefully under pressure.

@@ -58,6 +58,8 @@ Good investments include feature launches (up to 20% of monthly budget), infrast
 
 Poor investments include untested deployments (unpredictable budget impact), Friday deployments (limited recovery time if issues arise), and large batch deployments (high risk that should be split into smaller changes). The distinction: intentional spending that generates value versus uncontrolled consumption that just drains the budget.
 
+<Newsletter />
+
 ## The Budget Conversation
 
 This is where error budgets prove their worth. Product wants to launch a new payment flow next week. Engineering estimates the change is medium-risk—it touches the checkout path and historically similar changes cause 5-10 minutes of elevated errors during rollout. SRE checks the dashboard: 25 minutes of budget remaining this month.
@@ -94,12 +96,20 @@ One critical detail: automated enforcement must have escape hatches. Sometimes y
 
 Error budgets succeed when they create alignment, not compliance. The goal isn't to hit arbitrary targets—it's to have a shared language for reliability that lets engineering, product, and SRE make informed tradeoffs together.
 
+<Download
+  resource="slo-error-budget-practical-guide"
+  title="SLIs, SLOs, and Error Budgets: A Practical Guide"
+  description="From choosing user-centric metrics to negotiating reliability tradeoffs with stakeholders—the complete framework for service level management."
+  listItems={[
+    { text: "SLO target setting worksheet" },
+    { text: "Error budget policy templates" },
+    { text: "Burn rate alert examples" },
+    { text: "Stakeholder alignment playbook" }
+  ]}
+/>
+
 Start simple: one service, two SLIs (availability and latency), one quarter of measurement. Pick a service that's broken enough to demonstrate value when improved but not so broken that fixing it seems impossible—you want a quick win, not a multi-quarter project. Set your initial SLO slightly below your current performance so you have a target you can hit from day one while leaving room for normal variation.
 
 After a quarter, you'll know whether the SLO is too tight (constant breaches, alert fatigue), too loose (never breaches, no useful signal), or about right. Most teams need 2-3 iterations to find the right level. That's expected—the first SLO is never perfect, and it doesn't need to be.
 
 The value is in the conversation it enables, not the number itself.
-
----
-
-This article covers the core mechanics of error budgets. The complete guide goes deeper: choosing SLIs that actually reflect user experience (and the anti-patterns that don't), the four golden SLI categories with Prometheus query examples, burn rate monitoring with multi-window alerting, and bootstrapping observability when you're starting from scratch. Download the full guide for implementation details, code samples, and the complete policy framework.

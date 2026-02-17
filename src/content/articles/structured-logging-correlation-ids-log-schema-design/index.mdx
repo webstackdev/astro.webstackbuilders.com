@@ -76,6 +76,8 @@ _Table: Correlation ID types and their scopes. Trace ID is the most important—
 
 The key insight: _trace ID stays constant_ across every service that handles the request. When you query `trace.id:4bf92f3577b34da6a`, you get logs from the API gateway, order service, payment service, inventory service, and notification service—everything involved in that single user action.
 
+<Newsletter />
+
 ### Propagation Is Everything
 
 Correlation IDs are useless if they don't travel with requests. Every service-to-service call must carry the correlation context forward.
@@ -196,14 +198,20 @@ You don't need to fix every service at once. A practical rollout:
 
 Within a month, your most important request paths will be fully correlated. The rest can follow incrementally.
 
+<Download
+  resource="structured-logging-correlation-ids-log-schema-design"
+  title="Structured Logging: Standards That Stick at Scale"
+  description="Field naming, correlation IDs, and noise filtering that keep logs useful as volume grows."
+  listItems={[
+    { text: "Log schema starter blueprint" },
+    { text: "Correlation propagation middleware kit" },
+    { text: "ECS field mapping reference" },
+    { text: "Logging quality CI checks" }
+  ]}
+/>
+
 ## The Payoff
 
 The investment is upfront: schema decisions, correlation middleware, CI tests. But the payoff compounds with every incident. Instead of five queries and an hour of uncertainty, you type one query and see the complete picture in seconds. Every service's logs connect. Debugging takes minutes instead of hours.
 
 The next time it's 3 AM and you're chasing a stuck payment, you won't be guessing at field names. You'll type `user.id:12345 AND event.action:payment_initiated`—one query, every service, complete picture—and know exactly what happened.
-
----
-
-**CTA Title:** Go Deeper: The Complete Guide to Production Logging
-
-**CTA Body:** This article covers the essentials of structured logging and correlation IDs. The full guide dives into sensitive data handling (redaction, encryption, compliance), collector-side noise reduction, schema governance processes, and complete implementation code for Node.js services. Download the PDF for production-ready patterns you can implement this week.

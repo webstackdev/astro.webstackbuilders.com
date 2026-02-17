@@ -64,6 +64,8 @@ A build cache works by hashing all inputs to a task—source files, configuratio
 
 The cache key composition matters. It must include everything that affects the output: task name, package name, input file hashes, dependency output hashes, relevant environment variables, runtime versions, and command arguments. Miss any of these, and you risk cache poisoning—returning outputs that don't match what a fresh build would produce. Include too much, and you get unnecessary cache misses.
 
+<Newsletter />
+
 ### Setting Up Remote Caching
 
 Both Nx and Turborepo offer straightforward remote caching setup.
@@ -107,6 +109,18 @@ Remote cache without authentication is a security risk. Anyone with cache access
 
 The implementation path is straightforward. For an existing repo, run `npx nx init` (Nx) or `npx turbo init` (Turborepo) to add affected build support. Then add remote caching to share results across your team. Tune your input specifications to maximize cache hit rates. If CI is still slower than you'd like, introduce parallelization and distribution.
 
+<Download
+  resource="monorepo-affected-builds-remote-caching-ci-optimization"
+  title="Monorepo Release Engineering: Affected Builds"
+  description="Building only what changed with affected-based builds and remote caching that actually speeds up CI."
+  listItems={[
+    { text: "Affected build setup checklist" },
+    { text: "Remote cache hardening guide" },
+    { text: "Cache miss debugging playbook" },
+    { text: "CI metrics tracking templates" }
+  ]}
+/>
+
 Each optimization level compounds the previous. Skip unaffected packages entirely. Cache affected but unchanged packages. Parallelize the remaining work within each runner. Distribute across multiple runners.
 
 The goal isn't the fastest possible full build—it's the fastest possible feedback for typical changes. Optimize for the common case (small, focused changes) while ensuring full builds remain tractable for major changes.
@@ -114,9 +128,3 @@ The goal isn't the fastest possible full build—it's the fastest possible feedb
 <Callout type="info">
 CI optimization pays dividends every day. A team of 10 developers running 20 builds each saves 140 hours per week going from 45-minute to 4-minute builds. Start before it becomes urgent.
 </Callout>
-
----
-
-**CTA Title:** Go Deeper: The Complete Guide to Monorepo CI Optimization
-
-**CTA Body:** This article covers the fundamentals of affected builds and remote caching. The complete guide includes CI pipeline patterns for GitHub Actions, distributed task execution strategies, cache invalidation and input configuration for maximum hit rates, performance baselines, and metrics dashboards for monitoring. Download the comprehensive PDF to implement a full optimization stack for your monorepo.

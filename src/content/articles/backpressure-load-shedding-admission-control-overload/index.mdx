@@ -211,6 +211,8 @@ Code: Priority-based routing reserves capacity for critical traffic.
 
 The key insight is that critical traffic can _borrow_ capacity from lower tiers. If the anonymous quota is exhausted but the critical quota has room, anonymous requests are rejected while payments keep flowing.
 
+<Newsletter />
+
 ## Load Shedding and Graceful Degradation
 
 ### Choosing What to Shed
@@ -287,6 +289,26 @@ Graceful degradation requires knowing which features are expendable. Work with p
 
 Every system has limits. The question isn't whether yours will face overload—it's whether it will handle overload gracefully or collapse catastrophically.
 
+<Download
+  resource="backpressure-load-shedding-admission-control-overload"
+  title="Download the Backpressure Patterns Guide"
+  description="Get the complete overload response guide for admission control, load shedding, and resilient degradation under traffic spikes."
+  listItems={[
+    {
+      text: "Overload cascade diagnostic playbook",
+    },
+    {
+      text: "Admission control implementation patterns",
+    },
+    {
+      text: "Graceful shedding strategy matrix",
+    },
+    {
+      text: "Priority traffic protection runbooks",
+    },
+  ]}
+/>
+
 Three principles to carry forward:
 
 **Fast rejection beats slow failure.** When you can't serve a request, say so immediately. A 503 returned in 5ms is infinitely better than a timeout after 30 seconds. The fast rejection frees resources and gives clients useful information.
@@ -296,11 +318,3 @@ Three principles to carry forward:
 **Degrade predictably rather than fail catastrophically.** A system that maintains 50% goodput during a 10x traffic spike is succeeding. A system that accepts everything and serves nothing has failed completely.
 
 The underlying principle is simple: _some_ work completing successfully is better than _all_ work failing. Build systems that know their limits, and you'll build systems that survive.
-
----
-
-**CTA Headline:** Go Deeper: The Complete Guide to Backpressure Patterns
-
-**CTA Body:** This article covers the fundamentals of admission control and load shedding. The full guide includes implementation patterns for circuit breakers, bulkheads, and adaptive concurrency limits, plus detailed code examples in TypeScript, Python, Go, and infrastructure configurations for AWS, Istio, and pgBouncer. You'll also find chaos engineering experiments for testing your backpressure mechanisms and observability configurations for monitoring overload in production.
-
-**CTA Button Text:** Download the PDF Guide

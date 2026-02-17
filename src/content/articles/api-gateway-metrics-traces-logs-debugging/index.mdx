@@ -214,6 +214,8 @@ Code: Tail sampling configuration to keep all errors and slow requests.
 
 This captures the traces you actually need for debugging—failures and performance problems—without storing millions of routine successful requests.
 
+<Newsletter />
+
 ## A Quick Debugging Workflow
 
 When latency alerts fire, follow this pattern: metrics narrow scope → traces show detail → logs explain why.
@@ -276,6 +278,26 @@ Search logs for the affected time range and route. Look for:
 
 The pattern is always the same: start broad with metrics, zoom in with traces, explain with logs.
 
+<Download
+  resource="api-gateway-metrics-traces-logs-debugging"
+  title="Download the API Gateway Observability Guide"
+  description="Get the complete framework for gateway metrics, trace propagation, and debugging workflows that isolate production latency failures quickly."
+  listItems={[
+    {
+      text: "Gateway RED metrics playbook",
+    },
+    {
+      text: "Latency decomposition instrumentation patterns",
+    },
+    {
+      text: "Correlation logging implementation guide",
+    },
+    {
+      text: "Incident debugging workflow templates",
+    },
+  ]}
+/>
+
 ## Conclusion
 
 Gateway observability isn't about collecting more data—it's about making the gateway transparent so you can answer three questions in seconds instead of hours:
@@ -287,18 +309,3 @@ Gateway observability isn't about collecting more data—it's about making the g
 The comprehensive guide (linked below) covers additional topics: structured logging with correlation IDs, dashboard design for debugging instead of monitoring, alerting strategies to reduce noise, handling high-cardinality consumers, and controlling costs in production.
 
 _Start with latency breakdown metrics. Add distributed tracing once you need request-level visibility. Everything else is details. The difference between a 5-minute fix and a 5-hour nightmare is knowing which side of the gateway is slow._
-
----
-
-## Want the Complete Guide?
-
-This article covered the fundamentals of gateway latency visibility and distributed tracing. The complete deep-dive guide includes:
-
-- **Complete metric instrumentation**: RED method metrics, consumer-level metrics, upstream health tracking
-- **Structured logging with correlation IDs**: Request ID propagation, error context logging, log aggregation strategies
-- **Dashboard design for debugging**: Overview dashboards, drill-down workflows, consumer-specific views
-- **Alert strategies**: SLI-based alerts, upstream-specific alerts, consumer abuse detection
-- **Three complete debugging scenarios**: Latency spikes, intermittent 503 errors, consumer-specific performance issues
-- **Implementation considerations**: Cardinality management, performance impact, cost considerations, security and privacy, testing your observability, vendor-agnostic instrumentation with OpenTelemetry
-
-**[Download the complete guide (PDF)](/)**—over 8,800 words of in-depth coverage with code examples, diagrams, and real-world debugging workflows.

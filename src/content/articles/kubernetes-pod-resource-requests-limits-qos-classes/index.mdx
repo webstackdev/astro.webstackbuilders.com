@@ -58,6 +58,8 @@ I've seen the same resource misconfigurations across dozens of clusters. Here ar
 
 **Limits only, no requests** seems harmless, but Kubernetes helpfully sets requests equal to limits when you only specify limits. The result is Guaranteed QoS, but you're probably over-reserving. The pod reserves its peak capacity even when it only needs a fraction of it, wasting cluster capacity and increasing costs.
 
+<Newsletter />
+
 The correct patterns depend on your workload type:
 
 ```yaml title="pattern-guaranteed.yaml"
@@ -124,6 +126,26 @@ If you do nothing else, do these three things:
 
 **Size memory limits with 50% headroom above peak.** Memory is incompressible—exceed your limit and the kernel's OOM killer terminates your process immediately. No graceful shutdown, no warning. CPU throttling is recoverable; OOM kills are not.
 
+<Download
+  resource="kubernetes-pod-resource-requests-limits-qos-classes"
+  title="Download the Pod Sizing Guide"
+  description="Get the complete resource-sizing playbook for requests, limits, QoS behavior, and node-pressure resilience."
+  listItems={[
+    {
+      text: "QoS class decision matrix",
+    },
+    {
+      text: "Request limit sizing worksheet",
+    },
+    {
+      text: "Eviction risk reduction checklist",
+    },
+    {
+      text: "Resource tuning query pack",
+    },
+  ]}
+/>
+
 ## Write Good Contracts
 
 Remember those 3 AM evictions? The fix is understanding the contract.
@@ -131,9 +153,3 @@ Remember those 3 AM evictions? The fix is understanding the contract.
 Pod resource configuration comes down to two promises: _requests_ tell the scheduler what you need, _limits_ tell the kernel what you'll never exceed. QoS class—derived from how you set these—determines who dies first when nodes run low. The full resource management story includes right-sizing with Prometheus metrics, VPA recommendations, namespace guardrails, and alerting on memory pressure. But the three actions above address the most common failure modes.
 
 Get the contract right, and your pods survive node pressure. Get it wrong, and the well-behaved ones die first.
-
----
-
-**Go Deeper: The Complete Pod Sizing Guide**
-
-This article covers the essentials, but production Kubernetes resource management involves more: right-sizing with Prometheus queries and VPA recommendations, namespace-level guardrails with LimitRange and ResourceQuota, alerting on memory pressure and CPU throttling, and cost attribution for infrastructure efficiency. Download the complete guide for the full operational playbook, including ready-to-use configurations and queries.

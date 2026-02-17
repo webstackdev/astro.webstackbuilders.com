@@ -117,6 +117,8 @@ The output tells you sync status (Synced, OutOfSync, Unknown) and health status 
 
 The `--show-operation` flag shows which phase the sync is in. "Running PreSync hooks" means a hook is stuck. "Sync error" with a message means apply failed.
 
+<Newsletter />
+
 ### Step 2: Examine ArgoCD Logs
 
 ArgoCD has several components, each handling different parts:
@@ -191,14 +193,28 @@ If a resource shows OutOfSync but the diff looks identical, check for whitespace
 
 ArgoCD sync failures are frustrating because they break the promise of GitOps: you pushed to Git, so it should just work. But that frustration fades once you understand what's happening beneath the abstraction.
 
+<Download
+  resource="argocd-sync-failures-gitops-debugging-troubleshooting"
+  title="Download the ArgoCD Troubleshooting Guide"
+  description="Get the complete GitOps debugging reference for sync waves, hook failures, and recovery workflows during blocked deployments."
+  listItems={[
+    {
+      text: "Sync wave ordering runbooks",
+    },
+    {
+      text: "Hook deadlock diagnosis checklist",
+    },
+    {
+      text: "OutOfSync loop remediation patterns",
+    },
+    {
+      text: "Production recovery workflow guide",
+    },
+  ]}
+/>
+
 The workflow covered here gives you a systematic approach: identify _what_ failed by checking ArgoCD status, understand _when_ it failed by examining sync waves and hooks, verify _why_ it failed by inspecting Kubernetes state, and test your fix before committing. Most failures fall into a few recognizable categories—once you identify the pattern, the fix is usually straightforward.
 
 What makes this workflow valuable isn't memorizing every edge case. It's building a mental model of what ArgoCD is actually doing during sync. When you understand that sync waves control ordering, that hooks block until completion, and that health checks determine when ArgoCD considers a resource "ready," you can reason about failures even when they don't match a known pattern.
 
 GitOps isn't magic—it's automation. When the automation fails, you need to understand what it was trying to do. The declarative model abstracts away the _how_ of deployment, which is powerful until something goes wrong. Then the abstraction becomes the obstacle. The debugging skills in this article help you see through it.
-
----
-
-**CTA Title:** Go Deeper: The Complete ArgoCD Troubleshooting Guide
-
-**CTA Body:** This article covers the essential debugging workflow, but production incidents often require more. The complete guide includes detailed runbooks for specific failure scenarios (stuck hooks, CRD ordering, pruning accidents), prevention strategies (CI validation, sync windows, alerting configuration), and advanced recovery techniques for when ArgoCD state becomes corrupted. Download the PDF to have a comprehensive reference ready for your next sync failure.

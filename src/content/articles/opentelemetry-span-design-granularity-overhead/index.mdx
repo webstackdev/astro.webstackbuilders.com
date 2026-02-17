@@ -116,6 +116,8 @@ _Cryptic names._ Span names like "span," "operation," "handler," or "process" th
 
 _Attribute explosion._ Hundreds of attributes per span because someone dumped all available context. The trace viewer loads slowly, important attributes are buried in noise, and storage costs balloon. The fix is selecting relevant attributes deliberately.
 
+<Newsletter />
+
 A good trace has 10-30 spans per request, 3-5 levels of nesting, clear names that explain each operation, and visible gaps that show where uninstrumented time went. You should be able to identify the critical path at a glance.
 
 Naming is particularly important for quick scanning. Span names should answer "what operation on what resource?" without requiring you to read the code. The OpenTelemetry semantic conventions provide a good starting point, and the table below shows common patterns and pitfalls.
@@ -134,6 +136,18 @@ Table: Span naming patterns.
 
 Span design is an engineering tradeoff: visibility versus overhead, granularity versus readability, detail versus cost. The goal isn't maximum spans—it's enough spans to debug problems efficiently.
 
+<Download
+  resource="opentelemetry-span-design-granularity-overhead"
+  title="Tracing Span Design: How Many Is Too Many"
+  description="Balancing trace granularity against overhead, storage, and the ability to actually read trace waterfalls."
+  listItems={[
+    { text: "Span granularity decision matrix" },
+    { text: "Event versus span guidelines" },
+    { text: "Trace readability audit checklist" },
+    { text: "Sampling strategy comparison guide" }
+  ]}
+/>
+
 Instrument service boundaries, I/O operations, and significant business logic. Use events for milestones within spans. Use attributes for metadata that helps filtering and debugging. The best traces answer three questions: what happened, where time was spent, and what failed.
 
 Audit your current traces: pick a typical request, count the spans, and ask whether you could identify the slow operation in under 10 seconds. If not, you've found your first refactoring target.
@@ -141,7 +155,3 @@ Audit your current traces: pick a typical request, count the spans, and ask whet
 <Callout type="info">
 Start with minimal instrumentation—auto-instrumentation plus key business operations—then add spans only when you can't debug a specific problem. You can always add granularity; removing it requires code changes. Let debugging needs drive instrumentation, not the quest for "complete" visibility.
 </Callout>
-
----
-
-This article covers the essentials of span design—what to instrument, how to choose between spans, events, and attributes, and how to keep traces readable. The complete guide goes deeper: span anatomy and context propagation, performance overhead measurements, sampling strategies (head vs tail), attribute cardinality patterns, and full code examples for request lifecycle and batch processing instrumentation. Download the PDF for the complete reference.

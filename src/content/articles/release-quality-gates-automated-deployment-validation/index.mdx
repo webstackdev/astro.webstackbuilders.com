@@ -39,6 +39,8 @@ When I helped that team rebuild their gate system, we did something simple but p
 
 Required blocking gates must pass before deployment proceeds. These need high precision—90% or better. Every failure should represent a real problem worth stopping for. Examples include unit tests, build success, critical security vulnerabilities (CVSS 9+), and authentication tests.
 
+<Newsletter />
+
 Required advisory gates must run, but failures alert rather than block. These are important signals that may have false positives, or where trends matter more than absolute values. Integration tests, performance baselines, and code coverage fall into this category.
 
 Optional gates are available but not required—nice-to-have insights like code style checks beyond basic linting, documentation coverage, or complexity metrics.
@@ -77,6 +79,18 @@ The ultimate test of a quality gate system: when a gate fires, do engineers inve
 
 Accuracy matters more than recall for blocking gates. It's better to catch fewer problems with high confidence than to cry wolf constantly. A gate that blocks one real problem and ten false positives is worse than no gate at all—engineers will route around it, and trust in the whole system erodes.
 
+<Download
+  resource="release-quality-gates-automated-deployment-validation"
+  title="Release Health Gates Without Blocking Everything"
+  description="Automated quality gates that catch real failures without becoming a bottleneck or a source of false positives."
+  listItems={[
+    { text: "Gate categorization decision framework" },
+    { text: "Blocking gate precision checklist" },
+    { text: "Advisory gate tuning playbook" },
+    { text: "Bypass audit trail template" }
+  ]}
+/>
+
 Start strict and loosen based on data. It's easier to make an advisory gate blocking once you've proven its reliability than to regain trust after a blocking gate has generated months of false positives. I've seen teams spend six months rebuilding credibility after a poorly-tuned security scanner blocked dozens of legitimate deployments.
 
 Track your metrics: precision (percentage of failures that are real problems), false positive rate (false positives divided by total runs), and bypass rate (manual bypasses divided by gate failures). For blocking gates, target 90%+ precision, under 5% false positive rate, and under 10% bypass rate. If any metric is off, you have work to do.
@@ -86,7 +100,3 @@ The goal isn't zero-risk deployments—that leads to zero deployments. The goal 
 <Callout type="success">
 Your first step: audit your current gates. For each blocking gate, check its bypass rate over the last month. Any gate with a bypass rate above 20% is a candidate for demotion to advisory status—or removal entirely.
 </Callout>
-
----
-
-This article covers the fundamentals of gate design—what makes gates worth having, how to categorize them, and which patterns to avoid. The complete guide goes deeper into post-deployment validation with progressive rollouts, configuring metric-based gates with tools like Argo Rollouts, implementing safe bypass mechanisms with audit trails, and building the instrumentation to measure gate effectiveness over time. Download it to get the full implementation details.
