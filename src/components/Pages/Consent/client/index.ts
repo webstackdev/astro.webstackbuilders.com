@@ -304,7 +304,6 @@ export class ConsentPreferencesElement extends LitElement {
         }
 
         event.preventDefault()
-        event.returnValue = ''
       }
     }
 
