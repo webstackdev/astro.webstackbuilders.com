@@ -1,0 +1,22 @@
+---
+export type Props = {
+  items: {
+    text: string
+  }[]
+}
+
+const { items } = Astro.props
+
+const ulClass = ["list-disc pl-0 space-y-3 mb-0 mt-2"]
+const liClass = ["flex items-start gap-3"]
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map(({ text }) => (
+      <li class:list={liClass}>
+        <span>{text}</span>
+      </li>
+    ))
+  }
+</ul>

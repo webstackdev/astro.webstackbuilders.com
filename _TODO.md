@@ -264,8 +264,7 @@ This article has different approaches to [print pagination](https://www.customjs
 
 - Social shares - module CSS doesn't appear correct with nested button hover classes, not sure how network name is generated or styled but it needs improvement. Should be rendered inside article content column, not across both content and TOC columns.
 
-
- ### Component Stylings
+### Component Stylings
 
 The bottom margin issues on CTAs need to handle paragraphs differently than headers. Headers are properly spaced now; paragraphs are flush with the CTA with no top margin.
 
@@ -276,5 +275,3 @@ The bottom margin issues on CTAs need to handle paragraphs differently than head
 - Callouts should get round corners like the Download and Newsletter CTAs
 
 - Tags need styled at the top of articles item view pages
-
-<Newsletter />
