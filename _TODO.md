@@ -127,7 +127,6 @@ https://mermaid.js.org/config/directives.html
 - /
 - /404
 - /about
-- /consent
 - /contact
 - /downloads/[slug]
 - /newsletter
