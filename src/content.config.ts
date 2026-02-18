@@ -104,7 +104,6 @@ const downloadsCollection = defineCollection({
         fileType: z.enum(['PDF', 'eBook', 'Whitepaper', 'Guide', 'Report', 'Template']),
         pages: z.number().optional(),
         readingTime: z.string().optional(),
-        showToc: z.boolean().default(false),
       }),
       'downloads'
     ),
