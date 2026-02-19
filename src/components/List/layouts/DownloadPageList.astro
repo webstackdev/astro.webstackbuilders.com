@@ -1,0 +1,25 @@
+---
+import Icon from "@components/Icon/index.astro"
+
+export type Props = {
+  items: {
+    text: string
+  }[]
+}
+
+const { items } = Astro.props
+
+const ulClass = ["space-y-3 ml-4 mr-4 md:mr-20 my-4"]
+const liClass = ["flex items-start gap-3"]
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map(({ text }) => (
+      <li class:list={liClass}>
+        <Icon icon="check-stylized" size={6} color="success" />
+        <span>{text}</span>
+      </li>
+    ))
+  }
+</ul>

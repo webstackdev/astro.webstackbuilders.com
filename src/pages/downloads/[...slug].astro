@@ -1,9 +1,8 @@
 ---
 import { type CollectionEntry, getCollection } from 'astro:content'
-import { Picture } from 'astro:assets'
 import { isDev } from '@lib/config/environmentServer'
-import MarkdownLayout from '@layouts/MarkdownLayout.astro'
-import DownloadForm from '@components/Forms/Download/index.astro'
+import BaseLayout from '@layouts/BaseLayout.astro'
+import DownloadPage from '@components/Pages/Download/index.astro'
 
 export interface Props {
   download: CollectionEntry<'downloads'>
@@ -15,130 +14,30 @@ export async function getStaticPaths() {
     return isDev() || data.isDraft !== true
   })
   return downloadEntries.map(download => ({
-    params: { slug: download.id },
+    params: { slug: download.id.replace(/\/download$/, '') },
     props: { download },
   }))
 }
 
 const { download } = Astro.props
 
-const path = `/downloads/${download.id}`
-const section = 'Downloads'
+const path = `/downloads/${download.id.replace(/\/download$/, '')}`
 ---
 
-<MarkdownLayout
-  collectionItem={download}
-  contentType="article"
+<BaseLayout
   description={download.data.description}
   pageTitle={download.data.title}
   path={path}
-  publishDate={download.data.publishDate}
-  section={section}
-  showToc={false}
+  breadcrumbTitle={download.data.title}
+  section="Tags"
 >
-  {
-    download.data.cover && (
-      <div
-        class="relative aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
-        slot="hero-image"
-      >
-        <Picture
-          src={download.data.cover}
-          alt={download.data.coverAlt}
-          widths={[640, 960, 1280, 1920]}
-          sizes="(min-width: 1280px) 80vw, 100vw"
-          formats={['avif', 'webp', 'jpeg']}
-          layout="constrained"
-          fit="cover"
-          position="center"
-          class="absolute inset-0 h-full w-full object-cover"
-          loading="eager"
-        />
-      </div>
-    )
-  }
-
-  <!-- Resource Meta Information -->
-  <section
-    class="mb-8 p-4 bg-page-offset rounded-xl border border-trim"
-    slot="content-prefix"
-    aria-label="Resource details"
-  >
-    <dl class="flex flex-wrap gap-4">
-      <div class="flex items-center gap-2">
-        <svg
-          class="w-5 h-5 text-content-active"
-          aria-hidden="true"
-          focusable="false"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-          ></path>
-        </svg>
-        <dt class="sr-only">File type</dt>
-        <dd class="text-sm font-medium">{download.data.fileType}</dd>
-      </div>
-      {
-        download.data.fileSize && (
-          <div class="flex items-center gap-2">
-            <svg
-              class="w-5 h-5 text-content-active"
-              aria-hidden="true"
-              focusable="false"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-              />
-            </svg>
-            <dt class="sr-only">File size</dt>
-            <dd class="text-sm text-content-active">{download.data.fileSize}</dd>
-          </div>
-        )
-      }
-      {
-        download.data.pages && (
-          <div class="flex items-center gap-2">
-            <svg
-              class="w-5 h-5 text-content-active"
-              aria-hidden="true"
-              focusable="false"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-              />
-            </svg>
-            <dt class="sr-only">Pages</dt>
-            <dd class="text-sm text-content-active">{download.data.pages} pages</dd>
-          </div>
-        )
-      }
-    </dl>
-  </section>
-
-  <!-- Download Form -->
-  <section class="border-t border-trim pt-12 mt-12" slot="after-content" aria-label="Download">
-    <DownloadForm
-      title={download.data.title}
-      fileName={download.data.fileName}
-      fileType={download.data.fileType}
-    />
-  </section>
-</MarkdownLayout>
+  <DownloadPage
+    download={download}
+    content={{
+      header: {
+        title: download.data.title,
+        description: download.data.description,
+      },
+    }}
+  />
+</BaseLayout>

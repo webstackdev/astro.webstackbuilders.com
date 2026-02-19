@@ -14,5 +14,5 @@ export interface ConsentCheckboxProps {
   /** Form identifier (for tracking in consent logs) */
   formId?: string
   /** Layout variants */
-  variant: 'default' | 'newsletter-cta-home' | 'newsletter-cta-article'
+  variant: 'default' | 'newsletter-cta-home' | 'newsletter-cta-article' | 'download'
 }

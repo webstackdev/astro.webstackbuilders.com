@@ -17,6 +17,7 @@ import type { ConsentCheckboxProps } from './@types'
 export type Props = ConsentCheckboxProps
 
 import DefaultCheckbox from './default.astro'
+import DownloadCheckbox from './download.astro'
 import NewsletterCtaArticleCheckbox from './newsletter-cta-article.astro'
 import NewsletterCtaHomeCheckbox from './newsletter-cta-home.astro'
 
@@ -60,6 +61,16 @@ const optionalProps = {
   )}
   {variant === 'default' && (
     <DefaultCheckbox
+      purpose={purpose}
+      privacyPolicyUrl={privacyPolicyUrl}
+      cookiePolicyUrl={cookiePolicyUrl}
+      name={name}
+      id={id}
+      {...optionalProps}
+    />
+  )}
+  {variant === 'download' && (
+    <DownloadCheckbox
       purpose={purpose}
       privacyPolicyUrl={privacyPolicyUrl}
       cookiePolicyUrl={cookiePolicyUrl}
