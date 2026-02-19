@@ -3,9 +3,10 @@
  * Offline Page Layout
  */
 import contactData from '@content/contact.json'
+import Header from '@components/Layout/Header/index.astro'
 import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
-import List from '@components/List/index.astro'
 import Icon from '@components/Icon/index.astro'
+import List from '@components/List/index.astro'
 
 export type Props = {
   content: {
@@ -47,20 +48,9 @@ const actionCards = content.items.cards.map((card) => {
 ---
 
 <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-2 md:py-4">
-  <!-- Header (follows privacy page pattern) -->
-  <header class="text-center max-w-2xl mx-auto mb-12">
-    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
-      <Icon
-        icon="waiting"
-        color="primary-offset"
-        size={12}
-      />
-    </div>
-    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.title}</h1>
-    <p class="text-lg text-content-offset leading-relaxed">{content.message}</p>
-  </header>
+  <Header title={content.title} description={content.message} icon="waiting" />
 
-  <!-- What You Can Do Offline Section -->
+  {/** What You Can Do Offline Section */}
   <section
     class="bg-page-offset rounded-xl shadow-md p-8 mb-8"
     aria-labelledby="offline-actions-title"
@@ -80,7 +70,7 @@ const actionCards = content.items.cards.map((card) => {
     />
   </section>
 
-  <!-- About Webstack Builders -->
+  {/** About Webstack Builders */}
   <section
     class="bg-content-active rounded-xl p-8 mb-8"
     aria-labelledby="offline-company-title"
@@ -104,7 +94,7 @@ const actionCards = content.items.cards.map((card) => {
     </div>
   </section>
 
-  <!-- Get In Touch -->
+  {/** Get In Touch */}
   <section
     class="bg-content-inverse-active rounded-xl p-8 mb-10"
     aria-labelledby="offline-contact-title"
@@ -143,7 +133,7 @@ const actionCards = content.items.cards.map((card) => {
     </div>
   </section>
 
-  <!-- Retry Button -->
+  {/** Retry Button */}
   <section class="text-center mb-8" aria-labelledby="offline-retry-title">
     <h2 class="sr-only" id="offline-retry-title">Try again</h2>
     <button

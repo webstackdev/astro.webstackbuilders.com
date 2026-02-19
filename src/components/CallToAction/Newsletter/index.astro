@@ -16,8 +16,9 @@
  */
 
 import type { NewsletterProps } from './client/@types'
-import ArticleNewsletter from './article.astro'
-import HomeNewsletter from './home.astro'
+import ArticleNewsletter from './layouts/article.astro'
+import HomeNewsletter from './layouts/home.astro'
+import PageNewsletter from './layouts/page.astro'
 
 export type Props = NewsletterProps
 
@@ -41,6 +42,14 @@ const {
   )}
   {variant === 'home' && (
     <HomeNewsletter
+      title={title}
+      description={description}
+      placeholder={placeholder}
+      buttonText={buttonText}
+    />
+  )}
+  {variant === 'page' && (
+    <PageNewsletter
       title={title}
       description={description}
       placeholder={placeholder}

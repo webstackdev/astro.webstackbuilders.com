@@ -1,0 +1,32 @@
+---
+import Icon from '@components/Icon/index.astro'
+
+export type Props = {
+  title: string
+  description?: string
+  icon: string
+  trailer?: string
+}
+const { title, description, icon } = Astro.props
+---
+
+<header class="text-center max-w-2xl mx-auto mb-8">
+  <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
+    <Icon
+      icon={icon}
+      color="page-inverse"
+      size={12}
+    />
+  </div>
+  <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{title}</h1>
+  {description && (
+    <p class="text-lg text-content-offset leading-relaxed mb-4">
+      {description}
+    </p>
+  )}
+  {Astro.props.trailer && (
+    <p class="text-sm text-page-inverse italic">
+      {Astro.props.trailer}
+    </p>
+  )}
+</header>
