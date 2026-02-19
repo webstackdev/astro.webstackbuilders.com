@@ -32,6 +32,11 @@ Axe accessibility (2) - axe-core integration
 - Code/CodeTabs
 - Consent/Checkbox
 
+## Newsletter future plans
+
+- Make the Newsletter a list view page
+- Add newsletters as Markdown. Publish to HubSpot from Markdown over API?
+
 ## Testimonials on mobile
 
 We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.

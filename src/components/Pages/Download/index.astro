@@ -37,8 +37,8 @@ const { Content } = await render(download)
 const normalizedDownloadUrl = `/downloads/${fileName}`
 ---
 
-<download-form>
-  <header class="text-center max-w-2xl mx-auto mb-12">
+<download-form class="mb-8 md:mb-30">
+  <header class="text-center max-w-2xl mx-auto mt-6 mb-4 md:mb-12">
     <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
       <Icon
         icon="download"
@@ -47,125 +47,86 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
       />
     </div>
     <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
-    <p class="text-lg text-content-offset leading-relaxed">
-      {content.header.description}
-    </p>
   </header>
 
-  <div class="">
-    {
-      cover && (
+  {/* Two-column layout on desktop: info left, form right */}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-10 lg:gap-12 items-start">
+    {/* Left column: cover, meta, content */}
+    <div class="lg:col-span-2">
+      <div class="flex flex-col md:flex-row items-start gap-6mb-8">
+        {
+          cover && (
+            <section
+              class="relative aspect-square w-60 md:w-80 max-w-full mx-auto md:mx-0 rounded-2xl overflow-hidden shrink-0"
+              aria-label="Cover image"
+            >
+              <Picture
+                src={cover}
+                alt={coverAlt}
+                widths={[320, 480, 640]}
+                sizes="(min-width: 768px) 320px, 100vw"
+                formats={['avif', 'webp', 'jpeg']}
+                layout="constrained"
+                fit="cover"
+                position="center"
+                class="absolute inset-0 h-full w-full object-cover"
+                loading="eager"
+              />
+            </section>
+          )
+        }
+
+        {/* Resource Meta Information */}
         <section
-          class="relative aspect-video max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg mb-8"
-          aria-label="Cover image"
+          class="w-full px-6 md:px-0 md:mx-6 mt-6 md:mt-1"
+          aria-label="Resource details"
         >
-          <Picture
-            src={cover}
-            alt={coverAlt}
-            widths={[640, 960, 1280, 1920]}
-            sizes="(min-width: 1280px) 80vw, 100vw"
-            formats={['avif', 'webp', 'jpeg']}
-            layout="constrained"
-            fit="cover"
-            position="center"
-            class="absolute inset-0 h-full w-full object-cover"
-            loading="eager"
-          />
+          <p class="text-lg text-page-inverse leading-relaxed mt-1 mb-6 p-6 bg-page-offset rounded-xl border border-trim">
+            {content.header.description}
+          </p>
+
+          <dl class="flex items-center justify-center gap-6">
+            <div class="flex items-center gap-2">
+              <Icon icon="document" size={6} color="page-inverse" />
+              <dt class="sr-only">File type</dt>
+              <dd class="text-sm font-medium text-page-inverse">{fileType}</dd>
+            </div>
+            {
+              pages && (
+                <div class="flex items-center gap-2">
+                  <Icon icon="book" size={6} color="page-inverse" />
+                  <dt class="sr-only">Pages</dt>
+                  <dd class="text-sm text-page-inverse">{pages} pages</dd>
+                </div>
+              )
+            }
+            {
+              fileSize && (
+                <div class="flex items-center gap-2">
+                  <Icon icon="file" size={6} color="page-inverse" />
+                  <dt class="sr-only">File size</dt>
+                  <dd class="text-sm text-page-inverse">{fileSize}</dd>
+                </div>
+              )
+            }
+          </dl>
         </section>
-      )
-    }
+      </div>
 
-    <!-- Resource Meta Information -->
-    <section
-      class="mb-8 p-4 bg-page-offset rounded-xl border border-trim"
-      aria-label="Resource details"
-    >
-      <dl class="flex flex-wrap gap-4">
-        <div class="flex items-center gap-2">
-          <svg
-            class="w-5 h-5 text-content-active"
-            aria-hidden="true"
-            focusable="false"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-            ></path>
-          </svg>
-          <dt class="sr-only">File type</dt>
-          <dd class="text-sm font-medium">{fileType}</dd>
-        </div>
-        {
-          fileSize && (
-            <div class="flex items-center gap-2">
-              <svg
-                class="w-5 h-5 text-content-active"
-                aria-hidden="true"
-                focusable="false"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                />
-              </svg>
-              <dt class="sr-only">File size</dt>
-              <dd class="text-sm text-content-active">{fileSize}</dd>
-            </div>
-          )
-        }
-        {
-          pages && (
-            <div class="flex items-center gap-2">
-              <svg
-                class="w-5 h-5 text-content-active"
-                aria-hidden="true"
-                focusable="false"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                />
-              </svg>
-              <dt class="sr-only">Pages</dt>
-              <dd class="text-sm text-content-active">{pages} pages</dd>
-            </div>
-          )
-        }
-      </dl>
-    </section>
+      <section
+        class="md:mt-4 md:mb-8 pt-4 md:p-4"
+        aria-label="Resource details"
+      >
+        <Content components={{ ...Components }} />
+      </section>
+    </div>{/* end left column */}
 
-    <section
-      class="mb-8 p-4 bg-page-offset rounded-xl border border-trim"
-      aria-label="Resource details"
-    >
-      <Content components={{ ...Components }} />
-    </section>
-  </div>
-
-  <!-- Download Form -->
-  <section class="border-t border-trim pt-12 mt-12" slot="after-content" aria-label="Download">
-    <div class="download-form-wrapper mx-auto max-w-2xl">
-      <div class="bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg border border-trim">
+    {/* Right column: download form */}
+    <div class="lg:col-span-1 lg:sticky lg:top-24">
+      <div class="bg-(--color-blue-600) p-6 md:p-8 rounded-2xl border border-(--color-blue-800)">
         <div class="mb-6">
-          <h3 class="text-xl md:text-2xl font-semibold mb-2">
-            Download {title}
-          </h3>
-          <p class="text-content-offset">
+          <h3 class="text-xl md:text-2xl font-semibold mb-2 text-white">{title}</h3>
+          <p class="text-(--color-blue-100)">
             Fill out the form below to receive your {fileType.toLowerCase()} instantly.
           </p>
         </div>
@@ -176,18 +137,18 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
           method="post"
           data-download-url={normalizedDownloadUrl}
         >
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- First Name -->
+          <div class="space-y-4">
+            {/* First Name */}
             <div class="space-y-2">
-              <label for="firstName" class="block text-content-active text-sm font-medium">
-                First Name <span class="text-red-500">*</span>
+              <label for="firstName" class="block text-(--color-blue-100) text-sm font-medium">
+                First Name <span class="text-(--color-blue-200)">*</span>
               </label>
               <input
                 type="text"
                 id="firstName"
                 name="firstName"
                 autocomplete="given-name"
-                class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                class="w-full px-4 py-3 border border-(--color-blue-400) rounded-xl bg-blue-800/40 text-white placeholder:text-(--color-blue-300) focus:border-(--color-blue-200) focus:ring-0 focus:outline-none focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
                 required
                 placeholder="John"
                 minlength="2"
@@ -195,17 +156,17 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
               />
             </div>
 
-            <!-- Last Name -->
+            {/* Last Name */}
             <div class="space-y-2">
-              <label for="lastName" class="block text-content-active text-sm font-medium">
-                Last Name <span class="text-red-500">*</span>
+              <label for="lastName" class="block text-(--color-blue-100) text-sm font-medium">
+                Last Name <span class="text-(--color-blue-200)">*</span>
               </label>
               <input
                 type="text"
                 id="lastName"
                 name="lastName"
                 autocomplete="family-name"
-                class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                class="w-full px-4 py-3 border border-(--color-blue-400) rounded-xl bg-blue-800/40 text-white placeholder:text-(--color-blue-300) focus:border-(--color-blue-200) focus:ring-0 focus:outline-none focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
                 required
                 placeholder="Doe"
                 minlength="2"
@@ -214,50 +175,50 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
             </div>
           </div>
 
-          <!-- Work Email -->
+          {/* Work Email */}
           <div class="space-y-2">
-            <label for="workEmail" class="block text-content-active text-sm font-medium">
-              Work Email <span class="text-red-500">*</span>
+            <label for="workEmail" class="block text-(--color-blue-100) text-sm font-medium">
+              Work Email <span class="text-(--color-blue-200)">*</span>
             </label>
             <input
               type="email"
               id="workEmail"
               name="workEmail"
               autocomplete="email"
-              class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+              class="w-full px-4 py-3 border border-(--color-blue-400) rounded-xl bg-blue-800/40 text-white placeholder:text-(--color-blue-300) focus:border-(--color-blue-200) focus:ring-0 focus:outline-none focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
               required
               placeholder="john.doe@company.com"
             />
           </div>
 
-          <!-- GDPR Consent -->
+          {/* GDPR Consent */}
           <GDPRConsent
             purpose="providing your requested download"
             formId="download-form"
             id="download-gdpr-consent"
-            variant="default"
+            variant="download"
           />
 
-          <!-- Privacy Notice -->
-          <div class="pt-4 border-t border-trim">
-            <p class="text-xs text-content-active leading-relaxed">
+          {/* Privacy Notice */}
+          <div class="pt-4 border-t border-(--color-blue-500)">
+            <p class="text-xs text-(--color-blue-100) leading-relaxed">
               By submitting this form, you agree to receive marketing communications from Webstack
               Builders. You can unsubscribe at any time. View our
               <a
                 href="/privacy"
-                class="text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                class="text-white underline hover:text-(--color-blue-100) focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-(--color-blue-600) rounded"
               >
                 Privacy Policy
               </a>.
             </p>
           </div>
 
-          <!-- Submit Button -->
+          {/* Submit Button */}
           <Confetti>
             <div class="pt-2">
               <button
                 type="submit"
-                class="w-full bg-spotlight text-white font-semibold py-3 px-6 rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full bg-white text-blue-700 font-semibold py-3 px-6 rounded-xl hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-(--color-blue-600) transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 id="downloadSubmitBtn"
               >
                 Download Now
@@ -265,13 +226,13 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
             </div>
           </Confetti>
 
-          <!-- Download Button (hidden until form is successfully submitted) -->
+          {/* Download Button (hidden until form is successfully submitted) */}
           <div class="pt-2 hidden" id="downloadButtonWrapper">
             <a
               href={normalizedDownloadUrl}
               target="_blank"
               rel="noopener noreferrer"
-              class="block w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 transition-all duration-200 text-center"
+              class="block w-full bg-(--color-green-600) text-white font-semibold py-3 px-6 rounded-xl hover:bg-(--color-green-700) focus:outline-none focus:ring-2 focus:ring-(--color-green-600) focus:ring-offset-2 transition-all duration-200 text-center"
               id="downloadBtn"
             >
               <svg
@@ -293,7 +254,7 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
             </a>
           </div>
 
-          <!-- Status Messages -->
+          {/* Status Messages */}
           <div
             id="downloadFormStatus"
             class="hidden p-4 rounded-xl text-sm"
@@ -304,8 +265,8 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
           </div>
         </form>
       </div>
-    </div>
-  </section>
+    </div>{/* end right column */}
+  </div>{/* end two-column grid */}
 </download-form>
 
 <script>

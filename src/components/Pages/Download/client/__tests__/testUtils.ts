@@ -1,8 +1,8 @@
 import { expect } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
-import DownloadFormFixture from '@components/Forms/Download/client/__tests__/__fixtures__/downloadForm.fixture.astro'
-import type { DownloadFormElement } from '@components/Forms/Download/client'
+import DownloadFormFixture from '@components/Pages/Download/client/__tests__/__fixtures__/downloadForm.fixture.astro'
+import type { DownloadFormElement } from '@components/Pages/Download/client'
 import {
   getDownloadButtonWrapper,
   getDownloadCompanyNameInput,
@@ -13,7 +13,7 @@ import {
   getDownloadStatusDiv,
   getDownloadSubmitButton,
   getDownloadWorkEmailInput,
-} from '@components/Forms/Download/client/selectors'
+} from '@components/Pages/Download/client/selectors'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 
@@ -48,7 +48,7 @@ export const renderDownloadForm = async (assertion: RenderDownloadFormAssertion)
   await executeRender<DownloadFormModule>({
     container,
     component: DownloadFormFixture,
-    moduleSpecifier: '@components/Forms/Download/client/index',
+    moduleSpecifier: '@components/Pages/Download/client/index',
     selector: 'download-form',
     assert: async ({ element, module, window, renderResult }) => {
       if (!window) {
