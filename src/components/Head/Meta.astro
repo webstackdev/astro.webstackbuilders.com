@@ -13,7 +13,7 @@ export interface Props {
   /** Content type for OpenGraph metadata */
   contentType?: 'article' | 'website'
   /** Meta description */
-  description?: string
+  pageDescription?: string
   /** Last modified date */
   modifiedDate?: Date
   /** Whether search engines should ignore the page, default: false */
@@ -33,7 +33,7 @@ export interface Props {
 const {
   author,
   contentType,
-  description,
+  pageDescription,
   modifiedDate,
   noindex = false,
   pageTitle,
@@ -48,7 +48,7 @@ const defaultTheme = getMetaThemeData()
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content={description || contactData.company.description} />
+<meta name="description" content={pageDescription || contactData.company.description} />
 <meta name="author" content={contactData.company.author.name} />
 <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
 <Seo
@@ -63,14 +63,14 @@ const defaultTheme = getMetaThemeData()
 {/* Open Graph meta tags for Twitter and Facebook social shares */}
 <Social
   title={pageTitle}
-  description={description || contactData.company.description}
+  description={pageDescription || contactData.company.description}
   path={path}
 />
 {/* JSON-LD Structured Data for search engines */}
 <StructuredData
   path={path}
   pageTitle={pageTitle}
-  {...description && { description }}
+  {...pageDescription && { pageDescription }}
   {...contentType && { contentType }}
   {...publishDate && { publishDate }}
   {...modifiedDate && { modifiedDate }}

@@ -1,17 +1,8 @@
 ---
 import contactData from '@content/contact.json'
-import Header from '@components/Layout/Header/index.astro'
 import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 import Icon from '@components/Icon/index.astro'
 import List from '@components/List/index.astro'
-
-const lastUpdatedDate = new Date()
-const lastUpdatedIso = lastUpdatedDate.toISOString()
-const lastUpdatedText = lastUpdatedDate.toLocaleDateString('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-})
 
 export type Props = {
   content: {
@@ -168,13 +159,6 @@ for (const [index, item] of content.nav.items.entries()) {
 ---
 
 <div class="mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
-  <Header
-    title={content.header.title}
-    description={content.header.description}
-    trailer={`Last updated: <time datetime="${lastUpdatedIso}">${lastUpdatedText}</time>`}
-    icon="email"
-  />
-
   <nav aria-label="Privacy policy sections" class="bg-content-active rounded-xl p-6 mb-8">
     <div class="mb-3 flex flex-col items-start gap-3 pl-2 md:flex-row md:items-center md:justify-between">
       <p class="text-md font-semibold text-content-inverse mb-0">{content.nav.title}</p>

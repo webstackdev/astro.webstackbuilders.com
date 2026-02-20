@@ -1,0 +1,180 @@
+---
+import Icon from '@components/Icon/index.astro'
+import Newsletter from '@components/CallToAction/Newsletter/index.astro'
+
+export type Props = {
+  content: {
+    intro: {
+      heading: string
+      detail: string
+      itemList: {
+        lead: string
+        text: string
+      }[]
+      close: {
+        lead: string
+        text: string
+      }
+    }
+    form: {
+      title: string
+      description: string
+      placeholder: string
+      buttonText: string
+    }
+    topics: {
+      heading: string
+      detail: string
+      itemList: {
+        lead: string
+        text: string
+        icon: string
+        color: string
+        bgColor: string
+      }[]
+    }
+    preview: {
+      heading: string
+      detail: string
+    }
+  }
+}
+const { content } = Astro.props
+---
+
+{/* Sign-up form section */}
+<section class="py-12 bg-page-offset" aria-label="Newsletter sign-up">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+
+      {/* Left column: what you get */}
+      <div class="space-y-8">
+        <div>
+          <h2 class="text-2xl font-bold text-content mb-4">{content.intro.heading}</h2>
+          <p class="text-content-offset leading-relaxed">
+            {content.intro.detail}
+          </p>
+        </div>
+
+        <ul class="space-y-4">
+          {content.intro.itemList.map((item) => (
+            <li class="flex items-start gap-3">
+              <span class="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-success/15 shrink-0">
+                <Icon icon="check-stylized" color="success" size={3.5} />
+              </span>
+              <div>
+                <p class="font-semibold text-content">{item.lead}</p>
+                <p class="text-sm text-content-offset">{item.text}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <div class="border-t border-trim pt-6">
+          <p class="text-sm text-content-offset">
+            <span class="font-semibold text-content">{content.intro.close.lead}</span>
+            {content.intro.close.text}
+          </p>
+        </div>
+      </div>
+
+      {/* Right column: signup form */}
+      <Newsletter
+        variant="page"
+        title={content.form.title}
+        description={content.form.description}
+        placeholder={content.form.placeholder}
+        buttonText={content.form.buttonText}
+      />
+    </div>
+  </div>
+</section>
+
+{/* Topics section */}
+<section class="py-16" aria-label="Newsletter topics">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-10">
+      <h2 class="text-2xl font-bold text-content">{content.topics.heading}</h2>
+      <p class="text-content-offset mt-2 max-w-2xl mx-auto">
+        {content.topics.detail}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {content.topics.itemList.map((item) => (
+        <div class="bg-page-offset border border-trim rounded-xl p-6">
+          <div class:list={["w-10 h-10 rounded-lg flex items-center justify-center mb-4", item.bgColor]} >
+            <Icon icon={item.icon} color={item.color} size={6} />
+          </div>
+          <h3 class="font-bold text-content mb-2">{item.lead}</h3>
+          <p class="text-sm text-content-offset">{item.text}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+{/* Sample issue preview */}
+<section class="py-16 bg-page-offset" aria-label="Sample newsletter issue">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-10">
+      <h2 class="text-2xl font-bold text-content">{content.preview.heading}</h2>
+      <p class="text-content-offset mt-2">{content.preview.detail}</p>
+    </div>
+
+    <div class="bg-content border border-trim rounded-xl font-mono text-sm overflow-hidden">
+      {/* Terminal header */}
+      <div class="flex items-center gap-2 px-5 py-3 border-b border-page-base/20">
+        <div class="w-3 h-3 rounded-full bg-danger"></div>
+        <div class="w-3 h-3 rounded-full bg-warning"></div>
+        <div class="w-3 h-3 rounded-full bg-success"></div>
+        <span class="text-xs text-page-base/50 ml-2">webstack-dispatch-001.md</span>
+      </div>
+
+      <div class="p-5 space-y-4 text-page-base/80">
+        <p>
+          <span class="text-success">##</span>
+          <span class="text-page-base font-bold">{` Deep Dive: The Kubernetes DNS Bug That Wasted 40 Hours`}</span>
+        </p>
+        <p class="text-page-base/60 text-xs leading-relaxed pl-4 border-l-2 border-page-base/20">
+          How the default ndots:5 setting caused cascading DNS failures under
+          load, the misleading metrics that sent us down the wrong path, and the
+          two-line fix that resolved it.
+        </p>
+
+        <p>
+          <span class="text-success">##</span>
+          <span class="text-page-base font-bold">{` Quick Wins`}</span>
+        </p>
+        <div class="pl-4 space-y-1 text-xs text-page-base/60">
+          <p><span class="text-spotlight">-</span> Terraform state backup one-liner before every apply</p>
+          <p><span class="text-spotlight">-</span> PromQL query to find unused Grafana dashboards</p>
+          <p><span class="text-spotlight">-</span> Pre-commit hook for secrets scanning in monorepos</p>
+        </div>
+
+        <p>
+          <span class="text-success">##</span>
+          <span class="text-page-base font-bold">{` What We're Reading`}</span>
+        </p>
+        <div class="pl-4 space-y-1 text-xs text-page-base/60">
+          <p><span class="text-spotlight">-</span> Cloudflare's routing incident post-mortem</p>
+          <p><span class="text-spotlight">-</span> OpenTelemetry's new tail-sampling processor</p>
+          <p><span class="text-spotlight">-</span> Google SRE on SLO-based alerting</p>
+        </div>
+
+        <p>
+          <span class="text-success">##</span>
+          <span class="text-page-base font-bold">{` Try This Month`}</span>
+        </p>
+        <p class="text-page-base/60 text-xs pl-4">
+          Check your CoreDNS cache hit rate. Below 80%? You're hammering upstream
+          resolvers unnecessarily.
+        </p>
+
+        <p class="text-page-base/40 text-xs pt-2 border-t border-page-base/10">
+          <span class="text-success">$</span> 5 min read &middot; unsubscribe anytime
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
