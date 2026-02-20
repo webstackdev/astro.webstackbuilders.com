@@ -6,7 +6,8 @@
  *
  * This page calls the API endpoint to process confirmation server-side
  */
-import PageLayout from '@layouts/PageLayout.astro'
+import BaseLayout from '@layouts/BaseLayout.astro'
+import Header from '@components/Layout/Header/index.astro'
 import NewsletterConfirmation from '@components/Newsletter/Confirm/index.astro'
 
 // This is a server-rendered dynamic route
@@ -14,8 +15,6 @@ export const prerender = false
 
 const description = 'Double opt-in confirmation for your Webstack Builders newsletter subscription.'
 const pageTitle = 'Confirming Your Subscription...'
-const section = 'Newsletter Subscription Confirmation'
-const subtitle = 'Please wait while we confirm your subscription'
 
 const { token } = Astro.params
 
@@ -24,12 +23,11 @@ if (typeof token !== 'string' || token.trim().length === 0) {
 }
 ---
 
-<PageLayout
-  pageTitle={pageTitle}
-  path="newsletter/confirm"
-  section={section}
-  subtitle={subtitle}
-  description={description}
->
+<BaseLayout pageTitle={pageTitle} path={"/newsletter/confirm"} description={description}>
+  <Header
+    title={pageTitle}
+    description={description}
+    icon="document"
+  />
   <NewsletterConfirmation token={token} />
-</PageLayout>
+</BaseLayout>

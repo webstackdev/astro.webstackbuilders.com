@@ -2,6 +2,7 @@
 export const prerender = false
 
 import BaseLayout from '@layouts/BaseLayout.astro'
+import Header from '@components/Layout/Header/index.astro'
 import SearchResults from '@components/Search/SearchResults/index.astro'
 
 const query = (Astro.url.searchParams.get('q') ?? '').trim()
@@ -12,5 +13,10 @@ const description = 'Search the site.'
 ---
 
 <BaseLayout pageTitle={pageTitle} path={path} description={description}>
+  <Header
+    title={pageTitle}
+    description={description}
+    icon="search"
+  />
   <SearchResults query={query} />
 </BaseLayout>

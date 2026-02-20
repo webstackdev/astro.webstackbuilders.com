@@ -311,3 +311,23 @@ The bottom margin issues on CTAs need to handle paragraphs differently than head
 - Callouts should get round corners like the Download and Newsletter CTAs
 
 - Tags need styled at the top of articles item view pages
+
+## Layouts
+
+- Need to fix BaseLayout double-displaying the page title when using the `@components/Layout/Header` component. It needs pagetitle and description for meta tags. Need a separate Header layout for pages with hero images. Need to rationalize what PageLayout is doing. Probably the "section" prop has to do with setting meta and graph data.
+
+- Rename PageLayout to HeroLayout
+
+- We had two Header components now, `@components/Header` and `@components/Layout/Header`. The first is the main header that squishes on scroll.
+
+## MarkdownLayout
+
+src/pages/articles/[...slug].astro
+src/pages/case-studies/[slug].astro
+
+### PageLayout
+
+src/pages/case-studies/index.astro
+
+### BaseLayout
+
