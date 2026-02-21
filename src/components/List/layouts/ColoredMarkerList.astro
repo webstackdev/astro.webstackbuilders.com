@@ -3,12 +3,14 @@ export type Props = {
   items: {
     lead?: string
     text: string
-    color: string
+    color?: string
   }[]
   classes?: {
     ul?: string
     li?: string
     em?: string
+    icon?: string
+    text?: string
   }
   size?: number
 }
@@ -18,15 +20,17 @@ const { items, classes, size = 2 }: Props = Astro.props
 const ulClass = ["list-none pl-0 text-content mt-4 mb-2 space-y-2", classes?.ul]
 const liClass = ["flex items-start", classes?.li]
 const emClass = ["mr-2 not-italic font-bold", classes?.em]
+const iconClass = [`w-${size} h-${size}`, "rounded-full mt-3 mr-3 shrink-0", classes?.icon]
+const textClass = classes?.text ? [classes.text] : []
 ---
 
 <ul class:list={ulClass}>
   {
     items.map((item) => (
       <li class:list={liClass}>
-        <span class:list={[`w-${size} h-${size} rounded-full mt-3 mr-3 shrink-0`, item.color]} />
-        <em class:list={emClass}>{item.lead}</em>
-        <span>{item.text}</span>
+        <span class:list={[iconClass, item.color]} />
+        {item.lead && <em class:list={emClass}>{item.lead}</em>}
+        <span class:list={textClass}>{item.text}</span>
       </li>
     ))
   }

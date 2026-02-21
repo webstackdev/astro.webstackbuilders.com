@@ -30,8 +30,6 @@ export interface Props {
   children: unknown
   /** Optional metadata for articles */
   contentType?: 'article' | 'website'
-  /** Meta description */
-  description: string
   /** Last modified date */
   modifiedDate?: Date
   /** Whether search engines should ignore the page, default: false */
@@ -41,6 +39,8 @@ export interface Props {
    * and used in social cards and Markdown layout for the <title> element
    */
   pageTitle: string
+  /** Meta description */
+  pageDescription: string
   /** The URL path component e.g. 'articles/my-article' */
   path: string
   /** Publication date for articles */
@@ -55,7 +55,7 @@ const {
   author,
   breadcrumbTitle,
   contentType,
-  description,
+  pageDescription,
   hideBreadcrumbsOnMobile = false,
   modifiedDate,
   noindex,
@@ -75,7 +75,7 @@ const {
       <HeadContent
         pageTitle={pageTitle}
         path={path}
-        description={description}
+        pageDescription={pageDescription}
         {...noindex && { noindex }}
         {...contentType && { contentType }}
         {...publishDate && { publishDate }}

@@ -23,7 +23,7 @@ type ContentType = 'article' | 'website'
 export interface StructuredDataProps {
   path: string
   pageTitle: string
-  description?: string
+  pageDescription?: string
   contentType?: ContentType
   publishDate?: Date
   modifiedDate?: Date
@@ -41,7 +41,7 @@ export type StructuredDataThing = WithContext<
 interface SchemaContext {
   path: string
   pageTitle: string
-  description: string
+  pageDescription: string
   site: URL
   canonicalUrl: string
   pathSegments: string[]
@@ -64,7 +64,7 @@ export const getSchemas = (params: StructuredDataParams): string[] => {
 }
 
 const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
-  const { astro, path, pageTitle, description, contentType, publishDate, modifiedDate, author } =
+  const { astro, path, pageTitle, pageDescription, contentType, publishDate, modifiedDate, author } =
     params
 
   if (!astro) {
@@ -93,13 +93,13 @@ const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
 
   const normalizedPath = normalizePath(path)
   const canonicalUrl = astro.url?.href ?? resolveRoute(normalizedPath, astro.site)
-  const descriptionFallback = description ?? contactData.company.description
+  const pageDescriptionFallback = pageDescription ?? contactData.company.description
   const socialImageUrl = getSocialImageLink(path)
 
   const context: SchemaContext = {
     path: normalizedPath,
     pageTitle,
-    description: descriptionFallback,
+    pageDescription: pageDescriptionFallback,
     site: astro.site,
     canonicalUrl,
     pathSegments: normalizedPath.split('/').filter(Boolean),
@@ -158,7 +158,7 @@ const webSiteSchema: SchemaBuilder = context => {
     '@type': 'WebSite',
     name: contactData.company.name,
     url: contactData.company.url,
-    description: context.description,
+    description: context.pageDescription,
     publisher: {
       '@type': 'Organization',
       name: contactData.company.name,
@@ -178,7 +178,7 @@ const articleSchema: SchemaBuilder = context => {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: context.pageTitle,
-    description: context.description,
+    description: context.pageDescription,
     datePublished: context.publishDate.toISOString(),
     dateModified: (context.modifiedDate ?? context.publishDate).toISOString(),
     author: {
@@ -241,7 +241,7 @@ const serviceSchema: SchemaBuilder = context => {
     '@context': 'https://schema.org',
     '@type': 'Service',
     name: context.pageTitle,
-    description: context.description,
+    description: context.pageDescription,
     provider: {
       '@type': 'Organization',
       name: contactData.company.name,
@@ -260,7 +260,7 @@ const contactPageSchema: SchemaBuilder = context => {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
     name: context.pageTitle,
-    description: context.description,
+    description: context.pageDescription,
     url: context.canonicalUrl,
     mainEntity: {
       '@type': 'Organization',

@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, getCollection } from 'astro:content'
 import { isDev } from '@lib/config/environmentServer'
-import BaseLayout from '@layouts/BaseLayout.astro'
+import PageLayout from '@layouts/PageLayout.astro'
 
 import Carousel from '@components/Carousel/index.astro'
 
@@ -26,21 +26,18 @@ for (const tag of tagsWithNoContent) {
   )
 }
 
-const pageDescription = 'Browse all articles by tag'
-const pageTitle = 'All Articles'
+const pageTitle = 'Technical Index'
+const pageDescription = 'Browse documentation and guides structured by specific topics like Kubernetes, developer experience, and release engineering'
 const path = '/tags'
-const section = 'Tags'
 ---
 
-<BaseLayout description={pageDescription} pageTitle={pageTitle} path={path} section={section}>
+<PageLayout
+  pageTitle={pageTitle}
+  pageDescription={pageDescription}
+  path={path}
+  icon="paper-and-pen"
+>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <header class="text-center mb-16">
-      <h1 class="text-4xl md:text-5xl font-bold mb-4">Technical Index</h1>
-      <p class="text-xl max-w-3xl mx-auto">
-        Browse documentation and guides structured by specific topics like Kubernetes, developer experience, and release engineering
-      </p>
-    </header>
-
     <div class="space-y-12">
       {
         tagsWithContent
@@ -67,4 +64,4 @@ const section = 'Tags'
       }
     </div>
   </div>
-</BaseLayout>
+</PageLayout>

@@ -12,15 +12,9 @@ const Components = { List }
 
 export interface Props {
   download: CollectionEntry<'downloads'>
-  content: {
-    header: {
-      title: string
-      description: string
-    }
-  }
 }
 
-const { download, content } = Astro.props as Props
+const { download } = Astro.props as Props
 
 const {
   cover,
@@ -38,17 +32,6 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
 ---
 
 <download-form class="mb-8 md:mb-30">
-  <header class="text-center max-w-2xl mx-auto mt-6 mb-4 md:mb-12">
-    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
-      <Icon
-        icon="download"
-        color="page-inverse"
-        size={10}
-      />
-    </div>
-    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
-  </header>
-
   {/* Two-column layout on desktop: info left, form right */}
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-10 lg:gap-12 items-start">
     {/* Left column: cover, meta, content */}
@@ -82,7 +65,7 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
           aria-label="Resource details"
         >
           <p class="text-lg text-page-inverse leading-relaxed mt-1 mb-6 p-6 bg-page-offset rounded-xl border border-trim">
-            {content.header.description}
+            {download.data.description}
           </p>
 
           <dl class="flex items-center justify-center gap-6">
@@ -270,6 +253,6 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
 </download-form>
 
 <script>
-  import { registerDownloadFormWebComponent } from '@components/Pages/Download/client'
+  import { registerDownloadFormWebComponent } from '@components/Pages/Downloads/client'
   registerDownloadFormWebComponent()
 </script>

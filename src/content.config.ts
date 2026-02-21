@@ -70,6 +70,24 @@ const articlesCollection = defineCollection({
 })
 
 /**
+ * Deep Dive Articles
+ */
+const deepDiveArticlesCollection = defineCollection({
+  loader: glob({ pattern: '**/pdf.mdx', base: './src/content/articles' }),
+  schema: context =>
+    withBreadcrumbTitleWarning(
+      createBaseCollectionSchema(context).extend({
+        author: reference('authors'),
+        readingTime: z.string().optional(),
+        showToc: z.boolean().default(true),
+        tags: reference('tags').array(),
+      }),
+      'deepDiveArticles'
+    ),
+})
+
+
+/**
  * Case Studies
  */
 const caseStudiesCollection = defineCollection({
@@ -237,6 +255,7 @@ const testimonialCollection = defineCollection({
 
 export const collections = {
   articles: articlesCollection,
+  deepDives: deepDiveArticlesCollection,
   authors: authorsCollection,
   caseStudies: caseStudiesCollection,
   contactData: contactDataCollection,

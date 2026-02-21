@@ -1,8 +1,8 @@
 ---
+import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 import Icon from '@components/Icon/index.astro'
 import List from '@components/List/index.astro'
 import UnsavedConsentDialog from '@components/Pages/Consent/unsaved.astro'
-import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 
 export type Props = {
   content: {
@@ -82,20 +82,6 @@ const { content } = Astro.props
 ---
 
 <div class="max-w-4xl mx-auto w-full block py-2 md:py-4">
-  <header class="text-center max-w-2xl mx-auto mb-2">
-    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
-      <Icon
-        icon="lock"
-        color="page-inverse"
-        size={12}
-      />
-    </div>
-    <h1 class="font-bold text-page-inverse mb-4">{content.header.title}</h1>
-    <p class="text-lg text-content-offset leading-relaxed">
-      {content.header.description}
-    </p>
-  </header>
-
   <consent-preferences>
     <section
       aria-labelledby="consent-preferences__title"
@@ -105,6 +91,16 @@ const { content } = Astro.props
         Adjust your consent settings using the options below.
       </p>
       <div class="px-6 pt-8 pb-2">
+        <div class="mb-6">
+          <h1
+            id="consent-preferences__title"
+            class="text-3xl md:text-4xl font-bold text-primary-offset mb-2"
+          >
+            {content.header.title}
+          </h1>
+          <p class="text-content text-md leading-relaxed">{content.header.description}</p>
+        </div>
+
         {/* Introduction */}
         <div class="bg-page-offset rounded-xl p-6 mb-4">
           <p class="leading-relaxed text-md">{content.intro}</p>
