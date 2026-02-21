@@ -4,6 +4,7 @@
  * download page, which is implemented by Forms/Download.
  */
 import { BuildError } from '@lib/errors/BuildError'
+import Button from '@components/Button/index.astro'
 import List from '@components/List/index.astro'
 import Icon from '@components/Icon/index.astro'
 
@@ -74,7 +75,7 @@ const downloadUrl = `/downloads/${normalizedResource}`
         </span>
       </div>
 
-      <h2 id={titleId} class="text-2xl md:text-3xl font-bold text-content mb-3">
+      <h2 id={titleId} class="text-2xl md:text-3xl font-bold text-primary-offset mb-3">
         {title}
       </h2>
       <p id={descriptionId} class="text-base text-content-offset mb-6 max-w-xl">
@@ -99,37 +100,38 @@ const downloadUrl = `/downloads/${normalizedResource}`
             <Icon
               icon={"document"}
               size={8}
-              color={"secondary"}
+              color={"primary-offset"}
             />
           </div>
-          <p class="text-xs text-content-offset">Free resource · Instant access</p>
+          <p class="text-xs text-content">Free resource · Instant access</p>
         </div>
 
         <div class="space-y-3">
-          <a
+          <Button
             href={downloadUrl}
-            class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-spotlight hover:bg-spotlight-offset text-white font-semibold rounded-lg text-sm transition-colors no-underline hover:no-underline focus:no-underline focus-visible:no-underline decoration-transparent hover:decoration-transparent focus:decoration-transparent focus-visible:decoration-transparent"
+            variant="success-offset"
+            class="w-full gap-2 px-6 py-3 text-content-inverse"
           >
             <Icon
               icon={"download"}
               size={5}
-              color={"secondary"}
+              color={"content-inverse"}
             />
-            {buttonText}
-          </a>
+            <span class="mt-1">{buttonText}</span>
+          </Button>
           {
             secondaryLink && (
-              <a
+              <Button
                 href={secondaryLink.href}
-                class="w-full inline-flex items-center justify-center px-6 py-3 border border-trim text-content font-semibold rounded-lg text-sm hover:bg-page-offset transition-colors"
-              >
-                {secondaryLink.text}
-              </a>
+                variant="secondary"
+                class="w-full mt-2 px-6 py-3 bg-page-offset text-content-inverse hover:bg-page-offset focus-visible:bg-page-offset"
+                text={secondaryLink.text}
+              />
             )
           }
         </div>
 
-        <p class="text-xs text-content-offset text-center mt-4">No credit card required.</p>
+        <p class="text-xs text-content text-center mt-4">No credit card required.</p>
       </div>
     </div>
   </div>

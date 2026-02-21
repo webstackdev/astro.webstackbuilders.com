@@ -1,4 +1,12 @@
-export type ButtonVariant = 'primary' | 'secondary' | 'twitter' | 'success' | 'warning' | 'spotlight' | 'icon'
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'twitter'
+  | 'success'
+  | 'success-offset'
+  | 'warning'
+  | 'spotlight'
+  | 'icon'
 export type ButtonSize = 'small' | 'medium' | 'large'
 export type ButtonType = 'button' | 'submit' | 'reset'
 export type IconPosition = 'left' | 'right' | 'only'
@@ -34,14 +42,11 @@ function addClassNames(classList: ClassList, classNames: string) {
 
 const baseButtonClasses =
   'inline-flex items-center justify-center text-center align-middle whitespace-nowrap select-none ' +
-  'no-underline ' +
-  'relative focus-visible:outline-none ' +
-  "after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out " +
-  'focus-visible:after:opacity-100 focus-visible:after:[inset:-6px] focus-visible:after:border-spotlight ' +
+  'no-underline hover:no-underline focus:no-underline focus-visible:no-underline decoration-transparent ' +
+  'focus:outline-none focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none ' +
   'border-2 border-solid border-transparent rounded-md ' +
   'font-bold uppercase tracking-[0.08em] ' +
   'text-sm leading-5 ' +
-  '[box-shadow:var(--shadow-sm)] [text-shadow:var(--shadow-text)] ' +
   'transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-in-out ' +
   'disabled:cursor-not-allowed disabled:opacity-[0.65] disabled:pointer-events-none ' +
   'aria-disabled:cursor-not-allowed aria-disabled:opacity-[0.65] aria-disabled:pointer-events-none'
@@ -58,30 +63,35 @@ const sizeClasses: Record<ButtonSize, string> = {
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
     'bg-primary text-content ' +
-    'hover:bg-primary-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
-    'focus-visible:bg-primary-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
-    'active:bg-primary-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+    'hover:bg-primary-offset hover:[box-shadow:var(--shadow-hover)] ' +
+    'focus-visible:bg-primary-offset focus-visible:[box-shadow:var(--shadow-hover)] ' +
+    'active:bg-primary-offset active:[box-shadow:var(--shadow-active)]',
   secondary:
     'bg-secondary text-content ' +
-    'hover:bg-secondary-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
-    'focus-visible:bg-secondary-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
-    'active:bg-secondary-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+    'hover:bg-secondary-offset hover:[box-shadow:var(--shadow-hover)] ' +
+    'focus-visible:bg-secondary-offset focus-visible:[box-shadow:var(--shadow-hover)] ' +
+    'active:bg-secondary-offset active:[box-shadow:var(--shadow-active)]',
   twitter: 'bg-x border-x text-content hover:bg-transparent hover:text-x focus-visible:bg-transparent focus-visible:text-x',
   success:
     'bg-success text-white ' +
-    'hover:bg-success-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
-    'focus-visible:bg-success-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
-    'active:bg-success-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+    'hover:bg-success-offset hover:[box-shadow:var(--shadow-hover)] ' +
+    'focus-visible:bg-success-offset focus-visible:[box-shadow:var(--shadow-hover)] ' +
+    'active:bg-success-offset active:[box-shadow:var(--shadow-active)]',
+  'success-offset':
+    'bg-success-offset text-content-inverse ' +
+    'hover:bg-success hover:[box-shadow:var(--shadow-hover)] ' +
+    'focus-visible:bg-success focus-visible:[box-shadow:var(--shadow-hover)] ' +
+    'active:bg-success active:[box-shadow:var(--shadow-active)]',
   warning:
     'bg-warning text-content ' +
-    'hover:bg-warning-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
-    'focus-visible:bg-warning-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
-    'active:bg-warning-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+    'hover:bg-warning-offset hover:[box-shadow:var(--shadow-hover)] ' +
+    'focus-visible:bg-warning-offset focus-visible:[box-shadow:var(--shadow-hover)] ' +
+    'active:bg-warning-offset active:[box-shadow:var(--shadow-active)]',
   spotlight:
     'bg-spotlight text-black ' +
-    'hover:bg-spotlight-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
-    'focus-visible:bg-spotlight-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
-    'active:bg-spotlight-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+    'hover:bg-spotlight-offset hover:[box-shadow:var(--shadow-hover)] ' +
+    'focus-visible:bg-spotlight-offset focus-visible:[box-shadow:var(--shadow-hover)] ' +
+    'active:bg-spotlight-offset active:[box-shadow:var(--shadow-active)]',
   icon:
     'aspect-square bg-transparent text-content p-2 ![box-shadow:none] ' +
     'hover:bg-page-offset hover:text-primary ' +
