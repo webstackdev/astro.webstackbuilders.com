@@ -8,5 +8,5 @@ export interface NewsletterProps {
   /** Submit button text */
   buttonText?: string
   /** Choose which variant to show */
-  variant: 'article' | 'home'
+  variant: 'article' | 'home' | 'page'
 }

@@ -1,17 +1,205 @@
 ---
-import BaseLayout from '@layouts/BaseLayout.astro'
+import contactData from '@content/contact.json'
+import PageLayout from '@layouts/PageLayout.astro'
 import ContactPage from '@components/Pages/Contact/index.astro'
 
 const pageTitle = 'Contact Us'
-const description =
-  'Connect with the Webstack Builders team to discuss your project, request a proposal, or ask questions.'
+const pageDescription = 'Connect with Webstack Builders to discuss your infrastructure needs, request an engagement proposal, or ask questions about platform engineering services.'
 ---
 
-<BaseLayout pageTitle={pageTitle} path={"/contact"} description={description}>
+<PageLayout
+  pageTitle={pageTitle}
+  pageDescription={pageDescription}
+  icon="email"
+  path={"/contact"}
+>
   <ContactPage content={{
     header: {
-      title: "Let's Build Something Amazing",
-      description: "Ready to transform your digital presence? Share your project details and let's create something extraordinary together.",
+      title: "Let's Strengthen Your Infrastructure",
+      description: "Ready to level up your platform, pipelines, or reliability? Share your infrastructure needs and we'll figure out the right engagement together.",
+    },
+    contact: {
+      header: "Get In Touch",
+      details: [
+        {
+          text: "Email",
+          value: `<a href="mailto:${contactData.company.email}" class="hover:text-secondary hover:underline hover:decoration-secondary">${contactData.company.email}</a>`,
+          icon: "email",
+          iconClasses: "mb-0.5",
+        },
+        {
+          text: "Location",
+          value: "Remote • EST Business Hours",
+          icon: "location",
+          iconClasses: "ml-1.5 mb-1",
+        },
+          {
+          text: "Response Time",
+          value: "Within 24 hours",
+          icon: "clock",
+        },
+      ],
+      expertise: {
+        header: "Our Expertise",
+        areas: [
+          { text: "CI/CD Pipeline Design"},
+          { text: "Kubernetes & Container Orchestration"},
+          { text: "Infrastructure as Code"},
+          { text: "Observability & Monitoring"},
+          { text: "Cloud Architecture & Cost Optimization"},
+          { text: "Incident Response & SRE"},
+        ],
+      },
+      chooseUs: {
+        header: "Why Choose Us?",
+        areas: [
+          { text: "15+ years of engineering experience"},
+          { text: "Embedded with your team, not drive-by consulting"},
+          { text: "Month-to-month, no long-term contracts"},
+          { text: "Async-first communication"},
+          { text: "Production-hardened infrastructure skills"},
+          { text: "Transparent pricing, no surprise invoices"},
+          { text: "Flexible engagement models"},
+        ],
+      },
+    },
+    form: {
+      header: "Tell us about your infrastructure needs",
+      description: "We'll get back to you within 24 hours to discuss the right engagement for your situation.",
+      formErrorMssg: "Please fix the errors in your message and hit the submit button again.",
+      contact: {
+        header: "Contact Information",
+        company: "Company Name",
+        companyPlaceholder: "Your company name",
+        email: "Email Address*",
+        emailPlaceholder: "your.email@example.com",
+        fullName: "Full Name*",
+        fullNamePlaceholder: "Your full name",
+        phone: "Phone Number",
+        phonePlaceholder: "+1 (555) 123-4567",
+      },
+      project: {
+        header: "Engagement Details",
+        budget: "Monthly Budget Range *",
+        budgetOptions: [
+          {
+            text: "Select budget range",
+            value: "",
+          },
+          {
+            text: "Under $1,500/mo (On-Call Support)",
+            value: "under-1500",
+          },
+          {
+            text: "$1,500 - $5,000/mo",
+            value: "1500-5k",
+          },
+          {
+            text: "$5,000 - $10,000/mo (Continuous Workstream)",
+            value: "5k-10k",
+          },
+          {
+            text: "$10,000 - $20,000/mo (Full Workstream)",
+            value: "10k-20k",
+          },
+          {
+            text: "Per-project / Fixed scope",
+            value: "per-project",
+          },
+          {
+            text: "Not sure yet",
+            value: "unsure",
+          },
+        ],
+        budgetPlaceholder: "Your budget",
+        description: "Description *",
+        descriptionPlaceholder: "Describe your infrastructure challenges, current stack, team size, and what you're hoping to accomplish...",
+        timeline: "Timeline *",
+        timelineOptions: [
+          {
+            text: "Select timeline",
+            value: "",
+          },
+          {
+            text: "ASAP / Active incident",
+            value: "asap",
+          },
+          {
+            text: "Within 1 month",
+            value: "1-month",
+          },
+          {
+            text: "1-3 months",
+            value: "1-3-months",
+          },
+          {
+            text: "3-6 months",
+            value: "3-6-months",
+          },
+          {
+            text: "Ongoing / No end date",
+            value: "ongoing",
+          },
+          {
+            text: "Flexible",
+            value: "flexible",
+          },
+        ],
+        timelinePlaceholder: "Your engagement timeline",
+        type: "Engagement Type",
+        typeOptions: [
+          {
+            text: "Select engagement type",
+            value: "",
+          },
+          {
+            text: "Full Workstream — Dedicated capacity, business hours",
+            value: "full-workstream",
+          },
+          {
+            text: "Continuous Workstream — Steady progress, evenings",
+            value: "continuous-workstream",
+          },
+          {
+            text: "Solutions Services — Scoped deliverable",
+            value: "solutions-services",
+          },
+          {
+            text: "On-Call Support — Incident response coverage",
+            value: "on-call-support",
+          },
+          {
+            text: "Not sure — Help me decide",
+            value: "unsure",
+          },
+        ],
+        typePlaceholder: "Select engagement type",
+      },
+      files: {
+        header: "Supporting Files (Optional)",
+        subheader: "Upload architecture diagrams, runbooks, audit reports, or any relevant documentation.",
+        supportedFormats: "PDF, DOC, DOCX, JPG, PNG, GIF, WebP, MP3, WAV, MP4, MOV, ZIP, TXT",
+        maxFileSizeText: "Max file size:",
+        maxFileSize: "10MB per file",
+        maxFilesText: "Max files:",
+        maxFiles: "5",
+      },
+      info: [
+        {
+          lead: "Data Retention:",
+          text: " Your contact information will be stored for 90 days to respond to your inquiry.",
+        },
+        {
+          lead: "Your Rights:",
+          text: " You can request access, correction, or deletion of your data at any time by contacting ",
+          email: "gdpr@webstackbuilders.com",
+        },
+      ],
+      submitButtonText: "Send Engagement Details",
+      waitingText: "Sending...",
+      successText: "Your details have been sent successfully. We'll review everything and get back to you within 24 hours to discuss the right engagement for your needs.",
+      errorText: "Oops! Something went wrong while submitting your message. Please try again later or contact us directly at ",
+      errorEmail: "contact@webstackbuilders.com",
     },
   }} />
-</BaseLayout>
+</PageLayout>

@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { TestError } from '@test/errors'
-import { initCharacterCounter, initUploadPlaceholder } from '@components/Forms/Contact/client/utils'
+import { initCharacterCounter, initUploadPlaceholder } from '@components/Pages/Contact/client/utils'
 import type {
   ContactFormConfig,
   ContactFormElements,
-} from '@components/Forms/Contact/client/@types'
+} from '@components/Pages/Contact/client/@types'
 import { renderContactForm } from './testUtils'
 
 const baseConfig: ContactFormConfig = {

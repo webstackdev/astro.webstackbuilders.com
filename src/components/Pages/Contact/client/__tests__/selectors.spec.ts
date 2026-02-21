@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   getContactFormElements,
   queryContactFormGenericFields,
-} from '@components/Forms/Contact/client/selectors'
+} from '@components/Pages/Contact/client/selectors'
 import { renderContactForm } from './testUtils'
 
 describe('ContactForm selectors', () => {

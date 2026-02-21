@@ -12,10 +12,8 @@ import NewsletterConfirmation from '@components/Newsletter/Confirm/index.astro'
 // This is a server-rendered dynamic route
 export const prerender = false
 
-const description = 'Double opt-in confirmation for your Webstack Builders newsletter subscription.'
 const pageTitle = 'Confirming Your Subscription...'
-const section = 'Newsletter Subscription Confirmation'
-const subtitle = 'Please wait while we confirm your subscription'
+const pageDescription = 'Double opt-in confirmation for your Webstack Builders newsletter subscription.'
 
 const { token } = Astro.params
 
@@ -26,10 +24,9 @@ if (typeof token !== 'string' || token.trim().length === 0) {
 
 <PageLayout
   pageTitle={pageTitle}
-  path="newsletter/confirm"
-  section={section}
-  subtitle={subtitle}
-  description={description}
+  pageDescription={pageDescription}
+  path={"/newsletter/confirm"}
+  icon="document"
 >
   <NewsletterConfirmation token={token} />
 </PageLayout>

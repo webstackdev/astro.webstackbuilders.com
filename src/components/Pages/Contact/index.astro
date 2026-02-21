@@ -1,9 +1,15 @@
 ---
-// import List from '@components/List/index.astro'
+import Confetti from '@components/Animations/Confetti/index.astro'
+import GDPRConsent from '@components/Consent/Checkbox/index.astro'
 import Icon from '@components/Icon/index.astro'
-// import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
-import ContactForm from '@components/Forms/Contact/index.astro'
-import Map from '@components/Map/index.astro'
+import List from '@components/List/index.astro'
+//import Map from '@components/Map/index.astro'
+
+import './uppy-audio.css'
+import './uppy-core.css'
+import './uppy-dashboard.css'
+import './uppy-webcam.css'
+import './validation.css'
 
 export type Props = {
   content: {
@@ -11,197 +17,485 @@ export type Props = {
       title: string
       description: string
     }
+    contact: {
+      header: string
+      details: {
+        text: string
+        value: string
+        icon: string
+        iconClasses?: string
+      }[]
+      expertise: {
+        header: string
+        areas: { text: string }[]
+      },
+      chooseUs: {
+        header: string,
+        areas: { text: string }[],
+      },
+    }
+    form: {
+      header: string
+      description: string
+      formErrorMssg: string
+      contact: {
+        header: string
+        company: string
+        companyPlaceholder: string
+        email: string
+        emailPlaceholder: string
+        fullName: string
+        fullNamePlaceholder: string
+        phone: string
+        phonePlaceholder: string
+      },
+      project: {
+        header: string
+        budget: string
+        budgetOptions: {
+          text: string
+          value: string
+        }[]
+        budgetPlaceholder: string
+        description: string
+        descriptionPlaceholder: string
+        timeline: string
+        timelineOptions: {
+          text: string
+          value: string
+        }[]
+        timelinePlaceholder: string
+        type: string
+        typeOptions: {
+          text: string
+          value: string
+        }[]
+        typePlaceholder: string
+      },
+      files: {
+        header: string
+        subheader: string
+        supportedFormats: string
+        maxFileSizeText: string
+        maxFileSize: string
+        maxFilesText: string
+        maxFiles: string
+      },
+      info: {
+        lead: string
+        text: string
+        email?: string
+      }[]
+      submitButtonText: string
+      waitingText: string
+      successText: string
+      errorText: string
+      errorEmail: string
+    }
   }
 }
 const { content } = Astro.props
 ---
 
-<div class="min-h-screen">
-  <!-- Contact Hero Section -->
-  <header class="text-center max-w-2xl mx-auto mb-8">
-    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
-      <Icon
-        icon="email"
-        color="page-inverse"
-        size={12}
-      />
-    </div>
-    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
-    <p class="text-lg text-content-offset leading-relaxed mb-4">
-      {content.header.description}
-    </p>
-  </header>
+<contact-form>
+  <div class="min-h-screen">
+    {/** Google Maps embed */}
+    {/* <Map /> */}
 
-  <!-- Google Maps embed -->
-  <Map />
+    {/** Contact Form Section */}
+    <section class="py-5 bg-page-offset" aria-label="Contact form">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
+            {/** Contact Form */}
+            <div class="lg:col-span-2 bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg">
+              {/** Contact FormHeader */}
+              <div class="mb-8">
+                <h2 class="text-page-inverse text-2xl md:text-3xl font-semibold mb-3">
+                  {content.form.header}
+                </h2>
+                <p class="text-content-active text-lg">{content.form.description}</p>
+              </div>
 
-  <!-- Contact Form Section -->
-  <section class="py-16 bg-page-offset" aria-label="Contact form">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <ContactForm>
-        <!-- Contact FormHeader -->
-        <div slot="contact-form-header" class="mb-8">
-          <h2 class="text-2xl md:text-3xl font-semibold mb-3">
-            Tell us about your project
-          </h2>
-          <p class="text-content-active text-lg">
-            We'll get back to you within 24 hours with a detailed proposal.
-          </p>
-        </div>
+              <form
+                class="space-y-8"
+                id="contactForm"
+                method="post"
+                enctype="multipart/form-data"
+                novalidate
+              >
+                <div
+                  id="formErrorBanner"
+                  class="hidden rounded-xl border border-danger bg-danger/10 text-danger px-4 py-3"
+                  role="alert"
+                  aria-live="assertive"
+                >
+                  {content.form.formErrorMssg}
+                </div>
 
-        <!-- Contact Information -->
-        <div slot="contact-information"  class="bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg h-fit sticky top-8">
-          <div class="space-y-8">
-            <div>
-              <h3 class="text-xl font-semibold mb-6">Get In Touch</h3>
+                {/** Personal Information */}
+                <div class="pb-6 border-b border-trim">
+                  <h3 class="flex items-center text-page-inverse text-xl font-semibold mb-6">
+                    <div class="w-1 h-5 bg-page-inverse rounded-full mr-3"></div>
+                    {content.form.contact.header}
+                  </h3>
 
-              <div class="space-y-6">
-                <div class="flex items-start gap-4">
-                  <div
-                    class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path
-                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-                      ></path>
-                      <polyline points="22,6 12,13 2,6"></polyline>
-                    </svg>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                      <label
+                        for="name"
+                        class="block text-content-active text-sm font-medium"
+                      >
+                        {content.form.contact.fullName}
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                        required
+                        placeholder={content.form.contact.fullNamePlaceholder}
+                        minlength="2"
+                        maxlength="100"
+                        aria-invalid="false"
+                        aria-errormessage="name-error"
+                      />
+                      <p
+                        class="hidden text-sm text-danger"
+                        data-field-error="name"
+                        aria-live="polite"
+                        id="name-error"
+                      >
+                      </p>
+                    </div>
+
+                    <div class="space-y-2">
+                      <label
+                        for="email"
+                        class="block text-content-active text-sm font-medium"
+                      >
+                        {content.form.contact.email}
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                        required
+                        placeholder={content.form.contact.emailPlaceholder}
+                        aria-invalid="false"
+                        aria-errormessage="email-error"
+                      />
+                      <p
+                        class="hidden text-sm text-danger"
+                        data-field-error="email"
+                        aria-live="polite"
+                        id="email-error"
+                      >
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 class="font-semibold mb-1">Email</h4>
-                    <p class="text-content-active">kevin@webstackbuilders.com</p>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                      <label
+                        for="company"
+                        class="block text-content-active text-sm font-medium"
+                      >
+                        {content.form.contact.company}
+                      </label>
+                      <input
+                        type="text"
+                        id="company"
+                        name="company"
+                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                        placeholder={content.form.contact.companyPlaceholder}
+                        maxlength="100"
+                      />
+                    </div>
+
+                    <div class="space-y-2">
+                      <label
+                        for="phone"
+                        class="block text-content-active text-sm font-medium"
+                      >
+                        {content.form.contact.phone}
+                      </label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200"
+                        placeholder={content.form.contact.phonePlaceholder}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div class="flex items-start gap-4">
-                  <div
-                    class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                      <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
+                {/** Project Information */}
+                <div class="pb-6 border-b border-trim">
+                  <h3 class="flex items-center text-page-inverse text-xl font-semibold mb-6">
+                    <div class="w-1 h-5 bg-page-inverse rounded-full mr-3"></div>
+                    {content.form.project.header}
+                  </h3>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                      <label
+                        for="project_type"
+                        class="block text-content-active text-sm font-medium"
+                      >
+                        {content.form.project.type}
+                      </label>
+                      <select
+                        id="project_type"
+                        name="project_type"
+                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
+                      >
+                        {content.form.project.typeOptions.map((item) => (
+                          <option value={item.value}>{item.text}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div class="space-y-2">
+                      <label
+                        for="budget"
+                        class="block text-content-active text-sm font-medium"
+                      >
+                        {content.form.project.budget}
+                      </label>
+                      <select
+                        id="budget"
+                        name="budget"
+                        required
+                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
+                      >
+                        {content.form.project.budgetOptions.map((item) => (
+                          <option value={item.value}>{item.text}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <h4 class="font-semibold mb-1">Location</h4>
-                    <p class="text-content-active">Remote • Worldwide</p>
+
+                  <div class="space-y-2">
+                    <label
+                      for="timeline"
+                      class="block text-content-active text-sm font-medium"
+                    >
+                      {content.form.project.timeline}
+                    </label>
+                    <select
+                      id="timeline"
+                      name="timeline"
+                      class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 cursor-pointer"
+                    >
+                      {content.form.project.timelineOptions.map((item) => (
+                        <option value={item.value}>{item.text}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div class="space-y-2">
+                    <label
+                      for="message"
+                      class="block text-content-active text-sm font-medium"
+                    >
+                      {content.form.project.description}
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-content-inverse focus:border-primary focus:ring-0 focus:outline-none transition-colors duration-200 resize-vertical min-h-30"
+                      rows="6"
+                      required
+                      placeholder={content.form.project.descriptionPlaceholder}
+                      minlength="10"
+                      maxlength="2000"
+                      aria-invalid="false"
+                      aria-errormessage="message-error"></textarea>
+                    <p
+                      class="hidden text-sm text-danger"
+                      data-field-error="message"
+                      aria-live="polite"
+                      id="message-error"
+                    >
+                    </p>
+                    <div class="text-right text-sm text-content-active">
+                      <span id="charCount">0</span>/2000 characters
+                    </div>
                   </div>
                 </div>
 
-                <div class="flex items-start gap-4">
+                {/** File Upload Section */}
+                <div class="pb-6">
+                  <h3 class="flex items-center text-page-inverse text-xl font-semibold mb-4">
+                    <div class="w-1 h-5 bg-page-inverse rounded-full mr-3"></div>
+                    {content.form.files.header}
+                  </h3>
+                  <p class="text-content-active text-sm mb-6">{content.form.files.subheader}</p>
+
                   <div
-                    class="shrink-0 w-11 h-11 bg-linear-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center"
+                    class="border-2 border-dashed border-trim rounded-xl p-8 text-center bg-page-offset hover:border-primary-hover transition-colors duration-200"
                   >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12,6 12,12 16,14"></polyline>
-                    </svg>
+                    <div id="uppyContainer" hidden>
+                      <div id="uppyDashboard"></div>
+                    </div>
+                    <div class="mt-4 space-y-2">
+                      <p class="text-sm text-content-active">
+                        <strong>Supported formats:</strong> {content.form.files.supportedFormats}
+                      </p>
+                      <p class="text-sm text-content-active">
+                        <strong>{content.form.files.maxFileSizeText}</strong> {content.form.files.maxFileSize} • <strong>{content.form.files.maxFilesText}</strong> {content.form.files.maxFiles}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 class="font-semibold mb-1">Response Time</h4>
-                    <p class="text-content-active">Within 24 hours</p>
+                </div>
+
+                {/** GDPR Consent */}
+                <GDPRConsent
+                  purpose="responding to your inquiry"
+                  formId="contact-form"
+                  id="contact-gdpr-consent"
+                  variant="default"
+                />
+
+                {/** Data Retention Notice */}
+                <div class="text-sm text-content-active space-y-2 bg-page-offset p-4 rounded-lg border border-trim">
+                  {content.form.info.map((item) => (
+                    <p class="text-sm">
+                      <strong class="text-page-inverse">{item.lead}</strong>{item.text}
+                      {item.email && (
+                        <a href={`mailto:${item.email}`} class="text-primary hover:text-page-inverse hover:underline hover:decoration-page-inverse">{item.email}</a>
+                      )}
+                    </p>
+                  ))}
+                </div>
+
+                <Confetti>
+                  <div class="flex justify-end">
+                    <button
+                      type="submit"
+                      class="inline-flex items-center justify-center px-8 py-4 bg-spotlight hover:bg-spotlight-offset text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-50"
+                      id="submitBtn"
+                    >
+                      <span class="btn-text">{content.form.submitButtonText}</span>
+                      <span class="btn-loading hidden">
+                        <svg
+                          class="animate-spin w-5 h-5 mr-2"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            opacity="0.3"></circle>
+                          <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor"></path>
+                        </svg>
+                        {content.form.waitingText}
+                      </span>
+                    </button>
+                  </div>
+                </Confetti>
+              </form>
+
+              {/** Form Messages */}
+              <div id="formMessages" class="mt-8 rounded-xl overflow-hidden" style="display: none;">
+                <div class="message-success hidden" role="status" aria-live="polite" aria-atomic="true">
+                  <div class="flex items-start p-6 bg-success-inverse  border border-success gap-4">
+                    <div
+                      class="shrink-0 w-6 h-6 bg-success text-white rounded-full flex items-center justify-center text-sm font-bold"
+                    >
+                      ✓
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-semibold text-success mb-2">Thank you!</h3>
+                      <p>
+                        {content.form.successText}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="message-error hidden" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="flex items-start p-6 bg-danger-offset border border-danger gap-4">
+                    <div
+                      class="shrink-0 w-6 h-6 bg-danger text-white rounded-full flex items-center justify-center text-sm font-bold"
+                    >
+                      ⚠
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-semibold text-danger mb-2">Oops!</h3>
+                      <p id="errorMessage">
+                        {content.form.errorText} <a href={`mailto:${content.form.errorEmail}`}>{content.form.errorEmail}</a>
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div>
-              <h3 class="text-xl font-semibold mb-6">Our Expertise</h3>
-              <ul class="space-y-3">
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  Custom Web Development
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  E-commerce Solutions
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  Progressive Web Apps
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  API Development & Integration
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  Database Design & Optimization
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  Performance & SEO Optimization
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  Maintenance & Support
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  Technical Consulting
-                </li>
-              </ul>
-            </div>
+            {/** Contact Information */}
+            <div class="bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg h-fit sticky top-8">
+              <div class="space-y-8">
+                <div>
+                  <h3 class="text-page-inverse text-xl font-semibold mb-6">{content.contact.header}</h3>
 
-            <div>
-              <h3 class="text-xl font-semibold mb-6">Why Choose Us?</h3>
-              <ul class="space-y-3">
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  15+ years of experience
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  Modern tech stack
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  Performance-focused
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  SEO optimized
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  Mobile-first approach
-                </li>
-                <li class="flex items-center text-content-active pl-4 relative">
-                  <span class="absolute left-0 w-2 h-2 bg-spotlight rounded-full"></span>
-                  Ongoing support
-                </li>
-              </ul>
+                  <div class="space-y-6">
+                    {content.contact.details.map((item) => (
+                      <div class="flex items-start gap-4">
+                        <div
+                          class="shrink-0 w-11 h-11 bg-page-inverse text-white rounded-xl flex items-center justify-center"
+                        >
+                          <Icon
+                            icon={item.icon}
+                            size={6}
+                            color="content-inverse"
+                            {...(item.iconClasses ? { classes: item.iconClasses } : {})}
+                          />
+                        </div>
+                        <div>
+                          <h4 class="text-page-inverse text-md mb-1">{item.text}</h4>
+                          <p class="text-content-active text-sm" set:html={item.value}></p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 class="text-page-inverse text-xl font-semibold mb-4">{content.contact.expertise.header}</h3>
+                  <List
+                    items={content.contact.expertise.areas}
+                    variant="colored-marker-list"
+                    classes={{
+                      icon: "bg-page-inverse",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <h3 class="text-page-inverse text-xl font-semibold mb-4">{content.contact.chooseUs.header}</h3>
+                  <List
+                    items={content.contact.chooseUs.areas}
+                    variant="colored-marker-list"
+                    classes={{
+                      icon: "bg-page-inverse",
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </ContactForm>
-    </div>
-  </section>
-</div>
+      </div>
+    </section>
+  </div>
+</contact-form>
+
+<script>
+  import { registerContactFormWebComponent } from '@components/Pages/Contact/client'
+  registerContactFormWebComponent()
+</script>

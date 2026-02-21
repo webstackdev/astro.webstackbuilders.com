@@ -11,7 +11,7 @@ import {
   getDownloadSubmitButton,
   getDownloadWorkEmailInput,
   queryDownloadFormInvalidatableControls,
-} from '@components/Pages/Download/client/selectors'
+} from '@components/Pages/Downloads/client/selectors'
 import {
   isButtonElement,
   isDivElement,

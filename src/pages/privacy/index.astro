@@ -1,14 +1,28 @@
 ---
-import BaseLayout from '@layouts/BaseLayout.astro'
+import PageLayout from '@layouts/PageLayout.astro'
 import PrivacyLayout from '@components/Pages/Privacy/index.astro'
 
+const lastUpdatedDate = new Date()
+const lastUpdatedIso = lastUpdatedDate.toISOString()
+const lastUpdatedText = lastUpdatedDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+})
+
 const pageTitle = 'Privacy Policy'
+const pageDescription = 'Learn how Webstack Builders collects, uses, and protects your personal information.'
+const subtitle = `Last updated: <time datetime="${lastUpdatedIso}">${lastUpdatedText}</time>`
 const path = '/privacy'
-const description =
-  'Learn how Webstack Builders collects, uses, and protects your personal information.'
 ---
 
-<BaseLayout pageTitle={pageTitle} path={path} description={description}>
+<PageLayout
+  pageTitle={pageTitle}
+  pageDescription={pageDescription}
+  subtitle={subtitle}
+  path={path}
+  icon="email"
+>
   <PrivacyLayout
     content={{
       header: {
@@ -356,4 +370,4 @@ const description =
       },
     }}
   />
-</BaseLayout>
+</PageLayout>

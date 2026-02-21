@@ -1,12 +1,22 @@
 ---
-import BaseLayout from '@layouts/BaseLayout.astro'
+import PageLayout from '@layouts/PageLayout.astro'
 import NotFound from '@components/Pages/NotFound/index.astro'
 
-const pageDescription = '404 Not Found page'
-const pageTitle = 'Oops! Not Found'
+const pageDescription = "Sorry, the page you are looking for doesn't exist or has been moved."
+const pageTitle = "404 - Page Not Found"
 const path = '/404/'
 ---
 
-<BaseLayout description={pageDescription} noindex={true} pageTitle={pageTitle} path={path}>
-  <NotFound />
-</BaseLayout>
+<PageLayout
+  pageTitle={pageTitle}
+  pageDescription={pageDescription}
+  icon="error"
+  path={path}
+  noindex={true}
+>
+  <NotFound
+    content={{
+      buttonText: "Go Back Home",
+    }}
+  />
+</PageLayout>

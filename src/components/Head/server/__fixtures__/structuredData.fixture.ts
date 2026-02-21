@@ -23,8 +23,8 @@ export const createStructuredDataParams = (
     pageTitle: overrides.pageTitle ?? 'Example Page Title',
   }
 
-  if (overrides.description !== undefined) {
-    params.description = overrides.description
+  if (overrides.pageDescription !== undefined) {
+    params.pageDescription = overrides.pageDescription
   }
   if (overrides.contentType !== undefined) {
     params.contentType = overrides.contentType
