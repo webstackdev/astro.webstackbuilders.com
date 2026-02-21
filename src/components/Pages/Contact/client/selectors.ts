@@ -107,7 +107,8 @@ export const getContactFormElements = (): ContactFormElements => {
 
 export type ContactFormGenericField = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 
-const GENERIC_FIELD_SELECTOR = 'input, select, textarea'
+const GENERIC_FIELD_SELECTOR =
+  'input[type="text"], input[type="email"], input[type="tel"], select, textarea'
 const GENERATED_GENERIC_ERROR_SELECTOR = '.field-error'
 
 export const isContactFormGenericField = (element: unknown): element is ContactFormGenericField => {

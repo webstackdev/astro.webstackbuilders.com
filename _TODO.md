@@ -133,7 +133,6 @@ https://mermaid.js.org/config/directives.html
 - /404
 - /about
 - /contact
-- /downloads/[slug]
 - /newsletter
 - /newsletter/confirm/[token]
 - /offline
@@ -191,24 +190,48 @@ Generate cover images for the skills and technologies tags pages
 ## Checklist
 
 - Need to make tables responsive on mobile
+
 - Need to stop system from adding abbreviation html when used in headings, also the `abbr` presentation needs improved - right now it gives a question mark pointer and long delay to appear
+
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
+
 - Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
+
 - Mathjax not working on inline formulas: "Where $L$ is the average number of items in the system (queue depth), $\lambda$ is the arrival rate (requests per second), and $W$ is the average time in system (latency)." In backpressure-load-shedding-admission-control-overload, also "The Retry Amplification Problem" section in circuit-breaker-retry-budget-cascade-failure-prevention.
+
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
+
 - Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`
+
 - Add a cloud of tags on articles list view at top for quick navigation. Add a ToC for featured tags so it's available on mobile, but with something different on desktop view - maybe hide tag cloud on mobile, and show it with an HR between all tags cloud and featured on desktop.
+
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
+
 - Add a copyright notice to content
+
 - DownloadLayout to wrap `downloads.mdx` in each folder
+
 - Image for home page newsletter CTA
+
+- Add PDF download image to download CTA, it's in the directory
+
 - Time in prose is causing a line break, and the colon and minutes to be removed - "2:47 AM" in `src/content/articles/mtls-certificate-rotation-service-mesh-authentication/pdf.mdx`. Times like "11:59:59" are breaking across two lines - `src/content/articles/rate-limiting-token-bucket-leaky-bucket-implementation/index.mdx` in "Algorithm Overview" section
+
 - Should we exclude "Footnotes" from the ToC list? Right now it shows at the bottom if there's a Footnotes H2.
+
 - If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button. Think this workflow through - maybe a "Short / Deep-Dive" slider button on top and don't show the CTA + the PDF download button.
+
 - The articles list page should show tags at top for quick navigation. There's another note about this. Show the count of articles per tag unless they're all the same on the tag.
+
 - 404 page should show search results based on query
+
 - Update EXIF data on all AI generated JPGs
+
 - When you click a link to a heading anchor, the heading is hidden by the page header now that it's stickied to the page
+
+- The Newsletter token page spins forever. It should time out and show an error page at some point.
+
+- Need a secret token to bypass the waiting state for the Newsletter token page, so we can style it. Set it via env var.
 
 ## Header
 
@@ -245,9 +268,17 @@ This article has different approaches to [print pagination](https://www.customjs
 
 ## Downloads / Gated Content
 
-- The PDF downloads are going to be gated - the user has to sign up for them and give an email address. How do we handle the keywords in these from a search perspective?
+We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-form articles. Make that path SSR loaded so we can check if they've given their e-mail address.
 
-- We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading.
+- Add a Pages layout for Articles so that we can use it for both the `/articles` and `/articles/pdf` content collections.
+
+- If they haven't and they get to the path from sharing a link or something, we should use the `index.astro` file in that directory to explain that they've accessed gated content, and ask for their e-mail address. Then redirect to the content they want when they give it.
+
+- If they've given their email link, both the regular article and the deep dive should have a button to switch between the two versions so they don't have to download the PDF version.
+
+- How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
+
+- We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading. If they've already given their e-mail address, they should be able to download it immediately.
 
 ## Content Issues
 
@@ -255,7 +286,7 @@ This article has different approaches to [print pagination](https://www.customjs
 
 - cover.jpg for reliability-and-testing needs touch up in GIMP
 
-- We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag lik "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag and add the name to the tags: frontmatter key in the index.mdx
+- We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag and add the name to the tags: frontmatter key in the index.mdx
 
 - Need an article on OpenStack
 
@@ -268,15 +299,3 @@ This article has different approaches to [print pagination](https://www.customjs
 - Color headings blue and use the SVG icon instead of the image. Color if the blue shade.
 
 - Social shares - module CSS doesn't appear correct with nested button hover classes, not sure how network name is generated or styled but it needs improvement. Should be rendered inside article content column, not across both content and TOC columns.
-
-### Component Stylings
-
-The bottom margin issues on CTAs need to handle paragraphs differently than headers. Headers are properly spaced now; paragraphs are flush with the CTA with no top margin.
-
-- Download CTA needs some styling tweaks. The checkmark on the two-column list component is too low on multi-line list items. It needs some bottom margin.
-
-- Newsletter CTA needs some bottom margin.
-
-- Callouts should get round corners like the Download and Newsletter CTAs
-
-- Tags need styled at the top of articles item view pages

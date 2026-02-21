@@ -1,10 +1,10 @@
 import { expect } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
-import ContactFormFixture from '@components/Forms/Contact/client/__fixtures__/contactForm.fixture.astro'
-import type { ContactFormElement } from '@components/Forms/Contact/client'
-import { getContactFormElements } from '@components/Forms/Contact/client/selectors'
-import type { ContactFormElements } from '@components/Forms/Contact/client/@types'
+import ContactFormFixture from '@components/Pages/Contact/client/__fixtures__/contactForm.fixture.astro'
+import type { ContactFormElement } from '@components/Pages/Contact/client'
+import { getContactFormElements } from '@components/Pages/Contact/client/selectors'
+import type { ContactFormElements } from '@components/Pages/Contact/client/@types'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 
@@ -27,7 +27,7 @@ export const renderContactForm = async (assertion: RenderContactFormAssertion): 
   await executeRender<ContactFormModule>({
     container,
     component: ContactFormFixture,
-    moduleSpecifier: '@components/Forms/Contact/client/index',
+    moduleSpecifier: '@components/Pages/Contact/client/index',
     selector: 'contact-form',
     assert: async ({ element, module, window, renderResult }) => {
       if (!window) {

@@ -2,13 +2,13 @@
 import { getSchemas } from '@components/Head/server/structuredData'
 export type { StructuredDataProps as Props } from '@components/Head/server/structuredData'
 
-const { path, pageTitle, description, contentType, publishDate, modifiedDate, author } = Astro.props
+const { path, pageTitle, pageDescription, contentType, publishDate, modifiedDate, author } = Astro.props
 
 const schemas = getSchemas({
   astro: Astro,
   path,
   pageTitle,
-  ...(description && { description }),
+  ...(pageDescription && { pageDescription }),
   ...(contentType && { contentType }),
   ...(publishDate && { publishDate }),
   ...(modifiedDate && { modifiedDate }),

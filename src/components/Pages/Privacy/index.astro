@@ -1,16 +1,8 @@
 ---
 import contactData from '@content/contact.json'
-import List from '@components/List/index.astro'
-import Icon from '@components/Icon/index.astro'
 import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
-
-const lastUpdatedDate = new Date()
-const lastUpdatedIso = lastUpdatedDate.toISOString()
-const lastUpdatedText = lastUpdatedDate.toLocaleDateString('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-})
+import Icon from '@components/Icon/index.astro'
+import List from '@components/List/index.astro'
 
 export type Props = {
   content: {
@@ -167,23 +159,6 @@ for (const [index, item] of content.nav.items.entries()) {
 ---
 
 <div class="mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
-  <header class="text-center max-w-2xl mx-auto mb-8">
-    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
-      <Icon
-        icon="shield"
-        color="page-inverse"
-        size={12}
-      />
-    </div>
-    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{content.header.title}</h1>
-    <p class="text-lg text-content-offset leading-relaxed mb-4">
-      {content.header.description}
-    </p>
-    <p class="text-sm text-page-inverse italic">
-      Last updated: <time datetime={lastUpdatedIso}>{lastUpdatedText}</time>
-    </p>
-  </header>
-
   <nav aria-label="Privacy policy sections" class="bg-content-active rounded-xl p-6 mb-8">
     <div class="mb-3 flex flex-col items-start gap-3 pl-2 md:flex-row md:items-center md:justify-between">
       <p class="text-md font-semibold text-content-inverse mb-0">{content.nav.title}</p>

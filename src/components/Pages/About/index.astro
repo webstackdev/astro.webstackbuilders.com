@@ -1,0 +1,171 @@
+---
+import Icon from '@components/Icon/index.astro'
+import Contact from '@components/CallToAction/Contact/index.astro'
+
+export type Props = {
+  content: {
+    journey: {
+      header: string
+      itemlist: {
+        title: string
+        description: string
+      }[]
+    }
+    expertise: {
+      header: string
+      itemlist: {
+        title: string
+        description: string
+      }[]
+    }
+    proficiencies: {
+      header: string
+      cards: {
+        subheader: string
+        backgroundColor: string
+        headerColor: string
+        itemlist: {
+          title: string
+          link: string
+        }[]
+      }[]
+      philosophy: {
+        subheader: string
+        description: string
+        itemlist: {
+          name: string
+          text: string
+          icon: string
+          color: string
+          bgColor: string
+        }[]
+      }
+      cta: {
+        title: string
+        description: string
+        primaryLink: {
+          href: string
+          text: string
+        }
+      }
+    }
+  }
+}
+
+const { content } = Astro.props
+---
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+  <section class="space-y-8" aria-labelledby="about-journey-title">
+    <h2 class="text-3xl md:text-4xl font-bold text-center" id="about-journey-title">
+      My Journey
+    </h2>
+    <div class="max-w-4xl mx-auto space-y-8">
+      {content.journey.itemlist.map((item, index) => (
+        <div class="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-6">
+          <div class="shrink-0 w-6 h-6 bg-spotlight rounded-full mt-1"></div>
+          <div class="flex-1 space-y-2">
+            <h3 class="text-xl font-semibold text-primary">{item.title}</h3>
+            <p class="text-content-active leading-relaxed">{item.description}</p>
+            {index === 0 && <a href="https://webstackdev.github.io/">Resume</a>}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="space-y-8" aria-labelledby="about-expertise-title">
+    <h2 class="text-3xl md:text-4xl font-bold text-center" id="about-expertise-title">
+      {content.expertise.header}
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {content.expertise.itemlist.map((item) => (
+        <div
+          class="bg-content-inverse rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 p-6 border border-trim"
+        >
+          <h3 class="text-xl font-semibold text-primary mb-4">
+            {item.title}
+          </h3>
+          <p class="text-content-active leading-relaxed">
+            {item.description}
+          </p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="space-y-8" aria-labelledby="about-proficiency-title">
+    <h2
+      class="text-3xl md:text-4xl font-bold text-center"
+      id="about-proficiency-title"
+    >
+      {content.proficiencies.header}
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+      {content.proficiencies.cards.map((card) => (
+        <div class:list={["rounded-lg p-6 border border-trim", card.backgroundColor]} >
+          <h3 class:list={["text-xl font-semibold mb-4 text-center", card.headerColor]} >
+            {card.subheader}
+          </h3>
+          <ul class="space-y-2">
+            {card.itemlist.map((item) => (
+              <li class="flex items-center justify-center py-2 px-4 bg-content-inverse rounded-lg shadow-sm font-medium">
+                <a href={item.link}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="space-y-8" aria-labelledby="about-philosophy-title">
+    <h2
+      class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center"
+      id="about-philosophy-title"
+    >
+      {content.proficiencies.philosophy.subheader}
+    </h2>
+    <blockquote
+      class="text-xl md:text-2xl italic text-center max-w-4xl mx-auto p-8 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border-l-4 border-blue-500 text-gray-800 dark:text-gray-200 leading-relaxed"
+    >
+      {content.proficiencies.philosophy.description}
+    </blockquote>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      {content.proficiencies.philosophy.itemlist.map((item) => (
+        <div class="text-center space-y-4 p-6">
+          <div
+            class:list={["w-16 h-16 rounded-full flex items-center justify-center mx-auto", item.bgColor]}
+          >
+            <Icon
+              icon={item.icon}
+              color={item.color}
+              inverseColor={item.bgColor}
+              size={8}
+            />
+          </div>
+          <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400">
+            {item.name}
+          </h3>
+          <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+            {item.text}
+          </p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section
+    class="text-center space-y-6 bg-linear-to-r from-blue-600 to-indigo-700 rounded-2xl p-12 text-white"
+    aria-labelledby="about-cta-title"
+  >
+    <Contact
+      title={content.proficiencies.cta.title}
+      description={content.proficiencies.cta.description}
+      primaryLink={{
+        href: content.proficiencies.cta.primaryLink.href,
+        text: content.proficiencies.cta.primaryLink.text,
+      }}
+    />
+  </section>
+</div>

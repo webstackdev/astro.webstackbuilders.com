@@ -4,95 +4,61 @@
  * case studies, and services, and also dynamic token newsletter confirm pages.
  */
 import BaseLayout from '@layouts/BaseLayout.astro'
+import SubHeader from '@components/Layout/SubHeader/index.astro'
 
 export interface Props {
+  /** Optional title override for the breadcrumbs UI */
+  breadcrumbTitle?: string
+  /** Optional page description, set to pageDescription if missing */
+  description?: string
+  /** Icon to use in the subheader */
+  icon: string
+  /** Whether search engines should ignore the page, default: false */
+  noindex?: boolean
   /** Page description for meta tags */
-  description: string
-  /** Article metadata for blog posts */
-  meta?: {
-    date?: Date
-    author?: string
-    tags?: string[]
-    readingTime?: string
-    draft?: boolean
-  }
+  pageDescription: string
   /** Meta page title displayed in the browser tab and window title bar */
   pageTitle: string
   /** The URL path component e.g. 'articles/my-article' */
   path: string
   /** Specifies the main, high-level category or theme of the article */
-  section: string
+  section?: string
+  /** Optional page subtitle, set to pageTitle if missing */
+  title?: string
   /** Optional page subtitle */
   subtitle?: string
-  /** Schema.org itemtype for structured data */
-  schemaType?: string
 }
 
 const {
+  breadcrumbTitle,
   description,
-  meta,
+  icon,
+  noindex,
+  pageDescription,
   pageTitle,
   path,
-  schemaType = 'http://schema.org/WebPage',
   section,
   subtitle,
+  title,
 } = Astro.props
+
+const baseLayoutProps = {
+  pageTitle,
+  pageDescription,
+  path,
+  ...(noindex !== undefined ? { noindex } : {}),
+  ...(breadcrumbTitle !== undefined ? { breadcrumbTitle } : {}),
+  ...(section !== undefined ? { section } : {}),
+}
 ---
 
-<BaseLayout pageTitle={pageTitle} path={path} description={description} section={section}>
-  <article class="page-content" itemscope itemtype={schemaType} aria-labelledby="page-title">
-    <header class="page-content__header">
-      <h1 id="page-title" class="page-content__title" itemprop="headline">
-        {pageTitle}
-      </h1>
-      {subtitle && <p class="page-content__subtitle">{subtitle}</p>}
-      {
-        meta && (
-          <dl class="page-content__meta">
-            {meta.date && (
-              <>
-                <dt class="sr-only">Published</dt>
-                <dd>
-                  <time
-                    class="page-content__date"
-                    itemprop="datePublished"
-                    datetime={meta.date.toISOString()}
-                  >
-                    {meta.date.toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </time>
-                </dd>
-              </>
-            )}
-            {meta.readingTime && (
-              <>
-                <dt class="sr-only">Reading time</dt>
-                <dd class="page-content__reading-time">{meta.readingTime}</dd>
-              </>
-            )}
-            {meta.tags && meta.tags.length > 0 && (
-              <>
-                <dt class="sr-only">Tags</dt>
-                <dd class="page-content__tags">
-                  <span class="page-content__tag-list">{meta.tags.join(', ')}</span>
-                </dd>
-              </>
-            )}
-            {meta.draft && (
-              <>
-                <dt class="sr-only">Status</dt>
-                <dd class="page-content__status">Draft</dd>
-              </>
-            )}
-          </dl>
-        )
-      }
-    </header>
-    <div class="page-content__body content" itemprop="articleBody">
-      <slot />
-    </div>
-  </article>
+<BaseLayout {...baseLayoutProps}>
+  <SubHeader
+    title={title ?? pageTitle}
+    description={description ?? pageDescription}
+    {...(subtitle ? { subtitle } : {})}
+    icon={icon}
+  />
+  {/** Page content */}
+  <slot />
 </BaseLayout>

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import {
   initNameLengthHandler,
   validateNameField,
-} from '@components/Forms/Contact/client/validation'
+} from '@components/Pages/Contact/client/validation'
 import { renderContactForm } from './testUtils'
 
 describe('Name Validation', () => {

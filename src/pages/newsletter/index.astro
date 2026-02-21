@@ -1,26 +1,90 @@
 ---
-import BaseLayout from '@layouts/BaseLayout.astro'
-import Icon from '@components/Icon/index.astro'
+import PageLayout from '@layouts/PageLayout.astro'
+import Newsletter from '@components/Pages/Newsletter/index.astro'
 
-const pageTitle = 'Newsletter Sign-Up'
+const pageTitle = 'Newsletter'
+const pageDescription = 'A monthly dispatch on platform engineering, DevOps, SRE, and cloud infrastructure. Real problems, real solutions, no fluff.'
 const path = '/newsletter'
-const description =
-  'Sign up for the Webstack Builders newsletter to stay updated on the latest news and updates.'
 ---
 
-<BaseLayout pageTitle={pageTitle} path={path} description={description}>
-<div class="mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
-  <header class="text-center max-w-2xl mx-auto mb-8">
-    <div class="inline-flex items-center justify-center w-18 h-18 rounded-full bg-primary/10 mb-5">
-      <Icon
-        icon="document"
-        color="page-inverse"
-        size={12}
-      />
-    </div>
-    <h1 class="text-4xl md:text-5xl font-bold text-page-inverse mb-4">{pageTitle}</h1>
-    <p class="text-lg text-content-offset leading-relaxed mb-4">
-      {description}
-    </p>
-  </header>
-</BaseLayout>
+<PageLayout
+  pageTitle={pageTitle}
+  pageDescription={pageDescription}
+  icon="email"
+  path={path}
+>
+  <Newsletter
+    content={{
+      intro: {
+        heading: "What You'll Get Each Month",
+        detail: "One email per month. Every issue covers a single infrastructure topic in depth, plus quick wins you can ship the same day. Written for engineers who build and operate production systems.",
+        itemList: [
+          {
+            lead: "Deep Dives",
+            text: "Incident teardowns, architecture decisions, and tool evaluations with real production context.",
+          },
+          {
+            lead: "Quick Wins",
+            text: "Actionable tips with code snippets and config examples you can use immediately.",
+          },
+          {
+            lead: "Curated Links",
+            text: "Post-mortems, RFCs, and technical posts worth your time, with annotations on why.",
+          },
+          {
+            lead: "Monthly Challenge",
+            text: "A specific experiment to run in your own environment to improve reliability or observability.",
+          },
+        ],
+        close: {
+          lead: "No spam, no sales pitches.",
+          text: " Just engineering content from someone who operates infrastructure for a living. Unsubscribe anytime with one click.",
+        },
+      },
+      form: {
+        title: "Join the Newsletter",
+        description: "Platform engineering insights delivered to your inbox once a month.",
+        placeholder: "you@company.com",
+        buttonText: "Subscribe",
+      },
+      topics: {
+        heading: "Topics We Cover",
+        detail: "Practical content across the infrastructure stack, written from hands-on experience with CI/CD pipelines, Kubernetes clusters, observability stacks, and cloud platforms.",
+        itemList: [
+          {
+            lead: "Platform Engineering",
+            text: "Internal developer portals, golden paths, self-service infrastructure, and platform team metrics.",
+            icon: "document",
+            color: "primary",
+            bgColor: "bg-primary/10",
+          },
+          {
+            lead: "DevOps &amp; CI/CD",
+            text: "Pipeline optimization, monorepo build strategies, deployment patterns, and feature flag infrastructure.",
+            icon: "gear",
+            color: "secondary",
+            bgColor: "bg-secondary/10",
+          },
+          {
+            lead: "SRE &amp; Reliability",
+            text: "Error budgets, on-call design, chaos engineering, incident response, and SLO-based alerting.",
+            icon: "shield",
+            color: "accent",
+            bgColor: "bg-accent/10",
+          },
+          {
+            lead: "Cloud Engineering",
+            text: "Cost optimization, IaC patterns, multi-cloud networking, and cloud provider comparisons without vendor bias.",
+            icon: "cloud",
+            color: "spotlight-offset",
+            bgColor: "bg-spotlight/10",
+          },
+        ],
+      },
+      preview: {
+        heading: "What an Issue Looks Like",
+        detail: "Here's a preview of a typical newsletter issue.",
+      },
+    }}
+  />
+</PageLayout>
