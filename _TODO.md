@@ -175,6 +175,8 @@ Generate cover images for the skills and technologies tags pages
 
 - add "cel" language to code blocks
 
+- The code language is in teh tab order and getting focus-visible
+
 ## Callout Issues
 
 - When adding backticks in a callout, it gets the standard grey background for a code block in light theme. But it should get an offset of the callout color, like "info-offset".
