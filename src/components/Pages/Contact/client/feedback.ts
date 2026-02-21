@@ -43,8 +43,8 @@ export const clearFieldFeedback = (
   field.input.setAttribute('aria-invalid', 'false')
 }
 
-const setOpacity = (label: HTMLLabelElement, _hasText: boolean): void => {
-  label.style.removeProperty('opacity')
+const setOpacity = (label: HTMLLabelElement, hasText: boolean): void => {
+  label.style.opacity = hasText ? '0' : '0.5'
 }
 
 export interface LabelController {
