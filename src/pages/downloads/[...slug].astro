@@ -1,8 +1,8 @@
 ---
 import { type CollectionEntry, getCollection } from 'astro:content'
 import { isDev } from '@lib/config/environmentServer'
-import BaseLayout from '@layouts/BaseLayout.astro'
-import DownloadPage from '@components/Pages/Download/index.astro'
+import PageLayout from '@layouts/PageLayout.astro'
+import DownloadPage from '@components/Pages/Downloads/index.astro'
 
 export interface Props {
   download: CollectionEntry<'downloads'>
@@ -24,20 +24,13 @@ const { download } = Astro.props
 const path = `/downloads/${download.id.replace(/\/download$/, '')}`
 ---
 
-<BaseLayout
-  description={download.data.description}
+<PageLayout
   pageTitle={download.data.title}
+  pageDescription={download.data.description}
+  icon="download-document"
   path={path}
   breadcrumbTitle={download.data.title}
-  section="Tags"
+  section="Downloads"
 >
-  <DownloadPage
-    download={download}
-    content={{
-      header: {
-        title: "Download",
-        description: "Download a great PDF file",
-      },
-    }}
-  />
-</BaseLayout>
+  <DownloadPage download={download} />
+</PageLayout>

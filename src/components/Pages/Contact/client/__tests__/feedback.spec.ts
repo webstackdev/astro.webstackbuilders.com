@@ -5,7 +5,7 @@ import {
   initLabelHandlers,
   showErrorBanner,
   showFieldFeedback,
-} from '@components/Forms/Contact/client/feedback'
+} from '@components/Pages/Contact/client/feedback'
 import { renderContactForm } from './testUtils'
 
 describe('ContactForm feedback helpers', () => {

@@ -3,7 +3,6 @@ import { Picture } from 'astro:assets'
 import { type CollectionEntry, render } from 'astro:content'
 import Confetti from '@components/Animations/Confetti/index.astro'
 import GDPRConsent from '@components/Consent/Checkbox/index.astro'
-import Header from '@components/Layout/Header/index.astro'
 import Icon from '@components/Icon/index.astro'
 import List from '@components/List/index.astro'
 
@@ -13,15 +12,9 @@ const Components = { List }
 
 export interface Props {
   download: CollectionEntry<'downloads'>
-  content: {
-    header: {
-      title: string
-      description: string
-    }
-  }
 }
 
-const { download, content } = Astro.props as Props
+const { download } = Astro.props as Props
 
 const {
   cover,
@@ -39,8 +32,6 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
 ---
 
 <download-form class="mb-8 md:mb-30">
-  <Header title={content.header.title} icon="download" />
-
   {/* Two-column layout on desktop: info left, form right */}
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-10 lg:gap-12 items-start">
     {/* Left column: cover, meta, content */}
@@ -74,7 +65,7 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
           aria-label="Resource details"
         >
           <p class="text-lg text-page-inverse leading-relaxed mt-1 mb-6 p-6 bg-page-offset rounded-xl border border-trim">
-            {content.header.description}
+            {download.data.description}
           </p>
 
           <dl class="flex items-center justify-center gap-6">
@@ -262,6 +253,6 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
 </download-form>
 
 <script>
-  import { registerDownloadFormWebComponent } from '@components/Pages/Download/client'
+  import { registerDownloadFormWebComponent } from '@components/Pages/Downloads/client'
   registerDownloadFormWebComponent()
 </script>

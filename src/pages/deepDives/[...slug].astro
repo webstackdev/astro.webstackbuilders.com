@@ -1,0 +1,119 @@
+---
+import { type CollectionEntry, getCollection, getEntry } from 'astro:content'
+import { Picture } from 'astro:assets'
+import { isDev } from '@lib/config/environmentServer'
+import { getReadingTimeLabel } from '@lib/markdown/utils/readingTime'
+import MarkdownLayout from '@layouts/MarkdownLayout.astro'
+import Shares from '@components/Social/Shares/index.astro'
+import Carousel from '@components/Carousel/index.astro'
+import WebMentions from '@components/WebMentions/index.astro'
+
+export interface Props {
+  article: CollectionEntry<'deepDives'>
+}
+
+/** Generate static paths for all articles */
+export async function getStaticPaths() {
+  const articleEntries = await getCollection('deepDives', ({ data }) => {
+    return isDev() || data.isDraft !== true
+  })
+  return articleEntries.map(article => ({
+    params: { slug: article.id },
+    props: { article },
+  }))
+}
+
+const { article } = Astro.props
+const author = await getEntry(article.data.author)
+
+const articleBody = article.body ?? ''
+const readingTime = article.data.readingTime ?? getReadingTimeLabel(articleBody)
+
+const path = `/articles/deep-dives/${article.id}`
+const section = `Deep Dive Articles`
+---
+
+<MarkdownLayout
+  author={author.data.name}
+  collectionItem={article}
+  contentType="article"
+  description={article.data.description}
+  hideBreadcrumbsOnMobile={true}
+  pageTitle={article.data.title}
+  path={path}
+  publishDate={article.data.publishDate}
+  {...article.data.modifiedDate && { modifiedDate: article.data.modifiedDate }}
+  section={section}
+  showToc={article.data.showToc ?? true}
+  tags={article.data.tags?.map(t => (typeof t === 'string' ? t : t.id)) ?? []}
+  {...readingTime && { readingTime }}
+>
+  {/** SLOT: hero-image */}
+  {
+    article.data.cover && (
+      <div
+        class="relative w-full overflow-hidden mb-8"
+        style="aspect-ratio: 1564 / 670;"
+        slot="hero-image"
+      >
+        <Picture
+          src={article.data.cover}
+          alt={article.data.coverAlt}
+          widths={[480, 768, 1024, 1280, 1564]}
+          sizes="100vw"
+          formats={['avif', 'webp', 'jpeg']}
+          layout="constrained"
+          fit="cover"
+          position="center"
+          class="absolute inset-0 h-full w-full"
+        />
+      </div>
+    )
+  }
+
+  {/** SLOT: after-content */}
+  <section
+    class="border-t border-trim pt-8 mt-12"
+    aria-labelledby="article-share-title"
+    slot="after-content"
+  >
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div>
+        <h2 class="text-lg font-semibold mb-2" id="article-share-title">
+          Share this article
+        </h2>
+        <p class="text-content-active text-sm">
+          Found this helpful? Share it with others who might benefit.
+        </p>
+      </div>
+      <Shares
+        url={`https://www.webstackbuilders.com${path}`}
+        title={article.data.title}
+        description={`Read "${article.data.title}" on Webstack Builders`}
+        class="shrink-0"
+      />
+    </div>
+    <WebMentions url={`https://www.webstackbuilders.com${path}`} />
+  </section>
+
+  {/** SLOT: related-content */}
+  <section
+    class="border-t border-trim pt-8 mt-12"
+    aria-labelledby="article-related-title"
+    slot="related-content"
+  >
+    <header class="mb-8">
+      <h2 class="text-2xl font-bold" id="article-related-title">
+        Other things I've written
+      </h2>
+    </header>
+    <Carousel
+      title=""
+      variant="suggested"
+      currentSlug={article.id}
+      limit={5}
+      type="articles"
+      showReadMore={false}
+    />
+  </section>
+</MarkdownLayout>

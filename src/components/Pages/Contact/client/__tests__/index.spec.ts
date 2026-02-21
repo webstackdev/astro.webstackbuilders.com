@@ -5,7 +5,7 @@ describe('ContactForm web component module', () => {
   it('exposes metadata for registration', async () => {
     await withJsdomEnvironment(async () => {
       const { webComponentModule, ContactFormElement } =
-        await import('@components/Forms/Contact/client')
+        await import('@components/Pages/Contact/client')
 
       expect(webComponentModule.registeredName).toBe('contact-form')
       expect(webComponentModule.componentCtor).toBe(ContactFormElement)
@@ -15,7 +15,7 @@ describe('ContactForm web component module', () => {
   it('registers the custom element when window is available', async () => {
     await withJsdomEnvironment(async ({ window }) => {
       const { registerContactFormWebComponent, ContactFormElement } =
-        await import('@components/Forms/Contact/client')
+        await import('@components/Pages/Contact/client')
       const uniqueTag = `contact-form-${Math.random().toString(36).slice(2)}`
 
       const originalGet = window.customElements.get.bind(window.customElements)
