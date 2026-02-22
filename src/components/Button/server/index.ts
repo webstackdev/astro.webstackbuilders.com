@@ -26,6 +26,7 @@ export interface ButtonProps {
   icon?: string
   iconPosition?: IconPosition
   iconSize?: number
+  [key: `data-${string}`]: string | number | boolean | undefined
 }
 
 const ICON_ONLY_POSITION: IconPosition = 'only'

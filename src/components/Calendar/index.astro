@@ -1,21 +1,22 @@
 ---
-import Icon from '@components/Icon/index.astro'
+import Button from '@components/Button/index.astro'
 
 const { ...rest } = Astro.props
 ---
 
 <add-to-calendar {...rest} data-testid="add-to-calendar">
-  <button
+  <Button
     type="button"
-    data-calendar-trigger
+    data-calendar-trigger={true}
     aria-expanded="false"
-    class="inline-flex items-center text-content hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:fill-content! [&_.icon]:stroke-icons! hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary!"
+    variant="secondary"
+    size="small"
+    icon="calendar-generic-ical"
+    iconSize={5}
+    class="normal-case"
   >
-    <span class="[&_.icon]:h-5 [&_.icon]:w-5">
-      <Icon icon="calendar-generic-ical" color="inherit" />
-    </span>
     <span class="ml-2"><slot>Add to calendar</slot></span>
-  </button>
+  </Button>
 
   <div
     data-calendar-menu
@@ -24,40 +25,38 @@ const { ...rest } = Astro.props
     aria-label="Add this event to your calendar"
   >
     <div class="flex flex-col gap-2">
-      <a
+      <Button
         data-calendar-link="google"
         href="https://calendar.google.com/calendar/render"
-        rel="noopener"
-        class="flex items-center text-content hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:fill-content! [&_.icon]:stroke-icons! hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary!"
-      >
-        <span class="[&_.icon]:h-5 [&_.icon]:w-5">
-          <Icon icon="calendar-google" color="inherit" />
-        </span>
-        <span class="ml-2">Google Calendar</span>
-      </a>
+        variant="secondary"
+        size="small"
+        icon="calendar-google"
+        iconSize={5}
+        text="Google Calendar"
+        class="normal-case"
+      />
 
-      <a
+      <Button
         data-calendar-link="outlook"
         href="https://outlook.office.com/calendar/0/deeplink/compose"
-        rel="noopener"
-        class="flex items-center text-content hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:fill-content! [&_.icon]:stroke-icons! hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary!"
-      >
-        <span class="[&_.icon]:h-5 [&_.icon]:w-5">
-          <Icon icon="calendar-outlook" color="inherit" />
-        </span>
-        <span class="ml-2">Outlook</span>
-      </a>
+        variant="secondary"
+        size="small"
+        icon="calendar-outlook"
+        iconSize={5}
+        text="Outlook"
+        class="normal-case"
+      />
 
-      <button
+      <Button
         type="button"
-        data-calendar-download-ics
-        class="flex items-center text-content hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary focus:outline-none [&_.icon]:fill-content! [&_.icon]:stroke-icons! hover:[&_.icon]:fill-secondary! hover:[&_.icon]:stroke-secondary! focus:[&_.icon]:fill-secondary! focus:[&_.icon]:stroke-secondary!"
-      >
-        <span class="[&_.icon]:h-5 [&_.icon]:w-5">
-          <Icon icon="calendar_apple" color="inherit" />
-        </span>
-        <span class="ml-2">Download .ics</span>
-      </button>
+        data-calendar-download-ics={true}
+        variant="secondary"
+        size="small"
+        icon="calendar-apple"
+        iconSize={5}
+        text="Download .ics"
+        class="normal-case"
+      />
     </div>
   </div>
 </add-to-calendar>
