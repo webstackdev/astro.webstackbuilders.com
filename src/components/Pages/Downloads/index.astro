@@ -2,6 +2,7 @@
 import { Picture } from 'astro:assets'
 import { type CollectionEntry, render } from 'astro:content'
 import Confetti from '@components/Animations/Confetti/index.astro'
+import Button from '@components/Button/index.astro'
 import GDPRConsent from '@components/Consent/Checkbox/index.astro'
 import Icon from '@components/Icon/index.astro'
 import List from '@components/List/index.astro'
@@ -199,13 +200,12 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
           {/* Submit Button */}
           <Confetti>
             <div class="pt-2">
-              <button
+              <Button
                 type="submit"
-                class="w-full bg-white text-blue-700 font-semibold py-3 px-6 rounded-xl hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-(--color-blue-600) transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 id="downloadSubmitBtn"
-              >
-                Download Now
-              </button>
+                text="Download Now"
+                class="w-full bg-white text-blue-700 font-semibold py-3 px-6 rounded-xl hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-(--color-blue-600) transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed normal-case tracking-normal border-0"
+              />
             </div>
           </Confetti>
 
@@ -218,21 +218,7 @@ const normalizedDownloadUrl = `/downloads/${fileName}`
               class="block w-full bg-(--color-green-600) text-white font-semibold py-3 px-6 rounded-xl hover:bg-(--color-green-700) focus:outline-none focus:ring-2 focus:ring-(--color-green-600) focus:ring-offset-2 transition-all duration-200 text-center"
               id="downloadBtn"
             >
-              <svg
-                class="inline-block w-5 h-5 mr-2 -mt-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                ></path>
-              </svg>
+              <Icon icon="download-document" color="inherit" size={5} classes="inline-block mr-2 -mt-1" />
               Download {fileType}
             </a>
           </div>

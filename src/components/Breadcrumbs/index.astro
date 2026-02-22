@@ -1,4 +1,5 @@
 ---
+import Icon from '@components/Icon/index.astro'
 import { generateBreadcrumbs } from '@components/Breadcrumbs/server'
 
 export interface Props {
@@ -42,19 +43,12 @@ const breadcrumbSchema =
           {breadcrumbs.map((item, index) => (
             <li class="flex items-center">
               {index > 0 && (
-                <svg
-                  class="w-4 h-4 mx-2 opacity-60 fill-none stroke-primary-offset"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <Icon
+                  icon="arrow-right"
+                  size={4}
+                  color="primary-offset"
+                  classes="mx-2 opacity-60"
+                />
               )}
 
               {item.isCurrentPage ? (

@@ -3,7 +3,8 @@
  * The Intro component serves as the welcoming section of the homepage, providing
  * a concise overview of Webstack Builders' mission and value proposition
  */
-type IconKey = keyof typeof svgPath
+import Icon from '@components/Icon/index.astro'
+
 export interface Props {
   pretitle: string
   title: string
@@ -11,17 +12,11 @@ export interface Props {
   benefits: {
     title: string
     description: string
-    icon: IconKey
+    icon: string
   }[]
 }
 
 const { description, benefits, pretitle, title } = Astro.props as Props
-
-const svgPath = {
-  'check-circled': 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
-  'lightning-bolt': 'M13 10V3L4 14h7v7l9-11h-7z',
-  'html': 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
-} as const
 
 const visibleBenefits = benefits.slice(0, 3)
 ---
@@ -48,21 +43,7 @@ const visibleBenefits = benefits.slice(0, 3)
             <div
               class="w-10 h-10 rounded-lg bg-spotlight/20 flex items-center justify-center group-hover:bg-spotlight/30 transition-colors"
             >
-              <svg
-                class="w-5 h-5 text-spotlight"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d={svgPath[benefit.icon]}
-                ></path>
-              </svg>
+              <Icon icon={benefit.icon} color="spotlight" size={5} />
             </div>
             <h3 class="text-base font-bold text-page-base">{benefit.title}</h3>
           </div>

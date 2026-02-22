@@ -39,6 +39,17 @@ describe('Button server helpers', () => {
       expect(classList['custom']).toBe(true)
       expect(classList['extra-class']).toBe(true)
     })
+
+    it('adds icon-only structural classes when icon-only props are provided', () => {
+      const classList = buildButtonClassList({
+        variant: 'primary',
+        icon: 'close',
+        iconPosition: 'only',
+      })
+
+      expect(classList['aspect-square']).toBe(true)
+      expect(classList['p-2']).toBe(true)
+    })
   })
 
   describe('resolveAriaLabel', () => {

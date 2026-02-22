@@ -249,6 +249,10 @@ Generate cover images for the skills and technologies tags pages
 
 - Contact Callout looks awkward in dark theme and needs redone generally
 
+- Download icon on Download Component isn't picking up correct color on dark theme
+
+- Newsletter component "home" and "page" variants needs work on spacing, "home" needs image added
+
 ## Header
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
@@ -315,3 +319,5 @@ We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-for
 - Color headings blue and use the SVG icon instead of the image. Color if the blue shade.
 
 - Social shares - module CSS doesn't appear correct with nested button hover classes, not sure how network name is generated or styled but it needs improvement. Should be rendered inside article content column, not across both content and TOC columns.
+
+- Add a Social Share on some compelling text in each article
