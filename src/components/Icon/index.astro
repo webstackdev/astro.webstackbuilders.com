@@ -28,8 +28,11 @@ export type Props = {
 }
 
 const { icon, color = 'inherit', inverseColor, size = 14, classes, accessible = false, focusable = false, isListMarker = true }: Props = Astro.props
+const resolvedIcon = typeof icon === 'string' ? icon.trim() : ''
 
-const IconComponent = getIconComponent(icon) as unknown as (_props: {
+const IconComponent = resolvedIcon
+  ? getIconComponent(resolvedIcon)
+  : null as unknown as (_props: {
   color?: string
   inverseColor?: string
   size?: number
@@ -50,4 +53,4 @@ const markerProps = {
 }
 ---
 
-<IconComponent {...markerProps} />
+{IconComponent && <IconComponent {...markerProps} />}

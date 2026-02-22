@@ -5,7 +5,7 @@ export type Props = {
   items: {
     text: string
     icon: string
-    color: string
+    color?: string
   }[]
   classes?: {
     ul?: string
@@ -25,11 +25,15 @@ const markerClasses = props.classes?.svg
 
 <ul class:list={ulClass}>
   {
-    props.items.map(({ text, icon, color }: PlainIconListItem) => (
+    props.items.map(({ text, icon, color }: PlainIconListItem) => {
+      const resolvedColor = color?.trim() ? color : 'currentColor'
+
+      return (
       <li class:list={liClass}>
-        <Icon icon={icon} color={color} size={props.size ?? 5} {...(markerClasses ? { classes: markerClasses } : {})} />
+        <Icon icon={icon} color={resolvedColor} size={props.size ?? 5} {...(markerClasses ? { classes: markerClasses } : {})} />
         <span>{text}</span>
       </li>
-    ))
+      )
+    })
   }
 </ul>

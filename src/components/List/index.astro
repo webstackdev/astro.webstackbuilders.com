@@ -59,6 +59,9 @@ const itemsWithIconAndColor = items as Array<{
   inverseColor?: string
   bgColor?: string
 }>
+const plainIconItems = items.filter((item): item is Props['items'][number] & { icon: string } => {
+  return typeof item.icon === 'string' && item.icon.trim().length > 0
+})
 ---
 
 {variant === 'accent-border-left-list' && <AccentBorderLeftList items={items} {...classesProps} />}
@@ -69,7 +72,7 @@ const itemsWithIconAndColor = items as Array<{
 {variant === 'colored-marker-list' && <ColoredMarkerList items={itemsWithColor} {...classesProps} {...sizeProps} />}
 {variant === 'download-page-list' && <DownloadPageList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} />}
 {variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={items} {...classesProps} />}
-{variant === 'plain-icon-list' && <PlainIconList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} />}
+{variant === 'plain-icon-list' && <PlainIconList items={plainIconItems} {...classesProps} {...sizeProps} />}
 {variant === 'side-by-side-list' && <SideBySideList items={items} {...classesProps} />}
 {variant === 'timeline-list' && <TimelineList items={items} {...classesProps} />}
 {variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={items} {...classesProps} {...sizeProps} />}

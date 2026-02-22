@@ -19,7 +19,7 @@ describe('getIconComponent', () => {
 
   it('throws a descriptive error when icon is missing', () => {
     expect(() => getIconComponent(undefined, {})).toThrowError(
-      'PlainIconList: missing icon value for list item. Expected an icon name that maps to src/components/List/markers/<icon>.astro'
+      'Icon: missing icon value. Expected an icon name that maps to src/components/Icon/icons/<icon>.astro'
     )
   })
 
@@ -30,7 +30,7 @@ describe('getIconComponent', () => {
     }
 
     expect(() => getIconComponent('download', markerComponents)).toThrowError(
-      'PlainIconList: marker file "download.astro" was not found in src/components/List/icons/. Requested icon path: "../icons/download.astro". Available markers: avatar.astro, company.astro'
+      'Icon: icon file "download.astro" was not found in src/components/Icon/icons/. Requested icon path: "../icons/download.astro". Available icons: avatar.astro, company.astro'
     )
   })
 })
