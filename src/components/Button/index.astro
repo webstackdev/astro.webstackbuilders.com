@@ -1,5 +1,5 @@
 ---
-import type { ButtonLabelOptions, ButtonProps } from '@components/Button/server'
+import type { ButtonLabelOptions, ButtonProps, NativeButtonType } from '@components/Button/server'
 import { buildButtonClassList, resolveAriaLabel } from '@components/Button/server'
 import AnchorLayout from '@components/Button/layouts/anchor.astro'
 import DefaultLayout from '@components/Button/layouts/default.astro'
@@ -28,9 +28,9 @@ const buttonClassList = buildButtonClassList({
   variant,
   size,
   additionalClasses,
-  icon,
-  iconPosition,
-  text,
+  ...(icon !== undefined ? { icon } : {}),
+  ...(text !== undefined ? { text } : {}),
+  ...(iconPosition !== undefined ? { iconPosition } : {}),
 })
 
 // Determine icon size based on button size if not specified
@@ -52,6 +52,7 @@ if (typeof icon !== 'undefined') {
 
 const computedAriaLabel = resolveAriaLabel(labelOptions)
 const ariaAttributes = computedAriaLabel ? { 'aria-label': computedAriaLabel } : {}
+const htmlButtonType: NativeButtonType = type === 'submit' || type === 'reset' ? type : 'button'
 
 const hasAriaAttributes = Object.keys(ariaAttributes).length > 0
 const anchorOptionalProps = {
@@ -87,7 +88,7 @@ const defaultOptionalProps = {
       </AnchorLayout>
     ) : (
       <DefaultLayout
-        type={type}
+        type={htmlButtonType}
         disabled={disabled}
         classList={buttonClassList}
         iconPosition={iconPosition}

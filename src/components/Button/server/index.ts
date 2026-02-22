@@ -8,7 +8,8 @@ export type ButtonVariant =
   | 'info'
   | 'warning'
 export type ButtonSize = 'small' | 'medium' | 'large'
-export type ButtonType = 'button' | 'submit' | 'reset'
+export type NativeButtonType = 'button' | 'submit' | 'reset'
+export type ButtonType = NativeButtonType | 'nav'
 export type IconPosition = 'left' | 'right' | 'only'
 
 export interface ButtonProps {
