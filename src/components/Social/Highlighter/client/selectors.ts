@@ -13,8 +13,6 @@ export const SELECTORS = {
   dialogArrow: '.share-dialog__arrow',
   shareButton: '.share-button',
   shareIcon: 'svg.share-icon',
-  xIconTilePath: '.xTile',
-  xIconGlyphPath: '.xGlyph',
   status: '[data-highlighter-status]',
 } as const
 
@@ -49,29 +47,6 @@ export const queryShareIcon = (context: Element): SVGSVGElement | null => {
   return icon instanceof SVGSVGElement ? icon : null
 }
 
-export const queryXIconTilePath = (context: Element): SVGPathElement | null => {
-  const path = context.querySelector(SELECTORS.xIconTilePath)
-  if (!path) {
-    return null
-  }
-
-  const isSvgPath =
-    path instanceof Element &&
-    path.namespaceURI === 'http://www.w3.org/2000/svg' &&
-    path.tagName.toLowerCase() === 'path'
-
-  return isSvgPath ? (path as unknown as SVGPathElement) : null
-}
-
-export const queryXIconGlyphPaths = (context: Element): SVGPathElement[] => {
-  return Array.from(context.querySelectorAll(SELECTORS.xIconGlyphPath)).filter(
-    (node): node is SVGPathElement =>
-      node instanceof Element &&
-      node.namespaceURI === 'http://www.w3.org/2000/svg' &&
-      node.tagName.toLowerCase() === 'path'
-  )
-}
-
 export const queryHighlighterStatus = (context: Element): HTMLSpanElement | null => {
   const status = context.querySelector(SELECTORS.status)
   return isSpanElement(status) ? status : null
@@ -81,6 +56,31 @@ export const queryElementById = (context: Element, id: string): Element | null =
   const safeId = id.replaceAll('"', '\\"')
   const element = context.querySelector(`[id="${safeId}"]`)
   return isType1Element(element) ? element : null
+}
+
+export const queryHighlighterIconMarkup = (params: {
+  iconBankId: string
+  iconName: string
+  root?: Document
+}): string | null => {
+  const { iconBankId, iconName, root = document } = params
+
+  if (!iconBankId || !iconName) {
+    return null
+  }
+
+  const iconBankCandidate = root.getElementById(iconBankId)
+  if (!isDivElement(iconBankCandidate)) {
+    return null
+  }
+
+  const iconHostCandidate = iconBankCandidate.querySelector(`[data-highlighter-icon="${iconName}"]`)
+  if (!isSpanElement(iconHostCandidate)) {
+    return null
+  }
+
+  const markup = iconHostCandidate.innerHTML.trim()
+  return markup ? markup : null
 }
 
 export const getHighlighterRenderElements = (context: Element) => {

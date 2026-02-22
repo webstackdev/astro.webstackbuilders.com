@@ -2,21 +2,15 @@ import { LitElement } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
-import copyIcon from '../../../../icons/copy.svg?raw'
-import checkIcon from '../../../../icons/check.svg?raw'
 import {
+  queryCodeTabsIconMarkup,
   queryCheckIconElement,
   queryCodeBlocks,
   queryCodeElement,
   queryCopyIconElement,
 } from './selectors'
 
-function getIconMarkup(svgRaw: string): string {
-  // Ensure the icon inherits currentColor and sizing via Tailwind classes.
-  return svgRaw
-    .replace('<svg', '<svg class="h-5 w-5" fill="currentColor"')
-    .replace(/\s(width|height)="[^"]*"/g, '')
-}
+const ICON_BANK_ID = 'code-tabs-icon-bank'
 
 function getCodeText(pre: HTMLPreElement): string {
   const code = queryCodeElement(pre)
@@ -167,8 +161,16 @@ export class CodeTabsElement extends LitElement {
     button.setAttribute('aria-label', tooltip)
     button.title = tooltip
 
-    const copySvg = getIconMarkup(copyIcon)
-    const checkSvg = getIconMarkup(checkIcon)
+    const copySvg = queryCodeTabsIconMarkup({
+      iconBankId: ICON_BANK_ID,
+      iconName: 'copy',
+      root: document,
+    }) ?? ''
+    const checkSvg = queryCodeTabsIconMarkup({
+      iconBankId: ICON_BANK_ID,
+      iconName: 'check',
+      root: document,
+    }) ?? ''
 
     button.innerHTML = `
       <span data-code-tabs-copy-icon="copy">${copySvg}</span>

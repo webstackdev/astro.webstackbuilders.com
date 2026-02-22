@@ -14,46 +14,22 @@ import {
   addWrapperEventListeners,
 } from '@components/scripts/elementListeners'
 import { LitElement, html } from 'lit'
-import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
+import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import {
   queryHighlighterTrigger,
   queryHighlighterWrapper,
-  queryXIconGlyphPaths,
-  queryXIconTilePath,
+  queryHighlighterIconMarkup,
   queryShareDialogArrow,
   queryShareButtons,
   queryShareDialog,
   queryShareIcon,
 } from './selectors'
 
-import xIconRaw from '@icons/x.svg?raw'
-import linkedinIconRaw from '@icons/linkedin.svg?raw'
-import blueskyIconRaw from '@icons/bluesky.svg?raw'
-import redditIconRaw from '@icons/reddit.svg?raw'
-import mastodonIconRaw from '@icons/mastodon.svg?raw'
-
 const SCRIPT_NAME = 'Highlighter'
 const COMPONENT_TAG_NAME = 'highlighter-element'
-
-const stripSvgWrapper = (svg: string): string => {
-  const match = svg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i)
-  const innerMarkup = match?.[1] ?? svg
-  return innerMarkup.replace(/<title>[\s\S]*?<\/title>/gi, '').trim()
-}
-
-const platformIconMarkupById: Record<string, string> = {
-  x: stripSvgWrapper(xIconRaw),
-  linkedin: stripSvgWrapper(linkedinIconRaw),
-  bluesky: stripSvgWrapper(blueskyIconRaw),
-  reddit: stripSvgWrapper(redditIconRaw),
-  mastodon: stripSvgWrapper(mastodonIconRaw),
-}
-
-const getPlatformIconMarkup = (platformId: string): string => {
-  return platformIconMarkupById[platformId] ?? ''
-}
+const ICON_BANK_ID = 'highlighter-icon-bank'
 
 let highlighterInstanceCounter = 0
 
@@ -178,14 +154,7 @@ export class HighlighterElement extends LitElement {
                   aria-label="${platform.ariaLabel}"
                   title="${platform.ariaLabel}"
                 >
-                  <svg
-                    class="share-icon"
-                    aria-hidden="true"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    ${unsafeSVG(getPlatformIconMarkup(platform.id))}
-                  </svg>
+                  ${this.renderPlatformIcon(platform.id)}
                 </button>
               `
             )}
@@ -279,20 +248,7 @@ export class HighlighterElement extends LitElement {
     buttons.forEach(button => {
       const platformId = button.dataset['platform']
       const icon = queryShareIcon(button)
-      if (icon && platformId === 'x') {
-        const tilePath = queryXIconTilePath(icon)
-        const glyphPaths = queryXIconGlyphPaths(icon)
-
-        if (tilePath) {
-          tilePath.setAttribute('fill', 'var(--color-x)')
-          tilePath.setAttribute('stroke', 'none')
-        }
-
-        glyphPaths.forEach((path: SVGPathElement) => {
-          path.setAttribute('fill', 'var(--color-content-inverse)')
-          path.setAttribute('stroke', 'none')
-        })
-      } else if (icon) {
+      if (icon) {
         icon.style.fill = 'currentColor'
         icon.style.stroke = 'currentColor'
       }
@@ -302,10 +258,34 @@ export class HighlighterElement extends LitElement {
         return
       }
 
-      if (platformId !== 'x') {
-        button.style.color = `var(${token})`
-      }
+      button.style.color = `var(${token})`
     })
+  }
+
+  private renderPlatformIcon(platformId: string) {
+    const iconMarkup = this.getIconMarkup(platformId)
+    return iconMarkup ? unsafeHTML(iconMarkup) : null
+  }
+
+  private getIconMarkup(iconName: string): string | null {
+    if (!iconName) {
+      return null
+    }
+
+    if (typeof document === 'undefined') {
+      return null
+    }
+
+    const markup = queryHighlighterIconMarkup({
+      iconBankId: ICON_BANK_ID,
+      iconName,
+      root: document,
+    })
+
+    if (!markup) {
+      return null
+    }
+    return markup
   }
 
   private getPlatformColorToken(platformId: string | undefined): string | null {
