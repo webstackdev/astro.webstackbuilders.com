@@ -1,0 +1,55 @@
+---
+import Icon from '@components/Icon/index.astro'
+import type { IconPosition } from '@components/Button/server'
+
+type Props = {
+	id?: string | undefined
+	href?: string | undefined
+	onClick?: string | undefined
+	disabled?: boolean | undefined
+	classList: Record<string, boolean>
+	ariaAttributes?: Record<string, string> | undefined
+	icon?: string | undefined
+	iconPosition?: IconPosition | undefined
+	iconSize: number
+	text?: string | undefined
+	attributes?: Record<string, unknown> | undefined
+}
+
+const {
+	id,
+	href,
+	onClick,
+	disabled = false,
+	classList,
+	ariaAttributes = {},
+	icon,
+	iconPosition = 'left',
+	iconSize,
+	text,
+	attributes = {},
+} = Astro.props
+
+const linkHref = disabled ? undefined : href
+const linkOnClick = disabled ? undefined : onClick
+---
+
+<a
+	href={linkHref}
+	class:list={classList}
+	id={id}
+	onclick={linkOnClick}
+	aria-disabled={disabled ? 'true' : undefined}
+	tabindex={disabled ? -1 : undefined}
+	{...ariaAttributes}
+	{...attributes}
+>
+	{icon && (iconPosition === 'left' || iconPosition === 'only') && (
+		<Icon icon={icon} size={iconSize} classes={text ? 'mr-2' : ''} />
+	)}
+	{text && <span>{text}</span>}
+	{icon && iconPosition === 'right' && (
+		<Icon icon={icon} size={iconSize} classes="ml-2" />
+	)}
+	<slot />
+</a>

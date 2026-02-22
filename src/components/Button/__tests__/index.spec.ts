@@ -39,7 +39,7 @@ describe('Button (Astro)', () => {
     await expect(
       container.renderToString(Button, {
         props: {
-          variant: 'icon',
+          variant: 'primary',
           icon: 'close',
           iconPosition: 'only',
         },
@@ -52,7 +52,7 @@ describe('Button (Astro)', () => {
 
     const renderedHtml = await container.renderToString(Button, {
       props: {
-        variant: 'icon',
+        variant: 'primary',
         icon: 'close',
         iconPosition: 'only',
         ariaLabel: 'Close dialog',

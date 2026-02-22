@@ -7,7 +7,6 @@ export type ButtonVariant =
   | 'success'
   | 'info'
   | 'warning'
-  | 'icon'
 export type ButtonSize = 'small' | 'medium' | 'large'
 export type ButtonType = 'button' | 'submit' | 'reset'
 export type IconPosition = 'left' | 'right' | 'only'
@@ -30,6 +29,7 @@ export interface ButtonProps {
 }
 
 const ICON_ONLY_POSITION: IconPosition = 'only'
+const iconOnlyClasses = 'aspect-square p-2'
 
 type ClassList = Record<string, boolean>
 
@@ -70,11 +70,6 @@ const variantClasses: Record<ButtonVariant, string> = {
     'hover:bg-danger-offset ' +
     'focus-visible:bg-danger-offset ' +
     'active:bg-danger-offset',
-  icon:
-    'aspect-square bg-transparent text-white p-2 ' +
-    'hover:bg-page-offset hover:text-primary ' +
-    'focus-visible:bg-page-offset focus-visible:text-primary ' +
-    'active:bg-page-offset',
   info:
     'bg-info text-white ' +
     'hover:bg-info-offset ' +
@@ -116,12 +111,18 @@ export interface ButtonClassOptions {
   variant?: ButtonVariant
   size?: ButtonSize
   additionalClasses?: string
+  icon?: string
+  iconPosition?: IconPosition
+  text?: string
 }
 
 export function buildButtonClassList({
   variant = 'primary',
   size = 'medium',
   additionalClasses,
+  icon,
+  iconPosition,
+  text,
 }: ButtonClassOptions) {
   const classList: ClassList = {}
   const selectedVariant = variant as string
@@ -136,6 +137,10 @@ export function buildButtonClassList({
 
   if (additionalClasses?.trim()) {
     addClassNames(classList, additionalClasses)
+  }
+
+  if (icon && iconPosition === ICON_ONLY_POSITION && !text) {
+    addClassNames(classList, iconOnlyClasses)
   }
 
   return classList
