@@ -235,6 +235,10 @@ Generate cover images for the skills and technologies tags pages
 
 - Need a secret token to bypass the waiting state for the Newsletter token page, so we can style it. Set it via env var.
 
+- Details dd / dt in Markdown need bottom margin
+
+- Highlighter component in Markdown needs better colors in dark theme. It's spotlight color with content text - and there's not much contrast in dark theme between the yellow and white text.
+
 ## Header
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
