@@ -2,6 +2,7 @@
 import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 import Icon from '@components/Icon/index.astro'
 import List from '@components/List/index.astro'
+import Button from '@components/Button/index.astro'
 import UnsavedConsentDialog from '@components/Pages/Consent/unsaved.astro'
 
 export type Props = {
@@ -231,26 +232,28 @@ const { content } = Astro.props
       </div>
 
       <div class="px-6 py-4 flex gap-3 justify-end flex-wrap">
-        <button
+        <Button
+          type="button"
           id="consent-allow-all"
-          class="px-6 py-2 bg-success-offset text-content-inverse rounded-lg hover:bg-success transition-colors duration-200 font-medium focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
-        >
-          {content.buttons.acceptAll}
-        </button>
-        <button
+          text={content.buttons.acceptAll}
+          variant="success"
+          class="px-6 py-2 rounded-lg transition-colors duration-200 font-medium! normal-case focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
+        />
+        <Button
+          type="button"
           id="consent-deny-all"
-          class="px-6 py-2 bg-warning-offset text-content-inverse rounded-lg hover:bg-warning transition-colors duration-200 font-medium focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
-        >
-          {content.buttons.rejectAll}
-        </button>
-        <button
+          text={content.buttons.rejectAll}
+          variant="warning"
+          class="px-6 py-2 rounded-lg transition-colors duration-200 font-medium! normal-case focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
+        />
+        <Button
+          type="button"
           id="consent-save-preferences"
-          class="px-6 py-2 text-content-inverse rounded-lg cursor-not-allowed transition-colors duration-200 font-medium focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
+          text={content.buttons.save}
+          variant="secondary"
+          class="px-6 py-2 bg-secondary text-content-inverse rounded-lg cursor-not-allowed hover:bg-secondary transition-colors duration-200 font-medium! normal-case focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
           disabled
-          aria-disabled="true"
-        >
-          {content.buttons.save}
-        </button>
+        />
       </div>
     </section>
   </consent-preferences>
