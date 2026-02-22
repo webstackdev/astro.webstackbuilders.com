@@ -43,9 +43,19 @@ const typeAccentTextClassMap = {
   action: 'text-warning',
   info: 'text-info',
   tip: 'text-success',
-  note: 'text-note',
+  note: 'text-note-offset',
   success: 'text-success',
   danger: 'text-danger',
+} as const
+
+const typeBodyTextClassMap = {
+  warning: 'text-content',
+  action: 'text-content',
+  info: 'text-content',
+  tip: 'text-content',
+  note: 'text-note',
+  success: 'text-content',
+  danger: 'text-content',
 } as const
 
 const icon = iconMap[type] ?? iconMap.info
@@ -54,13 +64,11 @@ const typeLabelUpper = typeLabel.toUpperCase()
 
 const containerClasses = typeContainerClassMap[type] ?? typeContainerClassMap.info
 const accentTextClasses = typeAccentTextClassMap[type] ?? typeAccentTextClassMap.info
+const bodyTextClasses = typeBodyTextClassMap[type] ?? typeBodyTextClassMap.info
+const iconColor = accentTextClasses.startsWith('text-') ? accentTextClasses.slice(5) : 'inherit'
 ---
 
 <style>
-  .callout__icon :global(svg) {
-    fill: currentcolor;
-  }
-
   /* Spacing for nested elements */
   .callout__content > :not(.sr-only) + :not(.sr-only) {
     margin-top: 2rem;
@@ -90,7 +98,7 @@ const accentTextClasses = typeAccentTextClassMap[type] ?? typeAccentTextClassMap
         '-translate-y-0.5',
       ]}
     >
-      <Icon icon={icon} size={20} color="inherit" />
+      <Icon icon={icon} size={5} color={iconColor} />
     </div>
     <div
       class:list={[
@@ -106,7 +114,7 @@ const accentTextClasses = typeAccentTextClassMap[type] ?? typeAccentTextClassMap
     </div>
   </div>
 
-  <div class="callout__content">
+  <div class:list={[bodyTextClasses, 'callout__content']}>
     <span class="sr-only">{typeLabel} callout:</span>
     <slot />
   </div>

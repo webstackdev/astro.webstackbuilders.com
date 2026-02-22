@@ -18,8 +18,8 @@ const formatAvailableIcons = (markerComponents: IconComponentMap): string => {
 }
 
 /**
- * Resolve marker component by icon name.
- * Throws a descriptive error when icon is missing or marker file is not found.
+ * Resolve icon component by icon name.
+ * Throws a descriptive error when icon is missing or icon file is not found.
  */
 export const getIconComponent = (
   icon?: string,
@@ -27,7 +27,7 @@ export const getIconComponent = (
 ): AstroComponentFactory => {
   if (!icon) {
     throw new Error(
-      'PlainIconList: missing icon value for list item. Expected an icon name that maps to src/components/List/markers/<icon>.astro'
+      'Icon: missing icon value. Expected an icon name that maps to src/components/Icon/icons/<icon>.astro'
     )
   }
 
@@ -39,8 +39,8 @@ export const getIconComponent = (
     const availableIcons = formatAvailableIcons(markerComponents)
 
     throw new Error(
-      `PlainIconList: marker file "${iconFileName}" was not found in src/components/List/icons/. ` +
-      `Requested icon path: "${iconPath}". Available markers: ${availableIcons || '(none)'}`
+      `Icon: icon file "${iconFileName}" was not found in src/components/Icon/icons/. ` +
+      `Requested icon path: "${iconPath}". Available icons: ${availableIcons || '(none)'}`
     )
   }
 

@@ -5,7 +5,6 @@ import CardGridList from '@components/List/layouts/CardGridList.astro'
 import CheckIconsList from '@components/List/layouts/CheckIconsList.astro'
 import ChevronList from '@components/List/layouts/ChevronList.astro'
 import ColoredMarkerList from '@components/List/layouts/ColoredMarkerList.astro'
-import DownloadPageList from '@components/List/layouts/DownloadPageList.astro'
 import NumberedWithBackgroundList from '@components/List/layouts/NumberedWithBackgroundList.astro'
 import PlainIconList from '@components/List/layouts/PlainIconList.astro'
 import SideBySideList from '@components/List/layouts/SideBySideList.astro'
@@ -59,6 +58,9 @@ const itemsWithIconAndColor = items as Array<{
   inverseColor?: string
   bgColor?: string
 }>
+const plainIconItems = items.filter((item): item is Props['items'][number] & { icon: string } => {
+  return typeof item.icon === 'string' && item.icon.trim().length > 0
+})
 ---
 
 {variant === 'accent-border-left-list' && <AccentBorderLeftList items={items} {...classesProps} />}
@@ -67,9 +69,8 @@ const itemsWithIconAndColor = items as Array<{
 {variant === 'check-icons-list' && <CheckIconsList items={items} {...classesProps} />}
 {variant === 'chevron-list' && <ChevronList items={items} {...classesProps} />}
 {variant === 'colored-marker-list' && <ColoredMarkerList items={itemsWithColor} {...classesProps} {...sizeProps} />}
-{variant === 'download-page-list' && <DownloadPageList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} />}
 {variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={items} {...classesProps} />}
-{variant === 'plain-icon-list' && <PlainIconList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} />}
+{variant === 'plain-icon-list' && <PlainIconList items={plainIconItems} {...classesProps} {...sizeProps} />}
 {variant === 'side-by-side-list' && <SideBySideList items={items} {...classesProps} />}
 {variant === 'timeline-list' && <TimelineList items={items} {...classesProps} />}
 {variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={items} {...classesProps} {...sizeProps} />}

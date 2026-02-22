@@ -55,3 +55,28 @@ export function queryConnectionStatusIndicator(root: ParentNode = document): HTM
 
   return candidate
 }
+
+export function queryNetworkStatusIconMarkup(params: {
+  iconBankId: string
+  iconName: 'success' | 'error'
+  root?: Document
+}): string | null {
+  const { iconBankId, iconName, root = document } = params
+
+  if (!iconBankId || !iconName) {
+    return null
+  }
+
+  const iconBankCandidate = root.getElementById(iconBankId)
+  if (!isDivElement(iconBankCandidate)) {
+    return null
+  }
+
+  const iconHostCandidate = iconBankCandidate.querySelector(`[data-network-status-icon="${iconName}"]`)
+  if (!isSpanElement(iconHostCandidate)) {
+    return null
+  }
+
+  const markup = iconHostCandidate.innerHTML.trim()
+  return markup ? markup : null
+}

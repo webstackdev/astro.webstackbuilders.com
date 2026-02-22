@@ -39,19 +39,6 @@ describe('Button server helpers', () => {
       expect(classList['custom']).toBe(true)
       expect(classList['extra-class']).toBe(true)
     })
-
-    it('supports the spotlight variant', () => {
-      const classList = buildButtonClassList({
-        variant: 'spotlight',
-      })
-
-      expect(classList).toMatchObject<ClassList>({
-        'bg-spotlight': true,
-        'hover:bg-spotlight-offset': true,
-        'focus-visible:bg-spotlight-offset': true,
-        'active:bg-spotlight-offset': true,
-      })
-    })
   })
 
   describe('resolveAriaLabel', () => {

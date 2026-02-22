@@ -1,4 +1,13 @@
-export type ButtonVariant = 'primary' | 'secondary' | 'twitter' | 'success' | 'warning' | 'spotlight' | 'icon'
+export type ButtonVariant =
+  | 'danger'
+  | 'note'
+  | 'primary'
+  | 'secondary'
+  | 'twitter'
+  | 'success'
+  | 'info'
+  | 'warning'
+  | 'icon'
 export type ButtonSize = 'small' | 'medium' | 'large'
 export type ButtonType = 'button' | 'submit' | 'reset'
 export type IconPosition = 'left' | 'right' | 'only'
@@ -34,15 +43,14 @@ function addClassNames(classList: ClassList, classNames: string) {
 
 const baseButtonClasses =
   'inline-flex items-center justify-center text-center align-middle whitespace-nowrap select-none ' +
-  'no-underline ' +
+  'no-underline hover:no-underline focus:no-underline focus-visible:no-underline decoration-transparent ' +
   'relative focus-visible:outline-none ' +
   "after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out " +
   'focus-visible:after:opacity-100 focus-visible:after:[inset:-6px] focus-visible:after:border-spotlight ' +
   'border-2 border-solid border-transparent rounded-md ' +
   'font-bold uppercase tracking-[0.08em] ' +
   'text-sm leading-5 ' +
-  '[box-shadow:var(--shadow-sm)] [text-shadow:var(--shadow-text)] ' +
-  'transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-in-out ' +
+  'transition-[color,background-color,border-color] duration-200 ease-in-out ' +
   'disabled:cursor-not-allowed disabled:opacity-[0.65] disabled:pointer-events-none ' +
   'aria-disabled:cursor-not-allowed aria-disabled:opacity-[0.65] aria-disabled:pointer-events-none'
 
@@ -56,38 +64,52 @@ const sizeClasses: Record<ButtonSize, string> = {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    'bg-primary text-content ' +
-    'hover:bg-primary-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
-    'focus-visible:bg-primary-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
-    'active:bg-primary-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
-  secondary:
-    'bg-secondary text-content ' +
-    'hover:bg-secondary-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
-    'focus-visible:bg-secondary-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
-    'active:bg-secondary-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
-  twitter: 'bg-x border-x text-content hover:bg-transparent hover:text-x focus-visible:bg-transparent focus-visible:text-x',
-  success:
-    'bg-success text-white ' +
-    'hover:bg-success-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
-    'focus-visible:bg-success-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
-    'active:bg-success-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
-  warning:
-    'bg-warning text-content ' +
-    'hover:bg-warning-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
-    'focus-visible:bg-warning-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
-    'active:bg-warning-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
-  spotlight:
-    'bg-spotlight text-black ' +
-    'hover:bg-spotlight-offset hover:[box-shadow:var(--shadow-hover)] hover:-translate-y-px ' +
-    'focus-visible:bg-spotlight-offset focus-visible:[box-shadow:var(--shadow-hover)] focus-visible:-translate-y-px ' +
-    'active:bg-spotlight-offset active:[box-shadow:var(--shadow-active)] active:translate-y-px',
+  danger:
+    'bg-danger text-white ' +
+    'hover:bg-danger-offset ' +
+    'focus-visible:bg-danger-offset ' +
+    'active:bg-danger-offset',
   icon:
-    'aspect-square bg-transparent text-content p-2 ![box-shadow:none] ' +
+    'aspect-square bg-transparent text-white p-2 ' +
     'hover:bg-page-offset hover:text-primary ' +
     'focus-visible:bg-page-offset focus-visible:text-primary ' +
     'active:bg-page-offset',
-}
+  info:
+    'bg-info text-white ' +
+    'hover:bg-info-offset ' +
+    'focus-visible:bg-info-offset ' +
+    'active:bg-info-offset',
+  note:
+    'bg-note text-white ' +
+    'hover:bg-note-offset ' +
+    'focus-visible:bg-note-offset ' +
+    'active:bg-note-offset',
+  primary:
+    'bg-primary text-primary-inverse ' +
+    'hover:bg-primary-offset ' +
+    'focus-visible:bg-primary-offset ' +
+    'active:bg-primary-offset',
+  secondary:
+    'bg-secondary text-secondary-inverse ' +
+    'hover:bg-secondary-offset ' +
+    'focus-visible:bg-secondary-offset ' +
+    'active:bg-secondary-offset',
+  success:
+    'bg-success text-white ' +
+    'hover:bg-success-offset ' +
+    'focus-visible:bg-success-offset ' +
+    'active:bg-success-offset',
+  twitter:
+    'bg-x border-x text-white ' +
+    'hover:bg-transparent hover:text-x ' +
+    'focus-visible:bg-transparent ' +
+    'focus-visible:text-x',
+  warning:
+    'bg-warning-offset text-white ' +
+    'hover:bg-warning ' +
+    'focus-visible:bg-warning ' +
+    'active:bg-warning',
+  }
 
 export interface ButtonClassOptions {
   variant?: ButtonVariant
@@ -101,10 +123,15 @@ export function buildButtonClassList({
   additionalClasses,
 }: ButtonClassOptions) {
   const classList: ClassList = {}
+  const selectedVariant = variant as string
+
+  if (!(selectedVariant in variantClasses)) {
+    throw new Error(`Button: unsupported variant '${selectedVariant}'`)
+  }
 
   addClassNames(classList, baseButtonClasses)
   addClassNames(classList, sizeClasses[size])
-  addClassNames(classList, variantClasses[variant])
+  addClassNames(classList, variantClasses[selectedVariant as ButtonVariant])
 
   if (additionalClasses?.trim()) {
     addClassNames(classList, additionalClasses)

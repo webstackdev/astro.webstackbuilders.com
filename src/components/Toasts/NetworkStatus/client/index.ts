@@ -1,11 +1,13 @@
 import { LitElement, html } from 'lit'
+import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import { queryConnectionStatusIndicator } from './selectors'
+import { queryConnectionStatusIndicator, queryNetworkStatusIconMarkup } from './selectors'
 
 type ToastType = 'success' | 'error'
 
 const TOAST_HIDE_TIMEOUT = 3000
+const ICON_BANK_ID = 'network-status-toast-icon-bank'
 
 export class NetworkStatusToastElement extends LitElement {
   static registeredName = 'network-status-toast'
@@ -118,6 +120,22 @@ export class NetworkStatusToastElement extends LitElement {
   }
 
   protected override render() {
+    const canUseDocument = typeof document !== 'undefined'
+    const successIconMarkup = canUseDocument
+      ? queryNetworkStatusIconMarkup({
+          iconBankId: ICON_BANK_ID,
+          iconName: 'success',
+          root: document,
+        })
+      : null
+    const errorIconMarkup = canUseDocument
+      ? queryNetworkStatusIconMarkup({
+          iconBankId: ICON_BANK_ID,
+          iconName: 'error',
+          root: document,
+        })
+      : null
+
     return html`
       <div
         data-network-status-toast
@@ -128,36 +146,8 @@ export class NetworkStatusToastElement extends LitElement {
         aria-atomic="true"
       >
         <div class="flex items-center space-x-2">
-          <svg
-            class="w-5 h-5 success-icon"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
-          <svg
-            class="w-5 h-5 error-icon hidden"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
+          <span class="success-icon">${successIconMarkup ? unsafeHTML(successIconMarkup) : null}</span>
+          <span class="error-icon hidden">${errorIconMarkup ? unsafeHTML(errorIconMarkup) : null}</span>
           <span class="toast-message">${this.message}</span>
         </div>
       </div>

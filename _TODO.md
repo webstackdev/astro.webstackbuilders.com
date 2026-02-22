@@ -175,6 +175,8 @@ Generate cover images for the skills and technologies tags pages
 
 - add "cel" language to code blocks
 
+- The code language is in teh tab order and getting focus-visible
+
 ## Callout Issues
 
 - When adding backticks in a callout, it gets the standard grey background for a code block in light theme. But it should get an offset of the callout color, like "info-offset".
@@ -232,6 +234,20 @@ Generate cover images for the skills and technologies tags pages
 - The Newsletter token page spins forever. It should time out and show an error page at some point.
 
 - Need a secret token to bypass the waiting state for the Newsletter token page, so we can style it. Set it via env var.
+
+- Details dd / dt in Markdown need bottom margin
+
+- Highlighter component in Markdown needs better colors in dark theme. It's spotlight color with content text - and there's not much contrast in dark theme between the yellow and white text.
+
+- 'three-column-icon-list' List layout is broken in dark theme
+
+- 'two-column-icon-list' List layout looks bad on dark theme. The bgColor looks good on light theme, but awkward on dark theme.
+
+- Font size on GitHub Gist embed is too small
+
+- Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
+
+- Contact Callout looks awkward in dark theme and needs redone generally
 
 ## Header
 

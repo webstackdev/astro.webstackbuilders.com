@@ -1,4 +1,4 @@
-import { isCodeElement, isPreElement, isSpanElement } from '@components/scripts/assertions/elements'
+import { isCodeElement, isDivElement, isPreElement, isSpanElement } from '@components/scripts/assertions/elements'
 
 const SELECTORS = {
   preBlocks: ':scope > pre',
@@ -28,6 +28,31 @@ export function queryCopyIconElement(scope: ParentNode): HTMLElement | null {
 export function queryCheckIconElement(scope: ParentNode): HTMLElement | null {
   const element = scope.querySelector(SELECTORS.checkIcon)
   return isSpanElement(element) ? element : null
+}
+
+export function queryCodeTabsIconMarkup(params: {
+  iconBankId: string
+  iconName: string
+  root?: Document
+}): string | null {
+  const { iconBankId, iconName, root = document } = params
+
+  if (!iconBankId || !iconName) {
+    return null
+  }
+
+  const iconBankCandidate = root.getElementById(iconBankId)
+  if (!isDivElement(iconBankCandidate)) {
+    return null
+  }
+
+  const iconHostCandidate = iconBankCandidate.querySelector(`[data-code-tabs-icon="${iconName}"]`)
+  if (!isSpanElement(iconHostCandidate)) {
+    return null
+  }
+
+  const markup = iconHostCandidate.innerHTML.trim()
+  return markup ? markup : null
 }
 
 export function hasHighlighterElement(scope: ParentNode = document): boolean {

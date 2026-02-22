@@ -23,6 +23,14 @@ applyTo: "**"
 - Preact exists only for the Markdown E2E harness under `src/lib/markdown/__tests__/e2e`; all production UI components must use Lit web components instead of Preact.
 - Z-index: never hard-code numeric z-index values (including Tailwind `z-*` utilities). Always use the CSS variables in `src/styles/index.css` (e.g., `z-index: var(--z-nav)` or `z-(--z-nav)`). If no existing token fits, ask the user what z-layer to use before adding/changing tokens.
 
+## Component Reuse Policy
+
+- Prefer existing `List`, `Icon`, and `Button` components whenever possible.
+- `List`: use an existing list layout first. If no layout fits, ask the user before adding a new layout.
+- `Icon`: use existing icons first. If a new icon is needed, ask the user first and describe the icon you plan to add.
+- `Button`: use the shared `Button` component when the current API supports the use case.
+- If a button would require adding `Button` props or forcing behavior that does not match the component, ask the user before using a raw HTML `<button>`/`<a>`, and explain why.
+
 ## Tailwind CSS variable shorthand
 
 - Our linting rules (Tailwind ESLint) require using Tailwind's custom property shorthand form: `fill-(--my-brand-color)`.

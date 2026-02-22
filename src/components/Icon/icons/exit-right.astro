@@ -1,0 +1,27 @@
+---
+export type Props = {
+  color: string
+  classes?: string
+  size: number
+  accessible: boolean
+  focusable: boolean
+  isListMarker?: boolean
+  id?: string
+}
+
+const { color, classes, size, accessible, focusable, isListMarker, id } = Astro.props
+---
+
+<svg
+  id={id}
+  xmlns="http://www.w3.org/2000/svg"
+  class:list={["shrink-0", `w-${size} h-${size}`, `text-${color}`, classes, isListMarker ? "mt-0.5" : ""]}
+  fill="currentColor"
+  stroke="currentColor"
+  viewBox="0 0 24 24"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
+>
+  {accessible && <title>arrow-right icon</title>}
+  <path d="M 13.05823,22.36681 C 12.417581,22.095911 11.999981,21.457811 11.999981,20.74996 V 16.500009 H 1.4999977 C 0.67157895,16.500009 0,15.828458 0,15.000007 V 9.0000053 C 0,8.171585 0.67156395,7.5000048 1.4999977,7.5000048 H 11.999981 V 3.2500532 c 0,-0.7078052 0.4176,-1.3459205 1.058249,-1.6167906 0.640649,-0.2708701 1.377897,-0.12114 1.868247,0.3793502 l 8.571436,8.7498932 c 0.669449,0.68355 0.669449,1.79145 0,2.475001 l -8.571436,8.749954 c -0.49035,0.500399 -1.227598,0.6501 -1.868247,0.379349 z" />
+</svg>

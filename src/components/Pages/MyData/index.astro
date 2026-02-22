@@ -1,4 +1,5 @@
 ---
+import Button from '@components/Button/index.astro'
 import Icon from '@components/Icon/index.astro'
 import List from '@components/List/index.astro'
 
@@ -101,12 +102,12 @@ const { content } = Astro.props
             />
           </div>
 
-          <button
+          <Button
             type="submit"
-            class="inline-flex items-center justify-center rounded-xl px-6 py-3 bg-spotlight-offset hover:bg-spotlight text-white font-semibold transition-colors mt-8 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
-          >
-            {content.accessData.buttonText}
-          </button>
+            variant="info"
+            class="mt-8 px-6 py-3"
+            text={content.accessData.buttonText}
+          />
 
           <div
             id="access-message"
@@ -163,12 +164,12 @@ const { content } = Astro.props
             <span class="mt-0.5">{content.deleteData.confirmText}</span>
           </label>
 
-          <button
+          <Button
             type="submit"
-            class="inline-flex items-center justify-center rounded-xl px-6 py-3 bg-danger-offset text-white font-semibold hover:bg-danger transition-colors focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
-          >
-            {content.deleteData.buttonText}
-          </button>
+            variant="warning"
+            class="px-6 py-3"
+            text={content.deleteData.buttonText}
+          />
 
           <div
             id="delete-message"
@@ -183,7 +184,9 @@ const { content } = Astro.props
     </div>
 
     <section class="border border-trim rounded-2xl p-6" aria-labelledby="my-data-next-title">
-      <h2 id="my-data-next-title" class="text-page-inverse text-xl font-semibold mb-4">{content.next.heading}</h2>
+      <h2 id="my-data-next-title" class="text-page-inverse text-xl font-semibold mb-4">
+        {content.next.heading}
+      </h2>
       <List variant="numbered-with-background-list" items={content.next.items} />
     </section>
   </div>

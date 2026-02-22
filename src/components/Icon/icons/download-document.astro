@@ -5,13 +5,14 @@ export type Props = {
   size: number
   accessible: boolean
   focusable: boolean
-  title?: string
+  id?: string
 }
 
-const { color, classes, size, accessible, focusable, title } = Astro.props
+const { color, classes, size, accessible, focusable, id } = Astro.props
 ---
 
 <svg
+  id={id}
   xmlns="http://www.w3.org/2000/svg"
   class:list={[`w-${size} h-${size}`, `text-${color}`, classes]}
   fill="none"
@@ -20,7 +21,7 @@ const { color, classes, size, accessible, focusable, title } = Astro.props
   aria-hidden={accessible ? "false" : "true"}
   focusable={focusable ? "true" : "false"}
 >
-  {title && <title>{title}</title>}
+  {accessible && <title>download document icon</title>}
   <path
     stroke-linecap="round"
     stroke-linejoin="round"

@@ -16,6 +16,8 @@ export type Props = {
   size?: number
   /** Any additional CSS classes to apply to the SVG element. */
   classes?: string
+  /** Optional id attribute to apply to the rendered SVG element. */
+  id?: string
   /**
    * Whether the icon has a <title> element and aria-hidden=false attribute (if true),
    * or aria-hidden=true without a <title> (if false). Defaults to false.
@@ -27,13 +29,17 @@ export type Props = {
   isListMarker?: boolean
 }
 
-const { icon, color = 'inherit', inverseColor, size = 14, classes, accessible = false, focusable = false, isListMarker = true }: Props = Astro.props
+const { icon, color = 'inherit', inverseColor, size = 14, classes, id, accessible = false, focusable = false, isListMarker = true }: Props = Astro.props
+const resolvedIcon = typeof icon === 'string' ? icon.trim() : ''
 
-const IconComponent = getIconComponent(icon) as unknown as (_props: {
+const IconComponent = resolvedIcon
+  ? getIconComponent(resolvedIcon)
+  : null as unknown as (_props: {
   color?: string
   inverseColor?: string
   size?: number
   classes?: string
+  id?: string
   accessible?: boolean
   focusable?: boolean
   isListMarker?: boolean
@@ -44,10 +50,11 @@ const markerProps = {
   ...(inverseColor ? { inverseColor } : {}),
   ...(size !== undefined ? { size } : {}),
   ...(classes ? { classes } : {}),
+  ...(id ? { id } : {}),
   ...(accessible ? { accessible } : {}),
   ...(focusable ? { focusable } : {}),
   ...(isListMarker ? { isListMarker } : {}),
 }
 ---
 
-<IconComponent {...markerProps} />
+{IconComponent && <IconComponent {...markerProps} />}
