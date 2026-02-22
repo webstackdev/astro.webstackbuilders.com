@@ -249,6 +249,10 @@ Generate cover images for the skills and technologies tags pages
 
 - Contact Callout looks awkward in dark theme and needs redone generally
 
+- Download icon on Download Component isn't picking up correct color on dark theme
+
+- Newsletter component "home" and "page" variants needs work on spacing, "home" needs image added
+
 ## Header
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
