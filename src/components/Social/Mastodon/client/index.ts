@@ -1,4 +1,5 @@
 import { LitElement, html } from 'lit'
+import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import { createFocusTrap, type FocusTrap } from 'focus-trap'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
@@ -12,9 +13,14 @@ import {
 } from '@components/scripts/store/mastodonInstances'
 import { buildShareUrl } from './config'
 import { getUrlDomain, isMastodonInstance, normalizeURL } from './detector'
-import { getMastodonModalElement, queryMastodonInstanceInput } from './selectors'
+import {
+  getMastodonModalElement,
+  queryMastodonIconMarkup,
+  queryMastodonInstanceInput,
+} from './selectors'
 
 const COMPONENT_TAG_NAME = 'mastodon-modal-element'
+const ICON_BANK_ID = 'mastodon-modal-icon-bank'
 
 declare global {
   interface WindowEventMap {
@@ -310,6 +316,14 @@ export class MastodonModalElement extends LitElement {
   protected override render() {
     const modalTitleId = `${this.modalId}-title`
     const instanceHintId = `${this.modalId}-instance-hint`
+    const closeIconMarkup =
+      typeof document !== 'undefined'
+        ? queryMastodonIconMarkup({
+            iconBankId: ICON_BANK_ID,
+            iconName: 'close',
+            root: document,
+          })
+        : null
 
     return html`
       <div
@@ -335,18 +349,7 @@ export class MastodonModalElement extends LitElement {
               aria-label="Close modal"
               @click=${() => this.closeModal()}
             >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path d="M18 6L6 18M6 6l12 12"></path>
-              </svg>
+              ${closeIconMarkup ? unsafeHTML(closeIconMarkup) : null}
             </button>
           </div>
 

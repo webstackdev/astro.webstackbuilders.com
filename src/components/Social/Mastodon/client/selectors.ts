@@ -35,3 +35,28 @@ export const queryMastodonInstanceInput = (context: Element): HTMLInputElement |
 
   return isInputElement(input) ? input : null
 }
+
+export const queryMastodonIconMarkup = (params: {
+  iconBankId: string
+  iconName: 'close'
+  root?: Document
+}): string | null => {
+  const { iconBankId, iconName, root = document } = params
+
+  if (!iconBankId || !iconName) {
+    return null
+  }
+
+  const iconBankCandidate = root.getElementById(iconBankId)
+  if (!isDivElement(iconBankCandidate)) {
+    return null
+  }
+
+  const iconHostCandidate = iconBankCandidate.querySelector(`[data-mastodon-icon="${iconName}"]`)
+  if (!iconHostCandidate) {
+    return null
+  }
+
+  const markup = iconHostCandidate.innerHTML.trim()
+  return markup ? markup : null
+}

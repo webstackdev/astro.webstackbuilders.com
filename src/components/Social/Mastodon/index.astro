@@ -10,8 +10,17 @@ export interface Props {
   id?: string
 }
 
+import Icon from '@components/Icon/index.astro'
+
 const { id = 'mastodon-modal' } = Astro.props
+const iconBankId = 'mastodon-modal-icon-bank'
 ---
+
+<div id={iconBankId} hidden aria-hidden="true">
+  <span data-mastodon-icon="close">
+    <Icon icon="close" color="inherit" size={5} isListMarker={false} />
+  </span>
+</div>
 
 <mastodon-modal-element id={id} modal-id={id}></mastodon-modal-element>
 
