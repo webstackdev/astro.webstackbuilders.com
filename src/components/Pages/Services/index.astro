@@ -1,0 +1,144 @@
+---
+import type { CollectionEntry } from 'astro:content'
+
+type Props = {
+  services: CollectionEntry<'services'>[]
+}
+
+const { services }: Props = Astro.props
+
+/**
+ * Splits rendered markdown at each <h2> boundary so we can place
+ * sections in a two-column layout.
+ */
+const splitH2Sections = (html: string): string[] => {
+  if (!html.trim()) {
+    return []
+  }
+
+  return html
+    .split(/(?=<h2\b)/g)
+    .map(section => section.trim())
+    .filter(Boolean)
+}
+
+const supportedProjectTypes = new Set([
+  'full-workstream',
+  'continuous-workstream',
+  'solutions-services',
+  'on-call-support',
+])
+---
+
+<section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  {services.length > 0 && (
+    <div class="services-grid grid gap-8 md:grid-cols-2">
+      {services.map((service, i) => {
+        const sections = splitH2Sections(service.rendered?.html ?? '')
+        const leftSections = sections.slice(0, 2).join('')
+        const rightSections = sections.slice(2, 4).join('')
+        const projectType = supportedProjectTypes.has(service.id) ? service.id : ''
+        const contactHref = projectType
+          ? `/contact?type=${encodeURIComponent(projectType)}`
+          : '/contact'
+
+        return (
+          <article
+            data-service-card
+            data-default-card={i === 0 ? 'true' : undefined}
+            class="relative flex flex-col rounded-2xl border border-trim overflow-hidden transition-shadow hover:shadow-lg focus-within:shadow-lg"
+          >
+            <a
+              href={contactHref}
+              class="absolute inset-0 z-(--z-raised) no-underline hover:no-underline focus-visible:no-underline focus-visible:outline-none"
+              aria-label={`Contact us about ${service.data.title}`}
+            >
+              <span class="sr-only">Contact us about {service.data.title}</span>
+            </a>
+
+            <div
+              class:list={[
+                'service-card-header px-6 py-5 bg-page-offset text-page-inverse',
+                i === 0 ? 'service-card-header--default' : '',
+              ]}
+            >
+              {i === 0 && (
+                <span class="mb-2 inline-block rounded-full bg-spotlight px-3 py-0.5 text-xs font-bold uppercase tracking-wider text-primary">
+                  Most Popular
+                </span>
+              )}
+              <h3 class="text-xl font-bold">{service.data.title}</h3>
+              <p
+                class:list={[
+                  'service-card-description mt-2 text-sm leading-relaxed text-content-offset',
+                  i === 0 ? 'service-card-description--default' : '',
+                ]}
+              >
+                {service.data.description}
+              </p>
+            </div>
+
+            <div class="flex flex-1 flex-col bg-content-inverse px-6 py-6">
+              <div class="grid gap-6 md:grid-cols-2">
+                <div class="space-y-6 [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:uppercase [&_h2]:tracking-wider [&_h2]:text-page-inverse [&_h2]:mb-2 [&_h2]:mt-0 [&_p]:text-content [&_p]:text-sm [&_p]:leading-relaxed [&_ul]:space-y-1.5 [&_ul]:text-sm [&_ul]:text-content [&_ul]:list-none [&_ul]:pl-0 [&_li]:flex [&_li]:items-start [&_li]:gap-2 [&_li]:before:content-['✓'] [&_li]:before:text-success [&_li]:before:mt-0.5 [&_li]:before:shrink-0">
+                  <Fragment set:html={leftSections} />
+                </div>
+                <div class="space-y-6 [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:uppercase [&_h2]:tracking-wider [&_h2]:text-page-inverse [&_h2]:mb-2 [&_h2]:mt-0 [&_p]:text-content [&_p]:text-sm [&_p]:leading-relaxed [&_strong]:text-page-inverse">
+                  <Fragment set:html={rightSections} />
+                </div>
+              </div>
+            </div>
+          </article>
+        )
+      })}
+    </div>
+  )}
+</section>
+
+<style>
+  .services-grid [data-service-card]:is(:hover, :focus-within) {
+    border-color: var(--color-spotlight);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-spotlight) 30%, transparent);
+  }
+
+  .services-grid [data-service-card]:is(:hover, :focus-within) .service-card-header {
+    background-color: var(--color-primary);
+    color: var(--color-primary-inverse);
+  }
+
+  .services-grid [data-service-card]:is(:hover, :focus-within) .service-card-description {
+    color: color-mix(in srgb, var(--color-primary-inverse) 70%, transparent);
+  }
+
+  .services-grid [data-default-card='true'] {
+    border-color: var(--color-spotlight);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-spotlight) 30%, transparent);
+  }
+
+  .services-grid [data-default-card='true'] .service-card-header {
+    background-color: var(--color-primary);
+    color: var(--color-primary-inverse);
+  }
+
+  .services-grid [data-default-card='true'] .service-card-description {
+    color: color-mix(in srgb, var(--color-primary-inverse) 70%, transparent);
+  }
+
+  .services-grid:has([data-service-card]:is(:hover, :focus-within)) [data-default-card='true'] {
+    border-color: var(--color-trim);
+    box-shadow: none;
+  }
+
+  .services-grid:has([data-service-card]:is(:hover, :focus-within))
+    [data-default-card='true']
+    .service-card-header {
+    background-color: var(--color-page-offset);
+    color: var(--color-page-inverse);
+  }
+
+  .services-grid:has([data-service-card]:is(:hover, :focus-within))
+    [data-default-card='true']
+    .service-card-description {
+    color: var(--color-content-offset);
+  }
+</style>
