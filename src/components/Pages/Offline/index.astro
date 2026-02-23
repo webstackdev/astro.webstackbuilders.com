@@ -3,6 +3,7 @@
  * Offline Page Layout
  */
 import contactData from '@content/contact.json'
+import Button from '@components/Button/index.astro'
 import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 import Icon from '@components/Icon/index.astro'
 import List from '@components/List/index.astro'
@@ -15,10 +16,10 @@ export type Props = {
       label: string
       cards: {
         title: string
-        description: string
+        text: string
         icon: string
         color: string
-        inverseColor: string
+        bgColor: string
       }[]
     }
     about: {
@@ -34,21 +35,11 @@ export type Props = {
 }
 
 const { content } = Astro.props
-
-const actionCards = content.items.cards.map((card) => {
-  return {
-    title: card.title,
-    text: card.description,
-    icon: card.icon,
-    color: card.color,
-    inverseColor: card.inverseColor
-  }
-})
 ---
 
 {/** What You Can Do Offline Section */}
 <section
-  class="bg-page-offset rounded-xl shadow-md p-8 mb-8"
+  class="bg-page-offset rounded-xl shadow-md p-4 sm:p-8 mb-8"
   aria-labelledby="offline-actions-title"
 >
   <h2 class="text-2xl font-semibold text-page-inverse mb-6" id="offline-actions-title">
@@ -57,18 +48,18 @@ const actionCards = content.items.cards.map((card) => {
   </h2>
   <List
     variant="two-column-icon-list"
-    items={actionCards}
+    items={content.items.cards}
     classes={{
-      ul: "text-page-inverse",
-      icon: "bg-blue-100",
-      header: "page-inverse"
+      li: "min-w-0",
+      content: "min-w-0",
+      text: "wrap-break-word",
     }}
   />
 </section>
 
 {/** About Webstack Builders */}
 <section
-  class="bg-content-active rounded-xl p-8 mb-8"
+  class="bg-content-active rounded-xl p-4 sm:p-8 mb-8"
   aria-labelledby="offline-company-title"
 >
   <h2 class="text-2xl font-semibold text-content-inverse mb-3" id="offline-company-title">
@@ -78,7 +69,7 @@ const actionCards = content.items.cards.map((card) => {
   <p class="text-content-inverse/70 leading-relaxed mb-6">
     {contactData.company.description}
   </p>
-  <div class="grid grid-cols-3 gap-6 text-center">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
     {content.about.items.map((item) => {
       return (
         <div>
@@ -92,7 +83,7 @@ const actionCards = content.items.cards.map((card) => {
 
 {/** Get In Touch */}
 <section
-  class="bg-content-inverse-active rounded-xl p-8 mb-10"
+  class="bg-content-inverse-active rounded-xl p-4 sm:p-8 mb-10"
   aria-labelledby="offline-contact-title"
 >
   <h2 class="text-xl font-semibold text-page-inverse mb-5" id="offline-contact-title">
@@ -100,7 +91,7 @@ const actionCards = content.items.cards.map((card) => {
     <HeadingAnchor href={"#offline-contact-title"} />
   </h2>
   <div class="grid sm:grid-cols-2 gap-4">
-    <div class="flex items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
+    <div class="flex min-w-0 items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
       <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-2">
         <Icon
           icon="email"
@@ -108,12 +99,12 @@ const actionCards = content.items.cards.map((card) => {
           size={6}
         />
       </div>
-      <div>
+      <div class="min-w-0">
         <div class="text-sm text-content-offset font-medium uppercase tracking-wide">Email</div>
-        <div class="text-md text-page-inverse font-semibold">{contactData.company.email}</div>
+        <div class="text-md text-page-inverse font-semibold break-all">{contactData.company.email}</div>
       </div>
     </div>
-    <div class="flex items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
+    <div class="flex min-w-0 items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
       <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-2">
         <Icon
           icon="globe"
@@ -121,9 +112,9 @@ const actionCards = content.items.cards.map((card) => {
           size={6}
         />
       </div>
-      <div>
+      <div class="min-w-0">
         <div class="text-sm text-content-offset font-medium uppercase tracking-wide">Website</div>
-        <div class="text-md text-page-inverse font-semibold">{contactData.company.url.replace('https://', '')}</div>
+        <div class="text-md text-page-inverse font-semibold break-all">{contactData.company.url.replace('https://', '')}</div>
       </div>
     </div>
   </div>
@@ -132,18 +123,15 @@ const actionCards = content.items.cards.map((card) => {
 {/** Retry Button */}
 <section class="text-center mb-8" aria-labelledby="offline-retry-title">
   <h2 class="sr-only" id="offline-retry-title">Try again</h2>
-  <button
+  <Button
     data-offline-retry
     id="offline-retry-button"
-    class="inline-flex items-center bg-spotlight hover:bg-spotlight-offset text-primary font-semibold py-3 px-8 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-  >
-    <Icon
-      icon="reload"
-      color="primary-offset"
-      size={5}
-    />
-    <span class="ml-1">{content.retryText}</span>
-  </button>
+    type="button"
+    variant="warning"
+    icon="reload"
+    iconSize={5}
+    text={content.retryText}
+  />
 </section>
 
 <offline-page-client data-testid="offline-page-client"></offline-page-client>

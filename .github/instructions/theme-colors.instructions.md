@@ -17,6 +17,8 @@ The source of truth for **all** colors in this repo is:
   - gradient tokens: `from-*`, `via-*`, `to-*`
 - When using CSS variables, only reference `var(--color-...)` tokens that are defined in `src/styles/theme-inline.css`.
 
+- Do not use Tailwind `dark:` variant classes to implement dark mode. The project uses a custom theme system that relies on CSS variables defined in `src/styles/theme-inline.css`; apply those tokens and the project's theme helpers instead of Tailwind `dark:` utilities.
+
 ## Permission required
 
 - If a future change requires a new color token (a new `--color-*` or a new Tailwind color utility name that would require adding a token), **stop and ask for explicit permission before adding it**.

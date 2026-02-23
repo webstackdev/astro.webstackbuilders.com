@@ -10,6 +10,10 @@ applyTo: "**/*.css"
 - Avoid long selector chains; if you need more specificity, add a single component class rather than stacking selectors.
 - Avoid `!important` except in vendor CSS and print rules.
 
+- Do not use Tailwind `dark:` variant classes for dark-mode theming. This project uses a custom theme system and CSS variables; use the project's theme tokens and helper classes instead of Tailwind `dark:` utilities.
+
+- Do not use Tailwind `dark:` variant classes for dark-mode theming. This project uses a custom theme system and CSS variables; use the project's theme tokens and helper classes instead of Tailwind `dark:` utilities.
+
 # Z-index tokens
 
 - Do not hard-code numeric `z-index` values.

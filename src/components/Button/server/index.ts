@@ -102,10 +102,10 @@ const variantClasses: Record<ButtonVariant, string> = {
     'focus-visible:bg-transparent ' +
     'focus-visible:text-x',
   warning:
-    'bg-warning-offset text-white ' +
-    'hover:bg-warning ' +
-    'focus-visible:bg-warning ' +
-    'active:bg-warning',
+    'bg-warning text-white ' +
+    'hover:bg-warning-offset ' +
+    'focus-visible:bg-warning-offset ' +
+    'active:bg-warning-offset',
   }
 
 export interface ButtonClassOptions {
