@@ -322,6 +322,8 @@ We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-for
 
 - Add a Social Share on some compelling text in each article
 
+- Move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
+
 ## Instructions for revamps
 
 All changes should look good on both light and dark theme, use our tailwind theme colors, and look good on mobile.
