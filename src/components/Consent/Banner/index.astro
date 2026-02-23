@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets'
 import Button from '@components/Button/index.astro'
+import Icon from '@components/Icon/index.astro'
 import CookieSvg from '@assets/images/site/cookie.svg'
 ---
 
@@ -17,15 +18,14 @@ import CookieSvg from '@assets/images/site/cookie.svg'
   >
     <h2 id="consent-modal__title" class="sr-only">Cookie consent</h2>
     <!-- Close button positioned at far right of viewport -->
-    <Button
+    <button
+      class="consent-modal__close-btn bg-spotlight border-none flex p-1.5 absolute top-0 right-0 transition-all duration-150 ease-in-out hover:bg-spotlight-offset focus:bg-spotlight-offset z-(--z-raised)"
       type="button"
-      variant="warning"
-      ariaLabel="Close cookie consent"
-      icon="close"
-      iconPosition="only"
-      iconSize={8}
-      class="consent-modal__close-btn border-none flex p-1.5 absolute top-0 right-0 transition-all duration-150 ease-in-out z-(--z-raised)"
-    />
+      aria-label="Close cookie consent"
+      data-theme-close
+    >
+      <Icon icon="close" size={6} />
+    </button>
 
     <!-- Modal content container with page column constraints -->
     <div
@@ -41,7 +41,7 @@ import CookieSvg from '@assets/images/site/cookie.svg'
       </div>
       <div class="pt-7 pb-4 pl-4 pr-4 md:pt-9 md:pb-4 md:pl-8 md:pr-8">
         <!-- Unified responsive container using CSS Grid -->
-        <div class="grid gap-4 grid-cols-1 md:grid-cols-[auto_1fr] md:items-center">
+        <div class="grid gap-6 grid-cols-1 md:grid-cols-[auto_1fr] md:items-center">
           <!-- Buttons: centered on mobile, left-aligned on desktop -->
           <ul
             class="flex items-center gap-4 justify-center md:justify-start md:gap-6 order-2 md:order-1"
@@ -51,14 +51,16 @@ import CookieSvg from '@assets/images/site/cookie.svg'
                 text="Allow All"
                 variant="success"
                 type="button"
-                class="consent-modal__btn-allow text-sm  md:text-base px-3 py-2 md:px-4 md:py-2"
+                size="large"
+                class="consent-modal__btn-allow px-3 py-2 md:px-4 md:py-2"
               />
             </li>
             <li class="list-none">
               <Button
                 text="Customize"
                 variant="warning"
-                class="consent-modal__btn-customize text-white text-sm md:text-base px-3 py-2 md:px-4 md:py-2"
+                size="large"
+                class="consent-modal__btn-customize px-3 py-2 md:px-4 md:py-2"
                 href="/consent"
               />
             </li>
