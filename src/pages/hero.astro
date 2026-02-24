@@ -1,17 +1,427 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro'
 
-const pageDescription = 'Hero Demo Pages'
-const pageTitle = 'Hero Demo Pages'
+const pageDescription = 'Content Depth Selector Variants'
+const pageTitle = 'Content Depth Selector Variants'
 const path = '/hero/'
+
+// Demo page showing six variant designs for the Overview / Deep Dive
+// content-depth selector. Each variant is displayed in a simulated
+// article-header row (author + date on the left, selector on the right).
+//
+// Naming rationale — "Overview" pairs well with "Deep Dive" because it
+// implies a high-level look vs. an in-depth exploration. Other candidates:
+// - "Quick Read" / "Deep Dive"
+// - "Essentials" / "Deep Dive"
 ---
 
 <BaseLayout pageDescription={pageDescription} noindex={true} pageTitle={pageTitle} path={path}>
-  <main class="mx-auto max-w-7xl space-y-16 px-4 py-12 sm:px-6 lg:px-8">
+  <main class="mx-auto max-w-7xl space-y-20 px-4 py-12 sm:px-6 lg:px-8">
     <header class="space-y-2">
-      <h1 class="text-3xl font-bold tracking-tight text-content-active">Contact CTA Variants</h1>
-      <p class="text-content-offset">Four design options for the Contact Us call-to-action section.</p>
-
+      <h1 class="text-3xl font-bold tracking-tight text-content-active">Content Depth Selector</h1>
+      <p class="text-content-offset">Six design variants for switching between Overview and Deep Dive content.</p>
     </header>
+
+    {/* ================================================================
+        Variant 1 — Toggle Switch (slider)
+        A classic thumb-slider toggle. Label on each side, colored thumb
+        slides to indicate the active choice.
+        ================================================================ */}
+    <section class="space-y-4">
+      <h2 class="text-lg font-semibold text-content-active">Variant 1 — Toggle Switch</h2>
+      <p class="text-sm text-content-offset">A familiar slider switch. The thumb slides left/right to show the active depth.</p>
+
+      {/* Simulated article-header row */}
+      <div class="flex items-center justify-between rounded-xl border border-trim-offset bg-page-base px-6 py-4">
+        {/* Left: author + date */}
+        <div class="flex items-center gap-3 text-sm text-content">
+          <div class="size-8 rounded-full bg-primary" />
+          <div>
+            <span class="font-medium text-content-active">Jane Doe</span>
+            <span class="mx-1.5 text-content-offset">·</span>
+            <time class="text-content-offset">Feb 24, 2026</time>
+          </div>
+        </div>
+
+        {/* Right: toggle switch selector */}
+        <div class="flex items-center gap-3" role="radiogroup" aria-label="Content depth">
+          <span class="text-sm font-medium text-content-active variant-1-label variant-1-label--overview" id="v1-overview-label">Overview</span>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked="false"
+            aria-label="Toggle between Overview and Deep Dive"
+            class="variant-1-track group relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-trim-offset transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            <span class="variant-1-thumb pointer-events-none inline-block size-5 translate-x-0.5 rounded-full bg-page-base shadow-sm ring-0 transition-transform" />
+          </button>
+
+          <span class="text-sm text-content-offset variant-1-label variant-1-label--deep-dive" id="v1-deep-dive-label">Deep Dive</span>
+        </div>
+      </div>
+    </section>
+
+    {/* ================================================================
+        Variant 2 — Segmented Control (pill toggle)
+        Two pill-shaped options inside a rounded container. The selected
+        pill gets a filled background; the other is transparent.
+        ================================================================ */}
+    <section class="space-y-4">
+      <h2 class="text-lg font-semibold text-content-active">Variant 2 — Segmented Control</h2>
+      <p class="text-sm text-content-offset">An iOS-style segmented control. The active segment gets a filled pill background.</p>
+
+      <div class="flex items-center justify-between rounded-xl border border-trim-offset bg-page-base px-6 py-4">
+        <div class="flex items-center gap-3 text-sm text-content">
+          <div class="size-8 rounded-full bg-primary" />
+          <div>
+            <span class="font-medium text-content-active">Jane Doe</span>
+            <span class="mx-1.5 text-content-offset">·</span>
+            <time class="text-content-offset">Feb 24, 2026</time>
+          </div>
+        </div>
+
+        {/* Segmented control */}
+        <div class="inline-flex items-center gap-1 rounded-full bg-page-offset p-1" role="radiogroup" aria-label="Content depth">
+          <button
+            type="button"
+            role="radio"
+            aria-checked="true"
+            class="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-inverse shadow-sm transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            Overview
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked="false"
+            class="rounded-full px-4 py-1.5 text-sm font-medium text-content-offset transition-all hover:text-content-active focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            Deep Dive
+          </button>
+        </div>
+      </div>
+    </section>
+
+    {/* ================================================================
+        Variant 3 — Underline Tabs
+        Minimal, content-forward tabs with an underline indicator on the
+        active option.
+        ================================================================ */}
+    <section class="space-y-4">
+      <h2 class="text-lg font-semibold text-content-active">Variant 3 — Underline Tabs</h2>
+      <p class="text-sm text-content-offset">Minimal tab links with an underline accent on the active choice. Clean and editorial.</p>
+
+      <div class="flex items-center justify-between rounded-xl border border-trim-offset bg-page-base px-6 py-4">
+        <div class="flex items-center gap-3 text-sm text-content">
+          <div class="size-8 rounded-full bg-primary" />
+          <div>
+            <span class="font-medium text-content-active">Jane Doe</span>
+            <span class="mx-1.5 text-content-offset">·</span>
+            <time class="text-content-offset">Feb 24, 2026</time>
+          </div>
+        </div>
+
+        {/* Underline tabs */}
+        <div class="flex items-center gap-6" role="tablist" aria-label="Content depth">
+          <button
+            type="button"
+            role="tab"
+            aria-selected="true"
+            class="border-b-2 border-secondary pb-1 text-sm font-semibold text-secondary transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            Overview
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected="false"
+            class="border-b-2 border-transparent pb-1 text-sm font-medium text-content-offset transition-colors hover:border-trim-offset hover:text-content-active focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            Deep Dive
+          </button>
+        </div>
+      </div>
+    </section>
+
+    {/* ================================================================
+        Variant 4 — Icon Chips
+        Rounded chip buttons with leading icons. The active chip uses a
+        tinted background; the inactive one is outlined.
+        ================================================================ */}
+    <section class="space-y-4">
+      <h2 class="text-lg font-semibold text-content-active">Variant 4 — Icon Chips</h2>
+      <p class="text-sm text-content-offset">Rounded chips with leading icons. Active chip is filled, inactive is outlined.</p>
+
+      <div class="flex items-center justify-between rounded-xl border border-trim-offset bg-page-base px-6 py-4">
+        <div class="flex items-center gap-3 text-sm text-content">
+          <div class="size-8 rounded-full bg-primary" />
+          <div>
+            <span class="font-medium text-content-active">Jane Doe</span>
+            <span class="mx-1.5 text-content-offset">·</span>
+            <time class="text-content-offset">Feb 24, 2026</time>
+          </div>
+        </div>
+
+        {/* Icon chips */}
+        <div class="flex items-center gap-2" role="radiogroup" aria-label="Content depth">
+          <button
+            type="button"
+            role="radio"
+            aria-checked="true"
+            class="inline-flex items-center gap-1.5 rounded-full bg-secondary px-4 py-1.5 text-sm font-medium text-secondary-inverse shadow-sm transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            {/* Newspaper / short-read icon */}
+            <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v11.75A2.75 2.75 0 0 0 16.75 18h-12A2.75 2.75 0 0 1 2 15.25V3.5Zm3.75 7a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Zm0 3a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5ZM5 5.75A.75.75 0 0 1 5.75 5h4.5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 5 8.25v-2.5Z" clip-rule="evenodd" />
+              <path d="M16.5 6.5h-1v8.25a1.25 1.25 0 1 0 2.5 0V8a1.5 1.5 0 0 0-1.5-1.5Z" />
+            </svg>
+            Overview
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked="false"
+            class="inline-flex items-center gap-1.5 rounded-full border border-trim-offset px-4 py-1.5 text-sm font-medium text-content-offset transition-all hover:border-content hover:text-content-active focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            {/* Book / deep-read icon */}
+            <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M10.75 16.82A7.462 7.462 0 0 1 15 15.5c.71 0 1.396.098 2.046.282A.75.75 0 0 0 18 15.06V3.56a.75.75 0 0 0-.546-.721A9.006 9.006 0 0 0 15 2.5a9.006 9.006 0 0 0-4.25 1.065v13.255ZM9.25 4.565A9.006 9.006 0 0 0 5 2.5a9.006 9.006 0 0 0-2.454.339A.75.75 0 0 0 2 3.56v11.5a.75.75 0 0 0 .954.721A7.506 7.506 0 0 1 5 15.5a7.462 7.462 0 0 1 4.25 1.32V4.565Z" />
+            </svg>
+            Deep Dive
+          </button>
+        </div>
+      </div>
+    </section>
+
+    {/* ================================================================
+        Variant 5 — Stacked Card Buttons
+        Two compact cards stacked horizontally. The active card has a
+        spotlight left-border accent and slightly elevated shadow.
+        ================================================================ */}
+    <section class="space-y-4">
+      <h2 class="text-lg font-semibold text-content-active">Variant 5 — Accent-Border Cards</h2>
+      <p class="text-sm text-content-offset">Two mini-cards with a left-border accent on the active option. Shows word count and read time.</p>
+
+      <div class="flex items-center justify-between rounded-xl border border-trim-offset bg-page-base px-6 py-4">
+        <div class="flex items-center gap-3 text-sm text-content">
+          <div class="size-8 rounded-full bg-primary" />
+          <div>
+            <span class="font-medium text-content-active">Jane Doe</span>
+            <span class="mx-1.5 text-content-offset">·</span>
+            <time class="text-content-offset">Feb 24, 2026</time>
+          </div>
+        </div>
+
+        {/* Accent-border card pair */}
+        <div class="flex items-stretch gap-3" role="radiogroup" aria-label="Content depth">
+          <button
+            type="button"
+            role="radio"
+            aria-checked="true"
+            class="flex flex-col items-start rounded-lg border-l-4 border-l-spotlight bg-content-inverse px-4 py-2 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            <span class="text-sm font-semibold text-content-active">Overview</span>
+            <span class="text-xs text-content-offset">~1,200 words · 5 min read</span>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked="false"
+            class="flex flex-col items-start rounded-lg border-l-4 border-l-transparent bg-page-offset px-4 py-2 text-left transition-shadow hover:border-l-trim-offset hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            <span class="text-sm font-semibold text-content-offset">Deep Dive</span>
+            <span class="text-xs text-content-offset">~6,000 words · 25 min read</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    {/* ================================================================
+        Variant 6 — Sliding Indicator Bar
+        Two text labels sit over a shared track. A rounded indicator bar
+        slides behind the active label using CSS transforms.
+        ================================================================ */}
+    <section class="space-y-4">
+      <h2 class="text-lg font-semibold text-content-active">Variant 6 — Sliding Indicator Bar</h2>
+      <p class="text-sm text-content-offset">A shared track with a sliding background indicator that moves behind the active label.</p>
+
+      <div class="flex items-center justify-between rounded-xl border border-trim-offset bg-page-base px-6 py-4">
+        <div class="flex items-center gap-3 text-sm text-content">
+          <div class="size-8 rounded-full bg-primary" />
+          <div>
+            <span class="font-medium text-content-active">Jane Doe</span>
+            <span class="mx-1.5 text-content-offset">·</span>
+            <time class="text-content-offset">Feb 24, 2026</time>
+          </div>
+        </div>
+
+        {/* Sliding indicator */}
+        <div class="variant-6-container relative inline-flex items-center rounded-lg bg-page-offset p-1" role="radiogroup" aria-label="Content depth">
+          {/* Animated background indicator */}
+          <div class="variant-6-indicator absolute top-1 bottom-1 left-1 w-[calc(50%-2px)] rounded-md bg-primary shadow-sm transition-transform" />
+
+          <button
+            type="button"
+            role="radio"
+            aria-checked="true"
+            data-variant6="overview"
+            class="variant-6-btn relative rounded-md px-5 py-1.5 text-sm font-medium text-primary-inverse transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            Overview
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked="false"
+            data-variant6="deep-dive"
+            class="variant-6-btn relative rounded-md px-5 py-1.5 text-sm font-medium text-content-offset transition-colors hover:text-content-active focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            Deep Dive
+          </button>
+        </div>
+      </div>
+    </section>
   </main>
 </BaseLayout>
+
+<style>
+  /* ── Variant 1: Toggle Switch ────────────────────────────────────── */
+  .variant-1-track[aria-checked='false'] {
+    background-color: var(--color-trim-offset);
+  }
+  .variant-1-track[aria-checked='true'] {
+    background-color: var(--color-secondary);
+  }
+  .variant-1-track[aria-checked='true'] .variant-1-thumb {
+    transform: translateX(1.25rem);
+  }
+  .variant-1-track[aria-checked='false'] ~ .variant-1-label--overview {
+    color: var(--color-content-active);
+    font-weight: 600;
+  }
+  .variant-1-track[aria-checked='false'] ~ .variant-1-label--deep-dive {
+    color: var(--color-content-offset);
+  }
+  .variant-1-track[aria-checked='true'] ~ .variant-1-label--deep-dive {
+    color: var(--color-content-active);
+    font-weight: 600;
+  }
+
+  /* ── Variant 6: Sliding Indicator ────────────────────────────────── */
+  .variant-6-container[data-active='deep-dive'] .variant-6-indicator {
+    transform: translateX(100%);
+  }
+  .variant-6-container[data-active='deep-dive'] [data-variant6='overview'] {
+    color: var(--color-content-offset);
+  }
+  .variant-6-container[data-active='deep-dive'] [data-variant6='deep-dive'] {
+    color: var(--color-primary-inverse);
+  }
+</style>
+
+<script>
+  import { addButtonEventListeners } from '@components/scripts/elementListeners'
+
+  /**
+   * Lightweight demo interactivity for all six selector variants.
+   * In production these would live in their own Lit web component.
+   */
+  const initSelectors = () => {
+    // ── Variant 1: toggle switch ──
+    document.querySelectorAll<HTMLButtonElement>('.variant-1-track').forEach((btn) => {
+      addButtonEventListeners(btn, () => {
+        const next = btn.getAttribute('aria-checked') === 'true' ? 'false' : 'true'
+        btn.setAttribute('aria-checked', next)
+      })
+    })
+
+    // ── Variants 2, 4, 5: radio-group buttons ──
+    document.querySelectorAll<HTMLElement>('[role="radiogroup"]').forEach((group) => {
+      const btns = group.querySelectorAll<HTMLButtonElement>('[role="radio"]')
+      btns.forEach((btn) => {
+        addButtonEventListeners(btn, () => {
+          btns.forEach((b) => {
+            const isActive = b === btn
+            b.setAttribute('aria-checked', String(isActive))
+
+            // Variant 2 — segmented control
+            if (group.closest('section')?.querySelector('h2')?.textContent?.includes('Segmented')) {
+              if (isActive) {
+                b.classList.add('bg-primary', 'text-primary-inverse', 'shadow-sm')
+                b.classList.remove('text-content-offset')
+              } else {
+                b.classList.remove('bg-primary', 'text-primary-inverse', 'shadow-sm')
+                b.classList.add('text-content-offset')
+              }
+            }
+
+            // Variant 4 — icon chips
+            if (group.closest('section')?.querySelector('h2')?.textContent?.includes('Icon')) {
+              if (isActive) {
+                b.classList.add('bg-secondary', 'text-secondary-inverse', 'shadow-sm')
+                b.classList.remove('border', 'border-trim-offset', 'text-content-offset')
+              } else {
+                b.classList.remove('bg-secondary', 'text-secondary-inverse', 'shadow-sm')
+                b.classList.add('border', 'border-trim-offset', 'text-content-offset')
+              }
+            }
+
+            // Variant 5 — accent-border cards
+            if (group.closest('section')?.querySelector('h2')?.textContent?.includes('Accent')) {
+              const label = b.querySelector<HTMLElement>('span:first-child')
+              if (isActive) {
+                b.classList.add('border-l-spotlight', 'bg-content-inverse', 'shadow-sm')
+                b.classList.remove('border-l-transparent', 'bg-page-offset')
+                if (label) label.classList.replace('text-content-offset', 'text-content-active')
+              } else {
+                b.classList.remove('border-l-spotlight', 'bg-content-inverse', 'shadow-sm')
+                b.classList.add('border-l-transparent', 'bg-page-offset')
+                if (label) label.classList.replace('text-content-active', 'text-content-offset')
+              }
+            }
+          })
+        })
+      })
+    })
+
+    // ── Variant 3: underline tabs ──
+    document.querySelectorAll<HTMLElement>('[role="tablist"]').forEach((tablist) => {
+      const tabs = tablist.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+      tabs.forEach((tab) => {
+        addButtonEventListeners(tab, () => {
+          tabs.forEach((t) => {
+            const isActive = t === tab
+            t.setAttribute('aria-selected', String(isActive))
+            if (isActive) {
+              t.classList.add('border-secondary', 'text-secondary', 'font-semibold')
+              t.classList.remove('border-transparent', 'text-content-offset', 'font-medium')
+            } else {
+              t.classList.remove('border-secondary', 'text-secondary', 'font-semibold')
+              t.classList.add('border-transparent', 'text-content-offset', 'font-medium')
+            }
+          })
+        })
+      })
+    })
+
+    // ── Variant 6: sliding indicator ──
+    document.querySelectorAll<HTMLElement>('.variant-6-container').forEach((container) => {
+      container.setAttribute('data-active', 'overview')
+      container.querySelectorAll<HTMLButtonElement>('.variant-6-btn').forEach((btn) => {
+        addButtonEventListeners(btn, () => {
+          const value = btn.dataset['variant6'] ?? 'overview'
+          container.setAttribute('data-active', value)
+
+          container.querySelectorAll<HTMLButtonElement>('.variant-6-btn').forEach((b) => {
+            b.setAttribute('aria-checked', String(b === btn))
+          })
+        })
+      })
+    })
+  }
+
+  // Run on initial load and on Astro View Transition navigations
+  initSelectors()
+  document.addEventListener('astro:page-load', initSelectors)
+</script>
