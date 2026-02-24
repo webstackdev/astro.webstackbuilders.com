@@ -65,12 +65,6 @@ describe('ContactForm submission', () => {
     elements.fields.email.input.value = 'team@webstackbuilders.com'
     elements.fields.message.input.value = 'Excited to talk about a new project.'
     elements.fields.message.input.dispatchEvent(new window.Event('input', { bubbles: true }))
-
-    const budgetSelect = window.document.getElementById('budget') as HTMLSelectElement | null
-    if (!budgetSelect) {
-      throw new TestError('Budget select not found in contact form')
-    }
-    budgetSelect.value = '5k-10k'
   }
 
   it('shows error banner and skips request when validations fail', async () => {
