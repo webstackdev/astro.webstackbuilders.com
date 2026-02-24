@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
-import NewsletterConfirm from '@components/Newsletter/Confirm/index.astro'
+import NewsletterConfirm from '@components/Pages/Newsletter/Confirm/index.astro'
 import type { NewsletterConfirmElement as NewsletterConfirmElementInstance } from '../index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'

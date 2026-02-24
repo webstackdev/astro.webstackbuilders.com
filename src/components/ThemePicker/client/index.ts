@@ -31,6 +31,8 @@ import {
   getThemePickerEmblaPrevBtn,
   getThemePickerEmblaViewport,
   queryThemeButtonTooltipSource,
+  queryThemePickerModal,
+  queryThemePickerToggleBtn,
 } from './selectors'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -106,7 +108,7 @@ export class ThemePickerElement extends LitElement {
       return this.pickerModal
     }
 
-    const modal = document.querySelector<HTMLDivElement>('[data-theme-modal]')
+    const modal = queryThemePickerModal()
     if (modal) {
       this.pickerModal = modal
       return modal
@@ -134,7 +136,6 @@ export class ThemePickerElement extends LitElement {
     modal.classList.add(CLASSES.isOpen)
 
     // Force a style recalc so the browser resolves the max-height immediately
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     void modal.offsetHeight
 
     this.updateHeaderOffset(true)
@@ -148,7 +149,7 @@ export class ThemePickerElement extends LitElement {
       modal.style.transition = savedTransition
     }
 
-    const toggleButton = document.querySelector<HTMLButtonElement>('[data-theme-toggle]')
+    const toggleButton = queryThemePickerToggleBtn()
     if (toggleButton) {
       this.toggleBtn = toggleButton
       this.toggleBtn.setAttribute('aria-expanded', 'true')

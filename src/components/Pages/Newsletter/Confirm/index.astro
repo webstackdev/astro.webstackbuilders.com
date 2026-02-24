@@ -1,0 +1,240 @@
+---
+/**
+ * This component handles the newsletter confirmation process, including
+ * displaying loading, success, expired, and error states based on the
+ * confirmation token's validity. It provides clear feedback to the user
+ * and guides them on next steps after confirming their subscription.
+ *
+ * Magic tokens to view different states for testing:
+ * - Error: `error-token`
+ * - Expired: `expired-token`
+ * - Loading: `loading-token`
+ * - Success: `success-token`
+ */
+import Button from '@components/Button/index.astro'
+import Icon from '@components/Icon/index.astro'
+import List from '@components/List/index.astro'
+
+export interface Props {
+  token?: string
+}
+
+const { token } = Astro.props
+---
+
+<newsletter-confirm class="block" token={token} data-confirm-state="loading">
+  <div class="container mx-auto px-4 py-12 sm:py-16 max-w-2xl">
+    <p
+      id="confirmation-status"
+      class="sr-only"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+    </p>
+
+    <!-- Loading state -->
+    <div id="loading-state">
+      <div class="bg-page-base border border-offset rounded-xl shadow-md overflow-hidden">
+        <div class="bg-accent/10 border-b border-offset px-6 py-10 text-center">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/15 mb-5">
+            <Icon
+              icon="reload"
+              color="accent"
+              size={10}
+              classes="animate-spin"
+            />
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-page-inverse" id="confirm-heading-loading" tabindex="-1">
+            Confirming Your Subscription
+          </h2>
+        </div>
+        <div class="px-6 py-8 text-center">
+          <p class="text-lg text-content-active mb-2">
+            Please wait while we verify your confirmation link.
+          </p>
+          <p class="text-sm text-content-offset">
+            This usually takes just a moment.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success state -->
+    <div id="success-state" class="hidden">
+      <div class="bg-page-base border border-offset rounded-xl shadow-md overflow-hidden">
+        <div class="bg-success-inverse/40 border-b border-offset px-6 py-10 text-center">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/15 mb-5">
+            <Icon
+              icon="check-circled-open"
+              color="success"
+              size={10}
+            />
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-page-inverse" id="confirm-heading-success" tabindex="-1">
+            Subscription Confirmed!
+          </h2>
+        </div>
+        <div class="px-6 py-8">
+          <p class="text-lg text-content-active mb-2 text-center">
+            Thank you for confirming your subscription, <strong id="user-email"></strong>!
+          </p>
+          <p class="text-content-offset text-center mb-8">
+            You're all set. Here's what to expect in your inbox:
+          </p>
+
+          <div class="space-y-3 mb-8">
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 mt-0.5">
+                <Icon icon="check-circled-open" color="success" size={5} />
+              </div>
+              <p class="text-content-active">Web development insights and best practices</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 mt-0.5">
+                <Icon icon="check-circled-open" color="success" size={5} />
+              </div>
+              <p class="text-content-active">Updates about new articles and case studies</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="shrink-0 mt-0.5">
+                <Icon icon="check-circled-open" color="success" size={5} />
+              </div>
+              <p class="text-content-active">Exclusive Webstack Builders news</p>
+            </div>
+          </div>
+
+          <div class="bg-page-offset border border-offset rounded-lg p-5 mb-8">
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <div class="flex items-center gap-2">
+                <Icon icon="lock" color="content-active" size={6} />
+                <p class="font-semibold text-sm text-content-active">Your Privacy Rights</p>
+              </div>
+              <Button
+                href="/privacy"
+                variant="success"
+                size="small"
+                text="Privacy Policy"
+              />
+            </div>
+            <p class="text-sm text-content-offset">
+              You can unsubscribe at any time using the link in any email we send. See our privacy policy for details about how we handle your data.
+            </p>
+          </div>
+
+          <div class="text-center">
+            <Button href="/articles/" variant="secondary" text="Browse Our Articles" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expired state -->
+    <div id="expired-state" class="hidden">
+      <div class="bg-page-base border border-offset rounded-xl shadow-md overflow-hidden">
+        <div class="bg-warning-inverse/40 border-b border-offset px-6 py-10 text-center">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-warning/15 mb-5">
+            <Icon
+              icon="clock"
+              color="warning"
+              size={10}
+            />
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-page-inverse" id="confirm-heading-expired" tabindex="-1">
+            Confirmation Link Expired
+          </h2>
+        </div>
+        <div class="px-6 py-8">
+          <p class="text-lg text-content-active text-center mb-2">
+            This confirmation link has expired or has already been used.
+          </p>
+          <p class="text-content-offset text-center mb-8">
+            For security, confirmation links are valid for 24 hours.
+          </p>
+
+          <div class="bg-page-offset border border-offset rounded-lg p-5 mb-8">
+            <p class="font-semibold text-sm text-content-active mb-3">What you can do:</p>
+            <List
+              variant="colored-marker-list"
+              classes={{
+                ul: "ml-2",
+                icon: "bg-content-active",
+              }}
+              items={[
+                {
+                  text: "Sign up again to receive a new confirmation email.",
+                },
+                {
+                  text: "Check your inbox for the new email and click the link within 24 hours.",
+                },
+                {
+                  text: "If the link keeps expiring, contact us for help.",
+                },
+              ]}
+            />
+          </div>
+
+          <div class="text-center">
+            <Button href="/#newsletter" variant="primary" text="Sign Up Again" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div id="error-state" class="hidden">
+      <div class="bg-page-base border border-offset rounded-xl shadow-md overflow-hidden">
+        <div class="bg-danger-inverse/40 border-b border-offset px-6 py-10 text-center">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-danger/15 mb-5">
+            <Icon
+              icon="error-open"
+              color="danger"
+              size={10}
+            />
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-danger" id="error-title" tabindex="-1">
+            Confirmation Error
+          </h2>
+        </div>
+        <div class="px-6 py-8">
+          <p class="text-lg text-content-active text-center mb-6" id="error-message">
+            An error occurred while confirming your subscription.
+          </p>
+          <p class="text-sm text-danger mb-6 text-center hidden" id="error-details"></p>
+
+          <div class="bg-page-offset border border-offset rounded-lg p-5 mb-8">
+            <p class="font-semibold text-sm text-content-active mb-3">Possible causes:</p>
+            <List
+              variant="colored-marker-list"
+              classes={{
+                ul: "ml-2",
+                icon: "bg-content-active",
+              }}
+              items={[
+                {
+                  text: "The confirmation link was malformed or incomplete.",
+                },
+                {
+                  text: "A temporary server issue prevented the confirmation.",
+                },
+                {
+                  text: "The subscription may have already been confirmed.",
+                },
+              ]}
+            />
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button href="/#newsletter" variant="primary" text="Try Signing Up Again" />
+            <Button href="/contact/" variant="secondary" text="Contact Us" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</newsletter-confirm>
+
+<script>
+  import { registerNewsletterConfirm } from '@components/Pages/Newsletter/Confirm/client/index'
+  registerNewsletterConfirm()
+</script>

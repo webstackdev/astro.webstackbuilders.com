@@ -1,17 +1,3 @@
-.services-grid [data-service-card]:is(:hover, :focus-within) {
-  border-color: var(--color-spotlight);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-spotlight) 30%, transparent);
-}
-
-.services-grid [data-service-card]:is(:hover, :focus-within) .service-card-header {
-  background-color: var(--color-primary);
-  color: var(--color-primary-inverse);
-}
-
-.services-grid [data-service-card]:is(:hover, :focus-within) .service-card-description {
-  color: color-mix(in srgb, var(--color-primary-inverse) 70%, transparent);
-}
-
 .services-grid [data-default-card='true'] {
   border-color: var(--color-spotlight);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-spotlight) 30%, transparent);
@@ -26,20 +12,36 @@
   color: color-mix(in srgb, var(--color-primary-inverse) 70%, transparent);
 }
 
-.services-grid:has([data-service-card]:is(:hover, :focus-within)) [data-default-card='true'] {
+.services-grid [data-service-card]:hover,
+.services-grid [data-service-card]:focus-within {
+  border-color: var(--color-spotlight);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-spotlight) 30%, transparent);
+}
+
+.services-grid [data-service-card]:hover .service-card-header,
+.services-grid [data-service-card]:focus-within .service-card-header {
+  background-color: var(--color-primary);
+  color: var(--color-primary-inverse);
+}
+
+.services-grid [data-service-card]:hover .service-card-description,
+.services-grid [data-service-card]:focus-within .service-card-description {
+  color: color-mix(in srgb, var(--color-primary-inverse) 70%, transparent);
+}
+
+.services-grid:has([data-service-card]:hover) [data-default-card='true'],
+.services-grid:has([data-service-card]:focus-within) [data-default-card='true'] {
   border-color: var(--color-trim);
   box-shadow: none;
 }
 
-.services-grid:has([data-service-card]:is(:hover, :focus-within))
-  [data-default-card='true']
-  .service-card-header {
+.services-grid:has([data-service-card]:hover) [data-default-card='true'] .service-card-header,
+.services-grid:has([data-service-card]:focus-within) [data-default-card='true'] .service-card-header {
   background-color: var(--color-page-offset);
   color: var(--color-page-inverse);
 }
 
-.services-grid:has([data-service-card]:is(:hover, :focus-within))
-  [data-default-card='true']
-  .service-card-description {
+.services-grid:has([data-service-card]:hover) [data-default-card='true'] .service-card-description,
+.services-grid:has([data-service-card]:focus-within) [data-default-card='true'] .service-card-description {
   color: var(--color-content-offset);
 }

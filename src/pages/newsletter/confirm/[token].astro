@@ -5,28 +5,33 @@
  * GDPR-compliant newsletter subscription verification
  *
  * This page calls the API endpoint to process confirmation server-side
+ *
+ * Magic tokens to view different states for testing:
+ * - Error: `error-token`
+ * - Expired: `expired-token`
+ * - Loading: `loading-token`
+ * - Success: `success-token`
  */
-import PageLayout from '@layouts/PageLayout.astro'
-import NewsletterConfirmation from '@components/Newsletter/Confirm/index.astro'
+import BaseLayout from '@layouts/BaseLayout.astro'
+import NewsletterConfirmation from '@components/Pages/Newsletter/Confirm/index.astro'
 
 // This is a server-rendered dynamic route
 export const prerender = false
-
-const pageTitle = 'Confirming Your Subscription...'
-const pageDescription = 'Double opt-in confirmation for your Webstack Builders newsletter subscription.'
 
 const { token } = Astro.params
 
 if (typeof token !== 'string' || token.trim().length === 0) {
   throw new Response(null, { status: 404 })
 }
+
+const pageTitle = 'Confirming Your Subscription...'
+const pageDescription = 'Double opt-in confirmation for your Webstack Builders newsletter subscription.'
 ---
 
-<PageLayout
+<BaseLayout
   pageTitle={pageTitle}
   pageDescription={pageDescription}
   path={"/newsletter/confirm"}
-  icon="document"
 >
   <NewsletterConfirmation token={token} />
-</PageLayout>
+</BaseLayout>
