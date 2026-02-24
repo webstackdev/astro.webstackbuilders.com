@@ -37,68 +37,57 @@ export interface Props {
 }
 
 const {
-  id = 'contact-cta',
+  id,
   title = 'Ready to Start Your Project?',
   description = "Let's discuss your goals and create something amazing together.",
   primaryLink = { href: '/contact', text: 'Get In Touch' },
   secondaryLink = { href: '/services', text: 'View Services' },
 } = Astro.props
 
-const titleId = `${id}-title`
-const descriptionId = `${id}-description`
+const idBase = id ?? 'contact-cta'
+const titleId = `${idBase}-title`
+const descriptionId = `${idBase}-description`
 ---
 
 <section
-  class="cta py-6 md:py-12 bg-linear-to-br from-(--color-primary) to-(--color-accent) relative overflow-hidden"
+  class="cta mx-auto max-w-4xl rounded-lg overflow-hidden relative"
   aria-labelledby={titleId}
   aria-describedby={descriptionId}
 >
-  <!-- Decorative background elements -->
-  <div class="absolute inset-0 opacity-10">
-    <div
-      class="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
-    >
-    </div>
-    <div
-      class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2"
-    >
-    </div>
-  </div>
-
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-(--z-raised)">
-    <div
-      class="max-w-5xl mx-auto grid gap-10 md:grid-cols-[minmax(0,1fr)_max-content] md:items-center"
-    >
-      <div class="min-w-0 text-center md:text-left">
+  <div class="grid md:grid-cols-[1fr_auto]">
+    {/* Text panel */}
+    <div class="bg-linear-to-br from-(--color-primary) to-(--color-primary-offset) py-6 md:py-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-2xl mx-auto md:mx-0 text-center md:text-left">
         <h2
           id={titleId}
-          class="text-xl md:text-4xl font-bold text-white mb-6 leading-tight"
+          class="text-xl md:text-4xl font-bold text-primary-inverse mb-6 leading-tight"
         >
           {title}
         </h2>
         <p
           id={descriptionId}
-          class="text-lg md:text-xl text-white/90 leading-relaxed"
+          class="text-lg md:text-xl text-content-inverse/80 leading-relaxed"
         >
           {description}
         </p>
       </div>
+    </div>
 
-      <div
-        class="w-fit flex flex-col sm:flex-row gap-4 justify-center md:justify-start items-center md:items-start"
-      >
+    {/* Action panel */}
+    <div class="bg-(--color-secondary) py-6 md:py-12 px-4 sm:px-8 flex items-center justify-center">
+      <div class="flex flex-col gap-4 w-full sm:w-auto">
         <a
           href={primaryLink.href}
-          class="inline-flex items-center justify-center p-4 bg-white text-primary font-semibold rounded-xl hover:bg-white/90 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 text-center no-underline"
+          class="relative inline-flex items-center justify-center p-4 bg-secondary-inverse text-secondary font-semibold rounded-xl hover:bg-secondary-inverse/90 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 text-center no-underline focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
         >
-          {primaryLink.text}
-          <Icon icon="exit-right-thin" size={5} color="primary" />
+          <span class="mr-1">{primaryLink.text}</span>
+          <Icon icon="exit-right-thin" size={5} color="secondary" />
         </a>
         {
           secondaryLink && (
             <a
               href={secondaryLink.href}
-              class="inline-flex items-center justify-center p-4 bg-transparent border-2 border-white text-white text-center font-semibold no-underline rounded-xl duration-200 hover:bg-white hover:text-primary transition-all hover:shadow-xl hover:-translate-y-0.5"
+              class="relative inline-flex items-center justify-center p-4 bg-transparent border-2 border-secondary-inverse/50 text-secondary-inverse text-center font-semibold no-underline rounded-xl duration-200 hover:border-secondary-inverse hover:bg-secondary-inverse/10 transition-all hover:shadow-xl hover:-translate-y-0.5 focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
             >
               {secondaryLink.text}
             </a>

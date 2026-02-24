@@ -46,6 +46,19 @@ export const getThemePickerModal = (scope: ParentNode = document) => {
 }
 
 /**
+ * Queries the theme picker modal element and returns null when it does not exist.
+ * @param scope - Element to query within (defaults to document)
+ */
+export const queryThemePickerModal = (scope: ParentNode = document): HTMLDivElement | null => {
+  const modal = scope.querySelector(SELECTORS.modal)
+  if (!isDivElement(modal)) {
+    return null
+  }
+
+  return modal
+}
+
+/**
  * Gets the theme picker toggle button (in header)
  */
 export const getThemePickerToggleBtn = () => {
@@ -55,6 +68,18 @@ export const getThemePickerToggleBtn = () => {
       `Theme picker toggle button with selector '${SELECTORS.toggleBtn}' not found`
     )
   }
+  return toggleBtn
+}
+
+/**
+ * Queries the theme picker toggle button and returns null when it does not exist.
+ */
+export const queryThemePickerToggleBtn = (): HTMLButtonElement | null => {
+  const toggleBtn = document.querySelector(SELECTORS.toggleBtn)
+  if (!isButtonElement(toggleBtn)) {
+    return null
+  }
+
   return toggleBtn
 }
 

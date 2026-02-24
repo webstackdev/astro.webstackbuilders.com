@@ -47,7 +47,10 @@ export const contactFormInputSchema = z
     company: optionalTrimmedString(100),
     phone: optionalTrimmedString(50),
     project_type: optionalTrimmedString(50),
-    budget: z.preprocess(trimString, z.enum(['5k-10k', '10k-25k', '25k-50k', '50k+'])),
+    budget: z.preprocess(
+      value => emptyStringToUndefined(trimString(value)),
+      z.enum(['5k-10k', '10k-25k', '25k-50k', '50k+']).optional()
+    ),
     timeline: contactTimelineSchema,
 
     /** Consent checkbox: value="true" when checked, otherwise missing. */

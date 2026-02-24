@@ -9,6 +9,7 @@ export type Props = {
       itemlist: {
         title: string
         description: string
+        icon: string
       }[]
     }
     expertise: {
@@ -16,6 +17,7 @@ export type Props = {
       itemlist: {
         title: string
         description: string
+        icon?: string
       }[]
     }
     proficiencies: {
@@ -36,8 +38,6 @@ export type Props = {
           name: string
           text: string
           icon: string
-          color: string
-          bgColor: string
         }[]
       }
       cta: {
@@ -53,40 +53,78 @@ export type Props = {
 }
 
 const { content } = Astro.props
+
+/** Icons per expertise card, matched by index to content.expertise.itemlist */
+const expertiseIcons = ['cloud', 'document', 'gear', 'globe', 'wrench', 'chart']
 ---
 
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
-  <section class="space-y-8" aria-labelledby="about-journey-title">
-    <h2 class="text-3xl md:text-4xl font-bold text-center" id="about-journey-title">
-      My Journey
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-12 md:space-y-24">
+
+  {/* ── Journey ── */}
+  <section class="space-y-10" aria-labelledby="about-journey-title">
+    <h2 class="text-page-inverse text-center" id="about-journey-title">
+      {content.journey.header}
     </h2>
-    <div class="max-w-4xl mx-auto space-y-8">
-      {content.journey.itemlist.map((item, index) => (
-        <div class="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-6">
-          <div class="shrink-0 w-6 h-6 bg-spotlight rounded-full mt-1"></div>
-          <div class="flex-1 space-y-2">
-            <h3 class="text-xl font-semibold text-primary">{item.title}</h3>
-            <p class="text-content-active leading-relaxed">{item.description}</p>
-            {index === 0 && <a href="https://webstackdev.github.io/">Resume</a>}
+
+    <div class="relative max-w-3xl mx-auto">
+      {/* Vertical timeline line */}
+      <div
+        class="absolute left-5 md:left-6 top-4 bottom-0 w-px bg-trim-offset/50"
+        aria-hidden="true"
+      />
+
+      <div class="space-y-10">
+        {content.journey.itemlist.map((item, index) => (
+          <div class="relative flex items-start gap-5 md:gap-6">
+            {/* Timeline node */}
+            <div class="relative z-(--z-raised) shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-page-inverse text-content shadow-md mt-4">
+              <Icon icon={item.icon} color="content-inverse" size={5} />
+            </div>
+
+            {/* Card */}
+            <div class="flex-1 rounded-lg border border-trim-offset/40 bg-page-offset/40 p-5 md:p-6 shadow-sm">
+              <h3 class="text-page-inverse mb-2">{item.title}</h3>
+              <p class="text-content leading-relaxed">{item.description}</p>
+              {index === 0 && (
+                <a
+                  href="https://webstackdev.github.io/"
+                  class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-(--color-secondary) hover:text-(--color-secondary-offset) transition-colors"
+                >
+                  View Resume
+                  <Icon icon="exit-right-thin" size={4} color="inherit" />
+                </a>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   </section>
 
-  <section class="space-y-8" aria-labelledby="about-expertise-title">
-    <h2 class="text-3xl md:text-4xl font-bold text-center" id="about-expertise-title">
+  {/* ── Expertise ── */}
+  <section class="space-y-10" aria-labelledby="about-expertise-title">
+    <h2 class="text-page-inverse text-center" id="about-expertise-title">
       {content.expertise.header}
     </h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {content.expertise.itemlist.map((item) => (
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {content.expertise.itemlist.map((item, index) => (
         <div
-          class="bg-content-inverse rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 p-6 border border-trim"
+          class="group relative rounded-lg border border-trim-offset/40 bg-page-offset/30 p-6 transition-all duration-300 hover:border-secondary/40 hover:shadow-lg"
         >
-          <h3 class="text-xl font-semibold text-primary mb-4">
-            {item.title}
-          </h3>
-          <p class="text-content-active leading-relaxed">
+          {/* Accent top border on hover */}
+          <div
+            class="absolute inset-x-0 top-0 h-0.5 rounded-t-lg bg-(--color-secondary) opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+            aria-hidden="true"
+          />
+          <div class="flex">
+            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-page-inverse">
+              <Icon icon={expertiseIcons[index] ?? 'gear'} color="content-inverse" size={5} />
+            </div>
+            <h3 class="text-lg font-semibold text-page-inverse ml-5 mt-1 mb-3">
+              {item.title}
+            </h3>
+          </div>
+          <p class="text-content leading-relaxed text-sm">
             {item.description}
           </p>
         </div>
@@ -94,23 +132,32 @@ const { content } = Astro.props
     </div>
   </section>
 
-  <section class="space-y-8" aria-labelledby="about-proficiency-title">
-    <h2
-      class="text-3xl md:text-4xl font-bold text-center"
-      id="about-proficiency-title"
-    >
+  {/* ── Proficiencies ── */}
+  <section class="space-y-10" aria-labelledby="about-proficiency-title">
+    <h2 class="text-page-inverse text-center" id="about-proficiency-title">
       {content.proficiencies.header}
     </h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
       {content.proficiencies.cards.map((card) => (
-        <div class:list={["rounded-lg p-6 border border-trim", card.backgroundColor]} >
-          <h3 class:list={["text-xl font-semibold mb-4 text-center", card.headerColor]} >
+        <div class:list={[
+          "rounded-lg p-6 border border-trim-offset/40",
+          card.backgroundColor || "bg-page-offset/30",
+        ]}>
+          <h3 class:list={[
+            "text-lg font-semibold mb-5 text-center",
+            card.headerColor || "text-page-inverse",
+          ]}>
             {card.subheader}
           </h3>
           <ul class="space-y-2">
             {card.itemlist.map((item) => (
-              <li class="flex items-center justify-center py-2 px-4 bg-content-inverse rounded-lg shadow-sm font-medium">
-                <a href={item.link}>{item.title}</a>
+              <li>
+                <a
+                  href={item.link}
+                  class="relative flex items-center justify-center py-2.5 px-4 rounded-lg font-medium text-content-active no-underline transition-all duration-200 hover:bg-secondary/10 hover:text-(--color-secondary) focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
+                >
+                  {item.title}
+                </a>
               </li>
             ))}
           </ul>
@@ -119,35 +166,30 @@ const { content } = Astro.props
     </div>
   </section>
 
-  <section class="space-y-8" aria-labelledby="about-philosophy-title">
-    <h2
-      class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center"
-      id="about-philosophy-title"
-    >
+  {/* ── Philosophy ── */}
+  <section class="space-y-10" aria-labelledby="about-philosophy-title">
+    <h2 class="text-page-inverse text-center" id="about-philosophy-title">
       {content.proficiencies.philosophy.subheader}
     </h2>
     <blockquote
-      class="text-xl md:text-2xl italic text-center max-w-4xl mx-auto p-8 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border-l-4 border-blue-500 text-gray-800 dark:text-gray-200 leading-relaxed"
+      class="text-md md:text-lg italic text-center max-w-4xl mx-auto p-8 rounded-lg border-l-4 border-(--color-secondary) bg-page-offset/40 text-content leading-relaxed"
     >
       {content.proficiencies.philosophy.description}
     </blockquote>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
       {content.proficiencies.philosophy.itemlist.map((item) => (
-        <div class="text-center space-y-4 p-6">
-          <div
-            class:list={["w-16 h-16 rounded-full flex items-center justify-center mx-auto", item.bgColor]}
-          >
+        <div class="text-center space-y-4 rounded-lg border border-trim-offset/40 bg-page-offset/30 p-6 transition-all duration-300 hover:shadow-lg">
+          <div class="flex items-center justify-center mx-auto mb-4 h-12 w-12 rounded-full bg-page-inverse">
             <Icon
               icon={item.icon}
-              color={item.color}
-              inverseColor={item.bgColor}
-              size={8}
+              color="content-inverse"
+              size={6}
             />
           </div>
-          <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400">
+          <h3 class="text-lg font-semibold text-page-inverse">
             {item.name}
           </h3>
-          <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+          <p class="text-sm text-content leading-relaxed">
             {item.text}
           </p>
         </div>
@@ -155,17 +197,13 @@ const { content } = Astro.props
     </div>
   </section>
 
-  <section
-    class="text-center space-y-6 bg-linear-to-r from-blue-600 to-indigo-700 rounded-2xl p-12 text-white"
-    aria-labelledby="about-cta-title"
-  >
-    <Contact
-      title={content.proficiencies.cta.title}
-      description={content.proficiencies.cta.description}
-      primaryLink={{
-        href: content.proficiencies.cta.primaryLink.href,
-        text: content.proficiencies.cta.primaryLink.text,
-      }}
-    />
-  </section>
+  <Contact
+    id="about-cta-title"
+    title={content.proficiencies.cta.title}
+    description={content.proficiencies.cta.description}
+    primaryLink={{
+      href: content.proficiencies.cta.primaryLink.href,
+      text: content.proficiencies.cta.primaryLink.text,
+    }}
+  />
 </div>

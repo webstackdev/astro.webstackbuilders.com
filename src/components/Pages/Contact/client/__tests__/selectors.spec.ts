@@ -52,11 +52,6 @@ describe('ContactForm selectors', () => {
       ).toBe(true)
 
       expect(
-        genericFields.some(field => field.id === 'budget'),
-        'Generic fields should include required #budget for generic validation'
-      ).toBe(true)
-
-      expect(
         genericFields.some(field => field.id === 'name'),
         'Generic fields should still include #name so callers can filter custom fields'
       ).toBe(true)

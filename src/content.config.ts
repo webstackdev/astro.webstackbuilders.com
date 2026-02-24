@@ -161,6 +161,12 @@ const servicesCollection = defineCollection({
     z.object({
       title: z.string(),
       description: z.string(),
+      accountType: z.enum([
+        'full-workstream',
+        'continuous-workstream',
+        'solutions-services',
+        'on-call-support',
+      ]),
       isDraft: z.boolean().default(false),
       order: z.number(),
     }),

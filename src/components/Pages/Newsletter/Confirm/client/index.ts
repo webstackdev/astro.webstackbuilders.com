@@ -18,12 +18,21 @@ type ConfirmActionData = {
   message?: string
 }
 
+type ConfirmUiState = 'loading' | 'success' | 'expired' | 'error'
+
 /**
  * Newsletter confirmation custom element.
  * Uses Light DOM (no Shadow DOM) with Astro-rendered templates.
  */
 export class NewsletterConfirmElement extends LitElement {
   static readonly registeredName = 'newsletter-confirm'
+
+  private static readonly magicTokenStates: Record<string, ConfirmUiState> = {
+    'loading-token': 'loading',
+    'success-token': 'success',
+    'expired-token': 'expired',
+    'error-token': 'error',
+  }
 
   override createRenderRoot() {
     return this
@@ -127,9 +136,14 @@ export class NewsletterConfirmElement extends LitElement {
     this.errorState.classList.add('hidden')
   }
 
+  private setConfirmState(state: ConfirmUiState): void {
+    this.setAttribute('data-confirm-state', state)
+  }
+
   private showLoading(): void {
     this.hideAllStates()
     this.loadingState.classList.remove('hidden')
+    this.setConfirmState('loading')
     this.announceStatus('Confirming subscription.')
     this.focusHeading(this.loadingHeading)
   }
@@ -138,6 +152,7 @@ export class NewsletterConfirmElement extends LitElement {
     this.hideAllStates()
     this.userEmail.textContent = email
     this.successState.classList.remove('hidden')
+    this.setConfirmState('success')
     this.announceStatus('Subscription confirmed.')
     this.focusHeading(this.successHeading)
   }
@@ -145,6 +160,7 @@ export class NewsletterConfirmElement extends LitElement {
   private showExpired(): void {
     this.hideAllStates()
     this.expiredState.classList.remove('hidden')
+    this.setConfirmState('expired')
     this.announceStatus('Confirmation link expired.')
     this.focusHeading(this.expiredHeading)
   }
@@ -163,8 +179,13 @@ export class NewsletterConfirmElement extends LitElement {
     }
 
     this.errorState.classList.remove('hidden')
+    this.setConfirmState('error')
     this.announceStatus(title)
     this.focusHeading(this.errorTitle)
+  }
+
+  private resolveMagicState(token: string): ConfirmUiState | undefined {
+    return NewsletterConfirmElement.magicTokenStates[token]
   }
 
   private resolveToken(): string {
@@ -185,6 +206,27 @@ export class NewsletterConfirmElement extends LitElement {
     const token = this.resolveToken()
     if (!token) {
       this.showError('Invalid Link', 'This confirmation link is invalid or malformed.')
+      return
+    }
+
+    const magicState = this.resolveMagicState(token)
+    if (magicState === 'loading') {
+      this.showLoading()
+      return
+    }
+
+    if (magicState === 'success') {
+      this.showSuccess('preview@example.com')
+      return
+    }
+
+    if (magicState === 'expired') {
+      this.showExpired()
+      return
+    }
+
+    if (magicState === 'error') {
+      this.showError('Confirmation Error', 'An error occurred while confirming your subscription.')
       return
     }
 

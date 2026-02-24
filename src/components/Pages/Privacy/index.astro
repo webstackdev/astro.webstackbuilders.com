@@ -112,6 +112,7 @@ export type Props = {
         lead: string
         listItems: {
           text: string
+          color?: string
         }[]
       }
       close: {
@@ -158,20 +159,20 @@ for (const [index, item] of content.nav.items.entries()) {
 }
 ---
 
-<div class="mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
+<div class="mx-auto max-w-full px-4 py-2 sm:px-6 md:py-4 lg:px-8">
   <nav aria-label="Privacy policy sections" class="bg-content-active rounded-xl p-6 mb-8">
     <div class="mb-3 flex flex-col items-start gap-3 pl-2 md:flex-row md:items-center md:justify-between">
       <p class="text-md font-semibold text-content-inverse mb-0">{content.nav.title}</p>
-      <div class="flex w-full items-center justify-center gap-3 md:w-auto md:justify-end">
+      <div class="flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:flex-nowrap md:justify-end">
         <a
           href="/consent"
-          class="text-content-inverse underline decoration-content-inverse decoration-dotted underline-offset-4 hover:text-content-offset hover:decoration-content-offset focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 md:mr-8"
+          class="text-content-inverse text-center underline decoration-content-inverse decoration-dotted underline-offset-4 hover:text-content-offset hover:decoration-content-offset focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 md:mr-8"
         >
           {content.nav.links.consentPreferencesText}
         </a>
         <a
           href="/privacy/my-data"
-          class="text-content-inverse underline decoration-content-inverse decoration-dotted underline-offset-4 hover:text-content-offset hover:decoration-content-offset focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 md:mr-16"
+          class="text-content-inverse text-center underline decoration-content-inverse decoration-dotted underline-offset-4 hover:text-content-offset hover:decoration-content-offset focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 md:mr-16"
         >
           {content.nav.links.myDataText}
         </a>
@@ -188,7 +189,7 @@ for (const [index, item] of content.nav.items.entries()) {
               {label}
             </a>
             {showSeparator && (
-              <span class="mx-2 text-trim" aria-hidden="true">·</span>
+              <span class="mx-2 text-content-inverse" aria-hidden="true">·</span>
             )}
           </>
         ))
@@ -196,9 +197,9 @@ for (const [index, item] of content.nav.items.entries()) {
     </div>
   </nav>
 
-  <div class="prose prose-lg max-w-none text-content">
+  <div class="prose prose-lg w-full max-w-none min-w-0 wrap-break-word text-content">
     <section class="mb-12" aria-labelledby="privacy-information-we-collect-title">
-      <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-information-we-collect-title">
+      <h2 class="text-page-inverse mb-0 sm:mb-6 mt-0 sm:mt-12" id="privacy-information-we-collect-title">
         {content.collection.title}
         <HeadingAnchor href={"#privacy-information-we-collect-title"} />
       </h2>
@@ -206,8 +207,8 @@ for (const [index, item] of content.nav.items.entries()) {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {
           content.collection.cards.map((card: CollectionCard) => (
-            <div class="text-content-active bg-page-offset rounded-xl px-8 pt-8 pb-4 shadow-md">
-              <h3 class="text-2xl font-semibold mb-4 mt-0">
+            <div class="text-content-active bg-page-offset rounded-xl px-8 sm:pt-8 pb-4 shadow-md">
+              <h3 class="text-page-inverse mb-4 mt-0">
                 {card.title}
               </h3>
               <p class="mb-2">
@@ -229,7 +230,7 @@ for (const [index, item] of content.nav.items.entries()) {
     </section>
 
     <section class="mb-12" aria-labelledby="privacy-how-we-use-title">
-      <h2 class="text-2xl md:text-3xl font-bold mb-6" id="privacy-how-we-use-title">
+      <h2 class="text-page-inverse mb-6" id="privacy-how-we-use-title">
         {content.usage.title}
         <HeadingAnchor href={"#privacy-how-we-use-title"} />
       </h2>
@@ -248,7 +249,7 @@ for (const [index, item] of content.nav.items.entries()) {
                     size={content.usage.listIconSize ?? 6}
                   />
                 </div>
-                <h3 class="text-xl font-semibold mt-0 mb-0">{item.title}</h3>
+                <h3 class="text-page-inverse text-xl font-semibold mt-0 mb-0">{item.title}</h3>
               </div>
               <p class="text-content">
                 {item.description}
@@ -261,30 +262,33 @@ for (const [index, item] of content.nav.items.entries()) {
 
     <section class="mb-12" aria-labelledby="privacy-how-we-share-title">
       <h2
-        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        class="text-page-inverse mb-6"
         id="privacy-how-we-share-title"
       >
         {content.sharing.title}
         <HeadingAnchor href={"#privacy-how-we-share-title"} />
       </h2>
       <div
-        class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl px-8 pt-8 pb-4"
+        class="bg-yellow-50 border border-yellow-200 rounded-xl px-8 pt-8 pb-4"
       >
         <div class="flex items-start">
           <div class="shrink-0">
             <Icon
               icon="warning"
-              color="text-yellow-600 dark:text-yellow-400"
+              color="gray-700"
               classes="mt-1"
               size={8}
             />
           </div>
-          <div class="text-content-active ml-4">
-            <h3 class="text-xl font-semibold mb-2 mt-1.5">{content.sharing.subtitle}</h3>
-            <p class="text-content">{content.sharing.description}</p>
+          <div class="text-gray-700 ml-4">
+            <h3 class="text-gray-700 mb-2 mt-1.5">{content.sharing.subtitle}</h3>
+            <p class="text-gray-700">{content.sharing.description}</p>
             <List
               variant="colored-marker-list"
               items={content.sharing.listItems}
+              classes={{
+                ul: "text-gray-700",
+              }}
             />
           </div>
         </div>
@@ -293,7 +297,7 @@ for (const [index, item] of content.nav.items.entries()) {
 
     <section class="mb-12" aria-labelledby="privacy-data-security-title">
       <h2
-        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        class="text-page-inverse mb-6"
         id="privacy-data-security-title"
       >
         {content.security.title}
@@ -315,8 +319,8 @@ for (const [index, item] of content.nav.items.entries()) {
                   size={8}
                 />
               </div>
-              <h3 class="text-xl font-semibold mb-2">{item.lead}</h3>
-              <p class="text-content text-sm">
+              <h3 class="text-gray-700 text-xl font-semibold mb-2">{item.lead}</h3>
+              <p class="text-gray-700 text-sm">
                 {item.text}
               </p>
             </div>
@@ -327,14 +331,14 @@ for (const [index, item] of content.nav.items.entries()) {
 
     <section class="mb-12" aria-labelledby="privacy-your-rights-title">
       <h2
-        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        class="text-page-inverse mb-6"
         id="privacy-your-rights-title"
       >
         {content.rights.title}
         <HeadingAnchor href={"#privacy-your-rights-title"} />
       </h2>
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-        <p class="text-content mb-6 mt-2">
+      <div class="bg-white rounded-xl p-6 shadow-md">
+        <p class="text-gray-700 mb-6 mt-2">
           {content.rights.description}
         </p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -349,8 +353,8 @@ for (const [index, item] of content.nav.items.entries()) {
                   />
                 </div>
                 <div class="pl-1">
-                  <h3 class="text-lg font-semibold mb-2 mt-0.5">{item.lead}</h3>
-                  <p class="text-content text-sm">{item.text}</p>
+                  <h3 class="text-gray-700 text-lg font-semibold mb-2 mt-0.5">{item.lead}</h3>
+                  <p class="text-gray-700 text-sm">{item.text}</p>
                 </div>
               </div>
             ))
@@ -361,7 +365,7 @@ for (const [index, item] of content.nav.items.entries()) {
 
     <section class="mb-12" aria-labelledby="privacy-cookies-and-tracking-title">
       <h2
-        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        class="text-page-inverse mb-0 sm:mb-6"
         id="privacy-cookies-and-tracking-title"
       >
         {content.cookies.title}
@@ -370,14 +374,15 @@ for (const [index, item] of content.nav.items.entries()) {
       <p class="text-content mb-6">
         {content.cookies.description}
       </p>
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-        <h3 class="text-lg font-semibold text-content-active mb-4 mt-2">
+      <div class="bg-gray-50 rounded-xl p-6">
+        <h3 class="text-gray-700 text-lg font-semibold mb-4 mt-2">
           {content.cookies.subtitle}
         </h3>
         <List
           variant="colored-marker-list"
           items={content.cookies.listItems}
           classes={{
+            em: "text-gray-700",
             li: "[&_span]:text-content-offset",
             ul: "pl-6",
           }}
@@ -387,7 +392,7 @@ for (const [index, item] of content.nav.items.entries()) {
 
     <section class="mb-12" aria-labelledby="privacy-storage-title">
       <h2
-        class="text-2xl md:text-3xl font-bold text-content-active mb-6"
+        class="text-page-inverse mb-6"
         id="privacy-storage-title"
       >
         {content.storage.title}
@@ -396,8 +401,8 @@ for (const [index, item] of content.nav.items.entries()) {
       <p class="text-content mb-6">
         {content.storage.description}
       </p>
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-        <h3 class="text-lg font-semibold text-content-active mb-4 mt-0">
+      <div class="bg-white rounded-xl p-6 shadow-md">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 mt-0">
           {content.storage.subtitle}
         </h3>
         <div class="space-y-4">
@@ -413,7 +418,7 @@ for (const [index, item] of content.nav.items.entries()) {
           />
         </div>
         <div
-          class="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-4 pt-0 pb-0"
+          class="mt-8 bg-blue-50 border border-blue-200 rounded-lg px-4 pt-0 pb-0"
         >
           <p class="text-sm text-content-offset leading-relaxed" set:html={content.storage.trailer}></p>
         </div>
@@ -422,7 +427,7 @@ for (const [index, item] of content.nav.items.entries()) {
 
     <section class="mb-12" aria-labelledby="privacy-error-monitoring-title">
       <h2
-        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        class="text-page-inverse mb-6"
         id="privacy-error-monitoring-title"
       >
         {content.monitoring.title}
@@ -431,8 +436,8 @@ for (const [index, item] of content.nav.items.entries()) {
       <p class="text-content-offset mb-6">
         {content.monitoring.description}
       </p>
-      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl px-8 py-6 mb-6">
-        <h3 class="text-lg font-semibold text-content-active mb-4 mt-0">
+      <div class="bg-blue-50 rounded-xl px-8 py-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 mt-0">
           {content.monitoring.list1.lead}
         </h3>
         <List
@@ -440,18 +445,20 @@ for (const [index, item] of content.nav.items.entries()) {
           items={content.monitoring.list1.listItems.map((item) => ({
             lead: item.heading,
             text: item.text,
-            color: "bg-blue-600 dark:bg-blue-400",
+            color: "bg-blue-600",
           }))}
           classes={{
-            ul: "pl-9",
+            ul: "sm:pl-6",
+            li: "text-gray-700",
           }}
         />
       </div>
-      <div class="bg-green-50 dark:bg-green-900/20 rounded-xl px-8 py-6 mb-6">
-        <h3 class="text-lg font-semibold text-content-active mb-4 mt-0 flex items-center">
+
+      <div class="bg-green-50 rounded-xl px-8 py-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 mt-0 flex items-center">
           <Icon
             icon={"shield"}
-            color={"text-green-600 dark:text-green-400"}
+            color={"text-green-600"}
             size={6}
             classes={"mr-3"}
           />
@@ -462,11 +469,11 @@ for (const [index, item] of content.nav.items.entries()) {
           items={content.monitoring.list2.listItems}
         />
       </div>
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 mt-0">
+      <div class="bg-gray-50 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3 mt-0">
           {content.monitoring.close.heading}
         </h3>
-        <p class="text-gray-600 dark:text-gray-300 mb-0">
+        <p class="text-gray-600 mb-0">
           {content.monitoring.close.text}
         </p>
       </div>
@@ -474,74 +481,74 @@ for (const [index, item] of content.nav.items.entries()) {
 
     <section class="mb-12" aria-labelledby="privacy-contact-us-title">
       <h2
-        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        class="text-2xl md:text-3xl font-bold text-page-inverse mb-6"
         id="privacy-contact-us-title"
       >
         {content.contact.title}
         <HeadingAnchor href={"#privacy-contact-us-title"} />
       </h2>
-      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
-        <p class="text-gray-600 dark:text-gray-300 mt-0 mb-6">
+      <div class="bg-blue-50 rounded-xl p-6">
+        <p class="text-gray-600 mt-0 mb-6">
           {content.contact.description}
         </p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:mx-12">
-          <div class="flex items-start">
+        <div class="grid grid-cols-1 gap-6 md:mx-12 md:grid-cols-2">
+          <div class="flex min-w-0 items-start">
             <div
-              class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center ml-6 mt-1 shrink-0"
+              class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center ml-3 mt-1 shrink-0 md:ml-6"
             >
               <Icon
                 icon={"email"}
-                color={"text-blue-600 dark:text-blue-400"}
+                color={"blue-600"}
                 size={8}
               />
             </div>
-            <div class="ml-6">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-0 mb-1">
+            <div class="ml-4 min-w-0 md:ml-6">
+              <h3 class="text-lg font-semibold text-blue-600 mt-0 mb-1">
                 {content.contact.card1.lead}
               </h3>
               <a
                 href={content.contact.card1.link}
-                class="text-blue-600 dark:text-blue-400 underline decoration-dotted decoration-current underline-offset-2 transition-colors hover:text-blue-500 dark:hover:text-blue-300 focus-visible:text-blue-500 dark:focus-visible:text-blue-300"
+                class="text-blue-600 underline decoration-dotted decoration-current underline-offset-2 transition-colors hover:text-blue-500 focus-visible:text-blue-500 break-all"
               >
                 {content.contact.card1.text}
               </a>
             </div>
           </div>
-          <div class="flex items-start">
+          <div class="flex min-w-0 items-start">
             <div
-              class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center ml-6 mt-1 shrink-0"
+              class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center ml-3 mt-1 shrink-0 md:ml-6"
             >
               <Icon
                 icon={"location"}
-                color={"text-blue-600 dark:text-blue-400"}
+                color={"blue-600"}
                 size={8}
               />
             </div>
-            <div class="ml-6">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-0 mb-1">
+            <div class="ml-4 min-w-0 md:ml-6">
+              <h3 class="text-lg font-semibold text-blue-600 mt-0 mb-1">
                 {content.contact.card2.lead}
               </h3>
-              <p class="text-gray-600 dark:text-gray-300">
+              <p class="text-gray-600 wrap-break-word">
                 {content.contact.card2.text}
               </p>
             </div>
           </div>
         </div>
 
-        <div class="border-t border-blue-200 dark:border-blue-800">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+        <div class="border-t border-blue-200">
+          <h3 class="text-gray-900 mb-3">
             {content.contact.card3.lead}
           </h3>
-          <p class="text-gray-600 dark:text-gray-300 mb-4">
+          <p class="text-gray-600 mb-4">
             {content.contact.card3.text}
           </p>
-          <div class="inline-block bg-white dark:bg-gray-800 rounded-lg px-8 py-4">
-            <p class="text-gray-900 dark:text-white font-medium mt-0 mb-0">
+          <div class="inline-block max-w-full bg-white rounded-lg px-8 py-4">
+            <p class="text-gray-900 font-medium mt-0 mb-0">
               {contactData.company.dataProtectionOfficer.name}
             </p>
             <a
               href={`mailto:${contactData.company.dataProtectionOfficer.email}`}
-              class="text-blue-600 dark:text-blue-400 underline decoration-dotted decoration-current underline-offset-2 transition-colors hover:text-blue-500 dark:hover:text-blue-300 focus-visible:text-blue-500 dark:focus-visible:text-blue-300"
+              class="text-blue-600 underline decoration-dotted decoration-current underline-offset-2 transition-colors hover:text-blue-500 focus-visible:text-blue-500 break-all"
             >
               {contactData.company.dataProtectionOfficer.email}
             </a>
@@ -552,14 +559,14 @@ for (const [index, item] of content.nav.items.entries()) {
 
     <section aria-labelledby="privacy-changes-to-policy-title">
       <h2
-        class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6"
+        class="text-page-inverse mb-6"
         id="privacy-changes-to-policy-title"
       >
         {content.changes.title}
         <HeadingAnchor href={"#privacy-changes-to-policy-title"} />
       </h2>
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl px-8 py-2">
-        <p class="text-gray-600 dark:text-gray-300">
+      <div class="bg-gray-50 rounded-xl px-8 py-2">
+        <p class="text-gray-600">
           {content.changes.description}
         </p>
       </div>

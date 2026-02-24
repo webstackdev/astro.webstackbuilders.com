@@ -7,7 +7,7 @@
 import { LitElement } from 'lit'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { getContactFormElements } from './selectors'
+import { getContactFormElements, queryContactProjectTypeSelect } from './selectors'
 import type { ContactFormConfig } from './@types'
 import { initCharacterCounter, initUploadPlaceholder } from './utils'
 import { initLabelHandlers, type LabelController } from './feedback'
@@ -57,6 +57,8 @@ export class ContactFormElement extends LitElement {
       this.uploadController?.destroy()
       this.uploadController = null
 
+      this.syncProjectTypeFromQuery()
+
       const elements = getContactFormElements()
       this.labelController = initLabelHandlers(elements.fields)
       initCharacterCounter(elements, this.config)
@@ -74,6 +76,29 @@ export class ContactFormElement extends LitElement {
     } catch (error) {
       handleScriptError(error, context)
     }
+  }
+
+  private syncProjectTypeFromQuery(): void {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const projectType = window.location.search ? new URLSearchParams(window.location.search).get('type') : null
+    if (!projectType) {
+      return
+    }
+
+    const projectTypeSelect = queryContactProjectTypeSelect(this)
+    if (!projectTypeSelect) {
+      return
+    }
+
+    const hasOption = Array.from(projectTypeSelect.options).some(option => option.value === projectType)
+    if (!hasOption) {
+      return
+    }
+
+    projectTypeSelect.value = projectType
   }
 
   private setViewTransitionsHandlers(): void {

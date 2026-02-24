@@ -154,3 +154,8 @@ export const queryAccessibilityLabelTargets = (root: ParentNode): AccessibilityL
     isAccessibilityLabelTarget
   )
 }
+
+export const queryContactProjectTypeSelect = (root: ParentNode = document): HTMLSelectElement | null => {
+  const projectTypeSelect = root.querySelector('#project_type')
+  return projectTypeSelect instanceof HTMLSelectElement ? projectTypeSelect : null
+}

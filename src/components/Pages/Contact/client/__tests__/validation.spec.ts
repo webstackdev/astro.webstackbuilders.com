@@ -173,17 +173,16 @@ describe('Validation helpers', () => {
       await renderContactForm(({ elements }) => {
         const form = elements.form
         const company = form.querySelector<HTMLInputElement>('#company')
-        const budget = form.querySelector<HTMLSelectElement>('#budget')
 
-        expect(validateGenericFields(form)).toBe(false)
-
-        if (!company || !budget) {
+        if (!company) {
           throw new TestError('Company field not found in contact form')
         }
 
-        company.value = 'Webstack Builders'
         company.setAttribute('required', 'true')
-        budget.value = '5k-10k'
+
+        expect(validateGenericFields(form)).toBe(false)
+
+        company.value = 'Webstack Builders'
 
         expect(validateGenericFields(form)).toBe(true)
       })

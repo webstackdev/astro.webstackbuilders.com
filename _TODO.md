@@ -321,3 +321,13 @@ We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-for
 - Social shares - module CSS doesn't appear correct with nested button hover classes, not sure how network name is generated or styled but it needs improvement. Should be rendered inside article content column, not across both content and TOC columns.
 
 - Add a Social Share on some compelling text in each article
+
+- Move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
+
+## Instructions for revamps
+
+All changes should look good on both light and dark theme, use our tailwind theme colors, and look good on mobile.
+
+"Condensed" or "Intro"
+
+Cursor on hovering a link

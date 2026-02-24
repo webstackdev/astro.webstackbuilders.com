@@ -31,6 +31,8 @@ import {
   getThemePickerEmblaPrevBtn,
   getThemePickerEmblaViewport,
   queryThemeButtonTooltipSource,
+  queryThemePickerModal,
+  queryThemePickerToggleBtn,
 } from './selectors'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -101,10 +103,86 @@ export class ThemePickerElement extends LitElement {
     document.documentElement.style.setProperty('--theme-picker-offset', `${offset}px`)
   }
 
+  private getLivePickerModal(): HTMLDivElement | null {
+    if (this.pickerModal && this.pickerModal.isConnected) {
+      return this.pickerModal
+    }
+
+    const modal = queryThemePickerModal()
+    if (modal) {
+      this.pickerModal = modal
+      return modal
+    }
+
+    return null
+  }
+
+  private syncOpenStateAfterNavigation(): void {
+    const isOpen = this.themePickerOpenStore.value
+
+    if (!isOpen) {
+      this.updateHeaderOffset(false)
+      return
+    }
+
+    const modal = this.getLivePickerModal()
+    if (!modal) return
+
+    // Snap the modal to its fully-open state without animation so the
+    // header offset measurement reads the correct final height.
+    modal.removeAttribute('hidden')
+    const savedTransition = modal.style.transition
+    modal.style.transition = 'none'
+    modal.classList.add(CLASSES.isOpen)
+
+    // Force a style recalc so the browser resolves the max-height immediately
+    void modal.offsetHeight
+
+    this.updateHeaderOffset(true)
+
+    // Restore the CSS transition in the next frame so future open/close animates
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => {
+        modal.style.transition = savedTransition
+      })
+    } else {
+      modal.style.transition = savedTransition
+    }
+
+    const toggleButton = queryThemePickerToggleBtn()
+    if (toggleButton) {
+      this.toggleBtn = toggleButton
+      this.toggleBtn.setAttribute('aria-expanded', 'true')
+    }
+  }
+
   private getThemePickerOffset(): number {
-    const scrollHeight = this.pickerModal.scrollHeight
-    const boundingHeight = this.pickerModal.getBoundingClientRect().height
-    return Math.max(scrollHeight, boundingHeight)
+    const modal = this.getLivePickerModal()
+    if (!modal) return 0
+
+    // Use the actual *rendered* height which respects overflow/max-height clipping.
+    // Never use scrollHeight — it reports content size beyond the overflow boundary.
+    const boundingHeight = modal.getBoundingClientRect().height
+    if (boundingHeight > 0) return boundingHeight
+
+    const offsetHeight = modal.offsetHeight
+    if (offsetHeight > 0) return offsetHeight
+
+    // Fallback: computed max-height (target height when is-open is applied)
+    const computedMaxHeight = Number.parseFloat(window.getComputedStyle(modal).maxHeight)
+    if (Number.isFinite(computedMaxHeight) && computedMaxHeight > 0) {
+      return computedMaxHeight
+    }
+
+    // Last resort: if the is-open class is present, compute the CSS 14em target in px.
+    // This handles the edge case where max-height is mid-transition and computed
+    // style returns an interpolated (near-zero) value.
+    if (modal.classList.contains(CLASSES.isOpen)) {
+      const fontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+      return 14 * fontSize
+    }
+
+    return 0
   }
 
   /**
@@ -659,23 +737,19 @@ export class ThemePickerElement extends LitElement {
       // But DON'T re-bind events since this element persists
       try {
         this.findElements()
-
-        // CRITICAL: If modal should be open, apply classes immediately
-        // to prevent visual jump (HTML was swapped without the is-open class)
-        const isOpen = this.themePickerOpenStore.value
-        if (isOpen) {
-          // Apply state synchronously before browser paints
-          this.pickerModal.removeAttribute('hidden')
-          this.pickerModal.classList.add(CLASSES.isOpen)
-          this.toggleBtn.setAttribute('aria-expanded', 'true')
-          this.updateHeaderOffset(true)
-        }
-
-        // Force Lit to update with new DOM references
-        this.requestUpdate()
       } catch (error) {
         handleScriptError(error, { scriptName: 'ThemePickerElement', operation: 'after-swap' })
       }
+
+      // Sync once after elements are re-found
+      this.syncOpenStateAfterNavigation()
+
+      // Force Lit to update with new DOM references
+      this.requestUpdate()
+    })
+
+    document.addEventListener('astro:page-load', () => {
+      this.syncOpenStateAfterNavigation()
     })
   }
 
@@ -687,15 +761,18 @@ export class ThemePickerElement extends LitElement {
       // Remove hidden first, then add class after browser paints
       this.pickerModal.removeAttribute('hidden')
       this.toggleBtn.setAttribute('aria-expanded', 'true')
-      this.updateHeaderOffset(true)
 
-      // Wait for next frame so browser processes max-height: 0 before animating to 14em
+      // Wait for next frame so browser processes max-height: 0 before animating to 14em.
+      // Set header offset AFTER is-open is applied so getThemePickerOffset() can
+      // measure the target height rather than the pre-animation 0.
       if (typeof requestAnimationFrame === 'function') {
         requestAnimationFrame(() => {
           this.pickerModal.classList.add(CLASSES.isOpen)
+          this.updateHeaderOffset(true)
         })
       } else {
         this.pickerModal.classList.add(CLASSES.isOpen)
+        this.updateHeaderOffset(true)
       }
     } else {
       this.pickerModal.classList.remove(CLASSES.isOpen)

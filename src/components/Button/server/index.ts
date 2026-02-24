@@ -58,7 +58,7 @@ const baseButtonClasses =
 
 const sizeClasses: Record<ButtonSize, string> = {
   small:
-    'text-xs leading-4 py-1.5 px-3 sm:py-2 sm:px-4',
+    'text-xs leading-4 py-1 px-2',
   medium:
     'text-xs leading-4 py-1.5 px-4 sm:py-3 sm:px-6 lg:px-5',
   large:
@@ -102,10 +102,10 @@ const variantClasses: Record<ButtonVariant, string> = {
     'focus-visible:bg-transparent ' +
     'focus-visible:text-x',
   warning:
-    'bg-warning-offset text-white ' +
-    'hover:bg-warning ' +
-    'focus-visible:bg-warning ' +
-    'active:bg-warning',
+    'bg-warning text-white ' +
+    'hover:bg-warning-offset ' +
+    'focus-visible:bg-warning-offset ' +
+    'active:bg-warning-offset',
   }
 
 export interface ButtonClassOptions {

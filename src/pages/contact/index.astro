@@ -5,6 +5,7 @@ import ContactPage from '@components/Pages/Contact/index.astro'
 
 const pageTitle = 'Contact Us'
 const pageDescription = 'Connect with Webstack Builders to discuss your infrastructure needs, request an engagement proposal, or ask questions about platform engineering services.'
+const prefilledProjectType = Astro.url.searchParams.get('type') ?? ''
 ---
 
 <PageLayout
@@ -13,7 +14,7 @@ const pageDescription = 'Connect with Webstack Builders to discuss your infrastr
   icon="email"
   path={"/contact"}
 >
-  <ContactPage content={{
+  <ContactPage prefilledProjectType={prefilledProjectType} content={{
     header: {
       title: "Let's Strengthen Your Infrastructure",
       description: "Ready to level up your platform, pipelines, or reliability? Share your infrastructure needs and we'll figure out the right engagement together.",
@@ -80,38 +81,6 @@ const pageDescription = 'Connect with Webstack Builders to discuss your infrastr
       },
       project: {
         header: "Engagement Details",
-        budget: "Monthly Budget Range",
-        budgetOptions: [
-          {
-            text: "Select budget range",
-            value: "",
-          },
-          {
-            text: "Under $1,500/mo (On-Call Support)",
-            value: "under-1500",
-          },
-          {
-            text: "$1,500 - $5,000/mo",
-            value: "1500-5k",
-          },
-          {
-            text: "$5,000 - $10,000/mo (Continuous Workstream)",
-            value: "5k-10k",
-          },
-          {
-            text: "$10,000 - $20,000/mo (Full Workstream)",
-            value: "10k-20k",
-          },
-          {
-            text: "Per-project / Fixed scope",
-            value: "per-project",
-          },
-          {
-            text: "Not sure yet",
-            value: "unsure",
-          },
-        ],
-        budgetPlaceholder: "Your budget",
         description: "Description*",
         descriptionPlaceholder: "Describe your infrastructure challenges, current stack, team size, and what you're hoping to accomplish...",
         timeline: "Timeline",
@@ -153,19 +122,19 @@ const pageDescription = 'Connect with Webstack Builders to discuss your infrastr
             value: "",
           },
           {
-            text: "Full Workstream — Dedicated capacity, business hours",
+            text: "Full Workstream",
             value: "full-workstream",
           },
           {
-            text: "Continuous Workstream — Steady progress, evenings",
+            text: "Continuous Workstream",
             value: "continuous-workstream",
           },
           {
-            text: "Solutions Services — Scoped deliverable",
+            text: "Solutions Services",
             value: "solutions-services",
           },
           {
-            text: "On-Call Support — Incident response coverage",
+            text: "On-Call Support",
             value: "on-call-support",
           },
           {
