@@ -1,5 +1,4 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { TestError } from '@test/errors'
 import type { RenderContactFormContext } from './testUtils'
 import { appendUploadFiles } from '@components/Pages/Contact/client/formSubmission'
 

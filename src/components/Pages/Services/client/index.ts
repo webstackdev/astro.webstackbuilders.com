@@ -1,6 +1,7 @@
 import { LitElement, nothing } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { queryServiceContactLinks } from './selectors'
 
 /**
  * Services page web component wrapper.
@@ -25,7 +26,7 @@ export class ServicesPageElement extends LitElement {
 	}
 
 	private syncContactLinks(): void {
-		const links = this.querySelectorAll<HTMLAnchorElement>('[data-service-contact-link]')
+		const links = queryServiceContactLinks(this)
 
 		for (const link of links) {
 			const accountType = link.dataset['accountType'] ?? ''
