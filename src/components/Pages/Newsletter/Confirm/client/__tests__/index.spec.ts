@@ -58,7 +58,7 @@ describe('NewsletterConfirmElement web component', () => {
     await executeRender<NewsletterConfirmModule>({
       container,
       component: NewsletterConfirm,
-      moduleSpecifier: '@components/Newsletter/Confirm/client/index',
+      moduleSpecifier: '@components/Pages/Newsletter/Confirm/client/index',
       args: {
         props: {
           token: 'unit-test-token',
@@ -102,7 +102,7 @@ describe('NewsletterConfirmElement web component', () => {
     await executeRender<NewsletterConfirmModule>({
       container,
       component: NewsletterConfirm,
-      moduleSpecifier: '@components/Newsletter/Confirm/client/index',
+      moduleSpecifier: '@components/Pages/Newsletter/Confirm/client/index',
       args: {
         props: {
           token: 'success-token',
@@ -126,7 +126,7 @@ describe('NewsletterConfirmElement web component', () => {
     await executeRender<NewsletterConfirmModule>({
       container,
       component: NewsletterConfirm,
-      moduleSpecifier: '@components/Newsletter/Confirm/client/index',
+      moduleSpecifier: '@components/Pages/Newsletter/Confirm/client/index',
       args: {
         props: {
           token: 'expired-token',
@@ -149,7 +149,7 @@ describe('NewsletterConfirmElement web component', () => {
     await executeRender<NewsletterConfirmModule>({
       container,
       component: NewsletterConfirm,
-      moduleSpecifier: '@components/Newsletter/Confirm/client/index',
+      moduleSpecifier: '@components/Pages/Newsletter/Confirm/client/index',
       args: {
         props: {
           token: 'error-token',
@@ -172,7 +172,7 @@ describe('NewsletterConfirmElement web component', () => {
     await executeRender<NewsletterConfirmModule>({
       container,
       component: NewsletterConfirm,
-      moduleSpecifier: '@components/Newsletter/Confirm/client/index',
+      moduleSpecifier: '@components/Pages/Newsletter/Confirm/client/index',
       args: {
         props: {
           token: 'loading-token',

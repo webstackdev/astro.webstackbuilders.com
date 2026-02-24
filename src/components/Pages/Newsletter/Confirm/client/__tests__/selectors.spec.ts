@@ -42,7 +42,7 @@ describe('NewsletterConfirm selectors', () => {
     await executeRender<NewsletterConfirmModule>({
       container,
       component: NewsletterConfirm,
-      moduleSpecifier: '@components/Newsletter/Confirm/client/index',
+      moduleSpecifier: '@components/Pages/Newsletter/Confirm/client/index',
       args: {
         props: {
           token: 'unit-test-token',

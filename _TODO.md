@@ -327,3 +327,7 @@ We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-for
 ## Instructions for revamps
 
 All changes should look good on both light and dark theme, use our tailwind theme colors, and look good on mobile.
+
+"Condensed" or "Intro"
+
+Cursor on hovering a link

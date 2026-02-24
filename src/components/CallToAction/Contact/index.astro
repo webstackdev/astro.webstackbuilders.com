@@ -44,20 +44,22 @@ const {
   secondaryLink = { href: '/services', text: 'View Services' },
 } = Astro.props
 
-const descriptionId = id ? `${id}-description` : undefined
+const idBase = id ?? 'contact-cta'
+const titleId = `${idBase}-title`
+const descriptionId = `${idBase}-description`
 ---
 
 <section
   class="cta mx-auto max-w-4xl rounded-lg overflow-hidden relative"
-  {...(id ? { 'aria-labelledby': id } : {})}
-  {...(id ? { 'aria-describedby': descriptionId } : {})}
+  aria-labelledby={titleId}
+  aria-describedby={descriptionId}
 >
   <div class="grid md:grid-cols-[1fr_auto]">
     {/* Text panel */}
     <div class="bg-linear-to-br from-(--color-primary) to-(--color-primary-offset) py-6 md:py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-2xl mx-auto md:mx-0 text-center md:text-left">
         <h2
-          id={id}
+          id={titleId}
           class="text-xl md:text-4xl font-bold text-primary-inverse mb-6 leading-tight"
         >
           {title}
