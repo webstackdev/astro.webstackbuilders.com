@@ -18,10 +18,11 @@ describe('ServicesPageElement class behavior', () => {
     props: {
       services: [
         {
-          id: 'full-workstream',
+          id: 'service-test-slug',
           data: {
             title: 'Full Workstream',
             description: 'End-to-end delivery for product and web initiatives.',
+            accountType: 'full-workstream',
           },
           rendered: {
             html: '<h2>Scope</h2><p>Design and implementation.</p><h2>Outcome</h2><p>Launch-ready delivery.</p>',
@@ -68,6 +69,10 @@ describe('ServicesPageElement class behavior', () => {
     await runComponentRender(async ({ element }) => {
       expect(element.textContent).toContain('Full Workstream')
       expect(element.textContent).toContain('Most Popular')
+
+      const contactLink = element.querySelector<HTMLAnchorElement>('[data-service-contact-link]')
+      expect(contactLink).not.toBeNull()
+      expect(contactLink?.getAttribute('href')).toBe('/contact?type=full-workstream')
     })
   })
 })

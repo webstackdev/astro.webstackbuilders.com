@@ -8,6 +8,30 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
  */
 export class ServicesPageElement extends LitElement {
 	static registeredName = 'services-page'
+	private static readonly contactPath = '/contact'
+
+	private static buildContactHref(accountType: string): string {
+		const normalizedAccountType = accountType.trim()
+		if (!normalizedAccountType) {
+			return ServicesPageElement.contactPath
+		}
+
+		return `${ServicesPageElement.contactPath}?type=${encodeURIComponent(normalizedAccountType)}`
+	}
+
+	override connectedCallback() {
+		super.connectedCallback()
+		this.syncContactLinks()
+	}
+
+	private syncContactLinks(): void {
+		const links = this.querySelectorAll<HTMLAnchorElement>('[data-service-contact-link]')
+
+		for (const link of links) {
+			const accountType = link.dataset['accountType'] ?? ''
+			link.setAttribute('href', ServicesPageElement.buildContactHref(accountType))
+		}
+	}
 
 	protected override createRenderRoot() {
 		return this

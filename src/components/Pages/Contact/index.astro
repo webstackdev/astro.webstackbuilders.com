@@ -90,9 +90,6 @@ export type Props = {
   prefilledProjectType?: string
 }
 const { content, prefilledProjectType = '' } = Astro.props
-const hasPrefilledProjectType = content.form.project.typeOptions.some(
-  option => option.value !== '' && option.value === prefilledProjectType
-)
 ---
 
 <contact-form>
@@ -252,7 +249,7 @@ const hasPrefilledProjectType = content.form.project.typeOptions.some(
                         {content.form.project.typeOptions.map((item) => (
                           <option
                             value={item.value}
-                            selected={hasPrefilledProjectType && item.value === prefilledProjectType}
+                            selected={item.value === prefilledProjectType}
                           >
                             {item.text}
                           </option>
