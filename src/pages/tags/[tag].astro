@@ -66,7 +66,7 @@ const paginatedContent = sortedContent.slice(startIndex, endIndex)
 >
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-12">
-      <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
+      <div class="grid grid-cols-[auto_1fr] items-start gap-4 sm:flex sm:gap-6 sm:items-start">
         <div class="shrink-0">
           <div
             class="relative w-28 sm:w-32 md:w-60 aspect-square overflow-hidden rounded-2xl bg-page-offset p-4"
@@ -86,21 +86,34 @@ const paginatedContent = sortedContent.slice(startIndex, endIndex)
           </div>
         </div>
 
-        <div class="min-w-0 flex-1">
-          <h1 class="text-4xl md:text-5xl font-bold mb-4">
-            {tagEntry.data.displayName}
-          </h1>
-          <p class="text-xl">
-            {totalItems} item{totalItems !== 1 ? 's' : ''} tagged with {tagEntry.data.displayName.toLowerCase()}
-          </p>
-          <nav class="mt-6">
-            <a href="/tags" class="text-primary hover:underline"> ← Browse all tags </a>
-          </nav>
+        <div class="min-w-0 sm:flex-1 sm:space-y-4 sm:ml-4 sm:mt-6">
+          <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2">
+            <h1 class="text-page-inverse">
+              {tagEntry.data.displayName}
+            </h1>
+            <span class="inline-flex w-fit rounded-full bg-page-inverse px-3 py-1 text-sm font-semibold text-page-base whitespace-nowrap sm:ml-2 sm:mt-2">
+              {totalItems} {totalItems === 1 ? 'article' : 'articles'}
+            </span>
+          </div>
+
+          {tagEntry.data.intro && (
+            <p class="hidden sm:block text-lg text-content leading-relaxed max-w-2xl">
+              {tagEntry.data.intro}
+            </p>
+          )}
+
+          <div class="mt-2 sm:mt-0 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-content-offset">
+            {sortedContent.length > 0 && (
+              <span class="text-content-active">
+                Latest: <time class="font-medium text-content">{sortedContent[0]!.data.publishDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</time>
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </header>
 
-    <section class="prose prose-invert max-w-none mb-12" aria-label="Tag description">
+    <section class="max-w-none mb-12" aria-label="Tag description">
       <TagContent />
     </section>
 
