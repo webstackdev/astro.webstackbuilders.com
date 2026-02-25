@@ -123,7 +123,7 @@ describe('layoutPosition store', () => {
     updateLayoutOffsets()
 
     // subscribe fires immediately with the initial value, then again on set
-    const lastCall = listener.mock.calls[listener.mock.calls.length - 1]
+    const lastCall = listener.mock.calls[listener.mock.calls.length - 1]!
     expect(lastCall[0]).toEqual(expect.objectContaining({ headerHeight: 48 }))
 
     unsub()
@@ -133,10 +133,10 @@ describe('layoutPosition store', () => {
     const addSpy = vi.spyOn(window, 'addEventListener')
 
     initLayoutPositionSideEffects()
-    const callCount = addSpy.calls?.length ?? addSpy.mock.calls.length
+    const callCount = addSpy.mock.calls.length
 
     initLayoutPositionSideEffects()
-    const callCountAfter = addSpy.calls?.length ?? addSpy.mock.calls.length
+    const callCountAfter = addSpy.mock.calls.length
 
     expect(callCountAfter).toBe(callCount)
 

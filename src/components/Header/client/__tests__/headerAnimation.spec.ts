@@ -82,8 +82,7 @@ function stubAnimate() {
     pause: vi.fn(),
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Element.prototype.animate = vi.fn().mockReturnValue(mockAnimation) as any
+  Element.prototype.animate = vi.fn().mockReturnValue(mockAnimation) as unknown as typeof Element.prototype.animate
   return mockAnimation
 }
 
@@ -150,8 +149,7 @@ describe('headerAnimation', () => {
       // Make animate throw
       Element.prototype.animate = vi.fn().mockImplementation(() => {
         throw new Error('WAAPI not supported')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any
+      }) as unknown as typeof Element.prototype.animate
 
       await animateCollapse(dom.shell)
 

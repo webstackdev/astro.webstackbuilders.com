@@ -55,12 +55,8 @@ function createDOM(contentHeight = 2000) {
 // ============================================================================
 
 describe('ReadingProgressBar', () => {
-  let rafCallback: FrameRequestCallback | null = null
-
   beforeEach(async () => {
-    rafCallback = null
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
-      rafCallback = cb
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((_cb: FrameRequestCallback) => {
       return 1
     })
     vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
@@ -89,8 +85,7 @@ describe('ReadingProgressBar', () => {
 
     it('should use light DOM', () => {
       const el = new ReadingProgressBar()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((el as any).createRenderRoot()).toBe(el)
+      expect((el as unknown as { createRenderRoot: () => unknown }).createRenderRoot()).toBe(el)
     })
 
     it('should start progress at 0', () => {
@@ -103,11 +98,13 @@ describe('ReadingProgressBar', () => {
     it('should compute progress based on content position', () => {
       const { progress, content } = createDOM(2000)
 
-      const instance = document.createElement('reading-progress-bar')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const priv = instance as any
-      priv.progressEl = progress
-      priv.contentEl = content
+      const instance = document.createElement('reading-progress-bar') as unknown as {
+        progressEl: HTMLProgressElement
+        contentEl: HTMLElement
+        updateProgress: () => void
+      }
+      instance.progressEl = progress
+      instance.contentEl = content
 
       vi.spyOn(content, 'getBoundingClientRect').mockReturnValue({
         top: -500,
@@ -121,7 +118,7 @@ describe('ReadingProgressBar', () => {
         toJSON: vi.fn(),
       })
 
-      priv.updateProgress()
+      instance.updateProgress()
 
       expect(progress.value).toBeGreaterThan(0)
       expect(progress.value).toBeLessThanOrEqual(100)
@@ -130,11 +127,13 @@ describe('ReadingProgressBar', () => {
     it('should clamp progress to 0-100 range', () => {
       const { progress, content } = createDOM(2000)
 
-      const instance = document.createElement('reading-progress-bar')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const priv = instance as any
-      priv.progressEl = progress
-      priv.contentEl = content
+      const instance = document.createElement('reading-progress-bar') as unknown as {
+        progressEl: HTMLProgressElement
+        contentEl: HTMLElement
+        updateProgress: () => void
+      }
+      instance.progressEl = progress
+      instance.contentEl = content
 
       vi.spyOn(content, 'getBoundingClientRect').mockReturnValue({
         top: -5000,
@@ -148,7 +147,7 @@ describe('ReadingProgressBar', () => {
         toJSON: vi.fn(),
       })
 
-      priv.updateProgress()
+      instance.updateProgress()
 
       expect(progress.value).toBe(100)
     })
@@ -156,11 +155,13 @@ describe('ReadingProgressBar', () => {
     it('should set 100% when content fits within one viewport', () => {
       const { progress, content } = createDOM(500)
 
-      const instance = document.createElement('reading-progress-bar')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const priv = instance as any
-      priv.progressEl = progress
-      priv.contentEl = content
+      const instance = document.createElement('reading-progress-bar') as unknown as {
+        progressEl: HTMLProgressElement
+        contentEl: HTMLElement
+        updateProgress: () => void
+      }
+      instance.progressEl = progress
+      instance.contentEl = content
 
       vi.spyOn(content, 'getBoundingClientRect').mockReturnValue({
         top: 100,
@@ -174,7 +175,7 @@ describe('ReadingProgressBar', () => {
         toJSON: vi.fn(),
       })
 
-      priv.updateProgress()
+      instance.updateProgress()
 
       expect(progress.value).toBe(100)
     })

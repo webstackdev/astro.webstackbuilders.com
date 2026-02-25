@@ -2,18 +2,19 @@
  * Header Squish Animation
  *
  * Two-step WAAPI animation for the header collapse/expand effect triggered
- * on scroll. Uses the FLIP pattern (First → Last → Invert → Play) to
+ * on scroll. Uses the FLIP pattern (First / Last / Invert / Play) to
  * measure before/after states, then animates between them.
  *
  * Collapse (forward):
- *   Step 1 – scale/size reduction (brand, icons, nav text shrink in place)
- *   Step 2 – position shift (items move + header height change)
+ * Step 1 -- scale/size reduction (brand, icons, nav text shrink in place)
+ * Step 2 -- position shift (items move + header height change)
  *
  * Expand (reverse):
- *   Step 1 – position shift (header height grows + items move)
- *   Step 2 – scale/size growth (brand, icons, nav text grow)
+ * Step 1 -- position shift (header height grows + items move)
+ * Step 2 -- scale/size growth (brand, icons, nav text grow)
  */
 import { handleScriptError } from '@components/scripts/errors/handler'
+import { getAnimationElements, type AnimationElements } from './selectors'
 
 // ============================================================================
 // CONSTANTS
@@ -28,19 +29,6 @@ export const HEADER_TRANSITION_DURATION = 320
 
 const EASING = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
 const COLLAPSED_CLASS = 'is-collapsed'
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-interface AnimationElements {
-  headerShell: HTMLElement
-  siteHeader: HTMLElement
-  brand: HTMLElement
-  footprint: HTMLElement
-  icons: HTMLElement[]
-  navLinks: HTMLElement[]
-}
 
 interface MeasuredSnapshot {
   brandTransform: string
@@ -78,7 +66,7 @@ export const animateCollapse = async (headerShell: HTMLElement): Promise<void> =
   if (headerShell.classList.contains(COLLAPSED_CLASS)) return
 
   try {
-    const elements = queryElements(headerShell)
+    const elements = getAnimationElements(headerShell)
     if (!elements) {
       headerShell.classList.add(COLLAPSED_CLASS)
       return
@@ -125,7 +113,7 @@ export const animateExpand = async (headerShell: HTMLElement): Promise<void> => 
   if (!headerShell.classList.contains(COLLAPSED_CLASS)) return
 
   try {
-    const elements = queryElements(headerShell)
+    const elements = getAnimationElements(headerShell)
     if (!elements) {
       headerShell.classList.remove(COLLAPSED_CLASS)
       return
@@ -163,29 +151,6 @@ export const animateExpand = async (headerShell: HTMLElement): Promise<void> => 
 }
 
 // ============================================================================
-// DOM QUERIES
-// ============================================================================
-
-/**
- * Query all animated elements from the header shell.
- * Returns null if required elements are missing (e.g. during SSR or testing).
- */
-function queryElements(headerShell: HTMLElement): AnimationElements | null {
-  const siteHeader = headerShell.querySelector<HTMLElement>('.site-header')
-  const brand = headerShell.querySelector<HTMLElement>('.header-brand')
-  const footprint = headerShell.querySelector<HTMLElement>('.header-footprint')
-
-  if (!siteHeader || !brand || !footprint) return null
-
-  const icons = Array.from(headerShell.querySelectorAll<HTMLElement>('.header-icon'))
-  const navLinks = Array.from(
-    headerShell.querySelectorAll<HTMLElement>('.header-nav a'),
-  )
-
-  return { headerShell, siteHeader, brand, footprint, icons, navLinks }
-}
-
-// ============================================================================
 // MEASUREMENT
 // ============================================================================
 
@@ -218,15 +183,15 @@ function measureState(elements: AnimationElements): MeasuredSnapshot {
 /**
  * Build WAAPI animations for each element with 3-keyframe sequences.
  *
- * Collapse (forward) — sizes first, then positions:
- *   0%    → expanded values for everything
- *   50%   → collapsed sizes, expanded positions
- *   100%  → collapsed sizes, collapsed positions
+ * Collapse (forward) - sizes first, then positions:
+ * 0% = expanded values for everything
+ * 50% = collapsed sizes, expanded positions
+ * 100% = collapsed sizes, collapsed positions
  *
- * Expand (reverse) — positions first, then sizes:
- *   0%    → collapsed values for everything
- *   50%   → collapsed sizes, expanded positions
- *   100%  → expanded sizes, expanded positions
+ * Expand (reverse) - positions first, then sizes:
+ * 0% = collapsed values for everything
+ * 50% = collapsed sizes, expanded positions
+ * 100% = expanded sizes, expanded positions
  */
 function buildAnimations(
   elements: AnimationElements,
@@ -324,8 +289,8 @@ function buildAnimations(
 
 /**
  * Keyframes for a "size" property:
- *   Collapse → changes in first half, holds in second
- *   Expand   → holds in first half, changes in second
+ * Collapse - changes in first half, holds in second.
+ * Expand - holds in first half, changes in second.
  */
 function sizeFirstKeyframes(
   from: Record<string, string>,
@@ -349,8 +314,8 @@ function sizeFirstKeyframes(
 
 /**
  * Keyframes for a "position" property:
- *   Collapse → holds in first half, changes in second
- *   Expand   → changes in first half, holds in second
+ * Collapse - holds in first half, changes in second.
+ * Expand - changes in first half, holds in second.
  */
 function positionFirstKeyframes(
   from: Record<string, string>,

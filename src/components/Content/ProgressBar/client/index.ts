@@ -10,6 +10,7 @@ import { LitElement } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import { getProgressElement, getContentElement } from './selectors'
 
 export class ReadingProgressBar extends LitElement {
   static registeredName = 'reading-progress-bar'
@@ -43,15 +44,15 @@ export class ReadingProgressBar extends LitElement {
   // ── DOM ─────────────────────────────────────────────────────────────
 
   private cacheElements(): void {
-    this.progressEl = this.querySelector<HTMLProgressElement>('progress')
-    this.contentEl = document.querySelector<HTMLElement>('#content')
+    this.progressEl = getProgressElement(this)
+    this.contentEl = getContentElement()
   }
 
   // ── Listeners ───────────────────────────────────────────────────────
 
   private attachListeners(): void {
-    this.scrollHandler = () => this.scheduleUpdate()
-    this.resizeHandler = () => this.scheduleUpdate()
+    this.scrollHandler = () => this.requestProgressUpdate()
+    this.resizeHandler = () => this.requestProgressUpdate()
 
     window.addEventListener('scroll', this.scrollHandler, { passive: true })
     document.addEventListener('scroll', this.scrollHandler, { passive: true, capture: true })
@@ -74,7 +75,7 @@ export class ReadingProgressBar extends LitElement {
 
   // ── Progress calculation ────────────────────────────────────────────
 
-  private scheduleUpdate(): void {
+  private requestProgressUpdate(): void {
     if (this.rafId !== null) return
     this.rafId = requestAnimationFrame(() => {
       this.rafId = null

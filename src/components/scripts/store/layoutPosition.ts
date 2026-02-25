@@ -8,13 +8,18 @@
  * doing its own measurements.
  *
  * CSS custom properties written to `document.documentElement`:
- *   --theme-picker-offset   Height of the open ThemePicker panel (or 0)
- *   --header-current-height Height of the header (accounts for collapse)
- *   --progress-bar-height   Height of the article progress bar (or 0)
- *   --layout-top-offset     Sum of all three (convenience token)
+ * --theme-picker-offset   Height of the open ThemePicker panel (or 0)
+ * --header-current-height Height of the header (accounts for collapse)
+ * --progress-bar-height   Height of the article progress bar (or 0)
+ * --layout-top-offset     Sum of all three (convenience token)
  */
 import { atom } from 'nanostores'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import {
+  getThemePickerModalElement,
+  getHeaderFixedElement,
+  getProgressBarElement,
+} from './selectors'
 
 // ============================================================================
 // TYPES
@@ -29,15 +34,12 @@ export interface LayoutOffsets {
   progressBarHeight: number
 }
 
-export type LayoutChangeListener = (offsets: LayoutOffsets) => void
+export type LayoutChangeListener = (_offsets: LayoutOffsets) => void
 
 // ============================================================================
-// CONSTANTS — DOM selectors used for measurement
+// CONSTANTS
 // ============================================================================
 
-const THEME_PICKER_MODAL_SELECTOR = '[data-theme-modal]'
-const HEADER_FIXED_SELECTOR = '.header-fixed'
-const PROGRESS_BAR_SELECTOR = '[data-progress-bar]'
 const IS_OPEN_CLASS = 'is-open'
 
 // ============================================================================
@@ -84,7 +86,7 @@ function writeCssVariables(offsets: LayoutOffsets): void {
 function measureThemePickerHeight(): number {
   if (typeof document === 'undefined') return 0
 
-  const modal = document.querySelector<HTMLElement>(THEME_PICKER_MODAL_SELECTOR)
+  const modal = getThemePickerModalElement()
   if (!modal || !modal.classList.contains(IS_OPEN_CLASS)) return 0
 
   const rect = modal.getBoundingClientRect()
@@ -108,7 +110,7 @@ function measureThemePickerHeight(): number {
 function measureHeaderHeight(): number {
   if (typeof document === 'undefined') return 0
 
-  const headerFixed = document.querySelector<HTMLElement>(HEADER_FIXED_SELECTOR)
+  const headerFixed = getHeaderFixedElement()
   if (!headerFixed) return 0
 
   return headerFixed.getBoundingClientRect().height
@@ -120,7 +122,7 @@ function measureHeaderHeight(): number {
 function measureProgressBarHeight(): number {
   if (typeof document === 'undefined') return 0
 
-  const bar = document.querySelector<HTMLElement>(PROGRESS_BAR_SELECTOR)
+  const bar = getProgressBarElement()
   if (!bar) return 0
 
   return bar.getBoundingClientRect().height
