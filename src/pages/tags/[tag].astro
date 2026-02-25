@@ -91,7 +91,7 @@ const paginatedContent = sortedContent.slice(startIndex, endIndex)
             <h1 class="text-page-inverse">
               {tagEntry.data.displayName}
             </h1>
-            <span class="inline-flex w-fit rounded-full bg-page-inverse px-3 py-1 text-sm font-semibold text-page-base whitespace-nowrap sm:ml-2 sm:mt-2">
+            <span class="inline-flex w-fit rounded-full bg-page-inverse px-3 py-1 text-sm font-semibold text-page-base whitespace-nowrap ml-2 sm:mt-2">
               {totalItems} {totalItems === 1 ? 'article' : 'articles'}
             </span>
           </div>
@@ -102,7 +102,7 @@ const paginatedContent = sortedContent.slice(startIndex, endIndex)
             </p>
           )}
 
-          <div class="mt-2 sm:mt-0 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-content-offset">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-content-offset mt-2 sm:mt-0 ml-3 sm:ml-0">
             {sortedContent.length > 0 && (
               <span class="text-content-active">
                 Latest: <time class="font-medium text-content">{sortedContent[0]!.data.publishDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</time>
@@ -131,9 +131,12 @@ const paginatedContent = sortedContent.slice(startIndex, endIndex)
               const href = `/articles/${item.id}`
 
               return (
-                <article class="bg-content-inverse rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-                  {item.data.cover && (
-                    <a href={href} class="block">
+                <article class="group h-full relative after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-within:after:opacity-100 focus-within:after:-inset-1.5 focus-within:after:border-spotlight">
+                  <a
+                    href={href}
+                    class="block h-full bg-content-inverse rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden focus-visible:outline-none"
+                  >
+                    {item.data.cover && (
                       <div class="relative aspect-video overflow-hidden">
                         <Picture
                           src={item.data.cover}
@@ -148,40 +151,35 @@ const paginatedContent = sortedContent.slice(startIndex, endIndex)
                           loading="lazy"
                         />
                       </div>
-                    </a>
-                  )}
-
-                  <div class="p-6 space-y-4">
-                    <div class="flex items-center gap-3 text-sm">
-                      <span
-                        class="px-3 py-1 rounded-full text-white font-medium bg-primary"
-                      >
-                        Article
-                      </span>
-                      <time datetime={item.data.publishDate.toISOString()}>
-                        {item.data.publishDate.toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </time>
-                    </div>
-
-                    <h2 class="text-xl font-semibold leading-tight">
-                      <a
-                        href={href}
-                        class="group-hover:text-primary transition-colors duration-300"
-                      >
-                        {item.data.title}
-                      </a>
-                    </h2>
-
-                    {item.data.description && (
-                      <p class="text-sm leading-relaxed line-clamp-3">
-                        {item.data.description}
-                      </p>
                     )}
-                  </div>
+
+                    <div class="p-6 space-y-4">
+                      <div class="flex items-center gap-3 text-sm">
+                        <span
+                          class="px-3 py-1 rounded-full text-white font-medium bg-primary"
+                        >
+                          Article
+                        </span>
+                        <time datetime={item.data.publishDate.toISOString()}>
+                          {item.data.publishDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </time>
+                      </div>
+
+                      <h2 class="text-xl font-semibold leading-tight group-hover:text-primary transition-colors duration-300">
+                        {item.data.title}
+                      </h2>
+
+                      {item.data.description && (
+                        <p class="text-sm leading-relaxed line-clamp-3">
+                          {item.data.description}
+                        </p>
+                      )}
+                    </div>
+                  </a>
                 </article>
               )
             })}
