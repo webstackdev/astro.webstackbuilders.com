@@ -89,15 +89,25 @@ function measureThemePickerHeight(): number {
   const modal = getThemePickerModalElement()
   if (!modal || !modal.classList.contains(IS_OPEN_CLASS)) return 0
 
+  // Prefer the live rendered height (accurate once the CSS transition ends).
   const rect = modal.getBoundingClientRect()
   if (rect.height > 0) return rect.height
 
-  // Fallback: compute the CSS 14em target when mid-transition
-  const computed = window.getComputedStyle(modal)
-  const maxH = Number.parseFloat(computed.maxHeight)
-  if (Number.isFinite(maxH) && maxH > 0) return maxH
+  // During the opening frame the max-height transition starts at 0, so
+  // getBoundingClientRect().height is 0. scrollHeight gives the intrinsic
+  // content height regardless of max-height / overflow constraints. We cap
+  // it at the CSS target max-height (14em) so we never overshoot.
+  const scrollH = modal.scrollHeight
+  if (scrollH > 0) {
+    const modalFontSize =
+      Number.parseFloat(getComputedStyle(modal).fontSize) ||
+      Number.parseFloat(getComputedStyle(document.documentElement).fontSize) ||
+      16
+    const maxTargetHeight = 14 * modalFontSize
+    return Math.min(scrollH, maxTargetHeight)
+  }
 
-  // Last resort
+  // Last resort: the CSS 14em target.
   const fontSize = Number.parseFloat(
     getComputedStyle(document.documentElement).fontSize,
   ) || 16

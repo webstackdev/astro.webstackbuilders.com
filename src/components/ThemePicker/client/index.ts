@@ -724,6 +724,14 @@ export class ThemePickerElement extends LitElement {
         requestAnimationFrame(() => {
           this.pickerModal.classList.add(CLASSES.isOpen)
           updateLayoutOffsets()
+
+          // Re-measure after the max-height transition completes so the
+          // offset is perfectly accurate once the panel settles.
+          this.pickerModal.addEventListener(
+            'transitionend',
+            () => updateLayoutOffsets(),
+            { once: true },
+          )
         })
       } else {
         this.pickerModal.classList.add(CLASSES.isOpen)

@@ -96,7 +96,7 @@ const {
     {/* Visibility set to hidden is a FOUC trick. It is set to 'visible' once */}
     {/* the current data-theme value for the <> element is checked and set */}
     {/* in components/Head/ThemeInit.astro */}
-    <body class="invisible">
+    <body class="invisible flex flex-col h-full overflow-hidden">
       {/* Skip to main content link for accessibility */}
       <Skip />
       {/* Cookie Consent Overlay */}
@@ -107,14 +107,21 @@ const {
       {/* Site header and main content */}
       <Container id="main-content">
         <Header path={path} showProgressBar={showProgressBar} />
-        <div class:list={[hideBreadcrumbsOnMobile ? 'hidden sm:block' : 'block']}>
-          <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
+        {/* Scroll viewport — sole scroll container for the page.            Its scrollbar physically starts below the header. */}
+        <div
+          id="scroll-viewport"
+          class="flex-1 min-h-0 overflow-y-auto flex flex-col"
+          style={`margin-top: var(--progress-bar-height, 0);`}
+        >
+          <div class:list={[hideBreadcrumbsOnMobile ? 'hidden sm:block' : 'block']}>
+            <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
+          </div>
+          {/* SLOT: default (unnamed) - Main page content */}
+          <Content>
+            <slot />
+          </Content>
+          <Footer />
         </div>
-        {/* SLOT: default (unnamed) - Main page content */}
-        <Content>
-          <slot />
-        </Content>
-        <Footer />
       </Container>
       {isProd() && (
         <>

@@ -6,6 +6,7 @@
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { isType1Element } from '@components/scripts/assertions/elements'
 import { updateLayoutOffsets } from '@components/scripts/store'
+import { getScrollViewportElement } from '@components/scripts/store/selectors'
 import { animateCollapse, animateExpand, isHeaderAnimating } from './headerAnimation'
 import { getHeaderElement, getHeaderShellElement } from './selectors'
 
@@ -61,14 +62,17 @@ const hasScrollTop = (element: unknown): element is HTMLElement => {
 }
 
 // Use the event target when scrolling happens inside a container.
+// Also checks #scroll-viewport for cases where no event is available (e.g. resize).
 const getScrollTop = (event?: Event): number => {
   const target = event?.target
   const targetScrollTop =
     hasScrollTop(target) ? target.scrollTop : 0
   const documentScrollTop = getDocumentScrollTop()
   const windowScrollTop = typeof window.scrollY === 'number' ? window.scrollY : 0
+  const viewport = getScrollViewportElement()
+  const viewportScrollTop = viewport ? viewport.scrollTop : 0
 
-  return Math.max(targetScrollTop, documentScrollTop, windowScrollTop)
+  return Math.max(targetScrollTop, documentScrollTop, windowScrollTop, viewportScrollTop)
 }
 
 const shouldForceExpanded = (header: HTMLElement): boolean => {
