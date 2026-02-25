@@ -28,6 +28,8 @@ type BaseProps = {
   navigationMode?: CarouselNavigationMode
   /** Whether to show the "Read More" link */
   showReadMore: boolean
+  /** Whether to show Embla dots pagination */
+  showEmblaDots?: boolean
 }
 
 export type Props =
@@ -55,6 +57,7 @@ const {
   items: itemsOverride,
   navigationMode = 'wrap',
   showReadMore = false,
+  showEmblaDots = true,
 } = props
 
 const isKnownCollectionSlug = (slug: Props['type']): slug is KnownCollectionSlug => slug !== 'unknown'
@@ -190,12 +193,17 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
           {/* Dots Navigation */}
           <div class="mt-8 grid grid-cols-[1fr_auto_1fr] items-center">
             <span aria-hidden="true" />
-            <span
-              class="embla__dots hidden sm:flex gap-2 justify-center"
-              role="group"
-              aria-label={`${title} slide navigation`}
-              data-carousel-pagination
-            />
+            {/** Renders an aria-hidden placeholder span on false to preserve the 3-column grid layout */}
+            {showEmblaDots ? (
+              <span
+                class="embla__dots hidden sm:flex gap-2 justify-center"
+                role="group"
+                aria-label={`${title} slide navigation`}
+                data-carousel-pagination
+              />
+            ) : (
+              <span aria-hidden="true" />
+            )}
 
             {showReadMore ? (
               <span class="flex justify-end mr-4">
