@@ -2,8 +2,8 @@
 import { type CollectionEntry, getCollection } from 'astro:content'
 import { isDev } from '@lib/config/environmentServer'
 import PageLayout from '@layouts/PageLayout.astro'
-
 import Carousel from '@components/Carousel/index.astro'
+import Icon from '@components/Icon/index.astro'
 
 const allArticles = await getCollection('articles', ({ data }) => isDev() || data.isDraft !== true)
 
@@ -27,8 +27,8 @@ for (const tag of tagsWithNoContent) {
 }
 
 const pageTitle = 'Technical Index'
-const pageDescription = 'Browse documentation and guides structured by specific topics like Kubernetes, developer experience, and release engineering'
-const path = '/tags'
+const pageDescription = 'Browse documentation and guides structured by specific topics'
+const path = '/articles'
 ---
 
 <PageLayout
@@ -37,25 +37,59 @@ const path = '/tags'
   path={path}
   icon="paper-and-pen"
 >
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:pb-12">
+  <div class="pb-0">
     <div class="space-y-12">
       {
         tagsWithContent
           .sort((a, b) => a.data.displayName.localeCompare(b.data.displayName, 'en'))
           .map(tag => {
-            const tagSlug = tag.data.slug
             const displayName = tag.data.displayName
             const articlesForTag = getArticlesForTag(tag)
+            const latestDate = articlesForTag
+              .map(a => a.data.publishDate)
+              .sort((a, b) => b.getTime() - a.getTime())[0]
+            const latestFormatted = latestDate
+              ? latestDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              : ''
 
             return (
-              <section class="border-b border-trim pt-0 pb-12 last:border-b-0">
+              <section class="mb-0">
+                <header class="px-8 sm:px-12 max-w-6xl mx-auto">
+                  <a
+                    href={`/tags/${tag.data.slug}`}
+                    class="group relative flex items-center gap-3 sm:gap-5 rounded-xl border border-page-inverse bg-content-inverse px-3 sm:px-6 py-3 sm:py-4 no-underline shadow-sm transition-all hover:border-page-active focus-visible:outline-none focus-visible:after:border-2 focus-visible:after:border-spotlight focus-visible:after:-inset-1.5 after:pointer-events-none after:absolute after:inset-0 after:rounded-none after:content-[''] after:border-2 after:border-transparent"
+                  >
+                    {/* Tag icon */}
+                    <div class="hidden sm:flex shrink-0 items-center justify-center text-page-inverse group-hover:text-page-active transition-colors">
+                      <Icon icon={tag.data.slug} size={12} color="currentColor" />
+                    </div>
+
+                    <div class="min-w-0 flex-1 text-page-inverse">
+                      <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-start sm:flex-wrap sm:gap-x-3 sm:gap-y-1">
+                        <h2 class="min-w-0 flex-1 text-lg sm:text-xl font-bold transition-colors truncate sm:flex-none group-hover:text-page-active">
+                          {displayName}
+                        </h2>
+                        <span class="shrink-0 rounded-full bg-page-inverse px-2 py-0.5 sm:ml-1 text-xs font-medium text-page-base whitespace-nowrap transition-colors group-hover:bg-page-active group-hover:text-page-base">
+                          {articlesForTag.length} articles
+                        </span>
+                      </div>
+                    </div>
+
+                    {latestFormatted && (
+                      <div class="hidden sm:block shrink-0 text-right">
+                        <span class="text-xs text-page-inverse transition-colors group-hover:text-page-active">Latest</span>
+                        <div class="text-sm font-medium text-content transition-colors group-hover:text-page-active">{latestFormatted}</div>
+                      </div>
+                    )}
+                  </a>
+                </header>
+
                 <Carousel
-                  title={displayName}
-                  titleHref={`/tags/${tagSlug}`}
                   variant="suggested"
                   limit={articlesForTag.length}
                   type="articles"
                   items={articlesForTag}
+                  showEmblaDots={false}
                   showReadMore={false}
                 />
               </section>

@@ -223,6 +223,7 @@ const tagsCollection = defineCollection({
     z.object({
       slug: z.string(),
       displayName: z.string(),
+      intro: z.string().optional(),
       description: z.string(),
       cover: image(),
       coverAlt: z.string(),
