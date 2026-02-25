@@ -1,5 +1,6 @@
 ---
 import type { MarkdownHeading } from 'astro'
+import Icon from '@components/Icon/index.astro'
 import { buildTocTree, type TocItem } from './server/index'
 
 export interface Props {
@@ -15,16 +16,18 @@ const tocTree = buildTocTree(items)
   tocTree.length > 0 && (
     <>
       <table-of-contents class="block">
+        {/* Edge trigger: partial circle on right edge, visible when drawer is closed */}
         <button
           type="button"
           data-toc-toggle
           aria-controls="toc-drawer"
-          aria-label="Table of contents"
-          class="fixed bottom-6 right-6 z-(--z-content-floating) flex h-14 w-14 items-center justify-center rounded-full border border-trim bg-page-base text-xs font-semibold uppercase tracking-wide shadow-elevated transition hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
+          aria-label="Open table of contents"
+          class="fixed right-0 top-1/2 -translate-y-1/2 z-(--z-content-floating) flex h-16 w-9 items-center justify-center rounded-l-full border border-r-0 border-trim bg-page-base shadow-elevated transition-opacity hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
         >
-          <span aria-hidden="true">TOC</span>
+          <Icon icon="arrow-left" size={18} />
         </button>
 
+        {/* Full-screen scrim overlay */}
         <button
           type="button"
           data-toc-overlay
@@ -33,26 +36,42 @@ const tocTree = buildTocTree(items)
           class="fixed inset-0 z-(--z-content-scrim) bg-surface/80 opacity-0 backdrop-blur-sm pointer-events-none transition-opacity duration-300 data-[visible=true]:opacity-100 data-[visible=true]:pointer-events-auto lg:hidden"
         ></button>
 
+        {/* Right-side drawer panel */}
         <div
           id="toc-drawer"
           data-toc-panel
           data-state="closed"
-          class="fixed bottom-0 left-0 right-0 z-(--z-content-scrim) translate-y-full bg-page-base px-6 pb-8 pt-6 shadow-[0_-20px_60px_rgba(15,23,42,0.35)] transition-transform duration-300 ease-out data-[state=open]:translate-y-0 lg:static lg:z-auto lg:translate-y-0 lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-0 lg:shadow-none"
+          class="fixed top-0 right-0 bottom-0 z-(--z-content-floating) w-[80vw] translate-x-full overflow-y-auto bg-page-base shadow-[-20px_0_60px_rgba(15,23,42,0.35)] transition-transform duration-300 ease-out data-[state=open]:translate-x-0 lg:static lg:z-auto lg:w-auto lg:translate-x-0 lg:overflow-y-visible lg:bg-transparent lg:shadow-none lg:h-full"
         >
+          {/* Close button header — mobile only */}
+          <div class="flex items-center justify-between gap-3 px-5 pt-5 lg:hidden">
+            <h2 class="text-base font-semibold">Table of Contents</h2>
+            <button
+              type="button"
+              data-toc-close
+              aria-label="Close table of contents"
+              class="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              <Icon icon="arrow-right" size={18} />
+            </button>
+          </div>
+
           <aside
-            class="rounded-3xl border border-trim bg-page-base px-5 py-6 shadow-lg lg:rounded-lg lg:border lg:shadow-none lg:self-stretch lg:h-full"
+            class="px-5 py-6 lg:sticky lg:rounded-lg lg:border lg:border-trim lg:bg-page-base lg:shadow-none"
+            style="top: calc(var(--layout-top-offset, 0px) + 1rem);"
             aria-labelledby="toc-heading"
           >
-            <div class="flex items-center justify-between gap-3">
+            {/* Desktop heading — hidden on mobile where the drawer header shows instead */}
+            <div class="hidden lg:flex items-center justify-between gap-3">
               <h2 id="toc-heading" class="text-base font-semibold">
                 Table of Contents
               </h2>
-              <span class="text-xs font-medium uppercase tracking-wide text-content-active hidden lg:inline">
+              <span class="text-xs font-medium uppercase tracking-wide text-content-active">
                 Jump to section
               </span>
             </div>
-            <hr class="mt-4 border-dotted border-t-2 border-content-offset w-full" />
-            <nav class="mt-4 toc-nav" aria-label="Table of contents">
+            <hr class="mt-4 border-dotted border-t-2 border-content-offset w-full hidden lg:block" />
+            <nav class="mt-4 lg:mt-4 toc-nav" aria-label="Table of contents">
               <ol class="space-y-1">
                 {(() => {
                   const renderNodes = (nodes: TocItem[]): unknown =>

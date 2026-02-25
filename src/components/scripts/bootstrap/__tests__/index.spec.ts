@@ -25,6 +25,7 @@ vi.mock('@components/scripts/store', () => ({
   initConsentFromCookies: vi.fn(),
   initConsentSideEffects: vi.fn(),
   initHeaderSearchSideEffects: vi.fn(),
+  initLayoutPositionSideEffects: vi.fn(),
   initAnimationLifecycle: vi.fn(),
   exposeStoreActionsForTesting: vi.fn(),
   $hasFunctionalConsent: {
@@ -55,6 +56,7 @@ import {
   initConsentFromCookies,
   initConsentSideEffects,
   initHeaderSearchSideEffects,
+  initLayoutPositionSideEffects,
   initAnimationLifecycle,
   exposeStoreActionsForTesting,
 } from '@components/scripts/store'
@@ -80,6 +82,7 @@ const mockSuccessfulInit = () => {
   vi.mocked(initConsentFromCookies).mockReturnValue(undefined)
   vi.mocked(initConsentSideEffects).mockReturnValue(undefined)
   vi.mocked(initHeaderSearchSideEffects).mockReturnValue(undefined)
+  vi.mocked(initLayoutPositionSideEffects).mockReturnValue(undefined)
   vi.mocked(initAnimationLifecycle).mockReturnValue(undefined)
   vi.mocked(exposeStoreActionsForTesting).mockReturnValue(undefined)
 }

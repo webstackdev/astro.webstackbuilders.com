@@ -47,6 +47,8 @@ export interface Props {
   publishDate?: Date
   /** Specifies the main, high-level category or theme of the article */
   section?: string
+  /** Whether to show reading progress bar below the header */
+  showProgressBar?: boolean
   /** Content tags */
   tags?: string[]
 }
@@ -63,6 +65,7 @@ const {
   path,
   publishDate,
   section,
+  showProgressBar = false,
   tags,
 } = Astro.props
 ---
@@ -103,7 +106,7 @@ const {
       <ThemePicker />
       {/* Site header and main content */}
       <Container id="main-content">
-        <Header path={path} />
+        <Header path={path} showProgressBar={showProgressBar} />
         <div class:list={[hideBreadcrumbsOnMobile ? 'hidden sm:block' : 'block']}>
           <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
         </div>

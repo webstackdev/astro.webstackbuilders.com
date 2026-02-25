@@ -5,6 +5,8 @@
  */
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { isType1Element } from '@components/scripts/assertions/elements'
+import { updateLayoutOffsets } from '@components/scripts/store'
+import { animateCollapse, animateExpand, isHeaderAnimating } from './headerAnimation'
 import { getHeaderElement, getHeaderShellElement } from './selectors'
 
 const COLLAPSED_CLASS = 'is-collapsed'
@@ -79,9 +81,22 @@ const setCollapsedState = (state: HeaderCollapseState, nextCollapsed: boolean): 
   if (state.isCollapsed === nextCollapsed) {
     return
   }
+  if (isHeaderAnimating()) {
+    return
+  }
 
   state.isCollapsed = nextCollapsed
-  state.headerShell.classList.toggle(COLLAPSED_CLASS, nextCollapsed)
+
+  const afterAnimate = () => {
+    // Notify the layout position store that the header height has changed
+    updateLayoutOffsets()
+  }
+
+  if (nextCollapsed) {
+    animateCollapse(state.headerShell).then(afterAnimate)
+  } else {
+    animateExpand(state.headerShell).then(afterAnimate)
+  }
 }
 
 // Determines the collapsed state based on scroll position and direction.

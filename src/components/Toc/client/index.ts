@@ -26,6 +26,7 @@ export class TableOfContentsElement extends LitElement {
   declare disabled: boolean
 
   private toggleButton: HTMLButtonElement | null = null
+  private closeButton: HTMLButtonElement | null = null
   private overlay: HTMLButtonElement | null = null
   private panel: HTMLElement | null = null
   private tocLinks: HTMLAnchorElement[] = []
@@ -72,8 +73,9 @@ export class TableOfContentsElement extends LitElement {
   }
 
   private cacheElements(): void {
-    const { toggleButton, overlay, panel, tocLinks } = getTableOfContentsElements(this)
+    const { toggleButton, closeButton, overlay, panel, tocLinks } = getTableOfContentsElements(this)
     this.toggleButton = toggleButton
+    this.closeButton = closeButton
     this.overlay = overlay
     this.panel = panel
     this.tocLinks = tocLinks
@@ -88,6 +90,11 @@ export class TableOfContentsElement extends LitElement {
     if (this.overlay && !this.overlay.dataset['tocListener']) {
       addButtonEventListeners(this.overlay, this.handleOverlay, this)
       this.overlay.dataset['tocListener'] = 'true'
+    }
+
+    if (this.closeButton && !this.closeButton.dataset['tocListener']) {
+      addButtonEventListeners(this.closeButton, this.handleClose, this)
+      this.closeButton.dataset['tocListener'] = 'true'
     }
 
     if (this.panel && !this.panel.dataset['tocEscapeListener']) {
@@ -215,6 +222,11 @@ export class TableOfContentsElement extends LitElement {
   }
 
   private readonly handleOverlay = (event: Event) => {
+    event.preventDefault()
+    hideTableOfContents()
+  }
+
+  private readonly handleClose = (event: Event) => {
     event.preventDefault()
     hideTableOfContents()
   }

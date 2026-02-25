@@ -87,6 +87,8 @@ export interface Props {
   section: string
   /** Whether to show table of contents */
   showToc?: boolean
+  /** Whether to show reading progress bar below the header */
+  showProgressBar?: boolean
   /** Hide breadcrumbs on mobile viewports (sm and below) */
   hideBreadcrumbsOnMobile?: boolean
   /** Optional page subtitle or excerpt */
@@ -107,6 +109,7 @@ const {
   path,
   publishDate,
   readingTime,
+  showProgressBar = false,
   showToc,
   subtitle,
   tags,
@@ -127,6 +130,7 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
   path={path}
   contentType={contentType}
   hideBreadcrumbsOnMobile={hideBreadcrumbsOnMobile}
+  showProgressBar={showProgressBar}
   {...publishDate && { publishDate }}
   {...modifiedDate && { modifiedDate }}
   {...author && { author }}
