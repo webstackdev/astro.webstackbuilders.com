@@ -2,9 +2,9 @@
  * Article reading progress bar – Lit web component
  *
  * Renders a fixed `<progress>` element below the header that fills as
- * the visitor scrolls through the article `#content` region. Uses the
- * layout-position store's `--layout-top-offset` to position itself
- * directly beneath the header.
+ * the visitor scrolls through the article `#content` region. Positioned
+ * via `--theme-picker-offset` + `--header-current-height` from the
+ * layout-position store.
  */
 import { LitElement } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
