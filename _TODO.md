@@ -145,16 +145,6 @@ https://mermaid.js.org/config/directives.html
 
 See comp images in Breadcrumbs component directory
 
-## Keyboard Navigation
-
-- Should header links be in the tab order?
-- Does the total page tab order make sense?
-
-
-## Non-featured tags
-
-Generate cover images for the skills and technologies tags pages
-
 ## Code Block Problems
 
 - Inline code blocks are not wrapping. They're breaking to a new line. An example is in the "Scenario: CRD Sync Order Problem" section of `argocd-sync-failures-gitops-debugging-troubleshooting#specific-failure-scenarios`.

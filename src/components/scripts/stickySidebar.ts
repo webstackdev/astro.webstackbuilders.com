@@ -5,28 +5,45 @@
  * Handles both short sidebars (smaller than viewport) and tall sidebars
  * (taller than viewport) with different sticking strategies:
  *
- * SHORT SIDEBAR: Pins the sidebar's top edge below the scroll viewport's
- * top edge (with padding) as the user scrolls down. Returns to natural
- * position when the container scrolls back into view.
+ * SHORT SIDEBAR: Pins the sidebar's top edge below the fixed header
+ * (with padding) as the user scrolls down. Returns to natural position
+ * when the container scrolls back into view.
  *
  * TALL SIDEBAR: When scrolling down, allows the sidebar to scroll naturally
  * until its bottom edge reaches the viewport bottom (with padding), then
  * pins it there. When scrolling up, releases and scrolls naturally until
- * the top edge reaches the viewport top (with padding), then pins at top.
+ * the top edge reaches the header bottom (with padding), then pins at top.
  *
- * The scroll container is always `#scroll-viewport`, which sits below the
- * header/progress bar in the flex layout. Its BCR top naturally accounts
- * for all fixed chrome above content.
+ * Measures the actual `.header-fixed` and `[data-progress-bar]` elements
+ * each frame so the reference point always matches the visual chrome,
+ * regardless of header collapse animations or transition timing.
  */
 import { handleScriptError } from '@components/scripts/errors/handler'
+import {
+  getHeaderFixedElement,
+  getProgressBarElement,
+} from '@components/scripts/store/selectors'
 
 export interface StickySidebarOptions {
-  /** Extra space below the scroll viewport's visible top edge (px). Default: 16 */
+  /** Extra space below the fixed chrome (header + progress bar) in px. Default: 16 */
   topPadding?: number
-  /** Extra space above the scroll viewport's visible bottom edge (px). Default: 16 */
+  /** Extra space above the viewport bottom edge in px. Default: 16 */
   bottomPadding?: number
   /** Minimum window width to enable sticky behavior (px). Default: 1024 (lg breakpoint) */
   minWidth?: number
+}
+
+/**
+ * Compute the visual bottom of all fixed chrome above content.
+ * Returns the maximum of header-fixed and progress-bar bottoms.
+ */
+function measureChromeBottom(): number {
+  const headerEl = getHeaderFixedElement()
+  const progressEl = getProgressBarElement()
+  return Math.max(
+    headerEl ? headerEl.getBoundingClientRect().bottom : 0,
+    progressEl ? progressEl.getBoundingClientRect().bottom : 0,
+  )
 }
 
 /**
@@ -54,8 +71,8 @@ export function initStickySidebar(
   }
 
   let currentTranslateY = 0
+  let prevScrollTop = scrollContainer.scrollTop
   let rafId: number | null = null
-  // Capture scrollContainer in a const to satisfy strict null checks inside closures
   const scroller = scrollContainer
 
   /**
@@ -70,26 +87,30 @@ export function initStickySidebar(
           sidebar.style.transform = ''
           currentTranslateY = 0
         }
+        prevScrollTop = scroller.scrollTop
         return
       }
+
+      const scrollTop = scroller.scrollTop
+      const scrollDelta = scrollTop - prevScrollTop
+      prevScrollTop = scrollTop
 
       const sidebarRect = sidebar.getBoundingClientRect()
       const sidebarHeight = sidebarRect.height
       if (sidebarHeight === 0) return
 
       const containerRect = container.getBoundingClientRect()
-      const viewportRect = scroller.getBoundingClientRect()
 
-      // Sidebar's natural top position (without current transform applied)
+      // Visible bounds: measured from actual fixed chrome, not scroll viewport BCR
+      const visibleTop = measureChromeBottom() + topPadding
+      const visibleBottom = window.innerHeight - bottomPadding
+      const availableHeight = visibleBottom - visibleTop
+
+      // Sidebar's natural top position (where it would be with translateY = 0)
       const naturalTop = sidebarRect.top - currentTranslateY
 
       // Maximum translateY: sidebar bottom must not exceed container bottom
       const maxTranslateY = Math.max(0, containerRect.bottom - (naturalTop + sidebarHeight))
-
-      // Visible bounds within the scroll viewport
-      const visibleTop = viewportRect.top + topPadding
-      const visibleBottom = viewportRect.bottom - bottomPadding
-      const availableHeight = visibleBottom - visibleTop
 
       let newTranslateY: number
 
@@ -97,20 +118,30 @@ export function initStickySidebar(
         // SHORT SIDEBAR: pin top edge at the visible top boundary
         newTranslateY = Math.max(0, visibleTop - naturalTop)
       } else {
-        // TALL SIDEBAR: direction-aware pinning.
-        // Top pin: sidebar top aligns with visibleTop
-        const topPin = visibleTop - naturalTop
-        // Bottom pin: sidebar bottom aligns with visibleBottom
-        const bottomPin = visibleBottom - sidebarHeight - naturalTop
+        // TALL SIDEBAR: direction-aware pinning
+        const actualTop = naturalTop + currentTranslateY
+        const actualBottom = actualTop + sidebarHeight
 
-        // When the sidebar is taller than available space, topPin > bottomPin.
-        // Clamping currentTranslateY between them gives us direction-aware
-        // behavior: scrolling down hits the bottom pin, scrolling up hits the
-        // top pin, and in between the sidebar scrolls naturally.
-        newTranslateY = Math.max(bottomPin, Math.min(currentTranslateY, topPin))
+        if (scrollDelta > 0) {
+          // Scrolling DOWN: pin bottom at visibleBottom when it would go above
+          if (actualBottom < visibleBottom) {
+            newTranslateY = visibleBottom - sidebarHeight - naturalTop
+          } else {
+            newTranslateY = currentTranslateY
+          }
+        } else if (scrollDelta < 0) {
+          // Scrolling UP: pin top at visibleTop when it would go below
+          if (actualTop > visibleTop) {
+            newTranslateY = visibleTop - naturalTop
+          } else {
+            newTranslateY = currentTranslateY
+          }
+        } else {
+          newTranslateY = currentTranslateY
+        }
       }
 
-      // Global clamp: never go above natural position or below container bottom
+      // Clamp: never go above natural position or below container bottom
       newTranslateY = Math.max(0, Math.min(newTranslateY, maxTranslateY))
 
       // Apply only when value changes meaningfully (avoid sub-pixel jitter)
