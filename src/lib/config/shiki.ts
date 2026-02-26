@@ -8,6 +8,13 @@ import {
   transformerNotationErrorLevel,
 } from '@shikijs/transformers'
 
+export const langAlias = {
+  js: 'javascript',
+  ts: 'typescript',
+  md: 'markdown',
+  promql: 'go',
+}
+
 const insMetaRegex = /(?:^|\s)ins=\{([^}]+)\}/
 const delMetaRegex = /(?:^|\s)del=\{([^}]+)\}/
 const errorMetaRegex = /(?:^|\s)error=\{([^}]+)\}/
@@ -117,11 +124,7 @@ export const shikiConfigOptions = {
       fontStyle: true,
     }),
   ],
-  langAlias: {
-    js: 'javascript',
-    ts: 'typescript',
-    md: 'markdown',
-    promql: 'go',
-  },
+  excludeLangs: ['mermaid', 'math'],
+  langAlias,
   wrap: true,
 } as const

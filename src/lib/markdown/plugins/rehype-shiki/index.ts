@@ -209,6 +209,23 @@ function extractPre(highlighted: Root | Element): Element | null {
   return null
 }
 
+/**
+ * Extract and strip `title="..."` (or `title='...'` or `title=word`) from a
+ * code-fence meta string. The title is a display-only concern and must be
+ * removed before the meta reaches Shiki transformers—otherwise path separators
+ * like `/app/` get misinterpreted as `/word/` highlight patterns by
+ * `transformerMetaWordHighlight`.
+ */
+function extractTitle(meta: string): { title: string | undefined; cleaned: string } {
+  const titleRegex = /\btitle=(?:"([^"]*)"|'([^']*)'|(\S+))/
+  const match = titleRegex.exec(meta)
+  if (!match) return { title: undefined, cleaned: meta }
+
+  const title = (match[1] ?? match[2] ?? match[3] ?? '').trim() || undefined
+  const cleaned = meta.replace(match[0], '').trim()
+  return { title, cleaned }
+}
+
 const DEFAULT_EXCLUDED_LANGS = ['mermaid', 'math']
 
 const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOptions) => {
@@ -254,6 +271,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       lang: string
       codeText: string
       metaRaw: string | undefined
+      title: string | undefined
     }> = []
 
     visit(
@@ -283,13 +301,18 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
 
         const metaRaw = typeof metaValue === 'string' && metaValue.trim() ? metaValue.trim() : undefined
 
+        const { title, cleaned: metaForShiki } = metaRaw
+          ? extractTitle(metaRaw)
+          : { title: undefined, cleaned: undefined }
+
         replacements.push({
           parent,
           index,
           original: node,
           lang,
           codeText: stripTrailingFenceNewline(codeText),
-          metaRaw,
+          metaRaw: metaForShiki || undefined,
+          title,
         })
       }
     )
@@ -354,6 +377,10 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       delete (highlightedPre.properties as Record<string, unknown>)['data-shiki-meta']
 
       highlightedPre.properties['data-language'] = replacement.lang
+
+      if (replacement.title) {
+        highlightedPre.properties['data-code-title'] = replacement.title
+      }
 
       highlightedPre.properties['className'] = mergeClassNames(
         highlightedPre.properties['className'],

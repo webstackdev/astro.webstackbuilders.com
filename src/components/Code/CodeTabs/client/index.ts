@@ -42,6 +42,11 @@ function getTabLabel(pre: HTMLPreElement): string | null {
   const explicit = pre.getAttribute('data-code-tabs-tab')
   if (explicit && explicit.trim()) return explicit.trim()
 
+  // Use title from code fence meta (e.g. title="otel-tail-sampling.yaml")
+  // in place of the language label when present.
+  const codeTitle = pre.getAttribute('data-code-title')
+  if (codeTitle && codeTitle.trim()) return codeTitle.trim()
+
   const language = pre.getAttribute('data-language')
   if (!language || !language.trim()) return null
   if (EXCLUDED_SINGLE_TAB_LANGUAGES.has(language.trim().toLowerCase())) return null

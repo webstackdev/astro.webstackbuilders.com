@@ -147,17 +147,11 @@ See comp images in Breadcrumbs component directory
 
 ## Code Block Problems
 
-- Inline code blocks are not wrapping. They're breaking to a new line. An example is in the "Scenario: CRD Sync Order Problem" section of `argocd-sync-failures-gitops-debugging-troubleshooting#specific-failure-scenarios`.
-
 - I aliased 'promql' to 'go'. When a code fence using the alias is rendered with the language set to 'promql', it shows as 'go' incorrectly because of the alias. Also we need custom handling for all language names that are displayed: html should be uppercase, typescript as TypeScript, etc. Also we don't want all aliased names to show the alias - for example using the aliases 'ts', 'js', and 'md' would be better to show the full language names.
 
-- We're getting random highlighting in code blocks, like the word "app" in teh first code block in `http://localhost:4321/deep-dive/argocd-sync-failures-gitops-debugging-troubleshooting#sync-waves-and-resource-ordering`
+- We're getting random highlighting in code blocks, like the word "app" in the first code block in `argocd-sync-failures-gitops-debugging-troubleshooting/pdf.astro`. If the problem is not straight forward, let's discuss the fix first. Here's outerhtml of the block from chrome inspector:
 
 - The "go" language code block in `src/content/articles/api-versioning-deprecation-sunset-headers-migration/index.mdx` is not being combined with the "typescript", "python", and "ruby" tabbed code block. Same with "python" block in "### Admission Control Strategies" section of `src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx`, plus the line numbering is weird in the code block.
-
-- The title for a code block with yaml as the language type in "Sync wave annotations controlling resource application order" section of `src/content/articles/argocd-sync-failures-gitops-debugging-troubleshooting/index.mdx` is not displaying, it's showing the YAML language tag instead of the title. Also, the word "app" is being highlighted for some reason in this code block.
-
-- Code block formatting for 'text' language is very plain.
 
 - The "❌" symbol is not showing in sql code block, it's rendering as a plain "X". But "✅" renders okay. `src/content/articles/database-schema-migrations-continuous-deployment-zero-downtime/index.mdx`
 
@@ -165,7 +159,7 @@ See comp images in Breadcrumbs component directory
 
 - add "cel" language to code blocks
 
-- The code language is in teh tab order and getting focus-visible
+- The code language is in the tab order and getting focus-visible
 
 ## Callout Issues
 
