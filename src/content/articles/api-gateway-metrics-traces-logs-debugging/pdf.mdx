@@ -816,7 +816,7 @@ With instrumentation and dashboards in place, you're ready to debug real problem
 
 You receive an alert: P99 latency has exceeded 2 seconds. Users are complaining. Here is how to investigate systematically:
 
-```markdown title="latency-debug-runbook.md"
+````markdown title="latency-debug-runbook.md"
 # Gateway Latency Spike Investigation
 # Use this runbook when gateway latency alerts fire
 
@@ -824,11 +824,11 @@ You receive an alert: P99 latency has exceeded 2 seconds. Users are complaining.
 
 Query: Is latency high for all routes or specific routes?
 
-\`\`\`promql
+```promql
 histogram_quantile(0.99,
   sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le, route)
 )
-\`\`\`
+```
 
 If one route is slow, focus there. If all routes are slow, the problem is gateway-wide.
 
@@ -836,10 +836,10 @@ If one route is slow, focus there. If all routes are slow, the problem is gatewa
 
 Query: Is the gateway slow, or is a backend slow?
 
-\`\`\`promql
+```promql
 # Gateway overhead only
 avg(gateway_request_duration_seconds - gateway_upstream_duration_seconds) by (route)
-\`\`\`
+```
 
 If gateway overhead is high, check gateway resources (CPU, memory, connection pools).
 If upstream time is high, the problem is in the backend.
@@ -853,10 +853,10 @@ Look for: long spans, retries, connection waits, DNS resolution.
 
 Query: Are circuit breakers tripping? Connection pools exhausted?
 
-\`\`\`promql
+```promql
 gateway_circuit_breaker_state{upstream="affected-service"}
 gateway_upstream_connections_active / gateway_upstream_connections_max
-\`\`\`
+```
 
 ## Step 5: Correlate with Logs
 
@@ -865,7 +865,7 @@ Look for: error messages, timeout logs, retry logs, connection errors.
 
 **AWS Alternative**: Use CloudWatch Logs Insights with queries like:
 `fields @timestamp, requestId, route, latency | filter latency > 2000 | sort @timestamp desc`
-```
+````
 
 Code: Latency spike investigation runbook using gateway observability.
 

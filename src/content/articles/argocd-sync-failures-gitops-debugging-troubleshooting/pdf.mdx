@@ -517,7 +517,7 @@ The root cause is almost always a hook Job that isn't completing. Either it's st
 
 Here's the runbook I use:
 
-```markdown title="runbooks/hook-stuck.md"
+````markdown title="runbooks/hook-stuck.md"
 # Runbook: Sync Stuck on Hook
 
 ## Symptoms
@@ -527,19 +527,22 @@ Here's the runbook I use:
 ## Diagnosis
 
 1. Identify the stuck hook:
-\`\`\`bash
+
+```bash
 kubectl get jobs -n myapp -l argocd.argoproj.io/hook
-\`\`\`
+```
 
 2. Check hook job status:
-\`\`\`bash
+
+```bash
 kubectl describe job <hook-job-name> -n myapp
-\`\`\`
+```
 
 3. Check hook pod logs:
-\`\`\`bash
+
+```bash
 kubectl logs -n myapp -l job-name=<hook-job-name>
-\`\`\`
+```
 
 ## Common Causes
 
@@ -552,20 +555,23 @@ kubectl logs -n myapp -l job-name=<hook-job-name>
 ## Resolution
 
 1. If hook can be safely skipped:
-\`\`\`bash
+
+```bash
 argocd app sync myapp --prune --force
-\`\`\`
+```
 
 2. If hook needs to complete:
+
 - Fix the underlying issue
 - Delete the stuck job
 - Trigger new sync
 
 3. To prevent recurrence:
+
 - Add `activeDeadlineSeconds` to job spec
 - Add proper health checks to hook
 - Consider using `hook-delete-policy: BeforeHookCreation`
-```
+````
 Code: Runbook for debugging sync stuck on hook execution.
 
 The key insight is that ArgoCD can't tell you why the hook is stuck—it only knows the Job hasn't reached a terminal state. You have to dig into Kubernetes to find the actual cause.
