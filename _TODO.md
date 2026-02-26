@@ -149,9 +149,9 @@ See comp images in Breadcrumbs component directory
 
 - Inline code blocks are not wrapping. They're breaking to a new line. An example is in the "Scenario: CRD Sync Order Problem" section of `argocd-sync-failures-gitops-debugging-troubleshooting#specific-failure-scenarios`.
 
-- Need to allow escaping a code fence inside a markdown code fence, see `src/content/articles/api-gateway-metrics-traces-logs-debugging/index.mdx` "Latency Spike Investigation" section and the demo article.
-
 - I aliased 'promql' to 'go'. When a code fence using the alias is rendered with the language set to 'promql', it shows as 'go' incorrectly because of the alias. Also we need custom handling for all language names that are displayed: html should be uppercase, typescript as TypeScript, etc. Also we don't want all aliased names to show the alias - for example using the aliases 'ts', 'js', and 'md' would be better to show the full language names.
+
+- We're getting random highlighting in code blocks, like the word "app" in teh first code block in `http://localhost:4321/deep-dive/argocd-sync-failures-gitops-debugging-troubleshooting#sync-waves-and-resource-ordering`
 
 - The "go" language code block in `src/content/articles/api-versioning-deprecation-sunset-headers-migration/index.mdx` is not being combined with the "typescript", "python", and "ruby" tabbed code block. Same with "python" block in "### Admission Control Strategies" section of `src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx`, plus the line numbering is weird in the code block.
 
@@ -180,6 +180,8 @@ See comp images in Breadcrumbs component directory
 - Numbering for ordered lists breaks when there are code blocks in between numbered list elements, like in `src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx`
 
 ## Checklist
+
+- You can click the anchor link that shows on headers to get a copy of the link. It should be that you can click anywhere in the header and copy the link.
 
 - Need to make tables responsive on mobile
 
