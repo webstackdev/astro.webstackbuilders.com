@@ -47,12 +47,12 @@ export class ContentSwitcherElement extends LitElement {
 		const switchHref = isDeepDive ? overviewHref : deepDiveHref
 
 		const overviewLabelClass = isDeepDive
-			? 'text-sm text-content-offset content-switcher-label content-switcher-label--overview'
-			: 'text-sm font-medium text-content-active content-switcher-label content-switcher-label--overview'
+			? 'text-sm text-content-offset content-switcher-label content-switcher-label--overview no-underline hover:no-underline focus-visible:no-underline'
+			: 'text-sm font-medium text-content-active content-switcher-label content-switcher-label--overview no-underline hover:no-underline focus-visible:no-underline'
 
 		const deepDiveLabelClass = isDeepDive
-			? 'text-sm font-medium text-content-active content-switcher-label content-switcher-label--deep-dive'
-			: 'text-sm text-content-offset content-switcher-label content-switcher-label--deep-dive'
+			? 'text-sm font-medium text-content-active content-switcher-label content-switcher-label--deep-dive no-underline hover:no-underline focus-visible:no-underline'
+			: 'text-sm text-content-offset content-switcher-label content-switcher-label--deep-dive no-underline hover:no-underline focus-visible:no-underline'
 
 		return html`
 			<div class="flex items-center gap-3" role="radiogroup" aria-label="Content Variant">
