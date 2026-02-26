@@ -63,11 +63,11 @@ export class ContentSwitcherElement extends LitElement {
 					role="switch"
 					aria-checked="${isDeepDive ? 'true' : 'false'}"
 					aria-label="Toggle between Overview and Deep Dive"
-					class="content-switcher-track group relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-trim-offset transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+					class="content-switcher-track group relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-trim-offset transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
 					data-switcher-toggle
 				>
 					<span
-						class="content-switcher-thumb pointer-events-none inline-block size-5 translate-x-0.5 rounded-full bg-page-base shadow-sm ring-0 transition-transform"
+						class="content-switcher-thumb pointer-events-none inline-block size-3 translate-x-0.5 rounded-full bg-page-base shadow-sm ring-0 transition-transform"
 					></span>
 				</a>
 

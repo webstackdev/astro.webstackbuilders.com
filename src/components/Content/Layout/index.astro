@@ -9,8 +9,9 @@
 import type { CollectionEntry } from 'astro:content'
 import { Picture } from 'astro:assets'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
-import Shares from '@components/Social/Shares/index.astro'
 import Carousel from '@components/Carousel/index.astro'
+import ContentSwitcher from '@components/Content/Switcher/index.astro'
+import Shares from '@components/Social/Shares/index.astro'
 import WebMentions from '@components/WebMentions/index.astro'
 
 export type Props = {
@@ -45,6 +46,11 @@ const { author, article, path, readingTime, section } = Astro.props
   tags={article.data.tags?.map(t => (typeof t === 'string' ? t : t.id)) ?? []}
   {...readingTime && { readingTime }}
 >
+  {/** SLOT: breadcrumb-row */}
+  <div class="" slot="breadcrumb-row">
+    <ContentSwitcher path={path} />
+  </div>
+
   {/** SLOT: hero-image */}
   {
     article.data.cover && (

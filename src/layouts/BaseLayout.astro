@@ -113,8 +113,18 @@ const {
           class="flex-1 min-h-0 overflow-y-auto flex flex-col"
           style={`margin-top: var(--progress-bar-height, 0);`}
         >
-          <div class:list={[hideBreadcrumbsOnMobile ? 'hidden sm:block' : 'block']}>
+          <div
+            id="breadcrumbs"
+            class:list={[
+              'mt-4 items-center justify-between gap-4',
+              hideBreadcrumbsOnMobile ? 'hidden sm:flex' : 'flex',
+            ]}
+          >
             <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
+            {/** breadcrumb-row slot is used to pass the ContentSwitcher on articles and deep-dive item view pages */}
+            <div class="shrink-0">
+              <slot name="breadcrumb-row" />
+            </div>
           </div>
           {/* SLOT: default (unnamed) - Main page content */}
           <Content>

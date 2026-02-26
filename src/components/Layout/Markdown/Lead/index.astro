@@ -1,14 +1,16 @@
 ---
 import Avatar from '@components/Avatar/index.astro'
+import Tags from '@components/Layout/Markdown/Tags/index.astro'
 
 export interface Props {
   author?: string
   modifiedDate?: Date
   publishDate?: Date
   readingTime?: string
+  tags?: string[]
 }
 
-const { modifiedDate, publishDate, author, readingTime } = Astro.props
+const { modifiedDate, publishDate, author, readingTime, tags } = Astro.props
 
 const formatShortDate = (date: Date) =>
   date.toLocaleDateString('en-US', {
@@ -23,35 +25,42 @@ const shouldShowModifiedDate = Boolean(modifiedDate && publishDate && modifiedDa
 const modifiedDateText = shouldShowModifiedDate && modifiedDate ? formatShortDate(modifiedDate) : null
 ---
 
-<div class="mt-2 sm:mt-4 border-t border-trim">
-  <div class="flex items-center gap-3">
-    {author && <Avatar name={author} lead />}
+<div class="mt-2 sm:mt-4 pt-2 border-t border-trim">
+  <div class="flex justify-between">
+    <div class="flex items-center gap-3">
+      {author && <Avatar name={author} lead />}
 
-    <div class="flex flex-col justify-center text-sm">
-      <div class="text-primary">
-        {author && (
-          <a
-            href="/about"
-            class="font-medium no-underline hover:text-secondary focus:text-secondary"
-          >
-            {author}
-          </a>
-        )}
-        {author && publishDateText && <span class="text-content-offset">{' '}on{' '}</span>}
-        {publishDateText && (
-          <time itemprop="datePublished" datetime={publishDate?.toISOString()}>
-            {publishDateText}
+      <div class="flex flex-col justify-center text-sm">
+        <div class="text-primary">
+          {author && (
+            <a
+              href="/about"
+              class="font-medium no-underline hover:text-secondary focus:text-secondary"
+            >
+              {author}
+            </a>
+          )}
+          {author && publishDateText && <span class="text-content-offset">{' '}on{' '}</span>}
+          {publishDateText && (
+            <time itemprop="datePublished" datetime={publishDate?.toISOString()}>
+              {publishDateText}
+            </time>
+          )}
+        </div>
+
+        {modifiedDateText && (
+          <time class="text-content-offset" itemprop="dateModified" datetime={modifiedDate?.toISOString()}>
+            Updated on {modifiedDateText}
           </time>
         )}
+
+        {readingTime && <div class="text-content-offset">{readingTime}</div>}
       </div>
-
-      {modifiedDateText && (
-        <time class="text-content-offset" itemprop="dateModified" datetime={modifiedDate?.toISOString()}>
-          Updated on {modifiedDateText}
-        </time>
-      )}
-
-      {readingTime && <div class="text-content-offset">{readingTime}</div>}
     </div>
+    {tags && tags.length > 0 && (
+      <div class="mt-1 mr-1 hidden sm:inline-block">
+        <Tags tags={tags} />
+      </div>
+    )}
   </div>
 </div>
