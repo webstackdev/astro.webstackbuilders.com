@@ -12,7 +12,8 @@ import {
   showTableOfContents,
   type VisibilityListener,
 } from '@components/scripts/store/tableOfContents'
-import { getTableOfContentsElements } from './selectors'
+import { initStickySidebar } from '@components/scripts/stickySidebar'
+import { getTableOfContentsElements, queryTocStickySidebar } from './selectors'
 
 export class TableOfContentsElement extends LitElement {
   static registeredName = 'table-of-contents'
@@ -36,6 +37,7 @@ export class TableOfContentsElement extends LitElement {
   private previousOpen = false
   private activeSlug: string | null = null
   private headingObserver: IntersectionObserver | null = null
+  private destroyStickySidebar: (() => void) | null = null
 
   constructor() {
     super()
@@ -52,6 +54,7 @@ export class TableOfContentsElement extends LitElement {
     this.cacheElements()
     this.attachListeners()
     this.initializeScrollSpy()
+    this.initializeStickySidebar()
     this.visibilityListener = state => {
       this.open = state.tableOfContentsVisible
       this.disabled = !state.tableOfContentsEnabled
@@ -65,6 +68,8 @@ export class TableOfContentsElement extends LitElement {
     this.unsubscribe = null
     this.headingObserver?.disconnect()
     this.headingObserver = null
+    this.destroyStickySidebar?.()
+    this.destroyStickySidebar = null
     super.disconnectedCallback()
   }
 
@@ -237,6 +242,17 @@ export class TableOfContentsElement extends LitElement {
     }
 
     hideTableOfContents()
+  }
+
+  /**
+   * Set up JS-driven sticky sidebar for the desktop layout.
+   * Container = this custom element (the grid cell); sidebar = the <aside>.
+   */
+  private initializeStickySidebar(): void {
+    this.destroyStickySidebar?.()
+    const aside = queryTocStickySidebar(this)
+    if (!aside) return
+    this.destroyStickySidebar = initStickySidebar(aside, this)
   }
 
   private initializeScrollSpy(): void {

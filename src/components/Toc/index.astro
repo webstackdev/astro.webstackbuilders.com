@@ -63,18 +63,18 @@ const tocTree = buildTocTree(items)
             </span>
           </button>
 
-          {/* Scrollable inner wrapper (overflow moved here from outer panel) */}
-          <div class="h-full overflow-y-auto">
+          {/* Scrollable inner wrapper (mobile drawer only) */}
+          <div class="h-full overflow-y-auto lg:h-auto lg:overflow-visible">
             {/* Drawer heading — mobile only */}
             <div class="flex items-center gap-3 px-5 pt-5 lg:hidden">
               <h2 class="text-base font-semibold">Table of Contents</h2>
             </div>
 
             <aside
-            class="px-5 py-6 lg:sticky lg:rounded-lg lg:border lg:border-trim lg:bg-page-base lg:shadow-none"
-            style="top: 1rem;"
-            aria-labelledby="toc-heading"
-          >
+              class="px-5 py-6 lg:rounded-lg lg:border lg:border-trim lg:bg-page-base lg:shadow-none"
+              data-sticky-sidebar
+              aria-labelledby="toc-heading"
+            >
             {/* Desktop heading — hidden on mobile where the drawer header shows instead */}
             <div class="hidden lg:flex items-center justify-between gap-3">
               <h2 id="toc-heading" class="text-content text-base font-semibold">

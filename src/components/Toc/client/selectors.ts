@@ -71,3 +71,12 @@ export function getTableOfContentsElements(context: Element) {
     tocLinks,
   }
 }
+
+/**
+ * Query the sticky sidebar element (the <aside>) within the ToC component.
+ * Returns null when absent (e.g. on pages without a ToC).
+ */
+export function queryTocStickySidebar(context: Element): HTMLElement | null {
+  const el = context.querySelector('[data-sticky-sidebar]')
+  return el instanceof HTMLElement ? el : null
+}
