@@ -147,9 +147,13 @@ See comp images in Breadcrumbs component directory
 
 ## Code Block Problems
 
-- I aliased 'promql' to 'go'. When a code fence using the alias is rendered with the language set to 'promql', it shows as 'go' incorrectly because of the alias. Also we need custom handling for all language names that are displayed: html should be uppercase, typescript as TypeScript, etc. Also we don't want all aliased names to show the alias - for example using the aliases 'ts', 'js', and 'md' would be better to show the full language names.
+- I aliased 'promql' to 'go'. When a code fence using the alias is rendered with the language set to 'promql', it shows as 'go' incorrectly because of the alias.
 
-- We're getting random highlighting in code blocks, like the word "app" in the first code block in `argocd-sync-failures-gitops-debugging-troubleshooting/pdf.astro`. If the problem is not straight forward, let's discuss the fix first. Here's outerhtml of the block from chrome inspector:
+- We need custom handling for all language names that are displayed:
+1. `html` should be displayed uppercase as `HTML`, `yaml` as `YAML`
+2. `typescript` and its alias `ts` as `TypeScript`, `javascript` and its alias `js` as `JavaScript`
+3. The alias `md` as `Markdown
+4. All languages with their first names uppercased
 
 - The "go" language code block in `src/content/articles/api-versioning-deprecation-sunset-headers-migration/index.mdx` is not being combined with the "typescript", "python", and "ruby" tabbed code block. Same with "python" block in "### Admission Control Strategies" section of `src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx`, plus the line numbering is weird in the code block.
 

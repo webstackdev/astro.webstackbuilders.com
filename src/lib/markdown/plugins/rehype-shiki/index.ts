@@ -2,6 +2,7 @@ import type { Root, Element, Parent, Text } from 'hast'
 import type { Plugin } from 'unified'
 import { visit } from 'unist-util-visit'
 import { createHighlighter } from 'shiki'
+import { formatLanguageLabel } from '@lib/config/codeBlocks'
 
 type ShikiThemes =
   | string
@@ -269,6 +270,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       index: number
       original: Element
       lang: string
+      rawLang: string
       codeText: string
       metaRaw: string | undefined
       title: string | undefined
@@ -310,6 +312,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
           index,
           original: node,
           lang,
+          rawLang,
           codeText: stripTrailingFenceNewline(codeText),
           metaRaw: metaForShiki || undefined,
           title,
@@ -377,6 +380,7 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       delete (highlightedPre.properties as Record<string, unknown>)['data-shiki-meta']
 
       highlightedPre.properties['data-language'] = replacement.lang
+      highlightedPre.properties['data-language-label'] = formatLanguageLabel(replacement.rawLang)
 
       if (replacement.title) {
         highlightedPre.properties['data-code-title'] = replacement.title
