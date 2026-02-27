@@ -65,7 +65,7 @@ The database recovered at T+60s, but the cascade continued for another 9 minutes
 
 The math behind retry amplification is straightforward, and terrifying. Each service layer multiplies the load on the layer below it. If Service A retries 3 times, it sends 4 total requests (1 original + 3 retries) to Service B. If Service B also retries 3 times per request, each of those 4 requests generates 4 requests to Service C. The multiplication cascades down the stack.
 
-The formula is simple: $(r + 1)^n$ where $r$ is retries per service and $n$ is the number of services in the chain. With 3 services each retrying 3 times, that's $4^3 = 64x$ load amplification. Bump the retries to 5 and you get $6^3 = 216x$.
+The formula is simple: $$(r + 1)^n$$ where $$r$$ is retries per service and $$n$$ is the number of services in the chain. With 3 services each retrying 3 times, that's $$4^3 = 64x$$ load amplification. Bump the retries to 5 and you get $$6^3 = 216x$$.
 
 The table below shows how quickly this gets out of hand. These numbers assume every request at every layer fails and triggers full retries—a worst case, but exactly what happens during a cascade failure:
 

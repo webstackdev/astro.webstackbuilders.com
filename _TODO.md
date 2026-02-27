@@ -116,27 +116,19 @@ https://mermaid.js.org/config/directives.html
 
 - See comp images in Breadcrumbs component directory for visual improvements
 
-- Text code blocks have weird formatting: `src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx` that one seems like it should be some other kind of display, not a text code block.
+- Add Inset component and convert `text` code blocks to use it.
 
-- Need to stop system from adding abbreviation html when used in headings, also the `abbr` presentation needs improved - right now it gives a question mark pointer and long delay to appear
+- Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`. Might be one of the list formats.
 
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
 
 - Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
 
-- Mathjax not working on inline formulas: "Where $L$ is the average number of items in the system (queue depth), $\lambda$ is the arrival rate (requests per second), and $W$ is the average time in system (latency)." In backpressure-load-shedding-admission-control-overload, also "The Retry Amplification Problem" section in circuit-breaker-retry-budget-cascade-failure-prevention.
-
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
-
-- Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`
 
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
 - Add a copyright notice to content
-
-- DownloadLayout to wrap `downloads.mdx` in each folder
-
-- Image for home page newsletter CTA
 
 - Add PDF download image to download CTA, it's in the directory
 

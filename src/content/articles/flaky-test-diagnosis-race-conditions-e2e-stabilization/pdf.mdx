@@ -21,7 +21,7 @@ featured: true
 
 Flaky tests—tests that sometimes pass and sometimes fail without any code changes—are one of the most insidious problems in test automation. They erode trust in your test suite, train developers to ignore failures, and eventually let real bugs slip through because "it's probably just flaky."
 
-The math is brutal. A single test with a 5% flake rate will block CI once every 20 runs. That sounds manageable. But a suite of 100 tests where each has just a 1% flake rate? That suite will fail 63% of builds. The probability compounds: $(1 - 0.01)^{100} \approx 0.37$, meaning only 37% of builds will pass cleanly.
+The math is brutal. A single test with a 5% flake rate will block CI once every 20 runs. That sounds manageable. But a suite of 100 tests where each has just a 1% flake rate? That suite will fail 63% of builds. The probability compounds: $$(1 - 0.01)^{100} \approx 0.37$$, meaning only 37% of builds will pass cleanly.
 
 I've watched this pattern destroy teams' ability to ship. A 200-test E2E suite starts showing random failures. The first response is always the same: "just retry and merge." Within a few months, nobody trusts red builds anymore. Developers stop investigating failures because it's faster to retry than debug. Then a real regression ships because the failure was dismissed as "probably flaky." The post-mortem reveals the team had lost the ability to distinguish signal from noise.
 
