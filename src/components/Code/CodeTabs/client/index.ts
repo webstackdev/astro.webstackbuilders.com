@@ -143,6 +143,11 @@ export class CodeTabsElement extends LitElement {
         button.textContent = tabLabel
         button.setAttribute('data-code-tabs-button', String(index))
 
+        /** Single-tab blocks show a language label that is not interactive */
+        if (!args.shouldRenderTabs || !this.isInteractiveTabs) {
+          button.tabIndex = -1
+        }
+
         addButtonEventListeners(button, () => this.setActive(index), this)
 
         li.append(button)
