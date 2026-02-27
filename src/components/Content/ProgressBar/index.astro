@@ -1,0 +1,29 @@
+---
+/**
+ * Article reading progress bar.
+ *
+ * Fixed below the header, shows scroll progress through the article.
+ * Rendered as a Lit web component wrapping a native <progress> element.
+ * Positioned via --theme-picker-offset + --header-current-height from
+ * the layout-position store. The data-progress-bar attribute lets the
+ * store measure it.
+ */
+---
+
+<reading-progress-bar
+  class="fixed left-0 right-0 block h-1.5 sm:h-2"
+  style="top: calc(var(--theme-picker-offset, 0px) + var(--header-current-height, 0px)); z-index: var(--z-nav);"
+  data-progress-bar
+  aria-hidden="true"
+>
+  <progress
+    max="100"
+    value="0"
+    class="block h-full w-full appearance-none [&::-webkit-progress-bar]:bg-transparent [&::-webkit-progress-value]:bg-page-inverse [&::-moz-progress-bar]:bg-page-inverse"
+  ></progress>
+</reading-progress-bar>
+
+<script>
+  import { registerProgressBarComponent } from '@components/Content/ProgressBar/client'
+  registerProgressBarComponent()
+</script>

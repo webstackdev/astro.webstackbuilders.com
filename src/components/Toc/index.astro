@@ -1,5 +1,6 @@
 ---
 import type { MarkdownHeading } from 'astro'
+import Icon from '@components/Icon/index.astro'
 import { buildTocTree, type TocItem } from './server/index'
 
 export interface Props {
@@ -14,45 +15,77 @@ const tocTree = buildTocTree(items)
 {
   tocTree.length > 0 && (
     <>
-      <table-of-contents class="block">
+      <table-of-contents class="block group/toc">
+        {/* Open button, partial circle on right edge and visible when drawer is closed */}
         <button
           type="button"
           data-toc-toggle
           aria-controls="toc-drawer"
-          aria-label="Table of contents"
-          class="fixed bottom-6 right-6 z-(--z-content-floating) flex h-14 w-14 items-center justify-center rounded-full border border-trim bg-page-base text-xs font-semibold uppercase tracking-wide shadow-elevated transition hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
+          aria-label="Open table of contents"
+          class="fixed -right-2 top-1/2 -translate-y-1/2 z-(--z-content-floating) flex h-16 w-9 items-center justify-center rounded-l-full border border-r-0 border-content bg-page-base transition-opacity duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:hidden group-data-open/toc:opacity-0 group-data-open/toc:pointer-events-none"
         >
-          <span aria-hidden="true">TOC</span>
+          <Icon icon="arrow-left" size={6} color="content" />
         </button>
 
+        {/* Full-screen scrim overlay with background blur when drawer is open */}
         <button
           type="button"
           data-toc-overlay
           data-visible="false"
           aria-label="Close table of contents"
-          class="fixed inset-0 z-(--z-content-scrim) bg-surface/80 opacity-0 backdrop-blur-sm pointer-events-none transition-opacity duration-300 data-[visible=true]:opacity-100 data-[visible=true]:pointer-events-auto lg:hidden"
+          class="fixed inset-0 z-(--z-content-scrim) bg-surface/80 opacity-0 backdrop-blur-sm pointer-events-none transition-opacity duration-300 data-[visible=true]:opacity-100 data-[visible=true]:pointer-events-auto md:hidden"
         ></button>
 
+        {/* Right-side drawer panel */}
         <div
           id="toc-drawer"
           data-toc-panel
           data-state="closed"
-          class="fixed bottom-0 left-0 right-0 z-(--z-content-scrim) translate-y-full bg-page-base px-6 pb-8 pt-6 shadow-[0_-20px_60px_rgba(15,23,42,0.35)] transition-transform duration-300 ease-out data-[state=open]:translate-y-0 lg:static lg:z-auto lg:translate-y-0 lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-0 lg:shadow-none"
+          class="group/drawer fixed top-0 right-0 bottom-0 z-(--z-content-floating) w-[80vw] translate-x-full overflow-visible bg-page-base transition-transform duration-300 ease-out data-[state=open]:translate-x-0 lg:static lg:z-auto lg:w-auto lg:translate-x-0 lg:overflow-y-visible lg:overflow-x-visible lg:bg-transparent lg:h-full"
         >
-          <aside
-            class="rounded-3xl border border-trim bg-page-base px-5 py-6 shadow-lg lg:rounded-lg lg:border lg:shadow-none lg:self-stretch lg:h-full"
-            aria-labelledby="toc-heading"
+          {/* Left border segments — split around the close button circle */}
+          <div class="absolute left-0 top-0 w-px bg-content lg:hidden" style="height: calc(50% - 2rem);"></div>
+          <div class="absolute left-0 bottom-0 w-px bg-content lg:hidden" style="height: calc(50% - 2rem);"></div>
+
+          {/* Close button — vertically centered on the drawer's left edge.
+              The icon starts as arrow-left and rotates 180° to arrow-right
+              as the drawer slides open. Only the left semicircle has a border. */}
+          <button
+            type="button"
+            data-toc-close
+            aria-controls="toc-drawer"
+            aria-label="Close table of contents"
+            class="absolute -left-6 top-1/2 -translate-y-1/2 z-(--z-content-floating) flex h-16 w-9 items-center justify-center rounded-l-full border border-r-0 border-content bg-page-base opacity-0 pointer-events-none transition-opacity duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden group-data-[state=open]/drawer:opacity-100 group-data-[state=open]/drawer:pointer-events-auto"
+            style="clip-path: inset(0 0.75rem 0 0);"
           >
-            <div class="flex items-center justify-between gap-3">
-              <h2 id="toc-heading" class="text-base font-semibold">
+            <span class="inline-flex transition-transform duration-300 group-data-[state=open]/drawer:rotate-180">
+              <Icon icon="arrow-left" size={6} color="content" />
+            </span>
+          </button>
+
+          {/* Scrollable inner wrapper (mobile drawer only) */}
+          <div class="h-full overflow-y-auto lg:h-auto lg:overflow-visible">
+            {/* Drawer heading — mobile only */}
+            <div class="flex items-center gap-3 px-5 pt-5 lg:hidden">
+              <h2 class="text-base font-semibold">Table of Contents</h2>
+            </div>
+
+            <aside
+              class="px-5 py-6 lg:rounded-lg lg:border lg:border-trim lg:bg-page-base lg:shadow-none"
+              data-sticky-sidebar
+              aria-labelledby="toc-heading"
+            >
+            {/* Desktop heading — hidden on mobile where the drawer header shows instead */}
+            <div class="hidden lg:flex items-center justify-between gap-3">
+              <h2 id="toc-heading" class="text-content text-base font-semibold">
                 Table of Contents
               </h2>
-              <span class="text-xs font-medium uppercase tracking-wide text-content-active hidden lg:inline">
+              <span class="text-xs font-medium uppercase tracking-wide text-content-active">
                 Jump to section
               </span>
             </div>
-            <hr class="mt-4 border-dotted border-t-2 border-content-offset w-full" />
-            <nav class="mt-4 toc-nav" aria-label="Table of contents">
+            <hr class="mt-4 border-dotted border-t-2 border-content-offset w-full hidden lg:block" />
+            <nav class="mt-4 lg:mt-4 toc-nav" aria-label="Table of contents">
               <ol class="space-y-1">
                 {(() => {
                   const renderNodes = (nodes: TocItem[]): unknown =>
@@ -62,7 +95,7 @@ const tocTree = buildTocTree(items)
                           href={`#${node.slug}`}
                           data-toc-link
                           data-toc-slug={node.slug}
-                          class="block mb-2 text-sm sm:text-base text-content-offset transition-colors hover:text-content-active data-[current=true]:text-content no-underline hover:underline"
+                          class="block mb-2 text-sm sm:text-base text-content transition-colors hover:text-content-active data-[current=true]:text-content no-underline hover:underline"
                         >
                           {node.text}
                         </a>
@@ -79,6 +112,7 @@ const tocTree = buildTocTree(items)
               </ol>
             </nav>
           </aside>
+          </div>{/* end scrollable inner wrapper */}
         </div>
       </table-of-contents>
 

@@ -281,7 +281,7 @@ ALTER TABLE users ADD COLUMN phone VARCHAR(20);
 ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active';
 -- Instant, default stored in catalog not data
 
--- ❌ DANGEROUS: Adding NOT NULL without default
+-- ❌️ DANGEROUS: Adding NOT NULL without default
 ALTER TABLE users ADD COLUMN phone VARCHAR(20) NOT NULL;
 -- Fails if table has data, or requires table rewrite
 
@@ -299,7 +299,7 @@ The key insight: PostgreSQL 11+ and recent MySQL versions store defaults in the 
 Removal is where teams most often skip the safety steps. The column seems unused, so why not just drop it?
 
 ```sql title="removing-columns-safely.sql"
--- ❌ DANGEROUS: Direct drop while code might use it
+-- ❌️ DANGEROUS: Direct drop while code might use it
 ALTER TABLE users DROP COLUMN legacy_field;
 
 -- ✅ SAFE: Expand-contract removal
@@ -319,7 +319,7 @@ The "verify column is unused" step is critical. I've seen teams drop columns tha
 There's no safe way to rename a column in one step. The moment the name changes, every query using the old name fails.
 
 ```sql title="renaming-columns-safely.sql"
--- ❌ DANGEROUS: Direct rename
+-- ❌️ DANGEROUS: Direct rename
 ALTER TABLE users RENAME COLUMN email TO email_address;
 -- Breaks all code instantly
 
@@ -343,7 +343,7 @@ Yes, this means a "simple" rename takes three separate deployments spread over d
 Type changes combine the risks of renames (code compatibility) with the risks of rewrites (locking). They're the highest-risk common migration.
 
 ```sql title="changing-types-safely.sql"
--- ❌ DANGEROUS: Direct type change
+-- ❌️ DANGEROUS: Direct type change
 ALTER TABLE orders ALTER COLUMN amount TYPE DECIMAL(10,2);
 -- May require table rewrite, blocks writes
 
@@ -372,7 +372,7 @@ The backfill step can fail if data doesn't convert cleanly. Test the conversion 
 Index creation on large tables can lock writes for minutes or hours. Every database has a way to avoid this:
 
 ```sql title="adding-indexes-safely.sql"
--- ❌ DANGEROUS: Standard index creation
+-- ❌️ DANGEROUS: Standard index creation
 CREATE INDEX idx_users_email ON users(email);
 -- Locks table for writes during creation
 
@@ -400,7 +400,7 @@ The tradeoff with concurrent index creation: it takes longer and uses more resou
 Foreign key constraints are particularly tricky because they lock _both_ tables and require scanning all existing data. The NOT VALID approach separates these concerns:
 
 ```sql title="adding-constraints-safely.sql"
--- ❌ DANGEROUS: Adding constraint that might fail
+-- ❌️ DANGEROUS: Adding constraint that might fail
 ALTER TABLE orders ADD CONSTRAINT fk_user
   FOREIGN KEY (user_id) REFERENCES users(id);
 -- Fails if orphan data exists, locks both tables
@@ -473,6 +473,8 @@ What makes gh-ost particularly useful in production: you can pause and resume mi
 Here's a typical gh-ost invocation for adding a column:
 
 ```bash title="gh-ost-example.sh"
+#!/bin/bash
+
 # Add column to large MySQL table without locking
 
 gh-ost \
@@ -641,7 +643,7 @@ def main() -> int:
         break
 
   if needs_review:
-    print("❌ Migration requires human review before deployment")
+    print("❌️ Migration requires human review before deployment")
     return 1
 
   print("✅ Migration passes automated safety checks")

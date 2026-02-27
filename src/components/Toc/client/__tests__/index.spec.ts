@@ -126,7 +126,7 @@ describe('TableOfContents component rendering', () => {
       expect(panel?.getAttribute('data-state')).toBe('closed')
       expect(root.hasAttribute('data-open')).toBe(false)
       expect(toggleButton?.getAttribute('aria-pressed')).toBeNull()
-      expect(toggleButton?.getAttribute('aria-label')).toBe('Table of contents')
+      expect(toggleButton?.getAttribute('aria-label')).toBe('Open table of contents')
       expect(overlay?.hasAttribute('disabled')).toBe(true)
       expect(overlay?.tabIndex).toBe(-1)
 

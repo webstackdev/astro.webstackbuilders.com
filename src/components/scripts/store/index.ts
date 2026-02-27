@@ -106,6 +106,18 @@ export {
   type EmbedCacheState,
 } from './socialEmbeds'
 
+// Re-export layout position
+export {
+  $layoutOffsets, // only allowed to use in tests
+  __resetLayoutPositionForTests,
+  getTopOffset,
+  initLayoutPositionSideEffects,
+  onLayoutChange,
+  updateLayoutOffsets,
+  type LayoutChangeListener,
+  type LayoutOffsets,
+} from './layoutPosition'
+
 // Re-export header search state
 export {
   $headerSearchExpanded, // only allowed to use in tests

@@ -142,6 +142,8 @@ Several build tools implement affected builds: Bazel pioneered the approach for 
 Nx provides an `affected` command that filters any target (build, test, lint) to run only on packages affected by changes since a base reference. The base defaults to `main` but can be any git ref.
 
 ```bash title="nx-affected-commands.sh"
+#!/bin/bash
+
 # See what packages are affected
 npx nx show projects --affected --base=main
 
@@ -233,6 +235,8 @@ Code: Turborepo pipeline configuration.
 For git-based filtering (useful in CI), Turborepo supports filter syntax that selects packages changed between git refs:
 
 ```bash title="turborepo-filtering.sh"
+#!/bin/bash
+
 # Build packages changed between main and HEAD
 npx turbo run build --filter='[origin/main...HEAD]'
 
@@ -569,6 +573,8 @@ _Manual invalidation_ is occasionally necessary when something outside the track
 _Time-based expiration_ (TTL) prevents caches from growing unboundedly and ensures stale artifacts eventually get cleaned up. Most remote cache providers let you configure retention periods—7 to 30 days is typical for active projects.
 
 ```bash title="cache-debugging.sh"
+#!/bin/bash
+
 # Nx: See what inputs affect a target
 npx nx show project my-app --json | jq '.targets.build.inputs'
 

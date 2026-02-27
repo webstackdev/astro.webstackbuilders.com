@@ -576,6 +576,8 @@ Code: Scrape-time cardinality limits.
 Query-side limits provide a final safety net. Setting `query.max-samples` prevents a single expensive query from consuming all available memory—useful when someone writes a dashboard panel that accidentally touches millions of series. The `query.timeout` ensures runaway queries eventually terminate rather than blocking resources indefinitely.
 
 ```bash title="prometheus-query-flags.sh"
+#!/bin/bash
+
 # Prometheus startup with query protection flags
 prometheus \
   --config.file=/etc/prometheus/prometheus.yml \
@@ -744,6 +746,8 @@ The symptoms are usually obvious: Prometheus restarts repeatedly (OOM killed), m
 First priority: get Prometheus running again, even if degraded. Restart the pod to clear the head block and start fresh. If it immediately OOMs again, you need to reduce what it's ingesting before it can stabilize.
 
 ```bash title="stabilization.sh"
+#!/bin/bash
+
 # Restart Prometheus (clears head block, gives temporary breathing room)
 kubectl rollout restart deployment/prometheus -n monitoring
 
@@ -782,6 +786,8 @@ Code: Queries to identify cardinality sources.
 If Prometheus is too unstable to query, `promtool tsdb analyze` can examine the data directory directly. This works even when Prometheus isn't running.
 
 ```bash title="tsdb-analyze.sh"
+#!/bin/bash
+
 # Analyze TSDB directly (works offline)
 promtool tsdb analyze /prometheus/data
 
@@ -822,6 +828,8 @@ Code: Emergency relabeling to stop cardinality bleeding.
 Apply the config and trigger a reload:
 
 ```bash title="apply-config.sh"
+#!/bin/bash
+
 # Apply updated ConfigMap
 kubectl apply -f prometheus-config.yaml
 

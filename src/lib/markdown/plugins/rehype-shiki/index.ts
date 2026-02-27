@@ -2,6 +2,7 @@ import type { Root, Element, Parent, Text } from 'hast'
 import type { Plugin } from 'unified'
 import { visit } from 'unist-util-visit'
 import { createHighlighter } from 'shiki'
+import { formatLanguageLabel } from '../../../config/codeBlocks'
 
 type ShikiThemes =
   | string
@@ -26,6 +27,8 @@ export type RehypeShikiOptions = {
   themeRegistrations?: unknown[]
   defaultColor?: 'light' | 'dark' | false
   langAlias?: Record<string, string>
+  /** Custom language grammars (TextMate) to register alongside bundled languages. */
+  langs?: unknown[]
   /** Shiki transformers to apply (e.g. meta-based highlighting). */
   transformers?: unknown[]
   /**
@@ -45,6 +48,7 @@ type HighlighterLike = {
     _options: Record<string, unknown>
   ) => Root | Element
   loadLanguage: (_lang: string) => Promise<void>
+  getLoadedLanguages: () => string[]
 }
 
 function getThemeNames(themes: ShikiThemes | undefined): string[] {
@@ -209,6 +213,23 @@ function extractPre(highlighted: Root | Element): Element | null {
   return null
 }
 
+/**
+ * Extract and strip `title="..."` (or `title='...'` or `title=word`) from a
+ * code-fence meta string. The title is a display-only concern and must be
+ * removed before the meta reaches Shiki transformers—otherwise path separators
+ * like `/app/` get misinterpreted as `/word/` highlight patterns by
+ * `transformerMetaWordHighlight`.
+ */
+function extractTitle(meta: string): { title: string | undefined; cleaned: string } {
+  const titleRegex = /\btitle=(?:"([^"]*)"|'([^']*)'|(\S+))/
+  const match = titleRegex.exec(meta)
+  if (!match) return { title: undefined, cleaned: meta }
+
+  const title = (match[1] ?? match[2] ?? match[3] ?? '').trim() || undefined
+  const cleaned = meta.replace(match[0], '').trim()
+  return { title, cleaned }
+}
+
 const DEFAULT_EXCLUDED_LANGS = ['mermaid', 'math']
 
 const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOptions) => {
@@ -225,9 +246,11 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
 
     highlighterPromise = (async () => {
       // Shiki requires themes to be loaded before use.
+      // Custom language grammars (e.g. CEL, HAProxy) are passed in via options.langs.
+      // Bundled languages are loaded on demand via highlighter.loadLanguage().
       const highlighter = await createHighlighter({
         themes: getHighlighterThemes(options) as never,
-        langs: [],
+        langs: (options.langs ?? []) as never,
       })
 
       return highlighter as unknown as HighlighterLike
@@ -252,8 +275,10 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       index: number
       original: Element
       lang: string
+      rawLang: string
       codeText: string
       metaRaw: string | undefined
+      title: string | undefined
     }> = []
 
     visit(
@@ -283,23 +308,37 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
 
         const metaRaw = typeof metaValue === 'string' && metaValue.trim() ? metaValue.trim() : undefined
 
+        const { title, cleaned: metaForShiki } = metaRaw
+          ? extractTitle(metaRaw)
+          : { title: undefined, cleaned: undefined }
+
         replacements.push({
           parent,
           index,
           original: node,
           lang,
+          rawLang,
           codeText: stripTrailingFenceNewline(codeText),
-          metaRaw,
+          metaRaw: metaForShiki || undefined,
+          title,
         })
       }
     )
 
+    // Languages pre-registered via options.langs (custom TextMate grammars) are already
+    // loaded by createHighlighter. Shiki's loadLanguage() throws for these even though
+    // they're loaded, so we check getLoadedLanguages() first to skip the redundant call.
+    const loadedLangs = new Set(highlighter.getLoadedLanguages())
+
     for (const replacement of replacements) {
-      try {
-        await highlighter.loadLanguage(replacement.lang)
-      } catch {
-        // Unknown language; keep original markup.
-        continue
+      if (!loadedLangs.has(replacement.lang)) {
+        try {
+          await highlighter.loadLanguage(replacement.lang)
+          loadedLangs.add(replacement.lang)
+        } catch {
+          // Unknown language; keep original markup.
+          continue
+        }
       }
 
       const shikiOptions: Record<string, unknown> = {
@@ -354,6 +393,11 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       delete (highlightedPre.properties as Record<string, unknown>)['data-shiki-meta']
 
       highlightedPre.properties['data-language'] = replacement.lang
+      highlightedPre.properties['data-language-label'] = formatLanguageLabel(replacement.rawLang)
+
+      if (replacement.title) {
+        highlightedPre.properties['data-code-title'] = replacement.title
+      }
 
       highlightedPre.properties['className'] = mergeClassNames(
         highlightedPre.properties['className'],

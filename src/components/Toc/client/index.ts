@@ -12,7 +12,8 @@ import {
   showTableOfContents,
   type VisibilityListener,
 } from '@components/scripts/store/tableOfContents'
-import { getTableOfContentsElements } from './selectors'
+import { initStickySidebar } from '@components/scripts/stickySidebar'
+import { getTableOfContentsElements, queryTocStickySidebar } from './selectors'
 
 export class TableOfContentsElement extends LitElement {
   static registeredName = 'table-of-contents'
@@ -26,6 +27,7 @@ export class TableOfContentsElement extends LitElement {
   declare disabled: boolean
 
   private toggleButton: HTMLButtonElement | null = null
+  private closeButton: HTMLButtonElement | null = null
   private overlay: HTMLButtonElement | null = null
   private panel: HTMLElement | null = null
   private tocLinks: HTMLAnchorElement[] = []
@@ -35,6 +37,7 @@ export class TableOfContentsElement extends LitElement {
   private previousOpen = false
   private activeSlug: string | null = null
   private headingObserver: IntersectionObserver | null = null
+  private destroyStickySidebar: (() => void) | null = null
 
   constructor() {
     super()
@@ -51,6 +54,7 @@ export class TableOfContentsElement extends LitElement {
     this.cacheElements()
     this.attachListeners()
     this.initializeScrollSpy()
+    this.initializeStickySidebar()
     this.visibilityListener = state => {
       this.open = state.tableOfContentsVisible
       this.disabled = !state.tableOfContentsEnabled
@@ -64,6 +68,8 @@ export class TableOfContentsElement extends LitElement {
     this.unsubscribe = null
     this.headingObserver?.disconnect()
     this.headingObserver = null
+    this.destroyStickySidebar?.()
+    this.destroyStickySidebar = null
     super.disconnectedCallback()
   }
 
@@ -72,8 +78,9 @@ export class TableOfContentsElement extends LitElement {
   }
 
   private cacheElements(): void {
-    const { toggleButton, overlay, panel, tocLinks } = getTableOfContentsElements(this)
+    const { toggleButton, closeButton, overlay, panel, tocLinks } = getTableOfContentsElements(this)
     this.toggleButton = toggleButton
+    this.closeButton = closeButton
     this.overlay = overlay
     this.panel = panel
     this.tocLinks = tocLinks
@@ -88,6 +95,11 @@ export class TableOfContentsElement extends LitElement {
     if (this.overlay && !this.overlay.dataset['tocListener']) {
       addButtonEventListeners(this.overlay, this.handleOverlay, this)
       this.overlay.dataset['tocListener'] = 'true'
+    }
+
+    if (this.closeButton && !this.closeButton.dataset['tocListener']) {
+      addButtonEventListeners(this.closeButton, this.handleClose, this)
+      this.closeButton.dataset['tocListener'] = 'true'
     }
 
     if (this.panel && !this.panel.dataset['tocEscapeListener']) {
@@ -219,12 +231,28 @@ export class TableOfContentsElement extends LitElement {
     hideTableOfContents()
   }
 
+  private readonly handleClose = (event: Event) => {
+    event.preventDefault()
+    hideTableOfContents()
+  }
+
   private readonly handleLinkClick = (_event: Event) => {
     if (this.isDesktopLayout()) {
       return
     }
 
     hideTableOfContents()
+  }
+
+  /**
+   * Set up JS-driven sticky sidebar for the desktop layout.
+   * Container = this custom element (the grid cell); sidebar = the <aside>.
+   */
+  private initializeStickySidebar(): void {
+    this.destroyStickySidebar?.()
+    const aside = queryTocStickySidebar(this)
+    if (!aside) return
+    this.destroyStickySidebar = initStickySidebar(aside, this)
   }
 
   private initializeScrollSpy(): void {

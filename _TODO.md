@@ -145,37 +145,11 @@ https://mermaid.js.org/config/directives.html
 
 See comp images in Breadcrumbs component directory
 
-## Keyboard Navigation
-
-- Should header links be in the tab order?
-- Does the total page tab order make sense?
-
-
-## Non-featured tags
-
-Generate cover images for the skills and technologies tags pages
-
 ## Code Block Problems
 
-- Inline code blocks are not wrapping. They're breaking to a new line. An example is in the "Scenario: CRD Sync Order Problem" section of `argocd-sync-failures-gitops-debugging-troubleshooting#specific-failure-scenarios`.
+- Need to be able to highlight the title in a code block to copy it, or at least have a "copy" wrapper on it
 
-- Need to allow escaping a code fence inside a markdown code fence, see `src/content/articles/api-gateway-metrics-traces-logs-debugging/index.mdx` "Latency Spike Investigation" section and the demo article.
-
-- I aliased 'promql' to 'go'. When a code fence using the alias is rendered with the language set to 'promql', it shows as 'go' incorrectly because of the alias. Also we need custom handling for all language names that are displayed: html should be uppercase, typescript as TypeScript, etc. Also we don't want all aliased names to show the alias - for example using the aliases 'ts', 'js', and 'md' would be better to show the full language names.
-
-- The "go" language code block in `src/content/articles/api-versioning-deprecation-sunset-headers-migration/index.mdx` is not being combined with the "typescript", "python", and "ruby" tabbed code block. Same with "python" block in "### Admission Control Strategies" section of `src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx`, plus the line numbering is weird in the code block.
-
-- The title for a code block with yaml as the language type in "Sync wave annotations controlling resource application order" section of `src/content/articles/argocd-sync-failures-gitops-debugging-troubleshooting/index.mdx` is not displaying, it's showing the YAML language tag instead of the title. Also, the word "app" is being highlighted for some reason in this code block.
-
-- Code block formatting for 'text' language is very plain.
-
-- The "❌" symbol is not showing in sql code block, it's rendering as a plain "X". But "✅" renders okay. `src/content/articles/database-schema-migrations-continuous-deployment-zero-downtime/index.mdx`
-
-- Language "haproxy" is not highlighting Shiki, need to adjust allowed languages in config
-
-- add "cel" language to code blocks
-
-- The code language is in teh tab order and getting focus-visible
+- The code language is in the tab order and getting focus-visible
 
 ## Callout Issues
 
@@ -191,6 +165,8 @@ Generate cover images for the skills and technologies tags pages
 
 ## Checklist
 
+- You can click the anchor link that shows on headers to get a copy of the link. It should be that you can click anywhere in the header and copy the link.
+
 - Need to make tables responsive on mobile
 
 - Need to stop system from adding abbreviation html when used in headings, also the `abbr` presentation needs improved - right now it gives a question mark pointer and long delay to appear
@@ -204,8 +180,6 @@ Generate cover images for the skills and technologies tags pages
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
 
 - Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`
-
-- Add a cloud of tags on articles list view at top for quick navigation. Add a ToC for featured tags so it's available on mobile, but with something different on desktop view - maybe hide tag cloud on mobile, and show it with an HR between all tags cloud and featured on desktop.
 
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
@@ -253,15 +227,13 @@ Generate cover images for the skills and technologies tags pages
 
 - Newsletter component "home" and "page" variants needs work on spacing, "home" needs image added
 
+- Determine if any of the python code blocks should have `#!/bin/python` added
+
 ## Header
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
 
 - The right-hand browser vertical scroll bar is hidden under the header
-
-## Reading position indicator
-
-[Add scroll bar under header](https://css-tricks.com/reading-position-indicator/) to show how far down you are on the page while reading
 
 ## Print
 
@@ -285,12 +257,9 @@ Generate cover images for the skills and technologies tags pages
 
 This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
 
-
 ## Downloads / Gated Content
 
-We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-form articles. Make that path SSR loaded so we can check if they've given their e-mail address.
-
-- Add a Pages layout for Articles so that we can use it for both the `/articles` and `/articles/pdf` content collections.
+- We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-form articles. Make that path SSR loaded so we can check if they've given their e-mail address.
 
 - If they haven't and they get to the path from sharing a link or something, we should use the `index.astro` file in that directory to explain that they've accessed gated content, and ask for their e-mail address. Then redirect to the content they want when they give it.
 
@@ -324,10 +293,4 @@ We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-for
 
 - Move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
 
-## Instructions for revamps
-
-All changes should look good on both light and dark theme, use our tailwind theme colors, and look good on mobile.
-
-"Condensed" or "Intro"
-
-Cursor on hovering a link
+- Focus-visible / active handling on ToC nav items

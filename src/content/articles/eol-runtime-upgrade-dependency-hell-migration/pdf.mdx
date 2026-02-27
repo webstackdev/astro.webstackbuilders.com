@@ -95,6 +95,8 @@ The diagram shows a typical pattern: three direct dependencies fan out to ten tr
 Your first step is making this hidden graph visible. Every package manager provides tooling to dump the full tree and trace why a particular package exists in your dependency graph.
 
 ```bash title="visualizing-dependency-depth.sh"
+#!/bin/bash
+
 # npm: Show full dependency tree
 npm ls --all
 
@@ -218,6 +220,8 @@ Web Forms deserves special mention. There is no migration path. If your applicat
 Microsoft provides tooling to help analyze and automate parts of the migration. The .NET Upgrade Assistant scans your solution, identifies incompatibilities, and can perform some automated transformations.
 
 ```bash title="dotnet-upgrade-assistant.sh"
+#!/bin/bash
+
 # Install the .NET Upgrade Assistant
 dotnet tool install -g upgrade-assistant
 
@@ -274,6 +278,8 @@ Native modules are compiled C++ addons that link against Node's internal APIs. W
 The first step is identifying which packages in your dependency tree include native code. Any package with a `.node` file in its build output is a native module.
 
 ```bash title="find-native-modules.sh"
+#!/bin/bash
+
 # List all native modules in your project
 find node_modules -name "*.node" -type f 2>/dev/null | \
   sed 's|node_modules/||' | \
@@ -492,6 +498,8 @@ Overrides change _which version_ is installed. Patches change _the code itself_ 
 The `patch-package` tool for npm/yarn makes this workflow practical:
 
 ```bash title="patch-workflow.sh"
+#!/bin/bash
+
 # Install the tool
 npm install patch-package --save-dev
 

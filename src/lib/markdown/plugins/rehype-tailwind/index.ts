@@ -226,7 +226,9 @@ export function rehypeTailwindClasses() {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'bg-page-offset',
-          'inline-block',
+          'inline',
+          'whitespace-normal',
+          'break-normal',
           'font-mono',
           'mx-1',
           'px-2',

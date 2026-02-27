@@ -180,6 +180,8 @@ Even with CI validation, catalog entries go stale. Drift detection compares cata
 A typical drift check queries your runtime environment and compares against catalog records:
 
 ```bash title="drift-detection.sh"
+#!/bin/bash
+
 # Compare running Kubernetes deployments against catalog
 kubectl get namespaces \
   -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | \

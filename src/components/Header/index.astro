@@ -1,15 +1,18 @@
 ---
 import Brand from '@components/Brand/index.astro'
 import Navigation from '@components/Navigation/index.astro'
+import ProgressBar from '@components/Content/ProgressBar/index.astro'
 import SearchBar from '@components/Search/SearchBar/index.astro'
 import ThemeButton from '@components/ThemePicker/ThemeButton.astro'
 
 export interface Props {
   /** The URL path component e.g. 'articles/my-article' */
   path: string
+  /** Show reading progress bar below the header */
+  showProgressBar?: boolean
 }
 
-const { path } = Astro.props
+const { path, showProgressBar = false } = Astro.props
 
 import './index.css'
 ---
@@ -65,6 +68,7 @@ import './index.css'
       </span>
     </header>
   </div>
+  {showProgressBar && <ProgressBar />}
 </div>
 
 <script>

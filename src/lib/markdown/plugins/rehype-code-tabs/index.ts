@@ -133,6 +133,35 @@ function shouldSkipSingleWrap(pre: Element): boolean {
   return EXCLUDED_SINGLE_WRAP_LANGS.has(lang.toLowerCase())
 }
 
+/**
+ * Replace <figure> wrappers around grouped code blocks with just the <pre> child.
+ *
+ * `remark-captions` wraps code blocks followed by "Code: ..." paragraphs in
+ * `<figure>` elements. When a grouped code block (with `data-code-tabs-group`)
+ * is inside a figure, it breaks adjacency detection in `wrapCodeTabRuns`.
+ * This pre-processing step extracts grouped `<pre>` elements from their figure
+ * wrappers so they can be properly combined into tab groups.
+ */
+function unwrapGroupedFigures(parent: Parent): void {
+  const children = parent.children
+
+  for (let i = 0; i < children.length; i += 1) {
+    const node = children[i]
+    if (!isElement(node) || node.tagName !== 'figure') continue
+
+    const pre = node.children.find(
+      (child): child is Element => isElement(child) && child.tagName === 'pre'
+    )
+    if (!pre) continue
+
+    // Only unwrap if the <pre> belongs to a tab group
+    const info = getTabInfoFromPre(pre)
+    if (!info) continue
+
+    children[i] = pre
+  }
+}
+
 function wrapCodeTabRuns(parent: Parent): void {
   if (isElement(parent) && parent.tagName === 'code-tabs') return
 
@@ -208,12 +237,14 @@ function wrapStandaloneCodeBlocks(parent: Parent): void {
 
 const rehypeCodeTabs: Plugin<[], Root> = () => {
   return tree => {
+    unwrapGroupedFigures(tree as unknown as Parent)
     wrapCodeTabRuns(tree as unknown as Parent)
     wrapStandaloneCodeBlocks(tree as unknown as Parent)
 
     visit(tree, 'element', (node: Element): typeof SKIP | void => {
       if (node.tagName === 'code-tabs') return SKIP
       if (!isParent(node)) return
+      unwrapGroupedFigures(node)
       wrapCodeTabRuns(node)
       wrapStandaloneCodeBlocks(node)
     })

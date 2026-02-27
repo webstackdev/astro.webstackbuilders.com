@@ -90,6 +90,8 @@ The key components work together: every pod gets a `/etc/resolv.conf` that point
 Every debugging session should start by examining the pod's DNS configuration. The `resolv.conf` file tells you exactly which nameserver the pod uses, which search domains get appended, and crucially, the ndots setting that controls when those search domains apply.
 
 ```bash title="examining-resolv-conf.sh"
+#!/bin/bash
+
 # Examine DNS configuration in a pod
 kubectl exec -it debug-pod -- cat /etc/resolv.conf
 # Output:
@@ -195,6 +197,8 @@ The difference between `ndots:5` and `ndots:2` for an external API call is three
 Before optimizing, measure the actual impact in your cluster. The difference between `nslookup api.stripe.com` and `nslookup api.stripe.com.` tells you exactly how much overhead the search domains add.
 
 ```bash title="launch-debug-pod.sh"
+#!/bin/bash
+
 # Spin up a debug pod with DNS tools
 kubectl run dns-debug --image=nicolaka/netshoot --rm -it --restart=Never -- bash
 ```
@@ -204,6 +208,8 @@ Code: Launch a debug pod with DNS tools.
 Once you're inside the pod, compare resolution times with and without the trailing dot:
 
 ```bash title="measure-ndots-inside-pod.sh"
+#!/bin/bash
+
 # Compare resolution times
 echo "Without trailing dot (search domains applied):"
 time nslookup api.stripe.com
@@ -415,6 +421,8 @@ When DNS breaks, you need a systematic approach that quickly narrows down the pr
 Start by verifying the DNS infrastructure is healthy, then test from a pod to isolate pod-level versus cluster-level issues.
 
 ```bash title="dns-quick-check.sh"
+#!/bin/bash
+
 # Step 1: Is CoreDNS running?
 kubectl get pods -n kube-system -l k8s-app=kube-dns
 kubectl get endpoints -n kube-system kube-dns
@@ -432,6 +440,8 @@ Code: Quick CoreDNS health check.
 Once you've verified CoreDNS is running, test from inside a pod. This is critical because node-level DNS and pod-level DNS are configured differently.
 
 ```bash title="launch-dns-debug-pod.sh"
+#!/bin/bash
+
 # Spin up a debug pod with DNS tools
 kubectl run dns-debug --image=nicolaka/netshoot --rm -it --restart=Never -- bash
 ```
@@ -441,6 +451,8 @@ Code: Launch a debug pod.
 Once inside the pod, run through this diagnostic sequence:
 
 ```bash title="dns-diagnostic-sequence.sh"
+#!/bin/bash
+
 cat /etc/resolv.conf                    # Check DNS config
 nslookup kubernetes.default             # Test internal DNS
 nslookup google.com                     # Test external DNS

@@ -1,0 +1,45 @@
+---
+import { parseContentPath } from './server'
+import { BuildError } from '@lib/errors/BuildError'
+import './index.css'
+
+export type Props = {
+  /** The URL path component e.g. 'articles/my-article' */
+  path?: string
+  /** Legacy current variant for client rendering */
+  currentVariant?: 'overview' | 'deep-dive'
+  /** Legacy slug for client rendering */
+  slug?: string
+}
+
+const {
+  path,
+  currentVariant: legacyCurrentVariant,
+  slug: legacySlug = '',
+} = Astro.props
+
+let currentVariant: 'overview' | 'deep-dive'
+let slug: string
+
+if (path) {
+  const parsed = parseContentPath(path)
+  currentVariant = parsed.currentVariant === 'articles' ? 'overview' : 'deep-dive'
+  slug = parsed.slug
+} else if (legacyCurrentVariant) {
+  currentVariant = legacyCurrentVariant
+  slug = legacySlug
+} else {
+  throw new BuildError('Content/Switcher: expected either `path` or `currentVariant` prop.', {
+    phase: 'compilation',
+    filePath: 'src/components/Content/Switcher/index.astro',
+    tool: 'content-switcher',
+  })
+}
+---
+
+<content-switcher current-variant={currentVariant} slug={slug}></content-switcher>
+
+<script>
+  import { registerContentSwitcherComponent } from '@components/Content/Switcher/client'
+  registerContentSwitcherComponent()
+</script>

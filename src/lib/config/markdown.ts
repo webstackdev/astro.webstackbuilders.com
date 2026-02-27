@@ -444,10 +444,11 @@ export const markdownConfig: Partial<MdxOptions> = {
       {
         theme: shikiConfigOptions.theme,
         themeRegistrations: shikiConfigOptions.themeRegistrations,
+        langs: shikiConfigOptions.langs,
         langAlias: shikiConfigOptions.langAlias,
-        wrap: true,
+        wrap: shikiConfigOptions.wrap,
         transformers: shikiTransformers,
-        excludeLangs: ['text', 'mermaid', 'math'],
+        excludeLangs: shikiConfigOptions.excludeLangs,
       },
     ],
     /**

@@ -16,6 +16,7 @@ import {
   closeThemePicker,
   createThemeController,
   createThemePickerOpenController,
+  updateLayoutOffsets,
   type ThemeId,
 } from '@components/scripts/store'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
@@ -94,59 +95,43 @@ export class ThemePickerElement extends LitElement {
   private isInitialized = false
   private isTogglingViaButton = false
 
-  private updateHeaderOffset(isOpen: boolean): void {
-    if (typeof document === 'undefined') {
-      return
-    }
-
-    const offset = isOpen ? this.getThemePickerOffset() : 0
-    document.documentElement.style.setProperty('--theme-picker-offset', `${offset}px`)
-  }
-
-  private getLivePickerModal(): HTMLDivElement | null {
-    if (this.pickerModal && this.pickerModal.isConnected) {
-      return this.pickerModal
-    }
-
-    const modal = queryThemePickerModal()
-    if (modal) {
-      this.pickerModal = modal
-      return modal
-    }
-
-    return null
-  }
-
+  /**
+   * Re-sync the modal open state and layout offsets after a View Transition
+   * swaps the DOM. The `<theme-picker>` element persists, but the inner modal
+   * HTML is replaced so we need to re-apply the open class and re-measure.
+   */
   private syncOpenStateAfterNavigation(): void {
     const isOpen = this.themePickerOpenStore.value
 
     if (!isOpen) {
-      this.updateHeaderOffset(false)
+      updateLayoutOffsets()
       return
     }
 
-    const modal = this.getLivePickerModal()
-    if (!modal) return
+    // Re-query modal from fresh DOM
+    const modal = queryThemePickerModal()
+    if (modal) this.pickerModal = modal
+    if (!this.pickerModal) return
 
-    // Snap the modal to its fully-open state without animation so the
-    // header offset measurement reads the correct final height.
-    modal.removeAttribute('hidden')
-    const savedTransition = modal.style.transition
-    modal.style.transition = 'none'
-    modal.classList.add(CLASSES.isOpen)
+    // Snap the modal to fully-open without animation so the layout
+    // measurement reads the correct final height.
+    this.pickerModal.removeAttribute('hidden')
+    const savedTransition = this.pickerModal.style.transition
+    this.pickerModal.style.transition = 'none'
+    this.pickerModal.classList.add(CLASSES.isOpen)
 
-    // Force a style recalc so the browser resolves the max-height immediately
-    void modal.offsetHeight
+    // Force a style recalc so the browser resolves max-height immediately
+    void this.pickerModal.offsetHeight
 
-    this.updateHeaderOffset(true)
+    updateLayoutOffsets()
 
-    // Restore the CSS transition in the next frame so future open/close animates
+    // Restore CSS transition in the next frame so future open/close animates
     if (typeof requestAnimationFrame === 'function') {
       requestAnimationFrame(() => {
-        modal.style.transition = savedTransition
+        this.pickerModal.style.transition = savedTransition
       })
     } else {
-      modal.style.transition = savedTransition
+      this.pickerModal.style.transition = savedTransition
     }
 
     const toggleButton = queryThemePickerToggleBtn()
@@ -154,35 +139,6 @@ export class ThemePickerElement extends LitElement {
       this.toggleBtn = toggleButton
       this.toggleBtn.setAttribute('aria-expanded', 'true')
     }
-  }
-
-  private getThemePickerOffset(): number {
-    const modal = this.getLivePickerModal()
-    if (!modal) return 0
-
-    // Use the actual *rendered* height which respects overflow/max-height clipping.
-    // Never use scrollHeight — it reports content size beyond the overflow boundary.
-    const boundingHeight = modal.getBoundingClientRect().height
-    if (boundingHeight > 0) return boundingHeight
-
-    const offsetHeight = modal.offsetHeight
-    if (offsetHeight > 0) return offsetHeight
-
-    // Fallback: computed max-height (target height when is-open is applied)
-    const computedMaxHeight = Number.parseFloat(window.getComputedStyle(modal).maxHeight)
-    if (Number.isFinite(computedMaxHeight) && computedMaxHeight > 0) {
-      return computedMaxHeight
-    }
-
-    // Last resort: if the is-open class is present, compute the CSS 14em target in px.
-    // This handles the edge case where max-height is mid-transition and computed
-    // style returns an interpolated (near-zero) value.
-    if (modal.classList.contains(CLASSES.isOpen)) {
-      const fontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
-      return 14 * fontSize
-    }
-
-    return 0
   }
 
   /**
@@ -763,20 +719,27 @@ export class ThemePickerElement extends LitElement {
       this.toggleBtn.setAttribute('aria-expanded', 'true')
 
       // Wait for next frame so browser processes max-height: 0 before animating to 14em.
-      // Set header offset AFTER is-open is applied so getThemePickerOffset() can
-      // measure the target height rather than the pre-animation 0.
+      // Measure layout offset AFTER is-open is applied so the picker has its target height.
       if (typeof requestAnimationFrame === 'function') {
         requestAnimationFrame(() => {
           this.pickerModal.classList.add(CLASSES.isOpen)
-          this.updateHeaderOffset(true)
+          updateLayoutOffsets()
+
+          // Re-measure after the max-height transition completes so the
+          // offset is perfectly accurate once the panel settles.
+          this.pickerModal.addEventListener(
+            'transitionend',
+            () => updateLayoutOffsets(),
+            { once: true },
+          )
         })
       } else {
         this.pickerModal.classList.add(CLASSES.isOpen)
-        this.updateHeaderOffset(true)
+        updateLayoutOffsets()
       }
     } else {
       this.pickerModal.classList.remove(CLASSES.isOpen)
-      this.updateHeaderOffset(false)
+      updateLayoutOffsets()
 
       // Wait for animation before hiding
       const transitionHandler = () => {

@@ -7,6 +7,7 @@ import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {
   toggleButton: '[data-toc-toggle]',
+  closeButton: '[data-toc-close]',
   overlay: '[data-toc-overlay]',
   panel: '[data-toc-panel]',
   link: '[data-toc-link]',
@@ -22,6 +23,15 @@ export function getTableOfContentsElements(context: Element) {
       scriptName: 'TableOfContentsElement',
       operation: 'getTableOfContentsElements',
       message: 'ToC toggle button element not found',
+    })
+  }
+
+  const closeButton = context.querySelector(SELECTORS.closeButton)
+  if (!isButtonElement(closeButton)) {
+    throw new ClientScriptError({
+      scriptName: 'TableOfContentsElement',
+      operation: 'getTableOfContentsElements',
+      message: 'ToC close button element not found',
     })
   }
 
@@ -55,8 +65,18 @@ export function getTableOfContentsElements(context: Element) {
 
   return {
     toggleButton,
+    closeButton,
     overlay,
     panel,
     tocLinks,
   }
+}
+
+/**
+ * Query the sticky sidebar element (the <aside>) within the ToC component.
+ * Returns null when absent (e.g. on pages without a ToC).
+ */
+export function queryTocStickySidebar(context: Element): HTMLElement | null {
+  const el = context.querySelector('[data-sticky-sidebar]')
+  return el instanceof HTMLElement ? el : null
 }

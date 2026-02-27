@@ -22,6 +22,19 @@ import { withBreadcrumbTitleWarning } from '@lib/helpers/breadcrumbTitleLengthRe
 const pattern = '**/index.mdx'
 const flatMarkdownPattern = '**/*.mdx'
 
+/**
+ * Normalizes deep-dive content IDs from .../pdf.mdx to ...
+ * so deep-dive routes resolve without a trailing /pdf segment.
+ */
+const generateDeepDiveId = ({ entry }: { entry: string }) => {
+  const normalizedEntry = entry.replace(/\\/g, '/')
+  const withoutExtension = normalizedEntry.replace(/\.[^/.]+$/, '')
+
+  return withoutExtension.endsWith('/pdf')
+    ? withoutExtension.slice(0, -'/pdf'.length)
+    : withoutExtension
+}
+
 const createBaseCollectionSchema = ({ image }: SchemaContext) =>
   z.object({
     title: z.string(),
@@ -73,7 +86,11 @@ const articlesCollection = defineCollection({
  * Deep Dive Articles
  */
 const deepDiveArticlesCollection = defineCollection({
-  loader: glob({ pattern: '**/pdf.mdx', base: './src/content/articles' }),
+  loader: glob({
+    pattern: '**/pdf.mdx',
+    base: './src/content/articles',
+    generateId: generateDeepDiveId,
+  }),
   schema: context =>
     withBreadcrumbTitleWarning(
       createBaseCollectionSchema(context).extend({

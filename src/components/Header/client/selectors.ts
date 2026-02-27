@@ -11,6 +11,18 @@ export const SELECTORS = {
   header: '#header',
 }
 
+export const ANIMATION_SELECTORS = {
+  siteHeader: '.site-header',
+  brand: '.header-brand',
+  footprint: '.header-footprint',
+  icon: '.header-icon',
+  navLink: '.header-nav a',
+} as const
+
+// ============================================================================
+// HEADER ELEMENT GETTERS
+// ============================================================================
+
 /**
  * Getter for the header shell wrapper element.
  */
@@ -35,4 +47,36 @@ export const getHeaderElement = (scope: ParentNode = document): HTMLElement => {
     })
   }
   return header
+}
+
+// ============================================================================
+// ANIMATION ELEMENT GETTERS
+// ============================================================================
+
+export interface AnimationElements {
+  headerShell: HTMLElement
+  siteHeader: HTMLElement
+  brand: HTMLElement
+  footprint: HTMLElement
+  icons: HTMLElement[]
+  navLinks: HTMLElement[]
+}
+
+/**
+ * Query all animated elements from the header shell.
+ * Returns null if required elements are missing (e.g. during SSR or testing).
+ */
+export function getAnimationElements(headerShell: HTMLElement): AnimationElements | null {
+  const siteHeader = headerShell.querySelector<HTMLElement>(ANIMATION_SELECTORS.siteHeader)
+  const brand = headerShell.querySelector<HTMLElement>(ANIMATION_SELECTORS.brand)
+  const footprint = headerShell.querySelector<HTMLElement>(ANIMATION_SELECTORS.footprint)
+
+  if (!siteHeader || !brand || !footprint) return null
+
+  const icons = Array.from(headerShell.querySelectorAll<HTMLElement>(ANIMATION_SELECTORS.icon))
+  const navLinks = Array.from(
+    headerShell.querySelectorAll<HTMLElement>(ANIMATION_SELECTORS.navLink),
+  )
+
+  return { headerShell, siteHeader, brand, footprint, icons, navLinks }
 }

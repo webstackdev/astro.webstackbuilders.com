@@ -53,6 +53,7 @@
   --header-brand-scale-current: var(--header-brand-scale);
   --header-nav-font-size-current: var(--header-nav-font-size);
 
+  flex-shrink: 0;
   position: relative;
 }
 
@@ -66,35 +67,32 @@
 
 .header-footprint {
   height: var(--header-footprint-height-current);
-  transition: height 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   width: 100%;
 }
 
 .header-fixed {
   left: 0;
+  overflow-x: clip;
   position: fixed;
   right: 0;
   top: 0;
   transform: translateY(var(--theme-picker-offset, 0));
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   width: 100%;
   z-index: var(--z-nav);
 }
 
 .site-header {
   padding-block: var(--header-padding-current);
-  transition: padding 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .header-brand {
   transform: scale(var(--header-brand-scale-current));
   transform-origin: left center;
-  transition: transform 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .header-icon {
-  transition: height 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    width 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* width + height animated via WAAPI in headerAnimation.ts */
 }
 
 .site-header::after {

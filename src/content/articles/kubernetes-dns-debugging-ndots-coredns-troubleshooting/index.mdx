@@ -63,6 +63,8 @@ Before optimizing, confirm that ndots is actually your problem. The diagnostic t
 First, launch a debug pod with DNS tools:
 
 ```bash title="launch-debug-pod.sh"
+#!/bin/bash
+
 kubectl run dns-debug --image=nicolaka/netshoot --rm -it --restart=Never -- bash
 ```
 
@@ -71,6 +73,8 @@ Code: Launch a debug pod with DNS tools.
 Once inside the pod, compare resolution times with and without the trailing dot:
 
 ```bash title="ndots-diagnostic.sh"
+#!/bin/bash
+
 # Test without trailing dot (search domains applied)
 time nslookup api.stripe.com
 

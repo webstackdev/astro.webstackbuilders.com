@@ -9,7 +9,6 @@ import type { MarkdownHeading } from 'astro'
 import BaseLayout from '@layouts/BaseLayout.astro'
 import Lead from '@components/Layout/Markdown/Lead/index.astro'
 import Subtitle from '@components/Layout/Markdown/Subtitle/index.astro'
-import Tags from '@components/Layout/Markdown/Tags/index.astro'
 import Title from '@components/Layout/Markdown/Title/index.astro'
 import Toc from '@components/Toc/index.astro'
 
@@ -87,6 +86,8 @@ export interface Props {
   section: string
   /** Whether to show table of contents */
   showToc?: boolean
+  /** Whether to show reading progress bar below the header */
+  showProgressBar?: boolean
   /** Hide breadcrumbs on mobile viewports (sm and below) */
   hideBreadcrumbsOnMobile?: boolean
   /** Optional page subtitle or excerpt */
@@ -107,6 +108,7 @@ const {
   path,
   publishDate,
   readingTime,
+  showProgressBar = false,
   showToc,
   subtitle,
   tags,
@@ -127,11 +129,15 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
   path={path}
   contentType={contentType}
   hideBreadcrumbsOnMobile={hideBreadcrumbsOnMobile}
+  showProgressBar={showProgressBar}
   {...publishDate && { publishDate }}
   {...modifiedDate && { modifiedDate }}
   {...author && { author }}
   {...tags && { tags }}
 >
+  {/** SLOT: breadcrumb-row */}
+  <slot name="breadcrumb-row" slot="breadcrumb-row" />
+
   <article
     class={`mx-auto py-4 ${contentClass}`}
     itemscope
@@ -139,11 +145,6 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
     aria-labelledby="article-title"
   >
     <header class="mb-4 sm:mb-6">
-      {tags && tags.length > 0 && (
-        <div class="mb-2">
-          <Tags tags={tags} />
-        </div>
-      )}
       <Title pageTitle={pageTitle} />
       {subtitle && <Subtitle subtitle={subtitle} />}
       {
@@ -153,6 +154,7 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
             {...(modifiedDate && { modifiedDate })}
             {...(publishDate && { publishDate })}
             {...(readingTime && { readingTime })}
+            {...(tags && { tags })}
           />
         )
       }
@@ -160,9 +162,6 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
 
     {/** SLOT: hero-image, conditional on image specified */}
     <slot name="hero-image" />
-
-    {/** SLOT: content-prefix, renders prior to markdown body (e.g., metadata panels) */}
-    <slot name="content-prefix" />
 
     {/** SLOT: default (unnamed) */}
     <div

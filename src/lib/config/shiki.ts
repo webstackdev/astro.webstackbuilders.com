@@ -7,6 +7,15 @@ import {
   transformerMetaWordHighlight,
   transformerNotationErrorLevel,
 } from '@shikijs/transformers'
+import celGrammar from '../markdown/textmateLanguageFiles/cel.tmLanguage.json'
+import haproxyGrammar from '../markdown/textmateLanguageFiles/haproxy.tmLanguage.json'
+
+export const langAlias = {
+  js: 'javascript',
+  ts: 'typescript',
+  md: 'markdown',
+  promql: 'go',
+}
 
 const insMetaRegex = /(?:^|\s)ins=\{([^}]+)\}/
 const delMetaRegex = /(?:^|\s)del=\{([^}]+)\}/
@@ -117,11 +126,20 @@ export const shikiConfigOptions = {
       fontStyle: true,
     }),
   ],
-  langAlias: {
-    js: 'javascript',
-    ts: 'typescript',
-    md: 'markdown',
-    promql: 'go',
-  },
+  langs: [
+    {
+      ...celGrammar,
+      name: 'cel',
+      scopeName: 'source.cel',
+    },
+    {
+      ...haproxyGrammar,
+      name: 'haproxy',
+      scopeName: 'source.haproxy',
+    },
+  ],
+  /** MathJax handles math code block rendering, MermaidJS handles mermaid code block rendering */
+  excludeLangs: ['mermaid', 'math'],
+  langAlias,
   wrap: true,
 } as const

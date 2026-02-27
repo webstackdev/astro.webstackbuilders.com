@@ -47,6 +47,8 @@ export interface Props {
   publishDate?: Date
   /** Specifies the main, high-level category or theme of the article */
   section?: string
+  /** Whether to show reading progress bar below the header */
+  showProgressBar?: boolean
   /** Content tags */
   tags?: string[]
 }
@@ -63,6 +65,7 @@ const {
   path,
   publishDate,
   section,
+  showProgressBar = false,
   tags,
 } = Astro.props
 ---
@@ -93,7 +96,7 @@ const {
     {/* Visibility set to hidden is a FOUC trick. It is set to 'visible' once */}
     {/* the current data-theme value for the <> element is checked and set */}
     {/* in components/Head/ThemeInit.astro */}
-    <body class="invisible">
+    <body class="invisible flex flex-col h-full overflow-hidden">
       {/* Skip to main content link for accessibility */}
       <Skip />
       {/* Cookie Consent Overlay */}
@@ -103,15 +106,32 @@ const {
       <ThemePicker />
       {/* Site header and main content */}
       <Container id="main-content">
-        <Header path={path} />
-        <div class:list={[hideBreadcrumbsOnMobile ? 'hidden sm:block' : 'block']}>
-          <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
+        <Header path={path} showProgressBar={showProgressBar} />
+        {/* Scroll viewport — sole scroll container for the page.            Its scrollbar physically starts below the header. */}
+        <div
+          id="scroll-viewport"
+          class="flex-1 min-h-0 overflow-y-auto flex flex-col"
+          style={`margin-top: var(--progress-bar-height, 0);`}
+        >
+          <div
+            id="breadcrumbs"
+            class:list={[
+              'mt-4 items-center justify-between gap-4',
+              hideBreadcrumbsOnMobile ? 'hidden sm:flex' : 'flex',
+            ]}
+          >
+            <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
+            {/** breadcrumb-row slot is used to pass the ContentSwitcher on articles and deep-dive item view pages */}
+            <div class="shrink-0">
+              <slot name="breadcrumb-row" />
+            </div>
+          </div>
+          {/* SLOT: default (unnamed) - Main page content */}
+          <Content>
+            <slot />
+          </Content>
+          <Footer />
         </div>
-        {/* SLOT: default (unnamed) - Main page content */}
-        <Content>
-          <slot />
-        </Content>
-        <Footer />
       </Container>
       {isProd() && (
         <>

@@ -9,6 +9,7 @@ import {
   initConsentFromCookies,
   initConsentSideEffects,
   initHeaderSearchSideEffects,
+  initLayoutPositionSideEffects,
   exposeStoreActionsForTesting,
 } from '@components/scripts/store'
 import { SentryBootstrap } from '@components/scripts/sentry/client'
@@ -61,6 +62,10 @@ export class AppBootstrap {
       // 3b. Setup header search UI side effects
       addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initHeaderSearchSideEffects' })
       initHeaderSearchSideEffects()
+
+      // 3c. Setup layout position tracking (resize, View Transition events)
+      addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initLayoutPositionSideEffects' })
+      initLayoutPositionSideEffects()
 
       // 4. Expose limited store actions for Playwright-driven E2E tests
       exposeStoreActionsForTesting()

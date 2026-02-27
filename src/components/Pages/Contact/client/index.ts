@@ -7,7 +7,8 @@
 import { LitElement } from 'lit'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { getContactFormElements, queryContactProjectTypeSelect } from './selectors'
+import { initStickySidebar } from '@components/scripts/stickySidebar'
+import { getContactFormElements, queryContactProjectTypeSelect, queryContactStickySidebar } from './selectors'
 import type { ContactFormConfig } from './@types'
 import { initCharacterCounter, initUploadPlaceholder } from './utils'
 import { initLabelHandlers, type LabelController } from './feedback'
@@ -23,6 +24,7 @@ const COMPONENT_TAG_NAME = 'contact-form' as const
 export class ContactFormElement extends LitElement {
   private labelController: LabelController | null = null
   private uploadController: UploadController | null = null
+  private destroyStickySidebar: (() => void) | null = null
   private viewTransitionHandlersRegistered = false
   private beforePreparationHandler: (() => void) | null = null
   private afterSwapHandler: (() => void) | null = null
@@ -46,6 +48,8 @@ export class ContactFormElement extends LitElement {
     super.disconnectedCallback()
     this.uploadController?.destroy()
     this.uploadController = null
+    this.destroyStickySidebar?.()
+    this.destroyStickySidebar = null
     this.removeViewTransitionsHandlers()
   }
 
@@ -72,6 +76,7 @@ export class ContactFormElement extends LitElement {
         labelController: this.labelController,
         uploadController: this.uploadController,
       })
+      this.initializeStickySidebar()
       this.setViewTransitionsHandlers()
     } catch (error) {
       handleScriptError(error, context)
@@ -99,6 +104,18 @@ export class ContactFormElement extends LitElement {
     }
 
     projectTypeSelect.value = projectType
+  }
+
+  /**
+   * Set up JS-driven sticky sidebar for the contact info card.
+   * Container = the grid parent (data-sticky-container); sidebar = the card (data-sticky-sidebar).
+   */
+  private initializeStickySidebar(): void {
+    this.destroyStickySidebar?.()
+    this.destroyStickySidebar = null
+    const elements = queryContactStickySidebar(this)
+    if (!elements) return
+    this.destroyStickySidebar = initStickySidebar(elements.sidebar, elements.container)
   }
 
   private setViewTransitionsHandlers(): void {

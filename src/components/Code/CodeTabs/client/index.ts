@@ -20,7 +20,12 @@ function getCodeText(pre: HTMLPreElement): string {
 
 const EXCLUDED_SINGLE_TAB_LANGUAGES = new Set(['text', 'mermaid', 'math'])
 
-function formatLanguageLabel(language: string): string {
+/**
+ * Fallback label formatter for cases where `data-language-label` is not set
+ * (e.g. cached HTML from before the server-side label was introduced).
+ * The canonical display name config lives in `src/lib/config/codeBlocks.ts`.
+ */
+function formatLanguageLabelFallback(language: string): string {
   const normalized = language.trim().toLowerCase()
   const labelMap: Record<string, string> = {
     js: 'JavaScript',
@@ -42,11 +47,20 @@ function getTabLabel(pre: HTMLPreElement): string | null {
   const explicit = pre.getAttribute('data-code-tabs-tab')
   if (explicit && explicit.trim()) return explicit.trim()
 
+  // Use title from code fence meta (e.g. title="otel-tail-sampling.yaml")
+  // in place of the language label when present.
+  const codeTitle = pre.getAttribute('data-code-title')
+  if (codeTitle && codeTitle.trim()) return codeTitle.trim()
+
+  // Use server-computed display label from the centralized config.
+  const label = pre.getAttribute('data-language-label')
+  if (label && label.trim()) return label.trim()
+
   const language = pre.getAttribute('data-language')
   if (!language || !language.trim()) return null
   if (EXCLUDED_SINGLE_TAB_LANGUAGES.has(language.trim().toLowerCase())) return null
 
-  return formatLanguageLabel(language)
+  return formatLanguageLabelFallback(language)
 }
 
 async function writeToClipboard(text: string): Promise<boolean> {

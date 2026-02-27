@@ -159,3 +159,17 @@ export const queryContactProjectTypeSelect = (root: ParentNode = document): HTML
   const projectTypeSelect = root.querySelector('#project_type')
   return projectTypeSelect instanceof HTMLSelectElement ? projectTypeSelect : null
 }
+
+/**
+ * Query the sticky sidebar element and its constraining container
+ * within the contact form component.
+ */
+export function queryContactStickySidebar(context: Element): {
+  sidebar: HTMLElement
+  container: HTMLElement
+} | null {
+  const sidebar = context.querySelector('[data-sticky-sidebar]')
+  const container = context.querySelector('[data-sticky-container]')
+  if (!(sidebar instanceof HTMLElement) || !(container instanceof HTMLElement)) return null
+  return { sidebar, container }
+}

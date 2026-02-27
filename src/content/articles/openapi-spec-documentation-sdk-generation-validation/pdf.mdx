@@ -281,6 +281,8 @@ Whichever approach you choose, drift is the enemy. The spec says one thing, the 
 The solution is CI validation. On every pull request, automatically lint the spec, check for breaking changes against the main branch, and run contract tests that verify the implementation matches the spec.
 
 ```bash title="api-validation-steps.sh"
+#!/bin/bash
+
 # The key CI steps for catching drift
 npx @stoplight/spectral-cli lint openapi.yaml          # Spec quality
 npx openapi-diff main:openapi.yaml openapi.yaml        # Breaking changes
@@ -309,6 +311,8 @@ __Swagger UI__ provides interactive documentation where developers can make live
 __Stoplight Elements__ is a React component library for embedding documentation in an existing portal or documentation site. If you're building a developer portal with tutorials, guides, and API reference together, Elements lets you integrate the API docs natively rather than linking out to a separate site.
 
 ```bash title="generate-docs.sh"
+#!/bin/bash
+
 # Redoc: generate static HTML
 npx @redocly/cli build-docs openapi.yaml -o docs/api-reference.html
 
@@ -416,6 +420,8 @@ Table: SDK generators and their sweet spots.
 The basic workflow is straightforward. Install the generator, point it at your spec, choose an output target:
 
 ```bash title="generate-sdk.sh"
+#!/bin/bash
+
 # OpenAPI Generator: TypeScript with Axios
 npx @openapitools/openapi-generator-cli generate \
   -i openapi.yaml \
