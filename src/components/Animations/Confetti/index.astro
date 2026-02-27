@@ -4,9 +4,18 @@
  *
  * The client web component respects global animation lifecycle state via the store.
  */
+export interface Props {
+  /** Additional classes to add to the component wrapper */
+  classes: string
+}
+
+const { classes } = Astro.props
 ---
 
-<confetti-animation class="confetti-animation relative block" data-testid="confetti-animation">
+<confetti-animation
+  class:list={["confetti-animation relative block", classes]}
+  data-testid="confetti-animation"
+>
   <canvas
     data-confetti-canvas
     aria-hidden="true"
