@@ -1,6 +1,5 @@
 import type { ShikiTransformer } from '@shikijs/types'
 import type { Element } from 'hast'
-import { builtinLanguages } from 'shiki'
 import { createCssVariablesTheme } from 'shiki/core'
 import {
   parseMetaHighlightString,
@@ -8,6 +7,8 @@ import {
   transformerMetaWordHighlight,
   transformerNotationErrorLevel,
 } from '@shikijs/transformers'
+import celGrammar from '../markdown/textmateLanguageFiles/cel.tmLanguage.json'
+import haproxyGrammar from '../markdown/textmateLanguageFiles/haproxy.tmLanguage.json'
 
 export const langAlias = {
   js: 'javascript',
@@ -124,6 +125,18 @@ export const shikiConfigOptions = {
       variablePrefix: '--shiki-',
       fontStyle: true,
     }),
+  ],
+  langs: [
+    {
+      ...celGrammar,
+      name: 'cel',
+      scopeName: 'source.cel',
+    },
+    {
+      ...haproxyGrammar,
+      name: 'haproxy',
+      scopeName: 'source.haproxy',
+    },
   ],
   /** MathJax handles math code block rendering, MermaidJS handles mermaid code block rendering */
   excludeLangs: ['mermaid', 'math'],

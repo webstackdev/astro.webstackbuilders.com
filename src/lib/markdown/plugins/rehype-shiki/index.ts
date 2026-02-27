@@ -27,6 +27,8 @@ export type RehypeShikiOptions = {
   themeRegistrations?: unknown[]
   defaultColor?: 'light' | 'dark' | false
   langAlias?: Record<string, string>
+  /** Custom language grammars (TextMate) to register alongside bundled languages. */
+  langs?: unknown[]
   /** Shiki transformers to apply (e.g. meta-based highlighting). */
   transformers?: unknown[]
   /**
@@ -46,6 +48,7 @@ type HighlighterLike = {
     _options: Record<string, unknown>
   ) => Root | Element
   loadLanguage: (_lang: string) => Promise<void>
+  getLoadedLanguages: () => string[]
 }
 
 function getThemeNames(themes: ShikiThemes | undefined): string[] {
@@ -243,9 +246,11 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
 
     highlighterPromise = (async () => {
       // Shiki requires themes to be loaded before use.
+      // Custom language grammars (e.g. CEL, HAProxy) are passed in via options.langs.
+      // Bundled languages are loaded on demand via highlighter.loadLanguage().
       const highlighter = await createHighlighter({
         themes: getHighlighterThemes(options) as never,
-        langs: [],
+        langs: (options.langs ?? []) as never,
       })
 
       return highlighter as unknown as HighlighterLike
@@ -320,12 +325,20 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
       }
     )
 
+    // Languages pre-registered via options.langs (custom TextMate grammars) are already
+    // loaded by createHighlighter. Shiki's loadLanguage() throws for these even though
+    // they're loaded, so we check getLoadedLanguages() first to skip the redundant call.
+    const loadedLangs = new Set(highlighter.getLoadedLanguages())
+
     for (const replacement of replacements) {
-      try {
-        await highlighter.loadLanguage(replacement.lang)
-      } catch {
-        // Unknown language; keep original markup.
-        continue
+      if (!loadedLangs.has(replacement.lang)) {
+        try {
+          await highlighter.loadLanguage(replacement.lang)
+          loadedLangs.add(replacement.lang)
+        } catch {
+          // Unknown language; keep original markup.
+          continue
+        }
       }
 
       const shikiOptions: Record<string, unknown> = {

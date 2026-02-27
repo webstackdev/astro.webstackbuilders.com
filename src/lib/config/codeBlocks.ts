@@ -16,6 +16,7 @@
  */
 export const languageDisplayNames: Record<string, string> = {
   // All-uppercase acronym languages
+  cel: 'CEL',
   css: 'CSS',
   hcl: 'HCL',
   html: 'HTML',
@@ -29,6 +30,7 @@ export const languageDisplayNames: Record<string, string> = {
 
   // Mixed-case languages
   graphql: 'GraphQL',
+  haproxy: 'HAProxy',
   javascript: 'JavaScript',
   js: 'JavaScript',
   jsx: 'JSX',

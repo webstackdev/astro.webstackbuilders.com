@@ -147,15 +147,9 @@ See comp images in Breadcrumbs component directory
 
 ## Code Block Problems
 
-- The "go" language code block in `src/content/articles/api-versioning-deprecation-sunset-headers-migration/index.mdx` is not being combined with the "typescript", "python", and "ruby" tabbed code block. Same with "python" block in "### Admission Control Strategies" section of `src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx`, plus the line numbering is weird in the code block.
-
 - The "❌" symbol is not showing in sql code block, it's rendering as a plain "X". But "✅" renders okay. `src/content/articles/database-schema-migrations-continuous-deployment-zero-downtime/index.mdx`
 
 - Need to be able to highlight the title in a code block to copy it, or at least have a "copy" wrapper on it
-
-- Language "haproxy" is not highlighting Shiki, need to adjust allowed languages in config
-
-- add "cel" language to code blocks
 
 - The code language is in the tab order and getting focus-visible
 

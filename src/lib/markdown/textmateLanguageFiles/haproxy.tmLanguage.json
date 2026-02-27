@@ -1,0 +1,136 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "HAProxy",
+  "fileTypes": ["haproxy.cfg"],
+  "scopeName": "source.haproxy",
+  "uuid": "4b8aa860-7a71-426a-9e6c-38faaff762bc",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#ip-addresses" },
+    { "include": "#wildcard-bind" },
+    { "include": "#ciphers" },
+    { "include": "#numeric-constants" },
+    { "include": "#stick-table-params" },
+    { "include": "#sections" },
+    { "include": "#keywords" },
+    { "include": "#parameters-as-keywords" },
+    { "include": "#capture-combinations" },
+    { "include": "#http-status-strings" },
+    { "include": "#http-keyword-combinations" },
+    { "include": "#option-keyword-combinations" },
+    { "include": "#stats-keyword-combinations" },
+    { "include": "#stick-keyword-combinations" },
+    { "include": "#tcp-keyword-combinations" },
+    { "include": "#timeout-keyword-combinations" },
+    { "include": "#quoted-strings" },
+    { "include": "#subcommand-functions" },
+    { "include": "#subcommand-add-set-del" },
+    { "include": "#operators" },
+    { "include": "#control-flow" },
+    { "include": "#parameters" },
+    { "include": "#functions" },
+    { "include": "#paths" }
+  ],
+  "repository": {
+    "comments": {
+      "match": "\\#.*",
+      "name": "comment.line.number-sign.haproxy"
+    },
+    "ip-addresses": {
+      "match": "\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):\\d{1,5}\\b",
+      "name": "constant.numeric.ip-address.haproxy"
+    },
+    "wildcard-bind": {
+      "match": "\\b\\*:\\d{1,5}\\b",
+      "name": "constant.numeric.wildcard-bind.haproxy"
+    },
+    "ciphers": {
+      "match": "\\bciphers\\s+[^\\b]+\\b",
+      "name": "string.other.ciphers.haproxy"
+    },
+    "numeric-constants": {
+      "match": "\\b(\\d+|(\\d+)s)\\b",
+      "name": "constant.numeric.haproxy"
+    },
+    "stick-table-params": {
+      "match": "\\b(key|server_id|gpc0|gpc0_rate|gpc1|gpc1_rate|conn_cnt|conn_cur|conn_rate|sess_cnt|sess_rate|http_req_cnt|http_req_rate|http_err_cnt|http_err_rate|bytes_in_cnt|bytes_in_rate|bytes_out_cnt|bytes_out_rate)\\b",
+      "name": "constant.language.stick-table.haproxy"
+    },
+    "sections": {
+      "match": "\\b^(aggregations|backend|defaults|frontend|global|listen|peers|resolvers|userlist)\\b",
+      "name": "support.class.section.haproxy"
+    },
+    "keywords": {
+      "match": "\\b(accepted_payload_size|acl|appsession|backlog|balance|bind|bind-process|block|ca-base|chroot|compression|cookie|cpu-map|crt-base|daemon|default-server|default_backend|description|disabled|dispatch|enabled|errorfile|errorloc|errorloc302|errorloc303|force-persist|from|fullconn|grace|hash-type|hold|id|ignore-persist|lua-load|log-format|log|mode|monitor\\s+fail|monitor-net|monitor-uri|nameserver|nbproc|peer|persist\\s+rdp-cookie|rate-limit\\s+sessions|redirect|reqadd|reqallow|reqdel|reqdeny|reqiallow|reqidel|reqideny|reqipass|reqirep|reqisetbe|reqitarpit|reqpass|reqrep|reqsetbe|reqtarpit|resolution_pool_size|resolve_retries|retries|rspadd|rspdel|rspdeny|rspidel|rspideny|rspirep|rsprep|server|source|ssl-default-bind-(ciphers|options)|timeout|to|unique-id-(format|header)|use(_backend|-server))\\b",
+      "name": "keyword.other.haproxy"
+    },
+    "parameters-as-keywords": {
+      "match": "^\\s*\\b(maxconn)\\b|^\\s*\\b(user)\\b|^\\s*\\b(group)\\b",
+      "name": "keyword.other.parameter.haproxy"
+    },
+    "capture-combinations": {
+      "match": "\\b(capture\\s+(cookie|request\\s+header|response\\s+header))\\b",
+      "name": "keyword.other.capture.haproxy"
+    },
+    "http-status-strings": {
+      "match": "\\b(status|rstatus|rstring|string)\\s+.+",
+      "name": "string.quoted.double.haproxy"
+    },
+    "http-keyword-combinations": {
+      "match": "\\b(http-check\\s+(disable-on-404|expect|send-state)|http-(request|response))\\b",
+      "name": "keyword.other.http.haproxy"
+    },
+    "option-keyword-combinations": {
+      "match": "\\b(option\\s+(abortonclose|accept-invalid-http-request|accept-invalid-http-response|allbackups|checkcache|clitcpka|contstats|dontlog-normal|dontlognull|forceclose|forwardfor|http-no-delay|http-pretend-keepalive|http-server-close|http-use-proxy-header|httpchk|httpclose|httplog|http_proxy|independent-streams|ldap-check|log-health-checks|log-separate-errors|logasap|mysql-check|pgsql-check|nolinger|originalto|persist|redispatch|redis-check|smtpchk|socket-stats|splice-auto|splice-request|splice-response|srvtcpka|ssl-hello-chk|tcp-check|tcp-smart-accept|tcp-smart-connect|tcpka|tcplog|transparent))\\b",
+      "name": "keyword.other.option.haproxy"
+    },
+    "stats-keyword-combinations": {
+      "match": "\\b(stats\\s+(admin|auth|bind-process|enable|hide-version|http-request|realm|refresh|scope|show-desc|show-legends|show-node|socket|timeout|uri))\\b",
+      "name": "keyword.other.stats.haproxy"
+    },
+    "stick-keyword-combinations": {
+      "match": "\\b(stick\\s+(match|on|store-request|store-response)|stick-table)\\b",
+      "name": "keyword.other.stick.haproxy"
+    },
+    "tcp-keyword-combinations": {
+      "match": "\\b(tcp-request\\s+(connection|content|inspect-delay)|tcp-response\\s+(content|inspect-delay))\\b",
+      "name": "keyword.other.tcp.haproxy"
+    },
+    "timeout-keyword-combinations": {
+      "match": "\\b(timeout\\s+(check|client|connect|http-keep-alive|http-request|queue|server|tarpit|tunnel))\\b",
+      "name": "keyword.other.timeout.haproxy"
+    },
+    "quoted-strings": {
+      "match": "\".*\"",
+      "name": "string.quoted.double.haproxy"
+    },
+    "subcommand-functions": {
+      "match": "\\b(add-header|admin|append-slash|backup|ca-file|check|code|connect|crt|debug|del-header|drop-query|error-limit|found|group|http|https|insecure-password|len|level|maxconn|mark-down|notice|no-sslv3|nx|obsolete|on-error|on-marked-up|optional|origin|other|path_beg|port|prefix|refused|resolve|retry|rise|roundrobin|scheme|set-header|shutdown-backup-sessions|ssl|status|tcp|timeout|tune|use-service|user|valid|verify)\\b",
+      "name": "support.variable.haproxy"
+    },
+    "subcommand-add-set-del": {
+      "match": "\\b(add-(header|acl|map|var)|del-(acl|header|map|var)|set-(header|nice|log-level|path|query|uri|tos|mark|priority-classs|priority-offset|var)|replace-(header|value))\\b",
+      "name": "support.variable.haproxy"
+    },
+    "operators": {
+      "match": "\\s+(or|\\|\\||!)\\s+",
+      "name": "keyword.operator.haproxy"
+    },
+    "control-flow": {
+      "match": "\\b(if|unless|rewrite)\\b",
+      "name": "keyword.control.haproxy"
+    },
+    "parameters": {
+      "match": "%\\[[^\\]]+\\]",
+      "name": "variable.parameter.haproxy"
+    },
+    "functions": {
+      "match": "\\b(capture\\.(req|res)\\.hdr|http_auth)\\b",
+      "name": "entity.name.function.haproxy"
+    },
+    "paths": {
+      "match": "\\/[\\w\\.\\-\\?=]+",
+      "name": "variable.parameter.path.haproxy"
+    }
+  }
+}

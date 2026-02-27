@@ -6,6 +6,7 @@ vi.mock('shiki', () => {
     createHighlighter: vi.fn(async () => {
       return {
         loadLanguage: vi.fn(async () => undefined),
+        getLoadedLanguages: vi.fn(() => []),
         codeToHast: (_code: string) => {
           const highlightedPre: Element = {
             type: 'element',
