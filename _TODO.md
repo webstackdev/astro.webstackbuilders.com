@@ -149,8 +149,6 @@ See comp images in Breadcrumbs component directory
 
 - Need to be able to highlight the title in a code block to copy it, or at least have a "copy" wrapper on it
 
-- The code language is in the tab order and getting focus-visible
-
 ## Callout Issues
 
 - When adding backticks in a callout, it gets the standard grey background for a code block in light theme. But it should get an offset of the callout color, like "info-offset".
