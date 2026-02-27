@@ -101,6 +101,8 @@ The symptoms are usually obvious: Prometheus restarts repeatedly (OOM killed), m
 **First priority: get Prometheus running again, even if degraded.** Restart the pod to clear the head block and start fresh. If it immediately OOMs again, temporarily increase memory limits—you need monitoring back online before you can diagnose anything.
 
 ```bash title="stabilization.sh"
+#!/bin/bash
+
 # Restart Prometheus (clears head block, gives temporary breathing room)
 kubectl rollout restart deployment/prometheus -n monitoring
 

@@ -212,6 +212,8 @@ __Backend migration failures__ are the worst because they can leave you with sta
 When something seems wrong, these commands help diagnose the problem:
 
 ```bash title="state-diagnostics.sh"
+#!/bin/bash
+
 # Pull state locally for inspection
 terraform state pull > state_backup.json
 
@@ -262,6 +264,8 @@ The most common recovery scenario: you try to run Terraform and get a lock error
 Before force-unlocking, verify the lock holder is actually dead. Check your CI system for running jobs. Check with teammates. The lock message tells you who holds it and when it was acquired — if it's from hours ago and you're confident nothing is running, it's safe to force unlock.
 
 ```bash title="force-unlock.sh"
+#!/bin/bash
+
 # The lock error message includes the lock ID you need
 # Error: Error acquiring the state lock
 # Lock Info:
@@ -278,6 +282,8 @@ Code: Releasing an orphaned state lock.
 If `force-unlock` doesn't work (rare, but happens with backend issues), you can delete the lock directly as a last resort:
 
 ```bash title="emergency-lock-deletion.sh"
+#!/bin/bash
+
 # AWS S3 + DynamoDB backend
 aws dynamodb delete-item \
   --table-name terraform-state-locks \
@@ -344,6 +350,8 @@ This creates HCL configuration based on the imported resource's current attribut
 Sometimes you need to manipulate state without touching real infrastructure: renaming resources during refactoring, removing resources that Terraform should no longer manage, or moving resources between modules.
 
 ```bash title="state-surgery.sh"
+#!/bin/bash
+
 # Remove resource from state (keeps actual cloud resource)
 # Use when something else should manage this resource
 terraform state rm aws_instance.legacy_server
@@ -367,6 +375,8 @@ Always run `terraform plan` after state surgery to verify the result. A successf
 When state is severely corrupted or completely lost, you need to restore from backup. This is why S3 versioning matters.
 
 ```bash title="state-recovery.sh"
+#!/bin/bash
+
 # List available versions
 aws s3api list-object-versions \
   --bucket mycompany-terraform-state \

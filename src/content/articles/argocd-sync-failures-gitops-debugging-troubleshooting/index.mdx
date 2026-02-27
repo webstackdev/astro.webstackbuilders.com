@@ -98,6 +98,8 @@ When sync fails, resist the urge to poke at random things. A systematic approach
 Start broad and narrow down:
 
 ```bash title="debug-argocd-sync.sh"
+#!/bin/bash
+
 # Get application status overview
 argocd app get myapp
 
@@ -124,6 +126,8 @@ The `--show-operation` flag shows which phase the sync is in. "Running PreSync h
 ArgoCD has several components, each handling different parts:
 
 ```bash title="check-argocd-logs.sh"
+#!/bin/bash
+
 # Application controller logs (sync decisions, health checks)
 kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller | grep "myapp"
 
@@ -139,6 +143,8 @@ Most sync failures show up in application-controller logs. If you're seeing "man
 ArgoCD reports what Kubernetes tells it. Verify what's actually happening:
 
 ```bash title="inspect-kubernetes-state.sh"
+#!/bin/bash
+
 # Check pod status and events
 kubectl get pods -n myapp
 kubectl describe pod -n myapp -l app=myapp
@@ -155,6 +161,8 @@ The `kubectl describe` Events section is often the most useful—it shows why po
 ArgoCD provides options for testing before committing:
 
 ```bash title="test-argocd-fix.sh"
+#!/bin/bash
+
 # Dry-run to see what would happen
 argocd app sync myapp --dry-run
 

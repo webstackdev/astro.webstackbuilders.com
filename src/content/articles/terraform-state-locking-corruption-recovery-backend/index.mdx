@@ -39,6 +39,8 @@ When something seems wrong, start by ruling out configuration problems. Run `ter
 For state-specific diagnostics:
 
 ```bash title="state-diagnostics.sh"
+#!/bin/bash
+
 # Pull state locally for inspection
 terraform state pull > state_backup.json
 
@@ -66,6 +68,8 @@ The most common recovery: you try to run Terraform and get a lock error, but nob
 Before force-unlocking, verify the lock holder is actually dead. Check your CI system for running jobs. Check with teammates. The lock message tells you who holds it and when it was acquired — if it's from hours ago and you're confident nothing is running, it's safe to proceed.
 
 ```bash title="force-unlock.sh"
+#!/bin/bash
+
 # The lock error message includes the lock ID you need
 terraform force-unlock 550e8400-e29b-41d4-a716-446655440000
 ```
@@ -75,6 +79,8 @@ Code: Releasing an orphaned state lock.
 If `force-unlock` doesn't work, you can delete the lock directly as a last resort:
 
 ```bash title="emergency-lock-deletion.sh"
+#!/bin/bash
+
 # AWS S3 + DynamoDB backend
 aws dynamodb delete-item \
   --table-name terraform-state-locks \
@@ -97,6 +103,8 @@ Code: Emergency lock deletion for different backends.
 When resources exist in your cloud account but not in state — either because they were created outside Terraform or because state lost track of them — you need to import them.
 
 ```bash title="import-resource.sh"
+#!/bin/bash
+
 terraform import aws_vpc.main vpc-0123456789abcdef0
 ```
 
@@ -125,6 +133,8 @@ Run `terraform plan` to preview, then `terraform apply` to execute. If you don't
 Import handles resources missing from state. But sometimes resources are _in_ state and just need reorganizing — you're refactoring modules, renaming resources, or handing off a resource to a different team. State surgery lets you restructure the state file without affecting the actual cloud infrastructure.
 
 ```bash title="state-surgery.sh"
+#!/bin/bash
+
 # Remove resource from state (keeps actual cloud resource)
 terraform state rm aws_instance.legacy_server
 
@@ -144,6 +154,8 @@ Always run `terraform plan` after state surgery. A successful operation should s
 When state is severely corrupted, restore from backup. This is why S3 versioning matters.
 
 ```bash title="state-recovery.sh"
+#!/bin/bash
+
 # List available versions
 aws s3api list-object-versions \
   --bucket mycompany-terraform-state \

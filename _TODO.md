@@ -243,6 +243,8 @@ See comp images in Breadcrumbs component directory
 
 - Newsletter component "home" and "page" variants needs work on spacing, "home" needs image added
 
+- Determine if any of the python code blocks should have `#!/bin/python` added
+
 ## Header
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.

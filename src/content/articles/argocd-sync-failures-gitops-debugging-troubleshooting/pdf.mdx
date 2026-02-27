@@ -226,6 +226,8 @@ When a dependency is missing, pods fail to start with characteristic error messa
 The fix is usually straightforward: put the dependency in an earlier sync wave. But first you need to identify which dependency is missing:
 
 ```bash title="debug-dependency-failure.sh"
+#!/bin/bash
+
 # Check what secrets a deployment needs
 kubectl get deployment app -o jsonpath='{.spec.template.spec.containers[*].envFrom[*].secretRef.name}'
 
@@ -402,6 +404,8 @@ Now that you understand _what_ can fail, let's talk about _how_ to investigate w
 Start broad and narrow down. The ArgoCD CLI gives you a quick overview of what's happening:
 
 ```bash title="debug-step-1.sh"
+#!/bin/bash
+
 # Get application status overview
 argocd app get myapp
 
@@ -425,6 +429,8 @@ The `--show-operation` flag shows the current or last sync operation, including 
 Once you know roughly where the failure is, check the logs for the relevant ArgoCD component. ArgoCD has several pods, and each handles different parts of the sync process:
 
 ```bash title="debug-step-2.sh"
+#!/bin/bash
+
 # ArgoCD application controller logs (sync decisions)
 kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller -f
 
@@ -455,6 +461,8 @@ Most sync failures show up in the application-controller logs. If your issue is 
 ArgoCD's view of the world comes from Kubernetes, so when ArgoCD reports a problem, verify what's actually happening in the cluster. Sometimes ArgoCD's status is stale, or the problem is a Kubernetes issue that ArgoCD is just reporting.
 
 ```bash title="debug-step-3.sh"
+#!/bin/bash
+
 # Check deployment rollout status
 kubectl rollout status deployment/app -n myapp
 
@@ -480,6 +488,8 @@ The `kubectl describe` output for pods is often the most useful. Look at the Eve
 Once you understand the failure, you need to fix it and verify the fix works. ArgoCD provides several options for testing changes before committing them:
 
 ```bash title="debug-step-4.sh"
+#!/bin/bash
+
 # Dry-run sync to see what would happen
 argocd app sync myapp --dry-run
 
@@ -899,6 +909,8 @@ ArgoCD doesn't deploy your YAML files directly—it renders them through Helm, K
 The most common surprise is values resolution in Helm. ArgoCD might be using different values files than you're testing locally, or environment-specific overrides might not be applied in the order you expect.
 
 ```bash title="debug-manifest-generation.sh"
+#!/bin/bash
+
 # See what ArgoCD generates from your repo
 argocd app manifests myapp
 
@@ -927,6 +939,8 @@ The `argocd app manifests` command is your friend here—it shows you exactly wh
 Sometimes ArgoCD's internal state becomes inconsistent with reality. This can happen after failed upgrades, network partitions, or manual resource modifications that confuse the controller. The symptoms vary—perpetual OutOfSync, missing resources in the UI, or sync operations that silently do nothing.
 
 ```bash title="recovery-commands.sh"
+#!/bin/bash
+
 # Step 1: Try this first - force refresh from Git
 argocd app get myapp --hard-refresh
 

@@ -480,6 +480,7 @@ When mTLS fails, you need to inspect certificates, verify trust chains, and some
 
 ```bash title="mtls-diagnostics.sh"
 #!/bin/bash
+
 # Set POD to the name of your problematic pod
 POD="your-pod-name"
 
@@ -513,6 +514,8 @@ kubectl exec -it $POD -c istio-proxy -- \
 For deeper debugging, enable debug logging on the Envoy proxy:
 
 ```bash
+#!/bin/bash
+
 # Increase log level for TLS debugging
 kubectl exec $POD -c istio-proxy -- \
   curl -X POST localhost:15000/logging?level=debug
@@ -568,6 +571,8 @@ kubectl rollout restart deployment/istiod -n istio-system
 3. _Verify workload certificates rotated_:
 
 ```bash
+#!/bin/bash
+
 for pod in $(kubectl get pods -l app=my-service -o name); do
   kubectl exec $pod -c istio-proxy -- \
     cat /etc/certs/cert-chain.pem | openssl x509 -noout -dates

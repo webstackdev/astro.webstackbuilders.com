@@ -122,6 +122,8 @@ Knowing drift happens isn't enough—you need to catch it before it causes probl
 The `helm-diff` plugin is the quickest way to compare Helm's view against cluster reality. It shows what would change on an upgrade, but more importantly for drift detection, it can compare the current release against live state.
 
 ```bash title="drift-check.sh"
+#!/bin/bash
+
 # Install the plugin once
 helm plugin install https://github.com/databus23/helm-diff
 
@@ -334,6 +336,8 @@ _Rolling namespace upgrades_ work well for multi-tenant deployments where each n
 For zero-downtime requirements on stateless services, you can run two releases side-by-side:
 
 ```bash
+#!/bin/bash
+
 # Deploy new version as separate release
 helm install my-app-v2 ./my-chart \
   --namespace production \

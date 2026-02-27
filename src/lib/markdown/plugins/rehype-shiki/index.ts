@@ -2,7 +2,7 @@ import type { Root, Element, Parent, Text } from 'hast'
 import type { Plugin } from 'unified'
 import { visit } from 'unist-util-visit'
 import { createHighlighter } from 'shiki'
-import { formatLanguageLabel } from '@lib/config/codeBlocks'
+import { formatLanguageLabel } from '../../../config/codeBlocks'
 
 type ShikiThemes =
   | string
