@@ -214,3 +214,34 @@ test('compiles to markdown', async () => {
 
   expect(value1).toBe(value2)
 })
+
+describe('heading exclusion', () => {
+  it('does not wrap abbreviations inside headings', async () => {
+    const { value } = await render(dedent`
+      # Understanding the HTML Specification
+
+      The HTML specification is important.
+
+      *[HTML]: HyperText Markup Language
+    `)
+    // Heading should contain plain text, no <abbr>
+    expect(value).toContain('<h1>Understanding the HTML Specification</h1>')
+    // Body paragraph should still get <abbr>
+    expect(value).toContain('<abbr title="HyperText Markup Language">HTML</abbr>')
+  })
+
+  it('skips all heading levels (h1–h6)', async () => {
+    const { value } = await render(dedent`
+      ## HTML in h2
+
+      ### HTML in h3
+
+      HTML in paragraph.
+
+      *[HTML]: HyperText Markup Language
+    `)
+    expect(value).toContain('<h2>HTML in h2</h2>')
+    expect(value).toContain('<h3>HTML in h3</h3>')
+    expect(value).toContain('<abbr title="HyperText Markup Language">HTML</abbr>')
+  })
+})

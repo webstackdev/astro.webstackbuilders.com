@@ -89,6 +89,12 @@ function replaceAbbreviations(
   // Visit all nodes that have children
   visit(tree, node => {
     const parentNode = node as Parent
+
+    // Skip headings — abbreviation markup interferes with heading anchors and ToC
+    if ('type' in node && node.type === 'heading') {
+      return SKIP
+    }
+
     if (!parentNode.children) {
       return CONTINUE
     }

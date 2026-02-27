@@ -1,13 +1,6 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-Clear All Workspace Chats
-
-## Case Study page layout example
-
-https://www.meteorops.com/case-studies/deploy-identical-development-and-production-environments-using-terraform
-https://www.meteorops.com/case-studies
-
 ## E2E Files with Skipped Tests
 
 Blocked Categories (44 tests):
@@ -31,17 +24,6 @@ Axe accessibility (2) - axe-core integration
 - Code/CodeBlock
 - Code/CodeTabs
 - Consent/Checkbox
-
-## Newsletter future plans
-
-- Make the Newsletter a list view page
-- Add newsletters as Markdown. Publish to HubSpot from Markdown over API?
-
-## Testimonials on mobile
-
-We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.
-
-`test/e2e/specs/04-components/testimonials.spec.ts`:244:3 › Testimonials Component › @ready testimonials auto-rotate changes slide index
 
 ## Youtube video for Backstage IDP hero on Home page
 
@@ -104,10 +86,6 @@ if (window.matchMedia) {
 
 - Show article titles only in drop-down search result box, and dedupe results
 
-## Mobile Table of Contents
-
-There are six examples of TOC drawers on mobile. We have an implementation currently, but it's not very good. We should improve the component to use one of the patterns show in the examples.
-
 ## ToolTips
 
 Need a tooltip component for consistency. List to add tooltips to:
@@ -118,6 +96,13 @@ Need a tooltip component for consistency. List to add tooltips to:
 - "Report a Bug" in footer
 - RSS feed icon in footer
 
+## Support Pages to Style
+
+- /404
+- /search
+- Bug reporter modal
+- Email templates
+
 ## Theming and improving Mermaid diagrams
 
 [rerender diagrams when I switched color-scheme](https://github.com/mermaid-js/mermaid/issues/1945)
@@ -127,37 +112,11 @@ Need a tooltip component for consistency. List to add tooltips to:
 https://mermaid.js.org/config/theming.html
 https://mermaid.js.org/config/directives.html
 
-## Support Pages to Style
+## Todo
 
-- /
-- /404
-- /about
-- /contact
-- /newsletter
-- /newsletter/confirm/[token]
-- /offline
-- /search
-- /tags/[tag]
-- Bug reporter modal
-- Email templates
-
-## Breadcrumb visual improvements
-
-See comp images in Breadcrumbs component directory
-
-## OL / UL Lists
-
-- The spacing on unordered task lists nested in an ordered list is wrong, see "Questions to Ask Before Setting Targets" in `src/content/articles/availability-targets-five-nines-cost-benefit-analysis/index.mdx`
-
-- Numbering for ordered lists breaks when there are code blocks in between numbered list elements, like in `src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx`
-
-## Checklist
+- See comp images in Breadcrumbs component directory for visual improvements
 
 - Text code blocks have weird formatting: `src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx` that one seems like it should be some other kind of display, not a text code block.
-
-- You can click the anchor link that shows on headers to get a copy of the link. It should be that you can click anywhere in the header and copy the link.
-
-- Need to make tables responsive on mobile
 
 - Need to stop system from adding abbreviation html when used in headings, also the `abbr` presentation needs improved - right now it gives a question mark pointer and long delay to appear
 
