@@ -98,7 +98,7 @@ Need a tooltip component for consistency. List to add tooltips to:
 
 ## Support Pages to Style
 
-- /404
+- /404 (should show search results based on query)
 - /search
 - Bug reporter modal
 - Email templates
@@ -130,25 +130,15 @@ https://mermaid.js.org/config/directives.html
 
 - Add a copyright notice to content
 
-- Add PDF download image to download CTA, it's in the directory
-
 - Time in prose is causing a line break, and the colon and minutes to be removed - "2:47 AM" in `src/content/articles/mtls-certificate-rotation-service-mesh-authentication/pdf.mdx`. Times like "11:59:59" are breaking across two lines - `src/content/articles/rate-limiting-token-bucket-leaky-bucket-implementation/index.mdx` in "Algorithm Overview" section
 
-- Should we exclude "Footnotes" from the ToC list? Right now it shows at the bottom if there's a Footnotes H2.
+- We need to exclude "Footnotes" from the ToC list of links. Right now it shows at the bottom if there's a Footnotes H2 (footnotes in the article).
 
 - If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button. Think this workflow through - maybe a "Short / Deep-Dive" slider button on top and don't show the CTA + the PDF download button.
 
-- The articles list page should show tags at top for quick navigation. There's another note about this. Show the count of articles per tag unless they're all the same on the tag.
-
-- 404 page should show search results based on query
+- The articles list page should show tags at top for quick navigation. Show the count of articles per tag unless they're all the same on the tag.
 
 - Update EXIF data on all AI generated JPGs
-
-- When you click a link to a heading anchor, the heading is hidden by the page header now that it's stickied to the page
-
-- The Newsletter token page spins forever. It should time out and show an error page at some point.
-
-- Need a secret token to bypass the waiting state for the Newsletter token page, so we can style it. Set it via env var.
 
 - Details dd / dt in Markdown need bottom margin
 

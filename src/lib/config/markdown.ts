@@ -85,6 +85,9 @@ Object.defineProperty(remarkDirective, 'name', { value: 'remarkDirective' })
 import remarkVideo, { type Config as RemarkVideoConfig } from 'remark-video'
 Object.defineProperty(remarkVideo, 'name', { value: 'remarkVideo' })
 
+import remarkRestoreTimeColons from '../markdown/plugins/remark-restore-time-colons'
+Object.defineProperty(remarkRestoreTimeColons, 'name', { value: 'remarkRestoreTimeColons' })
+
 import remarkMarkPlus from '../markdown/plugins/remark-mark-plus'
 Object.defineProperty(remarkMarkPlus, 'name', { value: 'remarkMarkPlus' })
 
@@ -400,6 +403,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     remarkDirective,
     /** HTML5 video via MDX-safe :::video directive blocks */
     [remarkVideo, remarkVideoConfig],
+    /** Restore numeric-only directive nodes (e.g. :59 from "11:59:59") back to text */
+    remarkRestoreTimeColons,
     /** Automatically convert URL-like text to links */
     remarkLinkifyRegexUrls,
     /**
