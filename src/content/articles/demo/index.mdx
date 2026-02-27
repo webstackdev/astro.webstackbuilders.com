@@ -461,6 +461,34 @@ This is a note callout.
 This is a note callout.
 </Callout>
 
+````markdown
+<Callout type="note">
+Codeblock in a Callout
+
+```bash
+#!/bin/bash
+
+ls
+```
+</Callout>
+````
+
+<Callout type="success">
+Codeblock in a Callout
+
+```typescript
+export async function getStaticPaths() {
+  const articleEntries = await getCollection('articles', ({ data }) => {
+    return isDev() || data.isDraft !== true
+  })
+  return articleEntries.map(article => ({
+    params: { slug: article.id },
+    props: { article },
+  }))
+}
+```
+</Callout>
+
 ## Captions
 
 By default it wraps the elements code, image, and table in a `<figure>` element, and adds a `<figcaption>` block as the last child. You can configure it to work on other elements by changing the keywords. Provided by teh `remark-captions` plugin.

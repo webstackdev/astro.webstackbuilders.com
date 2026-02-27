@@ -145,16 +145,6 @@ https://mermaid.js.org/config/directives.html
 
 See comp images in Breadcrumbs component directory
 
-## Code Block Problems
-
-- Need to be able to highlight the title in a code block to copy it, or at least have a "copy" wrapper on it
-
-## Callout Issues
-
-- When adding backticks in a callout, it gets the standard grey background for a code block in light theme. But it should get an offset of the callout color, like "info-offset".
-
-- There's too much space at the bottom of callouts, a full line of extra space in the colored background area.
-
 ## OL / UL Lists
 
 - The spacing on unordered task lists nested in an ordered list is wrong, see "Questions to Ask Before Setting Targets" in `src/content/articles/availability-targets-five-nines-cost-benefit-analysis/index.mdx`
@@ -162,6 +152,8 @@ See comp images in Breadcrumbs component directory
 - Numbering for ordered lists breaks when there are code blocks in between numbered list elements, like in `src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx`
 
 ## Checklist
+
+- Text code blocks have weird formatting: `src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx` that one seems like it should be some other kind of display, not a text code block.
 
 - You can click the anchor link that shows on headers to get a copy of the link. It should be that you can click anywhere in the header and copy the link.
 
