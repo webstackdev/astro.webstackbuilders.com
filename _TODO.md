@@ -147,8 +147,6 @@ See comp images in Breadcrumbs component directory
 
 ## Code Block Problems
 
-- The "❌" symbol is not showing in sql code block, it's rendering as a plain "X". But "✅" renders okay. `src/content/articles/database-schema-migrations-continuous-deployment-zero-downtime/index.mdx`
-
 - Need to be able to highlight the title in a code block to copy it, or at least have a "copy" wrapper on it
 
 - The code language is in the tab order and getting focus-visible
@@ -182,8 +180,6 @@ See comp images in Breadcrumbs component directory
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
 
 - Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`
-
-- Add a cloud of tags on articles list view at top for quick navigation. Add a ToC for featured tags so it's available on mobile, but with something different on desktop view - maybe hide tag cloud on mobile, and show it with an HR between all tags cloud and featured on desktop.
 
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
@@ -239,10 +235,6 @@ See comp images in Breadcrumbs component directory
 
 - The right-hand browser vertical scroll bar is hidden under the header
 
-## Reading position indicator
-
-[Add scroll bar under header](https://css-tricks.com/reading-position-indicator/) to show how far down you are on the page while reading
-
 ## Print
 
 - Need a workflow to generate PDF files from Markdown for downloads.
@@ -265,12 +257,9 @@ See comp images in Breadcrumbs component directory
 
 This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
 
-
 ## Downloads / Gated Content
 
-We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-form articles. Make that path SSR loaded so we can check if they've given their e-mail address.
-
-- Add a Pages layout for Articles so that we can use it for both the `/articles` and `/articles/pdf` content collections.
+- We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-form articles. Make that path SSR loaded so we can check if they've given their e-mail address.
 
 - If they haven't and they get to the path from sharing a link or something, we should use the `index.astro` file in that directory to explain that they've accessed gated content, and ask for their e-mail address. Then redirect to the content they want when they give it.
 

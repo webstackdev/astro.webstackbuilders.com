@@ -11,6 +11,14 @@ import remarkCodeTabs from '@lib/markdown/plugins/remark-code-tabs'
 import rehypeCodeTabs from '@lib/markdown/plugins/rehype-code-tabs'
 import { unified } from 'unified'
 
+function isElementNode(node: unknown): node is Element {
+  return (
+    !!node &&
+    typeof node === 'object' &&
+    (node as Element).type === 'element'
+  )
+}
+
 describe('3-block code-tabs grouping', () => {
   it('groups 3 consecutive same-group blocks (remark pipeline)', async () => {
     const md = [
@@ -71,15 +79,17 @@ describe('3-block code-tabs grouping', () => {
     const processor = unified().use(rehypeCodeTabs)
     await processor.run(tree as never)
 
-    const elements = tree.children.filter(
-      c => (c as Element).type === 'element'
-    ) as Element[]
+    const elements = tree.children.filter(isElementNode)
 
     console.log('Elements:', elements.map(e => `${e.tagName}(${e.children?.length})`))
 
     expect(elements.length, 'Should have exactly 1 top-level element').toBe(1)
-    expect(elements[0].tagName).toBe('code-tabs')
-    expect(elements[0].children.length, 'code-tabs should contain all 3 pre blocks').toBe(3)
+    const wrapper = elements[0]
+    expect(wrapper).toBeDefined()
+    if (!wrapper) return
+
+    expect(wrapper.tagName).toBe('code-tabs')
+    expect(wrapper.children.length, 'code-tabs should contain all 3 pre blocks').toBe(3)
   })
 
   it('unwraps figure-wrapped grouped code blocks and groups them', async () => {
@@ -127,16 +137,18 @@ describe('3-block code-tabs grouping', () => {
     const processor = unified().use(rehypeCodeTabs)
     await processor.run(tree as never)
 
-    const elements = tree.children.filter(
-      c => (c as Element).type === 'element'
-    ) as Element[]
+    const elements = tree.children.filter(isElementNode)
 
     expect(elements.length, 'Should have exactly 1 top-level element').toBe(1)
-    expect(elements[0].tagName).toBe('code-tabs')
-    expect(elements[0].children.length, 'code-tabs should contain all 3 pre blocks').toBe(3)
+    const wrapper = elements[0]
+    expect(wrapper).toBeDefined()
+    if (!wrapper) return
+
+    expect(wrapper.tagName).toBe('code-tabs')
+    expect(wrapper.children.length, 'code-tabs should contain all 3 pre blocks').toBe(3)
     // Verify all children are <pre> (not figure)
-    expect(elements[0].children.every(
-      (c: Element) => c.tagName === 'pre'
+    expect(wrapper.children.every(
+      c => isElementNode(c) && c.tagName === 'pre'
     )).toBe(true)
   })
 
@@ -174,14 +186,16 @@ describe('3-block code-tabs grouping', () => {
     const processor = unified().use(rehypeCodeTabs)
     await processor.run(tree as never)
 
-    const elements = tree.children.filter(
-      c => (c as Element).type === 'element'
-    ) as Element[]
+    const elements = tree.children.filter(isElementNode)
 
     // The figure should be left alone (not unwrapped)
     // The pre inside gets standalone-wrapped in code-tabs
     expect(elements.length).toBe(1)
+    const figure = elements[0]
+    expect(figure).toBeDefined()
+    if (!figure) return
+
     // The figure stays as-is, and the standalone wrapping happens inside it
-    expect(elements[0].tagName).toBe('figure')
+    expect(figure.tagName).toBe('figure')
   })
 })
