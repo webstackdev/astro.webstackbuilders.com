@@ -130,8 +130,6 @@ https://mermaid.js.org/config/directives.html
 
 - Add a copyright notice to content
 
-- Time in prose is causing a line break, and the colon and minutes to be removed - "2:47 AM" in `src/content/articles/mtls-certificate-rotation-service-mesh-authentication/pdf.mdx`. Times like "11:59:59" are breaking across two lines - `src/content/articles/rate-limiting-token-bucket-leaky-bucket-implementation/index.mdx` in "Algorithm Overview" section
-
 - We need to exclude "Footnotes" from the ToC list of links. Right now it shows at the bottom if there's a Footnotes H2 (footnotes in the article).
 
 - If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button. Think this workflow through - maybe a "Short / Deep-Dive" slider button on top and don't show the CTA + the PDF download button.

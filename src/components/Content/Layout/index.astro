@@ -80,21 +80,23 @@ const { author, article, path, readingTime, section } = Astro.props
     aria-labelledby="article-share-title"
     slot="after-content"
   >
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-      <div>
-        <h2 class="text-lg font-semibold mb-2" id="article-share-title">
+    <WebMentions url={`https://www.webstackbuilders.com${path}`} />
+    <div class="flex flex-col gap-6">
+      <div class="flex flex-col sm:flex-row sm:justify-start sm:items-center gap-2">
+        <h2
+          class="text-lg font-semibold"
+          id="article-share-title"
+        >
           Share this article
         </h2>
-        <p class="text-content-active text-sm">
+        <p class="text-content-active text-sm sm:text-right sm:ml-6">
           Found this helpful? Share it with others who might benefit.
         </p>
       </div>
-      <WebMentions url={`https://www.webstackbuilders.com${path}`} />
       <Shares
         url={`https://www.webstackbuilders.com${path}`}
         title={article.data.title}
         description={`Read "${article.data.title}" on Webstack Builders`}
-        class="shrink-0"
       />
     </div>
   </section>
