@@ -1,5 +1,6 @@
 import type { ShikiTransformer } from '@shikijs/types'
 import type { Element } from 'hast'
+import { builtinLanguages } from 'shiki'
 import { createCssVariablesTheme } from 'shiki/core'
 import {
   parseMetaHighlightString,
@@ -124,6 +125,7 @@ export const shikiConfigOptions = {
       fontStyle: true,
     }),
   ],
+  /** MathJax handles math code block rendering, MermaidJS handles mermaid code block rendering */
   excludeLangs: ['mermaid', 'math'],
   langAlias,
   wrap: true,

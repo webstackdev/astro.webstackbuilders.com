@@ -147,17 +147,11 @@ See comp images in Breadcrumbs component directory
 
 ## Code Block Problems
 
-- I aliased 'promql' to 'go'. When a code fence using the alias is rendered with the language set to 'promql', it shows as 'go' incorrectly because of the alias.
-
-- We need custom handling for all language names that are displayed:
-1. `html` should be displayed uppercase as `HTML`, `yaml` as `YAML`
-2. `typescript` and its alias `ts` as `TypeScript`, `javascript` and its alias `js` as `JavaScript`
-3. The alias `md` as `Markdown
-4. All languages with their first names uppercased
-
 - The "go" language code block in `src/content/articles/api-versioning-deprecation-sunset-headers-migration/index.mdx` is not being combined with the "typescript", "python", and "ruby" tabbed code block. Same with "python" block in "### Admission Control Strategies" section of `src/content/articles/backpressure-load-shedding-admission-control-overload/index.mdx`, plus the line numbering is weird in the code block.
 
 - The "❌" symbol is not showing in sql code block, it's rendering as a plain "X". But "✅" renders okay. `src/content/articles/database-schema-migrations-continuous-deployment-zero-downtime/index.mdx`
+
+- Need to be able to highlight the title in a code block to copy it, or at least have a "copy" wrapper on it
 
 - Language "haproxy" is not highlighting Shiki, need to adjust allowed languages in config
 
