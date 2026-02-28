@@ -5,9 +5,9 @@ import { formatPhoneNumber } from '@components/Footer/server'
 import Avatar from '@components/Avatar/index.astro'
 import BugReporter from '@components/BugReporter/index.astro'
 import Icon from '@components/Icon/index.astro'
+import Copyright from '@components/Layout/Copyright/index.astro'
 import styles from './footer.module.css'
 
-const year = new Date().getFullYear()
 const socialLinkClasses = [
   'flex',
   'flex-col',
@@ -251,21 +251,7 @@ const iconButtonClasses = [
 
       {/* Page footer Author link and Date */}
       <div class:list={[styles.footerCopyright, 'flex justify-center py-4 sm:p-0 lg:mt-4']}>
-        <span>
-          &copy; 2018&ndash;{year}
-        </span>
-        <span class="ml-4">
-          <a
-            rel="me"
-            href={getSiteUrl()}
-            class:list={[
-              'hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary',
-              'focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2',
-            ]}
-          >
-            {contactData.company.name}
-          </a>
-        </span>
+        <Copyright publishDate={new Date()} />
       </div>
 
       <BugReporter triggerId="bugReporterTrigger" />

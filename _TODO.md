@@ -117,6 +117,14 @@ Need a tooltip component for consistency. List to add tooltips to:
 
 - If they've given their email link, the content switcher button to switch should be enabled.
 
+- We had this copyright statement for articles, it should be in the front matter of PDFs:
+
+```text
+Copyright © 2025 Webstack Builders, Inc.
+The text, diagrams, and images in this work are licensed under CC BY-NC 4.0
+All code samples in this article are licensed under the MIT License. Feel free to use, modify, and distribute them in any project.
+```
+
 ## Search
 
 - How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
