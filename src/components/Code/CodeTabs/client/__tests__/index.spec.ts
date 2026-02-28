@@ -136,10 +136,22 @@ describe('CodeTabs web component', () => {
   it('renders a single tab label for a single named code block', async () => {
     await renderCodeTabs({ variant: 'single' }, ({ element }) => {
       const tabButton = element.querySelector('button[data-code-tabs-button="0"]')
-      expect(tabButton, 'CodeTabs should render a tab button for a single named code block').toBeTruthy()
-      expect(tabButton?.textContent).toBe('TypeScript')
       expect(
-        tabButton?.className.includes('hover:text-content-active'),
+        tabButton,
+        'CodeTabs should not render an interactive tab button for a single named code block'
+      ).toBeNull()
+
+      const singleTabLabel = element.querySelector('span.text-content.select-text.cursor-text')
+      expect(singleTabLabel, 'CodeTabs should render a single-tab label').toBeTruthy()
+      expect(singleTabLabel?.textContent).toBe('TypeScript')
+
+      const copyIconButton = Array.from(element.querySelectorAll('button')).find(
+        button => button.getAttribute('aria-label') === 'Copy "TypeScript"'
+      )
+      expect(copyIconButton, 'CodeTabs should render hover copy button for single-tab label').toBeTruthy()
+
+      expect(
+        singleTabLabel?.className.includes('hover:text-content-active'),
         'Single-tab UI should not change text color on hover'
       ).toBe(false)
     })

@@ -1,0 +1,37 @@
+---
+import Icon from '@components/Icon/index.astro'
+
+export interface Props {
+  publishDate: Date
+}
+
+const { publishDate } = Astro.props
+const publishYear = publishDate.getFullYear()
+---
+
+<div class="flex flex-col text-content-active text-sm mb-6">
+  <div class="flex justify-center">
+    <span class="mr-2">Copyright</span>
+    <Icon
+      icon="copyright"
+      color="content-active"
+      size={4}
+      classes="mt-0"
+    />
+    <span class="ml-2 mr-1">
+      <time datetime={String(publishYear)}>{publishYear}</time>
+    </span>
+    <span class="">Webstack Builders, Inc.</span>
+  </div>
+  <div class="flex justify-center">
+    <span class="mr-1">This work is licensed under</span>
+    <a
+      href="https://creativecommons.org/licenses/by-nc/4.0/"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="underline"
+    >
+      CC BY-NC 4.0
+    </a>
+  </div>
+</div>

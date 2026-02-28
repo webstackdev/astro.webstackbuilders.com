@@ -107,7 +107,19 @@ Need a tooltip component for consistency. List to add tooltips to:
 
 - Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
 
-- If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button. Think this workflow through - maybe a "Short / Deep-Dive" slider button on top and don't show the CTA + the PDF download button.
+## Downloads / Gated Content
+
+- We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading. If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button.
+
+- Make `/deep-dive/` SSR loaded so we can check if they've given their e-mail address.
+
+- If they haven't and they get to the path from sharing a link or something, we should use the `index.astro` file in that directory to explain that they've accessed gated content, and ask for their e-mail address. Then redirect to the content they want when they give it.
+
+- If they've given their email link, the content switcher button to switch should be enabled.
+
+## Search
+
+- How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
 
 ## Theming and improving Mermaid diagrams
 
@@ -132,8 +144,6 @@ https://mermaid.js.org/config/directives.html
 
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
-- Add a copyright notice to content
-
 - The articles list page should show tags at top for quick navigation. Show the count of articles per tag unless they're all the same on the tag.
 
 - Update EXIF data on all AI generated JPGs
@@ -142,21 +152,27 @@ https://mermaid.js.org/config/directives.html
 
 - Highlighter component in Markdown needs better colors in dark theme. It's spotlight color with content text - and there's not much contrast in dark theme between the yellow and white text.
 
-- 'three-column-icon-list' List layout is broken in dark theme
-
-- 'two-column-icon-list' List layout looks bad on dark theme. The bgColor looks good on light theme, but awkward on dark theme.
-
 - Font size on GitHub Gist embed is too small
 
-- Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
-
 - Contact Callout looks awkward in dark theme and needs redone generally
-
-- Download icon on Download Component isn't picking up correct color on dark theme
 
 - Newsletter component "home" and "page" variants needs work on spacing, "home" needs image added
 
 - Determine if any of the python code blocks should have `#!/bin/python` added
+
+- Color headings blue and use the SVG icon instead of the link image.
+
+- Social shares - module CSS doesn't appear correct with nested button hover classes, not sure how network name is generated or styled but it needs improvement. Should be rendered inside article content column, not across both content and TOC columns.
+
+- Focus-visible / active handling on ToC nav items
+
+## List Component
+
+- Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
+
+- 'three-column-icon-list' List layout is broken in dark theme
+
+- 'two-column-icon-list' List layout looks bad on dark theme. The bgColor looks good on light theme, but awkward on dark theme.
 
 ## Header
 
@@ -174,8 +190,6 @@ https://mermaid.js.org/config/directives.html
 
 - We have two print scenarios: black and white, and color for PDF output. Can use two different media queries to accomplish getting colored variables.
 
-- Generate mermaid graphs for PDF from AI image generator to improve looks.
-
 - Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden. The styling should be different for print for the code block. Maybe move other language code tabs to an appendix and add a link to them.
 
 - Need to only load print style sheet when needed.
@@ -186,21 +200,9 @@ https://mermaid.js.org/config/directives.html
 
 This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
 
-## Downloads / Gated Content
-
-- We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-form articles. Make that path SSR loaded so we can check if they've given their e-mail address.
-
-- If they haven't and they get to the path from sharing a link or something, we should use the `index.astro` file in that directory to explain that they've accessed gated content, and ask for their e-mail address. Then redirect to the content they want when they give it.
-
-- If they've given their email link, both the regular article and the deep dive should have a button to switch between the two versions so they don't have to download the PDF version.
-
-- How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
-
-- We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading. If they've already given their e-mail address, they should be able to download it immediately.
-
 ## Content Issues
 
-- "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
+- "### Geographic/Currency Mismatches" in deep-dive/cdn-edge-caching-cache-keys-vary-headers has a table -> callout -> table back to back
 
 - cover.jpg for reliability-and-testing needs touch up in GIMP
 
@@ -208,18 +210,6 @@ This article has different approaches to [print pagination](https://www.customjs
 
 - Need an article on OpenStack
 
-- Add links to the privacy policy page to go to preferences and my-data
-
-- The four service offerings should be clickable links that take you to the Contact page and pre-fill in the form with the service the person is interested in. The Contact project scopes could have the four services offerings and a "general questions" option.
-
-- Sticky the table of contents. It should scroll down to the bottom and then stay in place, and scroll up to the top when scrolling up. Should be pushed up the footer when it comes into the viewpoint on scroll down.
-
-- Color headings blue and use the SVG icon instead of the image. Color if the blue shade.
-
-- Social shares - module CSS doesn't appear correct with nested button hover classes, not sure how network name is generated or styled but it needs improvement. Should be rendered inside article content column, not across both content and TOC columns.
-
 - Add a Social Share on some compelling text in each article
 
-- Move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
-
-- Focus-visible / active handling on ToC nav items
+- Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.

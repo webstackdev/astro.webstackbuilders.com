@@ -1,0 +1,32 @@
+---
+export type Props = {
+  color: string
+  classes?: string
+  size: number
+  accessible: boolean
+  focusable: boolean
+  isListMarker?: boolean
+  id?: string
+}
+
+const { color, classes, size, accessible, focusable, isListMarker, id } = Astro.props
+---
+
+<svg
+  id={id}
+  xmlns="http://www.w3.org/2000/svg"
+  class:list={["shrink-0", `w-${size} h-${size}`, `text-${color}`, classes, isListMarker ? "mt-0.5" : ""]}
+  fill="currentColor"
+  stroke="none"
+  viewBox="0 0 24 24"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
+>
+  {accessible && <title>Copyright Icon</title>}
+  <path
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    d="m 10.8,8.4 h 2.4 a 1.2,1.2 0 0 1 1.2,1.2 1.2,1.2 0 0 0 2.4,0 A 3.6,3.6 0 0 0 13.2,6 H 10.8 A 3.6,3.6 0 0 0 7.2,9.6 v 4.8 a 3.6,3.6 0 0 0 3.6,3.6 h 2.4 a 3.6,3.6 0 0 0 3.6,-3.6 1.2,1.2 0 0 0 -2.4,0 1.2,1.2 0 0 1 -1.2,1.2 H 10.8 A 1.2,1.2 0 0 1 9.6,14.4 V 9.6 A 1.2,1.2 0 0 1 10.8,8.4 Z M 12,0 A 12,12 0 1 0 24,12 12,12 0 0 0 12,0 Z m 0,21.6 A 9.6,9.6 0 1 1 21.6,12 9.6,9.6 0 0 1 12,21.6 Z"
+  ></path>
+</svg>

@@ -122,18 +122,13 @@ describe('SocialShareElement web component', () => {
     )
   })
 
-  test('labels the share group via aria-labelledby', async () => {
+  test('labels the share group via aria-label', async () => {
     await renderComponent(defaultProps, async ({ element }) => {
       const group = element.querySelector('[role="group"]')
       expect(group).toBeTruthy()
 
-      const labelledBy = group?.getAttribute('aria-labelledby')
-      expect(labelledBy).toBeTruthy()
-      expect(group?.getAttribute('aria-label')).toBeNull()
-
-      const label = labelledBy ? element.querySelector(`#${labelledBy}`) : null
-      expect(label).toBeTruthy()
-      expect(label?.textContent?.trim()).toBe('Share:')
+      expect(group?.getAttribute('aria-labelledby')).toBeNull()
+      expect(group?.getAttribute('aria-label')).toBe('Share this content')
     })
   })
 

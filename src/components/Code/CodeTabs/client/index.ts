@@ -8,6 +8,9 @@ import {
   queryCodeBlocks,
   queryCodeElement,
   queryCopyIconElement,
+  queryTitleCheckIconElement,
+  queryTitleCopyIconElement,
+  queryTitleCopyIconSvgs,
 } from './selectors'
 
 const ICON_BANK_ID = 'code-tabs-icon-bank'
@@ -270,15 +273,15 @@ export class CodeTabsElement extends LitElement {
     `
 
     /** Scale icons down to match the label text size */
-    btn.querySelectorAll('svg').forEach(svg => {
+    queryTitleCopyIconSvgs(btn).forEach(svg => {
       svg.classList.remove('w-5', 'h-5')
       svg.classList.add('w-3.5', 'h-3.5')
     })
 
-    btn.addEventListener('click', (e) => {
+    addButtonEventListeners(btn, (e) => {
       e.stopPropagation()
       void this.copyTitleText(btn, text)
-    })
+    }, this)
 
     return btn
   }
@@ -287,8 +290,8 @@ export class CodeTabsElement extends LitElement {
     const copied = await writeToClipboard(text)
     if (!copied) return
 
-    const copy = button.querySelector('[data-title-copy-icon="copy"]')
-    const check = button.querySelector('[data-title-copy-icon="check"]')
+    const copy = queryTitleCopyIconElement(button)
+    const check = queryTitleCheckIconElement(button)
     copy?.classList.add('hidden')
     check?.classList.remove('hidden')
 
