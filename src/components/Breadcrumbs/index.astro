@@ -38,34 +38,31 @@ const breadcrumbSchema =
 {
   breadcrumbs.length > 1 && (
     <div class="min-w-0">
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="flex items-center space-x-2 text-sm sm:text-base text-primary-offset">
-          {breadcrumbs.map((item, index) => (
-            <li class="flex items-center">
-              {index > 0 && (
-                <Icon
-                  icon="arrow-right"
-                  size={4}
-                  color="primary-offset"
-                  classes="mx-2 opacity-60"
-                />
+      <nav aria-label="Breadcrumbs" class="breadcrumbs">
+        <ol class="flex flex-wrap items-center gap-1.5 text-sm text-content">
+          {breadcrumbs.map((item, i) => (
+            <li class="flex items-center gap-1.5">
+              {i > 0 && (
+                <span class="grid grid-cols-2 gap-0.5" aria-hidden="true">
+                  <span class="h-1 w-1 rounded-full bg-gray-300" />
+                  <span class="h-1 w-1 rounded-full bg-gray-300" />
+                  <span class="h-1 w-1 rounded-full bg-gray-300" />
+                  <span class="h-1 w-1 rounded-full bg-gray-300" />
+                </span>
               )}
-
               {item.isCurrentPage ? (
-                <span aria-current="page">
+                <span aria-current="page" class="rounded px-2 py-1 text-xs text-content-inverse bg-page-inverse/90">
                   {item.label}
                 </span>
               ) : (
-                <a
-                  href={item.href}
-                  class="text-inherit underline decoration-current decoration-dotted hover:text-secondary focus-visible:text-secondary focus-visible:no-underline transition-colors duration-200"
-                >
+                <a href={item.href} class="rounded px-2 py-1 text-xs text-gray-900 no-underline transition-colors bg-gray-300 hover:bg-gray-400 hover:text-white focus-visible:text-white focus-visible:bg-gray-400">
                   {item.label}
                 </a>
               )}
             </li>
           ))}
         </ol>
+
         {breadcrumbSchema && (
           <script is:inline type="application/ld+json" set:html={breadcrumbSchema} />
         )}

@@ -1,4 +1,6 @@
 ---
+import Icon from '@components/Icon/index.astro'
+
 export type Props = {
   href: string
 }
@@ -6,4 +8,16 @@ export type Props = {
 const { href } = Astro.props
 ---
 
-<a class="heading-anchor no-underline hover:no-underline focus-visible:no-underline transition-colors" aria-label="Link to this section" href={href} tabindex="-1"><span class="anchor-link text-base sm:text-lg" aria-hidden="true">🔗</span></a>
+<a
+  class="heading-anchor transition-colors"
+  aria-label="Link to this section"
+  href={href}
+  tabindex="-1"
+>
+  <span
+    class="inline-block ml-[0.2rem] opacity-0 transition-opacity duration-200 ease-in-out hover:opacity-100 -translate-y-1 text-base sm:text-lg"
+    aria-hidden="true"
+  >
+    <Icon icon="link" size={6} color="page-inverse" classes="" />
+  </span>
+</a>

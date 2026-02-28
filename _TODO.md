@@ -150,10 +150,6 @@ https://mermaid.js.org/config/directives.html
 
 - Font size on GitHub Gist embed is too small
 
-- Contact Callout looks awkward in dark theme and needs redone generally
-
-- Newsletter component "home" and "page" variants needs work on spacing, "home" needs image added
-
 - Determine if any of the python code blocks should have `#!/bin/python` added
 
 - Color headings blue and use the SVG icon instead of the link image.
