@@ -1,13 +1,6 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-Clear All Workspace Chats
-
-## Case Study page layout example
-
-https://www.meteorops.com/case-studies/deploy-identical-development-and-production-environments-using-terraform
-https://www.meteorops.com/case-studies
-
 ## E2E Files with Skipped Tests
 
 Blocked Categories (44 tests):
@@ -31,17 +24,6 @@ Axe accessibility (2) - axe-core integration
 - Code/CodeBlock
 - Code/CodeTabs
 - Consent/Checkbox
-
-## Newsletter future plans
-
-- Make the Newsletter a list view page
-- Add newsletters as Markdown. Publish to HubSpot from Markdown over API?
-
-## Testimonials on mobile
-
-We have E2E errors again testimonials slide on mobile chrome and safari. I think the problem is that we are pausing carousels when part of the carousel is outside of the viewport, and the testimonials are too large to display on mobile without being off viewport.
-
-`test/e2e/specs/04-components/testimonials.spec.ts`:244:3 › Testimonials Component › @ready testimonials auto-rotate changes slide index
 
 ## Youtube video for Backstage IDP hero on Home page
 
@@ -104,10 +86,6 @@ if (window.matchMedia) {
 
 - Show article titles only in drop-down search result box, and dedupe results
 
-## Mobile Table of Contents
-
-There are six examples of TOC drawers on mobile. We have an implementation currently, but it's not very good. We should improve the component to use one of the patterns show in the examples.
-
 ## ToolTips
 
 Need a tooltip component for consistency. List to add tooltips to:
@@ -118,6 +96,31 @@ Need a tooltip component for consistency. List to add tooltips to:
 - "Report a Bug" in footer
 - RSS feed icon in footer
 
+## Support Pages to Style
+
+- /404 (should show search results based on query)
+- /search
+- Bug reporter modal
+- Email templates
+
+## HubSpot Signup Issues
+
+- Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
+
+## Downloads / Gated Content
+
+- We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading. If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button.
+
+- Make `/deep-dive/` SSR loaded so we can check if they've given their e-mail address.
+
+- If they haven't and they get to the path from sharing a link or something, we should use the `index.astro` file in that directory to explain that they've accessed gated content, and ask for their e-mail address. Then redirect to the content they want when they give it.
+
+- If they've given their email link, the content switcher button to switch should be enabled.
+
+## Search
+
+- How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
+
 ## Theming and improving Mermaid diagrams
 
 [rerender diagrams when I switched color-scheme](https://github.com/mermaid-js/mermaid/issues/1945)
@@ -127,107 +130,49 @@ Need a tooltip component for consistency. List to add tooltips to:
 https://mermaid.js.org/config/theming.html
 https://mermaid.js.org/config/directives.html
 
-## Support Pages to Style
+## Todo
 
-- /
-- /404
-- /about
-- /contact
-- /newsletter
-- /newsletter/confirm/[token]
-- /offline
-- /search
-- /tags/[tag]
-- Bug reporter modal
-- Email templates
+- See comp images in Breadcrumbs component directory for visual improvements
 
-## Breadcrumb visual improvements
+- Add Inset component and convert `text` code blocks to use it.
 
-See comp images in Breadcrumbs component directory
-
-## Code Block Problems
-
-- Need to be able to highlight the title in a code block to copy it, or at least have a "copy" wrapper on it
-
-- The code language is in the tab order and getting focus-visible
-
-## Callout Issues
-
-- When adding backticks in a callout, it gets the standard grey background for a code block in light theme. But it should get an offset of the callout color, like "info-offset".
-
-- There's too much space at the bottom of callouts, a full line of extra space in the colored background area.
-
-## OL / UL Lists
-
-- The spacing on unordered task lists nested in an ordered list is wrong, see "Questions to Ask Before Setting Targets" in `src/content/articles/availability-targets-five-nines-cost-benefit-analysis/index.mdx`
-
-- Numbering for ordered lists breaks when there are code blocks in between numbered list elements, like in `src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx`
-
-## Checklist
-
-- You can click the anchor link that shows on headers to get a copy of the link. It should be that you can click anywhere in the header and copy the link.
-
-- Need to make tables responsive on mobile
-
-- Need to stop system from adding abbreviation html when used in headings, also the `abbr` presentation needs improved - right now it gives a question mark pointer and long delay to appear
+- Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`. Might be one of the list formats.
 
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
 
-- Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
-
-- Mathjax not working on inline formulas: "Where $L$ is the average number of items in the system (queue depth), $\lambda$ is the arrival rate (requests per second), and $W$ is the average time in system (latency)." In backpressure-load-shedding-admission-control-overload, also "The Retry Amplification Problem" section in circuit-breaker-retry-budget-cascade-failure-prevention.
-
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
-
-- Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`
 
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
-- Add a copyright notice to content
-
-- DownloadLayout to wrap `downloads.mdx` in each folder
-
-- Image for home page newsletter CTA
-
-- Add PDF download image to download CTA, it's in the directory
-
-- Time in prose is causing a line break, and the colon and minutes to be removed - "2:47 AM" in `src/content/articles/mtls-certificate-rotation-service-mesh-authentication/pdf.mdx`. Times like "11:59:59" are breaking across two lines - `src/content/articles/rate-limiting-token-bucket-leaky-bucket-implementation/index.mdx` in "Algorithm Overview" section
-
-- Should we exclude "Footnotes" from the ToC list? Right now it shows at the bottom if there's a Footnotes H2.
-
-- If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button. Think this workflow through - maybe a "Short / Deep-Dive" slider button on top and don't show the CTA + the PDF download button.
-
-- The articles list page should show tags at top for quick navigation. There's another note about this. Show the count of articles per tag unless they're all the same on the tag.
-
-- 404 page should show search results based on query
+- The articles list page should show tags at top for quick navigation. Show the count of articles per tag unless they're all the same on the tag.
 
 - Update EXIF data on all AI generated JPGs
-
-- When you click a link to a heading anchor, the heading is hidden by the page header now that it's stickied to the page
-
-- The Newsletter token page spins forever. It should time out and show an error page at some point.
-
-- Need a secret token to bypass the waiting state for the Newsletter token page, so we can style it. Set it via env var.
 
 - Details dd / dt in Markdown need bottom margin
 
 - Highlighter component in Markdown needs better colors in dark theme. It's spotlight color with content text - and there's not much contrast in dark theme between the yellow and white text.
 
-- 'three-column-icon-list' List layout is broken in dark theme
-
-- 'two-column-icon-list' List layout looks bad on dark theme. The bgColor looks good on light theme, but awkward on dark theme.
-
 - Font size on GitHub Gist embed is too small
 
-- Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
-
 - Contact Callout looks awkward in dark theme and needs redone generally
-
-- Download icon on Download Component isn't picking up correct color on dark theme
 
 - Newsletter component "home" and "page" variants needs work on spacing, "home" needs image added
 
 - Determine if any of the python code blocks should have `#!/bin/python` added
+
+- Color headings blue and use the SVG icon instead of the link image.
+
+- Social shares - module CSS doesn't appear correct with nested button hover classes, not sure how network name is generated or styled but it needs improvement. Should be rendered inside article content column, not across both content and TOC columns.
+
+- Focus-visible / active handling on ToC nav items
+
+## List Component
+
+- Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
+
+- 'three-column-icon-list' List layout is broken in dark theme
+
+- 'two-column-icon-list' List layout looks bad on dark theme. The bgColor looks good on light theme, but awkward on dark theme.
 
 ## Header
 
@@ -245,8 +190,6 @@ See comp images in Breadcrumbs component directory
 
 - We have two print scenarios: black and white, and color for PDF output. Can use two different media queries to accomplish getting colored variables.
 
-- Generate mermaid graphs for PDF from AI image generator to improve looks.
-
 - Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden. The styling should be different for print for the code block. Maybe move other language code tabs to an appendix and add a link to them.
 
 - Need to only load print style sheet when needed.
@@ -257,21 +200,9 @@ See comp images in Breadcrumbs component directory
 
 This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
 
-## Downloads / Gated Content
-
-- We can add a path like `/articles/pdf` or `/articles/deep-dive` for the long-form articles. Make that path SSR loaded so we can check if they've given their e-mail address.
-
-- If they haven't and they get to the path from sharing a link or something, we should use the `index.astro` file in that directory to explain that they've accessed gated content, and ask for their e-mail address. Then redirect to the content they want when they give it.
-
-- If they've given their email link, both the regular article and the deep dive should have a button to switch between the two versions so they don't have to download the PDF version.
-
-- How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
-
-- We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading. If they've already given their e-mail address, they should be able to download it immediately.
-
 ## Content Issues
 
-- "### Geographic/Currency Mismatches" in src/content/articles/cdn-edge-caching-cache-keys-vary-headers/index.mdx
+- "### Geographic/Currency Mismatches" in deep-dive/cdn-edge-caching-cache-keys-vary-headers has a table -> callout -> table back to back
 
 - cover.jpg for reliability-and-testing needs touch up in GIMP
 
@@ -279,18 +210,6 @@ This article has different approaches to [print pagination](https://www.customjs
 
 - Need an article on OpenStack
 
-- Add links to the privacy policy page to go to preferences and my-data
-
-- The four service offerings should be clickable links that take you to the Contact page and pre-fill in the form with the service the person is interested in. The Contact project scopes could have the four services offerings and a "general questions" option.
-
-- Sticky the table of contents. It should scroll down to the bottom and then stay in place, and scroll up to the top when scrolling up. Should be pushed up the footer when it comes into the viewpoint on scroll down.
-
-- Color headings blue and use the SVG icon instead of the image. Color if the blue shade.
-
-- Social shares - module CSS doesn't appear correct with nested button hover classes, not sure how network name is generated or styled but it needs improvement. Should be rendered inside article content column, not across both content and TOC columns.
-
 - Add a Social Share on some compelling text in each article
 
-- Move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
-
-- Focus-visible / active handling on ToC nav items
+- Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.

@@ -1,9 +1,13 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro'
+import Shares from '@components/Social/Shares/index.astro'
 
 const pageDescription = 'Styling Variants'
 const pageTitle = 'Style Variants'
 const path = '/hero/'
+const shareDemoUrl = 'https://www.webstackbuilders.com/articles/strangler-fig-migration-complete-guide'
+const shareDemoTitle = 'Strangler Fig Migrations: Validate Before You Cut Over'
+const shareDemoDescription = `Read "${shareDemoTitle}" on Webstack Builders`
 
 /* Shared breadcrumb data for all variants */
 const crumbs = [
@@ -15,103 +19,34 @@ const crumbs = [
 
 <BaseLayout pageDescription={pageDescription} noindex={true} pageTitle={pageTitle} path={path}>
   <h1 class="text-2xl font-bold text-content-active mb-8">{pageTitle}</h1>
-  <main class="space-y-16 pb-16">
 
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 1 — Pill / Tag Breadcrumbs                                */}
-    {/* Each crumb is a rounded pill with a subtle background fill.        */}
-    {/* The current page pill uses the accent color for emphasis.          */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 1 — Pill / Tag Breadcrumbs</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="flex flex-wrap items-center gap-2 text-sm">
-          {crumbs.map((crumb, i) => (
-            <li class="flex items-center gap-2">
-              {i > 0 && (
-                <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0 w-3.5 h-3.5 text-content-offset" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              )}
-              {crumb.href ? (
-                <a href={crumb.href} class="rounded-full bg-page-offset px-3 py-1 text-content no-underline transition-colors duration-200 hover:bg-secondary hover:text-secondary-inverse focus-visible:bg-secondary focus-visible:text-secondary-inverse">
-                  {crumb.label}
-                </a>
-              ) : (
-                <span aria-current="page" class="rounded-full bg-accent px-3 py-1 text-primary-inverse font-medium">
-                  {crumb.label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
+  <section class="mb-16" aria-labelledby="social-share-copilot-variants-title">
+    <!-- Variant 17 — Two-column asymmetric: large heading left, buttons right -->
+    <article class="rounded-lg border border-trim bg-page-base p-6">
+      <h3 class="text-base font-semibold text-content-active mb-6 border-b border-trim pb-2">Variant 17 - Asymmetric Two-Column</h3>
 
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 2 — Underline Stepper                                     */}
-    {/* A horizontal line runs beneath the crumbs; each link has a colored */}
-    {/* dot and the current page dot is larger and uses the spotlight.     */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 2 — Underline Stepper</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="relative flex items-start gap-8 text-sm border-b-2 border-trim-offset pb-4">
-          {crumbs.map((crumb) => (
-            <li class="relative flex flex-col items-center gap-1.5 -mb-1.25">
-              {/* Dot on the line */}
-              {crumb.href ? (
-                <span class="order-2 h-2.5 w-2.5 rounded-full bg-secondary border-2 border-page-base" />
-              ) : (
-                <span class="order-2 h-3.5 w-3.5 rounded-full bg-spotlight border-2 border-page-base ring-2 ring-spotlight-offset" />
-              )}
-              {/* Label */}
-              {crumb.href ? (
-                <a href={crumb.href} class="order-1 text-content no-underline transition-colors duration-200 hover:text-secondary focus-visible:text-secondary">
-                  {crumb.label}
-                </a>
-              ) : (
-                <span aria-current="page" class="order-1 font-medium text-content-active max-w-48 text-center leading-snug">
-                  {crumb.label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 3 — Slashed Gradient Bar                                  */}
-    {/* A horizontal bar with a subtle gradient background. Crumbs are     */}
-    {/* separated by forward slashes instead of chevrons.                  */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 3 — Slashed Gradient Bar</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <div class="rounded-lg bg-linear-to-r from-page-offset to-page-base px-4 py-2.5 border border-trim-offset">
-          <ol class="flex flex-wrap items-center gap-1 text-sm">
-            {crumbs.map((crumb, i) => (
-              <li class="flex items-center gap-1">
-                {i > 0 && (
-                  <span class="text-content-offset font-light text-lg leading-none select-none">/</span>
-                )}
-                {crumb.href ? (
-                  <a href={crumb.href} class="text-secondary no-underline font-medium transition-colors duration-200 hover:text-accent focus-visible:text-accent">
-                    {crumb.label}
-                  </a>
-                ) : (
-                  <span aria-current="page" class="text-content-active font-semibold">
-                    {crumb.label}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
+      <section class="rounded-lg bg-page-offset grid grid-cols-1 md:grid-cols-3 gap-6 items-center p-6 mx-6" aria-labelledby="share-v17">
+        <div class="md:col-span-1">
+          <h2 class="text-2xl font-black tracking-tight text-content-active leading-tight" id="share-v17">
+            Share<br />this<br />article
+          </h2>
         </div>
-      </nav>
-    </section>
+        <div class="md:col-span-2 md:border-l border-trim md:pl-6">
+          <p class="text-content text-sm mb-4">
+            Enjoyed the read? Share it with your network.
+          </p>
+          <Shares
+            url={shareDemoUrl}
+            title={shareDemoTitle}
+            description={shareDemoDescription}
+            class="justify-start"
+          />
+        </div>
+      </section>
+    </article>
+  </section>
 
+  <main class="space-y-16 pb-16">
     {/* ------------------------------------------------------------------ */}
     {/* Variant 4 — Card Chips with Icons                                 */}
     {/* Each crumb is a mini card with a home/folder/file icon and a      */}
@@ -127,20 +62,20 @@ const crumbs = [
                 <span class="w-6 h-px border-t-2 border-dashed border-trim-offset" />
               )}
               {crumb.href ? (
-                <a href={crumb.href} class="inline-flex items-center gap-1.5 rounded-md border border-trim-offset bg-page-base px-3 py-1.5 text-content no-underline shadow-sm transition-all duration-200 hover:border-secondary hover:shadow-md focus-visible:border-secondary focus-visible:shadow-md">
+                <a href={crumb.href} class="inline-flex items-center gap-1.5 rounded-md border border-page-inverse bg-page-base px-3 py-1.5 text-page-inverse no-underline shadow-sm transition-all duration-200 hover:border-secondary hover:shadow-md focus-visible:border-secondary focus-visible:shadow-md">
                   {i === 0 ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-page-inverse" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" />
                     </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-page-inverse" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                     </svg>
                   )}
                   {crumb.label}
                 </a>
               ) : (
-                <span aria-current="page" class="inline-flex items-center gap-1.5 rounded-md border-2 border-accent bg-accent/10 px-3 py-1.5 font-medium text-accent">
+                <span aria-current="page" class="inline-flex items-center gap-1.5 rounded-md bg-page-inverse px-3 py-1.5 font-medium text-content-inverse">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
@@ -150,103 +85,6 @@ const crumbs = [
             </li>
           ))}
         </ol>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 5 — Spotlight Ribbon                                      */}
-    {/* Bold full-width strip using the primary/active color with inverse  */}
-    {/* text. The current page fades to a spotlight highlight.             */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 5 — Spotlight Ribbon</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <div class="rounded-lg bg-page-active px-5 py-2.5 shadow-md">
-          <ol class="flex flex-wrap items-center gap-2 text-sm">
-            {crumbs.map((crumb, i) => (
-              <li class="flex items-center gap-2">
-                {i > 0 && (
-                  <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0 w-3.5 h-3.5 text-content-inverse opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                )}
-                {crumb.href ? (
-                  <a href={crumb.href} class="text-content-inverse no-underline opacity-80 transition-opacity duration-200 hover:opacity-100 focus-visible:opacity-100">
-                    {crumb.label}
-                  </a>
-                ) : (
-                  <span aria-current="page" class="rounded bg-spotlight px-2 py-0.5 font-semibold text-page-active">
-                    {crumb.label}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 6 — Vertical / Indented Tree                              */}
-    {/* A stacked vertical layout where each level is indented, inspired   */}
-    {/* by a file-tree sidebar. Great for long page titles.                */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 6 — Vertical / Indented Tree</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="text-sm space-y-1 border-l-2 border-trim-offset pl-4">
-          {crumbs.map((crumb, i) => (
-            <li class:list={['relative flex items-center', i > 0 && `ml-${i * 4}`]}>
-              {/* Horizontal connector tick */}
-              <span class="absolute -left-4 top-1/2 w-3 border-t-2 border-trim-offset -translate-y-px" />
-              {/* Node dot */}
-              {crumb.href ? (
-                <span class="absolute -left-4.5 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-secondary" />
-              ) : (
-                <span class="absolute -left-4.5 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-spotlight ring-2 ring-spotlight-offset" />
-              )}
-              {crumb.href ? (
-                <a href={crumb.href} class="ml-1 text-content no-underline transition-colors duration-200 hover:text-secondary focus-visible:text-secondary">
-                  {crumb.label}
-                </a>
-              ) : (
-                <span aria-current="page" class="ml-1 font-medium text-content-active">
-                  {crumb.label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 7 — Terminal / Command Line                               */}
-    {/* Styled like a code editor or terminal prompt with monospace font,  */}
-    {/* dark background, and slash separators.                             */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 7 — Terminal / Command Line</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <div class="rounded-md bg-gray-900 p-4 font-mono text-sm shadow-inner">
-          <ol class="flex flex-wrap items-center gap-2">
-            <li class="text-green-400 select-none">~</li>
-            {crumbs.map((crumb) => (
-              <li class="flex items-center gap-2">
-                <span class="text-gray-500 select-none">/</span>
-                {crumb.href ? (
-                  <a href={crumb.href} class="text-blue-400 no-underline hover:text-blue-300 hover:underline focus-visible:text-blue-300">
-                    {crumb.label.replace(/\s+/g, '_')}
-                  </a>
-                ) : (
-                  <span aria-current="page" class="text-gray-100">
-                    {crumb.label.replace(/\s+/g, '_')}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </div>
       </nav>
     </section>
 
@@ -265,231 +103,12 @@ const crumbs = [
                 <span class="text-trim-offset font-bold">→</span>
               )}
               {crumb.href ? (
-                <a href={crumb.href} class="rounded-md border border-trim px-3 py-1.5 text-content no-underline transition-all duration-200 hover:bg-secondary hover:text-secondary-inverse hover:border-secondary focus-visible:bg-secondary focus-visible:text-secondary-inverse">
+                <a href={crumb.href} class="rounded-md border border-trim px-3 py-1.5 text-content no-underline transition-all duration-200 hover:bg-page-inverse hover:text-content-inverse focus-visible:bg-secondary focus-visible:text-secondary-inverse">
                   {crumb.label}
                 </a>
               ) : (
-                <span aria-current="page" class="rounded-md border border-accent bg-accent/5 px-3 py-1.5 font-medium text-accent">
+                <span aria-current="page" class="rounded-md border border-page-inverse bg-page-inverse/5 px-3 py-1.5 font-medium text-page-inverse">
                   {crumb.label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 9 — Floating Elevated Cards                               */}
-    {/* Each crumb is a separate white card with a shadow, placed on a     */}
-    {/* slightly darker background container.                              */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 9 — Floating Elevated Cards</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <div class="rounded-xl bg-page-offset p-3">
-          <ol class="flex flex-wrap items-center gap-3 text-sm">
-            {crumbs.map((crumb, i) => (
-              <li class="flex items-center gap-3">
-                {i > 0 && (
-                  <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0 w-4 h-4 text-content-offset" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                  </svg>
-                )}
-                {crumb.href ? (
-                  <a href={crumb.href} class="rounded-lg bg-page-base px-4 py-2 text-content shadow-sm no-underline transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md hover:text-secondary focus-visible:-translate-y-0.5 focus-visible:shadow-md">
-                    {crumb.label}
-                  </a>
-                ) : (
-                  <span aria-current="page" class="rounded-lg bg-page-base px-4 py-2 font-semibold text-content-active shadow-sm ring-2 ring-accent ring-offset-2 ring-offset-page-offset">
-                    {crumb.label}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 10 — Numbered Steps                                       */}
-    {/* Each crumb has a number circle before the text, resembling a       */}
-    {/* wizard or progress stepper.                                        */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 10 — Numbered Steps</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="flex flex-wrap items-center gap-4 text-sm">
-          {crumbs.map((crumb, i) => (
-            <li class="flex items-center gap-4">
-              {i > 0 && (
-                <span class="h-px w-8 bg-trim-offset" />
-              )}
-              {crumb.href ? (
-                <a href={crumb.href} class="group flex items-center gap-2 text-content no-underline transition-colors duration-200 hover:text-secondary focus-visible:text-secondary">
-                  <span class="flex h-6 w-6 items-center justify-center rounded-full bg-page-offset text-xs font-bold group-hover:bg-secondary group-hover:text-secondary-inverse transition-colors duration-200">
-                    {i + 1}
-                  </span>
-                  {crumb.label}
-                </a>
-              ) : (
-                <span aria-current="page" class="flex items-center gap-2 font-medium text-content-active">
-                  <span class="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-xs font-bold text-primary-inverse shadow-sm">
-                    {i + 1}
-                  </span>
-                  {crumb.label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 11 — Glowing Underline                                    */}
-    {/* Dark mode style ribbon where the hover and active states feature   */}
-    {/* a glowing bottom border.                                           */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 11 — Glowing Underline</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <div class="rounded-lg bg-page-active px-6 py-4">
-          <ol class="flex flex-wrap items-center gap-2 text-sm">
-            {crumbs.map((crumb, i) => (
-              <li class="flex items-center gap-2">
-                {i > 0 && (
-                  <span class="text-content-inverse opacity-30">/</span>
-                )}
-                {crumb.href ? (
-                  <a href={crumb.href} class="relative text-content-inverse no-underline opacity-70 transition-opacity duration-200 hover:opacity-100 focus-visible:opacity-100 after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-spotlight after:transition-all after:duration-300 hover:after:w-full focus-visible:after:w-full hover:after:shadow-[0_0_8px_var(--color-spotlight)]">
-                    {crumb.label}
-                  </a>
-                ) : (
-                  <span aria-current="page" class="relative font-medium text-content-inverse after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:bg-spotlight after:shadow-[0_0_8px_var(--color-spotlight)]">
-                    {crumb.label}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 12 — Soft UI / Neumorphic                                 */}
-    {/* Uses inset shadows and subtle drop shadows to create a soft,       */}
-    {/* tactile appearance for the breadcrumb container and items.         */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 12 — Soft UI / Neumorphic</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <div class="rounded-xl bg-page-base p-4 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] border border-trim-offset/50">
-          <ol class="flex flex-wrap items-center gap-2 text-sm">
-            {crumbs.map((crumb, i) => (
-              <li class="flex items-center gap-2">
-                {i > 0 && (
-                  <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0 w-4 h-4 text-content-offset/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                )}
-                {crumb.href ? (
-                  <a href={crumb.href} class="rounded-lg bg-page-base px-3 py-1.5 text-content-offset no-underline shadow-[0_2px_5px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.05)] transition-all duration-200 hover:text-secondary hover:shadow-[0_4px_6px_rgba(0,0,0,0.05),0_2px_4px_rgba(0,0,0,0.05)] focus-visible:text-secondary">
-                    {crumb.label}
-                  </a>
-                ) : (
-                  <span aria-current="page" class="rounded-lg bg-page-offset px-3 py-1.5 font-medium text-content-active shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]">
-                    {crumb.label}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 13 — Timeline Rail                                        */}
-    {/* Breadcrumbs sit on a horizontal rail with circular checkpoints.    */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 13 — Timeline Rail</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="relative flex flex-wrap items-center gap-5 text-sm">
-          <span class="absolute left-0 right-0 top-3 h-px bg-trim-offset" aria-hidden="true" />
-          {crumbs.map((crumb, i) => (
-            <li class="relative flex items-center gap-2 bg-page-base pr-2">
-              {crumb.href ? (
-                <span class="h-2.5 w-2.5 rounded-full bg-secondary" aria-hidden="true" />
-              ) : (
-                <span class="h-3 w-3 rounded-full bg-spotlight ring-2 ring-spotlight-offset" aria-hidden="true" />
-              )}
-              {crumb.href ? (
-                <a href={crumb.href} class="text-content no-underline transition-colors duration-200 hover:text-secondary focus-visible:text-secondary">
-                  {crumb.label}
-                </a>
-              ) : (
-                <span aria-current="page" class="font-semibold text-content-active">
-                  {crumb.label}
-                </span>
-              )}
-              {i < crumbs.length - 1 && (
-                <span class="sm:hidden text-content-offset" aria-hidden="true">•</span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 14 — Top Tabs                                             */}
-    {/* A tabbed treatment with active tab contrast for current location.  */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 14 — Top Tabs</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="flex flex-wrap items-end gap-1 border-b border-trim-offset text-sm">
-          {crumbs.map((crumb) => (
-            <li>
-              {crumb.href ? (
-                <a href={crumb.href} class="inline-flex rounded-t-md border border-b-0 border-transparent px-3 py-1.5 text-content-offset no-underline transition-colors duration-200 hover:border-trim-offset hover:bg-page-offset hover:text-content-active focus-visible:border-trim-offset focus-visible:bg-page-offset focus-visible:text-content-active">
-                  {crumb.label}
-                </a>
-              ) : (
-                <span aria-current="page" class="inline-flex rounded-t-md border border-b-0 border-trim-offset bg-page-base px-3 py-1.5 font-semibold text-content-active">
-                  {crumb.label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 15 — Split Badges                                         */}
-    {/* Uses numbered capsules plus labels for a compact progress look.    */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 15 — Split Badges</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="flex flex-wrap items-center gap-2 text-sm">
-          {crumbs.map((crumb, i) => (
-            <li class="flex items-center gap-2">
-              {i > 0 && <span class="text-content-offset" aria-hidden="true">›</span>}
-              {crumb.href ? (
-                <a href={crumb.href} class="inline-flex items-center overflow-hidden rounded-md border border-trim-offset no-underline transition-colors duration-200 hover:border-secondary focus-visible:border-secondary">
-                  <span class="bg-page-offset px-2 py-1 font-semibold text-content-active">{i + 1}</span>
-                  <span class="bg-page-base px-3 py-1 text-content">{crumb.label}</span>
-                </a>
-              ) : (
-                <span aria-current="page" class="inline-flex items-center overflow-hidden rounded-md border border-accent">
-                  <span class="bg-accent px-2 py-1 font-semibold text-primary-inverse">{i + 1}</span>
-                  <span class="bg-page-base px-3 py-1 font-semibold text-content-active">{crumb.label}</span>
                 </span>
               )}
             </li>
@@ -532,106 +151,6 @@ const crumbs = [
     </section>
 
     {/* ------------------------------------------------------------------ */}
-    {/* Variant 17 — Outline Ribbon                                       */}
-    {/* Continuous outlined container with segmented crumb blocks.         */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 17 — Outline Ribbon</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="flex flex-wrap items-stretch overflow-hidden rounded-lg border border-trim-offset text-sm">
-          {crumbs.map((crumb, i) => (
-            <li class="flex items-stretch">
-              {i > 0 && <span class="w-px bg-trim-offset" aria-hidden="true" />}
-              {crumb.href ? (
-                <a href={crumb.href} class="inline-flex items-center px-3 py-2 text-content no-underline transition-colors duration-200 hover:bg-page-offset hover:text-content-active focus-visible:bg-page-offset focus-visible:text-content-active">
-                  {crumb.label}
-                </a>
-              ) : (
-                <span aria-current="page" class="inline-flex items-center bg-page-active px-3 py-2 font-semibold text-content-inverse">
-                  {crumb.label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 18 — Corner Flags                                         */}
-    {/* Angular "flag" chips with small triangular tails between crumbs.   */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 18 — Corner Flags</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="flex flex-wrap items-center gap-2 text-sm">
-          {crumbs.map((crumb, i) => (
-            <li class="flex items-center gap-2">
-              {i > 0 && (
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-content-offset" fill="currentColor" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path d="M2 1l7 5-7 5z" />
-                </svg>
-              )}
-              {crumb.href ? (
-                <a href={crumb.href} class="inline-flex items-center rounded-r-md rounded-l-sm border-l-4 border-secondary bg-page-offset px-3 py-1.5 text-content no-underline transition-colors duration-200 hover:bg-secondary hover:text-secondary-inverse focus-visible:bg-secondary focus-visible:text-secondary-inverse">
-                  {crumb.label}
-                </a>
-              ) : (
-                <span aria-current="page" class="inline-flex items-center rounded-r-md rounded-l-sm border-l-4 border-accent bg-page-base px-3 py-1.5 font-semibold text-content-active">
-                  {crumb.label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 19 — Chevron Ribbon (from breadcrumb-1.png)               */}
-    {/* Solid background ribbon with chevron cutouts separating items.     */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 19 — Chevron Ribbon</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="flex flex-wrap items-stretch text-sm">
-          {crumbs.map((crumb, i) => (
-            <li class="relative flex items-stretch">
-              {crumb.href ? (
-                <a href={crumb.href} class:list={[
-                  "group relative flex items-center bg-secondary-offset px-6 py-2 text-secondary-inverse no-underline transition-colors duration-200 hover:bg-secondary focus-visible:bg-secondary",
-                  i === 0 ? "pl-4" : "pl-8"
-                ]}>
-                  <span class="mr-2 flex h-4 w-4 items-center justify-center rounded-full bg-success text-success-inverse">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
-                  </span>
-                  {crumb.label}
-                  {/* Right chevron point */}
-                  <span class="absolute -right-4 top-0 z-10 h-full w-4 border-y-18 border-l-16 border-y-transparent border-l-secondary-offset transition-colors duration-200 group-hover:border-l-secondary group-focus-visible:border-l-secondary" />
-                  {/* White gap behind chevron */}
-                  <span class="absolute -right-4.5 top-0 z-0 h-full w-4 border-y-18 border-l-16 border-y-transparent border-l-page-base" />
-                </a>
-              ) : (
-                <span class="relative flex items-center bg-secondary-offset px-6 py-2 pl-8 font-medium text-secondary-inverse">
-                  <span class="mr-2 flex h-4 w-4 items-center justify-center rounded-full bg-page-offset text-content-offset">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
-                  </span>
-                  {crumb.label}
-                  {/* Right chevron point */}
-                  <span class="absolute -right-4 top-0 z-10 h-full w-4 border-y-18 border-l-16 border-y-transparent border-l-secondary-offset" />
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
-
-    {/* ------------------------------------------------------------------ */}
     {/* Variant 20 — Connected Circles (from breadcrumb-1.png)            */}
     {/* Numbered circles connected by a solid line, with labels below.     */}
     {/* ------------------------------------------------------------------ */}
@@ -642,7 +161,7 @@ const crumbs = [
           {/* Background connecting line */}
           <div class="absolute left-0 top-5 -z-10 h-1 w-full bg-page-offset" aria-hidden="true">
             {/* Active progress line (assuming 2 of 3 steps complete for demo) */}
-            <div class="h-full w-1/2 bg-secondary-offset" />
+            <div class="h-full w-1/2 bg-page-inverse" />
           </div>
 
           {crumbs.map((crumb, i) => {
@@ -650,16 +169,16 @@ const crumbs = [
               <li class="flex flex-col items-center gap-3">
                 {crumb.href ? (
                   <a href={crumb.href} class="group flex flex-col items-center gap-3 no-underline">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-page-base bg-secondary-offset text-lg font-bold text-secondary-inverse shadow-[0_0_0_2px_var(--color-page-offset)] transition-colors duration-200 group-hover:bg-secondary">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-page-base bg-page-inverse text-lg font-bold text-page-inverse shadow-[0_0_0_2px_var(--color-page-offset)] transition-colors duration-200 group-hover:bg-page-inverse">
                       {i + 1}
                     </span>
-                    <span class="text-secondary-offset transition-colors duration-200 group-hover:text-secondary">
+                    <span class="text-page-inverse transition-colors duration-200 group-hover:text-page-inverse">
                       {crumb.label}
                     </span>
                   </a>
                 ) : (
                   <span class="flex flex-col items-center gap-3">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-page-base bg-page-base text-lg font-bold text-content-offset shadow-[0_0_0_2px_var(--color-page-offset)]">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-page-base bg-page-base text-lg font-bold text-page-inverse shadow-[0_0_0_2px_var(--color-page-offset)]">
                       {i + 1}
                     </span>
                     <span class="font-medium text-content-offset">
@@ -673,44 +192,5 @@ const crumbs = [
         </ol>
       </nav>
     </section>
-
-    {/* ------------------------------------------------------------------ */}
-    {/* Variant 21 — Guardian Style (from breadcrumb-2.jpg)               */}
-    {/* Dense, dark red ribbon with sharp chevron separators.              */}
-    {/* ------------------------------------------------------------------ */}
-    <section>
-      <h2 class="text-lg font-semibold text-content-active mb-3">Variant 21 — Guardian Style</h2>
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="flex flex-wrap items-stretch text-sm font-serif">
-          {crumbs.map((crumb, i) => (
-            <li class="relative flex items-stretch">
-              {crumb.href ? (
-                <a href={crumb.href} class:list={[
-                  "group relative flex items-center bg-danger-offset px-3 py-1 text-danger-inverse no-underline transition-colors duration-200 hover:bg-danger focus-visible:bg-danger",
-                  i === 0 ? "pl-2" : "pl-5"
-                ]}>
-                  {/* Left chevron cutout (except first item) */}
-                  {i > 0 && (
-                    <span class="absolute left-0 top-0 z-10 h-full w-0 border-y-14 border-l-12 border-y-transparent border-l-page-base" />
-                  )}
-                  {crumb.label}
-                  {/* Right chevron point */}
-                  <span class="absolute -right-3 top-0 z-20 h-full w-0 border-y-14 border-l-12 border-y-transparent border-l-danger-offset transition-colors duration-200 group-hover:border-l-danger group-focus-visible:border-l-danger" />
-                  {/* White gap behind chevron */}
-                  <span class="absolute -right-3.25 top-0 z-10 h-full w-0 border-y-14 border-l-12 border-y-transparent border-l-page-base" />
-                </a>
-              ) : (
-                <span class="relative flex items-center bg-page-base px-3 py-1 pl-5 font-medium text-content-active">
-                  {/* Left chevron cutout */}
-                  <span class="absolute left-0 top-0 z-10 h-full w-0 border-y-14 border-l-12 border-y-transparent border-l-page-base" />
-                  {crumb.label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-    </section>
-
   </main>
 </BaseLayout>

@@ -8,6 +8,9 @@ import {
   queryCodeBlocks,
   queryCodeElement,
   queryCopyIconElement,
+  queryTitleCheckIconElement,
+  queryTitleCopyIconElement,
+  queryTitleCopyIconSvgs,
 } from './selectors'
 
 const ICON_BANK_ID = 'code-tabs-icon-bank'
@@ -85,6 +88,7 @@ export class CodeTabsElement extends LitElement {
   private codeBlocks: HTMLPreElement[] = []
   private activeIndex = 0
   private copyTimer: number | null = null
+  private titleCopyTimer: number | null = null
   private isInteractiveTabs = false
 
   protected override createRenderRoot(): HTMLElement {
@@ -118,6 +122,10 @@ export class CodeTabsElement extends LitElement {
       window.clearTimeout(this.copyTimer)
       this.copyTimer = null
     }
+    if (this.titleCopyTimer !== null) {
+      window.clearTimeout(this.titleCopyTimer)
+      this.titleCopyTimer = null
+    }
   }
 
   private buildUi(args: { shouldRenderTabs: boolean; labels: string[] }): void {
@@ -129,13 +137,41 @@ export class CodeTabsElement extends LitElement {
 
     if (args.shouldRenderTabs) {
       const list = document.createElement('ul')
-      list.className = 'flex-1 min-w-0 p-0 whitespace-nowrap overflow-auto select-none'
+      const isSingleTab = !this.isInteractiveTabs
+      list.className = isSingleTab
+        ? 'flex-1 min-w-0 p-0 whitespace-nowrap overflow-auto'
+        : 'flex-1 min-w-0 p-0 whitespace-nowrap overflow-auto select-none'
 
       this.tabButtons = this.codeBlocks.map((_, index) => {
         const tabLabel = args.labels[index] || `Tab ${index + 1}`
 
         const li = document.createElement('li')
         li.className = 'list-none inline-block relative'
+
+        /**
+         * Single-tab blocks render a selectable label with a hover-only copy icon
+         * instead of an interactive tab button.
+         */
+        if (isSingleTab) {
+          const wrapper = document.createElement('span')
+          wrapper.className = 'group inline-flex items-center gap-1 px-2 py-1 m-2'
+
+          const label = document.createElement('span')
+          label.className = 'text-content select-text cursor-text'
+          label.textContent = tabLabel
+
+          const copyIcon = this.createTitleCopyIcon(tabLabel)
+
+          wrapper.append(label, copyIcon)
+          li.append(wrapper)
+          list.append(li)
+
+          /** Placeholder so index alignment with codeBlocks is preserved */
+          const placeholder = document.createElement('button')
+          placeholder.type = 'button'
+          placeholder.hidden = true
+          return placeholder
+        }
 
         const button = document.createElement('button')
         button.type = 'button'
@@ -201,6 +237,71 @@ export class CodeTabsElement extends LitElement {
     )
 
     return button
+  }
+
+  /**
+   * Create a small copy icon for the title label in single-tab code blocks.
+   * The icon is hidden by default and only appears on hover via Tailwind `group-hover`.
+   * Clicking it copies the title text to the clipboard.
+   */
+  private createTitleCopyIcon(text: string): HTMLButtonElement {
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.tabIndex = -1
+    btn.className = [
+      'inline-flex items-center opacity-0 group-hover:opacity-100',
+      'transition-opacity cursor-pointer',
+      'text-content hover:text-content-active',
+    ].join(' ')
+    btn.setAttribute('aria-label', `Copy "${text}"`)
+    btn.title = `Copy "${text}"`
+
+    const copySvg = queryCodeTabsIconMarkup({
+      iconBankId: ICON_BANK_ID,
+      iconName: 'copy',
+      root: document,
+    }) ?? ''
+    const checkSvg = queryCodeTabsIconMarkup({
+      iconBankId: ICON_BANK_ID,
+      iconName: 'check',
+      root: document,
+    }) ?? ''
+
+    btn.innerHTML = `
+      <span data-title-copy-icon="copy">${copySvg}</span>
+      <span data-title-copy-icon="check" class="hidden">${checkSvg}</span>
+    `
+
+    /** Scale icons down to match the label text size */
+    queryTitleCopyIconSvgs(btn).forEach(svg => {
+      svg.classList.remove('w-5', 'h-5')
+      svg.classList.add('w-3.5', 'h-3.5')
+    })
+
+    addButtonEventListeners(btn, (e) => {
+      e.stopPropagation()
+      void this.copyTitleText(btn, text)
+    }, this)
+
+    return btn
+  }
+
+  private async copyTitleText(button: HTMLButtonElement, text: string): Promise<void> {
+    const copied = await writeToClipboard(text)
+    if (!copied) return
+
+    const copy = queryTitleCopyIconElement(button)
+    const check = queryTitleCheckIconElement(button)
+    copy?.classList.add('hidden')
+    check?.classList.remove('hidden')
+
+    if (this.titleCopyTimer !== null) window.clearTimeout(this.titleCopyTimer)
+
+    this.titleCopyTimer = window.setTimeout(() => {
+      copy?.classList.remove('hidden')
+      check?.classList.add('hidden')
+      this.titleCopyTimer = null
+    }, 1500)
   }
 
   private setActive(index: number): void {

@@ -32,4 +32,28 @@ describe('buildTocTree', () => {
 
     expect(tree).toEqual([])
   })
+
+  it('excludes Footnotes headings from the tree', () => {
+    const headings: MarkdownHeading[] = [
+      { slug: 'intro', depth: 2, text: 'Introduction' },
+      { slug: 'footnotes', depth: 2, text: 'Footnotes' },
+    ]
+
+    const tree = buildTocTree(headings)
+
+    expect(tree).toHaveLength(1)
+    expect(tree[0]?.slug).toBe('intro')
+  })
+
+  it('excludes Footnotes headings case-insensitively', () => {
+    const headings: MarkdownHeading[] = [
+      { slug: 'intro', depth: 2, text: 'Introduction' },
+      { slug: 'footnotes', depth: 2, text: '  FOOTNOTES  ' },
+    ]
+
+    const tree = buildTocTree(headings)
+
+    expect(tree).toHaveLength(1)
+    expect(tree[0]?.slug).toBe('intro')
+  })
 })

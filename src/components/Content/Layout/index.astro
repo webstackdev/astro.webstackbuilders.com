@@ -11,6 +11,7 @@ import { Picture } from 'astro:assets'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import Carousel from '@components/Carousel/index.astro'
 import ContentSwitcher from '@components/Content/Switcher/index.astro'
+import Copyright from '@components/Layout/Copyright/index.astro'
 import Shares from '@components/Social/Shares/index.astro'
 import WebMentions from '@components/WebMentions/index.astro'
 
@@ -76,16 +77,20 @@ const { author, article, path, readingTime, section } = Astro.props
 
   {/** SLOT: after-content */}
   <section
-    class="border-t border-trim pt-8 mt-12"
     aria-labelledby="article-share-title"
     slot="after-content"
   >
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-      <div>
-        <h2 class="text-lg font-semibold mb-2" id="article-share-title">
+    <Copyright publishDate={article.data.publishDate} />
+    <WebMentions url={`https://www.webstackbuilders.com${path}`} />
+    <div class="flex flex-col gap-6">
+      <div class="flex flex-col sm:flex-row sm:justify-start sm:items-center gap-2">
+        <h2
+          class="text-lg font-semibold"
+          id="article-share-title"
+        >
           Share this article
         </h2>
-        <p class="text-content-active text-sm">
+        <p class="text-content-active text-sm sm:text-right sm:ml-6">
           Found this helpful? Share it with others who might benefit.
         </p>
       </div>
@@ -93,10 +98,8 @@ const { author, article, path, readingTime, section } = Astro.props
         url={`https://www.webstackbuilders.com${path}`}
         title={article.data.title}
         description={`Read "${article.data.title}" on Webstack Builders`}
-        class="shrink-0"
       />
     </div>
-    <WebMentions url={`https://www.webstackbuilders.com${path}`} />
   </section>
 
   {/** SLOT: related-content */}

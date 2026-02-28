@@ -5,6 +5,9 @@ const SELECTORS = {
   code: 'code',
   copyIcon: '[data-code-tabs-copy-icon="copy"]',
   checkIcon: '[data-code-tabs-copy-icon="check"]',
+  titleCopyIcon: '[data-title-copy-icon="copy"]',
+  titleCheckIcon: '[data-title-copy-icon="check"]',
+  titleCopySvgs: 'svg',
 } as const
 
 export function queryCodeBlocks(scope: ParentNode): HTMLPreElement[] {
@@ -28,6 +31,20 @@ export function queryCopyIconElement(scope: ParentNode): HTMLElement | null {
 export function queryCheckIconElement(scope: ParentNode): HTMLElement | null {
   const element = scope.querySelector(SELECTORS.checkIcon)
   return isSpanElement(element) ? element : null
+}
+
+export function queryTitleCopyIconElement(scope: ParentNode): HTMLElement | null {
+  const element = scope.querySelector(SELECTORS.titleCopyIcon)
+  return isSpanElement(element) ? element : null
+}
+
+export function queryTitleCheckIconElement(scope: ParentNode): HTMLElement | null {
+  const element = scope.querySelector(SELECTORS.titleCheckIcon)
+  return isSpanElement(element) ? element : null
+}
+
+export function queryTitleCopyIconSvgs(scope: ParentNode): SVGSVGElement[] {
+  return Array.from(scope.querySelectorAll<SVGSVGElement>(SELECTORS.titleCopySvgs))
 }
 
 export function queryCodeTabsIconMarkup(params: {

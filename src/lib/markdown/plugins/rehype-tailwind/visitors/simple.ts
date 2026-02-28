@@ -62,8 +62,6 @@ export const htmlElements: ElementConfig[] = [
       'border-collapse',
       'mx-auto',
       'mb-6',
-      'overflow-hidden',
-      'max-w-full',
       'w-fit',
     ],
   },

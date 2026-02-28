@@ -244,9 +244,9 @@ Table: PgBouncer sizing by deployment scale.
 
 ### Sizing Calculations
 
-Pool sizing isn't guesswork—it's queuing theory. Little's Law provides the foundation: $L = \lambda \times W$, where $L$ is the average number of connections in use, $\lambda$ is the request arrival rate (queries per second), and $W$ is the average time per query.
+Pool sizing isn't guesswork—it's queuing theory. Little's Law provides the foundation: $$L = \lambda \times W$$, where $$L$$ is the average number of connections in use, $$\lambda$$ is the request arrival rate (queries per second), and $$W$$ is the average time per query.
 
-If your application handles 100 queries per second with an average query time of 50ms, you need $100 \times 0.05 = 5$ connections on average. But Little's Law uses averages, and averages deceive. Query times vary. Traffic spikes. A pool sized for average load will saturate during peaks.
+If your application handles 100 queries per second with an average query time of 50ms, you need $$100 \times 0.05 = 5$$ connections on average. But Little's Law uses averages, and averages deceive. Query times vary. Traffic spikes. A pool sized for average load will saturate during peaks.
 
 This is why the practical formula substitutes P99 query time for average: you want enough connections to handle 99% of queries without queueing, not just the typical case. Then double for variance and add burst capacity.
 
@@ -559,7 +559,7 @@ __Connections are expensive.__ Each connection costs 5-10MB of memory, consumes 
 
 __Pooling decouples application scaling from database limits.__ PgBouncer (or similar external poolers) lets you scale application instances without proportionally increasing database connections. Transaction pooling mode handles most workloads well.
 
-__Size pools with math, not intuition.__ Little's Law ($L = \lambda \times W$) gives you a starting point. Account for variance with a burst factor. Anti-patterns like oversized pools ("just in case") create more problems than they solve.
+__Size pools with math, not intuition.__ Little's Law ($$L = \lambda \times W$$) gives you a starting point. Account for variance with a burst factor. Anti-patterns like oversized pools ("just in case") create more problems than they solve.
 
 __Monitor saturation, not just errors.__ By the time you see "too many connections" errors, you're already in a cascade. Set alerts on the utilization thresholds discussed earlier. Watch for idle-in-transaction sessions—they're connection leaks waiting to bite you.
 

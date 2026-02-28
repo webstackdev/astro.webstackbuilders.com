@@ -32,16 +32,12 @@ describe('SocialShareElement selectors', () => {
         await element.updateComplete
       },
       assert: async ({ element }) => {
-        const { container: root, label, shareItems } = getSocialShareRenderElements(element)
+        const { container: root, shareItems } = getSocialShareRenderElements(element)
 
         expect(
           root,
           'SocialShareElement should render a root container with .social-share'
         ).toBeInstanceOf(HTMLDivElement)
-        expect(
-          label,
-          'SocialShareElement should render a label with .social-share__label'
-        ).toBeInstanceOf(HTMLSpanElement)
 
         expect(
           shareItems.length,

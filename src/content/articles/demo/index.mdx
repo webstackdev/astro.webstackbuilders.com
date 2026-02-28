@@ -21,6 +21,332 @@ import Demo from '@components/Test/Demo.mdx'
 
 <Demo />
 
+## Insets
+
+```text
+Burn rate = (error rate) / (1 - SLO target)
+
+Example:
+- SLO target: 99.9% (0.1% error budget)
+- Current error rate: 0.5%
+- Burn rate: 0.5% / 0.1% = 5x
+
+At 5x burn rate, you exhaust a 30-day error budget in 6 days.
+```
+
+Block 1:
+
+```text
+System availability = 0.999 × 0.999 × 0.999 = 0.997 (99.7%)
+
+Three 99.9% components became one 99.7% system.
+You lost almost a full "nine" just by having dependencies.
+```
+
+Block 2:
+
+```text
+Availability = 1 - (0.01 × 0.01) = 99.99%
+
+Two cheap servers achieved what one expensive server could not.
+```
+
+Block 3:
+
+```text
+Example: System processing 100 RPS with 200ms latency
+Queue depth = 100 × 0.2 = 20 requests in flight
+
+Same system under overload: 500 RPS arriving, still processing 100 RPS
+Effective latency grows as queue builds
+After 1 minute: 24,000 requests queued, latency > 4 minutes
+```
+
+Block 4:
+
+```text title="five-whys-antipattern.txt"
+Q: Why did the system go down?
+A: Because a config change broke it.
+
+Q: Why did the config change break it?
+A: Because the engineer made a mistake.
+
+Q: Why did the engineer make a mistake?
+A: Because they were careless.
+
+[Investigation stops at blame—nothing actionable learned]
+```
+
+Block 5:
+
+```text
+Default cache key:
+  SCHEME + HOST + PATH + QUERY_STRING
+
+Example request:
+  https://example.com/api/products?category=shoes
+
+Cache key:
+  "https://example.com/api/products?category=shoes"
+```
+
+Block 6:
+
+```text
+Problem: Query parameter order
+
+These are the same request but different cache keys:
+  /products?color=red&size=large
+  /products?size=large&color=red
+
+Result: Two cache entries for identical content
+```
+
+Block 7:
+
+```text
+Default cache key (simplified):
+  SCHEME + HOST + PATH + QUERY_STRING
+
+Example:
+  https://example.com/api/products?category=shoes
+
+Cache key:
+  "https://example.com/api/products?category=shoes"
+```
+
+Block 8:
+
+```text
+Problem: Query parameter order
+
+These are the same request but different cache keys:
+  /products?color=red&size=large
+  /products?size=large&color=red
+
+Result: Two cache entries for identical content (cache pollution)
+```
+
+Block 9:
+
+```text
+Vary: Accept-Encoding, Accept-Language
+
+Creates cache variants:
+  Cache key + Accept-Encoding: gzip + Accept-Language: en-US
+  Cache key + Accept-Encoding: gzip + Accept-Language: es-ES
+  Cache key + Accept-Encoding: br + Accept-Language: en-US
+  Cache key + Accept-Encoding: br + Accept-Language: es-ES
+  Cache key + Accept-Encoding: identity + Accept-Language: en-US
+  ...
+
+Each unique combination = separate cache entry
+```
+
+Block 10:
+
+```text
+Timeline of a cascade failure:
+
+T+0:    Database slow (100ms → 2s response time)
+T+10s:  Service C queues grow, some requests timeout
+T+20s:  Service B sees C timeouts, starts retrying
+T+30s:  Service A sees B timeouts, starts retrying
+T+45s:  All services at maximum queue depth
+T+60s:  Database recovers, but services cannot—queues too deep
+T+2min: Manual intervention required
+T+5min: Services restarted, queues cleared
+T+10min: Full recovery
+
+Root cause: 30 second database slowdown
+Actual outage: 10 minutes
+Amplification factor: 20x
+```
+
+Block 11:
+
+```text
++------------------------------------------+
+| CIRCUIT STATES                           |
+| [Service A: CLOSED] [Service B: OPEN]    |
+| [Service C: HALF_OPEN] [Service D: CLOSED]|
++------------------------------------------+
+| STATE TRANSITIONS (24h)                  |
+| Timeline showing open/closed transitions |
++------------------------------------------+
+| FAILURE RATES BY SERVICE                 |
+| Service A: 0.1%  ████░░░░░░              |
+| Service B: 45%   ████████████████████░░  |
+| Service C: 12%   ████████░░░░░░░░░░░░░░  |
++------------------------------------------+
+| RETRY BUDGET UTILIZATION                 |
+| Service A: 5%    ██░░░░░░░░░░            |
+| Service B: 100%  ████████████████████████ |
+| Service C: 35%   ██████████░░░░░░░░░░░░░ |
++------------------------------------------+
+| REQUESTS REJECTED (Circuit Open)         |
+| [Graph showing rejected requests/min]    |
++------------------------------------------+
+```
+
+Block 12:
+
+```text
+// BAD: Identical timeouts
+A (timeout: 5s) → B (timeout: 5s) → C (timeout: 5s)
+// C takes 4s, B returns at 4s, but A times out at 5s total
+
+// GOOD: Decreasing timeouts
+A (timeout: 10s) → B (timeout: 5s) → C (timeout: 2s)
+// Each layer has headroom for retries and error handling
+```
+
+Block 13:
+
+```text
+Project Structure:
+
+consumer-service/
+├── src/
+│   └── clients/
+│       └── user-service-client.ts
+├── test/
+│   ├── unit/
+│   │   └── ...
+│   └── contract/
+│       ├── pact.setup.ts           # Shared Pact configuration
+│       ├── user-service.pact.ts    # Contracts for UserService
+│       └── order-service.pact.ts   # Contracts for OrderService
+├── pacts/                          # Generated pact files (gitignored)
+│   └── consumerservice-userservice.json
+└── pact.config.js                  # Pact configuration
+
+provider-service/
+├── src/
+│   └── ...
+├── test/
+│   ├── unit/
+│   │   └── ...
+│   └── contract/
+│       ├── provider-states.ts      # State handlers
+│       └── provider-verification.ts # Verification tests
+└── pact.config.js
+```
+
+Block 14:
+
+```text title=".trivyignore"
+# CVE in test dependency, not shipped to production
+CVE-2023-12345
+
+# Disputed CVE, vendor confirms not exploitable in our context
+CVE-2023-67890
+
+# No fix available, risk accepted until Q2 2024
+# Ticket: SEC-123
+# Expires: 2024-06-30
+CVE-2023-11111
+
+# False positive - we don't use the affected function
+CVE-2023-22222
+```
+
+Block 15:
+
+```text title="context-display-example.txt"
+┌─────────────────────────────────────┐
+│ Environment: production             │
+│ Cluster:     prod-us-east-1         │
+│ Namespace:   payments               │
+└─────────────────────────────────────┘
+Confirm production operation (yes/no):
+```
+
+Block 16:
+
+```text
+BLOCKED: Namespace deletion requires manual approval
+
+Command: kubectl delete namespace payments
+Environment: production
+
+To proceed: Use --force-delete with ticket number
+Example: kube delete namespace payments --force-delete=TICKET-123
+```
+
+Block 17:
+
+```text
+╔══════════════════════════════════════════════════════════════════╗
+║  DEPRECATION NOTICE: kube wrapper will be retired in 90 days     ║
+║                                                                  ║
+║  Why: kubectl's native features now cover our use cases          ║
+║  Migration: https://wiki.company.com/kube-migration              ║
+║  Questions: #platform-support                                    ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+
+Block 18:
+
+```text
+Status:
+  Parents:
+    Conditions:
+      Type:    Accepted
+      Status:  False
+      Reason:  NotAllowedByListeners
+      Message: Route hostname "api.example.com" does not match listener
+```
+
+Block 19:
+
+```text
+# Decoded certificate showing fields relevant to mTLS
+Certificate:
+  Subject: CN=service-a
+  Issuer: CN=cluster-intermediate-ca
+  Validity:
+    Not Before: Jan 1 00:00:00 2024 GMT
+    Not After:  Jan 2 00:00:00 2024 GMT  # 24-hour TTL
+  X509v3 Subject Alternative Name:
+    DNS:service-a.default.svc.cluster.local
+    URI:spiffe://cluster.local/ns/default/sa/service-a
+  X509v3 Extended Key Usage:
+    TLS Web Server Authentication  # serverAuth
+    TLS Web Client Authentication  # clientAuth - required for mTLS
+```
+
+Block 20:
+
+```text
+max concurrent requests = (worker_processes × worker_connections) / 2
+```
+
+Block 21:
+
+```text
+[Resource Type] [Resource Name]: [Violation].
+Fix: [Specific remediation]
+```
+
+Block 22:
+
+```text
+pool_size = ceil(peak_qps × p99_query_time × burst_factor)
+```
+
+Block 23:
+
+```text
+traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
+```
+
+Block 24:
+
+```text
+service:api-gateway level:error | stats count by endpoint
+```
+
 ## Basic Markdown Formatting
 
 Subscript and superscript text is from `remark-supersub`.
@@ -459,6 +785,34 @@ This is a note callout.
 
 <Callout type="note">
 This is a note callout.
+</Callout>
+
+````markdown
+<Callout type="note">
+Codeblock in a Callout
+
+```bash
+#!/bin/bash
+
+ls
+```
+</Callout>
+````
+
+<Callout type="success">
+Codeblock in a Callout
+
+```typescript
+export async function getStaticPaths() {
+  const articleEntries = await getCollection('articles', ({ data }) => {
+    return isDev() || data.isDraft !== true
+  })
+  return articleEntries.map(article => ({
+    params: { slug: article.id },
+    props: { article },
+  }))
+}
+```
 </Callout>
 
 ## Captions

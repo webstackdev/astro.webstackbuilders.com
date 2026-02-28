@@ -36,7 +36,7 @@ $$
 \text{desiredReplicas} = \text{currentReplicas} \times \frac{\text{currentMetric}}{\text{targetMetric}}
 $$
 
-If you have 3 replicas running at 75% CPU with a target of 50%, HPA calculates $3 \times (75/50) = 5$ replicas. The ceiling function ensures you always round up—better to have slightly more capacity than slightly less.
+If you have 3 replicas running at 75% CPU with a target of 50%, HPA calculates $$3 \times (75/50) = 5$$ replicas. The ceiling function ensures you always round up—better to have slightly more capacity than slightly less.
 
 ```mermaid
 sequenceDiagram
@@ -682,9 +682,9 @@ Code: Multi-metric HPA using CPU, RPS, and latency.
 
 Here's how the calculation works. Suppose current state is 5 replicas:
 
-- **CPU metric**: 60% utilization, target 50% → $5 \times (60/50) = 6$ replicas
-- **RPS metric**: 120 RPS/pod, target 100 → $5 \times (120/100) = 6$ replicas
-- **Latency metric**: 400ms P99, target 500ms → $5 \times (400/500) = 4$ replicas
+- **CPU metric**: 60% utilization, target 50% → $$5 \times (60/50) = 6$$ replicas
+- **RPS metric**: 120 RPS/pod, target 100 → $$5 \times (120/100) = 6$$ replicas
+- **Latency metric**: 400ms P99, target 500ms → $$5 \times (400/500) = 4$$ replicas
 
 HPA takes the maximum: 6 replicas. The latency metric calculates fewer replicas than currently running (4 < 5), which would suggest scaling down if it were the only metric—but CPU and RPS both want more capacity, so we scale up. This "max wins" behavior ensures you don't under-provision when _any_ metric indicates stress.
 

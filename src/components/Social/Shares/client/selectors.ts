@@ -8,7 +8,6 @@ import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {
   container: '.social-share',
-  label: '.social-share__label',
   shareItem: '[data-share]',
   metaDescription: 'meta[name="description"]',
 } as const
@@ -20,15 +19,6 @@ export function getSocialShareRenderElements(context: Element) {
       scriptName: 'SocialShareElement',
       operation: 'getSocialShareRenderElements',
       message: 'Social share container element not found',
-    })
-  }
-
-  const label = context.querySelector(SELECTORS.label)
-  if (!isSpanElement(label)) {
-    throw new ClientScriptError({
-      scriptName: 'SocialShareElement',
-      operation: 'getSocialShareRenderElements',
-      message: 'Social share label element not found',
     })
   }
 
@@ -48,7 +38,6 @@ export function getSocialShareRenderElements(context: Element) {
 
   return {
     container,
-    label,
     shareItems,
   }
 }

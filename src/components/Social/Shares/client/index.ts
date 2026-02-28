@@ -1,4 +1,5 @@
-import { LitElement, html, nothing } from 'lit'
+import { LitElement, html } from 'lit'
+import { ifDefined } from 'lit/directives/if-defined.js'
 import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
@@ -10,10 +11,7 @@ import { queryMetaDescription, querySocialShareIconMarkup } from './selectors'
 
 const COMPONENT_TAG_NAME = 'social-share-element'
 const DEFAULT_NETWORKS = 'x,linkedin,bluesky,reddit,mastodon'
-const DEFAULT_LABEL = 'Share:'
 const MASTODON_MODAL_ID = 'mastodon-modal'
-
-let socialShareInstanceCounter = 0
 
 export class SocialShareElement extends LitElement {
   static registeredName = COMPONENT_TAG_NAME
@@ -23,7 +21,6 @@ export class SocialShareElement extends LitElement {
     title: { type: String },
     description: { type: String },
     layout: { type: String },
-    labelText: { type: String, attribute: 'label-text' },
     socialNetworksAttr: { type: String, attribute: 'social-networks' },
     containerClass: { type: String, attribute: 'container-class' },
     iconBankId: { type: String, attribute: 'icon-bank-id' },
@@ -33,11 +30,9 @@ export class SocialShareElement extends LitElement {
   declare title: string
   declare description: string
   declare layout: 'horizontal' | 'vertical'
-  declare labelText: string
   declare socialNetworksAttr: string
   declare containerClass: string
   declare iconBankId: string
-  private labelId: string
   private iconMarkupCache: Map<string, string>
 
   constructor() {
@@ -46,12 +41,9 @@ export class SocialShareElement extends LitElement {
     this.title = ''
     this.description = ''
     this.layout = 'horizontal'
-    this.labelText = DEFAULT_LABEL
     this.socialNetworksAttr = DEFAULT_NETWORKS
     this.containerClass = ''
     this.iconBankId = ''
-    socialShareInstanceCounter += 1
-    this.labelId = `social-share-label-${socialShareInstanceCounter}`
     this.iconMarkupCache = new Map()
   }
 
@@ -63,31 +55,20 @@ export class SocialShareElement extends LitElement {
     const shareData = this.getShareData()
     const shareText = `${shareData.text} ${shareData.url}`.trim()
     const containerClassList = [
-      styles.container,
       'social-share',
       this.layout === 'vertical' ? 'flex flex-col gap-2' : 'flex flex-wrap gap-3',
+      'max-sm:justify-center',
       this.containerClass,
     ]
       .filter(Boolean)
       .join(' ')
 
-    const labelClassList = [
-      styles.label,
-      'social-share__label text-sm font-semibold text-content-active mr-2 self-center',
-    ]
-      .filter(Boolean)
-      .join(' ')
-
-    const hasLabelText = Boolean(this.labelText?.trim())
-
     return html`
       <div
         class="${containerClassList}"
         role="group"
-        aria-labelledby=${hasLabelText ? this.labelId : nothing}
-        aria-label=${hasLabelText ? nothing : 'Share this content'}
+        aria-label="Share this content"
       >
-        <span id=${this.labelId} class="${labelClassList}">${this.labelText}</span>
         ${this.selectedPlatforms.map(platform =>
           this.renderPlatform(platform, shareData, shareText)
         )}
@@ -123,7 +104,7 @@ export class SocialShareElement extends LitElement {
     const displayName = platform.id === 'x' ? 'X.com' : platform.name
     const buttonClassList = [
       styles.button,
-      'social-share__button inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors hover:shadow-md no-underline hover:no-underline',
+      'social-share__button relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors hover:shadow-md no-underline hover:no-underline hover:-translate-y-px active:translate-y-0 focus-visible:outline-none',
       platform.colorClasses,
     ]
       .filter(Boolean)
@@ -136,8 +117,8 @@ export class SocialShareElement extends LitElement {
           type="button"
           class="${buttonClassList}"
           aria-label="${platform.ariaLabel}"
-          aria-haspopup=${isMastodon ? 'dialog' : nothing}
-          aria-controls=${isMastodon ? MASTODON_MODAL_ID : nothing}
+          aria-haspopup=${ifDefined(isMastodon ? 'dialog' : undefined)}
+          aria-controls=${ifDefined(isMastodon ? MASTODON_MODAL_ID : undefined)}
           data-platform="${platform.id}"
           data-share="${platform.id}"
           data-share-text="${shareText}"

@@ -4,9 +4,11 @@
  * download page, which is implemented by Forms/Download.
  */
 import { BuildError } from '@lib/errors/BuildError'
+import { Image } from 'astro:assets'
 import Button from '@components/Button/index.astro'
 import List from '@components/List/index.astro'
 import Icon from '@components/Icon/index.astro'
+import pdfDownloadImg from '@assets/images/pdf-download.jpg'
 
 export interface Props {
   /** Optional base id for internal aria relationships */
@@ -56,7 +58,7 @@ const downloadUrl = `/downloads/${normalizedResource}`
 ---
 
 <section
-  class="bg-linear-to-br from-primary/5 to-accent/5 border border-primary/20 rounded-2xl p-6 md:p-8"
+  class="bg-linear-to-br from-primary/5 to-accent/5 border border-primary/20 rounded-2xl p-6 md:p-8 mb-6"
   aria-labelledby={titleId}
   aria-describedby={descriptionId}
 >
@@ -95,15 +97,25 @@ const downloadUrl = `/downloads/${normalizedResource}`
 
     <div class="lg:w-72 lg:shrink-0">
       <div class="bg-content-inverse rounded-xl border border-trim p-5 shadow-sm">
-        <div class="text-center mb-4">
-          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Icon
-              icon={"document"}
-              size={8}
-              color={"primary-offset"}
+        <div class="flex text-center mb-4">
+          <div class="w-20 h-20 rounded-lg overflow-hidden ml-2 mb-3">
+            <Image
+              src={pdfDownloadImg}
+              alt="PDF download"
+              width={80}
+              height={80}
+              class="w-full h-full object-cover"
             />
           </div>
-          <p class="text-xs text-content">Free resource · Instant access</p>
+          <div class="flex flex-col justify-start items-center gap-2 mx-auto mt-2 text-trim">
+            <p class="text-sm leading-none">Free resource</p>
+            <Icon
+              icon={"lightning"}
+              size={5}
+              color={"text-trim"}
+            />
+            <p class="text-sm leading-none">Instant access</p>
+          </div>
         </div>
 
         <div class="space-y-3">
