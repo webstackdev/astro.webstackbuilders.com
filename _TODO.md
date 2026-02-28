@@ -103,6 +103,12 @@ Need a tooltip component for consistency. List to add tooltips to:
 - Bug reporter modal
 - Email templates
 
+## HubSpot Signup Issues
+
+- Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
+
+- If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button. Think this workflow through - maybe a "Short / Deep-Dive" slider button on top and don't show the CTA + the PDF download button.
+
 ## Theming and improving Mermaid diagrams
 
 [rerender diagrams when I switched color-scheme](https://github.com/mermaid-js/mermaid/issues/1945)
@@ -122,17 +128,11 @@ https://mermaid.js.org/config/directives.html
 
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
 
-- Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
-
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
 
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
 - Add a copyright notice to content
-
-- We need to exclude "Footnotes" from the ToC list of links. Right now it shows at the bottom if there's a Footnotes H2 (footnotes in the article).
-
-- If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button. Think this workflow through - maybe a "Short / Deep-Dive" slider button on top and don't show the CTA + the PDF download button.
 
 - The articles list page should show tags at top for quick navigation. Show the count of articles per tag unless they're all the same on the tag.
 
