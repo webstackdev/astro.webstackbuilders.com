@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypeAutolinkHeadings from '@lib/markdown/plugins/rehype-autolink-headings'
 import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
-import { rehypeAutolinkHeadingsConfig } from '@lib/config/markdown'
 
 describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
   describe('autolink with GFM', () => {
@@ -17,7 +16,6 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
@@ -34,7 +32,6 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
@@ -49,7 +46,6 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
@@ -70,7 +66,6 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
@@ -91,7 +86,6 @@ Content[^1]
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
@@ -115,7 +109,6 @@ Content[^1]
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
@@ -129,7 +122,6 @@ Content[^1]
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 

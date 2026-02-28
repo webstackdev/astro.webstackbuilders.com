@@ -30,8 +30,7 @@ Object.defineProperty(rehypeMathjax, 'name', { value: 'rehypeMathjax' })
 import rehypeMermaid from 'rehype-mermaid'
 Object.defineProperty(rehypeMermaid, 'name', { value: 'rehypeMermaid' })
 
-import type { Options as RehypeAutolinkHeadingsOptions } from 'rehype-autolink-headings'
-import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypeAutolinkHeadings from '../markdown/plugins/rehype-autolink-headings'
 Object.defineProperty(rehypeAutolinkHeadings, 'name', { value: 'rehypeAutolinkHeadings' })
 
 import type { Options as RehypeExternalLinksOptions } from 'rehype-external-links'
@@ -185,38 +184,7 @@ export const rehypeMermaidConfig = {
   },
 } as const
 
-/** rehype-autolink-headings plugin */
-export const rehypeAutolinkHeadingsConfig: RehypeAutolinkHeadingsOptions = {
-  behavior: 'append',
-  /**
-   * Set explicit classes on the injected <a> so we can style heading anchors
-   * independently from the generic <a> handling in rehypeTailwindClasses.
-   */
-  properties: {
-    className: [
-      'heading-anchor',
-      'no-underline',
-      'hover:no-underline',
-      'focus-visible:no-underline',
-      'transition-colors',
-    ],
-    ariaLabel: 'Link to this section',
-  },
-  content: {
-    type: 'element',
-    tagName: 'span',
-    properties: {
-      className: ['anchor-link', 'text-base', 'sm:text-lg'],
-      ariaHidden: 'true',
-    },
-    children: [
-      {
-        type: 'text',
-        value: '🔗',
-      },
-    ],
-  },
-}
+
 
 /** remark-smartypants plugin */
 const remarkSmartypantsConfig: RemarkSmartypantsOptions = {
@@ -432,7 +400,7 @@ export const markdownConfig: Partial<MdxOptions> = {
      * Astro uses Github Flavored Markup to add id attribute to headings like h1,
      * using the header title text converted to kebab-case
      */
-    [rehypeAutolinkHeadings, rehypeAutolinkHeadingsConfig],
+    rehypeAutolinkHeadings,
     /**
      * Render TeX math to SVG at build-time (no client-side MathJax).
      * Keep this before rehypeTailwindClasses so math placeholders (<code>/<pre>) are
