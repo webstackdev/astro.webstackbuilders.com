@@ -44,7 +44,7 @@ Vercel AI Gateway, maybe could use for a chatbot:
 https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
 https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2026-aeeff5e13f4a
 
-## Move containers to dev server from Playwright
+## Move Docker containers to dev server from Playwright
 
 We should start the mock containers with the dev server instead of with Playwright so that they're useable in a dev environment.
 
@@ -81,10 +81,6 @@ if (window.matchMedia) {
     });
 }
 ```
-
-## Search Box
-
-- Show article titles only in drop-down search result box, and dedupe results
 
 ## ToolTips
 
@@ -140,19 +136,15 @@ https://mermaid.js.org/config/directives.html
 
 ## Todo
 
-- See comp images in Breadcrumbs component directory for visual improvements
+- Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
+
+- Uppy, Tus server, whatever other server needed for file upload on Contact Form component
 
 - Add Inset component and convert `text` code blocks to use it.
 
 - Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`. Might be one of the list formats.
 
-- Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
-
-- Uppy, Tus server, whatever other server needed for file upload on Contact Form component
-
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
-
-- Details dd / dt in Markdown need bottom margin
 
 - Highlighter component in Markdown needs better colors in dark theme. It's spotlight color with content text - and there's not much contrast in dark theme between the yellow and white text.
 
@@ -160,13 +152,7 @@ https://mermaid.js.org/config/directives.html
 
 - Determine if any of the python code blocks should have `#!/bin/python` added
 
-- Color headings blue and use the SVG icon instead of the link image.
-
-- Social shares - module CSS doesn't appear correct with nested button hover classes, not sure how network name is generated or styled but it needs improvement. Should be rendered inside article content column, not across both content and TOC columns.
-
 - Focus-visible / active handling on ToC nav items
-
-- Bread crumbs on deep dive pages are giving a link to "http://localhost:4321/deep-dive" for the deep-dive segment, needs to rewrite to "articles"
 
 ## List Component
 
