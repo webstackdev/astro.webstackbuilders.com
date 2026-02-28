@@ -16,10 +16,11 @@ describe('rehype-autolink-headings plugin (Layer 1: Isolated)', () => {
     expect(html).toContain('<h1')
     expect(html).toContain('<a')
     expect(html).toContain('href="#')
-    expect(html).toContain('class="heading-anchor')
+    expect(html).toContain('group')
+    expect(html).toContain('no-underline')
   })
 
-  it('should use the hard-coded emoji anchor content', async () => {
+  it('should use an inline SVG link icon as anchor content', async () => {
     const markdown = '## Section Title'
 
     const html = await processIsolated({
@@ -29,8 +30,10 @@ describe('rehype-autolink-headings plugin (Layer 1: Isolated)', () => {
       slugify: true,
     })
 
-    expect(html).toContain('🔗')
-    expect(html).toContain('class="anchor-link')
+    expect(html).toContain('<svg')
+    expect(html).toContain('<path')
+    expect(html).toContain('inline-block')
+    expect(html).toContain('opacity-0')
   })
 
   it('should set aria-hidden on anchor content span', async () => {
@@ -59,7 +62,7 @@ describe('rehype-autolink-headings plugin (Layer 1: Isolated)', () => {
     expect(html).toContain('aria-label="Link to this section"')
   })
 
-  it('should add no-underline classes to the anchor link', async () => {
+  it('should add group and transition classes to the anchor link', async () => {
     const markdown = '## Styled Heading'
 
     const html = await processIsolated({
@@ -69,6 +72,7 @@ describe('rehype-autolink-headings plugin (Layer 1: Isolated)', () => {
       slugify: true,
     })
 
+    expect(html).toContain('group')
     expect(html).toContain('no-underline')
     expect(html).toContain('transition-colors')
   })
@@ -95,7 +99,7 @@ describe('rehype-autolink-headings plugin (Layer 1: Isolated)', () => {
     expect(html).toContain('<h5')
     expect(html).toContain('<h6')
 
-    const anchorCount = (html.match(/class="anchor-link\b/g) || []).length
+    const anchorCount = (html.match(/opacity-0/g) || []).length
     expect(anchorCount).toBe(6)
   })
 
@@ -110,7 +114,8 @@ describe('rehype-autolink-headings plugin (Layer 1: Isolated)', () => {
     })
 
     expect(html).toContain('<h1')
-    expect(html).not.toContain('class="heading-anchor')
+    expect(html).not.toContain('group')
+    expect(html).not.toContain('<svg')
   })
 
   it('should handle headings with code', async () => {
@@ -125,7 +130,7 @@ describe('rehype-autolink-headings plugin (Layer 1: Isolated)', () => {
 
     expect(html).toContain('<h2')
     expect(html).toContain('<code>')
-    expect(html).toContain('🔗')
+    expect(html).toContain('<svg')
   })
 
   it('should handle multiple headings with the same text', async () => {
@@ -140,7 +145,7 @@ describe('rehype-autolink-headings plugin (Layer 1: Isolated)', () => {
       slugify: true,
     })
 
-    const anchorCount = (html.match(/class="anchor-link\b/g) || []).length
+    const anchorCount = (html.match(/opacity-0/g) || []).length
     expect(anchorCount).toBe(3)
   })
 })

@@ -36,7 +36,7 @@ describe('Layer 4: E2E - Full Pipeline Integration', () => {
       expect(html).toContain('class="blockquote') // Blockquote attribution/caption
       expect(html).toContain('❤️') // Emoji
       expect(html).toContain('href="https://www.webstackbuilders.com"') // Auto-linking
-      expect(html).toContain('class="anchor-link') // Anchor headings
+      expect(html).toContain('opacity-0') // Anchor headings (span wrapper)
 
       // Check accessibility
       const results = await axe(container)
@@ -87,18 +87,17 @@ describe('Layer 4: E2E - Full Pipeline Integration', () => {
     it('should ensure heading anchor links are accessible', async () => {
       const { container } = render(<MarkdownOutput html={html} />)
 
-      // Find anchor links - these are <a> tags inside headings that contain .anchor-link spans
-      // Query for headings that contain anchor links
+      // Find anchor links — heading <a> elements with the `group` class
       const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6')
       const headingsWithAnchors = Array.from(headings).filter(
-        (h: Element) => h.querySelector('.anchor-link') !== null
+        (h: Element) => h.querySelector('a.group') !== null
       )
 
       expect(headingsWithAnchors.length).toBeGreaterThan(0)
 
       headingsWithAnchors.forEach((heading: Element) => {
-        // Find the <a> tag (parent of .anchor-link span)
-        const anchorLink = heading.querySelector('a')
+        // Find the heading anchor <a> tag
+        const anchorLink = heading.querySelector('a.group')
         expect(anchorLink).toBeTruthy()
 
         // Should have href pointing to the heading ID

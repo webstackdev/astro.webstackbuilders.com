@@ -175,7 +175,7 @@ export function rehypeTailwindClasses() {
         node.tagName === 'a' &&
         node.properties &&
         !hasClass(node, 'btn') &&
-        !hasClass(node, 'heading-anchor')
+        !hasClass(node, 'group')
       ) {
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'focus-visible:outline-none',
@@ -201,6 +201,7 @@ export function rehypeTailwindClasses() {
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'relative',
           'my-6',
+          'text-page-inverse',
           /**
            * Remove top margin from first child element of headings since we're
            * controlling bottom margin here.
