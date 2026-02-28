@@ -19,6 +19,11 @@ if (path === '/' || path === '') {
 }
 
 const breadcrumbs = generateBreadcrumbs(path, pageTitle)
+
+function rewriteBreadcrumbHref(href: string): string {
+  return href === '/deep-dive' ? '/articles' : href
+}
+
 const breadcrumbSchema =
   site && breadcrumbs.length > 1
     ? JSON.stringify({
@@ -28,7 +33,7 @@ const breadcrumbSchema =
           '@type': 'ListItem',
           position: index + 1,
           name: item.label,
-          item: new URL(item.href, site).href,
+          item: new URL(rewriteBreadcrumbHref(item.href), site).href,
         })),
       })
     : null
@@ -49,7 +54,7 @@ const breadcrumbSchema =
                   {item.label}
                 </span>
               ) : (
-                <a href={item.href} class="rounded px-2 py-1 text-xs text-page-inverse no-underline transition-colors bg-page-base border border-page-inverse hover:bg-secondary hover:text-content-inverse focus-visible:text-content-inverse focus-visible:bg-secondary">
+                <a href={rewriteBreadcrumbHref(item.href)} class="rounded px-2 py-1 text-xs text-page-inverse no-underline transition-colors bg-page-base border border-page-inverse hover:bg-secondary hover:text-content-inverse focus-visible:text-content-inverse focus-visible:bg-secondary">
                   {item.label}
                 </a>
               )}
