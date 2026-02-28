@@ -146,8 +146,6 @@ https://mermaid.js.org/config/directives.html
 
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
-- Highlighter component in Markdown needs better colors in dark theme. It's spotlight color with content text - and there's not much contrast in dark theme between the yellow and white text.
-
 - Font size on GitHub Gist embed is too small
 
 - Determine if any of the python code blocks should have `#!/bin/python` added
