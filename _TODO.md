@@ -144,10 +144,6 @@ https://mermaid.js.org/config/directives.html
 
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
-- The articles list page should show tags at top for quick navigation. Show the count of articles per tag unless they're all the same on the tag.
-
-- Update EXIF data on all AI generated JPGs
-
 - Details dd / dt in Markdown need bottom margin
 
 - Highlighter component in Markdown needs better colors in dark theme. It's spotlight color with content text - and there's not much contrast in dark theme between the yellow and white text.

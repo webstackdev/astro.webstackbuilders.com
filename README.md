@@ -618,3 +618,11 @@ document.querySelector('.contact___callout-flex')
 ```bash
 document.getElementById('header__theme-icon').getBoundingClientRect().width
 ```
+
+## Images
+
+Update the copyright notice in EXIF data when adding new images:
+
+```bash
+exiftool -Comment= -Copyright="© 2026 Webstack Builders, Inc." -CopyrightNotice="© 2026 Webstack Builders, Inc." src/content/**/* src/assets/**/* public/**/*
+```
