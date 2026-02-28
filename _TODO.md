@@ -158,6 +158,8 @@ https://mermaid.js.org/config/directives.html
 
 - Focus-visible / active handling on ToC nav items
 
+- Bread crumbs on deep dive pages are giving a link to "http://localhost:4321/deep-dive" for the deep-dive segment, needs to rewrite to "articles"
+
 ## List Component
 
 - Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
