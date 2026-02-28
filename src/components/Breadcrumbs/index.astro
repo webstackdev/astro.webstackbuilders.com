@@ -39,23 +39,18 @@ const breadcrumbSchema =
   breadcrumbs.length > 1 && (
     <div class="min-w-0">
       <nav aria-label="Breadcrumbs" class="breadcrumbs">
-        <ol class="flex flex-wrap items-center gap-1.5 text-sm text-content">
+        <ol class="flex flex-wrap items-center text-sm text-content">
           {breadcrumbs.map((item, i) => (
-            <li class="flex items-center gap-1.5">
+            <li class="flex items-center">
               {i > 0 && (
-                <span class="grid grid-cols-2 gap-0.5" aria-hidden="true">
-                  <span class="h-1 w-1 rounded-full bg-gray-300" />
-                  <span class="h-1 w-1 rounded-full bg-gray-300" />
-                  <span class="h-1 w-1 rounded-full bg-gray-300" />
-                  <span class="h-1 w-1 rounded-full bg-gray-300" />
-                </span>
+                <span class="w-6 h-px border-t-2 border-dashed border-page-inverse" />
               )}
               {item.isCurrentPage ? (
-                <span aria-current="page" class="rounded px-2 py-1 text-xs text-content-inverse bg-page-inverse/90">
+                <span aria-current="page" class="rounded px-2 py-1 text-xs text-content-inverse bg-page-inverse">
                   {item.label}
                 </span>
               ) : (
-                <a href={item.href} class="rounded px-2 py-1 text-xs text-gray-900 no-underline transition-colors bg-gray-300 hover:bg-gray-400 hover:text-white focus-visible:text-white focus-visible:bg-gray-400">
+                <a href={item.href} class="rounded px-2 py-1 text-xs text-page-inverse no-underline transition-colors bg-page-base border border-page-inverse hover:bg-secondary hover:text-content-inverse focus-visible:text-content-inverse focus-visible:bg-secondary">
                   {item.label}
                 </a>
               )}
