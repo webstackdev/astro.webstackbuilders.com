@@ -28,6 +28,8 @@ export type Props = {
 }
 
 const { author, article, path, readingTime, section } = Astro.props
+
+const isDeepDive = section === 'Deep Dive Articles'
 ---
 
 <MarkdownLayout
@@ -80,24 +82,15 @@ const { author, article, path, readingTime, section } = Astro.props
     slot="after-content"
   >
     <WebMentions url={`https://www.webstackbuilders.com${path}`} />
-    <div class="flex flex-col gap-6">
-      <div class="flex flex-col sm:flex-row sm:justify-start sm:items-center gap-2">
-        <h2
-          class="text-lg font-semibold"
-          id="article-share-title"
-        >
-          Share this article
-        </h2>
-        <p class="text-content-active text-sm sm:text-right sm:ml-6">
-          Found this helpful? Share it with others who might benefit.
-        </p>
+    {!isDeepDive && (
+      <div class="flex flex-col gap-6">
+        <Shares
+          url={`https://www.webstackbuilders.com${path}`}
+          title={article.data.title}
+          description={`Read "${article.data.title}" on Webstack Builders`}
+        />
       </div>
-      <Shares
-        url={`https://www.webstackbuilders.com${path}`}
-        title={article.data.title}
-        description={`Read "${article.data.title}" on Webstack Builders`}
-      />
-    </div>
+    )}
   </section>
 
   {/** SLOT: related-content */}

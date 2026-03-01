@@ -41,9 +41,9 @@ Before you can fix alert noise, you need to know what you have. Most teams can't
 
 Export your alert definitions and firing history. Prometheus/Alertmanager stores this in rules files and the `ALERTS` metric. Datadog and PagerDuty have API endpoints for historical data. You want at least 90 days of history to capture weekly and monthly patterns.
 
-For each alert, capture: alert name, firing frequency over the last 90 days, action rate (percentage of firings that required human intervention), owning team, and whether a runbook exists. The action rate column is the most important and the hardest to populate—you'll need to cross-reference alert firings with incident tickets or on-call logs.
-
 <Newsletter />
+
+For each alert, capture: alert name, firing frequency over the last 90 days, action rate (percentage of firings that required human intervention), owning team, and whether a runbook exists. The action rate column is the most important and the hardest to populate—you'll need to cross-reference alert firings with incident tickets or on-call logs.
 
 ### Step 2: Classify by Action Rate
 
@@ -72,9 +72,23 @@ But an alert that fires constantly and gets ignored isn't a lesson learned—it'
 
 The talking points that work:
 
-- "This alert fired 47 times last quarter. How many of those were real problems?" (Usually: zero or one.)
-- "Would you notice if this alert stopped firing tomorrow?" (Usually: no.)
-- "If we delete this, what's the worst case?" (Usually: we'd notice the problem some other way, slightly later.)
+<List
+  variant="chevron-list"
+  items={[
+    {
+      lead: '"This alert fired 47 times last quarter. How many of those were real problems?"',
+      text: "(Usually: zero or one.)",
+    },
+    {
+      lead: '"Would you notice if this alert stopped firing tomorrow?"',
+      text: "(Usually: no.)",
+    },
+    {
+      lead: '"If we delete this, what\'s the worst case?"',
+      text: "(Usually: we'd notice the problem some other way, slightly later.)",
+    },
+  ]}
+/>
 
 <Callout type="danger">An alert with a 5% action rate is not "coverage"—it is noise that makes your 95% action-rate alerts harder to notice. Delete it or fix it.</Callout>
 
@@ -93,8 +107,6 @@ This principle extends to alert grouping and dependency suppression. If the data
 Alert counts grow naturally. Someone adds an alert during an incident, another gets added during a deployment, a third comes from a vendor integration. Rarely does anyone go back and remove alerts. Without discipline, the count ratchets upward.
 
 Establish a cadence: monthly reviews of which alerts fired most and what their action rates were, quarterly reviews of whether alerts still make sense given how your system has evolved. Every alert needs an owner—encode it in a label. Orphaned alerts are the first candidates for deletion.
-
-Counter the growth with a deletion budget: every quarter, each team must delete or significantly improve 10% of their alerts. It's aggressive enough to force real decisions, but sustainable enough that teams don't feel like they're dismantling their monitoring.
 
 <Download
   resource="alert-fatigue-reduction-triage-actionable-alerts"
@@ -115,6 +127,8 @@ Counter the growth with a deletion budget: every quarter, each team must delete 
     },
   ]}
 />
+
+Counter the growth with a deletion budget: every quarter, each team must delete or significantly improve 10% of their alerts. It's aggressive enough to force real decisions, but sustainable enough that teams don't feel like they're dismantling their monitoring.
 
 ## The Results
 

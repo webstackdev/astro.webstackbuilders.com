@@ -141,6 +141,8 @@ The text, diagrams, and images in this work are licensed under CC BY-NC 4.0
 All code samples in this article are licensed under the MIT License. Feel free to use, modify, and distribute them in any project.
 ```
 
+- When someone's already given their email address, the Download CTA should just have a download button - not require them to sign up again
+
 ## Search
 
 - How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
@@ -165,6 +167,26 @@ https://mermaid.js.org/config/directives.html
 - Only needed if images used in content: Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
 - Focus-visible / active handling on ToC nav items
+
+- Style "Share to Mastodon" modal in src/components/Social/Mastodon/client/index.ts
+
+- There's a pretty long delay when you push the Content Switcher to go from short to deep dive, what's causing it? It should be fast - maybe it's a prefetch issue, prefetch on page load
+
+- Suggestions on improving table layout for better visual experience
+
+- Cap callout length at 80% or 90% of the column so they're not longer than any text
+
+- Consider adding a trim outline to tables
+
+- Social share shouldn't appear on deep dive
+
+- Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
+
+- Search box in header should have blue outline, not highlight
+
+- Contact page Uppy file upload not displaying. Submit button is huge on Contact page.
+
+- Hero animation not loading on home page.
 
 ## List Component
 

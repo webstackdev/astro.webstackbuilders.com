@@ -24,12 +24,14 @@ const author = await getEntry(article.data.author)
 
 const articleBody = article.body ?? ''
 const readingTime = article.data.readingTime ?? getReadingTimeLabel(articleBody)
+// If section const value is changed, update the ContentLayout usage of the value
+const section = 'Deep Dive Articles'
 ---
 
 <ContentLayout
   author={author.data.name}
   article={article}
   path={`/deep-dive/${article.id}`}
-  section="Deep Dive Articles"
+  section={section}
   {...readingTime && { readingTime }}
 />
