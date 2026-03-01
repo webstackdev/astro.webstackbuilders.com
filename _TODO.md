@@ -146,8 +146,6 @@ https://mermaid.js.org/config/directives.html
 
 - Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
 
-- Font size on GitHub Gist embed is too small
-
 - Determine if any of the python code blocks should have `#!/bin/python` added
 
 - Focus-visible / active handling on ToC nav items
@@ -164,35 +162,13 @@ https://mermaid.js.org/config/directives.html
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
 
-- The right-hand browser vertical scroll bar is hidden under the header
-
-## Print
-
-- Need a workflow to generate PDF files from Markdown for downloads.
-
-- Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page.
-
-- Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page. Need a fixed cover page format that adds article title, subtitle, and date.
-
-- We have two print scenarios: black and white, and color for PDF output. Can use two different media queries to accomplish getting colored variables.
-
-- Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden. The styling should be different for print for the code block. Maybe move other language code tabs to an appendix and add a link to them.
-
-- Need to only load print style sheet when needed.
-
-[Paged.js](https://pagedjs.org/en/documentation/) polyfills `@page` properties, and lays out an HTML document in print format where it can have page numbers generated to update in a table of contents.
-
-[This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
-
-This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
-
 ## Content Issues
 
 - "### Geographic/Currency Mismatches" in deep-dive/cdn-edge-caching-cache-keys-vary-headers has a table -> callout -> table back to back
 
 - cover.jpg for reliability-and-testing needs touch up in GIMP
 
-- We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag and add the name to the tags: frontmatter key in the index.mdx
+- We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
 
 - Need an article on OpenStack
 
