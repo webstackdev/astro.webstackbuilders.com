@@ -172,13 +172,9 @@ https://mermaid.js.org/config/directives.html
 
 - There's a pretty long delay when you push the Content Switcher to go from short to deep dive, what's causing it? It should be fast - maybe it's a prefetch issue, prefetch on page load
 
-- Suggestions on improving table layout for better visual experience
+- Suggestions on improving table layout for better visual experience. Consider adding a trim outline to tables
 
 - Cap callout length at 80% or 90% of the column so they're not longer than any text
-
-- Consider adding a trim outline to tables
-
-- Social share shouldn't appear on deep dive
 
 - Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
 
@@ -187,6 +183,8 @@ https://mermaid.js.org/config/directives.html
 - Contact page Uppy file upload not displaying. Submit button is huge on Contact page.
 
 - Hero animation not loading on home page.
+
+- Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
 ## List Component
 

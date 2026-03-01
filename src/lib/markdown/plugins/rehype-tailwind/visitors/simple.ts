@@ -26,21 +26,6 @@ export const htmlElements: ElementConfig[] = [
     ],
   },
   {
-    tagName: 'img',
-    classes: [
-      'block',
-      'mx-auto',
-      'mb-6',
-      'max-w-full',
-      'h-auto',
-      'rounded-lg',
-      'shadow-md',
-      'text-gray-500',
-      'italic',
-      'text-center',
-    ],
-  },
-  {
     tagName: 'mark',
     classes: [
       'bg-content',

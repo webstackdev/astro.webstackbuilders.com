@@ -3,15 +3,6 @@
  */
 
 /**
- * Ensure components have proper spacing
- */
-.markdown-content__prose .callout,
-.markdown-content__prose .carousel,
-.markdown-content__prose .testimonials {
-  margin-block: var(--space-lg);
-}
-
-/**
  * Footnote reference numbers should not have dotted underlines (normal or hover).
  */
 .markdown-content__prose sup a[data-footnote-ref],
@@ -22,7 +13,8 @@
 }
 
 /**
- * Details and Summary stylings
+ * Details and Summary stylings. Gives a thin line with a "+" symbol,
+ * and animates the content when opening and closing.
  */
 .markdown-content__prose details {
   border-block-end: 1px solid var(--theme-color-content);
@@ -89,17 +81,9 @@
 
 @media (prefers-reduced-motion) {
   .markdown-content__prose details::details-content {
-     /** slower speed */
+     /** Use slower speed to open details box on reduced motion preference */
     transition-duration: 0.8s;
   }
-}
-
-/**
- * Image styling
- */
-.markdown-content__prose img {
-  height: auto;
-  max-width: 100%;
 }
 
 /**
@@ -132,7 +116,7 @@
  */
 .markdown-list ul,
 .markdown-list ol {
-  margin-bottom: var(--space-lg);
+  margin-bottom: 2rem;
   margin-left: 1rem;
 }
 
@@ -203,6 +187,7 @@
 }
 
 .markdown-list ul:not(.contains-task-list) > li::after {
+  /* A checkmark SVG as a mask for the custom unordered list marker */
   --ul-check-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M9.999%2013.587L7.7%2011.292l-1.412%201.416%203.713%203.705%207.206-7.206-1.414-1.414z%22/%3E%3C/svg%3E");
 
   background-color: var(--color-content-inverse);

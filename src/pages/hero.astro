@@ -4,10 +4,373 @@ import BaseLayout from '@layouts/BaseLayout.astro'
 const pageDescription = 'Styling Variants'
 const pageTitle = 'Style Variants'
 const path = '/hero/'
+
+const rows = [
+  { classification: 'Actionable', criteria: '≥ 80%', action: 'Keep, improve runbook' },
+  { classification: 'Noisy', criteria: '20-80%', action: 'Investigate thresholds, consider aggregation' },
+  { classification: 'Useless', criteria: '< 20%', action: 'Delete or convert to dashboard metric' },
+  { classification: 'Stale', criteria: 'Not fired in 3+ months', action: 'Review for deletion' },
+]
 ---
 
 <BaseLayout pageDescription={pageDescription} noindex={true} pageTitle={pageTitle} path={path}>
-  <div class="mt-12">
+  <div class="mt-12 space-y-16 px-4 pb-16 max-w-5xl mx-auto">
+
+    {/* ================================================================
+        VARIANT 1 — Minimal with bottom borders only
+        Clean, borderless look with subtle row separators.
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 1 — Minimal Borders</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="border-b-2 border-trim">
+              <th class="pb-3 pr-6 font-semibold text-content-active">Classification</th>
+              <th class="pb-3 pr-6 font-semibold text-content-active">Criteria</th>
+              <th class="pb-3 font-semibold text-content-active">What To Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr class="border-b border-trim-offset">
+                <td class="py-3 pr-6 text-content">{row.classification}</td>
+                <td class="py-3 pr-6 text-content-offset">{row.criteria}</td>
+                <td class="py-3 text-content">{row.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ================================================================
+        VARIANT 2 — Striped rows with rounded container
+        Alternating row colors inside a rounded card.
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 2 — Striped Rows</h2>
+      <div class="overflow-x-auto rounded-xl border border-trim shadow-sm">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-primary text-primary-inverse">
+              <th class="px-5 py-3 font-semibold">Classification</th>
+              <th class="px-5 py-3 font-semibold">Criteria</th>
+              <th class="px-5 py-3 font-semibold">What To Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr class={i % 2 === 0 ? 'bg-page-offset' : 'bg-content-inverse'}>
+                <td class="px-5 py-3 text-content font-medium">{row.classification}</td>
+                <td class="px-5 py-3 text-content-offset">{row.criteria}</td>
+                <td class="px-5 py-3 text-content">{row.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ================================================================
+        VARIANT 3 — Bordered grid with accent header
+        Full grid lines, header uses secondary color.
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 3 — Grid + Accent Header</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse border border-trim text-left">
+          <thead>
+            <tr class="bg-secondary text-secondary-inverse">
+              <th class="border border-trim px-4 py-2.5 font-semibold">Classification</th>
+              <th class="border border-trim px-4 py-2.5 font-semibold">Criteria</th>
+              <th class="border border-trim px-4 py-2.5 font-semibold">What To Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr>
+                <td class="border border-trim px-4 py-2.5 text-content font-medium">{row.classification}</td>
+                <td class="border border-trim px-4 py-2.5 text-content-offset">{row.criteria}</td>
+                <td class="border border-trim px-4 py-2.5 text-content">{row.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ================================================================
+        VARIANT 5 — Hover-highlight rows with sticky header
+        Subtle hover effect, header sticks on scroll.
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 5 — Hover Highlight + Sticky Header</h2>
+      <div class="overflow-x-auto max-h-96 rounded-lg border border-trim">
+        <table class="w-full text-left">
+          <thead class="sticky top-0">
+            <tr class="bg-page-offset">
+              <th class="px-5 py-3 font-semibold text-content-active border-b-2 border-primary">Classification</th>
+              <th class="px-5 py-3 font-semibold text-content-active border-b-2 border-primary">Criteria</th>
+              <th class="px-5 py-3 font-semibold text-content-active border-b-2 border-primary">What To Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr class="transition-colors duration-150 hover:bg-page-offset border-b border-trim-offset">
+                <td class="px-5 py-3 text-content font-medium">{row.classification}</td>
+                <td class="px-5 py-3 text-content-offset">{row.criteria}</td>
+                <td class="px-5 py-3 text-content">{row.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ================================================================
+        VARIANT 8 — Column Separation (Vertical Borders Only)
+        Focuses on delineating columns instead of rows.
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 8 — Vertical Column Delineation</h2>
+      <div class="overflow-x-auto rounded-lg shadow-sm">
+        <table class="w-full text-left border-collapse bg-content-inverse">
+          <thead>
+            <tr class="bg-page-offset border-y border-trim">
+              <th class="px-5 py-3 font-semibold text-content-active border-x border-trim">Classification</th>
+              <th class="px-5 py-3 font-semibold text-content-active border-x border-trim">Criteria</th>
+              <th class="px-5 py-3 font-semibold text-content-active border-x border-trim">What To Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr class="border-b border-trim">
+                <td class="px-5 py-3 text-content border-x border-trim font-medium">{row.classification}</td>
+                <td class="px-5 py-3 text-content-offset border-x border-trim">{row.criteria}</td>
+                <td class="px-5 py-3 text-content border-x border-trim">{row.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ================================================================
+        VARIANT 12 — Status Color Coded
+        Uses semantic warning/success/info colors based on row index
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 12 — Semantic Coloring</h2>
+      <div class="overflow-x-auto border border-trim rounded-lg">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-page-base border-b-2 border-trim">
+              <th class="px-5 py-3 font-semibold text-content">State</th>
+              <th class="px-5 py-3 font-semibold text-content">Criteria</th>
+              <th class="px-5 py-3 font-semibold text-content">Remediation</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => {
+              // Fake semantic mapping based on data order
+              const stateClasses = [
+                {
+                  rowBgClass: 'bg-success-inverse',
+                  barClass: 'bg-success',
+                  textClass: 'text-success-offset',
+                },
+                {
+                  rowBgClass: 'bg-warning-inverse',
+                  barClass: 'bg-warning',
+                  textClass: 'text-warning-offset',
+                },
+                {
+                  rowBgClass: 'bg-danger-inverse',
+                  barClass: 'bg-danger',
+                  textClass: 'text-danger-offset',
+                },
+                {
+                  rowBgClass: 'bg-note-inverse',
+                  barClass: 'bg-note',
+                  textClass: 'text-note-offset',
+                },
+              ]
+              const stateClass = stateClasses[i % stateClasses.length]!
+
+              return (
+                <tr class:list={["border-b last:border-b-0 border-trim", stateClass.rowBgClass]}>
+                  <td class="px-5 py-3 font-bold relative">
+                    <div class:list={["absolute inset-y-0 left-0 w-1", stateClass.barClass]} />
+                    <span class={stateClass.textClass}>{row.classification}</span>
+                  </td>
+                  <td class="px-5 py-3 font-medium text-content">{row.criteria}</td>
+                  <td class="px-5 py-3 text-content">{row.action}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ================================================================
+        VARIANT 13 — Caption + Strong Top Rule
+        Classic report-table aesthetic with clear hierarchy.
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 13 — Report Table</h2>
+      <div class="overflow-x-auto rounded-lg border border-trim bg-content-inverse">
+        <table class="w-full text-left border-collapse">
+          <caption class="caption-top px-5 py-3 text-sm text-content-offset text-left">
+            Alert triage reference matrix
+          </caption>
+          <thead>
+            <tr class="border-y-2 border-primary bg-page-offset">
+              <th class="px-5 py-3 font-semibold text-content-active">Classification</th>
+              <th class="px-5 py-3 font-semibold text-content-active">Criteria</th>
+              <th class="px-5 py-3 font-semibold text-content-active">What To Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr class="border-b border-trim-offset last:border-b-0">
+                <td class="px-5 py-3 text-content font-semibold">{row.classification}</td>
+                <td class="px-5 py-3 text-content-offset">{row.criteria}</td>
+                <td class="px-5 py-3 text-content">{row.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ================================================================
+        VARIANT 14 — Horizontal Timeline Emphasis
+        First column acts like timeline labels with markers.
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 14 — Timeline Labels</h2>
+      <div class="overflow-x-auto rounded-xl border border-trim bg-content-inverse">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-page-offset border-b border-trim">
+              <th class="px-4 py-2.5 font-semibold text-content-active">Classification</th>
+              <th class="px-4 py-2.5 font-semibold text-content-active">Criteria</th>
+              <th class="px-4 py-2.5 font-semibold text-content-active">What To Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr class="border-b border-trim-offset last:border-b-0">
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-2 font-semibold text-content">
+                    <span class="h-2.5 w-2.5 rounded-full bg-secondary" aria-hidden="true" />
+                    {row.classification}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-content-offset">{row.criteria}</td>
+                <td class="px-4 py-3 text-content">{row.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ================================================================
+        VARIANT 16 — Soft Card Header + Divided Body
+        Contrasting card header and gentle body dividers.
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 16 — Soft Header Card</h2>
+      <div class="overflow-x-auto rounded-xl border border-trim shadow-sm bg-content-inverse">
+        <div class="px-5 py-4 bg-primary text-primary-inverse">
+          <h3 class="text-base font-semibold">Alert Classification Guide</h3>
+          <p class="text-sm text-content-inverse">Use this to quickly decide action priority.</p>
+        </div>
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-page-offset border-b border-trim">
+              <th class="px-5 py-3 font-semibold text-content-active">Classification</th>
+              <th class="px-5 py-3 font-semibold text-content-active">Criteria</th>
+              <th class="px-5 py-3 font-semibold text-content-active">What To Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr class="border-b border-trim-offset last:border-b-0">
+                <td class="px-5 py-3 font-semibold text-content">{row.classification}</td>
+                <td class="px-5 py-3 text-content-offset">{row.criteria}</td>
+                <td class="px-5 py-3 text-content">{row.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ================================================================
+        VARIANT 17 — Matrix with Highlighted Criteria
+        Emphasizes the criteria column for scanning thresholds.
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 17 — Criteria Highlight</h2>
+      <div class="overflow-x-auto rounded-lg border border-trim bg-content-inverse">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-page-offset border-b border-trim">
+              <th class="px-4 py-2.5 font-semibold text-content-active">Classification</th>
+              <th class="px-4 py-2.5 font-semibold text-content-active">Criteria</th>
+              <th class="px-4 py-2.5 font-semibold text-content-active">What To Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr class="border-b border-trim-offset last:border-b-0">
+                <td class="px-4 py-3 text-content font-medium">{row.classification}</td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex rounded-md border border-secondary bg-secondary-inverse px-2.5 py-1 text-secondary font-semibold">
+                    {row.criteria}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-content">{row.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {/* ================================================================
+        VARIANT 18 — Numbered Ranking Table
+        Adds index column for ordered review workflows.
+        ================================================================ */}
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Variant 18 — Numbered Review</h2>
+      <div class="overflow-x-auto rounded-lg border border-trim bg-content-inverse">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-page-offset border-b border-trim">
+              <th class="w-14 px-3 py-3 font-semibold text-content-active">#</th>
+              <th class="px-4 py-3 font-semibold text-content-active">Classification</th>
+              <th class="px-4 py-3 font-semibold text-content-active">Criteria</th>
+              <th class="px-4 py-3 font-semibold text-content-active">What To Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr class="border-b border-trim-offset last:border-b-0">
+                <td class="px-3 py-3 text-content-offset font-mono">{i + 1}</td>
+                <td class="px-4 py-3 text-content font-semibold">{row.classification}</td>
+                <td class="px-4 py-3 text-content-offset">{row.criteria}</td>
+                <td class="px-4 py-3 text-content">{row.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
 
   </div>
 </BaseLayout>

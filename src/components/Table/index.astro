@@ -1,0 +1,38 @@
+---
+import DefaultTable from '@components/Table/layouts/default.astro'
+
+export type Props = {
+  content: {
+    caption?: string
+    subcaption?: string
+    thead?: {
+      th: string[]
+    }
+    tbody: {
+      tr: {
+        th?: string
+        td: string[]
+      }[]
+    }
+    tfoot?: {
+      tr: {
+        th?: string
+        td: string[]
+      }[]
+    }
+  }
+  classes?: {
+    table?: string
+    caption?: string
+    thead?: string
+    tbody?: string
+    tfoot?: string
+  }
+  variant: string
+}
+
+const { content, variant = 'default', classes } = Astro.props
+const classesProps = classes ? { classes } : {}
+---
+
+{variant === 'default' && <DefaultTable content={content} {...classesProps} />}

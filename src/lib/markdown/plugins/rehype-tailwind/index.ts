@@ -129,7 +129,7 @@ export function rehypeTailwindClasses() {
       if (node.tagName === 'figure' && !hasClass(node, 'blockquote')) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'my-8',
+          'my-4',
           'mx-auto',
           'max-w-none',
         ])
