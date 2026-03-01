@@ -108,6 +108,6 @@ describe('Layer 3: E2E - rehypeAutolinkHeadings', () => {
     expect(headingAnchor?.getAttribute('aria-label')).toBeTruthy()
 
     // The icon itself should remain hidden from screen readers
-    expect(html).toMatch(/class=["'][^"']*anchor-link[^"']*["'][^>]*aria-hidden=["']true["']/)
+    expect(html).toMatch(/class="[^"]*inline-block[^"]*"[^>]*aria-hidden="true"/)
   })
 })

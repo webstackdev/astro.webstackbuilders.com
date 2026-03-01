@@ -13,10 +13,6 @@ import { applyClasses } from '../utils'
  */
 export const htmlElements: ElementConfig[] = [
   {
-    tagName: 'details',
-    classes: ['[&>*:not(summary)]:pl-5'],
-  },
-  {
     tagName: 'hr',
     classes: [
       'bg-gray-300',

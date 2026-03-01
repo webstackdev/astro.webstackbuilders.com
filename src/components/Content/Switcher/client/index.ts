@@ -46,32 +46,32 @@ export class ContentSwitcherElement extends LitElement {
 		const deepDiveHref = buildVariantHref('deep-dive', this.slug)
 		const switchHref = isDeepDive ? overviewHref : deepDiveHref
 
+    const commonLabelClasses = 'text-xs no-underline hover:no-underline focus-visible:no-underline'
+
 		const overviewLabelClass = isDeepDive
-			? 'text-sm text-content-offset content-switcher-label content-switcher-label--overview no-underline hover:no-underline focus-visible:no-underline'
-			: 'text-sm font-medium text-content-active content-switcher-label content-switcher-label--overview no-underline hover:no-underline focus-visible:no-underline'
+			? 'content-switcher-label content-switcher-label--overview text-content-offset hover:text-content' + ' ' + commonLabelClasses
+			: 'content-switcher-label content-switcher-label--overview text-page-inverse' + ' ' + commonLabelClasses
 
 		const deepDiveLabelClass = isDeepDive
-			? 'text-sm font-medium text-content-active content-switcher-label content-switcher-label--deep-dive no-underline hover:no-underline focus-visible:no-underline'
-			: 'text-sm text-content-offset content-switcher-label content-switcher-label--deep-dive no-underline hover:no-underline focus-visible:no-underline'
+			? 'content-switcher-label content-switcher-label--deep-dive text-page-inverse' + ' ' + commonLabelClasses
+			: 'content-switcher-label content-switcher-label--deep-dive text-content-offset hover:text-content' + ' ' + commonLabelClasses
 
 		return html`
 			<div class="flex items-center gap-3" role="radiogroup" aria-label="Content Variant">
-				<a class="${overviewLabelClass}" id="v1-overview-label" href="${overviewHref}">Overview</a>
+				<a class="${overviewLabelClass}" id="overview-label" href="${overviewHref}">Overview</a>
 
 				<a
 					href="${switchHref}"
 					role="switch"
 					aria-checked="${isDeepDive ? 'true' : 'false'}"
 					aria-label="Toggle between Overview and Deep Dive"
-					class="content-switcher-track group relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-trim-offset transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+					class="content-switcher-track group relative inline-flex h-4 w-7 shrink-0 cursor-pointer items-center rounded-full border border-transparent bg-page-inverse transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
 					data-switcher-toggle
 				>
-					<span
-						class="content-switcher-thumb pointer-events-none inline-block size-3 translate-x-0.5 rounded-full bg-page-base shadow-sm ring-0 transition-transform"
-					></span>
+					<span class="content-switcher-thumb pointer-events-none inline-block size-3 -translate-x-1.25 rounded-full bg-page-base shadow-sm ring-0 transition-transform"></span>
 				</a>
 
-				<a class="${deepDiveLabelClass}" id="v1-deep-dive-label" href="${deepDiveHref}">Deep Dive</a>
+				<a class="${deepDiveLabelClass}" id="deep-dive-label" href="${deepDiveHref}">Deep Dive</a>
 			</div>
 		`
 	}

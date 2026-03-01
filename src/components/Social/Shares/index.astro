@@ -37,6 +37,7 @@ const containerClassAttr = additionalClasses ?? ''
 const socialNetworksAttr = socialNetworks.join(',')
 
 const iconBankId = `social-share-icon-bank-${Math.random().toString(36).slice(2)}`
+const shareHeadingId = `${iconBankId}-heading`
 ---
 
 <div id={iconBankId} hidden aria-hidden="true">
@@ -57,17 +58,37 @@ const iconBankId = `social-share-icon-bank-${Math.random().toString(36).slice(2)
   </span>
 </div>
 
-<social-share-element
-  data-social-shares
-  url={url}
-  title={title}
-  description={shareDescription}
-  layout={layout}
-  social-networks={socialNetworksAttr}
-  container-class={containerClassAttr}
-  icon-bank-id={iconBankId}
+<section
+  class="rounded-lg bg-page-offset flex flex-col md:flex-row items-start md:items-center p-6 mx-6"
+  aria-labelledby={shareHeadingId}
 >
-</social-share-element>
+  <div class="h-full w-full sm:border-r sm:border-trim sm:w-auto sm:shrink-0 sm:pr-12">
+    <h2
+      class="text-2xl font-black tracking-tight text-content-active leading-tight flex flex-row sm:flex-col items-start gap-2 sm:gap-0"
+      id={shareHeadingId}
+    >
+      <span>Share</span>
+      <span>this</span>
+      <span>article</span>
+    </h2>
+  </div>
+  <div class="w-full md:flex-1 sm:pl-12">
+    <p class="text-content text-sm mb-4">
+      Enjoyed the read? Share it with your network.
+    </p>
+    <social-share-element
+      data-social-shares
+      url={url}
+      title={title}
+      description={shareDescription}
+      layout={layout}
+      social-networks={socialNetworksAttr}
+      container-class={containerClassAttr}
+      icon-bank-id={iconBankId}
+    >
+    </social-share-element>
+  </div>
+</section>
 
 <script>
   import { registerSocialShareWebComponent } from '@components/Social/Shares/client'

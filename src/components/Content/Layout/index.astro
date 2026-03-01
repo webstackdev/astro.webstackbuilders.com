@@ -11,7 +11,6 @@ import { Picture } from 'astro:assets'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import Carousel from '@components/Carousel/index.astro'
 import ContentSwitcher from '@components/Content/Switcher/index.astro'
-import Copyright from '@components/Layout/Copyright/index.astro'
 import Shares from '@components/Social/Shares/index.astro'
 import WebMentions from '@components/WebMentions/index.astro'
 
@@ -48,7 +47,7 @@ const { author, article, path, readingTime, section } = Astro.props
   {...readingTime && { readingTime }}
 >
   {/** SLOT: breadcrumb-row */}
-  <div class="" slot="breadcrumb-row">
+  <div class="pr-4" slot="breadcrumb-row">
     <ContentSwitcher path={path} />
   </div>
 
@@ -80,7 +79,6 @@ const { author, article, path, readingTime, section } = Astro.props
     aria-labelledby="article-share-title"
     slot="after-content"
   >
-    <Copyright publishDate={article.data.publishDate} />
     <WebMentions url={`https://www.webstackbuilders.com${path}`} />
     <div class="flex flex-col gap-6">
       <div class="flex flex-col sm:flex-row sm:justify-start sm:items-center gap-2">

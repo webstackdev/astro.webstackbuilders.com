@@ -8,7 +8,6 @@ import CookieConsent from '@components/Consent/Banner/index.astro'
 import Footer from '@components/Footer/index.astro'
 import HeadContent from '@components/Head/index.astro'
 import Header from '@components/Header/index.astro'
-import Content from '@components/Layout/Content/index.astro'
 import PrefetchOfflinePage from '@components/Pwa/PrefetchOfflinePage/index.astro'
 import PwaTitleBar from '@components/Pwa/TitleBar/index.astro'
 import RegisterServiceWorker from '@components/Pwa/ServiceWorker/index.astro'
@@ -126,10 +125,17 @@ const {
               <slot name="breadcrumb-row" />
             </div>
           </div>
-          {/* SLOT: default (unnamed) - Main page content */}
-          <Content>
+
+          <main
+            id="main"
+            class="flex flex-col flex-1"
+            role="main"
+            tabindex="-1"
+          >
+            {/* SLOT: default (unnamed) - Main page content */}
             <slot />
-          </Content>
+          </main>
+
           <Footer />
         </div>
       </Container>

@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypeAutolinkHeadings from '@lib/markdown/plugins/rehype-autolink-headings'
 import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
-import { rehypeAutolinkHeadingsConfig } from '@lib/config/markdown'
 
 describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
   describe('autolink with GFM', () => {
@@ -17,14 +16,13 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
       expect(html).toContain('<h2')
-      expect(html).toContain('🔗')
-      expect(html).toContain('class="anchor-link')
-      expect(html).toContain('class="heading-anchor')
+      expect(html).toContain('<svg')
+      expect(html).toContain('inline-block')
+      expect(html).toContain('group')
       expect(html).toContain('<table')
     })
 
@@ -34,13 +32,12 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
       expect(html).toContain('<h2')
       expect(html).toContain('<del>Old</del>')
-      expect(html).toContain('🔗')
+      expect(html).toContain('<svg')
     })
 
     it('should work with GFM autolinks in headings', async () => {
@@ -49,13 +46,12 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
       expect(html).toContain('<h2')
       expect(html).toContain('href="https://example.com"')
-      expect(html).toContain('🔗')
+      expect(html).toContain('<svg')
     })
   })
 
@@ -70,12 +66,11 @@ describe('rehype-autolink-headings (Layer 2: With Astro Pipeline)', () => {
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
       expect(html).toContain('<h2')
-      expect(html).toContain('🔗')
+      expect(html).toContain('<svg')
       expect(html).toContain('footnote')
     })
 
@@ -91,7 +86,6 @@ Content[^1]
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
@@ -115,11 +109,10 @@ Content[^1]
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
-      const anchorCount = (html.match(/class="anchor-link\b/g) || []).length
+      const anchorCount = (html.match(/opacity-0/g) || []).length
       expect(anchorCount).toBe(4) // All 4 headings should have anchors
     })
 
@@ -129,7 +122,6 @@ Content[^1]
       const html = await processWithAstroSettings({
         markdown,
         plugin: rehypeAutolinkHeadings,
-        pluginOptions: rehypeAutolinkHeadingsConfig,
         stage: 'rehype',
       })
 
@@ -137,7 +129,7 @@ Content[^1]
       expect(html).toContain('<strong>Bold</strong>')
       expect(html).toContain('<del>Strike</del>')
       expect(html).toContain('<code>code</code>')
-      expect(html).toContain('🔗')
+      expect(html).toContain('<svg')
     })
   })
 })

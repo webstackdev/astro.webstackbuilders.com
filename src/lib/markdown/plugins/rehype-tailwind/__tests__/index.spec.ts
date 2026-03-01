@@ -70,7 +70,6 @@ describe('htmlElements configuration', () => {
 
   test('includes all expected element types', () => {
     const expectedElements = [
-      'details',
       'hr',
       'img',
       'mark',

@@ -200,11 +200,11 @@ Paragraph with a [regular link](https://example.com)
 
       const html = await processWithFullPipeline(markdown)
 
-      // Heading anchors are created by rehype-autolink-headings and should be styled via its config.
-      expect(html).toContain('class="heading-anchor')
-      // Regular links should not be marked as heading anchors.
+      // Heading anchors are created by rehype-autolink-headings with a `group` class.
+      expect(html).toContain('group')
+      // Regular links should not have the heading anchor `group` class.
       expect(html).toContain('href="https://example.com"')
-      expect(html).not.toMatch(/href="https:\/\/example\.com"[^>]*class="[^"]*heading-anchor/)
+      expect(html).not.toMatch(/href="https:\/\/example\.com"[^>]*class="[^"]*group/)
     })
   })
 })

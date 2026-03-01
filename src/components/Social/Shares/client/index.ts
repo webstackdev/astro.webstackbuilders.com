@@ -104,7 +104,7 @@ export class SocialShareElement extends LitElement {
     const displayName = platform.id === 'x' ? 'X.com' : platform.name
     const buttonClassList = [
       styles.button,
-      'social-share__button relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors hover:shadow-md no-underline hover:no-underline hover:-translate-y-px active:translate-y-0 focus-visible:outline-none',
+      'social-share__button relative inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-white font-medium transition-colors hover:shadow-md no-underline hover:no-underline hover:-translate-y-px active:translate-y-0 focus-visible:outline-none',
       platform.colorClasses,
     ]
       .filter(Boolean)
@@ -125,7 +125,7 @@ export class SocialShareElement extends LitElement {
           @click=${(event: Event) => this.handleShareClick(event, platform, shareText)}
         >
           ${iconMarkup ? unsafeHTML(iconMarkup) : null}
-          <span class="hidden sm:inline">${displayName}</span>
+          <span class="hidden sm:inline ml-1">${displayName}</span>
         </button>
       `
     }
@@ -143,7 +143,7 @@ export class SocialShareElement extends LitElement {
         @click=${(event: Event) => this.handleShareClick(event, platform, shareText)}
       >
         ${iconMarkup ? unsafeHTML(iconMarkup) : null}
-        <span class="hidden sm:inline">${displayName}</span>
+        <span class="hidden sm:inline ml-1">${displayName}</span>
       </a>
     `
   }

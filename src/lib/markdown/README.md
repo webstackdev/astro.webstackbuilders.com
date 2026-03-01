@@ -125,5 +125,4 @@ Add tests to this directory when:
 ### Imports from `markdown.ts`
 
 - `remarkAttributesConfig`
-- `rehypeAutolinkHeadingsConfig`
 - `remarkRehypeConfig`

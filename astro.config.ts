@@ -69,7 +69,7 @@ const standardIntegrations = [
   })] : []),
   sitemap({
     serialize: createSerializeFunction({
-      exclude: ['downloads', '/articles/demo', 'testing'],
+      exclude: ['downloads', '/articles/demo', 'testing', 'terms', 'hero', 'links'],
     }),
   }),
   /**

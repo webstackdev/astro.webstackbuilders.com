@@ -1,5 +1,4 @@
 ---
-import Icon from '@components/Icon/index.astro'
 import { generateBreadcrumbs } from '@components/Breadcrumbs/server'
 
 export interface Props {
@@ -20,6 +19,11 @@ if (path === '/' || path === '') {
 }
 
 const breadcrumbs = generateBreadcrumbs(path, pageTitle)
+
+function rewriteBreadcrumbHref(href: string): string {
+  return href === '/deep-dive' ? '/articles' : href
+}
+
 const breadcrumbSchema =
   site && breadcrumbs.length > 1
     ? JSON.stringify({
@@ -29,7 +33,7 @@ const breadcrumbSchema =
           '@type': 'ListItem',
           position: index + 1,
           name: item.label,
-          item: new URL(item.href, site).href,
+          item: new URL(rewriteBreadcrumbHref(item.href), site).href,
         })),
       })
     : null
@@ -37,35 +41,27 @@ const breadcrumbSchema =
 
 {
   breadcrumbs.length > 1 && (
-    <div class="min-w-0">
-      <nav aria-label="Breadcrumbs" class="breadcrumbs sm:pl-4">
-        <ol class="flex items-center space-x-2 text-sm sm:text-base text-primary-offset">
-          {breadcrumbs.map((item, index) => (
+    <div class="min-w-0 ml-2">
+      <nav aria-label="Breadcrumbs" class="breadcrumbs">
+        <ol class="flex flex-wrap items-center text-sm text-content">
+          {breadcrumbs.map((item, i) => (
             <li class="flex items-center">
-              {index > 0 && (
-                <Icon
-                  icon="arrow-right"
-                  size={4}
-                  color="primary-offset"
-                  classes="mx-2 opacity-60"
-                />
+              {i > 0 && (
+                <span class="w-4 h-px border-t-2 border-dashed border-page-inverse" />
               )}
-
               {item.isCurrentPage ? (
-                <span aria-current="page">
+                <span aria-current="page" class="rounded px-2 py-1 text-xs text-content-inverse bg-page-inverse">
                   {item.label}
                 </span>
               ) : (
-                <a
-                  href={item.href}
-                  class="text-inherit underline decoration-current decoration-dotted hover:text-secondary focus-visible:text-secondary focus-visible:no-underline transition-colors duration-200"
-                >
+                <a href={rewriteBreadcrumbHref(item.href)} class="rounded px-2 py-1 text-xs text-page-inverse no-underline transition-colors bg-page-base border border-page-inverse hover:bg-secondary hover:text-content-inverse focus-visible:text-content-inverse focus-visible:bg-secondary">
                   {item.label}
                 </a>
               )}
             </li>
           ))}
         </ol>
+
         {breadcrumbSchema && (
           <script is:inline type="application/ld+json" set:html={breadcrumbSchema} />
         )}

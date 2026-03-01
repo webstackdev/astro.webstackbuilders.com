@@ -44,8 +44,8 @@ describe('ContentSwitcherElement', () => {
 				},
 			},
 			async ({ element }) => {
-				const overviewLink = element.querySelector('#v1-overview-label') as HTMLAnchorElement | null
-				const deepDiveLink = element.querySelector('#v1-deep-dive-label') as HTMLAnchorElement | null
+				const overviewLink = element.querySelector('#overview-label') as HTMLAnchorElement | null
+				const deepDiveLink = element.querySelector('#deep-dive-label') as HTMLAnchorElement | null
 				const switchLink = element.querySelector('[data-switcher-toggle]') as HTMLAnchorElement | null
 
 				expect(overviewLink?.getAttribute('href')).toBe('/articles/my-article')
@@ -65,8 +65,8 @@ describe('ContentSwitcherElement', () => {
 				},
 			},
 			async ({ element }) => {
-				const overviewLink = element.querySelector('#v1-overview-label') as HTMLAnchorElement | null
-				const deepDiveLink = element.querySelector('#v1-deep-dive-label') as HTMLAnchorElement | null
+				const overviewLink = element.querySelector('#overview-label') as HTMLAnchorElement | null
+				const deepDiveLink = element.querySelector('#deep-dive-label') as HTMLAnchorElement | null
 				const switchLink = element.querySelector('[data-switcher-toggle]') as HTMLAnchorElement | null
 
 				expect(overviewLink?.getAttribute('href')).toBe('/articles/my-article')
@@ -86,8 +86,8 @@ describe('ContentSwitcherElement', () => {
 				},
 			},
 			async ({ element }) => {
-				const overviewLink = element.querySelector('#v1-overview-label') as HTMLAnchorElement | null
-				const deepDiveLink = element.querySelector('#v1-deep-dive-label') as HTMLAnchorElement | null
+				const overviewLink = element.querySelector('#overview-label') as HTMLAnchorElement | null
+				const deepDiveLink = element.querySelector('#deep-dive-label') as HTMLAnchorElement | null
 
 				expect(overviewLink?.getAttribute('href')).toBe('/articles/nested/path')
 				expect(deepDiveLink?.getAttribute('href')).toBe('/deep-dive/nested/path')
