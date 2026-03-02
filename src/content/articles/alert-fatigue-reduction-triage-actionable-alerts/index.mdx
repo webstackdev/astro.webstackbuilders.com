@@ -53,14 +53,47 @@ The question to answer: when this alert fired, did someone _do_ something? Not "
 
 I use four buckets:
 
-| Classification | Criteria | What To Do |
-|----------------|-------------|------------|
-| Actionable | ≥ 80% | Keep, improve runbook |
-| Noisy | 20-80% | Investigate thresholds, consider aggregation |
-| Useless | &lt; 20% | Delete or convert to dashboard metric |
-| Stale | Not fired in 3+ months | Review for deletion |
-
-Table: Alert classification buckets based on action rate.
+<Table
+  variant="timeline-labels-table"
+  content={{
+    figure: 'Alert classification buckets based on action rate.',
+    thead: {
+      th: ['Classification', 'Criteria', 'What To Do'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: {
+            label: 'Actionable',
+            color: 'success',
+          },
+          td: ['≥ 80%', 'Keep, improve runbook'],
+        },
+        {
+          th: {
+            label: 'Noisy',
+            color: 'warning',
+          },
+          td: ['20-80%', 'Investigate thresholds, consider aggregation'],
+        },
+        {
+          th: {
+            label: 'Useless',
+            color: 'danger',
+          },
+          td: ['&lt; 20%', 'Delete or convert to dashboard metric'],
+        },
+        {
+          th: {
+            label: 'Stale',
+            color: 'spotlight',
+          },
+          td: ['Not fired in 3+ months', 'Review for deletion'],
+        },
+      ],
+    },
+  }}
+/>
 
 The "noisy" bucket is where most of the work happens. These alerts fire for real issues, but the threshold is wrong or multiple alerts fire for the same underlying problem. Fixing them requires understanding _why_ action wasn't taken—was the alert a false positive, or did the problem resolve itself before anyone could respond?
 
@@ -96,7 +129,7 @@ The talking points that work:
 
 Most alert configurations work backwards. They alert on causes—CPU spikes, memory pressure, disk I/O, connection pool exhaustion—hoping to catch problems before users notice. The result is dozens of alerts for a single incident, each describing a different aspect of the same failure.
 
-Flip this around. Alert on symptoms instead: what users actually experience. A single "checkout latency exceeds SLO" alert replaces the CPU alert, the database alert, the cache alert, and the memory alert. They're all symptoms of the same underlying problem, and the responder doesn't need to be told about each one separately.
+Flip this around. <Highlighter>Alert on symptoms instead: what users actually experience.</Highlighter> A single "checkout latency exceeds SLO" alert replaces the CPU alert, the database alert, the cache alert, and the memory alert. They're all symptoms of the same underlying problem, and the responder doesn't need to be told about each one separately.
 
 Cause-based alerts still have a place—as diagnostic information in dashboards and runbooks, not as paging conditions. When the symptom alert fires, the responder can check the cause metrics to understand _why_. But the page itself should describe the user impact, not the infrastructure state.
 

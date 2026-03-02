@@ -70,7 +70,7 @@ export const queryHighlighterIconMarkup = (params: {
   }
 
   const iconBankCandidate = root.getElementById(iconBankId)
-  if (!isDivElement(iconBankCandidate)) {
+  if (!isType1Element(iconBankCandidate)) {
     return null
   }
 
