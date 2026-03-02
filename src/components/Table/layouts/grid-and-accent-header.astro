@@ -1,0 +1,120 @@
+---
+export type Props = {
+  content: {
+    caption?: string
+    subcaption?: string
+    thead?: {
+      th: string[]
+    }
+    tbody: {
+      tr: {
+        th?: string | { label: string; color?: string }
+        td: string[]
+      }[]
+    }
+    tfoot?: {
+      tr: {
+        th?: string
+        td: string[]
+      }[]
+    }
+  }
+  classes?: {
+    table?: string
+    caption?: string
+    thead?: string
+    tbody?: string
+    tfoot?: string
+  }
+}
+
+const { content, classes }: Props = Astro.props
+
+const tableClass = 'w-full border-collapse text-left'
+const captionClass = 'text-left pb-3'
+const headerClass = 'px-4 py-2.5'
+const theadClass = 'bg-page-inverse text-page-base border-b border-trim'
+const tbodyClass = ''
+const tfootClass = ''
+---
+
+<table class:list={[tableClass, classes?.table]}>
+    {content.caption && (
+      <caption class:list={[captionClass, classes?.caption]} set:html={content.caption}></caption>
+    )}
+    {content.subcaption && (
+      <caption class:list={[captionClass, classes?.caption]} set:html={content.subcaption}></caption>
+    )}
+
+    {content.thead && (
+      <thead class:list={[theadClass, classes?.thead]}>
+        <tr>
+          {content.thead.th.map((th) => (
+            <th scope="col" class:list={[headerClass, classes?.thead]} set:html={th}></th>
+          ))}
+        </tr>
+      </thead>
+    )}
+
+    <tbody class:list={[tbodyClass, classes?.tbody]}>
+      {content.tbody.tr.map((row, rowIndex) => (
+        <tr
+          class:list={[
+            'transition-colors duration-150 hover:bg-page-offset',
+            rowIndex < content.tbody.tr.length - 1 || content.tfoot ? 'border-b border-trim' : '',
+          ]}
+        >
+          {row.th && (
+            <th
+              scope="row"
+              class:list={['px-4 py-2.5 text-content font-medium', classes?.tbody]}
+              set:html={row.th}
+            ></th>
+          )}
+          {row.td.map((td, index) => (
+            <td
+              class:list={[
+                'px-4 py-2.5',
+                index === 1 ? 'text-content-offset' : 'text-content',
+                index === 0 ? 'font-medium' : '',
+                classes?.tbody,
+              ]}
+              set:html={td}
+            ></td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+
+    {content.tfoot && (
+      <tfoot class:list={[tfootClass, classes?.tfoot]}>
+        {content.tfoot.tr.map((row, rowIndex) => (
+          <tr
+            class:list={[
+              'transition-colors duration-150 hover:bg-page-offset',
+              rowIndex < content.tfoot!.tr.length - 1 ? 'border-b border-trim' : '',
+            ]}
+          >
+            {row.th && (
+              <th
+                scope="row"
+                class:list={['px-4 py-2.5 text-content font-medium', classes?.tfoot]}
+                set:html={row.th}
+              ></th>
+            )}
+            {row.td.map((td, index) => (
+              <td
+                class:list={[
+                  'px-4 py-2.5',
+                  index === 1 ? 'text-content-offset' : 'text-content',
+                  index === 0 ? 'font-medium' : '',
+                  classes?.tfoot,
+                ]}
+                set:html={td}
+              ></td>
+            ))}
+          </tr>
+        ))}
+      </tfoot>
+    )}
+</table>

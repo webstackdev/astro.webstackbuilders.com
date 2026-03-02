@@ -1,16 +1,27 @@
 ---
-import DefaultTable from '@components/Table/layouts/default.astro'
+import CriteriaHighlightTable from '@components/Table/layouts/criteria-highlight.astro'
+import GridAndAccentHeaderTable from '@components/Table/layouts/grid-and-accent-header.astro'
+import MinimalBordersTable from '@components/Table/layouts/minimal-borders.astro'
+import NumberedReviewTable from '@components/Table/layouts/numbered-review.astro'
+import ReportTable from '@components/Table/layouts/report-table.astro'
+import SemanticColoringTable from '@components/Table/layouts/semantic-coloring.astro'
+import SoftHeaderCardTable from '@components/Table/layouts/soft-header-card.astro'
+import StickyHeaderTable from '@components/Table/layouts/sticky-header.astro'
+import StripedRowsTable from '@components/Table/layouts/striped-rows.astro'
+import TimelineLabelsTable from '@components/Table/layouts/timeline-labels.astro'
+import VerticalColumnDelineationTable from '@components/Table/layouts/vertical-column-delineation.astro'
 
 export type Props = {
   content: {
     caption?: string
     subcaption?: string
+    figure?: string
     thead?: {
       th: string[]
     }
     tbody: {
       tr: {
-        th?: string
+        th?: string | { label: string; color?: string }
         td: string[]
       }[]
     }
@@ -24,6 +35,7 @@ export type Props = {
   classes?: {
     table?: string
     caption?: string
+    figure?: string
     thead?: string
     tbody?: string
     tfoot?: string
@@ -32,7 +44,26 @@ export type Props = {
 }
 
 const { content, variant = 'default', classes } = Astro.props
+
 const classesProps = classes ? { classes } : {}
+const wrapperClass = 'overflow-x-auto rounded-lg border border-trim bg-content-inverse'
 ---
 
-{variant === 'default' && <DefaultTable content={content} {...classesProps} />}
+<figure class:list={[content.figure ? 'my-4 mx-auto max-w-none' : '', classes?.figure]}>
+  <div class={wrapperClass}>
+    {variant === 'criteria-highlight-table' && <CriteriaHighlightTable content={content} {...classesProps} />}
+    {variant === 'grid-and-accent-header-table' && <GridAndAccentHeaderTable content={content} {...classesProps} />}
+    {variant === 'minimal-borders-table' && <MinimalBordersTable content={content} {...classesProps} />}
+    {variant === 'numbered-review-table' && <NumberedReviewTable content={content} {...classesProps} />}
+    {variant === 'report-table' && <ReportTable content={content} {...classesProps} />}
+    {variant === 'semantic-coloring-table' && <SemanticColoringTable content={content} {...classesProps} />}
+    {variant === 'soft-header-card-table' && <SoftHeaderCardTable content={content} {...classesProps} />}
+    {variant === 'sticky-header-table' && <StickyHeaderTable content={content} {...classesProps} />}
+    {variant === 'striped-rows-table' && <StripedRowsTable content={content} {...classesProps} />}
+    {variant === 'timeline-labels-table' && <TimelineLabelsTable content={content} {...classesProps} />}
+    {variant === 'vertical-column-delineation-table' && <VerticalColumnDelineationTable content={content} {...classesProps} />}
+  </div>
+  {content.figure && (
+    <figcaption class="italic text-base text-center mt-3" set:html={content.figure}></figcaption>
+  )}
+</figure>

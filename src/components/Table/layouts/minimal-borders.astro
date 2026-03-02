@@ -1,0 +1,101 @@
+---
+export type Props = {
+  content: {
+    caption?: string
+    subcaption?: string
+    thead?: {
+      th: string[]
+    }
+    tbody: {
+      tr: {
+        th?: string | { label: string; color?: string }
+        td: string[]
+      }[]
+    }
+    tfoot?: {
+      tr: {
+        th?: string
+        td: string[]
+      }[]
+    }
+  }
+  classes?: {
+    table?: string
+    caption?: string
+    thead?: string
+    tbody?: string
+    tfoot?: string
+  }
+}
+
+const { content, classes }: Props = Astro.props
+
+const tableClass = 'w-full text-left'
+const captionClass = 'text-left pb-3'
+const headerClass = 'px-4 py-2.5 font-semibold text-content-active'
+const theadClass = 'border-b-2 border-trim'
+const tbodyClass = ''
+const tfootClass = ''
+const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b border-trim-offset'
+---
+
+<table class:list={[tableClass, classes?.table]}>
+    {content.caption && (
+      <caption class:list={[captionClass, classes?.caption]} set:html={content.caption}></caption>
+    )}
+    {content.subcaption && (
+      <caption class:list={[captionClass, classes?.caption]} set:html={content.subcaption}></caption>
+    )}
+
+    {content.thead && (
+      <thead class:list={[theadClass, classes?.thead]}>
+        <tr>
+          {content.thead.th.map((th) => (
+            <th scope="col" class:list={[headerClass, classes?.thead]} set:html={th}></th>
+          ))}
+        </tr>
+      </thead>
+    )}
+
+    <tbody class:list={[tbodyClass, classes?.tbody]}>
+      {content.tbody.tr.map((row) => (
+        <tr class={rowClass}>
+          {row.th && (
+            <th scope="row" class:list={[headerClass, classes?.tbody]} set:html={row.th}></th>
+          )}
+          {row.td.map((td, index) => (
+            <td
+              class:list={[
+                'px-4 py-2.5',
+                index === 1 ? 'text-content-offset' : 'text-content',
+                classes?.tbody,
+              ]}
+              set:html={td}
+            ></td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+
+    {content.tfoot && (
+      <tfoot class:list={[tfootClass, classes?.tfoot]}>
+        {content.tfoot.tr.map((row) => (
+          <tr class={rowClass}>
+            {row.th && (
+              <th scope="row" class:list={[headerClass, classes?.tfoot]} set:html={row.th}></th>
+            )}
+            {row.td.map((td, index) => (
+              <td
+                class:list={[
+                  'px-4 py-2.5',
+                  index === 1 ? 'text-content-offset' : 'text-content',
+                  classes?.tfoot,
+                ]}
+                set:html={td}
+              ></td>
+            ))}
+          </tr>
+        ))}
+      </tfoot>
+    )}
+</table>
