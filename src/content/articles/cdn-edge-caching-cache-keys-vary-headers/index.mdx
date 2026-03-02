@@ -104,15 +104,22 @@ With two headers in Vary, you get a combinatorial explosion of cache variants. E
 
 The guideline: only vary on headers with a small, known set of values.
 
-| Vary On | Good Idea? | Reason |
-|---------|------------|--------|
-| Accept-Encoding | Yes | Limited values (gzip, br, identity) |
-| Accept-Language | Maybe | Can explode if not normalized |
-| User-Agent | No | Thousands of unique values |
-| Cookie | No | Unique per user, kills caching |
-| Authorization | No | Unique per user, kills caching |
-
-Table: Vary header guidance for common headers.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Vary header guidance for common headers.",
+    thead: { th: ["Vary On", "Good Idea?", "Reason"] },
+    tbody: {
+      tr: [
+        { th: "Accept-Encoding", td: ["Yes", "Limited values (gzip, br, identity)"] },
+        { th: "Accept-Language", td: ["Maybe", "Can explode if not normalized"] },
+        { th: "User-Agent", td: ["No", "Thousands of unique values"] },
+        { th: "Cookie", td: ["No", "Unique per user, kills caching"] },
+        { th: "Authorization", td: ["No", "Unique per user, kills caching"] },
+      ],
+    },
+  }}
+/>
 
 `Accept-Encoding` is safe because there are only a few compression algorithms. `Accept-Language` is risky because browsers send values like `en-US, en;q=0.9, de;q=0.8`—technically unique per user's language preferences. If you vary on it, normalize the header first to extract just the primary language.
 
@@ -172,16 +179,23 @@ This is the bug from our opening story—serving one user's content to another. 
 
 The patterns that keep you safe:
 
-| Pattern | Risk Level | Why |
-| --- | --- | --- |
-| Edge-side includes for personalization | Safe | Cache page shell, personalize at edge |
-| Client-side personalization | Safe | Cache generic content, personalize in browser |
-| Separate cacheable/non-cacheable endpoints | Safe | Clear separation of concerns |
-| Origin returns `Cache-Control: public` for personalized API | Dangerous | CDN caches response, serves to wrong user |
-| Vary on session cookie | Dangerous | Still risks cross-contamination |
-| Cache without checking auth header | Dangerous | Unauthenticated cache serves to authenticated users |
-
-Table: Personalized content caching patterns.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Personalized content caching patterns.",
+    thead: { th: ["Pattern", "Risk Level", "Why"] },
+    tbody: {
+      tr: [
+        { th: "Edge-side includes for personalization", td: ["Safe", "Cache page shell, personalize at edge"] },
+        { th: "Client-side personalization", td: ["Safe", "Cache generic content, personalize in browser"] },
+        { th: "Separate cacheable/non-cacheable endpoints", td: ["Safe", "Clear separation of concerns"] },
+        { th: "Origin returns `Cache-Control: public` for personalized API", td: ["Dangerous", "CDN caches response, serves to wrong user"] },
+        { th: "Vary on session cookie", td: ["Dangerous", "Still risks cross-contamination"] },
+        { th: "Cache without checking auth header", td: ["Dangerous", "Unauthenticated cache serves to authenticated users"] },
+      ],
+    },
+  }}
+/>
 
 The safest rule: always return `Cache-Control: private, no-store` for any response that contains user-specific data. If your application framework makes this difficult, add middleware that detects personalization indicators (Set-Cookie headers, user IDs in response body) and overrides the cache headers to prevent caching.
 

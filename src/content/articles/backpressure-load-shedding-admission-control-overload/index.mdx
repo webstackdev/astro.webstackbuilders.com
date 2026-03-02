@@ -68,13 +68,20 @@ Consider a system processing 100 RPS with 200ms latency—that's 20 requests in 
 
 Here's a counterintuitive truth: throughput can _increase_ during overload while your system becomes effectively useless. The distinction is between throughput (work attempted) and goodput (work successfully completed).
 
-| Metric | Definition | Normal Load | Under Overload |
-|--------|------------|-------------|----------------|
-| Throughput | Requests processed | 1000 RPS | 1200 RPS |
-| Goodput | Successful responses | 1000 RPS | 400 RPS |
-| Badput | Failed/timed out | 0 RPS | 800 RPS |
-
-Table: Throughput can increase during overload while goodput collapses.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Throughput can increase during overload while goodput collapses.",
+    thead: { th: ["Metric", "Definition", "Normal Load", "Under Overload"] },
+    tbody: {
+      tr: [
+        { th: "Throughput", td: ["Requests processed", "1000 RPS", "1200 RPS"] },
+        { th: "Goodput", td: ["Successful responses", "1000 RPS", "400 RPS"] },
+        { th: "Badput", td: ["Failed/timed out", "0 RPS", "800 RPS"] },
+      ],
+    },
+  }}
+/>
 
 Under overload, your system might process more requests than ever—but most of that work is wasted. Requests timeout after consuming resources. Database queries complete but the client already gave up.
 
@@ -219,12 +226,21 @@ The key insight is that critical traffic can _borrow_ capacity from lower tiers.
 
 Load shedding is the deliberate dropping of work to preserve system stability. It sounds brutal, but the alternative is worse. When you're drowning, you throw cargo overboard to keep the ship afloat.
 
-| Strategy | When to Use | Tradeoff |
-|----------|-------------|----------|
-| Random | Simple implementation | May drop important requests |
-| LIFO (newest first) | Reduce queuing latency | Fresh requests rejected fast |
-| Priority-based | Protect important traffic | Complexity, starvation risk |
-| CoDel | Adaptive, self-tuning | More complex to implement |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Load shedding strategies and their tradeoffs.",
+    thead: { th: ["Strategy", "When to Use", "Tradeoff"] },
+    tbody: {
+      tr: [
+        { th: "Random", td: ["Simple implementation", "May drop important requests"] },
+        { th: "LIFO (newest first)", td: ["Reduce queuing latency", "Fresh requests rejected fast"] },
+        { th: "Priority-based", td: ["Protect important traffic", "Complexity, starvation risk"] },
+        { th: "CoDel", td: ["Adaptive, self-tuning", "More complex to implement"] },
+      ],
+    },
+  }}
+/>
 
 Table: Load shedding strategies and their tradeoffs.
 

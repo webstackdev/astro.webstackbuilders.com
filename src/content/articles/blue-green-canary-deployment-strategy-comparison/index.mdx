@@ -27,15 +27,22 @@ _Canary deployment_ takes the opposite approach. Instead of switching everyone s
 
 The fundamental difference comes down to exposure:
 
-| Aspect | Blue/Green | Canary |
-|--------|------------|--------|
-| Traffic switch | All-at-once | Gradual percentage |
-| Blast radius | 100% of users | Configurable (1-100%) |
-| Detection time | Post-switch | During rollout |
-| Rollback speed | Instant (traffic switch) | Fast (traffic routing) |
-| Infrastructure cost | 2x capacity during deployment | 1x + canary capacity |
-
-Table: Strategy Comparison
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Strategy comparison",
+    thead: { th: ["Aspect", "Blue/Green", "Canary"] },
+    tbody: {
+      tr: [
+        { th: "Traffic switch", td: ["All-at-once", "Gradual percentage"] },
+        { th: "Blast radius", td: ["100% of users", "Configurable (1-100%)"] },
+        { th: "Detection time", td: ["Post-switch", "During rollout"] },
+        { th: "Rollback speed", td: ["Instant (traffic switch)", "Fast (traffic routing)"] },
+        { th: "Infrastructure cost", td: ["2x capacity during deployment", "1x + canary capacity"] },
+      ],
+    },
+  }}
+/>
 
 Both strategies promise the same thing: safer deployments with fast rollback. But this comparison hides the constraint that determines which one you can actually use.
 

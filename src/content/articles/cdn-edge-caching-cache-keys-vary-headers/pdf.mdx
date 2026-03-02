@@ -63,16 +63,23 @@ The performance difference is dramatic. A cache hit typically returns in 10-50ms
 
 Not every response can be cached, and CDNs apply conservative defaults. Understanding what triggers caching—and what prevents it—is essential for both maximizing hit ratios and avoiding correctness bugs.
 
-| Factor | Cacheable | Not Cacheable |
-|--------|-----------|---------------|
-| HTTP Method | GET, HEAD | POST, PUT, DELETE, PATCH |
-| Status Code | 200, 301, 404 (configurable) | 500, 503 |
-| Cache-Control | public, max-age>0 | private, no-store, no-cache |
-| Authorization | Without header (usually) | With header (by default) |
-| Set-Cookie | Without header | With header (by default) |
-| Vary | Manageable variations | Vary: * |
-
-Table: Factors determining response cacheability at the edge.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Factors determining response cacheability at the edge.",
+    thead: { th: ["Factor", "Cacheable", "Not Cacheable"] },
+    tbody: {
+      tr: [
+        { th: "HTTP Method", td: ["GET, HEAD", "POST, PUT, DELETE, PATCH"] },
+        { th: "Status Code", td: ["200, 301, 404 (configurable)", "500, 503"] },
+        { th: "Cache-Control", td: ["public, max-age>0", "private, no-store, no-cache"] },
+        { th: "Authorization", td: ["Without header (usually)", "With header (by default)"] },
+        { th: "Set-Cookie", td: ["Without header", "With header (by default)"] },
+        { th: "Vary", td: ["Manageable variations", "Vary: *"] },
+      ],
+    },
+  }}
+/>
 
 CDNs also support conditional requests using `If-None-Match` (with `ETag`) and `If-Modified-Since` (with `Last-Modified`) headers. When a cached response is stale, the edge can send a conditional request to the origin. If the content hasn't changed, the origin responds with `304 Not Modified` and the edge refreshes the TTL without transferring the full response body—saving bandwidth and origin processing time.
 
@@ -248,16 +255,23 @@ This is powerful—it lets you cache content that legitimately varies by request
 
 The rule is simple: only vary on headers with a small, known set of values. The more unique values a header can have, the more cache entries you create and the lower your hit ratio drops.
 
-| Vary On | Good Idea? | Reason |
-|---------|------------|--------|
-| Accept-Encoding | Yes | Limited values (gzip, br, identity) |
-| Accept-Language | Maybe | Can explode if not normalized |
-| User-Agent | No | Thousands of unique values |
-| Cookie | No | Unique per user, kills caching |
-| Authorization | No | Unique per user, kills caching |
-| X-Custom-Header | Depends | Control the values carefully |
-
-Table: Vary header guidance for common headers.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Vary header guidance for common headers.",
+    thead: { th: ["Vary On", "Good Idea?", "Reason"] },
+    tbody: {
+      tr: [
+        { th: "Accept-Encoding", td: ["Yes", "Limited values (gzip, br, identity)"] },
+        { th: "Accept-Language", td: ["Maybe", "Can explode if not normalized"] },
+        { th: "User-Agent", td: ["No", "Thousands of unique values"] },
+        { th: "Cookie", td: ["No", "Unique per user, kills caching"] },
+        { th: "Authorization", td: ["No", "Unique per user, kills caching"] },
+        { th: "X-Custom-Header", td: ["Depends", "Control the values carefully"] },
+      ],
+    },
+  }}
+/>
 
 `Accept-Encoding` is safe because there are only a few compression algorithms. `Accept-Language` is risky because browsers send values like `en-US, en;q=0.9, de;q=0.8`—technically unique per user's language preferences. If you vary on it, normalize the header first to extract just the primary language.
 
@@ -359,14 +373,21 @@ The quote is famous for a reason. Caching is easy; knowing when to stop caching 
 
 You have four main options, each with different tradeoffs:
 
-Table: Cache invalidation strategies with tradeoffs.
-
-| Strategy | How it works | Tradeoff |
-| --- | --- | --- |
-| TTL Expiration | Wait for cached content to expire naturally. | Simple, but can serve stale content until TTL passes. |
-| Purge API | Explicitly remove cached entries when content changes. | Fast, but operationally complex and easy to miss URLs. |
-| Cache Tags | Tag responses and purge by tag instead of URL. | Flexible, but requires tagging infrastructure. |
-| Versioned URLs | Change the URL when content changes. | Simple, but requires URL management and propagation. |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Cache invalidation strategies with tradeoffs.",
+    thead: { th: ["Strategy", "How it works", "Tradeoff"] },
+    tbody: {
+      tr: [
+        { th: "TTL Expiration", td: ["Wait for cached content to expire naturally.", "Simple, but can serve stale content until TTL passes."] },
+        { th: "Purge API", td: ["Explicitly remove cached entries when content changes.", "Fast, but operationally complex and easy to miss URLs."] },
+        { th: "Cache Tags", td: ["Tag responses and purge by tag instead of URL.", "Flexible, but requires tagging infrastructure."] },
+        { th: "Versioned URLs", td: ["Change the URL when content changes.", "Simple, but requires URL management and propagation."] },
+      ],
+    },
+  }}
+/>
 
 ### Time-To-Live Based Invalidation
 
@@ -684,16 +705,23 @@ Stale-while-revalidate gives you the best of both worlds: users always get fast 
 
 The most dangerous cache bug—serving one user's content to another.
 
-| Pattern | Category | Risk or Benefit | Recommended Action |
-| --- | --- | --- | --- |
-| Vary on session cookie | Dangerous | Creates entry per user, still risks cross-contamination | Do not cache personalized content at edge |
-| Cache without checking auth header | Dangerous | Unauthenticated cache serves to authenticated users | Different cache keys or no caching for auth content |
-| Origin returns Cache-Control for personalized API | Dangerous | CDN caches response, serves to wrong user | Always return `private, no-store` for personalized responses |
-| Edge-side includes for personalization | Safe | Cache page shell, personalize at edge | Use ESI or edge compute for fragments |
-| Client-side personalization | Safe | Cache generic content, personalize in browser | Keep personalized data out of edge cache |
-| Separate cacheable and non-cacheable endpoints | Safe | Clear separation of concerns | Split endpoints by cacheability |
-
-Table: Dangerous and safe patterns for personalized content caching.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Dangerous and safe patterns for personalized content caching.",
+    thead: { th: ["Pattern", "Category", "Risk or Benefit", "Recommended Action"] },
+    tbody: {
+      tr: [
+        { th: "Vary on session cookie", td: ["Dangerous", "Creates entry per user, still risks cross-contamination", "Do not cache personalized content at edge"] },
+        { th: "Cache without checking auth header", td: ["Dangerous", "Unauthenticated cache serves to authenticated users", "Different cache keys or no caching for auth content"] },
+        { th: "Origin returns Cache-Control for personalized API", td: ["Dangerous", "CDN caches response, serves to wrong user", "Always return `private, no-store` for personalized responses"] },
+        { th: "Edge-side includes for personalization", td: ["Safe", "Cache page shell, personalize at edge", "Use ESI or edge compute for fragments"] },
+        { th: "Client-side personalization", td: ["Safe", "Cache generic content, personalize in browser", "Keep personalized data out of edge cache"] },
+        { th: "Separate cacheable and non-cacheable endpoints", td: ["Safe", "Clear separation of concerns", "Split endpoints by cacheability"] },
+      ],
+    },
+  }}
+/>
 
 ```typescript [g2:Express Middleware]
 // Middleware to prevent accidental caching of personalized content
@@ -897,27 +925,41 @@ E-commerce sites often return different content based on the user's location—d
 
 This bug is insidious because it often goes unnoticed during development. Your test users are all in the same country, so everyone sees correct content. The first German user to hit a cached US response discovers the problem—usually at checkout when the currency doesn't match.
 
-| Step | User A (Germany) | User B (USA) |
-| --- | --- | --- |
-| 1. Request | `GET /products` | `GET /products` |
-| 2. Cache status | MISS | HIT (User A's response) |
-| 3. Response | Prices in EUR ✓ | Prices in EUR ✗ |
-| 4. Outcome | Correct experience | Checkout fails—wrong currency |
-
-Table: Geographic cache mismatch scenario.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Geographic cache mismatch scenario.",
+    thead: { th: ["Step", "User A (Germany)", "User B (USA)"] },
+    tbody: {
+      tr: [
+        { th: "1. Request", td: ["`GET /products`", "`GET /products`"] },
+        { th: "2. Cache status", td: ["MISS", "HIT (User A's response)"] },
+        { th: "3. Response", td: ["Prices in EUR ✓", "Prices in EUR ✗"] },
+        { th: "4. Outcome", td: ["Correct experience", "Checkout fails—wrong currency"] },
+      ],
+    },
+  }}
+/>
 
 <Callout type="warning" title="Root Cause">
 No geographic variation in cache key. Both users hit the same cache entry despite needing different content.
 </Callout>
 
-| Solution | How It Works | Pros | Cons |
-| --- | --- | --- | --- |
-| Vary on country header | Add `CF-IPCountry` (or equivalent) to cache key | Automatic, per-country caching | Many cache variants, cold caches per region |
-| Separate endpoints | Use explicit country param: `/api/products?country=DE` | Explicit, highly cacheable | Client must know country |
-| Client-side localization | Return all currencies, JavaScript selects | Single cache entry, maximum cacheability | Larger response, client complexity |
-| Edge compute | Edge function transforms cached response per-country | Best of both worlds | Complexity, edge compute costs |
-
-Table: Solutions for geographic and currency caching challenges.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Solutions for geographic and currency caching challenges.",
+    thead: { th: ["Solution", "How It Works", "Pros", "Cons"] },
+    tbody: {
+      tr: [
+        { th: "Vary on country header", td: ["Add `CF-IPCountry` (or equivalent) to cache key", "Automatic, per-country caching", "Many cache variants, cold caches per region"] },
+        { th: "Separate endpoints", td: ["Use explicit country param: `/api/products?country=DE`", "Explicit, highly cacheable", "Client must know country"] },
+        { th: "Client-side localization", td: ["Return all currencies, JavaScript selects", "Single cache entry, maximum cacheability", "Larger response, client complexity"] },
+        { th: "Edge compute", td: ["Edge function transforms cached response per-country", "Best of both worlds", "Complexity, edge compute costs"] },
+      ],
+    },
+  }}
+/>
 
 The edge compute approach deserves elaboration since it offers the best balance of cacheability and correctness. Instead of caching multiple country-specific variants, you cache a single response containing all variants (or a template), then transform it at the edge based on the user's location:
 
@@ -954,28 +996,42 @@ Cache hit ratio is the percentage of requests served from cache versus total req
 
 The strategies below are ordered by impact-to-effort ratio. Query string normalization and cache key simplification typically yield the largest improvements with the least work. Content negotiation and TTL tuning require more analysis but can push hit ratios from good to excellent.
 
-| Strategy | Impact | Effort | Actions |
-| --- | --- | --- | --- |
-| Query string normalization | High | Low | Sort query parameters; remove tracking params (utm_*, fbclid, gclid); remove empty parameters |
-| Cache key simplification | High | Medium | Audit cache key components; remove unnecessary headers; normalize Vary values |
-| Content negotiation reduction | Medium | Medium | Reduce language variants; limit Accept-Encoding values; avoid User-Agent variations |
-| TTL extension | High | Low | Use immutable for versioned assets; extend TTL with stale-while-revalidate; implement proper invalidation |
-
-Table: Strategies to improve Cache Hit Ratio (CHR) with estimated impact and effort.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Strategies to improve Cache Hit Ratio (CHR) with estimated impact and effort.",
+    thead: { th: ["Strategy", "Impact", "Effort", "Actions"] },
+    tbody: {
+      tr: [
+        { th: "Query string normalization", td: ["High", "Low", "Sort query parameters; remove tracking params (utm_*, fbclid, gclid); remove empty parameters"] },
+        { th: "Cache key simplification", td: ["High", "Medium", "Audit cache key components; remove unnecessary headers; normalize Vary values"] },
+        { th: "Content negotiation reduction", td: ["Medium", "Medium", "Reduce language variants; limit Accept-Encoding values; avoid User-Agent variations"] },
+        { th: "TTL extension", td: ["High", "Low", "Use immutable for versioned assets; extend TTL with stale-while-revalidate; implement proper invalidation"] },
+      ],
+    },
+  }}
+/>
 
 ### Monitoring Cache Performance
 
 You can't optimize what you don't measure. These metrics tell you whether your cache is working correctly and where to focus optimization efforts. Most CDNs expose these through dashboards and APIs—set up monitoring before you need to debug a production issue.
 
-| Metric | Good | Warning | Action If Poor |
-|--------|------|---------|----------------|
-| Cache Hit Ratio | >90% | 70-90% | Analyze cache keys, extend TTL |
-| Origin Load | Low, stable | Spiky | Check for cache misses, warming |
-| TTFB (cached) | &lt50ms | 50-200ms | Check PoP coverage, edge compute |
-| Purge Latency | &lt5s | 5-30s | Consider cache tags |
-| Cache Fill Rate | Low | High | Check TTL, invalidation frequency |
-
-Table: Cache performance metrics and targets.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Cache performance metrics and targets.",
+    thead: { th: ["Metric", "Good", "Warning", "Action If Poor"] },
+    tbody: {
+      tr: [
+        { th: "Cache Hit Ratio", td: [">90%", "70-90%", "Analyze cache keys, extend TTL"] },
+        { th: "Origin Load", td: ["Low, stable", "Spiky", "Check for cache misses, warming"] },
+        { th: "TTFB (cached)", td: ["<50ms", "50-200ms", "Check PoP coverage, edge compute"] },
+        { th: "Purge Latency", td: ["<5s", "5-30s", "Consider cache tags"] },
+        { th: "Cache Fill Rate", td: ["Low", "High", "Check TTL, invalidation frequency"] },
+      ],
+    },
+  }}
+/>
 
 **Interpreting these metrics in context:**
 

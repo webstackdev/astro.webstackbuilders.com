@@ -39,15 +39,22 @@ This article argues that 99.9% is the right target for most services. If you're 
 
 Before diving into cost analysis, let's ground the discussion in concrete numbers. Availability percentages are abstract—stakeholders need to understand what they actually mean in terms of downtime.
 
-| Availability | Annual Downtime | Monthly Downtime | Weekly Downtime |
-|--------------|-----------------|------------------|-----------------|
-| 99% (two nines) | 87.6 hours | 7.31 hours | 1.68 hours |
-| 99.9% (three nines) | 8.77 hours | 43.83 minutes | 10.08 minutes |
-| 99.95% | 4.38 hours | 21.92 minutes | 5.04 minutes |
-| 99.99% (four nines) | 52.60 minutes | 4.38 minutes | 1.01 minutes |
-| 99.999% (five nines) | 5.26 minutes | 26.30 seconds | 6.05 seconds |
-
-Table: Availability percentages translated to actual downtime windows.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Availability percentages translated to actual downtime windows.",
+    thead: { th: ["Availability", "Annual Downtime", "Monthly Downtime", "Weekly Downtime"] },
+    tbody: {
+      tr: [
+        { th: "99% (two nines)", td: ["87.6 hours", "7.31 hours", "1.68 hours"] },
+        { th: "99.9% (three nines)", td: ["8.77 hours", "43.83 minutes", "10.08 minutes"] },
+        { th: "99.95%", td: ["4.38 hours", "21.92 minutes", "5.04 minutes"] },
+        { th: "99.99% (four nines)", td: ["52.60 minutes", "4.38 minutes", "1.01 minutes"] },
+        { th: "99.999% (five nines)", td: ["5.26 minutes", "26.30 seconds", "6.05 seconds"] },
+      ],
+    },
+  }}
+/>
 
 The jump from 99.9% to 99.99% looks small—just 0.09 percentage points. But in downtime terms, you're going from nearly 9 hours per year to under an hour. And getting that last nine from 99.99% to 99.999%? You're reducing downtime from 52 minutes to 5 minutes annually. The marginal improvement shrinks while the cost explodes.
 
@@ -119,14 +126,22 @@ This is the fundamental insight behind all high-availability architectures: redu
 
 The "10x per nine" rule of thumb is surprisingly accurate when you look at real infrastructure costs. Each availability tier requires fundamentally different architectural approaches, not just more of the same hardware.
 
-| Tier | Typical Architecture | Relative Cost |
-|------|---------------------|---------------|
-| 99% | Single region, basic monitoring | 1x (baseline) |
-| 99.9% | Multi-AZ, load balancing, automated recovery | 2-3x |
-| 99.95% | Active-passive DR, comprehensive monitoring | 4-6x |
-| 99.99% | Multi-region active-active, global load balancing | 10-20x |
-| 99.999% | Exotic redundancy, zero-downtime everything | 50-100x+ |
-
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Infrastructure cost multipliers by availability tier.",
+    thead: { th: ["Tier", "Typical Architecture", "Relative Cost"] },
+    tbody: {
+      tr: [
+        { th: "99%", td: ["Single region, basic monitoring", "1x (baseline)"] },
+        { th: "99.9%", td: ["Multi-AZ, load balancing, automated recovery", "2-3x"] },
+        { th: "99.95%", td: ["Active-passive DR, comprehensive monitoring", "4-6x"] },
+        { th: "99.99%", td: ["Multi-region active-active, global load balancing", "10-20x"] },
+        { th: "99.999%", td: ["Exotic redundancy, zero-downtime everything", "50-100x+"] },
+      ],
+    },
+  }}
+/>
 Table: Infrastructure cost multipliers by availability tier.
 
 Here's what each tier actually looks like in practice. At **99%**, you're running single-region, single-zone infrastructure with a single database instance, manual failover, and basic uptime checks—roughly $500/month in infrastructure. At **99.9%**, you need multi-AZ deployment within a region, database replication with automated failover, and comprehensive APM—around $2,000/month.
@@ -139,13 +154,22 @@ Notice the jump from three nines to four nines—you go from regional redundancy
 
 Infrastructure is the visible cost. The hidden costs are often larger.
 
-| Cost Category | Why It Scales | Example |
-|---------------|---------------|---------|
-| Engineering Time | More complex systems require more expertise | Senior SREs vs. junior ops |
-| Testing | More failure modes to validate | Chaos engineering programs |
-| On-Call | Tighter response requirements | 24/7 staffing vs. best-effort |
-| Tooling | Better observability needed | $50k/year APM vs. free tier |
-| Opportunity Cost | Time not spent on features | Every hour on HA is not on product |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Hidden costs that increase with availability targets.",
+    thead: { th: ["Cost Category", "Why It Scales", "Example"] },
+    tbody: {
+      tr: [
+        { th: "Engineering Time", td: ["More complex systems require more expertise", "Senior SREs vs. junior ops"] },
+        { th: "Testing", td: ["More failure modes to validate", "Chaos engineering programs"] },
+        { th: "On-Call", td: ["Tighter response requirements", "24/7 staffing vs. best-effort"] },
+        { th: "Tooling", td: ["Better observability needed", "$50k/year APM vs. free tier"] },
+        { th: "Opportunity Cost", td: ["Time not spent on features", "Every hour on HA is not on product"] },
+      ],
+    },
+  }}
+/>
 
 Table: Hidden costs that increase with availability targets.
 
@@ -228,12 +252,21 @@ Most businesses don't have that math. E-commerce sites doing $50 million annuall
 
 The dirty secret of availability metrics is that they treat all minutes equally. A minute of downtime at 3am on a Sunday counts the same as a minute during Black Friday checkout rush. Your availability number doesn't distinguish between them—but your users absolutely do.
 
-| Downtime Type | User Impact | Availability Impact |
-|---------------|-------------|---------------------|
-| 3am maintenance (low traffic) | Minimal | Same as peak hours |
-| Peak hour outage | Severe | Same as off-hours |
-| Degraded performance | Moderate | Often not counted |
-| Partial outage (one feature) | Varies | Depends on measurement |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Same availability number can mean very different user experiences.",
+    thead: { th: ["Downtime Type", "User Impact", "Availability Impact"] },
+    tbody: {
+      tr: [
+        { th: "3am maintenance (low traffic)", td: ["Minimal", "Same as peak hours"] },
+        { th: "Peak hour outage", td: ["Severe", "Same as off-hours"] },
+        { th: "Degraded performance", td: ["Moderate", "Often not counted"] },
+        { th: "Partial outage (one feature)", td: ["Varies", "Depends on measurement"] },
+      ],
+    },
+  }}
+/>
 
 Table: Same availability number can mean very different user experiences.
 
@@ -295,12 +328,21 @@ Notice that the user-centric targets are often _lower_ than infrastructure targe
 
 Here's a truth that frees you from the five nines trap: users have a tolerance threshold, and improvements beyond that threshold are invisible to them. Nobody notices the difference between 99.95% and 99.99% availability. They notice slow pages. They notice missing features. They notice clunky UX.
 
-| User Segment | Acceptable Unavailability | Reason |
-|--------------|---------------------------|--------|
-| Consumer app | ~30 min/month (99.9%) | Will retry, has alternatives |
-| Business tool | ~5 min/month (99.99%) | Productivity impact |
-| Financial trading | Seconds/year (99.999%+) | Every second costs money |
-| Life safety systems | Near-zero | Lives at stake |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Different user segments have different availability expectations.",
+    thead: { th: ["User Segment", "Acceptable Unavailability", "Reason"] },
+    tbody: {
+      tr: [
+        { th: "Consumer app", td: ["~30 min/month (99.9%)", "Will retry, has alternatives"] },
+        { th: "Business tool", td: ["~5 min/month (99.99%)", "Productivity impact"] },
+        { th: "Financial trading", td: ["Seconds/year (99.999%+)", "Every second costs money"] },
+        { th: "Life safety systems", td: ["Near-zero", "Lives at stake"] },
+      ],
+    },
+  }}
+/>
 
 Table: Different user segments have different availability expectations.
 
@@ -503,12 +545,21 @@ The pattern in these cases: the cost of failure isn't measured in lost revenue, 
 
 Business stakeholders don't care about architecture diagrams or failure modes. They care about risk, cost, and competitive positioning. Present availability as a menu of options with business-relevant tradeoffs.
 
-| Option | Availability | Annual Downtime | Total Cost | Best For |
-|--------|--------------|-----------------|------------|----------|
-| A | 99.9% | 8.77 hours | $50k/year | Most SaaS products |
-| B | 99.95% | 4.38 hours | $120k/year | B2B with SLA requirements |
-| C | 99.99% | 52 minutes | $400k/year | Critical business systems |
-| D | 99.999% | 5 minutes | $2M+/year | Financial, healthcare |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Availability options with total annual cost (infrastructure + people + tooling + opportunity cost).",
+    thead: { th: ["Option", "Availability", "Annual Downtime", "Total Cost", "Best For"] },
+    tbody: {
+      tr: [
+        { th: "A", td: ["99.9%", "8.77 hours", "$50k/year", "Most SaaS products"] },
+        { th: "B", td: ["99.95%", "4.38 hours", "$120k/year", "B2B with SLA requirements"] },
+        { th: "C", td: ["99.99%", "52 minutes", "$400k/year", "Critical business systems"] },
+        { th: "D", td: ["99.999%", "5 minutes", "$2M+/year", "Financial, healthcare"] },
+      ],
+    },
+  }}
+/>
 
 Table: Availability options with total annual cost (infrastructure + people + tooling + opportunity cost).
 

@@ -69,15 +69,22 @@ The formula is simple: $$(r + 1)^n$$ where $$r$$ is retries per service and $$n$
 
 The table below shows how quickly this gets out of hand. These numbers assume every request at every layer fails and triggers full retries—a worst case, but exactly what happens during a cascade failure:
 
-| Services in Chain | Retries Each | Load Amplification |
-|-------------------|--------------|-------------------|
-| 2 | 3 | 16x |
-| 3 | 3 | 64x |
-| 4 | 3 | 256x |
-| 3 | 5 | 216x |
-| 4 | 5 | 1,296x |
-
-Table: Load amplification from retries across service chains.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Load amplification from retries across service chains.",
+    thead: { th: ["Services in Chain", "Retries Each", "Load Amplification"] },
+    tbody: {
+      tr: [
+        { th: "2", td: ["3", "16x"] },
+        { th: "3", td: ["3", "64x"] },
+        { th: "4", td: ["3", "256x"] },
+        { th: "3", td: ["5", "216x"] },
+        { th: "4", td: ["5", "1,296x"] },
+      ],
+    },
+  }}
+/>
 
 A database that can handle 10,000 QPS under normal operation suddenly receives 640,000 QPS during a cascade failure with 3 services and 3 retries each (64x amplification). No amount of scaling can absorb that. The only solution is to prevent the amplification from happening in the first place.
 
@@ -230,14 +237,22 @@ const recommendations = await productCircuit.execute(
 Code: Fallback strategy implementations for circuit breakers.
 
 | Strategy | Use When | Tradeoff |
-|----------|----------|----------|
-| Cached response | Data can be stale | May serve outdated info |
-| Default response | Feature is optional | Degraded user experience |
-| Degraded response | Partial data is useful | Complex to implement |
-| Fail fast | Failure must be visible | Poor user experience |
-| Queue for retry | Operation can be async | Delayed processing |
-
-Table: Fallback strategies with appropriate use cases.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Fallback strategies with appropriate use cases.",
+    thead: { th: ["Strategy", "When it's OK", "Tradeoff"] },
+    tbody: {
+      tr: [
+        { th: "Cached response", td: ["Data can be stale", "May serve outdated info"] },
+        { th: "Default response", td: ["Feature is optional", "Degraded user experience"] },
+        { th: "Degraded response", td: ["Partial data is useful", "Complex to implement"] },
+        { th: "Fail fast", td: ["Failure must be visible", "Poor user experience"] },
+        { th: "Queue for retry", td: ["Operation can be async", "Delayed processing"] },
+      ],
+    },
+  }}
+/>
 
 The cached response strategy is usually the best choice for read operations—users would rather see slightly stale data than an error page. For recommendations, product listings, or user profiles, serving cached data during an outage maintains a functional user experience.
 
@@ -526,27 +541,51 @@ When a circuit isn't behaving as expected, the problem usually falls into one of
 
 __Circuit opens unexpectedly:__
 
-| Cause | Remediation |
-|-------|-------------|
-| Threshold too sensitive | Review `failure_threshold` and `minimum_requests` |
-| Timeouts causing false failures | Compare timeout settings to actual P99 response times |
-| Window too short | Increase `window_duration` for bursty traffic patterns |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: { th: ["Cause", "Remediation"] },
+    tbody: {
+      tr: [
+        { th: "Threshold too sensitive", td: ["Review `failure_threshold` and `minimum_requests`"] },
+        { th: "Timeouts causing false failures", td: ["Compare timeout settings to actual P99 response times"] },
+        { th: "Window too short", td: ["Increase `window_duration` for bursty traffic patterns"] },
+      ],
+    },
+  }}
+/>
 
 __Circuit not opening:__
 
-| Cause | Remediation |
-|-------|-------------|
-| Failures not counted | Verify `failure_conditions` includes the error types you expect |
-| `minimum_requests` too high | Lower it for low-traffic services |
-| Window too long | Decrease `window_duration` to detect failures faster |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: { th: ["Cause", "Remediation"] },
+    tbody: {
+      tr: [
+        { th: "Failures not counted", td: ["Verify `failure_conditions` includes the error types you expect"] },
+        { th: "`minimum_requests` too high", td: ["Lower it for low-traffic services"] },
+        { th: "Window too long", td: ["Decrease `window_duration` to detect failures faster"] },
+      ],
+    },
+  }}
+/>
 
 __Circuit not closing:__
 
-| Cause | Remediation |
-|-------|-------------|
-| Downstream not actually recovered | Verify downstream health directly, outside the breaker |
-| Probe requests failing | Review half-open probe behavior and endpoint health |
-| `success_threshold` too high | Reduce `half_open.success_threshold` |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: { th: ["Cause", "Remediation"] },
+    tbody: {
+      tr: [
+        { th: "Downstream not actually recovered", td: ["Verify downstream health directly, outside the breaker"] },
+        { th: "Probe requests failing", td: ["Review half-open probe behavior and endpoint health"] },
+        { th: "`success_threshold` too high", td: ["Reduce `half_open.success_threshold`"] },
+      ],
+    },
+  }}
+/>
 
 The most common issue I see is timeouts configured lower than actual P99 latency. The service responds successfully, but the circuit breaker counts it as a failure because the response arrived after the timeout. Check your latency histograms before setting timeout thresholds.
 

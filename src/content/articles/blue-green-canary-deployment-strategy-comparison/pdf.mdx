@@ -37,15 +37,22 @@ There's no universally "best" deployment strategy. The right choice depends on y
 
 Before diving into blue/green and canary specifically, it helps to see where they fit among all deployment strategies. This isn't a progression from "beginner" to "advanced"—it's a spectrum of tradeoffs. Each strategy makes different assumptions about what you can afford—downtime, infrastructure cost, operational overhead, and tooling investment.
 
-| Strategy | Downtime | Rollback Speed | Resource Cost | Complexity |
-|----------|----------|----------------|---------------|------------|
-| Recreate | Yes | Minutes | 1x | Minimal |
-| Rolling | No* | Minutes | 1x-1.5x | Low |
-| Blue/Green | No | Seconds | 2x | Medium |
-| Canary | No | Seconds | 1.1x-1.5x | High |
-| Progressive | No | Automatic | 1.1x-2x | Very High |
-
-Table: Deployment strategy comparison across key dimensions. *Rolling may have degraded capacity during deploy.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Deployment strategy comparison across key dimensions. *Rolling may have degraded capacity during deploy.",
+    thead: { th: ["Strategy", "Downtime", "Rollback Speed", "Resource Cost", "Complexity"] },
+    tbody: {
+      tr: [
+        { th: "Recreate", td: ["Yes", "Minutes", "1x", "Minimal"] },
+        { th: "Rolling", td: ["No*", "Minutes", "1x-1.5x", "Low"] },
+        { th: "Blue/Green", td: ["No", "Seconds", "2x", "Medium"] },
+        { th: "Canary", td: ["No", "Seconds", "1.1x-1.5x", "High"] },
+        { th: "Progressive", td: ["No", "Automatic", "1.1x-2x", "Very High"] },
+      ],
+    },
+  }}
+/>
 
 _Recreate_ is the simplest: stop old version, start new version. If you're running a batch job or an internal tool where 30 seconds of downtime doesn't matter, this is fine. Don't add complexity you don't need.
 
@@ -182,15 +189,22 @@ Code: Kubernetes blue/green deployment using label selectors.
 
 The cutover is a single `kubectl patch` command. No pods restart, no gradual rollout—traffic shifts immediately. And because the old version keeps running, rollback is equally instant—just point traffic back.
 
-| Advantage | Explanation |
-|-----------|-------------|
-| Instant rollback | Change one selector/DNS record to revert—old version is already running |
-| Full environment testing | Validate the entire green stack before any production traffic |
-| Simple mental model | Two environments, one is live, one is staging—no complex states |
-| No partial states | All traffic sees the same version, always |
-| Clean cutover | No window of mixed-version traffic during transition |
-
-Table: Blue/green deployment advantages.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Blue/green deployment advantages.",
+    thead: { th: ["Advantage", "Explanation"] },
+    tbody: {
+      tr: [
+        { th: "Instant rollback", td: ["Change one selector/DNS record to revert—old version is already running"] },
+        { th: "Full environment testing", td: ["Validate the entire green stack before any production traffic"] },
+        { th: "Simple mental model", td: ["Two environments, one is live, one is staging—no complex states"] },
+        { th: "No partial states", td: ["All traffic sees the same version, always"] },
+        { th: "Clean cutover", td: ["No window of mixed-version traffic during transition"] },
+      ],
+    },
+  }}
+/>
 
 ### Blue/Green Challenges
 
@@ -222,13 +236,20 @@ _Warmup time_ catches teams off guard. The green environment might be "up" but c
 
 You can mitigate the resource cost:
 
-| Strategy | Approach | Savings | Risk |
-|----------|----------|---------|------|
-| Spot instances | Use spot/preemptible for standby | 60-80% on standby | Longer deploy if preempted |
-| Scale to zero | Scale standby to zero between deploys | ~50% overall | Slower deployment, cold starts |
-| Shared infrastructure | Share load balancers, databases, caches | Varies | Reduced isolation |
-
-Table: Cost mitigation strategies for blue/green deployments.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Cost mitigation strategies for blue/green deployments.",
+    thead: { th: ["Strategy", "Approach", "Savings", "Risk"] },
+    tbody: {
+      tr: [
+        { th: "Spot instances", td: ["Use spot/preemptible for standby", "60-80% on standby", "Longer deploy if preempted"] },
+        { th: "Scale to zero", td: ["Scale standby to zero between deploys", "~50% overall", "Slower deployment, cold starts"] },
+        { th: "Shared infrastructure", td: ["Share load balancers, databases, caches", "Varies", "Reduced isolation"] },
+      ],
+    },
+  }}
+/>
 
 Most teams use a hybrid: scale the standby environment down to minimal capacity between deploys, then scale up when deployment starts. You trade deployment speed for cost savings.
 
@@ -336,15 +357,22 @@ Code: Istio configuration for canary deployment with header-based override.
 
 The header override (`x-canary: true`) is useful for testing—you can force your requests to the canary before opening it to real users.
 
-| Advantage | Explanation |
-|-----------|-------------|
-| Gradual risk exposure | Bugs affect small percentage first |
-| Real traffic validation | Test with actual user behavior, not synthetic |
-| Metric-driven decisions | Observe error rates, latency before proceeding |
-| Selective targeting | Route specific users/regions to canary |
-| Lower resource cost | Only ~10% extra capacity needed |
-
-Table: Canary deployment advantages.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Canary deployment advantages.",
+    thead: { th: ["Advantage", "Explanation"] },
+    tbody: {
+      tr: [
+        { th: "Gradual risk exposure", td: ["Bugs affect small percentage first"] },
+        { th: "Real traffic validation", td: ["Test with actual user behavior, not synthetic"] },
+        { th: "Metric-driven decisions", td: ["Observe error rates, latency before proceeding"] },
+        { th: "Selective targeting", td: ["Route specific users/regions to canary"] },
+        { th: "Lower resource cost", td: ["Only ~10% extra capacity needed"] },
+      ],
+    },
+  }}
+/>
 
 The resource efficiency is worth noting. Unlike blue/green's 2x infrastructure during deployment, canary only needs enough extra capacity for the canary percentage—typically 10-50% more, not double.
 
@@ -472,19 +500,27 @@ The key insight is using both absolute thresholds (error rate > 5% is always bad
 
 With both strategies understood, the choice comes down to your constraints and priorities. This matrix summarizes the trade-offs:
 
-| Factor | Blue/Green | Canary |
-|--------|------------|--------|
-| **Rollback speed** | Instant (&lt;1s) | Fast (10-30s) |
-| **Blast radius control** | All or nothing | Gradual |
-| **Resource overhead** | 2x during deploy | 1.1x-1.5x |
-| **Complexity** | Medium | High |
-| **Traffic control needed** | Basic (DNS/LB) | Advanced (L7/mesh) |
-| **Observability needed** | Standard | Version-aware |
-| **Database handling** | Same for both | Same for both |
-| **Validation approach** | Pre-cutover testing | Production traffic |
-| **Best for** | Instant rollback priority | Gradual risk reduction |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Decision matrix summarizing trade-offs.",
+    thead: { th: ["Factor", "Blue/Green", "Canary"] },
+    tbody: {
+      tr: [
+        { th: "Rollback speed", td: ["Instant (<1s)", "Fast (10-30s)"] },
+        { th: "Blast radius control", td: ["All or nothing", "Gradual"] },
+        { th: "Resource overhead", td: ["2x during deploy", "1.1x-1.5x"] },
+        { th: "Complexity", td: ["Medium", "High"] },
+        { th: "Traffic control needed", td: ["Basic (DNS/LB)", "Advanced (L7/mesh)"] },
+        { th: "Observability needed", td: ["Standard", "Version-aware"] },
+        { th: "Database handling", td: ["Same for both", "Same for both"] },
+        { th: "Validation approach", td: ["Pre-cutover testing", "Production traffic"] },
+        { th: "Best for", td: ["Instant rollback priority", "Gradual risk reduction"] },
+      ],
+    },
+  }}
+/>
 
-Table: Blue/green vs. canary comparison across key factors.
 
 The "database handling" row is intentionally identical—neither strategy solves schema compatibility. That problem is orthogonal to traffic routing.
 
@@ -680,13 +716,20 @@ _Simpler infrastructure._ You don't need a service mesh or L7 load balancer. A s
 
 _Instant disable._ If something breaks, you flip the flag. No deployment needed, no traffic routing to reconfigure. The problematic code path is disabled in seconds.
 
-| Approach | Traffic Split | Feature Control | User Consistency |
-|----------|--------------|-----------------|------------------|
-| Canary | At load balancer | All features together | Random per request |
-| Feature Flags | At application | Per feature | Per user |
-| Combined | Both | Both | Configurable |
-
-Table: Comparing canary traffic splitting with feature flag control.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Comparison of canary, feature flags, and combined methods.",
+    thead: { th: ["Approach", "Traffic Split", "Feature Control", "User Consistency"] },
+    tbody: {
+      tr: [
+        { th: "Canary", td: ["At load balancer", "All features together", "Random per request"] },
+        { th: "Feature Flags", td: ["At application", "Per feature", "Per user"] },
+        { th: "Combined", td: ["Both", "Both", "Configurable"] },
+      ],
+    },
+  }}
+/>
 
 The trade-off: feature flags add complexity to your application code. Every flag is a branch that needs testing, and flags that live too long become technical debt. But for many teams, this complexity is easier to manage than service mesh configuration.
 
@@ -706,13 +749,20 @@ _Canary rollback_ is nearly as fast but involves more moving parts. You reconfig
 
 _Rolling update rollback_ is the slowest because it's actually a new deployment. You're telling Kubernetes "deploy the old image," which triggers the same gradual pod replacement. During rollback, you have mixed versions—some pods running the bad new version, some running the old version you're rolling back to. This can take minutes for large deployments.
 
-| Strategy | Rollback Trigger | Time | User Impact |
-|----------|-----------------|------|-------------|
-| Blue/Green | Change selector/DNS |&lt;1 second | In-flight requests may fail |
-| Canary | Route 100% to stable | 5-30 seconds | Canary users see version change |
-| Rolling | Deploy old image | Minutes | Mixed versions during rollback |
-
-Table: Rollback characteristics by deployment strategy.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Rollback characteristics by deployment strategy.",
+    thead: { th: ["Strategy", "Rollback Trigger", "Time", "User Impact"] },
+    tbody: {
+      tr: [
+        { th: "Blue/Green", td: ["Change selector/DNS", "<1 second", "In-flight requests may fail"] },
+        { th: "Canary", td: ["Route 100% to stable", "5-30 seconds", "Canary users see version change"] },
+        { th: "Rolling", td: ["Deploy old image", "Minutes", "Mixed versions during rollback"] },
+      ],
+    },
+  }}
+/>
 
 ### Data Consistency During Rollback
 

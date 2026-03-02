@@ -28,14 +28,21 @@ The term "chaos engineering" sounds destructive, which leads to a common misconc
 
 Real chaos engineering follows the scientific method. You form a hypothesis about how your system should behave under specific failure conditions, you design a controlled experiment to test that hypothesis, and you observe whether reality matches your expectations. The goal isn't to cause outages; it's to build confidence that your system handles failures gracefully—or to learn exactly how it doesn't.
 
-| Chaos Engineering IS | Chaos Engineering IS NOT |
-|---------------------|-------------------------|
-| Hypothesis-driven experimentation | Random destruction |
-| Controlled failure injection | Breaking things for fun |
-| Learning about system behavior | Proving you can cause outages |
-| Building confidence | Testing in production blindly |
-
-Table: The distinction that separates chaos engineering from breaking things.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "The distinction that separates chaos engineering from breaking things.",
+    thead: { th: ["Chaos Engineering IS", "Chaos Engineering IS NOT"] },
+    tbody: {
+      tr: [
+        { th: "Hypothesis-driven experimentation", td: ["Random destruction"] },
+        { th: "Controlled failure injection", td: ["Breaking things for fun"] },
+        { th: "Learning about system behavior", td: ["Proving you can cause outages"] },
+        { th: "Building confidence", td: ["Testing in production blindly"] },
+      ],
+    },
+  }}
+/>
 
 The key insight: without a hypothesis, you're just breaking things. If you kill a pod and the service degrades, what did you learn? Was that expected? Was it acceptable? Without a hypothesis—"the service should recover within 30 seconds with no user-visible errors"—you can't answer those questions. You can't distinguish expected behavior from bugs, and you won't know if your system got better or worse.
 

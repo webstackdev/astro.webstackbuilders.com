@@ -40,16 +40,23 @@ Not every metric needs to be billable, but you need to capture enough dimensions
 
 The metrics that drive API costs:
 
-| Dimension | Example | Cost Driver |
-|-----------|---------|-------------|
-| Request Count | 1.2M requests/month | Infrastructure scaling |
-| Data Transfer | 500 GB egress/month | Network costs |
-| Compute Time | 150 CPU-hours/month | Processing-intensive endpoints |
-| Storage | 50 GB stored | Persistent data APIs |
-| Unique Users | 10,000 MAU | License-based pricing |
-| Feature Usage | 500 report generations | Premium feature tracking |
-
-Table: Common metering dimensions mapped to cost drivers.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Common metering dimensions mapped to cost drivers.",
+    thead: { th: ["Dimension", "Example", "Cost Driver"] },
+    tbody: {
+      tr: [
+        { th: "Request Count", td: ["1.2M requests/month", "Infrastructure scaling"] },
+        { th: "Data Transfer", td: ["500 GB egress/month", "Network costs"] },
+        { th: "Compute Time", td: ["150 CPU-hours/month", "Processing-intensive endpoints"] },
+        { th: "Storage", td: ["50 GB stored", "Persistent data APIs"] },
+        { th: "Unique Users", td: ["10,000 MAU", "License-based pricing"] },
+        { th: "Feature Usage", td: ["500 report generations", "Premium feature tracking"] },
+      ],
+    },
+  }}
+/>
 
 Request count is universal—every API tracks it. But it's often a poor proxy for cost. A 200-byte health check and a 50MB data export both count as "one request," but their infrastructure impact differs by orders of magnitude. Add data transfer and compute time to capture the actual resource consumption.
 
@@ -224,15 +231,22 @@ Double-counting usage events leads to overbilling disputes and customer trust er
 
 Quotas answer the question: "How much usage is too much?" But "too much" depends on context. A hard limit that rejects requests prevents runaway costs but creates a poor user experience. A soft limit that allows overages is forgiving but harder to predict financially. You need both, applied at different levels.
 
-| Model | Behavior | Use Case |
-|-------|----------|----------|
-| Hard Limit | Reject requests over quota | Prevent runaway costs |
-| Soft Limit | Allow overage, bill extra | Usage-based pricing |
-| Burst Allowance | Allow temporary spikes | Handle legitimate traffic bursts |
-| Rolling Window | Reset over sliding period | Smooth usage patterns |
-| Token Bucket | Accumulate unused quota | Reward consistent usage |
-
-Table: Quota enforcement models with use cases.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Quota enforcement models with use cases.",
+    thead: { th: ["Model", "Behavior", "Use Case"] },
+    tbody: {
+      tr: [
+        { th: "Hard Limit", td: ["Reject requests over quota", "Prevent runaway costs"] },
+        { th: "Soft Limit", td: ["Allow overage, bill extra", "Usage-based pricing"] },
+        { th: "Burst Allowance", td: ["Allow temporary spikes", "Handle legitimate traffic bursts"] },
+        { th: "Rolling Window", td: ["Reset over sliding period", "Smooth usage patterns"] },
+        { th: "Token Bucket", td: ["Accumulate unused quota", "Reward consistent usage"] },
+      ],
+    },
+  }}
+/>
 
 Hard limits are common for free tiers and trial accounts—once you hit the cap, you're done until the next billing period. Soft limits work for paid plans where you want to allow growth but charge for it. Burst allowances let consumers handle legitimate spikes (a batch job that runs monthly) without hitting a hard wall.
 
@@ -258,12 +272,19 @@ Figure: Quota enforcement decision flow with soft limits and burst allowance.
 
 Rate limiting and quota enforcement solve different problems. Rate limiting is "requests per second"—it protects infrastructure and ensures fairness. Quota enforcement is "requests per billing period"—it controls costs and enforces plan limits. You need both.
 
-| Mechanism | Scope | Purpose |
-|-----------|-------|---------|
-| Rate Limiting | Per-second/minute | Protect infrastructure, ensure fairness |
-| Quota Enforcement | Per-day/month | Control costs, enforce plan limits |
-
-Table: Rate limiting vs. quota enforcement—different tools for different problems.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Rate limiting vs. quota enforcement—different tools for different problems.",
+    thead: { th: ["Mechanism", "Scope", "Purpose"] },
+    tbody: {
+      tr: [
+        { th: "Rate Limiting", td: ["Per-second/minute", "Protect infrastructure, ensure fairness"] },
+        { th: "Quota Enforcement", td: ["Per-day/month", "Control costs, enforce plan limits"] },
+      ],
+    },
+  }}
+/>
 
 A consumer might have a rate limit of 100 requests per second but a monthly quota of 10 million requests. The rate limit prevents them from overwhelming your API with a sudden burst. The quota prevents them from consuming resources beyond their plan tier over the billing period.
 
@@ -467,15 +488,22 @@ Most internal APIs start with direct attribution (simple to explain) then move t
 
 Picking a cost model is as much psychology as math. The model shapes behavior—per-request pricing encourages consumers to reduce calls, compute-based pricing encourages efficient code, tiered pricing encourages growth.
 
-| Model | Formula | Best For |
-|-------|---------|----------|
-| Per-Request | $0.001 × requests | Simple, predictable APIs |
-| Compute-Based | $0.10 × CPU-hours | Processing-intensive workloads |
-| Data Transfer | $0.05 × GB | Data-heavy APIs |
-| Tiered | Decreasing $/unit at volume | Encouraging growth |
-| Flat + Overage | $500/month + $0.001/request over 1M | Predictable base + flexibility |
-
-Table: Cost models with formulas and use cases.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Cost models with formulas and use cases.",
+    thead: { th: ["Model", "Formula", "Best For"] },
+    tbody: {
+      tr: [
+        { th: "Per-Request", td: ["$0.001 × requests", "Simple, predictable APIs"] },
+        { th: "Compute-Based", td: ["$0.10 × CPU-hours", "Processing-intensive workloads"] },
+        { th: "Data Transfer", td: ["$0.05 × GB", "Data-heavy APIs"] },
+        { th: "Tiered", td: ["Decreasing $/unit at volume", "Encouraging growth"] },
+        { th: "Flat + Overage", td: ["$500/month + $0.001/request over 1M", "Predictable base + flexibility"] },
+      ],
+    },
+  }}
+/>
 
 The "Flat + Overage" model is underrated for internal APIs. It gives teams predictable budgets (the $500/month base covers normal usage) while preventing abuse (overages are billed separately). Finance likes it because budgets are stable, and engineering likes it because there's flexibility for legitimate spikes.
 
@@ -561,14 +589,21 @@ Export this to CSV, send it to finance, and let them handle the budget transfers
 
 There's a spectrum between "no cost visibility" and "full chargebacks." Most organizations benefit from moving gradually rather than jumping straight to chargebacks.
 
-| Approach | Visibility | Budget Impact | Organizational Friction |
-|----------|------------|---------------|------------------------|
-| No Attribution | None | Hidden in shared costs | Low |
-| Showback | Full | Informational only | Low |
-| Soft Chargeback | Full | Budget guidance | Medium |
-| Hard Chargeback | Full | Actual cost transfer | High |
-
-Table: Attribution approaches from visibility-only to hard chargebacks.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Attribution approaches from visibility-only to hard chargebacks.",
+    thead: { th: ["Approach", "Visibility", "Budget Impact", "Organizational Friction"] },
+    tbody: {
+      tr: [
+        { th: "No Attribution", td: ["None", "Hidden in shared costs", "Low"] },
+        { th: "Showback", td: ["Full", "Informational only", "Low"] },
+        { th: "Soft Chargeback", td: ["Full", "Budget guidance", "Medium"] },
+        { th: "Hard Chargeback", td: ["Full", "Actual cost transfer", "High"] },
+      ],
+    },
+  }}
+/>
 
 **Showback** means "here's what you're using, here's what it costs, but we're not moving money between budgets." It's pure visibility. Teams can see their consumption and optimize without financial pressure.
 
@@ -738,16 +773,23 @@ Consumers need to see their usage in real-time, not when the bill arrives. A goo
 
 The essential panels:
 
-| Panel | Visualization | Purpose |
-|-------|---------------|---------|
-| Current Period Usage | Gauge/Progress | How much quota used |
-| Usage Trend | Time series | Daily/hourly usage pattern |
-| Usage by Endpoint | Bar chart | Which APIs drive usage |
-| Projected Month-End | Stat | Forecast based on current rate |
-| Cost Breakdown | Pie chart | Where money is going |
-| Alerts | List | Approaching limits, unusual patterns |
-
-Table: Consumer-facing usage dashboard panels.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Consumer-facing usage dashboard panels.",
+    thead: { th: ["Panel", "Visualization", "Purpose"] },
+    tbody: {
+      tr: [
+        { th: "Current Period Usage", td: ["Gauge/Progress", "How much quota used"] },
+        { th: "Usage Trend", td: ["Time series", "Daily/hourly usage pattern"] },
+        { th: "Usage by Endpoint", td: ["Bar chart", "Which APIs drive usage"] },
+        { th: "Projected Month-End", td: ["Stat", "Forecast based on current rate"] },
+        { th: "Cost Breakdown", td: ["Pie chart", "Where money is going"] },
+        { th: "Alerts", td: ["List", "Approaching limits, unusual patterns"] },
+      ],
+    },
+  }}
+/>
 
 The layout matters. Put the most important information at the top—current usage and projected costs. Trends and breakdowns go below. Alerts go at the bottom unless they're critical (approaching quota), then promote them to the top.
 
@@ -979,14 +1021,21 @@ The most common objection: "This will create budget battles between teams." True
 
 Jumping straight to hard enforcement will cause significant organizational friction and backlash. A phased rollout lets you see your usage, understand the patterns, and optimize before financial consequences kick in.
 
-| Phase | Duration | Deliverable | Organizational Impact |
-|-------|----------|-------------|----------------------|
-| Instrument | 1-2 months | Metering pipeline | None (invisible) |
-| Report | 2-3 months | Showback dashboards | Awareness |
-| Soft Enforce | 1-2 months | Warnings at limits | Behavior change |
-| Hard Enforce | Ongoing | Quotas and billing | Budget impact |
-
-Table: Phased rollout for API cost management implementation.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Phased rollout for API cost management implementation.",
+    thead: { th: ["Phase", "Duration", "Deliverable", "Organizational Impact"] },
+    tbody: {
+      tr: [
+        { th: "Instrument", td: ["1-2 months", "Metering pipeline", "None (invisible)"] },
+        { th: "Report", td: ["2-3 months", "Showback dashboards", "Awareness"] },
+        { th: "Soft Enforce", td: ["1-2 months", "Warnings at limits", "Behavior change"] },
+        { th: "Hard Enforce", td: ["Ongoing", "Quotas and billing", "Budget impact"] },
+      ],
+    },
+  }}
+/>
 
 Soft Enforce warnings look like this:
 

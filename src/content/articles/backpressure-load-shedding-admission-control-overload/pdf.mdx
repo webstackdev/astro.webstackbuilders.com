@@ -97,13 +97,20 @@ Little's Law explains why overload causes latency to explode. When arrival rate 
 
 Here's a counterintuitive truth: throughput can _increase_ during overload while your system becomes effectively useless. The distinction is between throughput (work attempted) and goodput (work successfully completed).
 
-| Metric | Definition | Under Normal Load | Under Overload |
-|--------|------------|-------------------|----------------|
-| Throughput | Requests processed | 1000 RPS | 1200 RPS |
-| Goodput | Successful responses | 1000 RPS | 400 RPS |
-| Badput | Failed/timed out | 0 RPS | 800 RPS |
-
-Table: Throughput can increase during overload while goodput collapses.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Throughput can increase during overload while goodput collapses.",
+    thead: { th: ["Metric", "Definition", "Under Normal Load", "Under Overload"] },
+    tbody: {
+      tr: [
+        { th: "Throughput", td: ["Requests processed", "1000 RPS", "1200 RPS"] },
+        { th: "Goodput", td: ["Successful responses", "1000 RPS", "400 RPS"] },
+        { th: "Badput", td: ["Failed/timed out", "0 RPS", "800 RPS"] },
+      ],
+    },
+  }}
+/>
 
 Under overload, your system might process more requests than ever—but most of that work is wasted. Requests timeout after consuming resources. Database queries complete but the client already gave up. Retries succeed but the original request already errored out.
 
@@ -141,14 +148,22 @@ The key principle I keep coming back to: you can't process your way out of overl
 
 I've seen several ways to signal overload, each with different tradeoffs:
 
-| Type | Mechanism | Example | Pros | Cons |
-|------|-----------|---------|------|------|
-| Explicit | Protocol-level signals | HTTP 429, TCP flow control | Clear signal, client can react | Requires client cooperation |
-| Implicit | Increased latency | Slow responses | No implementation needed | Clients may not notice, retry |
-| Connection-based | Refuse connections | Connection limits | Hard boundary | Poor client experience |
-| Queue-based | Bounded queues | Reject when full | Predictable latency | Work is lost |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Backpressure signaling techniques with pros/cons.",
+    thead: { th: ["Type", "Mechanism", "Example", "Pros", "Cons"] },
+    tbody: {
+      tr: [
+        { th: "Explicit", td: ["Protocol-level signals", "HTTP 429, TCP flow control", "Clear signal, client can react", "Requires client cooperation"] },
+        { th: "Implicit", td: ["Increased latency", "Slow responses", "No implementation needed", "Clients may not notice, retry"] },
+        { th: "Connection-based", td: ["Refuse connections", "Connection limits", "Hard boundary", "Poor client experience"] },
+        { th: "Queue-based", td: ["Bounded queues", "Reject when full", "Predictable latency", "Work is lost"] },
+      ],
+    },
+  }}
+/>
 
-Table: Backpressure mechanisms and their tradeoffs.
 
 Explicit backpressure is almost always better than implicit. When you return a slow response, clients don't know if you're overloaded or just processing a complex request. They might retry, making things worse. When you return a 429 with a Retry-After header, the signal is unambiguous: "I'm busy, come back in 30 seconds."
 
@@ -551,15 +566,23 @@ Load shedding is the deliberate dropping of work to preserve system stability. I
 
 The key insight is that _some_ work completing successfully is better than _all_ work failing. If your system can handle 1,000 RPS but 2,000 are arriving, you have a choice: accept all 2,000 and watch goodput collapse to 400 (because everything times out), or shed 1,000 immediately and successfully serve the other 1,000.
 
-| Shedding Strategy | When to Use | Tradeoff |
-|-------------------|-------------|----------|
-| Random | Simple implementation | May drop important requests |
-| LIFO (newest first) | Reduce queuing latency | May serve stale requests |
-| FIFO (oldest first) | Likely already timed out | Wasted work on old requests |
-| Priority-based | Protect important traffic | Complexity, starvation risk |
-| Cost-based | Protect expensive operations | Requires cost tracking |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Load shedding strategies and their tradeoffs.",
+    thead: { th: ["Shedding Strategy", "When to Use", "Tradeoff"] },
+    tbody: {
+      tr: [
+        { th: "Random", td: ["Simple implementation", "May drop important requests"] },
+        { th: "LIFO (newest first)", td: ["Reduce queuing latency", "May serve stale requests"] },
+        { th: "FIFO (oldest first)", td: ["Likely already timed out", "Wasted work on old requests"] },
+        { th: "Priority-based", td: ["Protect important traffic", "Complexity, starvation risk"] },
+        { th: "Cost-based", td: ["Protect expensive operations", "Requires cost tracking"] },
+      ],
+    },
+  }}
+/>
 
-Table: Load shedding strategies with their use cases and tradeoffs.
 
 The choice of strategy depends on your workload. Random shedding is the simplest—it's statistically fair and requires no tracking. But "fair" isn't always optimal. Sometimes you want to be deliberately unfair to maximize successful completions.
 
@@ -763,14 +786,22 @@ Graceful degradation requires knowing which features are expendable. Work with p
 
 Backpressure only works if clients understand the signal. HTTP provides specific status codes for communicating overload—use them correctly, and well-behaved clients will back off automatically.
 
-| Status Code | Meaning | When to Use | Client Action |
-|-------------|---------|-------------|---------------|
-| 429 | Too Many Requests | Rate limit exceeded | Back off, retry with delay |
-| 503 | Service Unavailable | Temporary overload | Retry after delay |
-| 504 | Gateway Timeout | Upstream timeout | May retry |
-| 507 | Insufficient Storage | Queue/buffer full | Reduce request rate |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "HTTP status codes for overload and suggested client actions.",
+    thead: { th: ["Status Code", "Meaning", "When to Use", "Client Action"] },
+    tbody: {
+      tr: [
+        { th: "429", td: ["Too Many Requests", "Rate limit exceeded", "Back off, retry with delay"] },
+        { th: "503", td: ["Service Unavailable", "Temporary overload", "Retry after delay"] },
+        { th: "504", td: ["Gateway Timeout", "Upstream timeout", "May retry"] },
+        { th: "507", td: ["Insufficient Storage", "Queue/buffer full", "Reduce request rate"] },
+      ],
+    },
+  }}
+/>
 
-Table: HTTP status codes for overload scenarios.
 
 The distinction between 429 and 503 matters. A 429 says "you specifically are sending too many requests"—it's a per-client signal. A 503 says "the service is overwhelmed regardless of who's asking"—it's a global signal. Rate limiters return 429; admission control during overload returns 503.
 
@@ -1491,15 +1522,23 @@ The key is the assertions — don't just measure throughput, explicitly verify t
 
 Load testing validates behavior under high request volume. Chaos engineering validates behavior under _unexpected failures_—the scenarios that trigger backpressure mechanisms in ways traffic alone can't simulate.
 
-| Experiment | Method | Expected Behavior |
-|------------|--------|-------------------|
-| Queue bomb | Fill queues to capacity | System sheds load, stays responsive |
-| Thread starvation | Block worker threads | Circuit breakers trip, fallbacks activate |
-| Memory pressure | Allocate memory in dependency | GC pressure handled, graceful degradation |
-| Connection exhaustion | Hold connections open | New requests rejected cleanly |
-| Cascade trigger | Fail upstream service | Downstream services shed load appropriately |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Chaos experiments for validating overload handling.",
+    thead: { th: ["Experiment", "Method", "Expected Behavior"] },
+    tbody: {
+      tr: [
+        { th: "Queue bomb", td: ["Fill queues to capacity", "System sheds load, stays responsive"] },
+        { th: "Thread starvation", td: ["Block worker threads", "Circuit breakers trip, fallbacks activate"] },
+        { th: "Memory pressure", td: ["Allocate memory in dependency", "GC pressure handled, graceful degradation"] },
+        { th: "Connection exhaustion", td: ["Hold connections open", "New requests rejected cleanly"] },
+        { th: "Cascade trigger", td: ["Fail upstream service", "Downstream services shed load appropriately"] },
+      ],
+    },
+  }}
+/>
 
-Table: Chaos experiments for validating overload handling.
 
 Connection exhaustion is my go-to first chaos experiment because it's both common in production and easy to simulate. Database connection pools are the usual culprit—a slow query holds a connection, the pool fills, and suddenly every request is waiting for a connection that won't come.
 
@@ -1863,14 +1902,22 @@ The `requests_rejected` label `reason` is critical. During an incident, you need
 
 A good overload dashboard tells a story at a glance. When you're paged at 3 AM, you shouldn't have to hunt through 15 panels to understand what's happening. I've found a four-section layout works well:
 
-| Section | Panels | Purpose |
-|---------|--------|---------|
-| Load & Capacity | Request Rate, Concurrency, Queue Depth | Current vs. max capacity indicators |
-| Backpressure Activity | 429s/min, 503s/min, Shed Rate, Circuit State | Active backpressure mechanisms |
-| Health Indicators | Goodput %, P99 Latency, Error Rate | Are we serving users effectively? |
-| Degradation State | Current Tier, Features Disabled | Operational mode at a glance |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Dashboard sections and their panels for overload monitoring.",
+    thead: { th: ["Section", "Panels", "Purpose"] },
+    tbody: {
+      tr: [
+        { th: "Load & Capacity", td: ["Request Rate, Concurrency, Queue Depth", "Current vs. max capacity indicators"] },
+        { th: "Backpressure Activity", td: ["429s/min, 503s/min, Shed Rate, Circuit State", "Active backpressure mechanisms"] },
+        { th: "Health Indicators", td: ["Goodput %, P99 Latency, Error Rate", "Are we serving users effectively?"] },
+        { th: "Degradation State", td: ["Current Tier, Features Disabled", "Operational mode at a glance"] },
+      ],
+    },
+  }}
+/>
 
-Table: Dashboard layout for overload monitoring.
 
 **Load & Capacity** goes at the top because it's your first question: "How much traffic are we getting, and how close are we to limits?" Show request rate as a line with capacity threshold as a horizontal marker. Show concurrency and queue depth as gauges with red zones. At a glance, you should see whether you're at 50% capacity or 95%.
 

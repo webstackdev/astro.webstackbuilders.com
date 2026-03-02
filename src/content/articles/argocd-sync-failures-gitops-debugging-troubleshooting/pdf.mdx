@@ -107,15 +107,22 @@ Code: Sync wave annotations controlling resource application order.
 
 The wave number itself is arbitrary—what matters is the relative ordering. I've seen teams use -10 to 10, and others use -2 to 2. Pick a convention and stick with it. Here's a pattern that works for most applications:
 
-| Wave | Typical Resources | Purpose |
-|------|-------------------|---------|
-| -2 | Namespaces, CRDs | Infrastructure prerequisites |
-| -1 | Secrets, ConfigMaps | Configuration dependencies |
-| 0 | Deployments, Services | Main application (default) |
-| 1 | Jobs, migrations | Post-deployment tasks |
-| 2 | HPA, PodDisruptionBudgets | Scaling configuration |
-
-Table: Common sync wave ordering pattern for application deployments.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Common sync wave ordering pattern for application deployments.",
+    thead: { th: ["Wave", "Typical Resources", "Purpose"] },
+    tbody: {
+      tr: [
+        { th: "-2", td: ["Namespaces, CRDs", "Infrastructure prerequisites"] },
+        { th: "-1", td: ["Secrets, ConfigMaps", "Configuration dependencies"] },
+        { th: "0", td: ["Deployments, Services", "Main application (default)"] },
+        { th: "1", td: ["Jobs, migrations", "Post-deployment tasks"] },
+        { th: "2", td: ["HPA, PodDisruptionBudgets", "Scaling configuration"] },
+      ],
+    },
+  }}
+/>
 
 <Callout type="info">
 Resources in the same sync wave are applied in parallel. ArgoCD waits for all resources in a wave to be healthy before proceeding to the next wave.
@@ -151,15 +158,22 @@ Figure: Hook execution sequence during ArgoCD sync lifecycle.
 
 ArgoCD supports five hook types, each running at a specific point in the sync lifecycle:
 
-| Hook Type | When It Runs | Use Case |
-|-----------|--------------|----------|
-| PreSync | Before any manifests applied | Database backups, pre-flight checks |
-| Sync | During normal sync | Rarely used (default behavior) |
-| PostSync | After all manifests healthy | Notifications, smoke tests |
-| SyncFail | When sync fails | Cleanup, alerting |
-| Skip | Never (resource skipped) | Templates, documentation |
-
-Table: ArgoCD hook types with execution timing and use cases.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "ArgoCD hook types with execution timing and use cases.",
+    thead: { th: ["Hook Type", "When It Runs", "Use Case"] },
+    tbody: {
+      tr: [
+        { th: "PreSync", td: ["Before any manifests applied", "Database backups, pre-flight checks"] },
+        { th: "Sync", td: ["During normal sync", "Rarely used (default behavior)"] },
+        { th: "PostSync", td: ["After all manifests healthy", "Notifications, smoke tests"] },
+        { th: "SyncFail", td: ["When sync fails", "Cleanup, alerting"] },
+        { th: "Skip", td: ["Never (resource skipped)", "Templates, documentation"] },
+      ],
+    },
+  }}
+/>
 
 Hooks are typically Kubernetes Jobs that run a script or command. You define them as regular manifests in your GitOps repo, but the hook annotations tell ArgoCD to treat them specially:
 
@@ -252,13 +266,21 @@ Hooks fail differently than normal resources because they're Jobs, not long-runn
 
 The trickiest hook failures are timeouts. ArgoCD waits for hooks to complete before proceeding, and "complete" means the Job reached a terminal state (Succeeded or Failed). If your hook runs longer than expected, the sync just hangs. There's no timeout by default—ArgoCD will wait forever.
 
-| Failure Mode | Symptom | Cause |
-|--------------|---------|-------|
-| Hook timeout | Sync stuck at "Running PreSync hooks" | Hook job takes too long |
-| Hook crash | Sync failed, hook pod in CrashLoopBackOff | Bug in hook script |
-| Hook not deleted | Old hook blocks new sync | Missing delete policy |
-| Hook wrong phase | Resources applied before prerequisites | Wrong hook type |
-
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Common hook failure modes with symptoms and causes.",
+    thead: { th: ["Failure Mode", "Symptom", "Cause"] },
+    tbody: {
+      tr: [
+        { th: "Hook timeout", td: ["Sync stuck at \"Running PreSync hooks\"", "Hook job takes too long"] },
+        { th: "Hook crash", td: ["Sync failed, hook pod in CrashLoopBackOff", "Bug in hook script"] },
+        { th: "Hook not deleted", td: ["Old hook blocks new sync", "Missing delete policy"] },
+        { th: "Hook wrong phase", td: ["Resources applied before prerequisites", "Wrong hook type"] },
+      ],
+    },
+  }}
+/>
 Table: Common hook failure modes with symptoms and causes.
 
 For long-running hooks like database migrations, always set `activeDeadlineSeconds` on the Job. This gives ArgoCD a timeout—if the migration takes longer than expected, the sync fails instead of hanging forever:
@@ -445,14 +467,21 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller |
 ```
 Code: ArgoCD component logs for different failure types.
 
-| Component | Log Location | Failure Types |
-|-----------|--------------|---------------|
-| application-controller | Controller pod | Sync decisions, health checks |
-| repo-server | Repo server pod | Manifest generation, Helm/Kustomize |
-| server | Server pod | API errors, authentication |
-| redis | Redis pod | Caching issues, state corruption |
-
-Table: ArgoCD components and their log relevance.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "ArgoCD components and their log relevance.",
+    thead: { th: ["Component", "Log Location", "Failure Types"] },
+    tbody: {
+      tr: [
+        { th: "application-controller", td: ["Controller pod", "Sync decisions, health checks"] },
+        { th: "repo-server", td: ["Repo server pod", "Manifest generation, Helm/Kustomize"] },
+        { th: "server", td: ["Server pod", "API errors, authentication"] },
+        { th: "redis", td: ["Redis pod", "Caching issues, state corruption"] },
+      ],
+    },
+  }}
+/>
 
 Most sync failures show up in the application-controller logs. If your issue is "manifest generation failed" or you're seeing Helm/Kustomize errors, check the repo-server logs instead. The server pod logs are rarely useful for sync issues—they're more for API and authentication problems.
 
@@ -721,13 +750,21 @@ Code: Prune protection for critical resources and safe prune policies.
 
 Beyond per-resource protection, ArgoCD offers several application-level sync options that control pruning behavior:
 
-| Sync Option | Effect |
-|-------------|--------|
-| `Prune=false` | Never prune this resource |
-| `PruneLast=true` | Prune after all other resources synced |
-| `PrunePropagationPolicy=foreground` | Wait for dependents before pruning |
-| `ApplyOutOfSyncOnly=true` | Only apply resources that differ |
-
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "ArgoCD sync options and their effects.",
+    thead: { th: ["Sync Option", "Effect"] },
+    tbody: {
+      tr: [
+        { th: "`Prune=false`", td: ["Never prune this resource"] },
+        { th: "`PruneLast=true`", td: ["Prune after all other resources synced"] },
+        { th: "`PrunePropagationPolicy=foreground`", td: ["Wait for dependents before pruning"] },
+        { th: "`ApplyOutOfSyncOnly=true`", td: ["Only apply resources that differ"] },
+      ],
+    },
+  }}
+/>
 Table: ArgoCD sync options affecting prune behavior.
 
 For applications with automated sync enabled, I recommend `PruneLast=true` at the application level. This ensures pruning only happens after all other resources are healthy, reducing the blast radius if something goes wrong during the sync.
@@ -876,11 +913,20 @@ The most common issue I've seen is with label selectors. If your application use
 
 The table below summarizes when to use each tracking method:
 
-| Method | How It Works | When to Use |
-|--------|--------------|-------------|
-| label | Adds ArgoCD label to resources | Default, simple apps |
-| annotation | Adds ArgoCD annotation | When labels cause issues |
-| annotation+label | Both | Migration between methods |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "ArgoCD resource identification methods.",
+    thead: { th: ["Method", "How It Works", "When to Use"] },
+    tbody: {
+      tr: [
+        { th: "label", td: ["Adds ArgoCD label to resources", "Default, simple apps"] },
+        { th: "annotation", td: ["Adds ArgoCD annotation", "When labels cause issues"] },
+        { th: "annotation+label", td: ["Both", "Migration between methods"] },
+      ],
+    },
+  }}
+/>
 
 Table: ArgoCD resource tracking methods.
 

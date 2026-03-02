@@ -33,16 +33,23 @@ A fast build that produces incorrect artifacts is worse than a slow build. Befor
 
 Before optimizing, it helps to know where the time actually goes. Here's a breakdown of typical CI pipeline phases and their caching potential:
 
-| Phase | Typical Time | Why It's Slow | Caching Opportunity |
-|-------|--------------|---------------|---------------------|
-| Checkout | 1-5 min | Large repos, shallow clone helps | Git LFS cache |
-| Dependency install | 2-15 min | Network latency, extraction | High |
-| Docker build | 5-30 min | Layer rebuilds, no cache | Very high |
-| Compile | 2-20 min | Full rebuild every time | High |
-| Test | 5-60 min | Sequential, no parallelization | Medium (test splitting) |
-| Artifact upload | 1-5 min | Large files, slow storage | Low |
-
-Table: CI pipeline phases with caching potential.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "CI pipeline phases with caching potential.",
+    thead: { th: ["Phase", "Typical Time", "Why It's Slow", "Caching Opportunity"] },
+    tbody: {
+      tr: [
+        { th: "Checkout", td: ["1-5 min", "Large repos, shallow clone helps", "Git LFS cache"] },
+        { th: "Dependency install", td: ["2-15 min", "Network latency, extraction", "High"] },
+        { th: "Docker build", td: ["5-30 min", "Layer rebuilds, no cache", "Very high"] },
+        { th: "Compile", td: ["2-20 min", "Full rebuild every time", "High"] },
+        { th: "Test", td: ["5-60 min", "Sequential, no parallelization", "Medium (test splitting)"] },
+        { th: "Artifact upload", td: ["1-5 min", "Large files, slow storage", "Low"] },
+      ],
+    },
+  }}
+/>
 
 The biggest wins come from dependency installation and Docker builds—these are both slow _and_ highly cacheable. A 45-minute build can realistically drop to 12 minutes with proper caching of just these two phases.
 
@@ -88,13 +95,20 @@ _Determinism_ means the same inputs always produce the same outputs. If your bui
 
 _Isolation_ means caches don't leak between unrelated builds. PR builds shouldn't pollute the main branch cache. Different workflows should have separate cache namespaces. Without isolation, one build's experimental changes can corrupt another build's cache.
 
-| Principle | Rule | Common Violation |
-|-----------|------|------------------|
-| Completeness | Key includes all inputs | Forgetting compiler version in key |
-| Determinism | Same inputs → same outputs | Build embeds current timestamp |
-| Isolation | Caches don't leak across builds | PR pollutes main branch cache |
-
-Table: Cache correctness principles and common violations.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Cache correctness principles and common violations.",
+    thead: { th: ["Principle", "Rule", "Common Violation"] },
+    tbody: {
+      tr: [
+        { th: "Completeness", td: ["Key includes all inputs", "Forgetting compiler version in key"] },
+        { th: "Determinism", td: ["Same inputs → same outputs", "Build embeds current timestamp"] },
+        { th: "Isolation", td: ["Caches don't leak across builds", "PR pollutes main branch cache"] },
+      ],
+    },
+  }}
+/>
 
 ## Dependency Caching
 

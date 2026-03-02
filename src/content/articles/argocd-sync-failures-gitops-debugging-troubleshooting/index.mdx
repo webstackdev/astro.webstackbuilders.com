@@ -68,14 +68,21 @@ Resources in the same wave apply in parallel. ArgoCD waits for all resources in 
 
 The wave numbers themselves are arbitrary—what matters is the relative order. Here's a pattern that works for most applications:
 
-| Wave | Typical Resources | Purpose |
-|------|-------------------|---------|
-| -2 | Namespaces, CRDs | Infrastructure prerequisites |
-| -1 | Secrets, ConfigMaps | Configuration dependencies |
-| 0 | Deployments, Services | Main application (default) |
-| 1 | Jobs, migrations | Post-deployment tasks |
-
-Table: Common sync wave ordering pattern.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Common sync wave ordering pattern.",
+    thead: { th: ["Wave", "Typical Resources", "Purpose"] },
+    tbody: {
+      tr: [
+        { th: "-2", td: ["Namespaces, CRDs", "Infrastructure prerequisites"] },
+        { th: "-1", td: ["Secrets, ConfigMaps", "Configuration dependencies"] },
+        { th: "0", td: ["Deployments, Services", "Main application (default)"] },
+        { th: "1", td: ["Jobs, migrations", "Post-deployment tasks"] },
+      ],
+    },
+  }}
+/>
 
 ### Hooks Run Outside Normal Sync
 
@@ -180,14 +187,21 @@ Use `--dry-run` to verify your fix before applying. Use `--hard-refresh` when Ar
 
 Once you've gathered information, match it against these common patterns:
 
-| Pattern | Symptom | Likely Cause | Quick Fix |
-|---------|---------|--------------|-----------|
-| Stuck on hook | "Running PreSync hooks" forever | Hook Job not completing | Check job logs, add `activeDeadlineSeconds` |
-| OutOfSync loop | Syncs successfully, immediately OutOfSync | Controller modifying resource | Add `ignoreDifferences` for that field |
-| Missing resource | "secret X not found" | Dependency ordering | Move dependency to earlier sync wave |
-| CRD not found | "server doesn't have resource type" | CRD applied too late | Put CRD in wave -5 |
-
-Table: Common ArgoCD sync failure patterns with quick fixes.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Common ArgoCD sync failure patterns with quick fixes.",
+    thead: { th: ["Pattern", "Symptom", "Likely Cause", "Quick Fix"] },
+    tbody: {
+      tr: [
+        { th: "Stuck on hook", td: ["\"Running PreSync hooks\" forever", "Hook Job not completing", "Check job logs, add `activeDeadlineSeconds`"] },
+        { th: "OutOfSync loop", td: ["Syncs successfully, immediately OutOfSync", "Controller modifying resource", "Add `ignoreDifferences` for that field"] },
+        { th: "Missing resource", td: ["\"secret X not found\"", "Dependency ordering", "Move dependency to earlier sync wave"] },
+        { th: "CRD not found", td: ["\"server doesn't have resource type\"", "CRD applied too late", "Put CRD in wave -5"] },
+      ],
+    },
+  }}
+/>
 
 The "stuck on hook" pattern connects directly to the intro story—my production incident was exactly this. The hook was waiting for a dependency that didn't exist yet. Once you know to check hook job logs with `kubectl logs -l job-name=<hook>`, the cause usually becomes obvious.
 

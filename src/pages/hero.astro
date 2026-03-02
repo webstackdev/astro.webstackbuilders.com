@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro'
 import Table from '@components/Table/index.astro'
+import List from '@components/List/index.astro'
 
 const pageDescription = 'Styling Variants'
 const pageTitle = 'Style Variants'
@@ -11,17 +12,36 @@ const path = '/hero/'
 <Table
   variant="vertical-column-delineation-table"
   content={{
-    figure: "Label cardinality management strategies for gateway metrics.",
-    thead: { th: ["Dimension", "Cardinality Risk", "Mitigation"] },
+    figure: "Rate limiting vs. quota enforcement—different tools for different problems.",
+    thead: { th: ["Mechanism", "Scope", "Purpose"] },
     tbody: {
       tr: [
-        { th: "Consumer ID", td: ["High (thousands)", "Use only on counters, not histograms"] },
-        { th: "Route", td: ["Medium (hundreds)", "Use route pattern, not full path"] },
-        { th: "Upstream Instance", td: ["Medium", "Aggregate to upstream name"] },
-        { th: "Status Code", td: ["Low (tens)", "Safe to use everywhere"] },
-        { th: "Method", td: ["Very Low (<10)", "Safe to use everywhere"] },
+        { th: "Rate Limiting", td: ["Per-second/minute", "Protect infrastructure, ensure fairness"] },
+        { th: "Quota Enforcement", td: ["Per-day/month", "Control costs, enforce plan limits"] },
       ],
     },
   }}
+/>
+
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Is the gateway healthy?",
+      text: "Request rate, error rate, and latency percentiles answer this instantly.",
+    },
+    {
+      lead: "Is a specific backend unhealthy?",
+      text: "Per-upstream metrics and circuit breaker state tell you.",
+    },
+    {
+      lead: "Is a specific consumer affected?",
+      text: "Consumer-specific labels let you slice the data.",
+    },
+    {
+      lead: "What happened to this specific request?",
+      text: "Trace ID and request ID correlation connect all the pieces.",
+    },
+  ]}
 />
 </BaseLayout>

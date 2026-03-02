@@ -29,14 +29,21 @@ This is the trap: availability targeting becomes a badge of engineering honor ra
 
 Before diving into costs, let's ground the discussion in concrete numbers.
 
-| Availability | Annual Downtime | Monthly Downtime |
-|--------------|-----------------|------------------|
-| 99% (two nines) | 87.6 hours | 7.31 hours |
-| 99.9% (three nines) | 8.77 hours | 43.83 minutes |
-| 99.99% (four nines) | 52.60 minutes | 4.38 minutes |
-| 99.999% (five nines) | 5.26 minutes | 26.30 seconds |
-
-Table: Availability percentages translated to actual downtime.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Availability percentages translated to actual downtime.",
+    thead: { th: ["Availability", "Annual Downtime", "Monthly Downtime"] },
+    tbody: {
+      tr: [
+        { th: "99% (two nines)", td: ["87.6 hours", "7.31 hours"] },
+        { th: "99.9% (three nines)", td: ["8.77 hours", "43.83 minutes"] },
+        { th: "99.99% (four nines)", td: ["52.60 minutes", "4.38 minutes"] },
+        { th: "99.999% (five nines)", td: ["5.26 minutes", "26.30 seconds"] },
+      ],
+    },
+  }}
+/>
 
 The jump from 99.9% to 99.99% looks small—just 0.09 percentage points. But in downtime terms, you're going from nearly 9 hours per year to under an hour. Each additional nine costs roughly _10x more_ than the previous one.
 
@@ -77,14 +84,21 @@ Your system availability cannot exceed your least available dependency. If your 
 
 Here's what the 10x rule looks like in practice:
 
-| Tier | Typical Architecture | Relative Cost |
-|------|---------------------|---------------|
-| 99% | Single region, basic monitoring | 1x (baseline) |
-| 99.9% | Multi-AZ, automated recovery | 2-3x |
-| 99.99% | Multi-region active-active | 10-20x |
-| 99.999% | Exotic redundancy everywhere | 50-100x+ |
-
-Table: Infrastructure cost multipliers by availability tier.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Infrastructure cost multipliers by availability tier.",
+    thead: { th: ["Tier", "Typical Architecture", "Relative Cost"] },
+    tbody: {
+      tr: [
+        { th: "99%", td: ["Single region, basic monitoring", "1x (baseline)"] },
+        { th: "99.9%", td: ["Multi-AZ, automated recovery", "2-3x"] },
+        { th: "99.99%", td: ["Multi-region active-active", "10-20x"] },
+        { th: "99.999%", td: ["Exotic redundancy everywhere", "50-100x+"] },
+      ],
+    },
+  }}
+/>
 
 The jump from 99.9% to 99.99% isn't just more servers—it's fundamentally different complexity. You go from regional redundancy to global redundancy, introducing cross-region latency, data consistency challenges, and failure modes that don't exist in simpler deployments.
 
@@ -143,11 +157,20 @@ When someone asks for five nines, don't just nod along. You have the ammunition 
 
 Instead of "We can't do five nines," try "Here's what we can achieve at each investment level, and here's the business impact of each option." Present it as a menu with business-relevant tradeoffs:
 
-| Option | Availability | Annual Downtime | Total Cost |
-|--------|--------------|-----------------|------------|
-| A | 99.9% | 8.77 hours | $50k/year |
-| B | 99.95% | 4.38 hours | $120k/year |
-| C | 99.99% | 52 minutes | $400k/year |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Availability investment options as a menu.",
+    thead: { th: ["Option", "Availability", "Annual Downtime", "Total Cost"] },
+    tbody: {
+      tr: [
+        { th: "A", td: ["99.9%", "8.77 hours", "$50k/year"] },
+        { th: "B", td: ["99.95%", "4.38 hours", "$120k/year"] },
+        { th: "C", td: ["99.99%", "52 minutes", "$400k/year"] },
+      ],
+    },
+  }}
+/>
 
 Table: Present availability as investment options, not technical requirements.
 
