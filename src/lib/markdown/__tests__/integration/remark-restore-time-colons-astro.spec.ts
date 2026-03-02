@@ -11,4 +11,18 @@ describe('remark-restore-time-colons (Layer 2: With Astro Pipeline)', () => {
     expect(html).toContain('12:00:01')
     expect(html).not.toContain('<div></div>')
   })
+
+  it('preserves citation page ranges inside footnotes', async () => {
+    const markdown = [
+      'Alarm fatigue reference[^1].',
+      '',
+      '[^1]: Sendelbach S, Funk M. "Alarm fatigue: a patient safety concern." AACN Adv Crit Care. 2013 Oct-Dec;24(4):378-86.',
+    ].join('\n')
+
+    const html = await processWithFullPipeline(markdown)
+
+    expect(html).toContain('24(4):378-86')
+    expect(html).not.toContain('<div></div>')
+    expect(html).not.toContain('</p><div></div>')
+  })
 })

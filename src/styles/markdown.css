@@ -13,6 +13,59 @@
 }
 
 /**
+ * Footnote backref icon link should not inherit dotted underline decoration.
+ */
+.markdown-content__prose a[data-footnote-backref],
+.markdown-content__prose a[data-footnote-backref]:hover,
+.markdown-content__prose a.footnote-backref,
+.markdown-content__prose a.footnote-backref:hover {
+  text-decoration: none;
+}
+
+.markdown-content__prose a[data-footnote-backref],
+.markdown-content__prose a.footnote-backref {
+  display: inline-block;
+  transition: color 150ms ease, transform 150ms ease;
+}
+
+.markdown-content__prose a[data-footnote-backref]:hover,
+.markdown-content__prose a[data-footnote-backref]:focus-visible,
+.markdown-content__prose a.footnote-backref:hover,
+.markdown-content__prose a.footnote-backref:focus-visible {
+  color: var(--color-content-offset);
+  transform: translateY(-2px);
+}
+
+/**
+ * Add a separator above the generated footnotes section.
+ */
+.markdown-content__prose section[data-footnotes] {
+  border-top: 1px solid var(--color-trim);
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+
+/**
+ * Footnote list marker numbers should fit comfortably inside the circular marker.
+ */
+.markdown-content__prose section[data-footnotes] .markdown-list ol {
+  margin-left: 4px;
+}
+
+.markdown-content__prose section[data-footnotes] .markdown-list ol > li {
+  padding-left: calc(1.32em + 0.375rem);
+}
+
+.markdown-content__prose section[data-footnotes] .markdown-list ol > li::before {
+  background-color: var(--color-content-active);
+  font-size: 0.8em;
+  line-height: 1em;
+  height: 1.32em;
+  top: calc(0.15em + 2px);
+  width: 1.32em;
+}
+
+/**
  * Details and Summary stylings. Gives a thin line with a "+" symbol,
  * and animates the content when opening and closing.
  */

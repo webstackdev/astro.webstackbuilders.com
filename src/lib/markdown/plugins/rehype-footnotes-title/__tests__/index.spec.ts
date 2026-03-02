@@ -37,4 +37,23 @@ describe('rehype-footnotes-title (Layer 1: Isolated)', () => {
     expect(html).toContain('data-footnote-ref')
     expect(html).not.toContain('data-footnote-ref" title=')
   })
+
+  it('should link footnotes section to its Footnotes heading with aria-labelledby', async () => {
+    const markdown = `Here is a footnote.[^1]
+
+[^1]: My reference.`
+
+    const html = await processIsolated({
+      markdown,
+      stage: 'rehype',
+      plugin: rehypeFootnotesTitle,
+      pluginOptions: rehypeFootnotesTitleConfig,
+      gfm: true,
+    })
+
+    expect(html).toContain('data-footnotes')
+    expect(html).toContain('aria-labelledby="footnote-label"')
+    expect(html).toContain('id="footnote-label"')
+    expect(html).not.toContain('class="sr-only"')
+  })
 })

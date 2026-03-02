@@ -198,10 +198,11 @@ export function rehypeTailwindClasses() {
        */
       if (['h2', 'h3', 'h4'].includes(node.tagName)) {
         node.properties = node.properties || {}
+        const headingTextClass = 'text-page-inverse'
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'relative',
           'my-6',
-          'text-page-inverse',
+          headingTextClass,
           /**
            * Remove top margin from first child element of headings since we're
            * controlling bottom margin here.
