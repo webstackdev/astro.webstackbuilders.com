@@ -168,7 +168,7 @@ export const rehypeMermaidConfig = {
   strategy: 'inline-svg',
   css: new URL('../../styles/vendor/mermaid.css', import.meta.url),
   mermaidConfig: {
-    fontFamily: '"Onest Regular", arial, sans-serif',
+    fontFamily: 'Arial, sans-serif',
   },
   errorFallback: (_element: unknown, _diagram: string, error: unknown, file: unknown) => {
     const filePath =

@@ -77,13 +77,20 @@ _Traces_ answer flow questions: What path did this request take? Where did the t
 
 _Logs_ answer detail questions: What exactly happened? What were the input values? What error message was returned? Logs provide the context that metrics and traces lack, but they are high-volume and hard to navigate without correlation IDs linking them to specific traces.
 
-| Pillar | Answers | Limitations |
-|--------|---------|-------------|
-| Metrics | How many? How fast? What percentage? | Aggregated, loses individual request detail |
-| Traces | What path did this request take? Where did time go? | Sampling may miss rare events |
-| Logs | What exactly happened? What were the values? | High volume, hard to correlate without IDs |
-
-Table: Observability pillar strengths and limitations for gateway debugging.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Observability pillar strengths and limitations for gateway debugging.",
+    thead: { th: ["Pillar", "Answers", "Limitations"] },
+    tbody: {
+      tr: [
+        { th: "Metrics", td: ["How many? How fast? What percentage?", "Aggregated, loses individual request detail"] },
+        { th: "Traces", td: ["What path did this request take? Where did time go?", "Sampling may miss rare events"] },
+        { th: "Logs", td: ["What exactly happened? What were the values?", "High volume, hard to correlate without IDs"] },
+      ],
+    },
+  }}
+/>
 
 The debugging workflow typically moves from metrics to traces to logs: metrics identify the problem scope, traces pinpoint the responsible service or component, and logs provide the specific context needed to understand root cause.
 
@@ -203,14 +210,21 @@ When latency increases, this breakdown immediately narrows the investigation. If
 
 Per-consumer metrics answer questions that aggregate metrics cannot: Is this problem affecting everyone, or just one consumer? Is one consumer responsible for most of the traffic? Is a consumer's error rate high because of their code or because of our systems?
 
-| Metric | Purpose | Alert Example |
-|--------|---------|---------------|
-| Requests by Consumer | Usage tracking, abuse detection | Consumer exceeds 10x normal rate |
-| Errors by Consumer | Consumer-specific issues | Single consumer > 50% error rate |
-| Latency by Consumer | Performance isolation | Consumer P99 > 2x global P99 |
-| Quota Usage | Rate limit tracking | Consumer at 90% of quota |
-
-Table: Consumer-level metrics for gateway debugging and alerting.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Consumer-level metrics for gateway debugging and alerting.",
+    thead: { th: ["Metric", "Purpose", "Alert Example"] },
+    tbody: {
+      tr: [
+        { th: "Requests by Consumer", td: ["Usage tracking, abuse detection", "Consumer exceeds 10x normal rate"] },
+        { th: "Errors by Consumer", td: ["Consumer-specific issues", "Single consumer > 50% error rate"] },
+        { th: "Latency by Consumer", td: ["Performance isolation", "Consumer P99 > 2x global P99"] },
+        { th: "Quota Usage", td: ["Rate limit tracking", "Consumer at 90% of quota"] },
+      ],
+    },
+  }}
+/>
 
 Consumer-level metrics are invaluable for debugging support tickets. When a consumer reports problems, you can immediately pull their specific metrics and compare to global baselines. If their error rate is 40% while the global rate is 0.1%, the problem is likely in their integration—they are hitting endpoints incorrectly or sending malformed requests. If their error rate matches the global rate, the problem is systemic and affects everyone, not just them.
 
@@ -357,16 +371,23 @@ Code: Kong Gateway OpenTelemetry plugin configuration for custom span attributes
 
 The resulting spans will include attributes like these:
 
-| Attribute | Source | Example Value |
-|-----------|--------|---------------|
-| `http.method` | Request | `POST` |
-| `http.route` | Matched route | `/api/v2/users` |
-| `http.status_code` | Response | `201` |
-| `gateway.route.name` | Kong route config | `users-create` |
-| `gateway.upstream.name` | Kong service config | `users-service` |
-| `gateway.auth.consumer_id` | Auth plugin | `client-abc123` |
-
-Table: Gateway span attributes with their sources.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Gateway span attributes with their sources.",
+    thead: { th: ["Attribute", "Source", "Example Value"] },
+    tbody: {
+      tr: [
+        { th: "`http.method`", td: ["Request", "`POST`"] },
+        { th: "`http.route`", td: ["Matched route", "`/api/v2/users`"] },
+        { th: "`http.status_code`", td: ["Response", "`201`"] },
+        { th: "`gateway.route.name`", td: ["Kong route config", "`users-create`"] },
+        { th: "`gateway.upstream.name`", td: ["Kong service config", "`users-service`"] },
+        { th: "`gateway.auth.consumer_id`", td: ["Auth plugin", "`client-abc123`"] },
+      ],
+    },
+  }}
+/>
 
 The attributes follow OpenTelemetry semantic conventions where they exist (`http.method`, `http.route`, `http.status_code`) and use a `gateway.*` namespace for gateway-specific attributes. This namespacing keeps gateway attributes distinct from backend attributes when you are looking at a trace.
 
@@ -386,14 +407,21 @@ _Head-based sampling_ makes the decision at the start of the trace, typically at
 
 _Tail-based sampling_ makes the decision after the trace is complete, when you know the outcome. You can keep all error traces and all slow traces while sampling normal traces at 1%. The disadvantage is that you need to buffer complete traces before deciding, which requires more infrastructure (typically an OpenTelemetry Collector with sufficient memory).
 
-| Strategy | When to Use | Tradeoff |
-|----------|-------------|----------|
-| Head-based (1%) | High traffic, cost-sensitive | Misses rare errors |
-| Tail-based | Need all errors | Requires collector buffering |
-| Error sampling (100%) | Debugging priority | Higher storage for errors |
-| Consumer-based | Enterprise customer debugging | Selective high coverage |
-
-Table: Trace sampling strategies for API gateways.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Trace sampling strategies for API gateways.",
+    thead: { th: ["Strategy", "When to Use", "Tradeoff"] },
+    tbody: {
+      tr: [
+        { th: "Head-based (1%)", td: ["High traffic, cost-sensitive", "Misses rare errors"] },
+        { th: "Tail-based", td: ["Need all errors", "Requires collector buffering"] },
+        { th: "Error sampling (100%)", td: ["Debugging priority", "Higher storage for errors"] },
+        { th: "Consumer-based", td: ["Enterprise customer debugging", "Selective high coverage"] },
+      ],
+    },
+  }}
+/>
 
 Tail sampling makes sampling decisions after a trace completes rather than at the start, allowing you to keep 100% of slow or failed requests while sampling only 1% of fast successful ones. This approach captures the traces you actually need for debugging without overwhelming your storage.
 
@@ -598,16 +626,23 @@ With metrics, traces, and logs instrumented, the next step is organizing this da
 
 The overview dashboard answers three questions that operations teams ask constantly: Is the gateway healthy? What does traffic look like? Are backends responding?
 
-| Panel | Visualization | Query |
-|-------|---------------|-------|
-| Request Rate | Time series | `sum(rate(gateway_requests_total[5m]))` |
-| Error Rate | Time series | `sum(rate(gateway_requests_total{status=~"5.."}[5m])) / sum(rate(gateway_requests_total[5m]))` |
-| P50/P95/P99 Latency | Time series | `histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))` |
-| Upstream Health | Status map | Circuit breaker states by upstream |
-| Top Routes | Bar chart | Request rate by route, sorted |
-| Error Breakdown | Pie chart | Errors by type and upstream |
-
-Table: Gateway overview dashboard panels with purpose and queries.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Gateway overview dashboard panels with purpose and queries.",
+    thead: { th: ["Panel", "Visualization", "Query"] },
+    tbody: {
+      tr: [
+        { th: "Request Rate", td: ["Time series", "`sum(rate(gateway_requests_total[5m]))`"] },
+        { th: "Error Rate", td: ["Time series", "`sum(rate(gateway_requests_total{status=~\"5..\"}[5m])) / sum(rate(gateway_requests_total[5m]))`"] },
+        { th: "P50/P95/P99 Latency", td: ["Time series", "`histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))`"] },
+        { th: "Upstream Health", td: ["Status map", "Circuit breaker states by upstream"] },
+        { th: "Top Routes", td: ["Bar chart", "Request rate by route, sorted"] },
+        { th: "Error Breakdown", td: ["Pie chart", "Errors by type and upstream"] },
+      ],
+    },
+  }}
+/>
 
 The layout matters. Arrange panels so that related information is grouped and the eye naturally flows from high-level health to specific details:
 
@@ -684,15 +719,22 @@ The debugging dashboard should also include comparison views. When latency spike
 
 When a consumer reports a problem, you need to answer: Is this consumer-specific, or is everyone affected? A consumer debugging view provides this context by comparing one consumer's experience to the global baseline.
 
-| Panel | Purpose |
-|-------|---------|
-| Consumer Traffic vs. Global | Is this consumer's pattern unusual? |
-| Consumer Error Rate vs. Global | Are errors consumer-specific or systemic? |
-| Consumer Latency Distribution | Is this consumer hitting slow endpoints? |
-| Consumer Route Usage | What endpoints is this consumer using? |
-| Consumer Quota Status | Is rate limiting affecting this consumer? |
-
-Table: Consumer debugging dashboard panels.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Consumer debugging dashboard panels.",
+    thead: { th: ["Panel", "Purpose"] },
+    tbody: {
+      tr: [
+        { th: "Consumer Traffic vs. Global", td: ["Is this consumer's pattern unusual?"] },
+        { th: "Consumer Error Rate vs. Global", td: ["Are errors consumer-specific or systemic?"] },
+        { th: "Consumer Latency Distribution", td: ["Is this consumer hitting slow endpoints?"] },
+        { th: "Consumer Route Usage", td: ["What endpoints is this consumer using?"] },
+        { th: "Consumer Quota Status", td: ["Is rate limiting affecting this consumer?"] },
+      ],
+    },
+  }}
+/>
 
 Use Grafana's template variables to make the dashboard interactive. Create a variable named `consumer_id` that queries for all distinct consumer IDs from your metrics (`label_values(gateway_requests_total, consumer_id)`), then add a dropdown selector to your dashboard. Reference the variable in panel queries using `$consumer_id`, and all panels update automatically when the user selects a different consumer. This makes it trivial to investigate consumer complaints—select their ID, see their experience, and immediately identify whether the problem is on your side or theirs.
 
@@ -795,14 +837,21 @@ The retry rate alert catches a different failure mode: upstreams that are respon
 
 Consumer-level alerts protect your infrastructure from misbehaving clients. These alerts are typically warnings rather than pages—you want to investigate and possibly contact the consumer, not necessarily wake up at 3am.
 
-| Alert | Condition | Action |
-|-------|-----------|--------|
-| Consumer Rate Spike | 10x normal request rate | Investigate, possible abuse |
-| Consumer Error Spike | > 50% error rate for consumer | Contact consumer, likely misconfiguration |
-| Consumer Quota Exhaustion | 95% of quota used | Notify consumer, offer quota increase |
-| New Consumer High Volume | New API key with > 1000 req/min | Review registration, possible bot |
-
-Table: Consumer behavior alerts for abuse and misconfiguration detection.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Consumer behavior alerts for abuse and misconfiguration detection.",
+    thead: { th: ["Alert", "Condition", "Action"] },
+    tbody: {
+      tr: [
+        { th: "Consumer Rate Spike", td: ["10x normal request rate", "Investigate, possible abuse"] },
+        { th: "Consumer Error Spike", td: ["> 50% error rate for consumer", "Contact consumer, likely misconfiguration"] },
+        { th: "Consumer Quota Exhaustion", td: ["95% of quota used", "Notify consumer, offer quota increase"] },
+        { th: "New Consumer High Volume", td: ["New API key with > 1000 req/min", "Review registration, possible bot"] },
+      ],
+    },
+  }}
+/>
 
 The "10x normal rate" alert requires baseline tracking—you need to know what normal looks like for each consumer. Prometheus recording rules can pre-compute rolling averages, or you can use anomaly detection features in tools like Datadog or Grafana Cloud. A sudden spike from a consumer often indicates either a bug in their code (infinite retry loop) or abuse (credential compromise).
 
@@ -1011,15 +1060,22 @@ Every label you add to a metric multiplies the number of time series Prometheus 
 
 This cardinality explosion has real consequences: increased memory usage, slower queries, and eventually Prometheus falling over under the load. The solution is not to avoid labels, but to be strategic about which labels appear on which metrics.
 
-| Dimension | Cardinality Risk | Mitigation |
-|-----------|------------------|------------|
-| Consumer ID | High (thousands) | Use only on counters, not histograms |
-| Route | Medium (hundreds) | Use route pattern, not full path |
-| Upstream Instance | Medium | Aggregate to upstream name |
-| Status Code | Low (tens) | Safe to use everywhere |
-| Method | Very Low (&lt;10) | Safe to use everywhere |
-
-Table: Label cardinality management strategies for gateway metrics.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Label cardinality management strategies for gateway metrics.",
+    thead: { th: ["Dimension", "Cardinality Risk", "Mitigation"] },
+    tbody: {
+      tr: [
+        { th: "Consumer ID", td: ["High (thousands)", "Use only on counters, not histograms"] },
+        { th: "Route", td: ["Medium (hundreds)", "Use route pattern, not full path"] },
+        { th: "Upstream Instance", td: ["Medium", "Aggregate to upstream name"] },
+        { th: "Status Code", td: ["Low (tens)", "Safe to use everywhere"] },
+        { th: "Method", td: ["Very Low (<10)", "Safe to use everywhere"] },
+      ],
+    },
+  }}
+/>
 
 The key insight is that histograms are expensive because each histogram bucket is a separate time series. A histogram with 10 buckets and a consumer_id label with 1000 consumers produces 10,000 time series for that single metric. Counters are cheap—one time series per label combination. So put `consumer_id` on your request counter, but not on your latency histogram.
 

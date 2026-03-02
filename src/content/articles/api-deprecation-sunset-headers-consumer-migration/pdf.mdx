@@ -51,14 +51,21 @@ graph LR
 
 Figure: API deprecation lifecycle with parallel migration support track.
 
-| Phase | Duration | Consumer Communication | Enforcement |
-|-------|----------|----------------------|-------------|
-| Deprecated | See timeline guidance below | Announcement, docs update | Deprecation header |
-| Sunset Warning | 3 months | Direct outreach to active consumers | Sunset header with date |
-| Read-Only | 2-4 weeks | Final warning, support escalation | Write operations disabled |
-| Removed | — | Post-removal documentation | 410 Gone response |
-
-Table: Deprecation phase timeline with communication and enforcement actions.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Deprecation phase timeline with communication and enforcement actions.",
+    thead: { th: ["Phase", "Duration", "Consumer Communication", "Enforcement"] },
+    tbody: {
+      tr: [
+        { th: "Deprecated", td: ["See timeline guidance below", "Announcement, docs update", "Deprecation header"] },
+        { th: "Sunset Warning", td: ["3 months", "Direct outreach to active consumers", "Sunset header with date"] },
+        { th: "Read-Only", td: ["2-4 weeks", "Final warning, support escalation", "Write operations disabled"] },
+        { th: "Removed", td: ["—", "Post-removal documentation", "410 Gone response"] },
+      ],
+    },
+  }}
+/>
 
 The read-only phase is optional but valuable. Disabling write operations while keeping reads working gives consumers a preview of what full removal will feel like. It also reduces the blast radius if someone has a critical read path they forgot about—they will discover it before complete removal, and you will get a support ticket instead of a production outage.
 
@@ -229,14 +236,21 @@ Figure: Consumer migration status breakdown for deprecation tracking.
 
 Track consumer status manually or through automated detection. A consumer is "migrated" when they have zero requests to the deprecated API and non-zero requests to the new API. "In progress" means they are calling both versions. "Not started" means they are only calling the deprecated version. "Blocked" is a manual flag for consumers who have communicated that they cannot migrate without help.
 
-| Metric | Purpose | Alert Threshold |
-|--------|---------|-----------------|
-| Deprecated Traffic % | Overall migration progress | &gt; 20% at T-30 days |
-| Active Consumer Count | Remaining migration work | &gt; 5 at T-30 days |
-| New Consumer Sign-ups | Preventing new adoption | Any new consumer |
-| Traffic by Consumer | Identify largest blockers | Top 3 consumers |
-
-Table: Deprecation dashboard metrics with alert thresholds.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Deprecation dashboard metrics with alert thresholds.",
+    thead: { th: ["Metric", "Purpose", "Alert Threshold"] },
+    tbody: {
+      tr: [
+        { th: "Deprecated Traffic %", td: ["Overall migration progress", "> 20% at T-30 days"] },
+        { th: "Active Consumer Count", td: ["Remaining migration work", "> 5 at T-30 days"] },
+        { th: "New Consumer Sign-ups", td: ["Preventing new adoption", "Any new consumer"] },
+        { th: "Traffic by Consumer", td: ["Identify largest blockers", "Top 3 consumers"] },
+      ],
+    },
+  }}
+/>
 
 Set alerts on these metrics. If deprecated traffic is still above 20% with 30 days until sunset, something is wrong—either consumers are not migrating, or your timeline was unrealistic. Either way, you need to act.
 
@@ -372,15 +386,22 @@ Publish the announcement in a permanent location with a stable URL. You will ref
 
 A single announcement email has approximately a 20% open rate on a good day. If your deprecation strategy relies on one email, 80% of your consumers will miss it. Effective deprecation communication requires multiple channels, repeated over time, with increasing urgency as the sunset approaches.
 
-| Channel | Timing | Audience |
-|---------|--------|----------|
-| Blog/Changelog | Announcement | All developers |
-| Email | Announcement + monthly | Registered consumers |
-| API Headers | Every request | Active consumers |
-| Dashboard Banner | Continuous | Logged-in users |
-| Direct Outreach | T-90, T-30, T-7 days | High-traffic consumers |
-
-Table: Multi-channel deprecation communication schedule.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Multi-channel deprecation communication schedule.",
+    thead: { th: ["Channel", "Timing", "Audience"] },
+    tbody: {
+      tr: [
+        { th: "Blog/Changelog", td: ["Announcement", "All developers"] },
+        { th: "Email", td: ["Announcement + monthly", "Registered consumers"] },
+        { th: "API Headers", td: ["Every request", "Active consumers"] },
+        { th: "Dashboard Banner", td: ["Continuous", "Logged-in users"] },
+        { th: "Direct Outreach", td: ["T-90, T-30, T-7 days", "High-traffic consumers"] },
+      ],
+    },
+  }}
+/>
 
 The channels serve different purposes:
 
@@ -458,15 +479,22 @@ The table should include:
 - The new endpoint path and method (if different)
 - A summary of behavioral changes (not just "changed"—what specifically changed)
 
-| V1 Endpoint | V2 Endpoint | Changes |
-|-------------|-------------|---------|
-| `GET /v1/users` | `GET /v2/users` | Cursor pagination, no envelope |
-| `GET /v1/users/:id` | `GET /v2/users/:id` | Field renames: `created` → `createdAt` |
-| `POST /v1/users` | `POST /v2/users` | Request body schema changed |
-| `DELETE /v1/users/:id` | `DELETE /v2/users/:id` | Now returns 204, not 200 with body |
-| `GET /v1/users/:id/orders` | `GET /v2/orders?userId=:id` | Moved to orders resource |
-
-Table: V1 to V2 endpoint mapping with behavioral changes noted.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "V1 to V2 endpoint mapping with behavioral changes noted.",
+    thead: { th: ["V1 Endpoint", "V2 Endpoint", "Changes"] },
+    tbody: {
+      tr: [
+        { th: "`GET /v1/users`", td: ["`GET /v2/users`", "Cursor pagination, no envelope"] },
+        { th: "`GET /v1/users/:id`", td: ["`GET /v2/users/:id`", "Field renames: `created` → `createdAt`"] },
+        { th: "`POST /v1/users`", td: ["`POST /v2/users`", "Request body schema changed"] },
+        { th: "`DELETE /v1/users/:id`", td: ["`DELETE /v2/users/:id`", "Now returns 204, not 200 with body"] },
+        { th: "`GET /v1/users/:id/orders`", td: ["`GET /v2/orders?userId=:id`", "Moved to orders resource"] },
+      ],
+    },
+  }}
+/>
 
 For complex changes, link from the table to detailed documentation. The table provides the overview; linked pages provide the depth. A developer migrating one endpoint should not have to read documentation for endpoints they do not use.
 
@@ -540,15 +568,22 @@ Enforcement is the difference between a deprecation that succeeds and one that d
 
 Graduated enforcement applies increasing pressure over time. Each step is uncomfortable enough to motivate action but not so severe that it causes outages. Consumers who ignore soft warnings eventually hit hard consequences, but they have multiple opportunities to respond before that happens.
 
-| Phase | Mechanism | Consumer Impact |
-|-------|-----------|-----------------|
-| Warning | Deprecation headers only | None (headers ignored by most) |
-| Logging | Log all deprecated calls | None (internal tracking) |
-| Rate Limiting | Reduce rate limits by 50% | Degraded performance |
-| Read-Only | Disable write operations | Partial functionality loss |
-| Removal | Return 410 Gone | Complete failure |
-
-Table: Graduated enforcement progression for API deprecation.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Graduated enforcement progression for API deprecation.",
+    thead: { th: ["Phase", "Mechanism", "Consumer Impact"] },
+    tbody: {
+      tr: [
+        { th: "Warning", td: ["Deprecation headers only", "None (headers ignored by most)"] },
+        { th: "Logging", td: ["Log all deprecated calls", "None (internal tracking)"] },
+        { th: "Rate Limiting", td: ["Reduce rate limits by 50%", "Degraded performance"] },
+        { th: "Read-Only", td: ["Disable write operations", "Partial functionality loss"] },
+        { th: "Removal", td: ["Return 410 Gone", "Complete failure"] },
+      ],
+    },
+  }}
+/>
 
 The key insight is that each phase serves a different purpose:
 
@@ -672,13 +707,20 @@ _Header versioning_ (`Accept: application/vnd.api.v1+json`) keeps URLs clean but
 
 _Query parameter versioning_ (`?version=1`) is flexible and visible, but it complicates cache keys and can be accidentally omitted.
 
-| Strategy | Visibility | Cacheability | Routing Complexity |
-|----------|------------|--------------|-------------------|
-| URL Path | High | Simple | Simple |
-| Header | Low | Complex | Moderate |
-| Query Parameter | Medium | Complex | Simple |
-
-Table: API versioning strategy comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "API versioning strategy comparison.",
+    thead: { th: ["Strategy", "Visibility", "Cacheability", "Routing Complexity"] },
+    tbody: {
+      tr: [
+        { th: "URL Path", td: ["High", "Simple", "Simple"] },
+        { th: "Header", td: ["Low", "Complex", "Moderate"] },
+        { th: "Query Parameter", td: ["Medium", "Complex", "Simple"] },
+      ],
+    },
+  }}
+/>
 
 For most teams, URL path versioning is the right choice. The explicitness is worth the URL proliferation. When you deprecate v1, the migration path is obvious: change `/v1/` to `/v2/` in your URLs. No header manipulation, no query parameter changes, just a straightforward find-and-replace.
 
@@ -704,14 +746,21 @@ A deprecation succeeds when the deprecated API is actually removed. But you need
 
 The core metrics:
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Deprecated Traffic | &lt; 5% at sunset | API gateway metrics |
-| Migrated Consumers | &gt; 95% at sunset | Consumer tracking dashboard |
-| Support Tickets | Declining trend | Support system |
-| Migration Incidents | Zero P1s | Incident tracking |
-
-Table: Deprecation success metrics with targets.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Deprecation success metrics with targets.",
+    thead: { th: ["Metric", "Target", "Measurement"] },
+    tbody: {
+      tr: [
+        { th: "Deprecated Traffic", td: ["< 5% at sunset", "API gateway metrics"] },
+        { th: "Migrated Consumers", td: ["> 95% at sunset", "Consumer tracking dashboard"] },
+        { th: "Support Tickets", td: ["Declining trend", "Support system"] },
+        { th: "Migration Incidents", td: ["Zero P1s", "Incident tracking"] },
+      ],
+    },
+  }}
+/>
 
 _Deprecated traffic percentage_ is your primary metric. Track it weekly and plot the trend. A healthy deprecation shows steady decline. If the percentage is flat or rising, something is wrong—either consumers are not migrating, or new consumers are adopting the deprecated API despite your blocks.
 

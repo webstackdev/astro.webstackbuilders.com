@@ -1,20 +1,17 @@
 /**
  * Styles for Playwright to use when rendering Mermaid diagrams in Markdown files.
  * This file is only used during the build process and is not included in the final site CSS.
+ *
+ * IMPORTANT: Use only system fonts here. rehype-mermaid injects this CSS as a
+ * <style> tag in a Playwright blank page, so @font-face relative URLs cannot
+ * resolve. The font used here MUST match what mermaidConfig.fontFamily embeds
+ * in the SVG, otherwise text measured during build won't match runtime sizing.
  */
 
-@font-face {
-	font-display: swap;
-	font-family: "Onest Regular";
-	font-style: normal;
-	font-weight: normal;
-	src: url("../../../public/fonts/OnestRegular1602-hint.woff2") format("woff2");
-}
-
 body {
-	font-family: "Onest Regular", arial, sans-serif;
+	font-family: Arial, sans-serif;
 }
 
 svg {
-	font-family: "Onest Regular", arial, sans-serif;
+	font-family: Arial, sans-serif;
 }

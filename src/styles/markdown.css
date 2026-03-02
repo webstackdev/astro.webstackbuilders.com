@@ -3,6 +3,23 @@
  */
 
 /**
+ * Prevent Mermaid diagram text from clipping at foreignObject boundaries.
+ *
+ * rehype-mermaid computes foreignObject dimensions during build-time rendering
+ * in Playwright headless Chromium. Slight font-metric differences between the
+ * build environment and the user's browser cause text to overflow its container
+ * by a few pixels. Allowing overflow prevents the last characters from being
+ * clipped while keeping the node background shapes correctly sized.
+ */
+.markdown-content__prose svg[id^="mermaid-"] foreignObject {
+  overflow: visible;
+}
+
+.markdown-content__prose svg[id^="mermaid-"] foreignObject > div {
+  overflow: visible;
+}
+
+/**
  * Footnote reference numbers should not have dotted underlines (normal or hover).
  */
 .markdown-content__prose sup a[data-footnote-ref],

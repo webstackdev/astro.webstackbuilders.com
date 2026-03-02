@@ -72,10 +72,31 @@ export function rehypeTailwindClasses() {
       return false
     }
 
+    /**
+     * Skip elements inside SVG trees (e.g. Mermaid inline SVGs).
+     * rehype-mermaid renders diagrams before this plugin runs. Adding
+     * Tailwind classes to elements inside foreignObject would change
+     * their box model after Mermaid has already computed dimensions.
+     */
+    const isInsideSvg = (node: Element): boolean => {
+      let currentParent = getParent(node)
+
+      while (isHastElement(currentParent)) {
+        if (currentParent.tagName === 'svg') return true
+        currentParent = getParent(currentParent as Element)
+      }
+
+      return false
+    }
+
     visit(tree, 'element', (node: Element, index, parent): void | typeof SKIP => {
       if (parent) {
         parentByNode.set(node, parent)
       }
+
+      /** Skip all elements inside SVG trees (Mermaid diagrams, MathJax, etc.) */
+      if (node.tagName === 'svg') return SKIP
+      if (isInsideSvg(node)) return
 
       /**
        * =============================================================================

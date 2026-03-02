@@ -52,14 +52,21 @@ Run this analysis weekly throughout the deprecation period. The output becomes y
 
 This data also creates organizational accountability. Build a simple dashboard showing migration progress. When leadership can see that 30% of traffic is still on the deprecated API with 45 days until sunset, they understand why the deprecation might need executive escalation—or why it is on track for success.
 
-| Metric | Purpose | Alert Threshold |
-|--------|---------|-----------------|
-| Deprecated Traffic % | Overall migration progress | > 20% at T-30 days |
-| Active Consumer Count | Remaining migration work | > 5 at T-30 days |
-| New Consumer Sign-ups | Preventing new adoption | Any new consumer |
-| Traffic by Consumer | Identify largest blockers | Top 3 consumers |
-
-Table: Key deprecation metrics with alert thresholds.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Key deprecation metrics with alert thresholds.",
+    thead: { th: ["Metric", "Purpose", "Alert Threshold"] },
+    tbody: {
+      tr: [
+        { th: "Deprecated Traffic %", td: ["Overall migration progress", "> 20% at T-30 days"] },
+        { th: "Active Consumer Count", td: ["Remaining migration work", "> 5 at T-30 days"] },
+        { th: "New Consumer Sign-ups", td: ["Preventing new adoption", "Any new consumer"] },
+        { th: "Traffic by Consumer", td: ["Identify largest blockers", "Top 3 consumers"] },
+      ],
+    },
+  }}
+/>
 
 One critical point: the moment you announce a deprecation, stop allowing new consumers to adopt the deprecated API. Every new adoption extends your deprecation timeline and increases your support burden. Block new API keys from accessing deprecated versions. Remove deprecated APIs from public documentation. Stop distributing SDK versions that use the deprecated API.
 
@@ -71,15 +78,22 @@ This is where most deprecation strategies fail. They announce, they communicate,
 
 Graduated enforcement breaks this cycle by applying increasing pressure over time. Each step is uncomfortable enough to motivate action but not so severe that it causes outages. Consumers who ignore soft warnings eventually hit hard consequences, but they have multiple opportunities to respond before that happens.
 
-| Phase | Mechanism | Consumer Impact |
-|-------|-----------|-----------------|
-| Warning | Deprecation headers only | None (headers ignored by most) |
-| Logging | Log all deprecated calls | None (internal tracking) |
-| Rate Limiting | Reduce rate limits by 50% | Degraded performance |
-| Read-Only | Disable write operations | Partial functionality loss |
-| Removal | Return 410 Gone | Complete failure |
-
-Table: Graduated enforcement progression.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Graduated enforcement progression.",
+    thead: { th: ["Phase", "Mechanism", "Consumer Impact"] },
+    tbody: {
+      tr: [
+        { th: "Warning", td: ["Deprecation headers only", "None (headers ignored by most)"] },
+        { th: "Logging", td: ["Log all deprecated calls", "None (internal tracking)"] },
+        { th: "Rate Limiting", td: ["Reduce rate limits by 50%", "Degraded performance"] },
+        { th: "Read-Only", td: ["Disable write operations", "Partial functionality loss"] },
+        { th: "Removal", td: ["Return 410 Gone", "Complete failure"] },
+      ],
+    },
+  }}
+/>
 
 Rate limiting is the most effective soft enforcement mechanism. It makes using the deprecated API painful without making it impossible. Consumers experience degraded performance—slower responses, occasional 429 errors—that motivates migration without causing complete failures.
 
@@ -99,15 +113,22 @@ A single announcement email has approximately a 20% open rate on a good day. If 
 
 Effective deprecation communication requires multiple channels, repeated over time, with increasing urgency:
 
-| Channel | Timing | Audience |
-|---------|--------|----------|
-| Blog/Changelog | Announcement | All developers |
-| Email | Announcement + monthly | Registered consumers |
-| API Headers | Every request | Active consumers |
-| Dashboard Banner | Continuous | Logged-in users |
-| Direct Outreach | T-90, T-30, T-7 days | High-traffic consumers |
-
-Table: Multi-channel communication schedule.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Multi-channel communication schedule.",
+    thead: { th: ["Channel", "Timing", "Audience"] },
+    tbody: {
+      tr: [
+        { th: "Blog/Changelog", td: ["Announcement", "All developers"] },
+        { th: "Email", td: ["Announcement + monthly", "Registered consumers"] },
+        { th: "API Headers", td: ["Every request", "Active consumers"] },
+        { th: "Dashboard Banner", td: ["Continuous", "Logged-in users"] },
+        { th: "Direct Outreach", td: ["T-90, T-30, T-7 days", "High-traffic consumers"] },
+      ],
+    },
+  }}
+/>
 
 The escalation timeline ties communication to enforcement:
 

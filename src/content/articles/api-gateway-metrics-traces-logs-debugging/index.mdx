@@ -171,18 +171,25 @@ Verify propagation by checking a trace end-to-end in your tracing UI. You should
 
 A minimal span that just records "request happened" is useless. A well-designed span captures the context needed to understand the request:
 
-| Span Attribute | Source | Example Value |
-|----------------|--------|---------------|
-| `http.method` | Request | `POST` |
-| `http.route` | Route match | `/users/:id` |
-| `http.status_code` | Response | `200` |
-| `gateway.upstream.name` | Routing decision | `users-service` |
-| `gateway.consumer_id` | Auth plugin | `consumer-abc123` (opaque ID, not PII) |
-| `gateway.retry_count` | Retry logic | `2` |
-| `gateway.circuit_breaker.state` | Circuit breaker | `closed` |
-| `auth.method` | Auth plugin | `jwt`, `api-key` |
-
-Table: Essential gateway span attributes for debugging.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Essential gateway span attributes for debugging.",
+    thead: { th: ["Span Attribute", "Source", "Example Value"] },
+    tbody: {
+      tr: [
+        { th: "http.method", td: ["Request", "`POST`"] },
+        { th: "http.route", td: ["Route match", "`/users/:id`"] },
+        { th: "http.status_code", td: ["Response", "`200`"] },
+        { th: "gateway.upstream.name", td: ["Routing decision", "`users-service`"] },
+        { th: "gateway.consumer_id", td: ["Auth plugin", "`consumer-abc123` (opaque ID, not PII)"] },
+        { th: "gateway.retry_count", td: ["Retry logic", "`2`"] },
+        { th: "gateway.circuit_breaker.state", td: ["Circuit breaker", "`closed`"] },
+        { th: "auth.method", td: ["Auth plugin", "`jwt`, `api-key`"] },
+      ],
+    },
+  }}
+/>
 
 These attributes let you filter traces by consumer, route, or upstream in your tracing UI. When investigating a consumer complaint, you can immediately find all their traces and see which routes they hit and which backends served them.
 

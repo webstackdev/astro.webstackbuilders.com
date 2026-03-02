@@ -213,3 +213,8 @@ https://mermaid.js.org/config/directives.html
 - Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`. Might be one of the list formats.
 
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
+
+
+Our current articles have markdown tables. I want to refactor these into using our Table component. I'm going to copy and paste the markdown table into the chat window here. I'd like you to take it and update the content prop in the Table instance in src/pages/hero.astro so that the table renders using the same layout as the markdown table. Use the string variant in the tbody -> tr -> th element.
+
+Each table will have the "figure" prop as a line below the table, prefixed with "Table: ". We should remove the "Table: " prefix from the figure string as this is used by our Markdown setup to identify figure captions.
