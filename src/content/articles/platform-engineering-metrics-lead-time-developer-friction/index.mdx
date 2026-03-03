@@ -35,14 +35,35 @@ Lead time metrics measure how long things take. They're the clearest indicators 
 - __Time to new environment__ measures infrastructure automation maturity. If developers wait days for a staging environment, your Terraform modules or Crossplane claims need work. Under 15 minutes means your infrastructure-as-code is doing its job.
 - __Deployment lead time__ tracks CI/CD efficiency: from code commit to running in production. This exposes approval bottlenecks, slow builds, and deployment friction. Elite teams hit under 15 minutes; struggling teams measure in days.
 
-| Metric | Poor | Acceptable | Excellent |
-|--------|------|------------|-----------|
-| Time to first deployment | > 2 weeks | 1-5 days | < 1 day |
-| Time to new service | > 1 week | 1-24 hours | < 1 hour |
-| Time to new environment | > 3 days | 1-4 hours | < 15 minutes |
-| Deployment lead time | > 1 day | 1-4 hours | < 15 minutes |
-
-Table: Lead time targets by maturity level, aligned with DORA's research-backed framework.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'Poor', 'Acceptable', 'Excellent'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Time to first deployment',
+          td: ['> 2 weeks', '1-5 days', '< 1 day'],
+        },
+        {
+          th: 'Time to new service',
+          td: ['> 1 week', '1-24 hours', '< 1 hour'],
+        },
+        {
+          th: 'Time to new environment',
+          td: ['> 3 days', '1-4 hours', '< 15 minutes'],
+        },
+        {
+          th: 'Deployment lead time',
+          td: ['> 1 day', '1-4 hours', '< 15 minutes'],
+        },
+      ],
+    },
+    figure: "Lead time targets by maturity level, aligned with DORA's research-backed framework.",
+  }}
+/>
 
 ### Developer Friction Metrics
 
@@ -64,15 +85,39 @@ Some metrics exist primarily to impress stakeholders. They show activity without
 
 The test for a good metric: does it tell you what to do? "We have 1000 users" tells you nothing. "50% of users struggle with authentication" tells you to improve the auth flow. Here's how common platform metrics break down:
 
-| Vanity Metric | Why It's Misleading | Actionable Alternative |
-|---------------|---------------------|------------------------|
-| "500 developers use the platform" | Doesn't indicate if they're productive | Time to first deployment for new developers |
-| "10 million API calls/month" | Could be inefficient polling or errors | Successful self-service completions |
-| "99.99% uptime" | Available but unusable is still failure | Successful deployment rate, P99 latency |
-| "1000 deployments this month" | Includes failures, rollbacks, test envs | Production deployment success rate |
-| "500 documentation pages" | Quantity ≠ quality or findability | Search success rate, ticket deflection |
-
-Table: Vanity metrics and their actionable alternatives.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Vanity Metric', "Why It's Misleading", 'Actionable Alternative'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '"500 developers use the platform"',
+          td: ["Doesn't indicate if they're productive", 'Time to first deployment for new developers'],
+        },
+        {
+          th: '"10 million API calls/month"',
+          td: ['Could be inefficient polling or errors', 'Successful self-service completions'],
+        },
+        {
+          th: '"99.99% uptime"',
+          td: ['Available but unusable is still failure', 'Successful deployment rate, P99 latency'],
+        },
+        {
+          th: '"1000 deployments this month"',
+          td: ['Includes failures, rollbacks, test envs', 'Production deployment success rate'],
+        },
+        {
+          th: '"500 documentation pages"',
+          td: ['Quantity ≠ quality or findability', 'Search success rate, ticket deflection'],
+        },
+      ],
+    },
+    figure: 'Vanity metrics and their actionable alternatives.',
+  }}
+/>
 
 - __Goodhart's Law__ is the biggest trap: when a measure becomes a target, it ceases to be a good measure. Target ticket reduction and support becomes harder to access. Target deployment frequency and teams artificially split deployments to hit the number. Target NPS and only the happy teams get surveyed. The antidote is measuring outcomes (developer productivity) rather than activities (ticket counts).
 

@@ -11,7 +11,6 @@ featured: true
 
 *[ADR]: Architecture Decision Record
 *[ADRs]: Architecture Decision Records
-*[API]: Application Programming Interface
 *[AST]: Abstract Syntax Tree
 *[DDD]: Domain-Driven Design
 *[ERD]: Entity Relationship Diagram
@@ -54,25 +53,45 @@ The inflection point where documentation becomes harmful rather than helpful typ
 
 Not all documentation problems are the same, and the remediation approach differs for each type:
 
-_Missing documentation_ is honestly the easiest to deal with. You know you don't know something, so you investigate. There's no unlearning required.
+- _Missing documentation_ is honestly the easiest to deal with. You know you don't know something, so you investigate. There's no unlearning required.
+- _Outdated documentation_ is more dangerous. It was correct once, so it has the appearance of authority. You might follow it for weeks before realizing the integration endpoint moved six months ago.
+- _Actively wrong documentation_ is the worst. This isn't documentation that drifted—it's documentation that describes a completely different system, often because someone copied a template from another project and never filled in the details.
+- _Tribal knowledge_ represents information that exists only in people's heads. The senior engineer who knows why the cron job runs at 3:47 AM instead of midnight, or why that one table has a column that's always null but can't be removed.
+- _Scattered documentation_ exists but is unfindable. There's a Confluence page, a Google Doc, three README files, and a Slack thread with the actual answer, but no one knows which one to trust or where to look.
 
-_Outdated documentation_ is more dangerous. It was correct once, so it has the appearance of authority. You might follow it for weeks before realizing the integration endpoint moved six months ago.
-
-_Actively wrong documentation_ is the worst. This isn't documentation that drifted—it's documentation that describes a completely different system, often because someone copied a template from another project and never filled in the details.
-
-_Tribal knowledge_ represents information that exists only in people's heads. The senior engineer who knows why the cron job runs at 3:47 AM instead of midnight, or why that one table has a column that's always null but can't be removed.
-
-_Scattered documentation_ exists but is unfindable. There's a Confluence page, a Google Doc, three README files, and a Slack thread with the actual answer, but no one knows which one to trust or where to look.
-
-| Category | Risk Level | Remediation Approach |
-|----------|------------|---------------------|
-| Missing | Medium | Discovery through code analysis and runtime observation |
-| Outdated | High | Verification against running system before use |
-| Actively Wrong | Critical | Delete and rediscover; unlearning is harder than learning |
-| Tribal Knowledge | High | Structured interviews and knowledge extraction sessions |
-| Scattered | Medium | Consolidation and single-source-of-truth establishment |
-
-Table: Documentation debt categories and remediation strategies.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Category', 'Risk Level', 'Remediation Approach'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Missing',
+          td: ['Medium', 'Discovery through code analysis and runtime observation'],
+        },
+        {
+          th: 'Outdated',
+          td: ['High', 'Verification against running system before use'],
+        },
+        {
+          th: 'Actively Wrong',
+          td: ['Critical', 'Delete and rediscover; unlearning is harder than learning'],
+        },
+        {
+          th: 'Tribal Knowledge',
+          td: ['High', 'Structured interviews and knowledge extraction sessions'],
+        },
+        {
+          th: 'Scattered',
+          td: ['Medium', 'Consolidation and single-source-of-truth establishment'],
+        },
+      ],
+    },
+    figure: 'Documentation debt categories and remediation strategies.',
+  }}
+/>
 
 ### Assessing Current Documentation State
 
@@ -642,14 +661,38 @@ For _business rules_, I look for logic encoded in code but not in requirements:
 - "What edge cases have special handling?"
 - "What compliance requirements affect this code?"
 
-| Interview Focus | Best Participants | Artifacts to Request |
-|-----------------|-------------------|---------------------|
-| Architecture | Original architects, senior engineers | Design docs, ADRs, old whiteboard photos |
-| Operations | SREs, on-call engineers | Runbooks, incident reports, dashboards |
-| Business Logic | Product managers, business analysts, subject matter experts | Requirements docs, user stories, email threads |
-| History | Long-tenured engineers | Old wiki pages, Slack threads, ticket comments |
-
-Table: Interview types and their ideal participants.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Interview Focus', 'Best Participants', 'Artifacts to Request'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Architecture',
+          td: ['Original architects, senior engineers', 'Design docs, ADRs, old whiteboard photos'],
+        },
+        {
+          th: 'Operations',
+          td: ['SREs, on-call engineers', 'Runbooks, incident reports, dashboards'],
+        },
+        {
+          th: 'Business Logic',
+          td: [
+            'Product managers, business analysts, subject matter experts',
+            'Requirements docs, user stories, email threads',
+          ],
+        },
+        {
+          th: 'History',
+          td: ['Long-tenured engineers', 'Old wiki pages, Slack threads, ticket comments'],
+        },
+      ],
+    },
+    figure: 'Interview types and their ideal participants.',
+  }}
+/>
 
 ### Knowledge Mapping Sessions
 
@@ -657,13 +700,10 @@ One-on-one interviews capture single viewpoints. Knowledge mapping sessions brin
 
 I run these as facilitated whiteboard sessions, typically two hours maximum. The structure:
 
-__Preparation (before the session)__: Identify 3-5 people with different perspectives on the system. Prepare a blank architecture template. Get permission to record (audio and whiteboard photos).
-
-__Architecture walkthrough (45 minutes)__: One person draws the system on the whiteboard while others correct and add detail. The disagreements are the most valuable part—they reveal where mental models diverge.
-
-__Scenario walkthroughs (45 minutes)__: Pick 3-4 common operations and trace them through the system. "What happens when a user submits an order?" Follow the data through every component. Note where people hesitate or disagree.
-
-__Edge cases and gotchas (30 minutes)__: This is where tribal knowledge surfaces. Ask: "What's the thing that always trips up new team members?" and "What's the hack we're ashamed of but can't remove?"
+- __Preparation (before the session)__: Identify 3-5 people with different perspectives on the system. Prepare a blank architecture template. Get permission to record (audio and whiteboard photos).
+- __Architecture walkthrough (45 minutes)__: One person draws the system on the whiteboard while others correct and add detail. The disagreements are the most valuable part—they reveal where mental models diverge.
+- __Scenario walkthroughs (45 minutes)__: Pick 3-4 common operations and trace them through the system. "What happens when a user submits an order?" Follow the data through every component. Note where people hesitate or disagree.
+- __Edge cases and gotchas (30 minutes)__: This is where tribal knowledge surfaces. Ask: "What's the thing that always trips up new team members?" and "What's the hack we're ashamed of but can't remove?"
 
 After the session, transcribe the whiteboard photos into digital diagrams, then send them back to participants for validation. The review process often surfaces additional details people forgot to mention in the session.
 
@@ -836,9 +876,7 @@ Reverse-engineering documentation from legacy systems requires multiple approach
 The goal isn't comprehensive documentation of everything. That's neither achievable nor useful. Focus on documenting three categories:
 
 - _The dangerous parts_: Code that everyone's afraid to change. These need documentation because mistakes here have outsized consequences.
-
 - _The confusing parts_: Code that requires explanation to understand. If every new team member asks the same questions, write down the answers.
-
 - _The business-critical parts_: Code where mistakes cost money or compliance violations. These need documentation because the stakes justify the investment.
 
 Tests as documentation have an advantage that prose never will: they break when behavior changes. A characterization test that fails is more valuable than a wiki page that silently becomes wrong. Where possible, encode knowledge in tests rather than documents.

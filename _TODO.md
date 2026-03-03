@@ -84,21 +84,27 @@ if (window.matchMedia) {
 }
 ```
 
-- Need a workflow to generate PDF files from Markdown for downloads.
-
 - Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page.
 
-- Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page. Need a fixed cover page format that adds article title, subtitle, and date.
-
-- We have two print scenarios: black and white, and color for PDF output. Can use two different media queries to accomplish getting colored variables.
+- Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page.
 
 - Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden. The styling should be different for print for the code block. Maybe move other language code tabs to an appendix and add a link to them.
 
-- Need to only load print style sheet when needed.
+[This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
+
+## PDF File Generation
+
+- Need a workflow to generate PDF files from Markdown for downloads.
+
+- Need a fixed cover page format that adds article title, subtitle, and date.
+
+- Table of Contents (Workarounds)
+
+Because the browser doesn't know which page an element (like an <h1>) will land on until the PDF is fully rendered, you cannot generate a TOC with correct page numbers in a single pass. Common workarounds include:
+
+Paged.js Polyfill: Use the Paged.js library to handle sophisticated print layouts (like TOCs and cross-references) within the browser before Puppeteer "prints" the result.
 
 [Paged.js](https://pagedjs.org/en/documentation/) polyfills `@page` properties, and lays out an HTML document in print format where it can have page numbers generated to update in a table of contents.
-
-[This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
 
 This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
 
@@ -169,10 +175,6 @@ https://mermaid.js.org/config/directives.html
 - Style "Share to Mastodon" modal in src/components/Social/Mastodon/client/index.ts
 
 - There's a pretty long delay when you push the Content Switcher to go from short to deep dive, what's causing it? It should be fast - maybe it's a prefetch issue, prefetch on page load
-
-- Suggestions on improving table layout for better visual experience. Consider adding a trim outline to tables
-
-- Cap callout length at 80% or 90% of the column so they're not longer than any text
 
 - Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
 
@@ -249,9 +251,7 @@ The first file to update is:
 
 numbered-with-background-list, check-icons-list
 
-We have lists in our current articles that are of two variants: those that are plain text lists (either ordered or unordered), and those that are lists with both leads and plain texts. Our List component layouts handle both lists with leads and those without. We can identify leads because that text is emphasized with markdown in some fashion: "_", "__", "*", or "**". We need to refactor the markdown lists in a file into either an ordered (numbered-with-background-list) or unordered (check-icons-list) list, and extract lead text if present into the optional lead prop if any lead text is present.
-
-If there is a Further Reading" heading at the bottom of a file, ignore any list that may be contained in it.
+We have lists in our current articles that are of two variants: those that are plain text lists (either ordered or unordered), and those that are lists with both leads and plain texts. Our List component layouts handle both lists with leads and those without. We can identify leads because that text is emphasized with markdown in some fashion: "_", "__", "*", or "**". We need to refactor the markdown lists in a file into either an ordered (numbered-with-background-list) or unordered (check-icons-list) list, and extract lead text if present into the optional lead prop if any lead text is present. The "lead" prop should come first and before the "text" prop in the object. The "lead" prop is the emphasized text that comes first in the list items we are converting to the List component
 
 An example is as follows:
 
@@ -272,3 +272,23 @@ The first file to update is:
 Files with missed lists:
 
 src/content/articles/eol-runtime-upgrade-dependency-hell-migration/index.mdx
+
+### Timelines
+
+- Good generation:
+
+api-gateway-metrics-traces-logs-debugging/trace-context-propagation-creating-connected-spans-across-gateway-boundary.jpg
+
+- Needs done:
+
+backpressure-load-shedding-admission-control-overload/backpressure-propagates-from-the-constrained-resource-back-to-the-client.png
+
+argocd-sync-failures-gitops-debugging-troubleshooting/hook-execution-sequence-during-argoc-sync-lifecycle.png
+
+- Not close enough in details:
+
+argocd-sync-failures-gitops-debugging-troubleshooting/resource-dependency-graph-showing-potential-failure-points.png
+
+### Figure captions are broken:
+
+src/content/articles/structured-logging-correlation-ids-log-schema-design/pdf.mdx

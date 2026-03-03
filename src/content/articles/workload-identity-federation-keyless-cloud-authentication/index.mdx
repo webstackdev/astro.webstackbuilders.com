@@ -26,16 +26,43 @@ Service account keys are static credentials that live forever until explicitly r
 
 The security model is fundamentally broken: you're distributing secrets that grant access, then hoping nobody loses track of them. But secrets spread. They end up in git history, in Slack messages, in screenshots of terminal sessions. Each copy is a potential breach waiting to happen.
 
-| Risk Scenario | Impact | Detection Difficulty |
-|---------------|--------|---------------------|
-| Key leaked in git history | Full account access | Hard — requires scanning |
-| Key shared via Slack or email | Credential sprawl | Very hard — no audit trail |
-| Key stored in CI environment variables | Exposure via build logs | Medium — log analysis |
-| Key never rotated | Extended compromise window | Easy — check creation date |
-| Key with excessive permissions | Lateral movement after compromise | Medium — IAM analysis |
-| Key owner left company | Orphaned access with no responsible party | Easy — compare against HR data |
-
-Table: Common service account key risks and their detection difficulty.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Risk Scenario', 'Impact', 'Detection Difficulty'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Key leaked in git history',
+          td: ['Full account access', 'Hard — requires scanning'],
+        },
+        {
+          th: 'Key shared via Slack or email',
+          td: ['Credential sprawl', 'Very hard — no audit trail'],
+        },
+        {
+          th: 'Key stored in CI environment variables',
+          td: ['Exposure via build logs', 'Medium — log analysis'],
+        },
+        {
+          th: 'Key never rotated',
+          td: ['Extended compromise window', 'Easy — check creation date'],
+        },
+        {
+          th: 'Key with excessive permissions',
+          td: ['Lateral movement after compromise', 'Medium — IAM analysis'],
+        },
+        {
+          th: 'Key owner left company',
+          td: ['Orphaned access with no responsible party', 'Easy — compare against HR data'],
+        },
+      ],
+    },
+    figure: 'Common service account key risks and their detection difficulty.',
+  }}
+/>
 
 The typical response is "we'll rotate keys regularly." But rotation doesn't solve the fundamental problem — you're still distributing secrets that can be stolen. You're just hoping to invalidate them before an attacker uses them. That's not security; it's a race condition.
 

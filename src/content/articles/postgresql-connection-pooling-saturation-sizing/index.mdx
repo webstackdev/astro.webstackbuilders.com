@@ -21,13 +21,31 @@ The counterintuitive truth: fewer connections often means _better_ performance. 
 
 The conventional formula: `max_connections = CPU cores × 4` for SSDs. But staying conservative (50-100) with an external connection pooler like PgBouncer in front is usually the better approach. External poolers sit between your applications and the database, multiplexing many application connections onto fewer database connections. This decouples horizontal scaling from connection limits—your app can scale to 100 instances while the database sees a fixed 50 connections.
 
-| max_connections | Use Case | Memory Overhead |
-|-----------------|----------|-----------------|
-| 50-100 | Small deployments with pooler | ~500MB-1GB |
-| 100-300 | Medium deployments | ~1-3GB |
-| 500-1000 | Large deployments | ~5-10GB (usually wrong—use a pooler) |
-
-Table: max_connections settings and their implications.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['max_connections', 'Use Case', 'Memory Overhead'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '50-100',
+          td: ['Small deployments with pooler', '~500MB-1GB'],
+        },
+        {
+          th: '100-300',
+          td: ['Medium deployments', '~1-3GB'],
+        },
+        {
+          th: '500-1000',
+          td: ['Large deployments', '~5-10GB (usually wrong—use a pooler)'],
+        },
+      ],
+    },
+    figure: 'max_connections settings and their implications.',
+  }}
+/>
 
 Setting `max_connections` high "just in case" backfires. The database reserves memory for all potential backends even when only a fraction are connected. You're paying the overhead without the benefit.
 
@@ -49,14 +67,35 @@ pool_size = ceil(peak_qps × p99_query_time × burst_factor)
 
 For an application instance handling 50 queries per second at peak, with P99 query time of 100ms and a 2× burst factor: `ceil(50 × 0.1 × 2) = 10` connections per instance.
 
-| Factor | What to Measure | Impact |
-|--------|-----------------|--------|
-| Query duration | P99 latency, not average | Longer queries need more connections |
-| Request rate | Peak QPS, not average | Higher rate needs more connections |
-| Variance | Standard deviation / mean | High variance needs more headroom |
-| Burst factor | Peak / baseline ratio | Typically 2-3× for web traffic |
-
-Table: Pool sizing factors.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Factor', 'What to Measure', 'Impact'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Query duration',
+          td: ['P99 latency, not average', 'Longer queries need more connections'],
+        },
+        {
+          th: 'Request rate',
+          td: ['Peak QPS, not average', 'Higher rate needs more connections'],
+        },
+        {
+          th: 'Variance',
+          td: ['Standard deviation / mean', 'High variance needs more headroom'],
+        },
+        {
+          th: 'Burst factor',
+          td: ['Peak / baseline ratio', 'Typically 2-3× for web traffic'],
+        },
+      ],
+    },
+    figure: 'Pool sizing factors.',
+  }}
+/>
 
 Here's what a properly configured pool looks like in practice:
 
@@ -101,20 +140,39 @@ WHERE backend_type = 'client backend';
 
 Code: Connection utilization query.
 
-__Pool wait time__ measures how long requests wait for an available connection from the application pool. This metric comes from your pool library (HikariCP, pg-pool), not PostgreSQL. P99 wait time above 100ms indicates the pool is undersized; above 1 second means requests are timing out.
+- __Pool wait time__ measures how long requests wait for an available connection from the application pool. This metric comes from your pool library (HikariCP, pg-pool), not PostgreSQL. P99 wait time above 100ms indicates the pool is undersized; above 1 second means requests are timing out.
+- __Queue depth__ counts requests waiting for connections. In PgBouncer, check `cl_waiting`. In application pools, check `waitingCount` or equivalent. Any sustained queue indicates saturation—the pool can't keep up with demand.
+- __Idle in transaction__ connections are the silent killers. They hold connections hostage without doing work. These are usually application bugs—missing commits, unclosed transactions in error paths. Set `idle_in_transaction_session_timeout` to kill them automatically.
 
-__Queue depth__ counts requests waiting for connections. In PgBouncer, check `cl_waiting`. In application pools, check `waitingCount` or equivalent. Any sustained queue indicates saturation—the pool can't keep up with demand.
-
-__Idle in transaction__ connections are the silent killers. They hold connections hostage without doing work. These are usually application bugs—missing commits, unclosed transactions in error paths. Set `idle_in_transaction_session_timeout` to kill them automatically.
-
-| Metric | Warning | Critical | Response |
-|--------|---------|----------|----------|
-| Connection utilization | > 70% | > 85% | Add pooler or reduce pool sizes |
-| Pool wait time (P99) | > 100ms | > 1s | Increase pool size or optimize queries |
-| Queue depth | > 10 | > 50 | Pool undersized or query bottleneck |
-| Idle in transaction | > 5 | > 20 | Find and fix leaking transactions |
-
-Table: Saturation metric thresholds.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'Warning', 'Critical', 'Response'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Connection utilization',
+          td: ['> 70%', '> 85%', 'Add pooler or reduce pool sizes'],
+        },
+        {
+          th: 'Pool wait time (P99)',
+          td: ['> 100ms', '> 1s', 'Increase pool size or optimize queries'],
+        },
+        {
+          th: 'Queue depth',
+          td: ['> 10', '> 50', 'Pool undersized or query bottleneck'],
+        },
+        {
+          th: 'Idle in transaction',
+          td: ['> 5', '> 20', 'Find and fix leaking transactions'],
+        },
+      ],
+    },
+    figure: 'Saturation metric thresholds.',
+  }}
+/>
 
 If you're using PgBouncer (and at scale, you should be), it exposes its own saturation signals via the `SHOW POOLS` admin command. The key metrics: `cl_waiting` shows clients waiting for a server connection—any sustained value above zero means your pool can't keep up. `sv_idle` counts available server connections; when this hits zero, every new request queues. `maxwait` reports the longest current wait time in seconds—this is your canary. If `maxwait` climbs while `sv_idle` sits at zero, you're saturated and need to either increase `default_pool_size` or optimize the queries holding connections.
 

@@ -31,41 +31,117 @@ Every service catalog I've inherited has been partially abandoned. The enthusias
 
 The decay follows a predictable timeline. Month one sees high coverage and enthusiasm—everyone's entering their services because the initiative has leadership attention. By month three, new services are being deployed without catalog entries because it's not in the critical path. Month six brings the ownership rot: reorgs happen, people leave, but the catalog still points to teams that no longer exist. By year one, engineers have learned they can't trust the data, so they ask in Slack instead. Year two? The catalog is a punchline in onboarding jokes.
 
-| Time | Coverage | Accuracy | Team trust |
-|------|----------|----------|------------|
-| Launch | 90% | 95% | 85% |
-| Month 3 | 85% | 80% | 70% |
-| Month 6 | 78% | 70% | 50% |
-| Year 1 | 65% | 50% | 25% |
-| Year 2 | 45% | 30% | 10% |
-
-Table: Catalog trust decay over time.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Time', 'Coverage', 'Accuracy', 'Team trust'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Launch',
+          td: ['90%', '95%', '85%'],
+        },
+        {
+          th: 'Month 3',
+          td: ['85%', '80%', '70%'],
+        },
+        {
+          th: 'Month 6',
+          td: ['78%', '70%', '50%'],
+        },
+        {
+          th: 'Year 1',
+          td: ['65%', '50%', '25%'],
+        },
+        {
+          th: 'Year 2',
+          td: ['45%', '30%', '10%'],
+        },
+      ],
+    },
+    figure: 'Catalog trust decay over time.',
+  }}
+/>
 
 Here's the thing that makes this worse: a catalog with 80% accurate data is more dangerous than no catalog at all. It gives you false confidence. You page the listed owner at 3 AM, confident you've got the right team, and waste twenty minutes before discovering they handed off the service six months ago.
 
-| Failure Mode | Symptom | Root Cause |
-|--------------|---------|------------|
-| Stale ownership | Paging wrong team during incidents | No ownership update workflow |
-| Missing services | Services in prod not in catalog | Catalog not in deployment path |
-| Wrong dependencies | Dependency graph incomplete | Manual entry, no validation |
-| Outdated metadata | Descriptions don't match reality | No freshness enforcement |
-| Orphaned entries | Deleted services still listed | No lifecycle management |
-
-Table: Common catalog failure modes and their root causes.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Failure Mode', 'Symptom', 'Root Cause'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Stale ownership',
+          td: ['Paging wrong team during incidents', 'No ownership update workflow'],
+        },
+        {
+          th: 'Missing services',
+          td: ['Services in prod not in catalog', 'Catalog not in deployment path'],
+        },
+        {
+          th: 'Wrong dependencies',
+          td: ['Dependency graph incomplete', 'Manual entry, no validation'],
+        },
+        {
+          th: 'Outdated metadata',
+          td: ["Descriptions don't match reality", 'No freshness enforcement'],
+        },
+        {
+          th: 'Orphaned entries',
+          td: ['Deleted services still listed', 'No lifecycle management'],
+        },
+      ],
+    },
+    figure: 'Common catalog failure modes and their root causes.',
+  }}
+/>
 
 ### What Makes Catalogs Actually Useful
 
 Before designing a schema, you need to know what questions the catalog should answer. I've found that catalogs justify their maintenance cost when they enable specific workflows that would otherwise require manual investigation. Each workflow has different accuracy requirements, and getting this wrong means either over-engineering (requiring fields nobody uses) or under-engineering (missing data when it matters).
 
-| Use Case | Required Fields | Accuracy Needed | Why It Matters |
-|----------|----------------|-----------------|----------------|
-| Incident response | owner, oncall, runbook, dependencies | 98%+ | Wrong owner during incident extends MTTR by 15-30 minutes |
-| Security scanning | repository, runtime, data classification | 95% | Missing services mean unscanned attack surface |
-| Cost attribution | owner, cost center, environment | 90% | 10% error in cloud bills is acceptable for most orgs |
-| Dependency analysis | dependencies, consumers, API endpoints | 85% | Used for planning, not emergencies |
-| Developer onboarding | description, documentation, owner | 80% | Stale docs annoy but don't cause outages |
-
-Table: Accuracy requirements by use case.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Use Case', 'Required Fields', 'Accuracy Needed', 'Why It Matters'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Incident response',
+          td: [
+            'owner, oncall, runbook, dependencies',
+            '98%+',
+            'Wrong owner during incident extends MTTR by 15-30 minutes',
+          ],
+        },
+        {
+          th: 'Security scanning',
+          td: ['repository, runtime, data classification', '95%', 'Missing services mean unscanned attack surface'],
+        },
+        {
+          th: 'Cost attribution',
+          td: ['owner, cost center, environment', '90%', '10% error in cloud bills is acceptable for most orgs'],
+        },
+        {
+          th: 'Dependency analysis',
+          td: ['dependencies, consumers, API endpoints', '85%', 'Used for planning, not emergencies'],
+        },
+        {
+          th: 'Developer onboarding',
+          td: ['description, documentation, owner', '80%', "Stale docs annoy but don't cause outages"],
+        },
+      ],
+    },
+    figure: 'Accuracy requirements by use case.',
+  }}
+/>
 
 The accuracy thresholds aren't arbitrary. Incident response has the highest bar because getting it wrong has immediate, measurable consequences—every minute spent paging the wrong team is a minute your users are affected. Security scanning needs high accuracy because you can't secure what you don't know exists. Cost attribution can tolerate more noise because finance teams already expect some allocation disputes.
 
@@ -81,16 +157,43 @@ A CMDB is an IT operations tool, typically focused on hardware and infrastructur
 
 Service mesh observability (from tools like Istio or Linkerd) provides real-time traffic data but doesn't know about ownership, business context, or services that aren't currently receiving traffic. It tells you _what's calling what_ right now, not _who's responsible_ or _what should be calling what_.
 
-| Aspect | Service Catalog | CMDB | Service Mesh |
-|--------|-----------------|------|--------------|
-| Primary audience | Developers, SREs | IT Operations | Runtime systems |
-| Data source | Declarative + discovered | Manual entry | Runtime observation |
-| Update frequency | On deploy/change | Periodic audits | Real-time |
-| Ownership tracking | Primary purpose | Often missing | Not applicable |
-| Dependency data | Declared + inferred | Declared only | Observed only |
-| Accuracy model | Continuous validation | Point-in-time | Always current (for running services) |
-
-Table: Catalog vs CMDB vs service mesh.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Aspect', 'Service Catalog', 'CMDB', 'Service Mesh'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Primary audience',
+          td: ['Developers, SREs', 'IT Operations', 'Runtime systems'],
+        },
+        {
+          th: 'Data source',
+          td: ['Declarative + discovered', 'Manual entry', 'Runtime observation'],
+        },
+        {
+          th: 'Update frequency',
+          td: ['On deploy/change', 'Periodic audits', 'Real-time'],
+        },
+        {
+          th: 'Ownership tracking',
+          td: ['Primary purpose', 'Often missing', 'Not applicable'],
+        },
+        {
+          th: 'Dependency data',
+          td: ['Declared + inferred', 'Declared only', 'Observed only'],
+        },
+        {
+          th: 'Accuracy model',
+          td: ['Continuous validation', 'Point-in-time', 'Always current (for running services)'],
+        },
+      ],
+    },
+    figure: 'Catalog vs CMDB vs service mesh.',
+  }}
+/>
 
 The ideal setup uses all three: the catalog declares intent and ownership, the service mesh observes actual traffic, and the CMDB tracks underlying infrastructure. Drift between catalog declarations and mesh observations surfaces undeclared dependencies or stale entries.
 
@@ -102,26 +205,71 @@ Schema design is where most catalog initiatives go wrong. Teams either start wit
 
 A service catalog schema centers on the _service_ as the primary entity, with relationships to teams, other services, repositories, and runtime environments. The relationships matter as much as the entities themselves.
 
-| Entity | Key relationships |
-|--------|-------------------|
-| Service | Owned by Team, depends on Service, sourced from Repository, belongs to Domain |
-| Team | Owns Service, has Person members |
-| Repository | Source of Service definition |
-| Domain | Business grouping for Service ownership and reporting |
-
-Table: Core catalog entities and relationships.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Entity', 'Key relationships'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Service',
+          td: ['Owned by Team, depends on Service, sourced from Repository, belongs to Domain'],
+        },
+        {
+          th: 'Team',
+          td: ['Owns Service, has Person members'],
+        },
+        {
+          th: 'Repository',
+          td: ['Source of Service definition'],
+        },
+        {
+          th: 'Domain',
+          td: ['Business grouping for Service ownership and reporting'],
+        },
+      ],
+    },
+    figure: 'Core catalog entities and relationships.',
+  }}
+/>
 
 The service entity needs several categories of fields:
 
-| Category | Fields | Purpose |
-|----------|--------|--------|
-| Identity | id, name, slug | Establish uniqueness |
-| Classification | tier, lifecycle, domain, type | Determine automation behavior |
-| Ownership | owner, contacts | Enable incident routing |
-| Technical | repository, language, runtime | Support security scanning and dependency analysis |
-| Operational | runbook, documentation, SLO reference | Support incident response |
-
-Table: Service entity field categories.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Category', 'Fields', 'Purpose'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Identity',
+          td: ['id, name, slug', 'Establish uniqueness'],
+        },
+        {
+          th: 'Classification',
+          td: ['tier, lifecycle, domain, type', 'Determine automation behavior'],
+        },
+        {
+          th: 'Ownership',
+          td: ['owner, contacts', 'Enable incident routing'],
+        },
+        {
+          th: 'Technical',
+          td: ['repository, language, runtime', 'Support security scanning and dependency analysis'],
+        },
+        {
+          th: 'Operational',
+          td: ['runbook, documentation, SLO reference', 'Support incident response'],
+        },
+      ],
+    },
+    figure: 'Service entity field categories.',
+  }}
+/>
 
 Here's a concrete example using Backstage's `catalog-info.yaml` format, which has become a de facto standard:
 
@@ -167,18 +315,51 @@ For incident routing (the most common primary use case), you need exactly five r
 
 Everything else can be recommended or optional at launch. Once you hit 90%+ coverage on those five fields, you can start requiring additional fields like runbooks for tier-1 services or dependency declarations.
 
-| Field | Requirement Level | Enforcement Point | Rationale |
-|-------|-------------------|-------------------|-----------|
-| owner | Required | CI + deploy gate | Can't route incidents without it |
-| tier | Required | CI | Determines SLO requirements |
-| repository | Required | CI | Source of truth for service |
-| lifecycle | Required | CI | Prevents paging for deprecated services |
-| dependencies | Required for tier-1/tier-2 | Periodic audit | Impact analysis for critical services |
-| runbook | Required for tier-1/tier-2 | Deploy gate | tier-1 incidents need documented response |
-| documentation | Recommended | Periodic audit | Improves discoverability |
-| SLO | Recommended | Periodic audit | Best practice, not blocking |
-
-Table: Field requirements with enforcement points.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Field', 'Requirement Level', 'Enforcement Point', 'Rationale'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'owner',
+          td: ['Required', 'CI + deploy gate', "Can't route incidents without it"],
+        },
+        {
+          th: 'tier',
+          td: ['Required', 'CI', 'Determines SLO requirements'],
+        },
+        {
+          th: 'repository',
+          td: ['Required', 'CI', 'Source of truth for service'],
+        },
+        {
+          th: 'lifecycle',
+          td: ['Required', 'CI', 'Prevents paging for deprecated services'],
+        },
+        {
+          th: 'dependencies',
+          td: ['Required for tier-1/tier-2', 'Periodic audit', 'Impact analysis for critical services'],
+        },
+        {
+          th: 'runbook',
+          td: ['Required for tier-1/tier-2', 'Deploy gate', 'tier-1 incidents need documented response'],
+        },
+        {
+          th: 'documentation',
+          td: ['Recommended', 'Periodic audit', 'Improves discoverability'],
+        },
+        {
+          th: 'SLO',
+          td: ['Recommended', 'Periodic audit', 'Best practice, not blocking'],
+        },
+      ],
+    },
+    figure: 'Field requirements with enforcement points.',
+  }}
+/>
 
 <Callout type="info">
 Launch with 5-7 required fields that enable incident routing. Add requirements as catalog coverage improves. A catalog with 95% coverage on five fields beats one with 60% coverage on twenty fields.
@@ -232,15 +413,39 @@ But "ownership" is deceptively simple. A service might have a development team t
 
 The ownership model needs to distinguish between different types of responsibility. I've found that a two-tier approach works well: a _primary owner_ who's responsible for the service's existence and development, plus _role-specific contacts_ for specialized functions.
 
-| Role | Responsibility | When they're contacted |
-|------|----------------|------------------------|
-| Primary owner | Service development, roadmap, architecture decisions | Default for anything not covered by a specific role |
-| Oncall | Incident response, production issues | Automated alerts, P1/P2 incidents |
-| Security contact | Vulnerability remediation, security reviews | CVE notifications, penetration test findings |
-| Change approver | Production deployment approval | Release management workflows |
-| Cost owner | Budget decisions, optimization | FinOps alerts, capacity planning |
-
-Table: Ownership roles and their triggers.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Role', 'Responsibility', "When they're contacted"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Primary owner',
+          td: ['Service development, roadmap, architecture decisions', 'Default for anything not covered by a specific role'],
+        },
+        {
+          th: 'Oncall',
+          td: ['Incident response, production issues', 'Automated alerts, P1/P2 incidents'],
+        },
+        {
+          th: 'Security contact',
+          td: ['Vulnerability remediation, security reviews', 'CVE notifications, penetration test findings'],
+        },
+        {
+          th: 'Change approver',
+          td: ['Production deployment approval', 'Release management workflows'],
+        },
+        {
+          th: 'Cost owner',
+          td: ['Budget decisions, optimization', 'FinOps alerts, capacity planning'],
+        },
+      ],
+    },
+    figure: 'Ownership roles and their triggers.',
+  }}
+/>
 
 The primary owner is usually the team that writes the code. They're accountable for the service's health, performance, and continued development. Role-specific contacts handle specialized functions—the security contact might be a designated engineer on the team, or it might be a security team member embedded with the product organization.
 
@@ -285,27 +490,75 @@ The transfer workflow needs to ensure that:
 
 A two-week transition period where both teams receive pages has saved me more than once. The new team gets exposure to real incidents while the old team is still available to help. It surfaces knowledge gaps before they become 3 AM surprises.
 
-| Transfer phase | Duration | Who's on-call | What happens |
-|----------------|----------|---------------|--------------|
-| Pending approval | Until both approve | Old team only | Transfer request sits in queue |
-| Knowledge transfer | 1 week typical | Old team only | Runbook review, access provisioning, documentation walkthrough |
-| Transition period | 2 weeks default | Both teams | New team primary, old team escalation |
-| Complete | — | New team only | Old team removed, catalog updated |
-
-Table: Ownership transfer phases.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Transfer phase', 'Duration', "Who's on-call", 'What happens'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Pending approval',
+          td: ['Until both approve', 'Old team only', 'Transfer request sits in queue'],
+        },
+        {
+          th: 'Knowledge transfer',
+          td: ['1 week typical', 'Old team only', 'Runbook review, access provisioning, documentation walkthrough'],
+        },
+        {
+          th: 'Transition period',
+          td: ['2 weeks default', 'Both teams', 'New team primary, old team escalation'],
+        },
+        {
+          th: 'Complete',
+          td: ['—', 'New team only', 'Old team removed, catalog updated'],
+        },
+      ],
+    },
+    figure: 'Ownership transfer phases.',
+  }}
+/>
 
 The knowledge transfer checklist should cover:
 
-| Item | Details | Automatable? |
-|------|---------|-------------|
-| Runbook review | Walk through incident procedures | No |
-| Access provisioning | AWS, Kubernetes, CI/CD, monitoring | Yes (via IDP) |
-| Oncall schedule | Update PagerDuty/Opsgenie rotation | Yes (via API) |
-| Documentation review | Answer questions, update gaps | No |
-| Stakeholder notification | Dependent service owners, PMs | Yes (via catalog) |
-| Cost center update | FinOps allocation change | Yes (via API) |
-
-Table: Knowledge transfer checklist.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Item', 'Details', 'Automatable?'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Runbook review',
+          td: ['Walk through incident procedures', 'No'],
+        },
+        {
+          th: 'Access provisioning',
+          td: ['AWS, Kubernetes, CI/CD, monitoring', 'Yes (via IDP)'],
+        },
+        {
+          th: 'Oncall schedule',
+          td: ['Update PagerDuty/Opsgenie rotation', 'Yes (via API)'],
+        },
+        {
+          th: 'Documentation review',
+          td: ['Answer questions, update gaps', 'No'],
+        },
+        {
+          th: 'Stakeholder notification',
+          td: ['Dependent service owners, PMs', 'Yes (via catalog)'],
+        },
+        {
+          th: 'Cost center update',
+          td: ['FinOps allocation change', 'Yes (via API)'],
+        },
+      ],
+    },
+    figure: 'Knowledge transfer checklist.',
+  }}
+/>
 
 Automate as much of this as possible. The transfer request can trigger access provisioning workflows, update the oncall schedule via API, and notify stakeholders automatically. Manual steps are where transfers stall.
 
@@ -364,15 +617,39 @@ Dependencies are the second most valuable data in a service catalog, after owner
 
 Not all dependencies are equal. A service that can't function without its database has a _critical_ dependency. A service that falls back to cached data when a recommendation engine is down has an _optional_ dependency. Capturing this distinction matters for incident response and maintenance planning.
 
-| Dependency type | Description | Example |
-|-----------------|-------------|---------|
-| Runtime critical | Service fails if dependency is unavailable | Database, auth service |
-| Runtime degraded | Service works with reduced functionality | Recommendation engine, analytics |
-| Startup only | Needed at boot but not ongoing | Config service, secrets manager |
-| Async/background | Used for non-blocking operations | Message queue, batch processor |
-| Development only | Not used in production | Mock services, test fixtures |
-
-Table: Dependency types by criticality.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Dependency type', 'Description', 'Example'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Runtime critical',
+          td: ['Service fails if dependency is unavailable', 'Database, auth service'],
+        },
+        {
+          th: 'Runtime degraded',
+          td: ['Service works with reduced functionality', 'Recommendation engine, analytics'],
+        },
+        {
+          th: 'Startup only',
+          td: ['Needed at boot but not ongoing', 'Config service, secrets manager'],
+        },
+        {
+          th: 'Async/background',
+          td: ['Used for non-blocking operations', 'Message queue, batch processor'],
+        },
+        {
+          th: 'Development only',
+          td: ['Not used in production', 'Mock services, test fixtures'],
+        },
+      ],
+    },
+    figure: 'Dependency types by criticality.',
+  }}
+/>
 
 Beyond type, you want to capture the _failure mode_: what happens when this dependency is unavailable? Does the service fail hard, degrade gracefully, retry with backoff, or serve cached responses? This information is invaluable during incidents—it tells you whether a downstream outage will cascade or be contained.
 
@@ -410,15 +687,39 @@ Declared dependencies are only half the picture. Services add dependencies all t
 
 The best approach combines multiple data sources:
 
-| Source | What it catches | Confidence | Limitations |
-|--------|-----------------|------------|-------------|
-| Catalog declarations | Intentional dependencies | High (if maintained) | Goes stale without enforcement |
-| Service mesh (Istio/Linkerd) | HTTP/gRPC traffic between services | High | Misses non-mesh traffic |
-| Distributed tracing[^2] | Cross-service calls in traced requests | Medium-high | Sampling may miss infrequent calls |
-| DNS query logs | Service discovery lookups | Medium | Can't distinguish used from resolved |
-| Database connection logs | Direct database dependencies | High | Requires database-level logging |
-
-Table: Dependency discovery sources and their tradeoffs.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Source', 'What it catches', 'Confidence', 'Limitations'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Catalog declarations',
+          td: ['Intentional dependencies', 'High (if maintained)', 'Goes stale without enforcement'],
+        },
+        {
+          th: 'Service mesh (Istio/Linkerd)',
+          td: ['HTTP/gRPC traffic between services', 'High', 'Misses non-mesh traffic'],
+        },
+        {
+          th: 'Distributed tracing[^2]',
+          td: ['Cross-service calls in traced requests', 'Medium-high', 'Sampling may miss infrequent calls'],
+        },
+        {
+          th: 'DNS query logs',
+          td: ['Service discovery lookups', 'Medium', "Can't distinguish used from resolved"],
+        },
+        {
+          th: 'Database connection logs',
+          td: ['Direct database dependencies', 'High', 'Requires database-level logging'],
+        },
+      ],
+    },
+    figure: 'Dependency discovery sources and their tradeoffs.',
+  }}
+/>
 
 [^2]: OpenTelemetry (OTel) has become the standard for distributed tracing, replacing vendor-specific implementations like Jaeger and Zipkin with a unified API. If you're starting fresh, instrument with OTel SDKs and export to your backend of choice.
 
@@ -462,15 +763,39 @@ Once you have dependency data, the catalog needs to answer questions about it. T
 
 Blast radius is particularly useful for incident response and maintenance planning. When a tier-1 database goes down, you want to immediately know how many services are affected and which teams need to be notified.
 
-| Query | Use case | Output |
-|-------|----------|--------|
-| getDependencies(serviceId, depth=2) | Pre-deployment impact check | Tree of downstream services |
-| getConsumers(serviceId) | Maintenance notification list | List of teams to notify |
-| getBlastRadius(serviceId) | Incident severity assessment | Affected services by tier |
-| detectCycles() | Architecture health check | List of circular dependency chains |
-| findCriticalPath(from, to) | Migration planning | Shortest dependency chain |
-
-Table: Common dependency graph queries.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Query', 'Use case', 'Output'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'getDependencies(serviceId, depth=2)',
+          td: ['Pre-deployment impact check', 'Tree of downstream services'],
+        },
+        {
+          th: 'getConsumers(serviceId)',
+          td: ['Maintenance notification list', 'List of teams to notify'],
+        },
+        {
+          th: 'getBlastRadius(serviceId)',
+          td: ['Incident severity assessment', 'Affected services by tier'],
+        },
+        {
+          th: 'detectCycles()',
+          td: ['Architecture health check', 'List of circular dependency chains'],
+        },
+        {
+          th: 'findCriticalPath(from, to)',
+          td: ['Migration planning', 'Shortest dependency chain'],
+        },
+      ],
+    },
+    figure: 'Common dependency graph queries.',
+  }}
+/>
 
 For blast radius specifically, group results by tier. If a service failure affects three tier-1 services, that's a critical incident regardless of how many tier-4 services are also impacted. The tier breakdown helps incident commanders prioritize communication and recovery efforts.
 
@@ -566,14 +891,35 @@ Code: GitHub Action for catalog validation on PRs.
 
 For tier-1 and tier-2 services, make validation failures blocking. For tier-3 and tier-4, warn but allow the PR to merge—you want to reduce friction for less critical services while maintaining strict standards for critical ones.
 
-| Service tier | Missing owner | Missing runbook | Missing dependencies |
-|--------------|---------------|-----------------|----------------------|
-| tier-1 | Block deploy | Block deploy | Block deploy |
-| tier-2 | Block deploy | Block deploy | Warn |
-| tier-3 | Block deploy | Warn | Warn |
-| tier-4 | Warn | Optional | Optional |
-
-Table: Validation enforcement by tier.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Service tier', 'Missing owner', 'Missing runbook', 'Missing dependencies'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'tier-1',
+          td: ['Block deploy', 'Block deploy', 'Block deploy'],
+        },
+        {
+          th: 'tier-2',
+          td: ['Block deploy', 'Block deploy', 'Warn'],
+        },
+        {
+          th: 'tier-3',
+          td: ['Block deploy', 'Warn', 'Warn'],
+        },
+        {
+          th: 'tier-4',
+          td: ['Warn', 'Optional', 'Optional'],
+        },
+      ],
+    },
+    figure: 'Validation enforcement by tier.',
+  }}
+/>
 
 ### Automated Freshness Enforcement
 
@@ -619,15 +965,39 @@ The verification workflow should be low-friction. Send a Slack message to the ow
 
 Drift detection compares catalog declarations against actual system state. It catches discrepancies that validation can't: a service that exists in Kubernetes but not in the catalog, a team that was deleted from the identity provider, an oncall schedule that was removed from PagerDuty.
 
-| Drift type | What it catches | Data sources |
-|------------|-----------------|--------------|
-| Missing service | Running in prod, not in catalog | Kubernetes API, catalog API |
-| Invalid owner | Team ID doesn't exist | Identity provider, catalog API |
-| Invalid oncall | Schedule ID not found | PagerDuty/Opsgenie API, catalog API |
-| Undeclared dependency | Traffic observed, not declared | Service mesh, catalog API |
-| Stale dependency | Declared, no recent traffic | Service mesh, catalog API |
-
-Table: Drift detection types and data sources.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Drift type', 'What it catches', 'Data sources'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Missing service',
+          td: ['Running in prod, not in catalog', 'Kubernetes API, catalog API'],
+        },
+        {
+          th: 'Invalid owner',
+          td: ["Team ID doesn't exist", 'Identity provider, catalog API'],
+        },
+        {
+          th: 'Invalid oncall',
+          td: ['Schedule ID not found', 'PagerDuty/Opsgenie API, catalog API'],
+        },
+        {
+          th: 'Undeclared dependency',
+          td: ['Traffic observed, not declared', 'Service mesh, catalog API'],
+        },
+        {
+          th: 'Stale dependency',
+          td: ['Declared, no recent traffic', 'Service mesh, catalog API'],
+        },
+      ],
+    },
+    figure: 'Drift detection types and data sources.',
+  }}
+/>
 
 Run drift detection daily. For critical drift (invalid owner on tier-1 service, missing oncall), alert immediately. For less critical drift (undeclared dependency on tier-3 service), batch into a weekly report.
 
@@ -643,13 +1013,31 @@ A catalog that exists in isolation is just a document repository. The catalog be
 
 Backstage provides a catalog API out of the box, but understanding the API surface helps whether you're using Backstage or building something custom. The core operations fall into three categories: entity CRUD, relationship queries, and search.
 
-| API category | Operations | Primary consumers |
-|--------------|------------|-------------------|
-| Entity CRUD | Get, list, create, update, delete | CI/CD pipelines, automation scripts |
-| Relationship queries | Dependencies, consumers, ancestry | Incident tools, impact analysis |
-| Search | Full-text, filtered, by owner/tag | Developer portals, discovery tools |
-
-Table: Catalog API operation categories.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['API category', 'Operations', 'Primary consumers'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Entity CRUD',
+          td: ['Get, list, create, update, delete', 'CI/CD pipelines, automation scripts'],
+        },
+        {
+          th: 'Relationship queries',
+          td: ['Dependencies, consumers, ancestry', 'Incident tools, impact analysis'],
+        },
+        {
+          th: 'Search',
+          td: ['Full-text, filtered, by owner/tag', 'Developer portals, discovery tools'],
+        },
+      ],
+    },
+    figure: 'Catalog API operation categories.',
+  }}
+/>
 
 Backstage exposes a REST API at `/api/catalog/entities` with filtering via query parameters. You can query by kind, namespace, owner, or any annotation:
 
@@ -823,15 +1211,39 @@ dashboard.new(
 
 Code: Complete Grafonnet template for catalog-driven dashboards.
 
-| Integration | Sync frequency | Primary benefit |
-|-------------|----------------|-----------------|
-| PagerDuty | Real-time (webhook) | Correct incident routing |
-| Datadog | Daily batch | Unified service metadata |
-| Grafana | On catalog change | Auto-generated dashboards |
-| Terraform | Per deploy | Infrastructure tagging |
-| Slack | Real-time | Ownership lookups in chat |
-
-Table: Common catalog integrations.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Integration', 'Sync frequency', 'Primary benefit'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'PagerDuty',
+          td: ['Real-time (webhook)', 'Correct incident routing'],
+        },
+        {
+          th: 'Datadog',
+          td: ['Daily batch', 'Unified service metadata'],
+        },
+        {
+          th: 'Grafana',
+          td: ['On catalog change', 'Auto-generated dashboards'],
+        },
+        {
+          th: 'Terraform',
+          td: ['Per deploy', 'Infrastructure tagging'],
+        },
+        {
+          th: 'Slack',
+          td: ['Real-time', 'Ownership lookups in chat'],
+        },
+      ],
+    },
+    figure: 'Common catalog integrations.',
+  }}
+/>
 
 ## Measuring Catalog Health
 
@@ -860,15 +1272,39 @@ Code: Prometheus recording rules for coverage metrics.
 
 Beyond simple counts, measure _completeness_—what percentage of cataloged services have all required fields populated. A service that exists in the catalog but lacks an owner isn't really cataloged for incident response purposes.
 
-| Metric | Formula | Target |
-|--------|---------|--------|
-| Coverage ratio | Cataloged / Total | > 95% |
-| Owner completeness | With valid owner / Cataloged | 100% |
-| Oncall completeness (tier-1) | With oncall / tier-1 services | 100% |
-| Dependency completeness | With dependencies / Cataloged | > 80% |
-| Freshness (30-day) | Updated in 30d / Cataloged | > 70% |
-
-Table: Core catalog health metrics.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'Formula', 'Target'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Coverage ratio',
+          td: ['Cataloged / Total', '> 95%'],
+        },
+        {
+          th: 'Owner completeness',
+          td: ['With valid owner / Cataloged', '100%'],
+        },
+        {
+          th: 'Oncall completeness (tier-1)',
+          td: ['With oncall / tier-1 services', '100%'],
+        },
+        {
+          th: 'Dependency completeness',
+          td: ['With dependencies / Cataloged', '> 80%'],
+        },
+        {
+          th: 'Freshness (30-day)',
+          td: ['Updated in 30d / Cataloged', '> 70%'],
+        },
+      ],
+    },
+    figure: 'Core catalog health metrics.',
+  }}
+/>
 
 Export these metrics to Prometheus so they're available alongside your other infrastructure metrics:
 

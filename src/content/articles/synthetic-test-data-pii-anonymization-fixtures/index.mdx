@@ -106,9 +106,9 @@ Code: Hash-seeded Faker produces consistent fake values
 
 The salt parameter is critical. It ensures that even if someone knows your anonymization technique, they can't reverse-engineer the mapping without the salt. Store it separately from the anonymized data—ideally in a secrets manager that test environments can't access.
 
-:::info
+<Callout type="info">
 For fields like SSNs, credit card numbers, and other regulatory-sensitive identifiers, don't anonymize—generate fresh fake values. This includes HIPAA-protected health identifiers (medical record numbers, health plan IDs), financial account numbers, and passport or driver's license numbers. These identifiers are too sensitive for any transformation that preserves a deterministic link to the original. Use Faker's `ssn()` and `credit_card_number()` methods to create syntactically valid but completely fictional values.
-:::
+</Callout>
 
 You can also push anonymization into the database itself using PostgreSQL immutable functions, creating anonymized views that never expose raw PII to application code. The deep-dive PDF walks through this approach in detail.
 

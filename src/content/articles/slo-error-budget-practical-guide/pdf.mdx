@@ -45,15 +45,39 @@ This creates a hidden tax on every team that depends on unreliable internal serv
 
 Every SLO conversation surfaces the same objections. Knowing what they really mean helps you respond effectively:
 
-| Objection | What They Really Mean | How to Respond |
-|-----------|----------------------|----------------|
-| "We don't have time for this" | SLOs seem like extra work on top of everything else | SLOs reduce fire-fighting time; show them how much time they spend on incidents now |
-| "Our service is simple" | Reliability engineering seems like overkill | Simple services still have consumers waiting when they fail |
-| "Nobody has complained" | No complaints means no problem | Consumers have given up complaining; ask them directly |
-| "We'd need to hire SREs" | SLOs require special skills we don't have | Basic SLOs need basic math, not specialists |
-| "Management won't care" | No executive sponsorship visible | Frame as developer productivity, not reliability jargon |
-
-Table: Common SLO objections and what they really mean.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Objection', 'What They Really Mean', 'How to Respond'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '"We don\'t have time for this"',
+          td: ['SLOs seem like extra work on top of everything else', 'SLOs reduce fire-fighting time; show them how much time they spend on incidents now'],
+        },
+        {
+          th: '"Our service is simple"',
+          td: ['Reliability engineering seems like overkill', 'Simple services still have consumers waiting when they fail'],
+        },
+        {
+          th: '"Nobody has complained"',
+          td: ['No complaints means no problem', 'Consumers have given up complaining; ask them directly'],
+        },
+        {
+          th: '"We\'d need to hire SREs"',
+          td: ['SLOs require special skills we don\'t have', 'Basic SLOs need basic math, not specialists'],
+        },
+        {
+          th: '"Management won\'t care"',
+          td: ['No executive sponsorship visible', 'Frame as developer productivity, not reliability jargon'],
+        },
+      ],
+    },
+    figure: 'Common SLO objections and what they really mean.',
+  }}
+/>
 
 ### Reframing for Stakeholders
 
@@ -81,15 +105,39 @@ The second worst SLI is one that alerts constantly during normal operation. Aler
 
 Before adopting any metric as an SLI, run it through these questions:
 
-| Criterion | Question | Why It Matters |
-|-----------|----------|----------------|
-| User-facing | Does it measure what users actually experience? | Internal metrics often hide user pain |
-| Measurable | Can we collect this data reliably at all times? | Can't set objectives without consistent data |
-| Specific | Does it target a single failure mode? | Composite metrics hide root causes |
-| Actionable | Can we improve it when it degrades? | Unactionable metrics cause learned helplessness |
-| Understandable | Can non-engineers grasp what it means? | Stakeholder buy-in requires clarity |
-
-Table: SLI evaluation criteria.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Criterion', 'Question', 'Why It Matters'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'User-facing',
+          td: ['Does it measure what users actually experience?', 'Internal metrics often hide user pain'],
+        },
+        {
+          th: 'Measurable',
+          td: ['Can we collect this data reliably at all times?', "Can't set objectives without consistent data"],
+        },
+        {
+          th: 'Specific',
+          td: ['Does it target a single failure mode?', 'Composite metrics hide root causes'],
+        },
+        {
+          th: 'Actionable',
+          td: ['Can we improve it when it degrades?', 'Unactionable metrics cause learned helplessness'],
+        },
+        {
+          th: 'Understandable',
+          td: ['Can non-engineers grasp what it means?', 'Stakeholder buy-in requires clarity'],
+        },
+      ],
+    },
+    figure: 'SLI evaluation criteria.',
+  }}
+/>
 
 ### Common SLI Anti-Patterns
 
@@ -271,13 +319,31 @@ Most services have multiple SLOs, which means multiple budgets to track. A servi
 
 These budgets aren't independent. A single incident can consume from multiple budgets simultaneously. A database outage might consume availability budget (service returning errors), latency budget (slow queries during failover), and error rate budget (failed requests during recovery). One bad hour can blow multiple budgets at once.
 
-| SLO Type | Target | Monthly Budget | What Consumes It |
-|----------|--------|----------------|------------------|
-| Availability | 99.9% | 43 minutes downtime | Outages, bad deployments, maintenance windows |
-| Latency (P95) | < 200ms | 5% slow requests allowed | Traffic spikes, database issues, cold starts |
-| Error Rate | < 0.1% | 1 in 1000 requests can fail | Bugs, dependency failures, malformed input |
-
-Table: Common SLO types and their error budgets.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['SLO Type', 'Target', 'Monthly Budget', 'What Consumes It'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Availability',
+          td: ['99.9%', '43 minutes downtime', 'Outages, bad deployments, maintenance windows'],
+        },
+        {
+          th: 'Latency (P95)',
+          td: ['< 200ms', '5% slow requests allowed', 'Traffic spikes, database issues, cold starts'],
+        },
+        {
+          th: 'Error Rate',
+          td: ['< 0.1%', '1 in 1000 requests can fail', 'Bugs, dependency failures, malformed input'],
+        },
+      ],
+    },
+    figure: 'Common SLO types and their error budgets.',
+  }}
+/>
 
 Track the tightest budget as your primary constraint. If your availability budget is healthy but your latency budget is nearly exhausted, you still need to slow down—users are suffering even if the service is technically "up."
 
@@ -297,9 +363,8 @@ Traditional threshold alerts ("error rate > 1%") catch acute incidents but miss 
 
 You need two types of burn rate alerts:
 
-__Fast burn alerts__ catch acute incidents—a deployment gone wrong, a dependency outage, a traffic spike that overwhelms capacity. These consume budget rapidly. A typical fast burn alert fires when you'd consume 2% of your monthly budget in 1 hour. The math: 2% of a 30-day budget is 0.6 days (14.4 hours), so consuming that in 1 hour means you're burning at 14.4x the sustainable rate.
-
-__Slow burn alerts__ catch chronic degradation—a memory leak that causes occasional timeouts, a flaky dependency that fails 0.5% of requests, a queue that backs up during peak hours. These never trigger traditional alerts but steadily drain budget. A typical slow burn alert fires when you'd consume 5% of monthly budget in 6 hours.
+- __Fast burn alerts__ catch acute incidents—a deployment gone wrong, a dependency outage, a traffic spike that overwhelms capacity. These consume budget rapidly. A typical fast burn alert fires when you'd consume 2% of your monthly budget in 1 hour. The math: 2% of a 30-day budget is 0.6 days (14.4 hours), so consuming that in 1 hour means you're burning at 14.4x the sustainable rate.
+- __Slow burn alerts__ catch chronic degradation—a memory leak that causes occasional timeouts, a flaky dependency that fails 0.5% of requests, a queue that backs up during peak hours. These never trigger traditional alerts but steadily drain budget. A typical slow burn alert fires when you'd consume 5% of monthly budget in 6 hours.
 
 ```yaml
 # prometheus-alerts.yaml
@@ -341,15 +406,39 @@ An error budget without a policy is just a dashboard. The policy defines what ha
 
 Define clear thresholds and the actions that trigger at each level. Write these down, get stakeholder agreement, and publish them where everyone can see.
 
-| Budget Remaining | Status | What Changes |
-|------------------|--------|--------------|
-| > 50% | Green | Normal velocity. Feature work prioritized. Deploy at will. |
-| 25% - 50% | Yellow | Increased scrutiny. Reliability work gets equal priority. Review risky changes. |
-| 10% - 25% | Orange | Feature freeze for high-risk changes. SRE approval required for deployments. |
-| 0% - 10% | Red | Complete feature freeze. Only reliability improvements and critical fixes deployed. |
-| Exhausted | Black | Emergency measures. VP approval required for any deployment. Incident review mandatory. |
-
-Table: Error budget policy thresholds and corresponding actions.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Budget Remaining', 'Status', 'What Changes'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '> 50%',
+          td: ['Green', 'Normal velocity. Feature work prioritized. Deploy at will.'],
+        },
+        {
+          th: '25% - 50%',
+          td: ['Yellow', 'Increased scrutiny. Reliability work gets equal priority. Review risky changes.'],
+        },
+        {
+          th: '10% - 25%',
+          td: ['Orange', 'Feature freeze for high-risk changes. SRE approval required for deployments.'],
+        },
+        {
+          th: '0% - 10%',
+          td: ['Red', 'Complete feature freeze. Only reliability improvements and critical fixes deployed.'],
+        },
+        {
+          th: 'Exhausted',
+          td: ['Black', 'Emergency measures. VP approval required for any deployment. Incident review mandatory.'],
+        },
+      ],
+    },
+    figure: 'Error budget policy thresholds and corresponding actions.',
+  }}
+/>
 
 The specific thresholds and actions will vary by organization and service criticality. A payment system might trigger Orange at 30% remaining; an internal tool might not freeze features until budget is exhausted. The important thing is having agreed-upon rules before you need them.
 
@@ -436,12 +525,27 @@ Weekly budget status updates accomplish two things: they keep everyone informed 
 
 A good status update covers three things: current state, planned risk, and projected outcome. Here's what the current state portion looks like for a payment API with two SLOs:
 
-| Metric | Target | Current | Budget Used | Status |
-|--------|--------|---------|-------------|--------|
-| Availability | 99.9% | 99.95% | 15% | Healthy |
-| Latency P99 | 200ms | 180ms | 10% | Healthy |
-
-Table: Weekly error budget status for payment-api (30-day rolling window).
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'Target', 'Current', 'Budget Used', 'Status'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Availability',
+          td: ['99.9%', '99.95%', '15%', 'Healthy'],
+        },
+        {
+          th: 'Latency P99',
+          td: ['200ms', '180ms', '10%', 'Healthy'],
+        },
+      ],
+    },
+    figure: 'Weekly error budget status for payment-api (30-day rolling window).',
+  }}
+/>
 
 Below that, list planned budget consumption for the coming week: a database migration on Tuesday (~10% estimated), a feature flag rollout on Thursday (~5% estimated). With the current 15% used (taking the higher of the two SLO budgets as the constraint), you have 85% remaining. After 15% planned consumption, you'll end the week around 70%.
 
@@ -457,16 +561,43 @@ Send these updates to a consistent audience: engineering leadership, product man
 
 Teams without observability often have more data than they realize. Before adding any new instrumentation, inventory what you already collect.
 
-| Source | What It Provides | SLIs Possible |
-|--------|------------------|---------------|
-| Access logs (nginx, ALB) | Request count by status, response time | Availability, Latency |
-| Application logs | Error messages, business logic failures | Error rate, Quality |
-| Cloud provider metrics | Request counts, latency percentiles | Availability, Latency |
-| Database slow query log | Queries exceeding threshold | Latency contribution |
-| CDN logs (CloudFront, Fastly) | Edge response times, cache hit rates | End-user latency |
-| APM tools (if present) | Transaction traces, error rates | All categories |
-
-Table: Common existing data sources and the SLIs they enable.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Source', 'What It Provides', 'SLIs Possible'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Access logs (nginx, ALB)',
+          td: ['Request count by status, response time', 'Availability, Latency'],
+        },
+        {
+          th: 'Application logs',
+          td: ['Error messages, business logic failures', 'Error rate, Quality'],
+        },
+        {
+          th: 'Cloud provider metrics',
+          td: ['Request counts, latency percentiles', 'Availability, Latency'],
+        },
+        {
+          th: 'Database slow query log',
+          td: ['Queries exceeding threshold', 'Latency contribution'],
+        },
+        {
+          th: 'CDN logs (CloudFront, Fastly)',
+          td: ['Edge response times, cache hit rates', 'End-user latency'],
+        },
+        {
+          th: 'APM tools (if present)',
+          td: ['Transaction traces, error rates', 'All categories'],
+        },
+      ],
+    },
+    figure: 'Common existing data sources and the SLIs they enable.',
+  }}
+/>
 
 Nginx access logs alone can power availability and latency SLIs. Parse them to count requests by status code (availability) and extract response times (latency). It's not as elegant as Prometheus metrics, but it's data you already have.
 

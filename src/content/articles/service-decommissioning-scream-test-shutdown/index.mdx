@@ -17,13 +17,10 @@ The default is always "leave it running" because turning something off requires 
 
 A well-designed scream test has four phases, each lasting about a week. The goal is progressive degradation that surfaces dependencies without causing lasting damage.
 
-_Phase 1: Soft degradation._ Add latency to every request—start at 100ms, increase to 500ms, then 1 second. Services that depend on you in their critical path will start seeing timeouts and SLA violations. Their monitoring should catch it. If nobody notices 1 second of added latency, that's a strong signal the dependency isn't critical.
-
-_Phase 2: Intermittent failures._ Start failing a percentage of requests with 503 Service Unavailable and a Retry-After header. Begin at 1%, move to 5%, then 10%. Well-behaved clients will retry and succeed. Poorly-behaved clients will surface as consumer error rates spike. Either way, you learn who's calling you.
-
-_Phase 3: Hard shutdown._ Return 410 Gone for all requests. This is HTTP's way of saying "this resource existed but doesn't anymore, and it's not coming back." Log every caller at this stage—anyone still hitting you after weeks of deprecation warnings either isn't paying attention or has an integration nobody knew about.
-
-_Phase 4: Complete removal._ After a quiet period of two weeks, remove the service from the load balancer and delete the compute resources. Keep data archives for now—you're not done until you're sure nobody's screaming.
+- _Phase 1: Soft degradation._ Add latency to every request—start at 100ms, increase to 500ms, then 1 second. Services that depend on you in their critical path will start seeing timeouts and SLA violations. Their monitoring should catch it. If nobody notices 1 second of added latency, that's a strong signal the dependency isn't critical.
+- _Phase 2: Intermittent failures._ Start failing a percentage of requests with 503 Service Unavailable and a Retry-After header. Begin at 1%, move to 5%, then 10%. Well-behaved clients will retry and succeed. Poorly-behaved clients will surface as consumer error rates spike. Either way, you learn who's calling you.
+- _Phase 3: Hard shutdown._ Return 410 Gone for all requests. This is HTTP's way of saying "this resource existed but doesn't anymore, and it's not coming back." Log every caller at this stage—anyone still hitting you after weeks of deprecation warnings either isn't paying attention or has an integration nobody knew about.
+- _Phase 4: Complete removal._ After a quiet period of two weeks, remove the service from the load balancer and delete the compute resources. Keep data archives for now—you're not done until you're sure nobody's screaming.
 
 <Callout type="info">
 Send deprecation notices across every communication channel 2-4 weeks before starting Phase 1. Email, Slack, team standups—anywhere consumers might see it. Some will self-identify, reducing surprises during the test.
@@ -49,14 +46,35 @@ Your access logs and service mesh telemetry already contain the information you 
 
 For each caller, classify the traffic pattern. This tells you what kind of dependency you're dealing with:
 
-| Pattern | Characteristics | Implication |
-|---------|-----------------|-------------|
-| Scheduled | Very regular intervals (±10% variance) | Batch job, can probably tolerate downtime windows |
-| Batch processing | Bursts followed by silence | ETL pipeline, may only run monthly |
-| Real-time dependency | Consistent throughout the day | Critical path, needs careful migration |
-| Irregular | No discernible pattern | Often human-triggered or debug traffic |
-
-Table: Traffic patterns reveal the nature of consumer dependencies.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Pattern', 'Characteristics', 'Implication'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Scheduled',
+          td: ['Very regular intervals (±10% variance)', 'Batch job, can probably tolerate downtime windows'],
+        },
+        {
+          th: 'Batch processing',
+          td: ['Bursts followed by silence', 'ETL pipeline, may only run monthly'],
+        },
+        {
+          th: 'Real-time dependency',
+          td: ['Consistent throughout the day', 'Critical path, needs careful migration'],
+        },
+        {
+          th: 'Irregular',
+          td: ['No discernible pattern', 'Often human-triggered or debug traffic'],
+        },
+      ],
+    },
+    figure: 'Traffic patterns reveal the nature of consumer dependencies.',
+  }}
+/>
 
 Skip callers with fewer than one request per day—those are usually health checks, monitoring probes, or one-off debugging sessions. Focus your energy on high-volume consumers and those with real-time patterns.
 
@@ -74,13 +92,10 @@ Trace sampling can miss low-volume callers. If you sample at 1%, a consumer that
 
 With consumers identified and the scream test complete, you're ready for the actual shutdown. A checklist prevents the "oh no, we forgot to revoke the service account credentials" moment three weeks later.
 
-_Pre-shutdown:_ Confirm all known consumers migrated. Verify data backup completed. Document and test the rollback plan. Silence monitoring alerts.
-
-_Shutdown:_ Remove from load balancer. Scale deployment to zero. Update DNS if applicable. Stop scheduled jobs. Revoke service account credentials.
-
-_Post-shutdown:_ Monitor for 24 hours for unexpected errors in dependent services. Confirm no traffic attempts in logs. Update service catalog to show decommissioned status.
-
-_Cleanup (after 30-day grace period):_ Delete Kubernetes resources. Archive or delete database per retention policy. Remove CI/CD pipelines. Archive source code repository—don't delete it, you might need to reference how something worked later.
+- _Pre-shutdown:_ Confirm all known consumers migrated. Verify data backup completed. Document and test the rollback plan. Silence monitoring alerts.
+- _Shutdown:_ Remove from load balancer. Scale deployment to zero. Update DNS if applicable. Stop scheduled jobs. Revoke service account credentials.
+- _Post-shutdown:_ Monitor for 24 hours for unexpected errors in dependent services. Confirm no traffic attempts in logs. Update service catalog to show decommissioned status.
+- _Cleanup (after 30-day grace period):_ Delete Kubernetes resources. Archive or delete database per retention policy. Remove CI/CD pipelines. Archive source code repository—don't delete it, you might need to reference how something worked later.
 
 Always run shutdown scripts with dry-run mode first. The few minutes this adds is worth it compared to the hours you'd spend fixing a botched shutdown.
 

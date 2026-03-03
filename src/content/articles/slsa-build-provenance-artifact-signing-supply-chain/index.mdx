@@ -33,15 +33,39 @@ Before investing in countermeasures, it helps to understand the attack surface. 
 
 [SLSA](https://slsa.dev) (Supply-chain Levels for Software Artifacts, pronounced "salsa") is a framework that addresses a specific slice of this problem. It focuses on _provenance_—proving that an artifact came from a specific source through a specific build process. This matters because it lets you verify that what you're deploying matches what you reviewed.
 
-| SLSA Addresses | SLSA Does NOT Address |
-|----------------|----------------------|
-| Unauthorized source changes | Bugs in legitimate code |
-| Build tampering | Vulnerabilities in dependencies |
-| Missing provenance | Social engineering |
-| Non-reproducible builds | Compromised developer machines |
-| Unsigned artifacts | Insider threats with legitimate access |
-
-_Table: SLSA's protection scope. The framework proves provenance and build integrity, not code quality or dependency safety._
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['SLSA Addresses', 'SLSA Does NOT Address'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Unauthorized source changes',
+          td: ['Bugs in legitimate code'],
+        },
+        {
+          th: 'Build tampering',
+          td: ['Vulnerabilities in dependencies'],
+        },
+        {
+          th: 'Missing provenance',
+          td: ['Social engineering'],
+        },
+        {
+          th: 'Non-reproducible builds',
+          td: ['Compromised developer machines'],
+        },
+        {
+          th: 'Unsigned artifacts',
+          td: ['Insider threats with legitimate access'],
+        },
+      ],
+    },
+    figure: "SLSA's protection scope. The framework proves provenance and build integrity, not code quality or dependency safety.",
+  }}
+/>
 
 SLSA defines four levels of increasing rigor, but most teams should target Level 2. It provides authenticated provenance—the build service signs an attestation linking your artifact to a specific commit—without requiring significant process changes. An attacker who compromises your source repository can't forge provenance claiming the artifact came from a different commit. That's a meaningful security improvement for a few hours of configuration work.
 
@@ -113,7 +137,7 @@ jobs:
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
 ```
-_Code: GitHub Actions workflow for building and keyless-signing a container image. The `id-token: write` permission enables OIDC authentication with Sigstore._
+Code: GitHub Actions workflow for building and keyless-signing a container image. The `id-token: write` permission enables OIDC authentication with Sigstore._
 
 That's it—about 15 minutes of configuration for cryptographic signing on every release. The `--yes` flag confirms you want keyless signing. The signature includes the workflow identity—anyone verifying can see exactly which GitHub Actions workflow signed the image, down to the specific workflow file and git ref.
 
@@ -125,7 +149,7 @@ cosign verify ghcr.io/myorg/myapp:v1.0.0 \
   --certificate-identity-regexp "https://github.com/myorg/myapp/.github/workflows/.*@refs/tags/v.*" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
-_Code: Verifying a container signature with Cosign. The identity regexp matches any workflow in the repository running on a version tag._
+Code: Verifying a container signature with Cosign. The identity regexp matches any workflow in the repository running on a version tag._
 
 If the signature doesn't exist or the identity doesn't match, verification fails with a clear error message.
 
@@ -146,7 +170,7 @@ For CI/CD pipelines, add a verification gate before any deployment step. The pat
       --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
       ghcr.io/${{ github.repository }}:${{ inputs.image_tag }}
 ```
-_Code: Verification gate in a deployment workflow. This blocks promotion if the signature is missing or from an unexpected identity._
+Code: Verification gate in a deployment workflow. This blocks promotion if the signature is missing or from an unexpected identity._
 
 The self-verification pattern—verifying your own signature immediately after signing—catches configuration problems early. If your signing workflow can't verify its own output, no one else can either.
 
@@ -173,11 +197,8 @@ What I've covered here—keyless signing with Cosign and basic verification gate
 From here, you can layer in additional protections. Here's what each provides:
 
 - _SLSA provenance generators_ create cryptographically-signed attestations linking artifacts to specific commits and build configurations. The [`slsa-framework`](https://github.com/slsa-framework/slsa-github-generator) organization provides official generators for GitHub Actions.
-
 - _SBOM integration_ adds a Software Bill of Materials to your images, listing every dependency. When a new CVE drops, you can answer "are we affected?" in minutes.
-
 - _Kubernetes admission control_ with the Sigstore Policy Controller makes verification automatic and mandatory at the cluster level—no deployment workflow changes needed.
-
 - _Level 3 hardening_ introduces two-person review requirements and isolated build environments for your most security-critical components.
 
 Each step provides incremental improvement. A signed artifact with basic provenance is infinitely more secure than an unsigned one. Don't let perfect be the enemy of good.

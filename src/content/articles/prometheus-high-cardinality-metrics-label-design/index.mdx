@@ -30,13 +30,31 @@ Every unique combination of metric name and label values creates a separate time
 
 Consider a basic HTTP metrics setup: 5 HTTP methods × 20 endpoints × 10 status codes = 1,000 series. Manageable. Add a `user_id` label with 100,000 possible values? Now you're looking at 10 billion potential series. The following table shows how quickly labels multiply:
 
-| Design | Labels | Values per Label | Total Series | Approx. Memory |
-|--------|--------|------------------|--------------|----------------|
-| Minimal | method, handler, status_class | 5 × 20 × 4 | 400 | ~4 MB |
-| Reasonable | + environment, region | × 3 × 4 | 4,800 | ~48 MB |
-| Dangerous | + user_id | × 100,000 | 480,000,000 | ~4.8 TB[^1] |
-
-Table: Cardinality explosion by label design.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Design', 'Labels', 'Values per Label', 'Total Series', 'Approx. Memory'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Minimal',
+          td: ['method, handler, status_class', '5 × 20 × 4', '400', '~4 MB'],
+        },
+        {
+          th: 'Reasonable',
+          td: ['+ environment, region', '× 3 × 4', '4,800', '~48 MB'],
+        },
+        {
+          th: 'Dangerous',
+          td: ['+ user_id', '× 100,000', '480,000,000', '~4.8 TB[^1]'],
+        },
+      ],
+    },
+    figure: 'Cardinality explosion by label design.',
+  }}
+/>
 
 [^1]: You'll never reach 4.8 TB—Prometheus will OOM long before. That's the point: unbounded labels create theoretical cardinality your infrastructure can't survive.
 
@@ -50,27 +68,75 @@ The difference between a good label and a bad one comes down to one question: _c
 
 If you can list them exhaustively, it's probably safe. If the value set grows with your data—users, requests, sessions—it's toxic.
 
-| Label | Values | Cardinality | Why It Works |
-|-------|--------|-------------|--------------|
-| `http_method` | GET, POST, PUT, DELETE, PATCH | ~7 | Fixed set defined by HTTP spec |
-| `environment` | production, staging, development | 3 | You control how many environments exist |
-| `status_class` | 2xx, 3xx, 4xx, 5xx | 4 | Bucketed from individual codes |
-| `region` | us-east-1, us-west-2, eu-west-1 | ~10 | Bounded by your infrastructure footprint |
-| `service` | api, worker, scheduler | ~20 | You control how many services you deploy |
-
-Table: Good label examples with bounded cardinality.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Label', 'Values', 'Cardinality', 'Why It Works'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '`http_method`',
+          td: ['GET, POST, PUT, DELETE, PATCH', '~7', 'Fixed set defined by HTTP spec'],
+        },
+        {
+          th: '`environment`',
+          td: ['production, staging, development', '3', 'You control how many environments exist'],
+        },
+        {
+          th: '`status_class`',
+          td: ['2xx, 3xx, 4xx, 5xx', '4', 'Bucketed from individual codes'],
+        },
+        {
+          th: '`region`',
+          td: ['us-east-1, us-west-2, eu-west-1', '~10', 'Bounded by your infrastructure footprint'],
+        },
+        {
+          th: '`service`',
+          td: ['api, worker, scheduler', '~20', 'You control how many services you deploy'],
+        },
+      ],
+    },
+    figure: 'Good label examples with bounded cardinality.',
+  }}
+/>
 
 Bad labels grow without bound:
 
-| Label | Problem | Cardinality | Alternative |
-|-------|---------|-------------|-------------|
-| `user_id` | Grows with user base | Millions | Traces, logs |
-| `request_id` | Unique per request | Infinite | Exemplars |
-| `client_ip` | Huge address space | Billions | Log analysis |
-| `error_message` | Free-form strings | Unbounded | Error codes (bucketed) |
-| `email` | Unique per user, PII risk | Millions | Don't store in metrics |
-
-Table: Bad label examples to avoid.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Label', 'Problem', 'Cardinality', 'Alternative'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '`user_id`',
+          td: ['Grows with user base', 'Millions', 'Traces, logs'],
+        },
+        {
+          th: '`request_id`',
+          td: ['Unique per request', 'Infinite', 'Exemplars'],
+        },
+        {
+          th: '`client_ip`',
+          td: ['Huge address space', 'Billions', 'Log analysis'],
+        },
+        {
+          th: '`error_message`',
+          td: ['Free-form strings', 'Unbounded', 'Error codes (bucketed)'],
+        },
+        {
+          th: '`email`',
+          td: ['Unique per user, PII risk', 'Millions', "Don't store in metrics"],
+        },
+      ],
+    },
+    figure: 'Bad label examples to avoid.',
+  }}
+/>
 
 The decision framework is straightforward. First, ask: is the value set bounded and known? If no, stop—use traces or logs instead. Second: will you aggregate by this label? If no, you're adding cardinality without value. Third: is it useful for alerting or SLOs? If it passes all three checks, it's a good label.
 

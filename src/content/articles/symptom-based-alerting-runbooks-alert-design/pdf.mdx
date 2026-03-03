@@ -50,17 +50,47 @@ Breaking this cycle requires three changes. First, alert on _symptoms_ that affe
 
 You can't fix what you don't measure. Before optimizing your alerts, establish baseline metrics that reveal whether your alerting helps or hurts.
 
-| Metric | Definition | Healthy Target | Warning Sign |
-|--------|------------|----------------|--------------|
-| Alert volume | Alerts per on-call shift | < 5 pages/day | > 10 pages/day |
-| Actionable rate | % alerts requiring human action | > 80% | < 50% |
-| False positive rate | % alerts with no real impact | < 10% | > 30% |
-| MTTA | Time to acknowledge | < 5 min | > 15 min |
-| MTTR | Time from alert to resolution | < 30 min | > 2 hours |
-| Duplicate rate | % alerts for same incident | < 10% | > 25% |
-| Snooze rate | % alerts snoozed without action | < 5% | > 20% |
-
-Table: Alert quality metrics. If your on-call receives more than five pages per day on average, you have an alerting problem—not a reliability problem.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'Definition', 'Healthy Target', 'Warning Sign'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Alert volume',
+          td: ['Alerts per on-call shift', '< 5 pages/day', '> 10 pages/day'],
+        },
+        {
+          th: 'Actionable rate',
+          td: ['% alerts requiring human action', '> 80%', '< 50%'],
+        },
+        {
+          th: 'False positive rate',
+          td: ['% alerts with no real impact', '< 10%', '> 30%'],
+        },
+        {
+          th: 'MTTA',
+          td: ['Time to acknowledge', '< 5 min', '> 15 min'],
+        },
+        {
+          th: 'MTTR',
+          td: ['Time from alert to resolution', '< 30 min', '> 2 hours'],
+        },
+        {
+          th: 'Duplicate rate',
+          td: ['% alerts for same incident', '< 10%', '> 25%'],
+        },
+        {
+          th: 'Snooze rate',
+          td: ['% alerts snoozed without action', '< 5%', '> 20%'],
+        },
+      ],
+    },
+    figure: 'Alert quality metrics. If your on-call receives more than five pages per day on average, you have an alerting problem—not a reliability problem.',
+  }}
+/>
 
 The actionable rate is the most important metric. If fewer than 80% of your alerts require human intervention to resolve, you're training your team to ignore the pager. Track this weekly and treat declining actionable rates as a P2 issue.
 
@@ -76,11 +106,9 @@ The most common alerting mistake is alerting on _causes_ rather than _symptoms_.
 
 Consider three classic cause-based alerts and their symptom-based alternatives:
 
-**High CPU usage** fires when `cpu_usage > 90%`. But CPU can spike during legitimate load, garbage collection, or batch jobs without any user impact. The symptom-based alternative—_elevated request latency_—only fires when users are actually affected. Many different causes lead to latency; one symptom alert catches them all.
-
-**Low disk space** fires when `disk_free < 10%`. But this triggers on expected growth, archival systems, and cold storage that's supposed to be full. The symptom-based alternative—_write failures increasing_—only fires when disk space is causing actual failures. Keep disk space as a ticket for business hours, not a 2 AM page.
-
-**Database connections high** fires when connections exceed 80% of max. But connection pools often run hot without issues. The symptom-based alternative—_query timeouts_—only fires when connection exhaustion impacts queries. Connection monitoring becomes a dashboard metric, not an alert.
+- **High CPU usage** fires when `cpu_usage > 90%`. But CPU can spike during legitimate load, garbage collection, or batch jobs without any user impact. The symptom-based alternative—_elevated request latency_—only fires when users are actually affected. Many different causes lead to latency; one symptom alert catches them all.
+- **Low disk space** fires when `disk_free < 10%`. But this triggers on expected growth, archival systems, and cold storage that's supposed to be full. The symptom-based alternative—_write failures increasing_—only fires when disk space is causing actual failures. Keep disk space as a ticket for business hours, not a 2 AM page.
+- **Database connections high** fires when connections exceed 80% of max. But connection pools often run hot without issues. The symptom-based alternative—_query timeouts_—only fires when connection exhaustion impacts queries. Connection monitoring becomes a dashboard metric, not an alert.
 
 The pattern: causes are _potential_ problems; symptoms are _actual_ problems. Page on symptoms, ticket on causes.
 
@@ -125,14 +153,35 @@ The math: if your monthly budget is 0.1% errors and you're currently seeing 1.44
 
 This framing changes how you think about alerts. A 1% error rate might sound scary in isolation, but if your SLO allows 0.1% errors, that's a 10x burn rate—you have 3 days before budget exhaustion. Urgent, but not a 2 AM page. A 0.3% error rate is only 3x burn, giving you 10 days. That's a ticket for business hours.
 
-| Burn Rate | Budget Exhaustion | Appropriate Response |
-|-----------|-------------------|----------------------|
-| 14.4x | 2 hours | Page immediately |
-| 6x | 5 hours | Page during waking hours |
-| 3x | 10 days | Create ticket |
-| 1x | 30 days | Dashboard metric only |
-
-Table: Burn rate to response mapping. The exhaustion timeline determines urgency, not the raw error rate.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Burn Rate', 'Budget Exhaustion', 'Appropriate Response'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '14.4x',
+          td: ['2 hours', 'Page immediately'],
+        },
+        {
+          th: '6x',
+          td: ['5 hours', 'Page during waking hours'],
+        },
+        {
+          th: '3x',
+          td: ['10 days', 'Create ticket'],
+        },
+        {
+          th: '1x',
+          td: ['30 days', 'Dashboard metric only'],
+        },
+      ],
+    },
+    figure: 'Burn rate to response mapping. The exhaustion timeline determines urgency, not the raw error rate.',
+  }}
+/>
 
 ```yaml title="prometheus/rules/slo-alerts.yml"
 groups:
@@ -175,13 +224,31 @@ Single-window alerts have a problem: short windows catch spikes but also false-p
 
 For a 14.4x burn rate alert, require both the 5-minute _and_ 1-hour windows to show excessive errors. This prevents two failure modes: a 1-minute spike won't trigger if the 1-hour window is healthy, and a long-resolved issue won't keep alerting if the short window has recovered.
 
-| Short Window | Long Window | Burn Rate | Severity |
-|--------------|-------------|-----------|----------|
-| 5m | 1h | 14.4x | Critical |
-| 30m | 6h | 6x | Critical |
-| 2h | 24h | 3x | Warning |
-
-Table: Multi-window burn rate configurations. Both windows must breach for the alert to fire.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Short Window', 'Long Window', 'Burn Rate', 'Severity'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '5m',
+          td: ['1h', '14.4x', 'Critical'],
+        },
+        {
+          th: '30m',
+          td: ['6h', '6x', 'Critical'],
+        },
+        {
+          th: '2h',
+          td: ['24h', '3x', 'Warning'],
+        },
+      ],
+    },
+    figure: 'Multi-window burn rate configurations. Both windows must breach for the alert to fire.',
+  }}
+/>
 
 Google's [SRE book](https://sre.google/workbook/alerting-on-slos/) calls this "multi-window multi-burn-rate alerting," and it's the gold standard for SLO-based alerts. Note that 1x burn rate doesn't appear here—if you're only burning at the sustainable rate, that's a dashboard metric, not an alert.
 
@@ -205,14 +272,35 @@ Not all metrics make good alert candidates. The four golden signals—latency, t
 
 **Saturation** is the trickiest signal. High CPU or memory usage alone doesn't warrant a page—many systems run hot by design. Alert on saturation only when it's _causing_ symptoms: when queue depth correlates with latency spikes, or when memory pressure triggers OOM kills. Keep raw saturation metrics on dashboards for diagnosis, not as alert triggers.
 
-| Signal | Alert On | Don't Alert On | Page Threshold | Ticket Threshold |
-|--------|----------|----------------|----------------|------------------|
-| Latency | P99 exceeding SLO | Average latency | > 2x SLO for 5min | > 1.5x SLO for 30min |
-| Traffic | Drops > 50% from prediction | High traffic | < 50% for 10min | < 70% for 1 hour |
-| Errors | Burn rate against budget | Individual errors | 14x burn rate | 3x burn rate |
-| Saturation | When causing symptoms | High usage alone | Correlation with symptoms | Disk > 85% growing 1%/day |
-
-Table: Golden signals as alert candidates. The key insight is that saturation only matters when it causes the other three signals to degrade.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Signal', 'Alert On', "Don't Alert On", 'Page Threshold', 'Ticket Threshold'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Latency',
+          td: ['P99 exceeding SLO', 'Average latency', '> 2x SLO for 5min', '> 1.5x SLO for 30min'],
+        },
+        {
+          th: 'Traffic',
+          td: ['Drops > 50% from prediction', 'High traffic', '< 50% for 10min', '< 70% for 1 hour'],
+        },
+        {
+          th: 'Errors',
+          td: ['Burn rate against budget', 'Individual errors', '14x burn rate', '3x burn rate'],
+        },
+        {
+          th: 'Saturation',
+          td: ['When causing symptoms', 'High usage alone', 'Correlation with symptoms', 'Disk > 85% growing 1%/day'],
+        },
+      ],
+    },
+    figure: 'Golden signals as alert candidates. The key insight is that saturation only matters when it causes the other three signals to degrade.',
+  }}
+/>
 
 ### Absence of Data Alerts
 
@@ -323,15 +411,39 @@ Code: Dynamic threshold examples using standard deviation and week-over-week com
 
 Each approach has tradeoffs:
 
-| Threshold Type | Best For | Weakness |
-|---------------|----------|----------|
-| Static | Stable metrics with known good values | Doesn't adapt to growth |
-| Stddev-based | Metrics with normal distribution | Sensitive to outliers |
-| Percentile-based | Metrics with skewed distribution | Slow to adapt to new baseline |
-| Time-aware | Metrics with daily/weekly patterns | Requires sufficient history |
-| ML-based | Complex patterns | Black box, hard to debug |
-
-Table: Dynamic threshold approaches. Start with static thresholds and add dynamic logic only for metrics with predictable patterns.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Threshold Type', 'Best For', 'Weakness'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Static',
+          td: ['Stable metrics with known good values', "Doesn't adapt to growth"],
+        },
+        {
+          th: 'Stddev-based',
+          td: ['Metrics with normal distribution', 'Sensitive to outliers'],
+        },
+        {
+          th: 'Percentile-based',
+          td: ['Metrics with skewed distribution', 'Slow to adapt to new baseline'],
+        },
+        {
+          th: 'Time-aware',
+          td: ['Metrics with daily/weekly patterns', 'Requires sufficient history'],
+        },
+        {
+          th: 'ML-based',
+          td: ['Complex patterns', 'Black box, hard to debug'],
+        },
+      ],
+    },
+    figure: 'Dynamic threshold approaches. Start with static thresholds and add dynamic logic only for metrics with predictable patterns.',
+  }}
+/>
 
 <Callout type="info">
 Dynamic thresholds add complexity. Use them for metrics with clear patterns (traffic with weekly cycles) but stick with static thresholds for metrics that should have absolute bounds (error rate should never exceed X%).
@@ -345,17 +457,12 @@ An alert without a runbook is a puzzle without instructions. At 2 AM, your on-ca
 
 A good runbook follows a consistent structure that an engineer can navigate under pressure.
 
-**Metadata** comes first: the alert name, severity, owner, when the runbook was last updated, and how often it should be reviewed. Stale runbooks are worse than no runbook—they provide false confidence while pointing to deprecated tools or outdated procedures.
-
-**Summary** gives the responder immediate context: what users are experiencing, how long resolution typically takes, and who to escalate to. This section should be readable in 30 seconds and help the engineer decide whether they can handle this alone.
-
-**Diagnosis** provides the investigation toolkit: key questions to answer (is this affecting all endpoints or specific ones?), dashboard links, log queries, and a table of common causes ranked by likelihood. Start with the most probable cause.
-
-**Remediation** gives step-by-step instructions with expected results. Each step should include the command to run and what success looks like. If the fix doesn't produce the expected result, the engineer knows to move to the next step or escalate.
-
-**Escalation** criteria must be explicit: escalate if not resolved in X minutes, if error rate exceeds Y%, if it affects specific critical paths like payments. Include contact information—not just "page the DBA" but how to page them.
-
-**Post-incident** checklists ensure nothing gets forgotten: create the incident ticket, update the runbook if a new cause was discovered, schedule a post-mortem for P1/P2 incidents.
+- **Metadata** comes first: the alert name, severity, owner, when the runbook was last updated, and how often it should be reviewed. Stale runbooks are worse than no runbook—they provide false confidence while pointing to deprecated tools or outdated procedures.
+- **Summary** gives the responder immediate context: what users are experiencing, how long resolution typically takes, and who to escalate to. This section should be readable in 30 seconds and help the engineer decide whether they can handle this alone.
+- **Diagnosis** provides the investigation toolkit: key questions to answer (is this affecting all endpoints or specific ones?), dashboard links, log queries, and a table of common causes ranked by likelihood. Start with the most probable cause.
+- **Remediation** gives step-by-step instructions with expected results. Each step should include the command to run and what success looks like. If the fix doesn't produce the expected result, the engineer knows to move to the next step or escalate.
+- **Escalation** criteria must be explicit: escalate if not resolved in X minutes, if error rate exceeds Y%, if it affects specific critical paths like payments. Include contact information—not just "page the DBA" but how to page them.
+- **Post-incident** checklists ensure nothing gets forgotten: create the incident ticket, update the runbook if a new cause was discovered, schedule a post-mortem for P1/P2 incidents.
 
 Here's a complete example:
 
@@ -617,18 +724,51 @@ A simple review meeting agenda:
 
 Alerts should follow a defined lifecycle from proposal to retirement.
 
-| Phase | Activities | Owner |
-|-------|------------|-------|
-| Proposal | RFC with justification, runbook draft, threshold analysis | Developer |
-| Review | Team review for symptom-based design, noise assessment | Tech Lead |
-| Testing | Deploy to staging, validate fires correctly | Developer |
-| Deployment | Merge alert rule, publish runbook | Developer |
-| Monitoring | Track actionable rate, false positives | On-call team |
-| Tuning | Adjust thresholds based on data | Alert owner |
-| Review | Quarterly assessment, update or retire | Team |
-| Retirement | Remove alert, archive runbook | Alert owner |
-
-Table: Alert lifecycle phases. Every alert should have an owner responsible for its ongoing maintenance.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Phase', 'Activities', 'Owner'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Proposal',
+          td: ['RFC with justification, runbook draft, threshold analysis', 'Developer'],
+        },
+        {
+          th: 'Review',
+          td: ['Team review for symptom-based design, noise assessment', 'Tech Lead'],
+        },
+        {
+          th: 'Testing',
+          td: ['Deploy to staging, validate fires correctly', 'Developer'],
+        },
+        {
+          th: 'Deployment',
+          td: ['Merge alert rule, publish runbook', 'Developer'],
+        },
+        {
+          th: 'Monitoring',
+          td: ['Track actionable rate, false positives', 'On-call team'],
+        },
+        {
+          th: 'Tuning',
+          td: ['Adjust thresholds based on data', 'Alert owner'],
+        },
+        {
+          th: 'Review',
+          td: ['Quarterly assessment, update or retire', 'Team'],
+        },
+        {
+          th: 'Retirement',
+          td: ['Remove alert, archive runbook', 'Alert owner'],
+        },
+      ],
+    },
+    figure: 'Alert lifecycle phases. Every alert should have an owner responsible for its ongoing maintenance.',
+  }}
+/>
 
 Two signals indicate an alert should be retired:
 

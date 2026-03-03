@@ -26,13 +26,10 @@ State corruption isn't always obvious. Sometimes Terraform tells you directly wi
 
 The most common causes, roughly in order of frequency:
 
-__Interrupted applies__ happen when someone hits Ctrl+C during an apply, a network failure kills the connection, or CI times out. The cloud resource might be partially created, fully created, or not created at all — but state reflects whatever Terraform believed at the moment of interruption. You'll see plan showing unexpected changes, or attempting to create resources that already exist.
-
-__Concurrent modifications__ occur despite locking, usually because someone ran Terraform locally while CI was running, or two CI jobs targeted the same state due to misconfigured triggers. Look for "state serial mismatch" errors, or changes from one apply silently missing after another completes.
-
-__Manual state edits__ are tempting when you need to fix something quickly, but JSON is unforgiving. A missing comma, wrong type, or malformed resource address can corrupt the entire file. Any Terraform command will fail with parse errors.
-
-__Provider version mismatches__ happen when you upgrade providers without considering state compatibility. The provider's internal schema version might change, and state written by the old provider might not be readable by the new one. Watch for warnings about schema versions or unexpected replacement plans.
+- __Interrupted applies__ happen when someone hits Ctrl+C during an apply, a network failure kills the connection, or CI times out. The cloud resource might be partially created, fully created, or not created at all — but state reflects whatever Terraform believed at the moment of interruption. You'll see plan showing unexpected changes, or attempting to create resources that already exist.
+- __Concurrent modifications__ occur despite locking, usually because someone ran Terraform locally while CI was running, or two CI jobs targeted the same state due to misconfigured triggers. Look for "state serial mismatch" errors, or changes from one apply silently missing after another completes.
+- __Manual state edits__ are tempting when you need to fix something quickly, but JSON is unforgiving. A missing comma, wrong type, or malformed resource address can corrupt the entire file. Any Terraform command will fail with parse errors.
+- __Provider version mismatches__ happen when you upgrade providers without considering state compatibility. The provider's internal schema version might change, and state written by the old provider might not be readable by the new one. Watch for warnings about schema versions or unexpected replacement plans.
 
 When something seems wrong, start by ruling out configuration problems. Run `terraform validate` first — it checks HCL syntax and provider schema without touching state or making API calls. If validate passes but plan fails, you're dealing with a state issue, not a config issue.
 

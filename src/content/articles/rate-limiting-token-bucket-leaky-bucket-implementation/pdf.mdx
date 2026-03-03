@@ -37,13 +37,10 @@ Rate limits that work fine under normal load often become the bottleneck during 
 
 Rate limiting serves four distinct purposes, and conflating them leads to misconfigured systems.
 
-__Resource protection__ prevents individual clients from monopolizing shared resources. Without limits, one customer's bulk export can exhaust your database connection pool, causing errors for everyone else. CPU-intensive endpoints, memory-heavy operations, and database-bound queries all need protection from unbounded consumption.
-
-__Fairness__ ensures equitable access across clients. Large customers shouldn't crowd out small ones. Free-tier users shouldn't impact paying customers. Rate limits enforce the allocation you've decided is appropriate for each tier.
-
-__Abuse prevention__ stops malicious or buggy clients. Credential stuffing attacks, scraping attempts, and runaway retry loops all look like excessive request volume. Rate limiting slows these down enough to make attacks expensive and gives you time to respond.
-
-__Cost control__ caps expensive operations. Third-party API calls, ML inference requests, and storage operations have real costs. Without limits, a compromised API key or buggy client can generate surprise bills within hours.
+- __Resource protection__ prevents individual clients from monopolizing shared resources. Without limits, one customer's bulk export can exhaust your database connection pool, causing errors for everyone else. CPU-intensive endpoints, memory-heavy operations, and database-bound queries all need protection from unbounded consumption.
+- __Fairness__ ensures equitable access across clients. Large customers shouldn't crowd out small ones. Free-tier users shouldn't impact paying customers. Rate limits enforce the allocation you've decided is appropriate for each tier.
+- __Abuse prevention__ stops malicious or buggy clients. Credential stuffing attacks, scraping attempts, and runaway retry loops all look like excessive request volume. Rate limiting slows these down enough to make attacks expensive and gives you time to respond.
+- __Cost control__ caps expensive operations. Third-party API calls, ML inference requests, and storage operations have real costs. Without limits, a compromised API key or buggy client can generate surprise bills within hours.
 
 But rate limiting has limits. It _slows_ attacks; it doesn't prevent them. Determined attackers distribute across IPs and rotate credentials. Rate limiting buys time—authentication, authorization, and WAF rules provide actual security. Similarly, rate limiting _sheds_ load; it doesn't handle it. You still need scaling for legitimate traffic. And rate limiting _helps_ availability; it doesn't guarantee it. Backend failures still cause errors regardless of how well you've throttled incoming requests.
 
@@ -51,25 +48,50 @@ But rate limiting has limits. It _slows_ attacks; it doesn't prevent them. Deter
 
 Four algorithms dominate production rate limiting, each with different tradeoffs:
 
-| Algorithm | Mechanism | Burst Handling | Memory | Best For |
-| ----------- | ----------- | ---------------- | -------- | ---------- |
-| __Fixed Window__ | Count requests in time windows, reset at boundary | Poor (2x burst at boundaries) | Low (one counter per key) | Simple quotas |
-| __Sliding Window Log__ | Store timestamp of every request | Excellent | High (all timestamps) | Accuracy-critical, low volume |
-| __Sliding Window Counter__ | Weighted average of current and previous window | Good | Low (two counters per key) | Balance of accuracy and efficiency |
-| __Token Bucket__ | Tokens added at fixed rate, consumed per request | Excellent (configurable burst) | Low | API rate limiting |
-| __Leaky Bucket__ | Requests queue, processed at constant rate | Smooths all traffic | Medium (queue) | Traffic shaping |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Algorithm', 'Mechanism', 'Burst Handling', 'Memory', 'Best For'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '__Fixed Window__',
+          td: ['Count requests in time windows, reset at boundary', 'Poor (2x burst at boundaries)', 'Low (one counter per key)', 'Simple quotas'],
+        },
+        {
+          th: '__Sliding Window Log__',
+          td: ['Store timestamp of every request', 'Excellent', 'High (all timestamps)', 'Accuracy-critical, low volume'],
+        },
+        {
+          th: '__Sliding Window Counter__',
+          td: [
+            'Weighted average of current and previous window',
+            'Good',
+            'Low (two counters per key)',
+            'Balance of accuracy and efficiency',
+          ],
+        },
+        {
+          th: '__Token Bucket__',
+          td: ['Tokens added at fixed rate, consumed per request', 'Excellent (configurable burst)', 'Low', 'API rate limiting'],
+        },
+        {
+          th: '__Leaky Bucket__',
+          td: ['Requests queue, processed at constant rate', 'Smooths all traffic', 'Medium (queue)', 'Traffic shaping'],
+        },
+      ],
+    },
+    figure: 'Rate limiting algorithm comparison.',
+  }}
+/>
 
-Table: Rate limiting algorithm comparison.
-
-The _fixed window_ approach is simple: count requests in minute-long (or hour-long) windows, reject when the count exceeds the limit, reset at the boundary. The problem is boundary bursts. A client can make 95 requests at 11:59:59 and 95 more at 12:00:01 — 190 requests in two seconds while staying under a "100 per minute" limit.
-
-_Sliding window counter_ fixes this by weighting the previous window's count. At 30 seconds into the current window, you count 50% of the previous window plus 100% of the current window. This smooths the boundary problem with minimal additional state.
-
-_Sliding window log_ takes accuracy further by storing the timestamp of every request and counting only those within the rolling window. It's perfectly accurate but memory-intensive—you're storing potentially thousands of timestamps per client. Use it only when accuracy is critical and request volume is low, like authentication rate limiting where you absolutely need exactly N attempts per hour.
-
-_Token bucket_ is the workhorse of API rate limiting. Imagine a bucket that holds N tokens (your burst capacity). Tokens are added at rate R (your sustained RPS). Each request consumes a token if available; otherwise it's rejected. This naturally allows bursts—a client can use their full bucket immediately—while maintaining a sustained rate over time.
-
-_Leaky bucket_ inverts the model: requests enter a queue (the bucket), and they're processed (leaked) at a constant rate. If the queue fills, new requests overflow and are rejected. This produces perfectly smooth output but adds latency—requests wait in the queue. Use it when you need constant output rate to a downstream service that can't handle bursts.
+- The _fixed window_ approach is simple: count requests in minute-long (or hour-long) windows, reject when the count exceeds the limit, reset at the boundary. The problem is boundary bursts. A client can make 95 requests at 11:59:59 and 95 more at 12:00:01 — 190 requests in two seconds while staying under a "100 per minute" limit.
+- _Sliding window counter_ fixes this by weighting the previous window's count. At 30 seconds into the current window, you count 50% of the previous window plus 100% of the current window. This smooths the boundary problem with minimal additional state.
+- _Sliding window log_ takes accuracy further by storing the timestamp of every request and counting only those within the rolling window. It's perfectly accurate but memory-intensive—you're storing potentially thousands of timestamps per client. Use it only when accuracy is critical and request volume is low, like authentication rate limiting where you absolutely need exactly N attempts per hour.
+- _Token bucket_ is the workhorse of API rate limiting. Imagine a bucket that holds N tokens (your burst capacity). Tokens are added at rate R (your sustained RPS). Each request consumes a token if available; otherwise it's rejected. This naturally allows bursts—a client can use their full bucket immediately—while maintaining a sustained rate over time.
+- _Leaky bucket_ inverts the model: requests enter a queue (the bucket), and they're processed (leaked) at a constant rate. If the queue fills, new requests overflow and are rejected. This produces perfectly smooth output but adds latency—requests wait in the queue. Use it when you need constant output rate to a downstream service that can't handle bursts.
 
 ```mermaid
 graph TD
@@ -105,14 +127,35 @@ Token bucket is the most versatile algorithm for API rate limiting. It allows bu
 
 Before choosing an algorithm, decide _where_ in your stack to enforce limits. Each layer has different tradeoffs:
 
-| Layer | Tools | Latency | Granularity | Best For |
-| ------- | ------- | --------- | ------------- | ---------- |
-| Edge/CDN | Cloudflare, CloudFront, Fastly | Lowest | IP, geography | DDoS, bot protection |
-| API Gateway | AWS API Gateway, Kong, nginx | Low | API key, route | API quotas, tiered plans |
-| Service Mesh | Istio, Envoy, Linkerd | Low | Service identity | Service-to-service limits |
-| Application | Custom middleware | Higher | User, action, context | Fine-grained business logic |
-
-Table: Rate limiting layers comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Layer', 'Tools', 'Latency', 'Granularity', 'Best For'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Edge/CDN',
+          td: ['Cloudflare, CloudFront, Fastly', 'Lowest', 'IP, geography', 'DDoS, bot protection'],
+        },
+        {
+          th: 'API Gateway',
+          td: ['AWS API Gateway, Kong, nginx', 'Low', 'API key, route', 'API quotas, tiered plans'],
+        },
+        {
+          th: 'Service Mesh',
+          td: ['Istio, Envoy, Linkerd', 'Low', 'Service identity', 'Service-to-service limits'],
+        },
+        {
+          th: 'Application',
+          td: ['Custom middleware', 'Higher', 'User, action, context', 'Fine-grained business logic'],
+        },
+      ],
+    },
+    figure: 'Rate limiting layers comparison.',
+  }}
+/>
 
 ### Edge and CDN
 
@@ -254,14 +297,35 @@ Code: Token bucket core logic.
 
 Here's how traffic patterns play out with a 10-token bucket refilling at 1 token per second:
 
-| Traffic Pattern | What Happens |
-| ----------------- | -------------- |
-| Steady 1 RPS | Every request allowed—token regenerates before next |
-| Burst of 10 | All 10 served instantly, then 1 RPS until refilled |
-| Sustained 2 RPS | First ~15 allowed (burst + refill), then 50% rejected |
-| Variable cost (GET=1, POST=5) | Heavy operations consume quota faster |
-
-Table: Token bucket behavior under different traffic patterns.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Traffic Pattern', 'What Happens'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Steady 1 RPS',
+          td: ['Every request allowed—token regenerates before next'],
+        },
+        {
+          th: 'Burst of 10',
+          td: ['All 10 served instantly, then 1 RPS until refilled'],
+        },
+        {
+          th: 'Sustained 2 RPS',
+          td: ['First ~15 allowed (burst + refill), then 50% rejected'],
+        },
+        {
+          th: 'Variable cost (GET=1, POST=5)',
+          td: ['Heavy operations consume quota faster'],
+        },
+      ],
+    },
+    figure: 'Token bucket behavior under different traffic patterns.',
+  }}
+/>
 
 For distributed systems, you need atomic operations. The standard pattern is a Redis Lua script that reads state, calculates refill, checks tokens, and updates—all in one atomic operation. Without atomicity, concurrent requests can race past your limits.
 
@@ -298,15 +362,39 @@ The key difference: token bucket serves bursts immediately then makes you wait. 
 
 Use leaky bucket when you need to protect a downstream service that can't handle bursts—like a payment processor with strict per-second limits. The added latency is the tradeoff for guaranteed smooth output.
 
-| Characteristic | Token Bucket | Leaky Bucket |
-| ---------------- | -------------- | -------------- |
-| Burst handling | Allows bursts up to capacity | Smooths all traffic |
-| Output pattern | Bursty (matches input) | Constant rate |
-| Latency added | None (immediate decision) | Queue wait time |
-| Best for | API rate limiting | Traffic shaping |
-| Rejection behavior | Immediate 429 | Queue, then overflow |
-
-Table: Token bucket vs leaky bucket comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Characteristic', 'Token Bucket', 'Leaky Bucket'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Burst handling',
+          td: ['Allows bursts up to capacity', 'Smooths all traffic'],
+        },
+        {
+          th: 'Output pattern',
+          td: ['Bursty (matches input)', 'Constant rate'],
+        },
+        {
+          th: 'Latency added',
+          td: ['None (immediate decision)', 'Queue wait time'],
+        },
+        {
+          th: 'Best for',
+          td: ['API rate limiting', 'Traffic shaping'],
+        },
+        {
+          th: 'Rejection behavior',
+          td: ['Immediate 429', 'Queue, then overflow'],
+        },
+      ],
+    },
+    figure: 'Token bucket vs leaky bucket comparison.',
+  }}
+/>
 
 <Callout type="success">
 For a complete TypeScript implementation including a queue-based processor, see the [leaky bucket gist](https://gist.github.com/webstackdev/735583b68306d4a553544a43f0eadf60).
@@ -367,23 +455,44 @@ For a complete TypeScript implementation with Redis support, see the [sliding wi
 
 The rate limiting key—how you identify who's making requests—is as important as the algorithm. Choose wrong, and you'll either punish legitimate users or fail to stop abuse.
 
-| Strategy | Best For | Watch Out For |
-| ---------- | ---------- | --------------- |
-| IP Address | Anonymous, anti-bot | NAT, proxies, shared IPs |
-| API Key | B2B, developer APIs | Key sharing, stolen keys |
-| User ID | Consumer apps | Auth overhead |
-| IP + Endpoint | Mixed anonymous/auth | Configuration complexity |
-| User + Action | Fine-grained control | Key explosion |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Strategy', 'Best For', 'Watch Out For'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'IP Address',
+          td: ['Anonymous, anti-bot', 'NAT, proxies, shared IPs'],
+        },
+        {
+          th: 'API Key',
+          td: ['B2B, developer APIs', 'Key sharing, stolen keys'],
+        },
+        {
+          th: 'User ID',
+          td: ['Consumer apps', 'Auth overhead'],
+        },
+        {
+          th: 'IP + Endpoint',
+          td: ['Mixed anonymous/auth', 'Configuration complexity'],
+        },
+        {
+          th: 'User + Action',
+          td: ['Fine-grained control', 'Key explosion'],
+        },
+      ],
+    },
+    figure: 'Rate limit key strategies.',
+  }}
+/>
 
-Table: Rate limit key strategies.
-
-_IP address_ requires no authentication and blocks distributed attacks, but corporate NAT can share one IP across thousands of users. I've seen legitimate customers hit rate limits because 500 employees shared a single public IP—each got 0.2 requests per minute.
-
-_API key_ is the standard for B2B APIs. Per-customer limits, usage tracking, revocation—all straightforward. The risk is key sharing: customers distributing their key to multiple applications, or keys getting stolen and abused.
-
-_User ID_ gives you true per-user limits that work across IPs and devices. The tradeoff is authentication overhead and the fact that it doesn't help with anonymous endpoints.
-
-_Composite keys_ (user + action, IP + endpoint) give you fine-grained control at the cost of complexity and key explosion. Useful when different operations need different limits.
+- _IP address_ requires no authentication and blocks distributed attacks, but corporate NAT can share one IP across thousands of users. I've seen legitimate customers hit rate limits because 500 employees shared a single public IP—each got 0.2 requests per minute.
+- _API key_ is the standard for B2B APIs. Per-customer limits, usage tracking, revocation—all straightforward. The risk is key sharing: customers distributing their key to multiple applications, or keys getting stolen and abused.
+- _User ID_ gives you true per-user limits that work across IPs and devices. The tradeoff is authentication overhead and the fact that it doesn't help with anonymous endpoints.
+- _Composite keys_ (user + action, IP + endpoint) give you fine-grained control at the cost of complexity and key explosion. Useful when different operations need different limits.
 
 ### Extracting Client Identity
 
@@ -483,13 +592,31 @@ Good rate limiting is invisible to clients until they approach the limit. The ke
 
 The IETF draft (draft-ietf-httpapi-ratelimit-headers) defines three standard headers:
 
-| Header | Meaning | Example |
-| -------- | --------- | --------- |
-| `RateLimit-Limit` | Maximum requests allowed | `100` |
-| `RateLimit-Remaining` | Requests left in window | `47` |
-| `RateLimit-Reset` | Seconds until reset | `30` |
-
-Table: IETF rate limit headers.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Header', 'Meaning', 'Example'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '`RateLimit-Limit`',
+          td: ['Maximum requests allowed', '`100`'],
+        },
+        {
+          th: '`RateLimit-Remaining`',
+          td: ['Requests left in window', '`47`'],
+        },
+        {
+          th: '`RateLimit-Reset`',
+          td: ['Seconds until reset', '`30`'],
+        },
+      ],
+    },
+    figure: 'IETF rate limit headers.',
+  }}
+/>
 
 Many APIs still use the legacy `X-RateLimit-*` prefix. Support both until the standard is finalized.
 
@@ -576,11 +703,9 @@ A high rejection rate isn't always a problem—it might mean the rate limiter is
 
 What happens when Redis dies? This isn't hypothetical—network partitions, memory exhaustion, and maintenance windows all cause Redis outages. Your rate limiter needs a failure policy decided in advance.
 
-_Fail open_ allows all requests when the rate limiter can't be reached. This preserves availability but removes protection. One compromised API key during an outage can generate unbounded requests.
-
-_Fail closed_ rejects all requests when state is unavailable. This maintains protection but sacrifices availability. A Redis blip becomes a full outage.
-
-_Fail with local fallback_ uses in-memory rate limiting per instance when Redis is unavailable. It's not perfectly accurate—each pod limits independently—but it provides some protection while maintaining availability.
+- _Fail open_ allows all requests when the rate limiter can't be reached. This preserves availability but removes protection. One compromised API key during an outage can generate unbounded requests.
+- _Fail closed_ rejects all requests when state is unavailable. This maintains protection but sacrifices availability. A Redis blip becomes a full outage.
+- _Fail with local fallback_ uses in-memory rate limiting per instance when Redis is unavailable. It's not perfectly accurate—each pod limits independently—but it provides some protection while maintaining availability.
 
 Most production systems choose fail open with aggressive alerting. The reasoning: Redis outages are rare and short-lived, while blocking all traffic during an outage compounds the problem. But document your choice and make sure operations knows the implications.
 

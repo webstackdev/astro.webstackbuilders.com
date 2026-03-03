@@ -33,15 +33,55 @@ Every private networking issue follows the same debugging sequence. Each layer d
 
 The sequence: _DNS → routing → connectivity → TLS → application_.
 
-| Layer | What to Check | Command | Pass Criteria |
-|-------|---------------|---------|---------------|
-| DNS | Does the name resolve to the expected private IP? | `getent hosts <hostname>` (sees what your app sees) or `dig @<vpc-resolver>` (bypasses cache) | Returns expected private IP, not public |
-| Routing | Can the kernel find a path to that IP? | `ip route get <ip>` | Shows route via expected interface, no blackhole |
-| Connectivity | Is the port reachable? | `nc -zv -w 5 <ip> <port>` | "Connection succeeded" (not timeout or refused) |
-| TLS | Does the handshake succeed? | `openssl s_client -connect <ip>:<port> -servername <hostname>` | Certificate chain valid, hostname matches SAN |
-| Application | Do credentials and allowlists pass? | Check application logs | Authenticated successfully |
-
-Table: Connectivity debugging checklist.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Layer', 'What to Check', 'Command', 'Pass Criteria'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'DNS',
+          td: [
+            'Does the name resolve to the expected private IP?',
+            '`getent hosts <hostname>` (sees what your app sees) or `dig @<vpc-resolver>` (bypasses cache)',
+            'Returns expected private IP, not public',
+          ],
+        },
+        {
+          th: 'Routing',
+          td: [
+            'Can the kernel find a path to that IP?',
+            '`ip route get <ip>`',
+            'Shows route via expected interface, no blackhole',
+          ],
+        },
+        {
+          th: 'Connectivity',
+          td: [
+            'Is the port reachable?',
+            '`nc -zv -w 5 <ip> <port>`',
+            '"Connection succeeded" (not timeout or refused)',
+          ],
+        },
+        {
+          th: 'TLS',
+          td: [
+            'Does the handshake succeed?',
+            '`openssl s_client -connect <ip>:<port> -servername <hostname>`',
+            'Certificate chain valid, hostname matches SAN',
+          ],
+        },
+        {
+          th: 'Application',
+          td: ['Do credentials and allowlists pass?', 'Check application logs', 'Authenticated successfully'],
+        },
+      ],
+    },
+    figure: 'Connectivity debugging checklist.',
+  }}
+/>
 
 The key insight: failure modes bleed across layers. A timeout could be routing (no path exists), security groups (traffic blocked), or even TLS (some implementations timeout on handshake failure). "Connection refused" could be the service being down, or it could be a firewall actively rejecting the connection. You can't reliably diagnose by error message alone—you have to verify each layer in order.
 
@@ -57,14 +97,35 @@ The most common DNS failure: a private hosted zone exists, the records are corre
 
 Split-horizon DNS creates similar confusion. You have a public zone for `api.example.com` that resolves to a public load balancer, and a private zone for the same name that resolves to an internal endpoint. If the private zone isn't associated with your VPC, queries fall through to public DNS and return the public IP. Traffic then goes out through NAT, across the internet, and back in—adding latency and potentially failing security group checks.
 
-| Symptom | Likely Cause | Fix |
-|---------|--------------|-----|
-| Resolves to public IP instead of private | Using public DNS or private zone not associated | Configure VPC resolver, associate zone |
-| NXDOMAIN for private endpoint | Zone not associated with source VPC | Associate zone with VPC |
-| Same name resolves differently in different places | Split-horizon misconfiguration | Verify zone associations across all VPCs |
-| Old IP returned after endpoint change | DNS caching with high TTL | Lower TTL before migrations, flush caches |
-
-Table: Private DNS failure modes.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Symptom', 'Likely Cause', 'Fix'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Resolves to public IP instead of private',
+          td: ['Using public DNS or private zone not associated', 'Configure VPC resolver, associate zone'],
+        },
+        {
+          th: 'NXDOMAIN for private endpoint',
+          td: ['Zone not associated with source VPC', 'Associate zone with VPC'],
+        },
+        {
+          th: 'Same name resolves differently in different places',
+          td: ['Split-horizon misconfiguration', 'Verify zone associations across all VPCs'],
+        },
+        {
+          th: 'Old IP returned after endpoint change',
+          td: ['DNS caching with high TTL', 'Lower TTL before migrations, flush caches'],
+        },
+      ],
+    },
+    figure: 'Private DNS failure modes.',
+  }}
+/>
 
 <Callout type="info">
 When debugging DNS, always compare `dig @<vpc-resolver> <hostname>` with `dig @8.8.8.8 <hostname>`. If they return different IPs, you've found your split-horizon issue.

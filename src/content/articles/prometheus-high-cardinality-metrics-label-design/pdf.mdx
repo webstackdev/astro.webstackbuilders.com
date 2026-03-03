@@ -50,13 +50,31 @@ Three series. Now multiply: 5 HTTP methods × 20 endpoints × 10 status codes = 
 
 The math is straightforward but the implications aren't intuitive. Here's how quickly things escalate:
 
-| Design | Labels | Values per Label | Total Series | Approx. Memory |
-|--------|--------|------------------|--------------|----------------|
-| Minimal | method, handler, status_class | 5 × 20 × 4 | 400 | ~4 MB |
-| Reasonable | + environment, region | × 3 × 4 | 4,800 | ~48 MB |
-| Dangerous | + user_id | × 100,000 | 480,000,000 | ~4.8 TB |
-
-Table: Cardinality explosion by label design.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Design', 'Labels', 'Values per Label', 'Total Series', 'Approx. Memory'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Minimal',
+          td: ['method, handler, status_class', '5 × 20 × 4', '400', '~4 MB'],
+        },
+        {
+          th: 'Reasonable',
+          td: ['+ environment, region', '× 3 × 4', '4,800', '~48 MB'],
+        },
+        {
+          th: 'Dangerous',
+          td: ['+ user_id', '× 100,000', '480,000,000', '~4.8 TB'],
+        },
+      ],
+    },
+    figure: 'Cardinality explosion by label design.',
+  }}
+/>
 
 Histograms make this worse. A histogram with 10 buckets creates 12 series per unique label combination (10 bucket series plus `_sum` and `_count`). That "reasonable" 4,800-series design becomes 57,600 series when you switch from a counter to a histogram.
 
@@ -105,14 +123,38 @@ Queries compound the problem. A query like `sum(rate(http_requests_total[5m])) b
 
 The failure modes are predictable once you understand the architecture:
 
-| Failure Mode | Symptoms | Root Cause |
-|--------------|----------|------------|
-| Gradual OOM | Memory steadily rising, restarts under load | Cardinality growing over time as more label values become active |
-| Sudden OOM | Memory spike during incident, crash, monitoring blackout | Traffic spike activating previously dormant series |
-| Query OOM | Specific dashboard or query crashes Prometheus | Query touching high-cardinality metric with aggregation |
-| Slow startup | Minutes to start, high CPU during WAL replay | Rebuilding index for millions of series |
-
-Table: Cardinality failure modes.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Failure Mode', 'Symptoms', 'Root Cause'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Gradual OOM',
+          td: [
+            'Memory steadily rising, restarts under load',
+            'Cardinality growing over time as more label values become active',
+          ],
+        },
+        {
+          th: 'Sudden OOM',
+          td: ['Memory spike during incident, crash, monitoring blackout', 'Traffic spike activating previously dormant series'],
+        },
+        {
+          th: 'Query OOM',
+          td: ['Specific dashboard or query crashes Prometheus', 'Query touching high-cardinality metric with aggregation'],
+        },
+        {
+          th: 'Slow startup',
+          td: ['Minutes to start, high CPU during WAL replay', 'Rebuilding index for millions of series'],
+        },
+      ],
+    },
+    figure: 'Cardinality failure modes.',
+  }}
+/>
 
 <Callout type="info">
 Prometheus keeps metadata for ALL active series in memory, not just samples. A series that received one sample in the last 2 hours consumes nearly as much memory as one with thousands of samples. The cardinality cost is the series count, not the sample count.
@@ -126,28 +168,79 @@ The difference between a good label and a bad one comes down to one question: ca
 
 Good labels share four characteristics: bounded cardinality (you know the finite set of values), meaningful for aggregation (you'll actually `group by` or `sum by` this dimension), stable over time (values don't churn constantly), and shared across many series (the label adds structure, not just uniqueness).
 
-| Label | Values | Cardinality | Why It Works |
-|-------|--------|-------------|--------------|
-| `http_method` | GET, POST, PUT, DELETE, PATCH | ~7 | Fixed set defined by HTTP spec |
-| `environment` | production, staging, development | 3 | You control how many environments exist |
-| `status_class` | 2xx, 3xx, 4xx, 5xx | 4 | Bucketed from individual codes |
-| `region` | us-east-1, us-west-2, eu-west-1 | ~10 | Bounded by your infrastructure footprint |
-| `service` | api, worker, scheduler | ~20 | You control how many services you deploy |
-
-Table: Good label examples with bounded cardinality.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Label', 'Values', 'Cardinality', 'Why It Works'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '`http_method`',
+          td: ['GET, POST, PUT, DELETE, PATCH', '~7', 'Fixed set defined by HTTP spec'],
+        },
+        {
+          th: '`environment`',
+          td: ['production, staging, development', '3', 'You control how many environments exist'],
+        },
+        {
+          th: '`status_class`',
+          td: ['2xx, 3xx, 4xx, 5xx', '4', 'Bucketed from individual codes'],
+        },
+        {
+          th: '`region`',
+          td: ['us-east-1, us-west-2, eu-west-1', '~10', 'Bounded by your infrastructure footprint'],
+        },
+        {
+          th: '`service`',
+          td: ['api, worker, scheduler', '~20', 'You control how many services you deploy'],
+        },
+      ],
+    },
+    figure: 'Good label examples with bounded cardinality.',
+  }}
+/>
 
 Bad labels grow without bound. User IDs scale with your user base. Request IDs are unique per request—literally infinite cardinality. IP addresses span billions of possibilities. Error messages are free-form strings. Any of these as labels will eventually kill your Prometheus instance.
 
-| Label | Problem | Cardinality | Alternative |
-|-------|---------|-------------|-------------|
-| `user_id` | Grows with user base | Millions | Traces, logs |
-| `request_id` | Unique per request | Infinite | Exemplars |
-| `client_ip` | Huge address space | Billions | Log analysis |
-| `error_message` | Free-form strings | Unbounded | Error codes (bucketed) |
-| `email` | Unique per user, PII risk | Millions | Don't store in metrics |
-| `query` | Dynamic SQL/GraphQL | Unbounded | Query hash or category |
-
-Table: Bad label examples to avoid.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Label', 'Problem', 'Cardinality', 'Alternative'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '`user_id`',
+          td: ['Grows with user base', 'Millions', 'Traces, logs'],
+        },
+        {
+          th: '`request_id`',
+          td: ['Unique per request', 'Infinite', 'Exemplars'],
+        },
+        {
+          th: '`client_ip`',
+          td: ['Huge address space', 'Billions', 'Log analysis'],
+        },
+        {
+          th: '`error_message`',
+          td: ['Free-form strings', 'Unbounded', 'Error codes (bucketed)'],
+        },
+        {
+          th: '`email`',
+          td: ['Unique per user, PII risk', 'Millions', "Don't store in metrics"],
+        },
+        {
+          th: '`query`',
+          td: ['Dynamic SQL/GraphQL', 'Unbounded', 'Query hash or category'],
+        },
+      ],
+    },
+    figure: 'Bad label examples to avoid.',
+  }}
+/>
 
 The decision framework is straightforward. First, ask: is the value set bounded and known? If no, stop—use traces or logs instead. If yes, ask: will you aggregate by this label? If no, you're adding cardinality without getting value in return. Consider removing it. If yes, ask: is it useful for alerting or SLOs? If it passes all three gates, it's a good label.
 
@@ -390,13 +483,40 @@ The raw-data approach has trade-offs. You're storing higher cardinality in Prome
 
 [^relabel-storage]: This statement requires nuance. If you use `metric_relabel_configs` to transform labels (rather than recording rules), Prometheus applies the relabeling _before_ writing to the TSDB — only the normalized version hits disk. However, the high-cardinality data still creates operational issues during ingestion. For the duration of each scrape, Prometheus must hold the raw, un-normalized data in memory to process the relabeling rules. If thousands of targets send hundreds of unique status codes, this transient data can spike memory and CPU usage during the scrape phase. Complex regex patterns across millions of samples per second are CPU-intensive; if normalization logic is too complex, Prometheus may struggle to keep up, causing scrape gaps. The key distinction: _persistent storage_ sees only normalized data, but _ingestion memory_ briefly sees everything.
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **SDK wrapper** | Lowest cardinality (bucketed at source), consistent behavior across apps, type-safe interfaces | Requires managing wrapper versions, upgrade coordination, transition period with mixed versions |
-| **Server-side relabeling** | Single source of truth, no app changes needed, works with any exporter | Config complexity grows with edge cases, relabeling regex can incur high memory and CPU usage |
-| **Raw data + recording rules** | Maximum flexibility, easy to change definitions, preserves raw data for debugging | Higher storage costs, more memory usage, recording rule maintenance |
-
-Table: Label standardization approaches compared.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Approach', 'Pros', 'Cons'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '**SDK wrapper**',
+          td: [
+            'Lowest cardinality (bucketed at source), consistent behavior across apps, type-safe interfaces',
+            'Requires managing wrapper versions, upgrade coordination, transition period with mixed versions',
+          ],
+        },
+        {
+          th: '**Server-side relabeling**',
+          td: [
+            'Single source of truth, no app changes needed, works with any exporter',
+            'Config complexity grows with edge cases, relabeling regex can incur high memory and CPU usage',
+          ],
+        },
+        {
+          th: '**Raw data + recording rules**',
+          td: [
+            'Maximum flexibility, easy to change definitions, preserves raw data for debugging',
+            'Higher storage costs, more memory usage, recording rule maintenance',
+          ],
+        },
+      ],
+    },
+    figure: 'Label standardization approaches compared.',
+  }}
+/>
 
 <Callout type="info">
 Most organizations benefit from a hybrid approach: use a shared SDK wrapper for services you control, and server-side relabeling for third-party exporters and legacy applications you can't modify. Define your label schema upfront as part of your observability strategy, and treat deviations as technical debt.
@@ -722,14 +842,35 @@ Code: Remote write config with cardinality filtering.
 
 This gives you the best of both worlds: full detail locally for troubleshooting recent issues, aggregated data in long-term storage for capacity planning and historical trends. The cost savings on long-term storage can be substantial—you're storing orders of magnitude fewer series.
 
-| Strategy | Use Case | Cardinality Impact |
-|----------|----------|-------------------|
-| Recording rules | Pre-aggregate for dashboards/alerts | Reduces query-time cardinality |
-| Federation | Multi-cluster aggregation | Central sees only aggregates |
-| Remote write filtering | Long-term storage | Only ships low-cardinality metrics |
-| Hierarchical aggregation | Large-scale deployments | Prevents linear scaling |
-
-Table: Aggregation strategy comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Strategy', 'Use Case', 'Cardinality Impact'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Recording rules',
+          td: ['Pre-aggregate for dashboards/alerts', 'Reduces query-time cardinality'],
+        },
+        {
+          th: 'Federation',
+          td: ['Multi-cluster aggregation', 'Central sees only aggregates'],
+        },
+        {
+          th: 'Remote write filtering',
+          td: ['Long-term storage', 'Only ships low-cardinality metrics'],
+        },
+        {
+          th: 'Hierarchical aggregation',
+          td: ['Large-scale deployments', 'Prevents linear scaling'],
+        },
+      ],
+    },
+    figure: 'Aggregation strategy comparison.',
+  }}
+/>
 
 <Callout type="info">
 Recording rules don't reduce ingestion cardinality—they _add_ pre-computed aggregates. The benefit is query performance: dashboards query the low-cardinality recording rule instead of aggregating millions of raw series at query time. Combine with metric dropping if you need to reduce ingestion.

@@ -32,15 +32,39 @@ Every organization I've worked with has more zombie services than they realize. 
 
 Zombie services aren't free. The direct costs are visible in your cloud bill: compute, storage, and licenses for dependencies nobody remembers adding. But the indirect costs are often larger and harder to measure.
 
-| Cost Category | Monthly Range | What Gets Missed |
-|---------------|---------------|------------------|
-| Compute | $100 - $5,000 | Idle instances still bill full price |
-| Storage | $50 - $2,000 | Data grows forever without cleanup |
-| Licenses | $0 - $10,000+ | Per-seat and per-instance fees |
-| Security patching | $200 - $2,000 | Unpatched services are vulnerable services |
-| Cognitive overhead | $500 - $5,000 | Every zombie confuses new engineers |
-
-Table: Direct and indirect costs of zombie services.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Cost Category', 'Monthly Range', 'What Gets Missed'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Compute',
+          td: ['$100 - $5,000', 'Idle instances still bill full price'],
+        },
+        {
+          th: 'Storage',
+          td: ['$50 - $2,000', 'Data grows forever without cleanup'],
+        },
+        {
+          th: 'Licenses',
+          td: ['$0 - $10,000+', 'Per-seat and per-instance fees'],
+        },
+        {
+          th: 'Security patching',
+          td: ['$200 - $2,000', 'Unpatched services are vulnerable services'],
+        },
+        {
+          th: 'Cognitive overhead',
+          td: ['$500 - $5,000', 'Every zombie confuses new engineers'],
+        },
+      ],
+    },
+    figure: 'Direct and indirect costs of zombie services.',
+  }}
+/>
 
 Beyond the line items in your cloud bill, security risk compounds quietly. A service that hasn't been deployed in six months is a service that hasn't received security patches in six months. It's running old dependencies with known CVEs, and nobody's watching the vulnerability scanner for it because nobody owns it.
 
@@ -82,13 +106,10 @@ But you can't just flip the switch and hope. A well-designed scream test gives c
 
 A proper scream test has four phases, each lasting about a week. The goal is progressive degradation that surfaces dependencies without causing lasting damage.
 
-__Phase 1: Soft degradation.__ Add latency to every request—start at 100ms, increase to 500ms, then 1 second. Services that depend on you in their critical path will start seeing timeouts and SLA violations. Their monitoring should catch it. If nobody notices 1 second of added latency, that's a strong signal the dependency isn't critical.
-
-__Phase 2: Intermittent failures.__ Start failing a percentage of requests with 503 Service Unavailable and a Retry-After header. Begin at 1%, move to 5%, then 10%. Well-behaved clients will retry and succeed. Poorly-behaved clients will surface as consumer error rates spike. Either way, you learn who's calling you.
-
-__Phase 3: Hard shutdown.__ Return 410 Gone for all requests. This is HTTP's way of saying "this resource existed but doesn't anymore, and it's not coming back." Log every caller at this stage—anyone still hitting you after weeks of deprecation warnings either isn't paying attention or has an integration nobody knew about.
-
-__Phase 4: Complete removal.__ After a quiet period (I use two weeks), remove the service from the load balancer and delete the compute resources. Keep data archives for now—you're not done until you're sure nobody's screaming.
+- __Phase 1: Soft degradation.__ Add latency to every request—start at 100ms, increase to 500ms, then 1 second. Services that depend on you in their critical path will start seeing timeouts and SLA violations. Their monitoring should catch it. If nobody notices 1 second of added latency, that's a strong signal the dependency isn't critical.
+- __Phase 2: Intermittent failures.__ Start failing a percentage of requests with 503 Service Unavailable and a Retry-After header. Begin at 1%, move to 5%, then 10%. Well-behaved clients will retry and succeed. Poorly-behaved clients will surface as consumer error rates spike. Either way, you learn who's calling you.
+- __Phase 3: Hard shutdown.__ Return 410 Gone for all requests. This is HTTP's way of saying "this resource existed but doesn't anymore, and it's not coming back." Log every caller at this stage—anyone still hitting you after weeks of deprecation warnings either isn't paying attention or has an integration nobody knew about.
+- __Phase 4: Complete removal.__ After a quiet period (I use two weeks), remove the service from the load balancer and delete the compute resources. Keep data archives for now—you're not done until you're sure nobody's screaming.
 
 <Callout type="info">
 Send deprecation notices to every communication channel 2-4 weeks before starting Phase 1. Email, Slack, team standups—anywhere consumers might see it. Some will self-identify, saving you discovery effort during the test.
@@ -161,15 +182,39 @@ The `identifyCaller` function is critical for discovery. Extract everything you 
 
 You need a dashboard that answers three questions in real-time: Who's calling? How often? And is anyone complaining?
 
-| Metric | What It Tells You |
-|--------|-------------------|
-| Request rate by caller | Which services are still dependent |
-| Unique caller count | Total number of integrations to migrate |
-| Consumer error rate | Whether your test is causing downstream problems |
-| Tickets/escalations | Human impact beyond automated monitoring |
-| Days until sunset | Countdown for urgency in communications |
-
-Table: Key metrics to track during a scream test.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'What It Tells You'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Request rate by caller',
+          td: ['Which services are still dependent'],
+        },
+        {
+          th: 'Unique caller count',
+          td: ['Total number of integrations to migrate'],
+        },
+        {
+          th: 'Consumer error rate',
+          td: ['Whether your test is causing downstream problems'],
+        },
+        {
+          th: 'Tickets/escalations',
+          td: ['Human impact beyond automated monitoring'],
+        },
+        {
+          th: 'Days until sunset',
+          td: ['Countdown for urgency in communications'],
+        },
+      ],
+    },
+    figure: 'Key metrics to track during a scream test.',
+  }}
+/>
 
 Set up automatic rollback triggers. If consumer error rates spike above a threshold, or if a critical alert fires, pause the test and investigate. The goal is discovery, not damage. A scream test that causes an outage defeats the purpose—you want to find unknown dependencies _before_ they become incidents.
 
@@ -185,14 +230,35 @@ Start by grouping requests by caller. The identification method depends on your 
 
 For each caller, classify the traffic pattern. This tells you what kind of dependency you're dealing with:
 
-| Pattern | Characteristics | Implication |
-|---------|-----------------|-------------|
-| Scheduled | Very regular intervals (±10% variance) | Batch job, can probably tolerate downtime windows |
-| Batch processing | Bursts followed by silence | ETL pipeline, may only run monthly |
-| Real-time dependency | Consistent throughout the day | Critical path, needs careful migration |
-| Irregular | No discernible pattern | Often human-triggered or debug traffic |
-
-Table: Traffic patterns and what they tell you about consumer dependencies.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Pattern', 'Characteristics', 'Implication'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Scheduled',
+          td: ['Very regular intervals (±10% variance)', 'Batch job, can probably tolerate downtime windows'],
+        },
+        {
+          th: 'Batch processing',
+          td: ['Bursts followed by silence', 'ETL pipeline, may only run monthly'],
+        },
+        {
+          th: 'Real-time dependency',
+          td: ['Consistent throughout the day', 'Critical path, needs careful migration'],
+        },
+        {
+          th: 'Irregular',
+          td: ['No discernible pattern', 'Often human-triggered or debug traffic'],
+        },
+      ],
+    },
+    figure: 'Traffic patterns and what they tell you about consumer dependencies.',
+  }}
+/>
 
 Skip callers with fewer than one request per day—those are usually health checks, monitoring probes, or one-off debugging sessions. Focus your energy on the high-volume consumers and the ones with real-time patterns.
 
@@ -281,14 +347,35 @@ Despite your best communication efforts, consumers will emerge during the scream
 
 Escalations fall into four categories, each with a standard response:
 
-| Escalation Type | Response | Timeline Impact |
-|-----------------|----------|-----------------|
-| Information request | Send migration guide, offer office hours | None |
-| Migration assistance | Pair with consumer on migration | None if quick, extension if complex |
-| Extension request | Evaluate impact, grant 1-2 weeks if justified | Minor delay |
-| Blocking escalation | Pause scream test, investigate immediately | Potential major delay |
-
-Table: Escalation categories and standard responses.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Escalation Type', 'Response', 'Timeline Impact'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Information request',
+          td: ['Send migration guide, offer office hours', 'None'],
+        },
+        {
+          th: 'Migration assistance',
+          td: ['Pair with consumer on migration', 'None if quick, extension if complex'],
+        },
+        {
+          th: 'Extension request',
+          td: ['Evaluate impact, grant 1-2 weeks if justified', 'Minor delay'],
+        },
+        {
+          th: 'Blocking escalation',
+          td: ['Pause scream test, investigate immediately', 'Potential major delay'],
+        },
+      ],
+    },
+    figure: 'Escalation categories and standard responses.',
+  }}
+/>
 
 For blocking escalations—"this will cause an outage for 10,000 users if you proceed"—pause the scream test immediately. You don't want to be the team that caused an incident because you were too committed to your own timeline. Investigate, understand the true impact, and adjust the plan.
 
@@ -427,15 +514,39 @@ Turning off the compute is easy. The data is where decommissioning gets complica
 
 Different data types have different retention requirements. PII and financial records often have legal retention periods (7 years for SOX compliance, for example). Application logs might only need 90 days. Source code should probably be kept forever—storage is cheap, and you never know when you'll need to understand how something worked.
 
-| Data Type | Typical Retention | Archive Location | Notes |
-|-----------|-------------------|------------------|-------|
-| User PII | 7 years | Encrypted cold storage | GDPR/CCPA require deletion on request |
-| Transaction records | 7 years | Encrypted cold storage | SOX, PCI-DSS requirements |
-| Application logs | 90 days | Log archive | Rarely needed after this |
-| Configuration | 1 year | Config archive | Useful for debugging similar systems |
-| Source code | Forever | Archived repository | Storage is cheap, regret is expensive |
-
-Table: Standard retention periods by data type.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Data Type', 'Typical Retention', 'Archive Location', 'Notes'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'User PII',
+          td: ['7 years', 'Encrypted cold storage', 'GDPR/CCPA require deletion on request'],
+        },
+        {
+          th: 'Transaction records',
+          td: ['7 years', 'Encrypted cold storage', 'SOX, PCI-DSS requirements'],
+        },
+        {
+          th: 'Application logs',
+          td: ['90 days', 'Log archive', 'Rarely needed after this'],
+        },
+        {
+          th: 'Configuration',
+          td: ['1 year', 'Config archive', 'Useful for debugging similar systems'],
+        },
+        {
+          th: 'Source code',
+          td: ['Forever', 'Archived repository', 'Storage is cheap, regret is expensive'],
+        },
+      ],
+    },
+    figure: 'Standard retention periods by data type.',
+  }}
+/>
 
 For source code archival, use your Git host's archive feature (GitHub and GitLab both support marking repositories as archived, which makes them read-only) rather than deleting. If you must remove a repository entirely, clone it with full history to a tarball and store it in your artifact archive. You'll be glad you kept it when someone asks "how did the old system handle currency conversion?" two years later.
 
@@ -446,13 +557,9 @@ Before archiving, classify the data. If you're not sure what compliance requirem
 Database archival has a specific workflow that's easy to get wrong. The goal is to ensure data is accessible from the archive _before_ you delete the source.
 
 1. _Take a final backup_ with a clear label indicating this is the decommission backup. Use your standard backup tooling so restores work the same way.
-
 2. _Verify the backup is restorable._ Actually restore it to a test environment and run validation queries. "We have a backup" means nothing if you can't restore from it.
-
 3. _Export to a portable format._ Database backups are great for full restores, but if someone just needs to query old data, a Parquet or CSV export to S3 is more accessible. Include the schema definition.
-
 4. _Create an archive manifest_ documenting what was archived, where it went, row counts by table, and instructions for accessing the data. Put this manifest somewhere discoverable—a wiki page or the service catalog entry for the decommissioned service.
-
 5. _Schedule deletion with a grace period._ Don't delete the source database immediately. A 30-day grace period between archival and deletion has saved many teams from disaster.
 
 ```bash title="archive-database.sh"
@@ -500,18 +607,51 @@ The service is off. The data is archived. But you're not done. Post-decommission
 
 Services leave behind more artifacts than you expect. A week after shutdown, run a verification sweep to confirm everything is actually gone.
 
-| Resource Type | Expected State | How to Verify |
-|---------------|----------------|---------------|
-| Kubernetes deployment | Deleted | `kubectl get deployment $SERVICE` returns NotFound |
-| Kubernetes service | Deleted | `kubectl get service $SERVICE` returns NotFound |
-| Database | Archived then deleted | Archive exists in S3, RDS instance terminated |
-| DNS records | Deleted or redirected | `dig $SERVICE.example.com` returns NXDOMAIN |
-| SSL certificates | Deleted | Certificate manager shows no active certs |
-| Cloud resources | Deleted | Tag search returns zero results |
-| CI/CD pipelines | Archived | Pipeline status shows archived |
-| Monitoring | Deleted | No dashboards or alerts reference the service |
-
-Table: Post-decommissioning cleanup verification checklist.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Resource Type', 'Expected State', 'How to Verify'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Kubernetes deployment',
+          td: ['Deleted', '`kubectl get deployment $SERVICE` returns NotFound'],
+        },
+        {
+          th: 'Kubernetes service',
+          td: ['Deleted', '`kubectl get service $SERVICE` returns NotFound'],
+        },
+        {
+          th: 'Database',
+          td: ['Archived then deleted', 'Archive exists in S3, RDS instance terminated'],
+        },
+        {
+          th: 'DNS records',
+          td: ['Deleted or redirected', '`dig $SERVICE.example.com` returns NXDOMAIN'],
+        },
+        {
+          th: 'SSL certificates',
+          td: ['Deleted', 'Certificate manager shows no active certs'],
+        },
+        {
+          th: 'Cloud resources',
+          td: ['Deleted', 'Tag search returns zero results'],
+        },
+        {
+          th: 'CI/CD pipelines',
+          td: ['Archived', 'Pipeline status shows archived'],
+        },
+        {
+          th: 'Monitoring',
+          td: ['Deleted', 'No dashboards or alerts reference the service'],
+        },
+      ],
+    },
+    figure: 'Post-decommissioning cleanup verification checklist.',
+  }}
+/>
 
 The most commonly missed items: DNS records (especially CNAMEs that point to load balancers), SSL certificates (which keep renewing automatically), and cloud resources tagged inconsistently (so they don't show up in tag-based searches). Check these explicitly.
 
@@ -523,15 +663,39 @@ Decommissioning takes effort. You need to prove the ROI to justify the next one.
 
 Pull the service's cost data from the three months before decommissioning. Compare to the current cost (which should be just archive storage, close to zero). The difference is your monthly savings.
 
-| Cost Category | Before (Monthly) | After (Monthly) | Savings |
-|---------------|------------------|-----------------|---------|
-| Compute | $1,200 | $0 | $1,200 |
-| Storage | $300 | $15 (archive) | $285 |
-| Network | $150 | $0 | $150 |
-| Licenses | $500 | $0 | $500 |
-| _Total_ | _$2,150_ | _$15_ | _$2,135_ |
-
-Table: Example cost savings calculation for a decommissioned service.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Cost Category', 'Before (Monthly)', 'After (Monthly)', 'Savings'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Compute',
+          td: ['$1,200', '$0', '$1,200'],
+        },
+        {
+          th: 'Storage',
+          td: ['$300', '$15 (archive)', '$285'],
+        },
+        {
+          th: 'Network',
+          td: ['$150', '$0', '$150'],
+        },
+        {
+          th: 'Licenses',
+          td: ['$500', '$0', '$500'],
+        },
+        {
+          th: '_Total_',
+          td: ['_$2,150_', '_$15_', '_$2,135_'],
+        },
+      ],
+    },
+    figure: 'Example cost savings calculation for a decommissioned service.',
+  }}
+/>
 
 Don't forget the hidden savings that are harder to quantify: one fewer service to patch during security updates, reduced audit scope for compliance reviews, no more false alerts waking up on-call, and less confusion for engineers trying to understand the architecture. These indirect benefits often exceed the direct cost savings.
 
@@ -561,5 +725,3 @@ Calculate the ROI: divide annual cost savings by engineering hours spent times h
 The scream test—announce, degrade, fail, shutdown—is the safest way to discover unknown consumers before they become 3 AM incidents. Combine it with traffic analysis and distributed tracing to find dependencies proactively, not reactively.
 
 Never delete data without verified archives and a 30-day grace period. And document every decommissioning so the next one goes faster. The organization that gets good at turning things off is the organization that can move quickly when building new things.
-
----

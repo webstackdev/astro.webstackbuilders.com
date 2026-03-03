@@ -10,7 +10,6 @@ featured: true
 ---
 
 *[ADR]: Architecture Decision Record
-*[API]: Application Programming Interface
 
 You've inherited a system with a README that was last updated three years ago. The architecture diagrams reference services that no longer exist. The wiki has seventeen conflicting pages about deployment, and no one's sure which ones are current. The original architects left two reorganizations ago.
 
@@ -177,14 +176,35 @@ For _business rules encoded in code_:
 - "What edge cases have special handling?"
 - "What compliance requirements shaped this code?"
 
-| Interview Focus | Best Participants | Knowledge Domain |
-|-----------------|-------------------|------------------|
-| Architecture | Original architects, senior engineers | How components connect and why |
-| Operations | SREs, on-call engineers | Failure modes and recovery procedures |
-| Business Logic | Product managers, business analysts | Rules encoded in code but not in docs |
-| History | Long-tenured engineers | Why weird things exist |
-
-Table: Interview types matched to knowledge domains.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Interview Focus', 'Best Participants', 'Knowledge Domain'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Architecture',
+          td: ['Original architects, senior engineers', 'How components connect and why'],
+        },
+        {
+          th: 'Operations',
+          td: ['SREs, on-call engineers', 'Failure modes and recovery procedures'],
+        },
+        {
+          th: 'Business Logic',
+          td: ['Product managers, business analysts', 'Rules encoded in code but not in docs'],
+        },
+        {
+          th: 'History',
+          td: ['Long-tenured engineers', 'Why weird things exist'],
+        },
+      ],
+    },
+    figure: 'Interview types matched to knowledge domains.',
+  }}
+/>
 
 The questions about fear are particularly revealing. "What's the scariest part of this codebase to change?" surfaces the areas with the most hidden complexity, the fewest tests, and the highest consequences for mistakes—exactly where documentation gaps hurt most.
 
@@ -196,11 +216,9 @@ Capture tribal knowledge _before_ someone announces they're leaving. By the time
 
 With git history mined, tests written, and interviews conducted, the question becomes: what do you document first? You can't cover everything, and you shouldn't try. Focus on three categories:
 
-_The dangerous parts_: Code that everyone's afraid to change. Mistakes here have outsized consequences, so documentation provides essential guardrails.
-
-_The confusing parts_: Code that requires explanation to understand. If every new team member asks the same questions, write down the answers once.
-
-_The business-critical parts_: Code where mistakes cost money or trigger compliance violations. The stakes justify the documentation investment.
+- _The dangerous parts_: Code that everyone's afraid to change. Mistakes here have outsized consequences, so documentation provides essential guardrails.
+- _The confusing parts_: Code that requires explanation to understand. If every new team member asks the same questions, write down the answers once.
+- _The business-critical parts_: Code where mistakes cost money or trigger compliance violations. The stakes justify the documentation investment.
 
 <Download
   resource="reverse-engineering-documentation-legacy-systems"
