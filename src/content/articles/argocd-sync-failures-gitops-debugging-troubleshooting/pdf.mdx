@@ -233,9 +233,14 @@ Figure: Resource dependency graph showing potential failure points (red = missin
 When a dependency is missing, pods fail to start with characteristic error messages:
 
 **Common Symptoms:**
-- Pod stuck in `CreateContainerConfigError`
-- `secret "x" not found` errors
-- `serviceaccount "x" not found` errors
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Pod stuck in `CreateContainerConfigError`" },
+    { text: "`secret \"x\" not found` errors" },
+    { text: "`serviceaccount \"x\" not found` errors" },
+  ]}
+/>
 
 The fix is usually straightforward: put the dependency in an earlier sync wave. But first you need to identify which dependency is missing:
 
@@ -410,10 +415,15 @@ If a resource shows `OutOfSync` but the diff looks identical, check for whitespa
 </Callout>
 
 Other common sources of drift:
-- **Mutating webhooks** that add labels or annotations to resources
-- **Kubernetes defaulting** that adds fields your manifest doesn't specify (like `imagePullPolicy: IfNotPresent`)
-- **Controller timestamps** like `lastTransitionTime` in status fields
-- **Cloud provider annotations** added by load balancer controllers or ingress controllers
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Mutating webhooks:", text: "that add labels or annotations to resources" },
+    { lead: "Kubernetes defaulting:", text: "that adds fields your manifest doesn't specify (like `imagePullPolicy: IfNotPresent`)" },
+    { lead: "Controller timestamps:", text: "like `lastTransitionTime` in status fields" },
+    { lead: "Cloud provider annotations:", text: "added by load balancer controllers or ingress controllers" },
+  ]}
+/>
 
 Use `argocd app diff myapp` to see exactly what ArgoCD thinks is different. If the diff shows fields you don't care about, add them to `ignoreDifferences`.
 
@@ -585,11 +595,16 @@ kubectl logs -n myapp -l job-name=<hook-job-name>
 
 ## Common Causes
 
-- **Hook script error**: Fix script, redeploy
-- **Missing permissions**: Add RBAC for hook ServiceAccount
-- **Image pull failure**: Check image name and pull secret
-- **Resource limits**: Increase memory/CPU limits
-- **External dependency**: Ensure dependency is available
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Hook script error:", text: "Fix script, redeploy" },
+    { lead: "Missing permissions:", text: "Add RBAC for hook ServiceAccount" },
+    { lead: "Image pull failure:", text: "Check image name and pull secret" },
+    { lead: "Resource limits:", text: "Increase memory/CPU limits" },
+    { lead: "External dependency:", text: "Ensure dependency is available" },
+  ]}
+/>
 
 ## Resolution
 
@@ -601,15 +616,25 @@ argocd app sync myapp --prune --force
 
 2. If hook needs to complete:
 
-- Fix the underlying issue
-- Delete the stuck job
-- Trigger new sync
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Fix the underlying issue" },
+    { text: "Delete the stuck job" },
+    { text: "Trigger new sync" },
+  ]}
+/>
 
 3. To prevent recurrence:
 
-- Add `activeDeadlineSeconds` to job spec
-- Add proper health checks to hook
-- Consider using `hook-delete-policy: BeforeHookCreation`
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Add `activeDeadlineSeconds` to job spec" },
+    { text: "Add proper health checks to hook" },
+    { text: "Consider using `hook-delete-policy: BeforeHookCreation`" },
+  ]}
+/>
 ````
 Code: Runbook for debugging sync stuck on hook execution.
 
@@ -713,10 +738,16 @@ I use wave -5 for CRDs because I want plenty of room for other infrastructure re
 Pruning is ArgoCD's way of deleting resources that exist in the cluster but not in Git. It's powerful and dangerous. If you accidentally remove a manifest from Git, ArgoCD will helpfully delete the corresponding resource from your cluster. Sometimes that's a Secret you definitely didn't want deleted.
 
 The most common pruning accidents happen when:
-- You refactor your manifests and forget to include something
-- You rename a resource (ArgoCD sees it as "delete old, create new")
-- A merge conflict resolution drops a file
-- You're testing changes in a branch and accidentally merge to main
+
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "You refactor your manifests and forget to include something" },
+    { text: "You rename a resource (ArgoCD sees it as \"delete old, create new\")" },
+    { text: "A merge conflict resolution drops a file" },
+    { text: "You're testing changes in a branch and accidentally merge to main" },
+  ]}
+/>
 
 Protect critical resources with the `Prune=false` annotation. This tells ArgoCD to never prune this resource, even if it disappears from Git:
 

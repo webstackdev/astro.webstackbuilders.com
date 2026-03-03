@@ -1035,10 +1035,15 @@ You can't optimize what you don't measure. These metrics tell you whether your c
 
 **Interpreting these metrics in context:**
 
-- **Hit ratio varies by content type.** Static assets should exceed 95%. API responses might reasonably be 70-80% depending on query parameter diversity. Personalized endpoints will be 0% (correctly).
-- **Sudden hit ratio drops** usually indicate a configuration change, new URL patterns, or cache key pollution from marketing campaigns adding tracking parameters.
-- **High origin load with good hit ratio** suggests your cache is working but TTLs are too short, causing frequent revalidation.
-- **Per-PoP analysis** reveals geographic patterns. A single PoP with poor performance might indicate regional traffic spikes overwhelming that edge's cache capacity.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "**Hit ratio varies by content type.**", text: "Static assets should exceed 95%. API responses might reasonably be 70-80% depending on query parameter diversity. Personalized endpoints will be 0% (correctly)." },
+    { lead: "**Sudden hit ratio drops**", text: "usually indicate a configuration change, new URL patterns, or cache key pollution from marketing campaigns adding tracking parameters." },
+    { lead: "**High origin load with good hit ratio**", text: "suggests your cache is working but TTLs are too short, causing frequent revalidation." },
+    { lead: "**Per-PoP analysis**", text: "reveals geographic patterns. A single PoP with poor performance might indicate regional traffic spikes overwhelming that edge's cache capacity." },
+  ]}
+/>
 
 ```json title="cache-monitoring.json"
 {
@@ -1158,10 +1163,15 @@ Edge caching is a correctness problem disguised as a performance optimization. T
 
 The key principles to remember:
 
-- **Cache keys determine correctness.** Every attribute that affects your response must be in the cache key. Miss one, and users get wrong content. Include unnecessary attributes, and your hit ratio suffers.
-- **Vary headers are powerful but dangerous.** They let you cache content that legitimately varies, but high-cardinality Vary values destroy cache effectiveness. Normalize headers at the edge before they reach your origin.
-- **Cache invalidation requires explicit strategy.** TTL expiration alone is rarely sufficient. Implement cache tags for complex content relationships, use stale-while-revalidate for graceful updates, and integrate purging into your deployment pipeline.
-- **Prioritize correctness over hit ratio.** A correctly-configured cache with 70% hit ratio beats an incorrectly-configured cache with 95% hit ratio. The latter is serving wrong content to 95% of users.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "**Cache keys determine correctness.**", text: "Every attribute that affects your response must be in the cache key. Miss one, and users get wrong content. Include unnecessary attributes, and your hit ratio suffers." },
+    { lead: "**Vary headers are powerful but dangerous.**", text: "They let you cache content that legitimately varies, but high-cardinality Vary values destroy cache effectiveness. Normalize headers at the edge before they reach your origin." },
+    { lead: "**Cache invalidation requires explicit strategy.**", text: "TTL expiration alone is rarely sufficient. Implement cache tags for complex content relationships, use stale-while-revalidate for graceful updates, and integrate purging into your deployment pipeline." },
+    { lead: "**Prioritize correctness over hit ratio.**", text: "A correctly-configured cache with 70% hit ratio beats an incorrectly-configured cache with 95% hit ratio. The latter is serving wrong content to 95% of users." },
+  ]}
+/>
 
 Start with the implementation checklist above. Audit your current configuration against each item. Fix correctness issues first, then optimize for performance. Monitor continuously—cache problems often appear as gradual hit ratio degradation rather than sudden failures.
 

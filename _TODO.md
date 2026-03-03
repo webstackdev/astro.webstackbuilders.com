@@ -164,8 +164,6 @@ https://mermaid.js.org/config/directives.html
 
 - Add Inset component and convert `text` code blocks to use it.
 
-- Only needed if images used in content: Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
-
 - Focus-visible / active handling on ToC nav items
 
 - Style "Share to Mastodon" modal in src/components/Social/Mastodon/client/index.ts
@@ -186,6 +184,8 @@ https://mermaid.js.org/config/directives.html
 
 - Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
+- Service worker isn't caching favicon
+
 ## List Component
 
 - Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
@@ -197,6 +197,29 @@ https://mermaid.js.org/config/directives.html
 ## Header
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
+
+## Image component
+
+Only needed if images used in content: Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
+
+- `accTitle`: Alert severity decision tree
+- `accDescr`: Flowchart showing how to classify an alert as a Page or Notification. When an alert fires, check if there is user-facing impact. If no, it is a Notification. If yes, check if there is immediate revenue or safety impact. If yes, it is a Page. If no, check if the SLO burn rate is critical. If yes, it is a Page. If no, it is a Notification.
+
+<figure>
+  <!-- 1. The Image with a concise title -->
+  <img src="diagram.jpg" alt="[accTitle] - see details below for full text description">
+
+  <figcaption>
+    <!-- 2. Visible caption (if needed) -->
+    <strong>Figure 1:</strong> Process Workflow
+
+    <!-- 3. Collapsible detailed description -->
+    <details>
+      <summary>View detailed text description</summary>
+      <p>[Insert your full accDescr content here]</p>
+    </details>
+  </figcaption>
+</figure>
 
 ## Content Issues
 
@@ -214,7 +237,38 @@ https://mermaid.js.org/config/directives.html
 
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
 
+## Table Refactor Instructions
 
-Our current articles have markdown tables. I want to refactor these into using our Table component. I'm going to copy and paste the markdown table into the chat window here. I'd like you to take it and update the content prop in the Table instance in src/pages/hero.astro so that the table renders using the same layout as the markdown table. Use the string variant in the tbody -> tr -> th element.
+Our current articles have markdown tables. I want to refactor these into using our Table component. I'd like you to take it and use it for the content prop in a Table component instance you add so that the table renders using the same layout as the markdown table. Use the string variant in the tbody -> tr -> th element. Use "vertical-column-delineation-table" for the "variant" prop of the Table component.
 
-Each table will have the "figure" prop as a line below the table, prefixed with "Table: ". We should remove the "Table: " prefix from the figure string as this is used by our Markdown setup to identify figure captions.
+Each table will have the "figure" prop as a line below the table, prefixed with "Table: ". We should remove the "Table: " prefix from the figure string as this is used by our Markdown setup to identify figure captions. Do not leave multiple trailing empty lines after the table.
+
+The first file to update is:
+
+## List Refactor Instructions
+
+numbered-with-background-list, check-icons-list
+
+We have lists in our current articles that are of two variants: those that are plain text lists (either ordered or unordered), and those that are lists with both leads and plain texts. Our List component layouts handle both lists with leads and those without. We can identify leads because that text is emphasized with markdown in some fashion: "_", "__", "*", or "**". We need to refactor the markdown lists in a file into either an ordered (numbered-with-background-list) or unordered (check-icons-list) list, and extract lead text if present into the optional lead prop if any lead text is present.
+
+If there is a Further Reading" heading at the bottom of a file, ignore any list that may be contained in it.
+
+An example is as follows:
+
+- _Alerts per on-call shift_: Total alert volume during a rotation. Anything above 20 per 24-hour shift is a red flag.
+
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Alerts per on-call shift:",
+      text: "Total alert volume during a rotation. Anything above 20 per 24-hour shift is a red flag.",
+    },
+  ]}
+/>
+
+The first file to update is:
+
+Files with missed lists:
+
+src/content/articles/eol-runtime-upgrade-dependency-hell-migration/index.mdx

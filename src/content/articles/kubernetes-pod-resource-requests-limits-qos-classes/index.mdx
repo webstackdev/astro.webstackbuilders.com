@@ -10,9 +10,9 @@ featured: true
 ---
 
 *[K8s]: Kubernetes
-*[QoS]: Quality of Service
 *[OOM]: Out of Memory
 *[OOMKilled]: Out of Memory Killed
+*[QoS]: Quality of Service
 
 It's 3 AM and your pager goes off. A production cluster with 10 nodes is experiencing random pod evictions. Investigation reveals memory pressure on several nodes—60% of pods have no memory limits, so a few memory-hungry pods consumed all available RAM. But here's the twist: the pods being evicted aren't the resource hogs. They're the well-behaved ones that set requests but no limits.
 
@@ -24,21 +24,37 @@ The lesson most teams learn too late: QoS class determines eviction order, and y
 
 Every pod in Kubernetes gets assigned a Quality of Service class automatically. You don't set it directly—it's derived from how you configure requests and limits. This class determines who dies first when nodes run low on resources.
 
-**Guaranteed** is the highest priority. Every container must have requests _and_ limits set for both CPU and memory, and requests must equal limits. These pods are evicted last.
-
-**Burstable** is the middle tier. Any pod with at least one resource request or limit that doesn't qualify for Guaranteed lands here. This includes pods with requests only, limits only, or requests that don't match limits. Most production workloads end up Burstable.
-
-**BestEffort** is the lowest priority. Pods with no resource specifications at all—no requests, no limits on any container—get this class. They're evicted first under pressure.
+- **Guaranteed** is the highest priority. Every container must have requests _and_ limits set for both CPU and memory, and requests must equal limits. These pods are evicted last.
+- **Burstable** is the middle tier. Any pod with at least one resource request or limit that doesn't qualify for Guaranteed lands here. This includes pods with requests only, limits only, or requests that don't match limits. Most production workloads end up Burstable.
+- **BestEffort** is the lowest priority. Pods with no resource specifications at all—no requests, no limits on any container—get this class. They're evicted first under pressure.
 
 The rules are straightforward, but the implications aren't. A pod with carefully tuned requests and limits is Burstable. A pod with only a CPU request and nothing else is also Burstable. Same QoS class, very different behavior.
 
-| QoS Class  | Eviction Priority | Configuration                       |
-| ---------- | ----------------- | ----------------------------------- |
-| BestEffort | First (highest)   | No resources specified              |
-| Burstable  | Middle            | Some resources, but not Guaranteed  |
-| Guaranteed | Last (lowest)     | All resources set, requests = limits|
-
-Table: QoS class eviction priority.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['QoS Class', 'Eviction Priority', 'Configuration'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'BestEffort',
+          td: ['First (highest)', 'No resources specified'],
+        },
+        {
+          th: 'Burstable',
+          td: ['Middle', 'Some resources, but not Guaranteed'],
+        },
+        {
+          th: 'Guaranteed',
+          td: ['Last (lowest)', 'All resources set, requests = limits'],
+        },
+      ],
+    },
+    figure: 'QoS class eviction priority.',
+  }}
+/>
 
 Here's the counterintuitive part: within each QoS class, the kubelet prioritizes eviction based on resource usage _relative to requests_. For Burstable pods, it essentially calculates how much you're exceeding your stated need. A pod using 200% of its memory request gets evicted before one using 110%.
 
@@ -52,11 +68,9 @@ Burstable pods with requests but no limits can be evicted before BestEffort pods
 
 I've seen the same resource misconfigurations across dozens of clusters. Here are the patterns that cause the most operational pain.
 
-**Requests only, no limits** is what killed those 3 AM pods. It creates Burstable pods that can consume unbounded memory or CPU. A memory leak in one pod can starve its neighbors or trigger node-level OOM. The pod gets scheduled based on its request, but nothing stops it from using 10x that amount—and when eviction starts, usage relative to request determines who dies first.
-
-**No resources at all** is the default trap. Pods without any resource specs get BestEffort QoS—first to be evicted by class priority, no scheduling guarantees, and they can consume unlimited node resources. This is what happens if you don't specify anything, which is why so many teams accidentally run BestEffort pods in production.
-
-**Limits only, no requests** seems harmless, but Kubernetes helpfully sets requests equal to limits when you only specify limits. The result is Guaranteed QoS, but you're probably over-reserving. The pod reserves its peak capacity even when it only needs a fraction of it, wasting cluster capacity and increasing costs.
+- **Requests only, no limits** is what killed those 3 AM pods. It creates Burstable pods that can consume unbounded memory or CPU. A memory leak in one pod can starve its neighbors or trigger node-level OOM. The pod gets scheduled based on its request, but nothing stops it from using 10x that amount—and when eviction starts, usage relative to request determines who dies first.
+- **No resources at all** is the default trap. Pods without any resource specs get BestEffort QoS—first to be evicted by class priority, no scheduling guarantees, and they can consume unlimited node resources. This is what happens if you don't specify anything, which is why so many teams accidentally run BestEffort pods in production.
+- **Limits only, no requests** seems harmless, but Kubernetes helpfully sets requests equal to limits when you only specify limits. The result is Guaranteed QoS, but you're probably over-reserving. The pod reserves its peak capacity even when it only needs a fraction of it, wasting cluster capacity and increasing costs.
 
 <Newsletter />
 
@@ -120,11 +134,9 @@ The rule of thumb: set CPU limits 2-4x requests (allows bursting), set memory li
 
 If you do nothing else, do these three things:
 
-**Set both requests and limits on every container.** Not one or the other—both. This ensures you get Burstable QoS at minimum, with defined boundaries. For critical workloads, make requests equal limits for Guaranteed QoS.
-
-**Check your QoS classes.** Run `kubectl get pods -o custom-columns="NAME:.metadata.name,QOS:.status.qosClass"` across your namespaces. If you see BestEffort on anything that matters, you have work to do.
-
-**Size memory limits with 50% headroom above peak.** Memory is incompressible—exceed your limit and the kernel's OOM killer terminates your process immediately. No graceful shutdown, no warning. CPU throttling is recoverable; OOM kills are not.
+- **Set both requests and limits on every container.** Not one or the other—both. This ensures you get Burstable QoS at minimum, with defined boundaries. For critical workloads, make requests equal limits for Guaranteed QoS.
+- **Check your QoS classes.** Run `kubectl get pods -o custom-columns="NAME:.metadata.name,QOS:.status.qosClass"` across your namespaces. If you see BestEffort on anything that matters, you have work to do.
+- **Size memory limits with 50% headroom above peak.** Memory is incompressible—exceed your limit and the kernel's OOM killer terminates your process immediately. No graceful shutdown, no warning. CPU throttling is recoverable; OOM kills are not.
 
 <Download
   resource="kubernetes-pod-resource-requests-limits-qos-classes"

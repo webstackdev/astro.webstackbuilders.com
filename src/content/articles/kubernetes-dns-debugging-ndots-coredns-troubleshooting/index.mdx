@@ -140,13 +140,31 @@ For most teams, I recommend starting with trailing dots for immediate relief, th
 
 To make this concrete, here's what the fix looks like in practice. Before applying either fix, a simple HTTP request to an external API:
 
-| Metric | Before Fix | After Fix |
-|--------|------------|-----------|
-| DNS resolution time | 3.2 seconds | 85ms |
-| Total request latency | 3.4 seconds | 285ms |
-| P99 latency | 15+ seconds | 450ms |
-
-Table: Latency improvement after fixing ndots.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'Before Fix', 'After Fix'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'DNS resolution time',
+          td: ['3.2 seconds', '85ms'],
+        },
+        {
+          th: 'Total request latency',
+          td: ['3.4 seconds', '285ms'],
+        },
+        {
+          th: 'P99 latency',
+          td: ['15+ seconds', '450ms'],
+        },
+      ],
+    },
+    figure: 'Latency improvement after fixing ndots.',
+  }}
+/>
 
 The P99 improvement is particularly dramatic because timeout-related latency spikes disappear entirely. Your application goes from "sometimes slow for no apparent reason" to consistently fast.
 
@@ -155,9 +173,7 @@ The P99 improvement is particularly dramatic because timeout-related latency spi
 When connectivity issues arise and you suspect DNS, here's the fastest path to confirmation:
 
 1. **Launch a debug pod**: `kubectl run dns-debug --image=nicolaka/netshoot --rm -it --restart=Never -- bash`
-
 2. **Run the ndots test**: Compare `time nslookup api.example.com` vs `time nslookup api.example.com.`
-
 3. **Interpret the results**: If the FQDN (with dot) is 10x+ faster, apply one of the fixes above
 
 <Download

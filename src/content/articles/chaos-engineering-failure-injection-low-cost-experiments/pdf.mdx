@@ -645,9 +645,15 @@ Watch for the new pod scheduling, the health check passing, and traffic resuming
 
 What teams commonly discover from this experiment:
 
-- _Slow container startup delays recovery._ If your container takes 45 seconds to start, that's 45 seconds of degraded capacity. Consider optimizing image size, adding startup probes, or adjusting replica counts.
-- _Missing readiness probes cause traffic to unhealthy pods._ Without a readiness probe, Kubernetes sends traffic to pods that aren't ready, causing errors during startup.
-- _No alerts fired despite degradation._ This is the "aha" moment—your monitoring gap was invisible until you tested it.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Slow container startup delays recovery._", text: "If your container takes 45 seconds to start, that's 45 seconds of degraded capacity. Consider optimizing image size, adding startup probes, or adjusting replica counts." },
+    { lead: "_Missing readiness probes cause traffic to unhealthy pods._", text: "Without a readiness probe, Kubernetes sends traffic to pods that aren't ready, causing errors during startup." },
+    { lead: "_No alerts fired despite degradation._", text: "This is the \"aha\" moment—your monitoring gap was invisible until you tested it." },
+  ]}
+/>
+
 
 ### Experiment 2: Dependency Latency
 
@@ -684,9 +690,15 @@ Success looks like: service remains responsive (P99 under 3 seconds), no cascadi
 
 What teams commonly discover:
 
-- _Missing timeouts cause request pileup._ Without timeouts, requests queue indefinitely waiting for the slow database, exhausting threads and memory.
-- _Connection pool exhaustion._ Under latency, connections are held longer, and the pool runs dry before requests complete.
-- _No circuit breaker means failures cascade._ Without a circuit breaker, every request tries the slow path, and the latency spreads to callers of your service.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Missing timeouts cause request pileup._", text: "Without timeouts, requests queue indefinitely waiting for the slow database, exhausting threads and memory." },
+    { lead: "_Connection pool exhaustion._", text: "Under latency, connections are held longer, and the pool runs dry before requests complete." },
+    { lead: "_No circuit breaker means failures cascade._", text: "Without a circuit breaker, every request tries the slow path, and the latency spreads to callers of your service." },
+  ]}
+/>
+
 
 ### Experiment 3: Network Partition
 
@@ -726,9 +738,15 @@ Success criteria: service continues responding (even if slowly), fallback to dat
 
 What teams commonly discover:
 
-- _Hard dependency on cache, no fallback._ The code assumes cache is always available and throws exceptions on connection failure instead of falling back.
-- _Timeouts too long, requests queue._ Connection timeouts of 30 seconds mean requests pile up waiting for a cache that will never respond.
-- _Cache reconnection logic is buggy._ After the partition heals, the service doesn't reconnect properly and continues failing.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Hard dependency on cache, no fallback._", text: "The code assumes cache is always available and throws exceptions on connection failure instead of falling back." },
+    { lead: "_Timeouts too long, requests queue._", text: "Connection timeouts of 30 seconds mean requests pile up waiting for a cache that will never respond." },
+    { lead: "_Cache reconnection logic is buggy._", text: "After the partition heals, the service doesn't reconnect properly and continues failing." },
+  ]}
+/>
+
 
 <Callout type="info">
 These three experiments—pod kill, latency injection, and network partition—cover the vast majority of real-world failures. Master them before moving to more exotic scenarios.
@@ -769,9 +787,15 @@ Success looks like: no OOM kills, graceful degradation where the service sheds e
 
 What teams commonly discover:
 
-- _No memory limits set._ Without limits, one pod's memory pressure affects the entire node—the classic noisy neighbor problem.
-- _OOM kill with no graceful handling._ The application gets killed abruptly with no opportunity to drain connections or save state.
-- _Memory leaks exposed under pressure._ Baseline memory usage creeps up over time, and the stress test just accelerates the inevitable OOM.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_No memory limits set._", text: "Without limits, one pod's memory pressure affects the entire node—the classic noisy neighbor problem." },
+    { lead: "_OOM kill with no graceful handling._", text: "The application gets killed abruptly with no opportunity to drain connections or save state." },
+    { lead: "_Memory leaks exposed under pressure._", text: "Baseline memory usage creeps up over time, and the stress test just accelerates the inevitable OOM." },
+  ]}
+/>
+
 
 ## Building a Chaos Practice
 

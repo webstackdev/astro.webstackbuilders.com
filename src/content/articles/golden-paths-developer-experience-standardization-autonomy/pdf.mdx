@@ -35,43 +35,68 @@ Mandates breed workarounds. When developers can't use the standard path for legi
 
 A golden path is a supported, well-documented way to accomplish a common task that the platform team actively maintains and improves. That definition has several important implications.
 
-_Opinionated but not mandatory_: The path has strong defaults, but usage is optional. Your default CI template uses standard runners, but teams can bring their own if they have a reason.
-
-_Optimized for the common case_: The 80/20 rule applies. Your REST API template covers 80% of services; gRPC teams use an escape hatch. You're not trying to solve every problem—you're making the common case trivial.
-
-_Actively maintained_: The platform team owns updates, security patches, and improvements. Base images get updated monthly, and teams on the path get those updates automatically. This is the value proposition: stay on the path and maintenance is someone else's problem.
-
-_Well documented_: Clear docs, tutorials, examples, and troubleshooting guides. A getting-started guide that works, a FAQ that answers real questions, and a decision tree for when to use (and not use) the path.
-
-_Measurably better_: The path has demonstrable advantages over alternatives—50% faster deployments, 3x fewer security incidents, whatever the metrics are for your context. If you can't show the path is better, why should teams use it?
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Opinionated but not mandatory", text: "The path has strong defaults, but usage is optional. Your default CI template uses standard runners, but teams can bring their own if they have a reason." },
+    { lead: "Optimized for the common case", text: "The 80/20 rule applies. Your REST API template covers 80% of services; gRPC teams use an escape hatch. You're not trying to solve every problem—you're making the common case trivial." },
+    { lead: "Actively maintained", text: "The platform team owns updates, security patches, and improvements. Base images get updated monthly, and teams on the path get those updates automatically. This is the value proposition: stay on the path and maintenance is someone else's problem." },
+    { lead: "Well documented", text: "Clear docs, tutorials, examples, and troubleshooting guides. A getting-started guide that works, a FAQ that answers real questions, and a decision tree for when to use (and not use) the path." },
+    { lead: "Measurably better", text: "The path has demonstrable advantages over alternatives—50% faster deployments, 3x fewer security incidents, whatever the metrics are for your context. If you can't show the path is better, why should teams use it?" },
+  ]}
+/>
 
 ### Anti-Patterns to Avoid
 
 Three failure modes kill golden paths:
 
-_Golden handcuffs_: No way to deviate, even with good reason. The result is shadow platforms, resentment, and eventual abandonment of the standard altogether.
-
-_Golden cobwebs_: The path exists but is unmaintained. Teams avoid it because the documentation is stale, dependencies are outdated, and security vulnerabilities pile up. An unmaintained path is worse than no path—it creates false confidence.
-
-_Golden labyrinth_: So many paths that none are clearly recommended. Teams face decision paralysis, make inconsistent choices, and you lose the network effects that make standardization valuable in the first place.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Golden handcuffs", text: "No way to deviate, even with good reason. The result is shadow platforms, resentment, and eventual abandonment of the standard altogether." },
+    { lead: "Golden cobwebs", text: "The path exists but is unmaintained. Teams avoid it because the documentation is stale, dependencies are outdated, and security vulnerabilities pile up. An unmaintained path is worse than no path—it creates false confidence." },
+    { lead: "Golden labyrinth", text: "So many paths that none are clearly recommended. Teams face decision paralysis, make inconsistent choices, and you lose the network effects that make standardization valuable in the first place." },
+  ]}
+/>
 
 ### The Autonomy Spectrum
 
 Standardization approaches exist on a spectrum from mandates to full self-service, with golden paths in the middle. The table below compares these approaches across four dimensions: how much consistency you achieve, how fast teams can move, how much the platform team invests, and what use cases each approach fits best.
 
-| Approach | Consistency | Team Velocity | Platform Effort | Best For |
-|----------|-------------|---------------|-----------------|----------|
-| Mandated | High (enforced) | Low (friction) | High (enforcement) | Compliance, security |
-| Golden path | High (incentivized) | High (paved road) | Medium (maintenance) | Common patterns |
-| Self-service | Low | Variable | Low | Innovation, edge cases |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Comparing standardization approaches.",
+    thead: {
+      th: ["Approach", "Consistency", "Team Velocity", "Platform Effort", "Best For"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "Mandated",
+          td: ["High (enforced)", "Low (friction)", "High (enforcement)", "Compliance, security"],
+        },
+        {
+          th: "Golden path",
+          td: ["High (incentivized)", "High (paved road)", "Medium (maintenance)", "Common patterns"],
+        },
+        {
+          th: "Self-service",
+          td: ["Low", "Variable", "Low", "Innovation, edge cases"],
+        },
+      ],
+    },
+  }}
+/>
 
-Table: Comparing standardization approaches.
-
-_Mandated standards_ work for security-critical controls, legal and compliance requirements, and cross-cutting concerns like observability where inconsistency creates real operational risk. The tradeoff is high adoption friction and stifled innovation. Use mandates sparingly.
-
-_Golden paths_ work for common patterns like service creation and deployment, best practices like testing and monitoring, and productivity tooling. The tradeoff is that escape hatches can become the primary path if you're not careful, and paths can become outdated if you under-invest in maintenance.
-
-_Full self-service_ works for early-stage companies where standardization would slow down finding product-market fit, R&D and experimental work where the whole point is trying new things, and highly heterogeneous tech landscapes where no single path could cover the diversity. The tradeoff is duplication of effort, knowledge silos, and operational burden distributed across every team.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Mandated standards work for security-critical controls, legal and compliance requirements, and cross-cutting concerns like observability where inconsistency creates real operational risk", text: "The tradeoff is high adoption friction and stifled innovation. Use mandates sparingly." },
+    { lead: "Golden paths work for common patterns like service creation and deployment, best practices like testing and monitoring, and productivity tooling", text: "The tradeoff is that escape hatches can become the primary path if you're not careful, and paths can become outdated if you under-invest in maintenance." },
+    { lead: "Full self-service works for early-stage companies where standardization would slow down finding product-market fit, R&D and experimental work where the whole point is trying new things, and highly heterogeneous tech landscapes where no single path could cover the diversity", text: "The tradeoff is duplication of effort, knowledge silos, and operational burden distributed across every team." },
+  ]}
+/>
 
 <Callout type="info">
 Golden paths work when the path is genuinely better, not just standardized. If your path is slower, more complex, or less capable than the alternative, developers will route around it no matter how well documented it is.
@@ -85,13 +110,15 @@ A well-designed golden path has five components: an entrypoint, a core journey, 
 
 The best golden path is useless if developers don't know it exists or can't figure out which one applies to their situation. Path discovery is the zero-th step that makes everything else possible.
 
-A _service catalog_ (Backstage, Port, or similar) gives developers a searchable, browsable home for all paths. Each path has a card with a description, use cases, getting-started link, and owner contact. Developers searching for "create a new service" or "set up monitoring" find the relevant path immediately.
-
-_Decision trees_ help when multiple paths might apply. "Are you building a user-facing API or an internal batch job?" leads to different paths. These can live in the catalog or as standalone documentation. The key is reducing the cognitive load of choosing—developers shouldn't need to read five different path docs to figure out which one fits.
-
-_Search and tagging_ matter more as the path catalog grows. Tags like "kubernetes," "serverless," "data-pipeline," and "frontend" let developers filter to relevant options. Full-text search across path descriptions catches developers who don't know the exact terminology.
-
-_Contextual recommendations_ take discovery further. When a developer creates a new repository, the platform can suggest relevant paths based on the repo name, language detection, or team membership. "It looks like you're creating a Python service—would you like to use the Python Service Template?" This proactive approach catches developers before they start from scratch.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "A service catalog (Backstage, Port, or similar) gives developers a searchable, browsable home for all paths. Each path has a card with a description, use cases, getting-started link, and owner contact. Developers searching for \"create a new service\" or \"set up monitoring\" find the relevant path immediately." },
+    { lead: "Decision trees help when multiple paths might apply", text: "\"Are you building a user-facing API or an internal batch job?\" leads to different paths. These can live in the catalog or as standalone documentation. The key is reducing the cognitive load of choosing—developers shouldn't need to read five different path docs to figure out which one fits." },
+    { lead: "Search and tagging matter more as the path catalog grows", text: "Tags like \"kubernetes,\" \"serverless,\" \"data-pipeline,\" and \"frontend\" let developers filter to relevant options. Full-text search across path descriptions catches developers who don't know the exact terminology." },
+    { lead: "Contextual recommendations take discovery further", text: "When a developer creates a new repository, the platform can suggest relevant paths based on the repo name, language detection, or team membership. \"It looks like you're creating a Python service—would you like to use the Python Service Template?\" This proactive approach catches developers before they start from scratch." },
+  ]}
+/>
 
 Path discovery also means knowing when _not_ to use a path. Decision trees should have "none of these fit" branches that lead to escape hatch documentation or contact information for the platform team. It's better to acknowledge that a path doesn't fit than to force developers into an ill-suited option.
 
@@ -99,11 +126,14 @@ Path discovery also means knowing when _not_ to use a path. Decision trees shoul
 
 The _entrypoint_ is how developers discover and start using the path. This could be a CLI command (`platform create service`), a template catalog in Backstage, or a GitHub template repository. The entrypoint should be obvious and frictionless—if developers can't find the path or the first step is confusing, they won't use it.
 
-The _core journey_ is the sequence of steps that gets developers from "I need a thing" to "I have a working thing." For a service creation path, this might be: scaffold the service skeleton, configure service-specific values, provision infrastructure, and verify everything works. The core journey should be fast (10 minutes or less for common cases) and should handle the common case without requiring decisions the developer isn't equipped to make.
-
-_Extension points_ are places where teams can customize the path without forking it. These might be pre/post hooks in a pipeline, config overrides, or plugin systems. Good extension points let teams add behavior without modifying the core path.
-
-_Escape hatches_ are documented ways to leave the path entirely when it doesn't fit. These should be visible (not hidden), have clear processes, and ideally include a migration path back to the golden path later.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "The core journey is the sequence of steps that gets developers from \"I need a thing\" to \"I have a working thing.\" For a service creation path, this might be: scaffold the service skeleton, configure service-specific values, provision infrastructure, and verify everything works. The core journey should be fast (10 minutes or less for common cases) and should handle the common case without requiring decisions the developer isn't equipped to make." },
+    { text: "Extension points are places where teams can customize the path without forking it. These might be pre/post hooks in a pipeline, config overrides, or plugin systems. Good extension points let teams add behavior without modifying the core path." },
+    { text: "Escape hatches are documented ways to leave the path entirely when it doesn't fit. These should be visible (not hidden), have clear processes, and ideally include a migration path back to the golden path later." },
+  ]}
+/>
 
 The _support model_ defines how teams get help: documentation, Slack channels, office hours, escalation paths. A path without support isn't a golden path—it's an abandoned template.
 
@@ -205,26 +235,49 @@ Escape hatches are how teams leave the golden path when they have a legitimate r
 
 Four principles guide escape hatch design:
 
-_Documented, not hidden_: Escape hatches are part of the platform, not loopholes. The alternative deployment guide lives in the main docs, not on a hidden wiki page. If teams have to discover escape hatches through word of mouth, you've created a two-tier system where connected teams have options and everyone else doesn't.
-
-_Friction proportional to risk_: Higher-risk deviations require more process. A custom Dockerfile might need only a self-review and a note in the README. Custom network configuration needs a security review. The process should match the risk, not be uniformly heavy or uniformly light.
-
-_Path back exists_: Teams should be able to return to the golden path later. If taking an escape hatch is a one-way door, teams will be reluctant to use it even when appropriate, and you'll accumulate permanent exceptions. Provide migration guides from custom to standard.
-
-_Support level is clear_: Teams know what support they'll get (or won't). Escape hatch means best-effort support, not SLA. This isn't punitive—it's honest about where the platform team's expertise and tooling apply.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Documented, not hidden", text: "Escape hatches are part of the platform, not loopholes. The alternative deployment guide lives in the main docs, not on a hidden wiki page. If teams have to discover escape hatches through word of mouth, you've created a two-tier system where connected teams have options and everyone else doesn't." },
+    { lead: "Friction proportional to risk", text: "Higher-risk deviations require more process. A custom Dockerfile might need only a self-review and a note in the README. Custom network configuration needs a security review. The process should match the risk, not be uniformly heavy or uniformly light." },
+    { lead: "Path back exists", text: "Teams should be able to return to the golden path later. If taking an escape hatch is a one-way door, teams will be reluctant to use it even when appropriate, and you'll accumulate permanent exceptions. Provide migration guides from custom to standard." },
+    { lead: "Support level is clear", text: "Teams know what support they'll get (or won't). Escape hatch means best-effort support, not SLA. This isn't punitive—it's honest about where the platform team's expertise and tooling apply." },
+  ]}
+/>
 
 ### Escape Hatch Tiers
 
 Not all deviations are equal. A tiered system helps teams understand the implications:
 
-| Tier | Examples | Process | Support Level |
-|------|----------|---------|---------------|
-| 1: Extension | Custom CI steps, extra K8s annotations | Self-service, no approval | Full support |
-| 2: Override | Custom Dockerfile, alternative test framework | Document in README, async review | Best-effort |
-| 3: Exception | Alternative deployment target, custom networking | Architecture review required | Self-maintained |
-| 4: Off-platform | Custom infrastructure, third-party managed service | VP approval, convergence plan | None |
-
-Table: Escape hatch tiers with escalating process and decreasing support.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Escape hatch tiers with escalating process and decreasing support.",
+    thead: {
+      th: ["Tier", "Examples", "Process", "Support Level"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "1: Extension",
+          td: ["Custom CI steps, extra K8s annotations", "Self-service, no approval", "Full support"],
+        },
+        {
+          th: "2: Override",
+          td: ["Custom Dockerfile, alternative test framework", "Document in README, async review", "Best-effort"],
+        },
+        {
+          th: "3: Exception",
+          td: ["Alternative deployment target, custom networking", "Architecture review required", "Self-maintained"],
+        },
+        {
+          th: "4: Off-platform",
+          td: ["Custom infrastructure, third-party managed service", "VP approval, convergence plan", "None"],
+        },
+      ],
+    },
+  }}
+/>
 
 Tier 1 deviations use the extension points we discussed earlier—they're not really escape hatches at all. Tier 2 overrides are common and expected; teams document them and accept reduced support. Tier 3 exceptions are significant deviations that need review to understand the implications. Tier 4 is fully off-platform, typically for acquired companies or genuinely novel architectures.
 
@@ -245,8 +298,13 @@ Technical reason: Model requires CUDA 12, TensorRT, and 24GB GPU memory. Current
 
 Alternatives considered:
 
-- CPU-only inference: 400ms latency, 8x more instances, higher cost. Rejected.
-- Kubernetes GPU nodes: Not available; 3-month roadmap item. Rejected for timeline.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "CPU-only inference: 400ms latency, 8x more instances, higher cost. Rejected." },
+    { text: "Kubernetes GPU nodes: Not available; 3-month roadmap item. Rejected for timeline." },
+  ]}
+/>
 
 Temporary or permanent: Temporary. Will migrate to K8s GPU nodes when cluster upgrade completes (Q2 2024).
 
@@ -285,25 +343,29 @@ _Organizational recognition_: Adoption is visible and valued. Adoption dashboard
 
 Some tactics look like they'd drive adoption but actually backfire:
 
-_Shame dashboards_: Public leaderboards ranking teams by compliance create resentment and incentivize gaming metrics. Use private adoption reports with helpful context instead.
-
-_Artificial friction_: Making alternatives harder than necessary punishes legitimate use cases and breeds workarounds. Make the path easier; don't make alternatives worse.
-
-_Mandate without capability_: Requiring the path before it handles a team's use case forces bad fits and creates exceptions from day one. Expand path capabilities before mandating.
-
-_Support hostage_: Refusing to help with anything off-path alienates teams and creates an adversarial relationship. Use tiered support—less for off-path, but not zero.
-
-_Deadline without migration support_: Requiring migration by a date without helping means teams scramble, cut corners, and create technical debt. Offer migration sprints with platform team pairing.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Shame dashboards", text: "Public leaderboards ranking teams by compliance create resentment and incentivize gaming metrics. Use private adoption reports with helpful context instead." },
+    { lead: "Artificial friction", text: "Making alternatives harder than necessary punishes legitimate use cases and breeds workarounds. Make the path easier; don't make alternatives worse." },
+    { lead: "Mandate without capability", text: "Requiring the path before it handles a team's use case forces bad fits and creates exceptions from day one. Expand path capabilities before mandating." },
+    { lead: "Support hostage", text: "Refusing to help with anything off-path alienates teams and creates an adversarial relationship. Use tiered support—less for off-path, but not zero." },
+    { lead: "Deadline without migration support", text: "Requiring migration by a date without helping means teams scramble, cut corners, and create technical debt. Offer migration sprints with platform team pairing." },
+  ]}
+/>
 
 ### Healthy Pressure
 
 There are legitimate ways to encourage adoption without coercion:
 
-_Opportunity cost visibility_: Show teams what they're missing. "Your service could have automatic security upgrades if you used the standard base image." This isn't threatening—it's informing.
-
-_Improvement collaboration_: Invite off-path teams to shape the path. "Your use case isn't covered—let's design the extension point together." This turns potential adversaries into partners.
-
-_Success storytelling_: Highlight teams who migrated and benefited. "Team X moved to the path and reduced deploy time by 60%." Social proof is powerful.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Opportunity cost visibility", text: "Show teams what they're missing. \"Your service could have automatic security upgrades if you used the standard base image.\" This isn't threatening—it's informing." },
+    { lead: "Improvement collaboration", text: "Invite off-path teams to shape the path. \"Your use case isn't covered—let's design the extension point together.\" This turns potential adversaries into partners." },
+    { lead: "Success storytelling", text: "Highlight teams who migrated and benefited. \"Team X moved to the path and reduced deploy time by 60%.\" Social proof is powerful." },
+  ]}
+/>
 
 <Callout type="info">
 The goal is pull, not push. When developers choose the golden path because it's genuinely the best option, adoption is sustainable. When they're forced onto it, they'll leave at the first opportunity—either to a different path or a different company.
@@ -317,27 +379,59 @@ Remember the autonomy spectrum: we're aiming for high consistency _and_ high tea
 
 ### Four Categories of Path Metrics
 
-_Adoption metrics_ tell you whether teams are choosing your path. Track overall adoption rate (on-path services divided by total services), but also segment by team, organization, and service age. The most revealing metric is adoption rate for _new_ services—if teams building from scratch don't choose your path, that's a strong signal something's wrong. Also track adoption trends over time. Declining adoption rate means you're losing the value argument.
-
-_Usage metrics_ reveal how teams actually interact with the path. Daily active services and deployment frequency show whether adoption is nominal (we registered but don't really use it) or real. Extension point usage shows which customization needs are common—high usage of a particular extension often means it should become a first-class feature. Escape hatch usage by category tells you where your path has gaps.
-
-_Satisfaction metrics_ capture developer sentiment. NPS scores give you a single number to track over time, but the real value is in the verbatim feedback. Survey responses to specific questions ("the path makes my job easier," "the path handles my use cases," "I can get help when needed") identify concrete improvement areas. Support ticket volume, resolution time, and satisfaction ratings show whether your support model works.
-
-_Operational metrics_ prove whether the path delivers business value. Compare DORA metrics (deployment frequency, change failure rate, MTTR) between on-path and off-path services. If on-path services don't outperform, you have no adoption argument beyond mandate. Also track incident rates—the path should reduce operational burden, not create new failure modes.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Adoption metrics", text: "Tell you whether teams are choosing your path. Track overall adoption rate (on-path services divided by total services), but also segment by team, organization, and service age. The most revealing metric is adoption rate for new services—if teams building from scratch don't choose your path, that's a strong signal something's wrong. Also track adoption trends over time. Declining adoption rate means you're losing the value argument." },
+    { lead: "Usage metrics", text: "Reveal how teams actually interact with the path. Daily active services and deployment frequency show whether adoption is nominal (we registered but don't really use it) or real. Extension point usage shows which customization needs are common—high usage of a particular extension often means it should become a first-class feature. Escape hatch usage by category tells you where your path has gaps." },
+    { lead: "Satisfaction metrics", text: "Capture developer sentiment. NPS scores give you a single number to track over time, but the real value is in the verbatim feedback. Survey responses to specific questions (\"the path makes my job easier,\" \"the path handles my use cases,\" \"I can get help when needed\") identify concrete improvement areas. Support ticket volume, resolution time, and satisfaction ratings show whether your support model works." },
+    { lead: "Operational metrics", text: "Prove whether the path delivers business value. Compare DORA metrics (deployment frequency, change failure rate, MTTR) between on-path and off-path services. If on-path services don't outperform, you have no adoption argument beyond mandate. Also track incident rates—the path should reduce operational burden, not create new failure modes." },
+  ]}
+/>
 
 ### Leading vs Lagging Indicators
 
-| Metric | Type | What It Tells You | Action Threshold |
-|--------|------|-------------------|------------------|
-| New service adoption | Leading | Path attractiveness to new projects | < 70% investigate |
-| Escape hatch requests | Leading | Gap between path and needs | > 20% expand path |
-| Extension point usage | Leading | Customization demands | High usage = productize |
-| NPS score | Leading | Developer sentiment | < 30 immediate action |
-| Deploy frequency (path vs off) | Lagging | Operational benefit realized | Path should be higher |
-| MTTR (path vs off) | Lagging | Support model effectiveness | Path should be lower |
-| Migration requests | Lagging | Pull toward path | High = path improving |
-
-Table: Leading and lagging indicators for path health.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Leading and lagging indicators for path health.",
+    thead: {
+      th: ["Metric", "Type", "What It Tells You", "Action Threshold"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "New service adoption",
+          td: ["Leading", "Path attractiveness to new projects", "< 70% investigate"],
+        },
+        {
+          th: "Escape hatch requests",
+          td: ["Leading", "Gap between path and needs", "> 20% expand path"],
+        },
+        {
+          th: "Extension point usage",
+          td: ["Leading", "Customization demands", "High usage = productize"],
+        },
+        {
+          th: "NPS score",
+          td: ["Leading", "Developer sentiment", "< 30 immediate action"],
+        },
+        {
+          th: "Deploy frequency (path vs off)",
+          td: ["Lagging", "Operational benefit realized", "Path should be higher"],
+        },
+        {
+          th: "MTTR (path vs off)",
+          td: ["Lagging", "Support model effectiveness", "Path should be lower"],
+        },
+        {
+          th: "Migration requests",
+          td: ["Lagging", "Pull toward path", "High = path improving"],
+        },
+      ],
+    },
+  }}
+/>
 
 Leading indicators predict future problems. If new service adoption drops, you'll see declining overall adoption in six months. If escape hatch requests spike, developers are hitting use cases you don't support. Lagging indicators confirm outcomes. If on-path services show better DORA metrics, your path delivers real value. If migration requests increase, teams are voluntarily choosing to join.
 
@@ -355,25 +449,30 @@ Golden paths aren't static. They have lifecycles—they're born, mature, and eve
 
 Every path moves through four stages:
 
-_Incubation_ is the early experimental phase. The path is limited to volunteer early adopters who understand they're guinea pigs. Rapid iteration based on feedback is expected—this is when you learn what works. Breaking changes are acceptable because the adoption surface is small. There's no production SLA; early adopters accept the risk in exchange for shaping the path's direction. Incubation typically lasts two to four months and exits when three or more teams are successfully using the path in production, documentation is complete, the support model is defined, and a migration path from alternatives exists.
-
-_General availability_ is the mature phase where the path is actively recommended for new projects. The API is stable with a clear deprecation policy for any changes. There's a production support SLA—teams can depend on the path. Regular maintenance and updates keep it current with security patches and ecosystem changes. This phase typically lasts two to five years and exits when the path is superseded by a better alternative, usage drops below a maintenance-justifying threshold, or maintenance cost exceeds delivered value.
-
-_Sunset_ is the retirement phase. No new services should adopt the path. Migration support is active—the platform team helps teams move to the replacement. Only security patches are applied; no feature work. There's a documented end date that teams can plan around. Sunset requires announcing the deprecation at least six months ahead, providing migration tooling, offering migration support sprints, tracking migration progress, and extending deadlines when legitimate blockers emerge. This phase typically lasts six to eighteen months and exits when all services have migrated or explicit exceptions have been approved.
-
-_Deprecated_ is the final state. The path receives no updates whatsoever—no security patches, no bug fixes. There's no support from the platform team. The path may be removed entirely at any time. Any remaining users self-maintain at their own risk. This is the stick that makes sunset migration urgent.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Incubation", text: "Is the early experimental phase. The path is limited to volunteer early adopters who understand they're guinea pigs. Rapid iteration based on feedback is expected—this is when you learn what works. Breaking changes are acceptable because the adoption surface is small. There's no production SLA; early adopters accept the risk in exchange for shaping the path's direction. Incubation typically lasts two to four months and exits when three or more teams are successfully using the path in production, documentation is complete, the support model is defined, and a migration path from alternatives exists." },
+    { lead: "General availability", text: "Is the mature phase where the path is actively recommended for new projects. The API is stable with a clear deprecation policy for any changes. There's a production support SLA—teams can depend on the path. Regular maintenance and updates keep it current with security patches and ecosystem changes. This phase typically lasts two to five years and exits when the path is superseded by a better alternative, usage drops below a maintenance-justifying threshold, or maintenance cost exceeds delivered value." },
+    { lead: "Sunset", text: "Is the retirement phase. No new services should adopt the path. Migration support is active—the platform team helps teams move to the replacement. Only security patches are applied; no feature work. There's a documented end date that teams can plan around. Sunset requires announcing the deprecation at least six months ahead, providing migration tooling, offering migration support sprints, tracking migration progress, and extending deadlines when legitimate blockers emerge. This phase typically lasts six to eighteen months and exits when all services have migrated or explicit exceptions have been approved." },
+    { lead: "Deprecated", text: "Is the final state. The path receives no updates whatsoever—no security patches, no bug fixes. There's no support from the platform team. The path may be removed entirely at any time. Any remaining users self-maintain at their own risk. This is the stick that makes sunset migration urgent." },
+  ]}
+/>
 
 ### Deprecation Communication
 
 Deprecation announcements need to be comprehensive and actionable. A good deprecation communication includes several elements:
 
-The _what and why_: Clearly identify the path being deprecated and explain the reason. "Service Template v1 uses Node.js 16, which reaches EOL in April. Template v2 uses Node.js 20 with improved performance and security." Developers are more cooperative when they understand the reasoning.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "The what and why", text: "Clearly identify the path being deprecated and explain the reason. \"Service Template v1 uses Node.js 16, which reaches EOL in April. Template v2 uses Node.js 20 with improved performance and security.\" Developers are more cooperative when they understand the reasoning." },
+    { lead: "The replacement path", text: "Document what teams should migrate to, link to a detailed migration guide, and indicate whether automated migration tooling is available. \"Run `platform migrate service-template` to automatically upgrade\" is much better than \"figure it out yourself.\"" },
+    { lead: "The impact assessment", text: "List all impacted services with team ownership and contact information. Teams need to know they're affected without discovering it themselves." },
+    { lead: "The timeline", text: "Provide clear milestones. When is deprecation announced? When does migration tooling become available? When do security patches stop? When are new deployments blocked? When is the path removed entirely? Concrete dates let teams plan." },
+  ]}
+/>
 
-The _replacement path_: Document what teams should migrate to, link to a detailed migration guide, and indicate whether automated migration tooling is available. "Run `platform migrate service-template` to automatically upgrade" is much better than "figure it out yourself."
-
-The _impact assessment_: List all impacted services with team ownership and contact information. Teams need to know they're affected without discovering it themselves.
-
-The _timeline_: Provide clear milestones. When is deprecation announced? When does migration tooling become available? When do security patches stop? When are new deployments blocked? When is the path removed entirely? Concrete dates let teams plan.
 
 The _support resources_: Specify migration sprints (dedicated time when the platform team pairs with product teams), office hours for questions, and a dedicated Slack channel for migration coordination.
 
@@ -389,23 +488,28 @@ We've covered what golden paths are, how to design them, when to allow deviation
 
 A healthy platform team needs several distinct roles, though in smaller organizations one person might wear multiple hats:
 
-_Path owners_ have end-to-end responsibility for specific paths—the service creation path, the CI/CD path, the observability path. They define the roadmap, gather feedback from users, prioritize improvements, own documentation, and handle exceptions and escalations. Expect path owners to spend roughly half their time on development, 30% on support, and 20% on strategy. This role requires both technical depth and product thinking—understanding not just how to build the path but what users actually need.
-
-_Path engineers_ build and maintain path infrastructure. They develop tooling, maintain templates and automation, fix bugs and security issues, and implement extension points. This is primarily a development role—80% building, 20% support. Path engineers need strong infrastructure skills and a user empathy that translates into good developer experience.
-
-_Developer advocates_ bridge platform and product teams. They create tutorials and documentation, run office hours and workshops, gather feedback and pain points, and champion developer experience. Their time splits across content creation (40%), direct support (40%), and feedback loops back to the platform team (20%). Good advocates build relationships with product teams and become trusted advisors rather than just support tickets.
-
-_SRE liaisons_ ensure operational excellence for paths. They define SLOs for path infrastructure, monitor path service health, respond to incidents affecting paths, and handle capacity planning. Their focus is keeping the platform reliable so product teams can depend on it. Time splits across monitoring (40%), improvement work (30%), and incident response (30%).
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Path owners", text: "Have end-to-end responsibility for specific paths—the service creation path, the CI/CD path, the observability path. They define the roadmap, gather feedback from users, prioritize improvements, own documentation, and handle exceptions and escalations. Expect path owners to spend roughly half their time on development, 30% on support, and 20% on strategy. This role requires both technical depth and product thinking—understanding not just how to build the path but what users actually need." },
+    { lead: "Path engineers", text: "Build and maintain path infrastructure. They develop tooling, maintain templates and automation, fix bugs and security issues, and implement extension points. This is primarily a development role—80% building, 20% support. Path engineers need strong infrastructure skills and a user empathy that translates into good developer experience." },
+    { lead: "Developer advocates", text: "Bridge platform and product teams. They create tutorials and documentation, run office hours and workshops, gather feedback and pain points, and champion developer experience. Their time splits across content creation (40%), direct support (40%), and feedback loops back to the platform team (20%). Good advocates build relationships with product teams and become trusted advisors rather than just support tickets." },
+    { lead: "SRE liaisons", text: "Ensure operational excellence for paths. They define SLOs for path infrastructure, monitor path service health, respond to incidents affecting paths, and handle capacity planning. Their focus is keeping the platform reliable so product teams can depend on it. Time splits across monitoring (40%), improvement work (30%), and incident response (30%)." },
+  ]}
+/>
 
 ### Interaction Models
 
 How platform teams interact with product teams determines whether paths feel like services or mandates:
 
-_Regular touchpoints_ include weekly office hours where anyone can ask questions, Slack support for quick answers, and comprehensive documentation for self-service. The goal is making help accessible without requiring tickets or approvals.
-
-_Escalation paths_ handle exception requests, feature requests, and incident co-response. These need clear processes so teams know how to escalate without feeling like they're fighting bureaucracy.
-
-_Feedback loops_ include quarterly surveys for broad sentiment, user interviews for deep understanding, and usage analytics for behavioral insights. The platform team should actively seek feedback rather than waiting for complaints.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Regular touchpoints", text: "Include weekly office hours where anyone can ask questions, Slack support for quick answers, and comprehensive documentation for self-service. The goal is making help accessible without requiring tickets or approvals." },
+    { lead: "Escalation paths", text: "Handle exception requests, feature requests, and incident co-response. These need clear processes so teams know how to escalate without feeling like they're fighting bureaucracy." },
+    { lead: "Feedback loops", text: "Include quarterly surveys for broad sentiment, user interviews for deep understanding, and usage analytics for behavioral insights. The platform team should actively seek feedback rather than waiting for complaints." },
+  ]}
+/>
 
 With leadership, the platform team provides monthly adoption metrics, quarterly roadmap updates, and resource requests during planning cycles. Escalations to leadership include tier 4 exceptions, major path changes, and resource conflicts.
 

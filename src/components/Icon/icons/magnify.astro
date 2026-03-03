@@ -1,0 +1,31 @@
+---
+export type Props = {
+  color: string
+  classes?: string
+  size: number
+  accessible: boolean
+  focusable: boolean
+  isListMarker?: boolean
+  id?: string
+}
+
+const { color, classes, size, accessible, focusable, isListMarker, id } = Astro.props
+---
+
+<svg
+  id={id}
+  xmlns="http://www.w3.org/2000/svg"
+  class:list={["shrink-0", `w-${size} h-${size}`, `text-${color}`, classes, isListMarker ? "mt-0.5" : ""]}
+  fill="currentColor"
+  stroke="none"
+  viewBox="0 0 24 24"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
+>
+  {accessible && <title>User Avatar Icon</title>}
+  <path
+    fill-rule="evenodd"
+    stroke-width="1"
+    d="m 23.682976,23.67929 a 1.0036896,1.0036896 0 0 1 -1.4253,0.008 l -7.7184,-7.68726 a 8.975996,8.975996 0 1 1 1.4454,-1.43628 l 7.7083,7.69027 a 1.0036896,1.0036896 0 0 1 -0.01,1.42524 z M 8.918676,1.9132803 a 7.0258271,7.0258271 0 1 0 7.0258,7.02582 7.0258271,7.0258271 0 0 0 -7.0258,-7.02582 z m 3.0111,8.02951 h -2.0074 V 11.95017 a 1.0037,1.0037 0 0 1 -2.0074,0 V 9.9427903 h -2.0074 a 1.00369,1.00369 0 0 1 0,-2.00738 h 2.0074 v -2.00738 a 1.0037,1.0037 0 0 1 2.0074,0 v 2.00738 h 2.0074 a 1.00369,1.00369 0 0 1 0,2.00738 z"
+  ></path>
+</svg>

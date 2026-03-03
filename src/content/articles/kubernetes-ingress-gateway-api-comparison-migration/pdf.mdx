@@ -180,17 +180,47 @@ Figure: Ingress uses flat resources in each namespace; Gateway API uses a shared
 
 The table below summarizes the key differences. If you're scanning for a quick answer: Ingress is simpler when you don't need the advanced features, Gateway API is more capable when you do.
 
-| Aspect | Ingress | Gateway API |
-|--------|---------|-------------|
-| Resource types | 1 (Ingress) | 3+ (GatewayClass, Gateway, *Route) |
-| Configuration | Annotations (not portable) | Native fields (portable) |
-| Namespace scope | Same namespace only | Cross-namespace supported |
-| Protocols | HTTP/HTTPS | HTTP, HTTPS, TCP, UDP, gRPC, TLS |
-| Traffic splitting | Annotation-dependent | Native support |
-| Header manipulation | Annotation-dependent | Native filters |
-| Role separation | No | Yes (infra/platform/app) |
-
-Table: Ingress vs Gateway API comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Aspect', 'Ingress', 'Gateway API'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Resource types',
+          td: ['1 (Ingress)', '3+ (GatewayClass, Gateway, *Route)'],
+        },
+        {
+          th: 'Configuration',
+          td: ['Annotations (not portable)', 'Native fields (portable)'],
+        },
+        {
+          th: 'Namespace scope',
+          td: ['Same namespace only', 'Cross-namespace supported'],
+        },
+        {
+          th: 'Protocols',
+          td: ['HTTP/HTTPS', 'HTTP, HTTPS, TCP, UDP, gRPC, TLS'],
+        },
+        {
+          th: 'Traffic splitting',
+          td: ['Annotation-dependent', 'Native support'],
+        },
+        {
+          th: 'Header manipulation',
+          td: ['Annotation-dependent', 'Native filters'],
+        },
+        {
+          th: 'Role separation',
+          td: ['No', 'Yes (infra/platform/app)'],
+        },
+      ],
+    },
+    figure: 'Ingress vs Gateway API comparison.',
+  }}
+/>
 
 <Callout type="warning">
 Gateway API's layered model adds complexity. If you don't need cross-namespace routing, traffic splitting, or role separation, the extra layers are overhead without benefit. Ingress's simplicity is a feature, not a limitation.
@@ -202,14 +232,35 @@ Gateway API's layered model adds complexity. If you don't need cross-namespace r
 
 Beyond basic host and path matching, modern routing often requires matching on headers, query parameters, or HTTP methods. Ingress provides limited support for these patterns—you're dependent on controller-specific annotations that may or may not exist. Gateway API makes advanced matching a first-class feature.
 
-| Capability | Ingress | Gateway API |
-|------------|---------|-------------|
-| Path matching | Exact, Prefix, ImplementationSpecific | Exact, PathPrefix, RegularExpression |
-| Header matching | Annotation-dependent | Native (`matches.headers`) |
-| Query parameter matching | Not supported | Native (`matches.queryParams`) |
-| HTTP method matching | Not supported | Native (`matches.method`) |
-
-Table: Routing capability comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Capability', 'Ingress', 'Gateway API'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Path matching',
+          td: ['Exact, Prefix, ImplementationSpecific', 'Exact, PathPrefix, RegularExpression'],
+        },
+        {
+          th: 'Header matching',
+          td: ['Annotation-dependent', 'Native (`matches.headers`)'],
+        },
+        {
+          th: 'Query parameter matching',
+          td: ['Not supported', 'Native (`matches.queryParams`)'],
+        },
+        {
+          th: 'HTTP method matching',
+          td: ['Not supported', 'Native (`matches.method`)'],
+        },
+      ],
+    },
+    figure: 'Routing capability comparison.',
+  }}
+/>
 
 The difference becomes concrete when you need to route requests based on something other than URL path. With Gateway API, routing beta users to a different backend based on a header is straightforward:
 
@@ -341,16 +392,44 @@ Code: gRPC routing with method-level matching in Gateway API.
 
 The table below summarizes protocol support across both APIs. For HTTP workloads, either option works. For anything else, Gateway API is your only portable choice.
 
-| Protocol | Ingress | Gateway API | Status |
-|----------|---------|-------------|--------|
-| HTTP | ✓ Native | ✓ HTTPRoute | GA |
-| HTTPS (terminate) | ✓ Native | ✓ HTTPRoute + TLS | GA |
-| HTTPS (passthrough) | Annotation-dependent | ✓ TLSRoute | GA |
-| TCP | Not supported | ✓ TCPRoute | Beta |
-| UDP | Not supported | ✓ UDPRoute | Alpha |
-| gRPC | Annotation-dependent | ✓ GRPCRoute | GA |
-
-Table: Protocol support comparison. Status column reflects Gateway API specification maturity (GA/Beta/Alpha), not individual controller implementation status.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Protocol', 'Ingress', 'Gateway API', 'Status'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'HTTP',
+          td: ['✓ Native', '✓ HTTPRoute', 'GA'],
+        },
+        {
+          th: 'HTTPS (terminate)',
+          td: ['✓ Native', '✓ HTTPRoute + TLS', 'GA'],
+        },
+        {
+          th: 'HTTPS (passthrough)',
+          td: ['Annotation-dependent', '✓ TLSRoute', 'GA'],
+        },
+        {
+          th: 'TCP',
+          td: ['Not supported', '✓ TCPRoute', 'Beta'],
+        },
+        {
+          th: 'UDP',
+          td: ['Not supported', '✓ UDPRoute', 'Alpha'],
+        },
+        {
+          th: 'gRPC',
+          td: ['Annotation-dependent', '✓ GRPCRoute', 'GA'],
+        },
+      ],
+    },
+    figure:
+      'Protocol support comparison. Status column reflects Gateway API specification maturity (GA/Beta/Alpha), not individual controller implementation status.',
+  }}
+/>
 
 ## Role-Based Ownership
 
@@ -363,9 +442,7 @@ Gateway API's layered architecture maps naturally to organizational boundaries. 
 The three-layer model creates clear ownership:
 
 - **Infrastructure team** manages GatewayClass resources. They select and configure the controller, set cluster-wide policies, and typically have cluster-admin access. This layer changes rarely—maybe during major upgrades or when adding new controller capabilities.
-
 - **Platform team** manages Gateway resources. They configure listeners, TLS certificates, and crucially, which namespaces can attach routes. They control the blast radius of application team changes through the `allowedRoutes` configuration.
-
 - **Application teams** manage HTTPRoute resources in their own namespaces. They define their routing rules, but can only attach to Gateways that explicitly allow their namespace. They can't affect other teams' traffic.
 
 ```yaml title="multi-team-gateway.yaml"
@@ -522,17 +599,9 @@ Code: New routes use Gateway API while existing Ingress handles legacy paths.
 
 This coexistence works because Ingress and Gateway API are separate resource types that controllers watch independently. When a request arrives, the controller checks both APIs and routes based on the matching rules. Requests to `/v2` match the HTTPRoute; requests to `/v1` match the Ingress. There's no conflict because they handle different paths. If you need to migrate an existing path, create the HTTPRoute first with a different hostname for testing, then update DNS or the hostname field to cut over.
 
-**Phase 2: Migrate routes (4-8 weeks)**
-
-Convert Ingress rules to HTTPRoutes one at a time. Test each migration in staging first, then deploy to production. Keep the original Ingress rule as a fallback—you can revert instantly if something breaks.
-
-**Phase 3: Cutover (1-2 weeks)**
-
-Once all routes are migrated, route all traffic through Gateway. Keep Ingress resources in read-only mode (no new rules) while you monitor for issues. This is your last chance to catch problems before cleanup.
-
-**Phase 4: Cleanup (1 week)**
-
-Delete unused Ingress resources, document the new patterns, and update team training. This is the point of no return—make sure you're confident before proceeding.
+- **Phase 2: Migrate routes (4-8 weeks)** Convert Ingress rules to HTTPRoutes one at a time. Test each migration in staging first, then deploy to production. Keep the original Ingress rule as a fallback—you can revert instantly if something breaks.
+- **Phase 3: Cutover (1-2 weeks)** Once all routes are migrated, route all traffic through Gateway. Keep Ingress resources in read-only mode (no new rules) while you monitor for issues. This is your last chance to catch problems before cleanup.
+- **Phase 4: Cleanup (1 week)** Delete unused Ingress resources, document the new patterns, and update team training. This is the point of no return—make sure you're confident before proceeding.
 
 The key insight is that rollback is easy in phases 1-3. If an HTTPRoute causes problems, delete it and the traffic falls back to Ingress. Only in phase 4, when you delete Ingress resources, do you commit to Gateway API.
 
@@ -540,13 +609,31 @@ The key insight is that rollback is easy in phases 1-3. If an HTTPRoute causes p
 
 Converting an Ingress resource to an HTTPRoute is mostly mechanical, but there are gotchas. The path matching types have different names: Ingress `Prefix` becomes HTTPRoute `PathPrefix`. Ingress `ImplementationSpecific` has no direct equivalent—you'll need to understand what your controller actually did with it and pick the appropriate HTTPRoute match type.
 
-| Ingress pathType | HTTPRoute path.type | Notes |
-|------------------|---------------------|-------|
-| Exact | Exact | Direct mapping |
-| Prefix | PathPrefix | Direct mapping |
-| ImplementationSpecific | Varies | Check controller docs |
-
-Table: Path type mapping between Ingress and HTTPRoute.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Ingress pathType', 'HTTPRoute path.type', 'Notes'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Exact',
+          td: ['Exact', 'Direct mapping'],
+        },
+        {
+          th: 'Prefix',
+          td: ['PathPrefix', 'Direct mapping'],
+        },
+        {
+          th: 'ImplementationSpecific',
+          td: ['Varies', 'Check controller docs'],
+        },
+      ],
+    },
+    figure: 'Path type mapping between Ingress and HTTPRoute.',
+  }}
+/>
 
 The harder part is annotations. Each annotation that your Ingress uses for non-standard behavior needs to be converted to Gateway API's native features or policy attachments. Common conversions:
 
@@ -569,17 +656,47 @@ Gateway API is newer, which means less community content and less battle-tested 
 
 All major ingress controllers now support Gateway API at some level. The implementations vary in completeness:
 
-| Controller | Gateway API Status | Route Types | Notes |
-|------------|-------------------|-------------|-------|
-| Envoy Gateway | GA | HTTP, gRPC, TCP, UDP, TLS | Purpose-built for Gateway API |
-| Istio | GA | HTTP, gRPC, TCP, TLS | Preferred over Istio Gateway |
-| Contour | GA | HTTP, gRPC, TLS | Mature implementation |
-| Kong | GA | HTTP, gRPC, TCP, UDP | Full plugin support via policy |
-| Traefik | GA | HTTP, gRPC, TCP, TLS | Middleware via policy |
-| NGINX Gateway Fabric | GA | HTTP, gRPC | Successor to nginx-ingress |
-| HAProxy | Beta | HTTP, TCP | Newer, less mature |
-
-Table: Controller Gateway API support.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Controller', 'Gateway API Status', 'Route Types', 'Notes'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Envoy Gateway',
+          td: ['GA', 'HTTP, gRPC, TCP, UDP, TLS', 'Purpose-built for Gateway API'],
+        },
+        {
+          th: 'Istio',
+          td: ['GA', 'HTTP, gRPC, TCP, TLS', 'Preferred over Istio Gateway'],
+        },
+        {
+          th: 'Contour',
+          td: ['GA', 'HTTP, gRPC, TLS', 'Mature implementation'],
+        },
+        {
+          th: 'Kong',
+          td: ['GA', 'HTTP, gRPC, TCP, UDP', 'Full plugin support via policy'],
+        },
+        {
+          th: 'Traefik',
+          td: ['GA', 'HTTP, gRPC, TCP, TLS', 'Middleware via policy'],
+        },
+        {
+          th: 'NGINX Gateway Fabric',
+          td: ['GA', 'HTTP, gRPC', 'Successor to nginx-ingress'],
+        },
+        {
+          th: 'HAProxy',
+          td: ['Beta', 'HTTP, TCP', 'Newer, less mature'],
+        },
+      ],
+    },
+    figure: 'Controller Gateway API support.',
+  }}
+/>
 
 If you're currently using NGINX Ingress Controller, note that Gateway API support comes through a different project—NGINX Gateway Fabric—not the original nginx-ingress. They can coexist, but they're separate deployments.
 
@@ -605,15 +722,39 @@ This structured feedback beats digging through controller logs—you can see imm
 
 For GitOps workflows (ArgoCD, Flux), both work natively. The main gotcha with Gateway API is that you need the CRDs installed before ArgoCD tries to sync resources that use them—plan your sync waves accordingly.
 
-| Aspect | Ingress | Gateway API |
-|--------|---------|-------------|
-| Years in production | 8+ years | 3+ years |
-| Stack Overflow questions | 10,000+ | 500+ |
-| Battle-tested patterns | Extensive | Growing |
-| Breaking changes risk | Low (stable API) | Low (v1 is GA) |
-| Controller coverage | Universal | ~80% of major controllers |
-
-Table: Ecosystem maturity comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Aspect', 'Ingress', 'Gateway API'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Years in production',
+          td: ['8+ years', '3+ years'],
+        },
+        {
+          th: 'Stack Overflow questions',
+          td: ['10,000+', '500+'],
+        },
+        {
+          th: 'Battle-tested patterns',
+          td: ['Extensive', 'Growing'],
+        },
+        {
+          th: 'Breaking changes risk',
+          td: ['Low (stable API)', 'Low (v1 is GA)'],
+        },
+        {
+          th: 'Controller coverage',
+          td: ['Universal', '~80% of major controllers'],
+        },
+      ],
+    },
+    figure: 'Ecosystem maturity comparison.',
+  }}
+/>
 
 <Callout type="info">
 Gateway API reached GA (v1.0) in late 2023. The core APIs (GatewayClass, Gateway, HTTPRoute, GRPCRoute) are stable. Experimental APIs (TCPRoute, UDPRoute) may change. For production HTTP routing, Gateway API is now mature enough for most use cases.

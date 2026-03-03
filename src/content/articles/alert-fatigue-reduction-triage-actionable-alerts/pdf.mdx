@@ -41,10 +41,27 @@ Beyond response time, there's the burnout factor. On-call rotations with high al
 
 The metrics worth tracking:
 
-- _Alerts per on-call shift_: Total alert volume during a rotation. Anything above 20 per 24-hour shift is a red flag.
-- _Action rate_: Percentage of alerts that required human intervention beyond acknowledgment. Below 50% means more than half your alerts are noise.
-- _MTTA trend_: Is acknowledgment time increasing? That's a leading indicator of fatigue.
-- _On-call satisfaction_: Periodic surveys. Engineers will tell you when on-call is unsustainable if you ask.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Alerts per on-call shift:",
+      text: "Total alert volume during a rotation. Anything above 20 per 24-hour shift is a red flag.",
+    },
+    {
+      lead: "Action rate:",
+      text: "Percentage of alerts that required human intervention beyond acknowledgment. Below 50% means more than half your alerts are noise.",
+    },
+    {
+      lead: "MTTA trend:",
+      text: "Is acknowledgment time increasing? That's a leading indicator of fatigue.",
+    },
+    {
+      lead: "On-call satisfaction:",
+      text: "Periodic surveys. Engineers will tell you when on-call is unsustainable if you ask.",
+    },
+  ]}
+/>
 
 The feedback loop is real. After an incident caused by a missed alert, the instinct is to add more alerts. But if the alert was missed because of volume, adding more alerts makes the next miss more likely, not less.
 
@@ -170,9 +187,14 @@ But an alert that fires constantly and gets ignored isn't a lesson learned—it'
 
 The talking points that work:
 
-- "This alert fired 47 times last quarter. How many of those were real problems?" (Usually: zero or one.)
-- "Would you notice if this alert stopped firing tomorrow?" (Usually: no.)
-- "If we delete this, what's the worst case?" (Usually: we'd notice the problem some other way, slightly later.)
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "\"This alert fired 47 times last quarter. How many of those were real problems?\" (Usually: zero or one.)" },
+    { text: "\"Would you notice if this alert stopped firing tomorrow?\" (Usually: no.)" },
+    { text: "\"If we delete this, what's the worst case?\" (Usually: we'd notice the problem some other way, slightly later.)" },
+  ]}
+/>
 
 The goal isn't to delete every alert—it's to delete the alerts that provide no signal. An alert with 5% action rate isn't coverage. It's noise that makes the 95% action-rate alerts harder to notice.
 
@@ -213,9 +235,14 @@ Figure: Decision tree for page vs. notification classification.
 
 A page should meet all three criteria:
 
-1. _Something is broken right now._ Not "might break soon" or "is trending toward a problem." Actually broken.
-2. _Users are affected._ Either external customers or internal users who can't do their jobs.
-3. _Human judgment is required._ Automated remediation can't handle it, or hasn't been implemented yet.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    { lead: "Something is broken right now.", text: "Not \"might break soon\" or \"is trending toward a problem.\" Actually broken." },
+    { lead: "Users are affected.", text: "Either external customers or internal users who can't do their jobs." },
+    { lead: "Human judgment is required.", text: "Automated remediation can't handle it, or hasn't been implemented yet." },
+  ]}
+/>
 
 If an alert doesn't meet all three, it's a notification at most.
 
@@ -338,10 +365,15 @@ This requires labeling your alerts with their dependencies. When you create an a
 
 Build your inhibition rules to match your architecture. Common patterns:
 
-- Network partition alerts suppress all cross-zone communication failures
-- Load balancer alerts suppress backend health check failures
-- DNS alerts suppress all hostname resolution failures
-- Cloud provider alerts suppress regional service alerts
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Network partition alerts suppress all cross-zone communication failures" },
+    { text: "Load balancer alerts suppress backend health check failures" },
+    { text: "DNS alerts suppress all hostname resolution failures" },
+    { text: "Cloud provider alerts suppress regional service alerts" },
+  ]}
+/>
 
 The goal is one alert per root cause, not one alert per affected component. Map your dependencies and configure suppression accordingly.
 
@@ -369,9 +401,14 @@ Define an SLO—say, 99.9% of requests succeed within acceptable latency over a 
 Burn rate = (error rate) / (1 - SLO target)
 
 Example:
-- SLO target: 99.9% (0.1% error budget)
-- Current error rate: 0.5%
-- Burn rate: 0.5% / 0.1% = 5x
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "SLO target: 99.9% (0.1% error budget)" },
+    { text: "Current error rate: 0.5%" },
+    { text: "Burn rate: 0.5% / 0.1% = 5x" },
+  ]}
+/>
 
 At 5x burn rate, you exhaust a 30-day error budget in 6 days.
 ```
@@ -446,10 +483,15 @@ A page without a runbook is a puzzle delivered at 3 AM. The on-call engineer get
 
 Every page-worthy alert needs a runbook. Not a novel, not comprehensive documentation of the entire system—a focused document that answers the immediate questions:
 
-1. _What does this alert mean?_ One paragraph explaining the symptom in user terms.
-2. _What should I check first?_ Three to five diagnostic commands or dashboard links.
-3. _Who do I escalate to?_ Contact information for specialized help.
-4. _Can I roll back?_ If applicable, the exact rollback command.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    { lead: "What does this alert mean?", text: "One paragraph explaining the symptom in user terms." },
+    { lead: "What should I check first?", text: "Three to five diagnostic commands or dashboard links." },
+    { lead: "Who do I escalate to?", text: "Contact information for specialized help." },
+    { lead: "Can I roll back?", text: "If applicable, the exact rollback command." },
+  ]}
+/>
 
 ```markdown title="runbook-template.md"
 # Alert: CheckoutLatencyHigh
@@ -459,23 +501,43 @@ Checkout API p99 latency exceeds 2 seconds. Users are experiencing
 slow or failed purchases.
 
 ## Immediate Actions
-1. Check deployment status: `kubectl get deployments -n checkout`
-2. Verify database connectivity: `psql -h $DB_HOST -c "SELECT 1"`
-3. Check downstream dependencies: [Dependency Dashboard](/dashboards/checkout-deps)
+<List
+  variant="numbered-with-background-list"
+  items={[
+    { text: "Check deployment status: `kubectl get deployments -n checkout`" },
+    { text: "Verify database connectivity: `psql -h $DB_HOST -c \"SELECT 1\"`" },
+    { text: "Check downstream dependencies: [Dependency Dashboard](/dashboards/checkout-deps)" },
+  ]}
+/>
 
 ## Recent Changes
-- Check recent deployments: `kubectl rollout history deployment/checkout-api`
-- Review commits: [Last 24h commits](https://github.com/org/checkout/commits)
-- Check infra changes: [Terraform runs](https://app.terraform.io/org/runs)
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Check recent deployments: `kubectl rollout history deployment/checkout-api`" },
+    { text: "Review commits: [Last 24h commits](https://github.com/org/checkout/commits)" },
+    { text: "Check infra changes: [Terraform runs](https://app.terraform.io/org/runs)" },
+  ]}
+/>
 
 ## Known False Positives
-- End-of-month batch processing (1st-3rd of each month) causes latency spikes
-- Payment provider maintenance windows (check StatusPage first)
-- Expected during large promotional events—verify with marketing calendar
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "End-of-month batch processing (1st-3rd of each month) causes latency spikes" },
+    { text: "Payment provider maintenance windows (check StatusPage first)" },
+    { text: "Expected during large promotional events—verify with marketing calendar" },
+  ]}
+/>
 
 ## Escalation
-- If database issue: Page DBA on-call
-- If payment provider: Check [StatusPage](https://status.stripe.com)
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "If database issue: Page DBA on-call" },
+    { text: "If payment provider: Check [StatusPage](https://status.stripe.com)" },
+  ]}
+/>
 
 ## Rollback
 If recent deployment: `kubectl rollout undo deployment/checkout-api`
@@ -497,11 +559,16 @@ The alert notification itself should contain enough context to begin investigati
 
 Include in every alert:
 
-- _What's happening_ — the symptom in plain language
-- _Where it's happening_ — environment, region, service
-- _How bad it is_ — current metric values
-- _Where to look_ — direct links to relevant dashboards
-- _What to do_ — link to the runbook
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "What's happening", text: "— the symptom in plain language" },
+    { lead: "Where it's happening", text: "— environment, region, service" },
+    { lead: "How bad it is", text: "— current metric values" },
+    { lead: "Where to look", text: "— direct links to relevant dashboards" },
+    { lead: "What to do", text: "— link to the runbook" },
+  ]}
+/>
 
 ```yaml title="prometheus-annotations.yaml" {8-15}
 groups:
@@ -596,10 +663,15 @@ Alerts that have never fired are alerts you can't trust. You don't know if the t
 
 Test alerts intentionally. During maintenance windows or in staging environments, create the conditions that should fire each critical alert:
 
-- Saturate CPU or memory to test resource alerts
-- Return 500 errors from a canary endpoint to test error rate alerts
-- Add artificial latency to test SLO burn rate alerts
-- Take down a dependency to test downstream failure alerts
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Saturate CPU or memory to test resource alerts" },
+    { text: "Return 500 errors from a canary endpoint to test error rate alerts" },
+    { text: "Add artificial latency to test SLO burn rate alerts" },
+    { text: "Take down a dependency to test downstream failure alerts" },
+  ]}
+/>
 
 This is chaos engineering applied to observability. If you're running game days or disaster recovery exercises, include alert verification as part of the scenario. When you simulate a database failover, verify that the database alerts fire and route correctly.
 
@@ -632,13 +704,10 @@ Alerts that can't be tested are alerts that might not work when you need them. I
 
 You can't improve what you don't measure. Track these metrics to understand whether your alerting is getting better or worse:
 
-_Action rate_ is the percentage of alerts that result in human action—creating an incident, making a change, or escalating to another team. An 80% action rate means 80% of alerts were worth investigating. Below 50%, most of your alerts are noise.
-
-_Mean Time to Acknowledge (MTTA)_ measures how long it takes someone to start responding to an alert. High MTTA indicates either too many alerts (responders are overwhelmed) or poor alert routing (alerts going to the wrong people).
-
-_Alerts per on-call shift_ counts the total alert volume during a rotation. More than 25 alerts per shift usually means someone is getting paged multiple times per hour, which is unsustainable.
-
-_On-call satisfaction_ is a subjective measure, but it matters. Survey your on-call rotation quarterly. If satisfaction is low, your alerting needs work regardless of what the other metrics say.
+- _Action rate_ is the percentage of alerts that result in human action—creating an incident, making a change, or escalating to another team. An 80% action rate means 80% of alerts were worth investigating. Below 50%, most of your alerts are noise.
+- _Mean Time to Acknowledge (MTTA)_ measures how long it takes someone to start responding to an alert. High MTTA indicates either too many alerts (responders are overwhelmed) or poor alert routing (alerts going to the wrong people).
+- _Alerts per on-call shift_ counts the total alert volume during a rotation. More than 25 alerts per shift usually means someone is getting paged multiple times per hour, which is unsustainable.
+- _On-call satisfaction_ is a subjective measure, but it matters. Survey your on-call rotation quarterly. If satisfaction is low, your alerting needs work regardless of what the other metrics say.
 
 ```mermaid
 graph TD

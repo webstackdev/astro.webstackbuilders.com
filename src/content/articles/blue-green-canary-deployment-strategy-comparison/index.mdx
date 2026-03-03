@@ -64,11 +64,15 @@ Adding a required column breaks old code that can't provide values. Removing a c
 
 The solution is to _never_ deploy schema changes and code changes together. Instead, use a multi-phase approach:
 
-_Phase 1 (Expand)_: Add new columns as nullable, add new tables, create new indexes. Old code ignores these additions. Deploy this schema change independently.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Phase 1 (Expand)_:", text: "Add new columns as nullable, add new tables, create new indexes. Old code ignores these additions. Deploy this schema change independently." },
+    { lead: "_Phase 2 (Migrate)_:", text: "Deploy application code that writes to both old and new structures. Backfill existing data. This is where canary deployment shines—you can gradually roll out the new code while both versions work correctly." },
+    { lead: "_Phase 3 (Contract)_:", text: "Once all code uses the new structure, remove the old columns, constraints, or tables in a separate deployment." },
+  ]}
+/>
 
-_Phase 2 (Migrate)_: Deploy application code that writes to both old and new structures. Backfill existing data. This is where canary deployment shines—you can gradually roll out the new code while both versions work correctly.
-
-_Phase 3 (Contract)_: Once all code uses the new structure, remove the old columns, constraints, or tables in a separate deployment.
 
 <Newsletter />
 

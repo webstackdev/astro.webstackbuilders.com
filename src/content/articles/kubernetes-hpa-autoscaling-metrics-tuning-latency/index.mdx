@@ -19,16 +19,43 @@ The problem is that HPA is _reactive_, not predictive. By the time it decides to
 
 The HPA controller runs every 15 seconds by default, querying the metrics server and calculating how many replicas are needed. That sounds fast, but the total time from "traffic spike begins" to "new capacity receives traffic" is much longer. Every step in the pipeline adds latency.
 
-| Delay Component | Typical Duration | Notes |
-|-----------------|------------------|-------|
-| Metrics scrape | 15-60s | Metrics Server polls kubelets at this interval |
-| HPA sync | 15s | Controller evaluation cycle |
-| Stabilization | 0-300s | Prevents thrashing; configurable |
-| Pod scheduling | 1-10s | Depends on cluster capacity |
-| Pod startup | 5-60s+ | Application initialization time |
-| Readiness probe | 5-30s | Before pod receives traffic |
-
-Table: HPA delay components.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Delay Component', 'Typical Duration', 'Notes'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Metrics scrape',
+          td: ['15-60s', 'Metrics Server polls kubelets at this interval'],
+        },
+        {
+          th: 'HPA sync',
+          td: ['15s', 'Controller evaluation cycle'],
+        },
+        {
+          th: 'Stabilization',
+          td: ['0-300s', 'Prevents thrashing; configurable'],
+        },
+        {
+          th: 'Pod scheduling',
+          td: ['1-10s', 'Depends on cluster capacity'],
+        },
+        {
+          th: 'Pod startup',
+          td: ['5-60s+', 'Application initialization time'],
+        },
+        {
+          th: 'Readiness probe',
+          td: ['5-30s', 'Before pod receives traffic'],
+        },
+      ],
+    },
+    figure: 'HPA delay components.',
+  }}
+/>
 
 These delays stack. The metrics scrape and HPA sync cycles run independently—they're not synchronized. In the worst case, a CPU spike happens right after a scrape, waits nearly a full interval to be captured, then waits again for HPA to evaluate. Add kubelet collection overhead (~10 seconds), and you're looking at 85+ seconds before HPA even _decides_ to scale—before stabilization, scheduling, or startup.
 
@@ -53,14 +80,35 @@ Most teams start with CPU utilization because it's built-in. But CPU is a _laggi
 
 _Leading indicators_ like requests per second and queue depth increase the moment traffic arrives—before your system shows stress. _Lagging indicators_ like CPU utilization and response latency rise only after work is already backing up. When possible, scale on what's coming, not what's already hurting.
 
-| Metric | Type | Best For |
-|--------|------|----------|
-| Requests per second | Leading | Web APIs, high-traffic services |
-| Queue depth | Leading | Async workers, background job processors |
-| CPU utilization | Lagging | Compute-bound workloads, synchronous processing |
-| Response latency | Lagging | SLO-driven scaling, user-facing services |
-
-Table: Scaling metrics by response type.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'Type', 'Best For'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Requests per second',
+          td: ['Leading', 'Web APIs, high-traffic services'],
+        },
+        {
+          th: 'Queue depth',
+          td: ['Leading', 'Async workers, background job processors'],
+        },
+        {
+          th: 'CPU utilization',
+          td: ['Lagging', 'Compute-bound workloads, synchronous processing'],
+        },
+        {
+          th: 'Response latency',
+          td: ['Lagging', 'SLO-driven scaling, user-facing services'],
+        },
+      ],
+    },
+    figure: 'Scaling metrics by response type.',
+  }}
+/>
 
 CPU works well for compute-bound workloads where processing time scales linearly with CPU. But for I/O-bound services—anything waiting on databases, external APIs, or message queues—CPU stays low while requests pile up. By the time CPU rises, you're already degraded.
 

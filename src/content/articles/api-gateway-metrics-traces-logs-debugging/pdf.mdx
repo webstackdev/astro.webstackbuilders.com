@@ -71,11 +71,23 @@ The third challenge is that gateways make decisions that affect observability do
 
 Each observability pillar answers different questions, and gateway debugging typically requires all three in sequence.
 
-_Metrics_ answer aggregate questions: How many requests? What is the error rate? What is the P99 latency? Metrics are cheap to collect and query, making them the right starting point for identifying _that_ a problem exists and roughly _where_ it is. But metrics lose individual request detail—you know latency increased, but not which specific requests were slow or why.
-
-_Traces_ answer flow questions: What path did this request take? Where did the time go? Which service was responsible for the delay? Traces connect the dots across service boundaries, which is exactly what you need when the gateway is in the middle. The limitation is sampling—at high traffic volumes, you cannot keep every trace, so rare errors might not be captured.
-
-_Logs_ answer detail questions: What exactly happened? What were the input values? What error message was returned? Logs provide the context that metrics and traces lack, but they are high-volume and hard to navigate without correlation IDs linking them to specific traces.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Metrics answer aggregate questions:",
+      text: "How many requests? What is the error rate? What is the P99 latency? Metrics are cheap to collect and query, making them the right starting point for identifying that a problem exists and roughly where it is. But metrics lose individual request detail—you know latency increased, but not which specific requests were slow or why.",
+    },
+    {
+      lead: "Traces answer flow questions:",
+      text: "What path did this request take? Where did the time go? Which service was responsible for the delay? Traces connect the dots across service boundaries, which is exactly what you need when the gateway is in the middle. The limitation is sampling—at high traffic volumes, you cannot keep every trace, so rare errors might not be captured.",
+    },
+    {
+      lead: "Logs answer detail questions:",
+      text: "What exactly happened? What were the input values? What error message was returned? Logs provide the context that metrics and traces lack, but they are high-volume and hard to navigate without correlation IDs linking them to specific traces.",
+    },
+  ]}
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -100,11 +112,23 @@ The debugging workflow typically moves from metrics to traces to logs: metrics i
 
 The RED method (Rate, Errors, Duration) provides a solid foundation for gateway metrics. The key is choosing the right label dimensions so you can slice the data in ways that actually help during debugging.
 
-_Rate_ shows throughput: requests per second, broken down by route, upstream, and consumer. Sudden changes in rate often indicate either traffic shifts (a consumer changed their integration) or problems (retries inflating request counts).
-
-_Errors_ indicate failure rate: the percentage of requests returning 4xx or 5xx status codes. For gateways, you need to distinguish between gateway-generated errors (rate limiting, authentication failures) and upstream errors (backend returned 500). The distinction matters because the remediation is completely different.
-
-_Duration_ reveals latency: how long requests take, typically captured as a histogram so you can compute percentiles. For gateways, the critical insight is separating gateway time from backend time—more on this in the next section.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Rate shows throughput:",
+      text: "requests per second, broken down by route, upstream, and consumer. Sudden changes in rate often indicate either traffic shifts (a consumer changed their integration) or problems (retries inflating request counts).",
+    },
+    {
+      lead: "Errors indicate failure rate:",
+      text: "the percentage of requests returning 4xx or 5xx status codes. For gateways, you need to distinguish between gateway-generated errors (rate limiting, authentication failures) and upstream errors (backend returned 500). The distinction matters because the remediation is completely different.",
+    },
+    {
+      lead: "Duration reveals latency:",
+      text: "how long requests take, typically captured as a histogram so you can compute percentiles. For gateways, the critical insight is separating gateway time from backend time—more on this in the next section.",
+    },
+  ]}
+/>
 
 The metric definitions below use Prometheus naming conventions. Most API gateways (Kong, Envoy, NGINX) can export these directly or via an OpenTelemetry sidecar. For AWS API Gateway, you would use CloudWatch metrics with custom dimensions—the concepts are the same, but the configuration is different.
 
@@ -173,10 +197,27 @@ Figure: Request lifecycle showing gateway vs. backend latency components.
 
 At minimum, instrument these separately:
 
-- _Gateway overhead_: Total request time minus upstream time. This is pure gateway processing.
-- _Upstream time_: Time from sending the request to the backend until receiving the complete response.
-- _Auth time_: Time spent on authentication and authorization checks.
-- _Rate limit time_: Time spent checking rate limits (usually negligible, but spikes indicate rate limiter issues).
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Gateway overhead:",
+      text: "Total request time minus upstream time. This is pure gateway processing.",
+    },
+    {
+      lead: "Upstream time:",
+      text: "Time from sending the request to the backend until receiving the complete response.",
+    },
+    {
+      lead: "Auth time:",
+      text: "Time spent on authentication and authorization checks.",
+    },
+    {
+      lead: "Rate limit time:",
+      text: "Time spent checking rate limits (usually negligible, but spikes indicate rate limiter issues).",
+    },
+  ]}
+/>
 
 <Callout type="info">
 Most "gateway latency" complaints are actually backend latency. Instrument each phase separately so you can prove where the time goes.
@@ -234,10 +275,15 @@ High-cardinality consumer labels can explode metric storage. Use consumer ID lab
 
 The cardinality warning is serious. If you have 10,000 consumers and add `consumer_id` to a histogram with 15 buckets, you have created 150,000 time series per metric. Multiply by multiple metrics and multiple routes, and you can easily exceed what Prometheus can handle. Strategies include:
 
-- Use `consumer_id` only on counters, not histograms
-- Roll up consumer metrics to a separate, lower-resolution store
-- Sample consumer-level histograms (1 in 100 requests)
-- Use recording rules to pre-aggregate consumer metrics
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Use `consumer_id` only on counters, not histograms" },
+    { text: "Roll up consumer metrics to a separate, lower-resolution store" },
+    { text: "Sample consumer-level histograms (1 in 100 requests)" },
+    { text: "Use recording rules to pre-aggregate consumer metrics" },
+  ]}
+/>
 
 ### Upstream Health Metrics
 
@@ -331,10 +377,15 @@ Figure: Trace context propagation creating connected spans across gateway bounda
 
 Common propagation failures I have seen:
 
-- _Gateway strips unknown headers_: Some gateways have an allowlist for forwarded headers, and trace headers are not on it by default. Suddenly all your traces end at the gateway.
-- _Mixed header formats_: Client sends W3C format, gateway converts to B3 for one backend but not another. Traces fragment.
-- _Sampling decision ignored_: Client marks the trace as "do not sample" but gateway creates spans anyway, or vice versa.
-- _Missing propagation to auth services_: Gateway forwards headers to backends but not to sidecar auth checks, so auth latency is invisible in traces.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Gateway strips unknown headers:", text: "Some gateways have an allowlist for forwarded headers, and trace headers are not on it by default. Suddenly all your traces end at the gateway." },
+    { lead: "Mixed header formats:", text: "Client sends W3C format, gateway converts to B3 for one backend but not another. Traces fragment." },
+    { lead: "Sampling decision ignored:", text: "Client marks the trace as \"do not sample\" but gateway creates spans anyway, or vice versa." },
+    { lead: "Missing propagation to auth services:", text: "Gateway forwards headers to backends but not to sidecar auth checks, so auth latency is invisible in traces." },
+  ]}
+/>
 
 Verify propagation by checking a trace end-to-end in your tracing UI. You should see a single trace with spans from client, gateway, and all downstream services. If you see disconnected traces, propagation is broken somewhere.
 
@@ -403,9 +454,13 @@ Include failure context in spans. When a request fails, the span should capture 
 
 At high traffic volumes, you cannot keep every trace—storage costs and query performance make it impractical. The question is which traces to keep and which to drop.
 
-_Head-based sampling_ makes the decision at the start of the trace, typically at the gateway. The gateway decides "keep this trace" or "drop this trace" based on a probability (1% sampling means keep 1 in 100 traces). The advantage is simplicity and low overhead. The disadvantage is that you might drop the one trace that showed a rare error.
-
-_Tail-based sampling_ makes the decision after the trace is complete, when you know the outcome. You can keep all error traces and all slow traces while sampling normal traces at 1%. The disadvantage is that you need to buffer complete traces before deciding, which requires more infrastructure (typically an OpenTelemetry Collector with sufficient memory).
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Head-based sampling makes the decision at the start of the trace, typically at the gateway:", text: "The gateway decides \"keep this trace\" or \"drop this trace\" based on a probability (1% sampling means keep 1 in 100 traces). The advantage is simplicity and low overhead. The disadvantage is that you might drop the one trace that showed a rare error." },
+    { lead: "Tail-based sampling makes the decision after the trace is complete, when you know the outcome:", text: "You can keep all error traces and all slow traces while sampling normal traces at 1%. The disadvantage is that you need to buffer complete traces before deciding, which requires more infrastructure (typically an OpenTelemetry Collector with sufficient memory)." },
+  ]}
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -613,10 +668,15 @@ This log entry tells the complete story: the users-service backend returned 500 
 
 Capture different context for different error types:
 
-- _Authentication failures_: Which auth method was attempted, what the auth service returned, token expiration details
-- _Rate limit rejections_: Current quota usage, limit configuration, when the quota resets
-- _Upstream timeouts_: Configured timeout value, actual elapsed time, connection vs. read timeout
-- _Circuit breaker trips_: Failure threshold, current failure count, time until retry
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Authentication failures:", text: "Which auth method was attempted, what the auth service returned, token expiration details" },
+    { lead: "Rate limit rejections:", text: "Current quota usage, limit configuration, when the quota resets" },
+    { lead: "Upstream timeouts:", text: "Configured timeout value, actual elapsed time, connection vs. read timeout" },
+    { lead: "Circuit breaker trips:", text: "Failure threshold, current failure count, time until retry" },
+  ]}
+/>
 
 ## Dashboards That Answer Questions
 
@@ -971,9 +1031,14 @@ If this approaches 1.0 during error spikes, the gateway is connection-starved. I
 
 Search your tracing system for spans with status code 503 during the error window. Look for patterns:
 
-- Long wait times before backend connection (connection pool exhaustion)
-- Multiple retries that all fail (backend truly unavailable)
-- Fast failures (circuit breaker tripped, immediately returning error)
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Long wait times before backend connection (connection pool exhaustion)" },
+    { text: "Multiple retries that all fail (backend truly unavailable)" },
+    { text: "Fast failures (circuit breaker tripped, immediately returning error)" },
+  ]}
+/>
 
 For intermittent errors, increase your trace sampling temporarily. If you are sampling 1% of requests, you might miss the failing requests entirely. Tail-based sampling (sample all errors regardless of rate) ensures you capture the traces you need.
 
@@ -1036,21 +1101,40 @@ High 429 (rate limit) responses add latency because the consumer retries. High 4
 
 Search traces filtered by `consumer_id="client-abc"` for the last hour. Sort by duration to find their slowest requests. Look for:
 
-- Repeated auth failures followed by retries
-- Requests to endpoints that require expensive joins or aggregations
-- Geographic routing delays if your backend is in a different region
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Repeated auth failures followed by retries" },
+    { text: "Requests to endpoints that require expensive joins or aggregations" },
+    { text: "Geographic routing delays if your backend is in a different region" },
+  ]}
+/>
 
 **Step 5: Determine Root Cause**
 
 These queries often reveal one of several patterns:
 
-- _Consumer hits slow endpoints_: Their route usage pattern shows they use endpoints that are legitimately slower than average. The API is working correctly; their use case just happens to hit expensive operations. Solution: Document endpoint latency characteristics or provide faster alternatives.
-
-- _Consumer has high error rate_: They are seeing errors that retry successfully but add latency. This might be rate limiting, authentication issues, or malformed requests that trigger validation errors. Solution: Work with consumer to fix their integration.
-
-- _Consumer is geographically distant_: If your gateway is in us-east-1 and the consumer is in Sydney, network latency alone explains their experience. Solution: Consider edge deployments or CDN caching.
-
-- _Consumer's traffic pattern causes contention_: Large batch operations or bursts of concurrent requests might hit connection limits or cause database contention that does not affect other consumers. Solution: Implement request throttling or dedicated connection pools for high-volume consumers.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Consumer hits slow endpoints:",
+      text: "Their route usage pattern shows they use endpoints that are legitimately slower than average. The API is working correctly; their use case just happens to hit expensive operations. Solution: Document endpoint latency characteristics or provide faster alternatives.",
+    },
+    {
+      lead: "Consumer has high error rate:",
+      text: "They are seeing errors that retry successfully but add latency. This might be rate limiting, authentication issues, or malformed requests that trigger validation errors. Solution: Work with consumer to fix their integration.",
+    },
+    {
+      lead: "Consumer is geographically distant:",
+      text: "If your gateway is in us-east-1 and the consumer is in Sydney, network latency alone explains their experience. Solution: Consider edge deployments or CDN caching.",
+    },
+    {
+      lead: "Consumer's traffic pattern causes contention:",
+      text: "Large batch operations or bursts of concurrent requests might hit connection limits or cause database contention that does not affect other consumers. Solution: Implement request throttling or dedicated connection pools for high-volume consumers.",
+    },
+  ]}
+/>
 
 ## Implementation Considerations
 
@@ -1091,11 +1175,23 @@ Synchronous logging and tracing in the request path adds latency. Use buffered/a
 
 The general principle: make the hot path cheap, and do expensive work asynchronously.
 
-_Metrics_ are the cheapest form of observability. Incrementing a counter is a single atomic operation. Histogram observations are more expensive because they require finding the right bucket, but still fast. Keep metric operations in the request path.
-
-_Traces_ are moderately expensive. Creating spans, adding attributes, and propagating context all take time. The span export should be asynchronous—buffer spans in memory and export them in batches. Never block the request waiting for span export to complete.
-
-_Logs_ are the most expensive if done wrong. Synchronous file writes or network calls for every log entry will kill your throughput. Use buffered, asynchronous log shipping. Consider sampling verbose logs at high traffic levels—log 1% of successful requests but 100% of errors.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Metrics are the cheapest form of observability:",
+      text: "Incrementing a counter is a single atomic operation. Histogram observations are more expensive because they require finding the right bucket, but still fast. Keep metric operations in the request path.",
+    },
+    {
+      lead: "Traces are moderately expensive:",
+      text: "Creating spans, adding attributes, and propagating context all take time. The span export should be asynchronous—buffer spans in memory and export them in batches. Never block the request waiting for span export to complete.",
+    },
+    {
+      lead: "Logs are the most expensive if done wrong:",
+      text: "Synchronous file writes or network calls for every log entry will kill your throughput. Use buffered, asynchronous log shipping. Consider sampling verbose logs at high traffic levels—log 1% of successful requests but 100% of errors.",
+    },
+  ]}
+/>
 
 For extremely high-throughput gateways, consider tiered observability. Log full detail for errors and sampled requests, minimal detail for everything else. Export full traces for slow and failed requests, sampled traces for normal requests. This gives you the detail you need for debugging without drowning in data.
 
@@ -1105,9 +1201,14 @@ Observability infrastructure has real costs: storage for metrics and logs, compu
 
 Balance observability depth with cost:
 
-- _Metrics_: Cheapest. Store for months or years. Watch cardinality—high-cardinality labels multiply costs quickly.
-- _Traces_: Moderate cost. Store for days or weeks. Use tail sampling to keep what matters, discard the rest.
-- _Logs_: Most expensive. Store structured logs (JSON) for days, ship raw logs to cold storage if compliance requires longer retention. Sample verbose success logs at high volumes.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Metrics:", text: "Cheapest. Store for months or years. Watch cardinality—high-cardinality labels multiply costs quickly." },
+    { lead: "Traces:", text: "Moderate cost. Store for days or weeks. Use tail sampling to keep what matters, discard the rest." },
+    { lead: "Logs:", text: "Most expensive. Store structured logs (JSON) for days, ship raw logs to cold storage if compliance requires longer retention. Sample verbose success logs at high volumes." },
+  ]}
+/>
 
 The most expensive observability is the observability you never use. Instrument with purpose—capture data that answers specific debugging questions. Delete unused dashboards and stale alerts. Review your cardinality monthly and prune unnecessary label dimensions.
 
@@ -1121,10 +1222,15 @@ Scrub sensitive data before logging or tracing. Never log request bodies or auth
 
 Implement redaction at the gateway:
 
-- Mask auth headers (Authorization, API-Key, X-Auth-Token)
-- Redact PII fields in request/response bodies
-- Hash or truncate sensitive identifiers (email → sha256 hash, credit card → last 4 digits)
-- Limit access to gateway observability dashboards—not everyone needs to see all consumers' traffic patterns
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Mask auth headers (Authorization, API-Key, X-Auth-Token)" },
+    { text: "Redact PII fields in request/response bodies" },
+    { text: "Hash or truncate sensitive identifiers (email → sha256 hash, credit card → last 4 digits)" },
+    { text: "Limit access to gateway observability dashboards—not everyone needs to see all consumers' traffic patterns" },
+  ]}
+/>
 
 For compliance (GDPR, HIPAA, PCI-DSS), document what you log and why. Implement log retention policies that match your legal obligations. Be prepared to delete logs for specific consumers upon request (right to be forgotten).
 
@@ -1134,23 +1240,38 @@ The worst time to discover your observability is broken is during an incident. T
 
 **Synthetic Testing**: Create automated tests that exercise your API and verify that metrics, traces, and logs appear correctly. Check that:
 
-- Trace IDs propagate end-to-end from gateway to all backends
-- Consumer IDs appear correctly in metrics and logs
-- Circuit breakers trip when expected and metrics reflect the state change
-- Error logs contain the context fields you need for debugging
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Trace IDs propagate end-to-end from gateway to all backends" },
+    { text: "Consumer IDs appear correctly in metrics and logs" },
+    { text: "Circuit breakers trip when expected and metrics reflect the state change" },
+    { text: "Error logs contain the context fields you need for debugging" },
+  ]}
+/>
 
 **Load Testing**: Run load tests that simulate production traffic patterns. Monitor your observability infrastructure during the load test:
 
-- Does Prometheus keep up with metric ingestion?
-- Does your tracing backend handle the span volume without sampling errors?
-- Do log aggregation systems stay within latency SLAs?
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Does Prometheus keep up with metric ingestion?" },
+    { text: "Does your tracing backend handle the span volume without sampling errors?" },
+    { text: "Do log aggregation systems stay within latency SLAs?" },
+  ]}
+/>
 
 Test failure scenarios explicitly. Intentionally break a backend and verify that:
 
-- Circuit breaker metrics show the state change
-- Traces show retry attempts and eventual failure
-- Error logs include upstream error details
-- Dashboards and alerts behave as expected
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Circuit breaker metrics show the state change" },
+    { text: "Traces show retry attempts and eventual failure" },
+    { text: "Error logs include upstream error details" },
+    { text: "Dashboards and alerts behave as expected" },
+  ]}
+/>
 
 ### Vendor-Agnostic Instrumentation
 
@@ -1198,10 +1319,15 @@ The three pillars work together. Metrics tell you that something is wrong and gi
 
 Design your observability for the questions you will ask during incidents:
 
-- _Is the gateway healthy?_ Request rate, error rate, and latency percentiles answer this instantly.
-- _Is a specific backend unhealthy?_ Per-upstream metrics and circuit breaker state tell you.
-- _Is a specific consumer affected?_ Consumer-specific labels let you slice the data.
-- _What happened to this specific request?_ Trace ID and request ID correlation connect all the pieces.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Is the gateway healthy?", text: "Request rate, error rate, and latency percentiles answer this instantly." },
+    { lead: "Is a specific backend unhealthy?", text: "Per-upstream metrics and circuit breaker state tell you." },
+    { lead: "Is a specific consumer affected?", text: "Consumer-specific labels let you slice the data." },
+    { lead: "What happened to this specific request?", text: "Trace ID and request ID correlation connect all the pieces." },
+  ]}
+/>
 
 Start with the metrics that matter for your specific use case, instrument your traces with correlation IDs, and log the context you wish you had during the last incident. The observability you build today is the debugging superpower you will rely on tomorrow.
 

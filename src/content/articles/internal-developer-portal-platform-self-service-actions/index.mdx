@@ -36,14 +36,35 @@ At _Level 3: Insights_, the portal shows health metrics, ownership data, and qua
 
 At _Level 4: Platform_, you get self-service actions with automation. Developers can provision databases, create services, and request access - not by finding documentation, but by clicking buttons and filling forms that trigger real workflows. The difference isn't incremental. It's the difference between "3-5 business days" and "15 minutes."
 
-| Level | What They Can Do | What They Still Can't Do |
-|-------|------------------------|--------------------------|
-| Directory | Find documentation | Execute workflows |
-| Search | Quickly find services and APIs | Provision or modify resources |
-| Insights | See health and ownership | Fix issues without tickets |
-| Platform | Self-service common tasks | Only edge cases need tickets |
-
-Table: Portal maturity levels.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Portal maturity levels.",
+    thead: {
+      th: ["Level", "What They Can Do", "What They Still Can't Do"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "Directory",
+          td: ["Find documentation", "Execute workflows"],
+        },
+        {
+          th: "Search",
+          td: ["Quickly find services and APIs", "Provision or modify resources"],
+        },
+        {
+          th: "Insights",
+          td: ["See health and ownership", "Fix issues without tickets"],
+        },
+        {
+          th: "Platform",
+          td: ["Self-service common tasks", "Only edge cases need tickets"],
+        },
+      ],
+    },
+  }}
+/>
 
 Most organizations plateau at Level 2 or 3. They build beautiful service catalogs with scorecards and graphs, but developers still file tickets for everything. The jump to Level 4 requires different thinking: instead of "what should developers know?" ask "what should developers be able to do?"
 
@@ -106,15 +127,11 @@ The YAML is straightforward, but the design decisions matter. Notice the sensibl
 
 Five principles separate good actions from frustrating ones.
 
-_Obvious outcomes._ Show a preview of resources to be created. Display cost estimates. List permissions that will be granted. Users should know exactly what will happen before clicking submit.
-
-_Sensible defaults._ Pre-fill the team from user context. Default to the smallest viable size. Most fields should have good defaults for the common case - a blank form requiring research to fill out is a friction multiplier.
-
-_Guardrails, not gates._ Validate inputs in real-time. Warn about expensive choices. Auto-approve within policy bounds. Prevent mistakes without blocking legitimate work - if every request requires manual approval, you haven't built self-service.
-
-_Transparent execution._ Show workflow steps and progress. Link to the underlying PR or pipeline. Surface errors clearly with remediation steps. Users should see what's happening and why.
-
-_Recoverable failures._ Allow retrying failed steps. Let users edit and resubmit. Make failures fixable without starting over - if a failure requires filing a support ticket, the action has failed its purpose.
+- _Obvious outcomes._ Show a preview of resources to be created. Display cost estimates. List permissions that will be granted. Users should know exactly what will happen before clicking submit.
+- _Sensible defaults._ Pre-fill the team from user context. Default to the smallest viable size. Most fields should have good defaults for the common case - a blank form requiring research to fill out is a friction multiplier.
+- _Guardrails, not gates._ Validate inputs in real-time. Warn about expensive choices. Auto-approve within policy bounds. Prevent mistakes without blocking legitimate work - if every request requires manual approval, you haven't built self-service.
+- _Transparent execution._ Show workflow steps and progress. Link to the underlying PR or pipeline. Surface errors clearly with remediation steps. Users should see what's happening and why.
+- _Recoverable failures._ Allow retrying failed steps. Let users edit and resubmit. Make failures fixable without starting over - if a failure requires filing a support ticket, the action has failed its purpose.
 
 <Callout type="success">
 The best self-service actions feel like filling out a form to order something online: clear options, sensible defaults, transparent pricing, and a tracking number when you submit. If your action feels like filling out a government form, redesign it.

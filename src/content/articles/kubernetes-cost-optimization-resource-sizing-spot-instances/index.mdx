@@ -30,15 +30,39 @@ _Limits_ are enforcement boundaries. CPU limits throttle - if your container tri
 
 This distinction matters for cost because _requests determine how many nodes you need_. If every pod requests 1 CPU but only uses 0.1, you're paying for 10x the capacity you need. The scheduler sees the cluster as full when it's actually 90% idle. Here's how they compare:
 
-| Aspect | Request | Limit |
-|--------|---------|-------|
-| Scheduling | Used for placement decisions | Not considered |
-| CPU behavior | Guaranteed minimum | Throttled if exceeded |
-| Memory behavior | Guaranteed minimum | OOM killed if exceeded |
-| Cluster capacity | Sum of requests = scheduleable capacity | Sum of limits can exceed node capacity |
-| Cost impact | Directly determines node count | Indirectly affects density |
-
-Table: Requests vs limits comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Requests vs limits comparison.",
+    thead: {
+      th: ["Aspect", "Request", "Limit"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "Scheduling",
+          td: ["Used for placement decisions", "Not considered"],
+        },
+        {
+          th: "CPU behavior",
+          td: ["Guaranteed minimum", "Throttled if exceeded"],
+        },
+        {
+          th: "Memory behavior",
+          td: ["Guaranteed minimum", "OOM killed if exceeded"],
+        },
+        {
+          th: "Cluster capacity",
+          td: ["Sum of requests = scheduleable capacity", "Sum of limits can exceed node capacity"],
+        },
+        {
+          th: "Cost impact",
+          td: ["Directly determines node count", "Indirectly affects density"],
+        },
+      ],
+    },
+  }}
+/>
 
 Over-provisioning happens organically. A developer sets resource requests during initial deployment, picks numbers that seem reasonable with some safety margin, and never revisits them. The service works fine, so the requests stay. Multiply this across hundreds of services and you end up with a cluster that's 30% utilized but "full" according to the scheduler.
 

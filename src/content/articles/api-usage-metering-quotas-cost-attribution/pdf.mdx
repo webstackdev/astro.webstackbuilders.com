@@ -165,10 +165,15 @@ Code: Usage event schema with consumer context, request details, and billable di
 
 Key decisions:
 
-- **Identifiers**: Use opaque IDs (`team_analytics`) not email addresses or names. Consumer IDs should be stable—if a team renames themselves, the ID stays constant.
-- **Timestamps**: Use ISO 8601 with millisecond precision. Time zones matter for billing periods.
-- **Status codes**: Separate billable requests (2xx) from errors (4xx, 5xx). You probably don't want to charge for failed requests.
-- **Cardinality**: Avoid unbounded fields like IP addresses or user agents in dimensions you'll aggregate by. Route patterns (`/users/:id`) are fine, raw paths (`/users/12345`) are not.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Identifiers:", text: "Use opaque IDs (`team_analytics`) not email addresses or names. Consumer IDs should be stable—if a team renames themselves, the ID stays constant." },
+    { lead: "Timestamps:", text: "Use ISO 8601 with millisecond precision. Time zones matter for billing periods." },
+    { lead: "Status codes:", text: "Separate billable requests (2xx) from errors (4xx, 5xx). You probably don't want to charge for failed requests." },
+    { lead: "Cardinality:", text: "Avoid unbounded fields like IP addresses or user agents in dimensions you'll aggregate by. Route patterns (`/users/:id`) are fine, raw paths (`/users/12345`) are not." },
+  ]}
+/>
 
 ### Idempotency and Deduplication
 
@@ -456,11 +461,14 @@ You've captured usage metrics—now you need to translate them into dollar costs
 
 Three common approaches:
 
-**Direct attribution**: Map specific costs directly to usage dimensions. If your compute bill is $10,000 and you processed 10 million requests, each request costs $0.001 in compute. Simple, but it ignores fixed costs and assumes all requests are equal.
-
-**Proportional allocation**: Create a cost pool of all API infrastructure costs, then allocate based on usage share. If Team A made 60% of requests, they get 60% of costs. Fair for similar usage patterns, but a team making cheap health checks subsidizes one making expensive video transcoding.
-
-**Tiered pricing**: Charge different rates based on volume or feature usage. High-volume consumers get volume discounts, premium features cost more. This is closer to how SaaS companies price APIs and aligns incentives better than pure cost recovery.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Direct attribution:", text: "Map specific costs directly to usage dimensions. If your compute bill is $10,000 and you processed 10 million requests, each request costs $0.001 in compute. Simple, but it ignores fixed costs and assumes all requests are equal." },
+    { lead: "Proportional allocation:", text: "Create a cost pool of all API infrastructure costs, then allocate based on usage share. If Team A made 60% of requests, they get 60% of costs. Fair for similar usage patterns, but a team making cheap health checks subsidizes one making expensive video transcoding." },
+    { lead: "Tiered pricing:", text: "Charge different rates based on volume or feature usage. High-volume consumers get volume discounts, premium features cost more. This is closer to how SaaS companies price APIs and aligns incentives better than pure cost recovery." },
+  ]}
+/>
 
 ```mermaid
 graph TD
@@ -605,11 +613,14 @@ There's a spectrum between "no cost visibility" and "full chargebacks." Most org
   }}
 />
 
-**Showback** means "here's what you're using, here's what it costs, but we're not moving money between budgets." It's pure visibility. Teams can see their consumption and optimize without financial pressure.
-
-**Soft chargeback** means "here's your cost, it's tracked against your budget, but we're not enforcing it strictly." Finance tracks it, teams know they're accountable, but there's flexibility for legitimate overages.
-
-**Hard chargeback** means "we're moving money from your budget to the API team's budget." This is real accountability. It creates strong incentives to optimize but also creates friction when teams dispute costs.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Showback means \"here's what you're using, here's what it costs, but we're not moving money between budgets.\"", text: "It's pure visibility. Teams can see their consumption and optimize without financial pressure." },
+    { lead: "Soft chargeback means \"here's your cost, it's tracked against your budget, but we're not enforcing it strictly.\"", text: "Finance tracks it, teams know they're accountable, but there's flexibility for legitimate overages." },
+    { lead: "Hard chargeback means \"we're moving money from your budget to the API team's budget.\"", text: "This is real accountability. It creates strong incentives to optimize but also creates friction when teams dispute costs." },
+  ]}
+/>
 
 <Callout type="warning">
 Start with showback before implementing chargebacks. Teams need time to understand their usage patterns and optimize before costs hit their budgets.
@@ -993,9 +1004,13 @@ Code: Implementation checklist for API cost management systems.
 
 The order matters: build metering first (you need data), then reporting (visibility), then enforcement (quotas), then billing (money). Trying to build them in parallel creates dependencies you can't resolve.
 
-**Multi-region considerations**: If your API runs across multiple regions, each region typically has its own metering pipeline writing to region-local storage, then aggregated to a central database for billing. Quota counters should be global (using Redis Cluster or a distributed counter service) to prevent consumers from bypassing quotas by spreading requests across regions.
-
-**Security note**: Secure your metering pipeline. Consumers should not be able to emit fake low-usage events to reduce their bills. Use authenticated message queues, validate event signatures, and monitor for unusual patterns (sudden drops in reported usage from a consumer indicate possible tampering).
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Multi-region considerations:", text: "If your API runs across multiple regions, each region typically has its own metering pipeline writing to region-local storage, then aggregated to a central database for billing. Quota counters should be global (using Redis Cluster or a distributed counter service) to prevent consumers from bypassing quotas by spreading requests across regions." },
+    { lead: "Security note:", text: "Secure your metering pipeline. Consumers should not be able to emit fake low-usage events to reduce their bills. Use authenticated message queues, validate event signatures, and monitor for unusual patterns (sudden drops in reported usage from a consumer indicate possible tampering)." },
+  ]}
+/>
 
 ## Organizational Considerations
 
@@ -1007,11 +1022,14 @@ The technical work is straightforward. The organizational work is where most cos
 
 The pitch needs to frame cost attribution as an enabler, not a punitive measure:
 
-**For Engineering Teams**: "This helps you understand which parts of your system are expensive so you can optimize effectively. Right now you're guessing."
-
-**For Finance**: "We can finally answer 'what does this API cost per team' and make data-driven decisions about pricing, capacity, and investment."
-
-**For Leadership**: "This enables us to scale sustainably. We're currently cross-subsidizing heavy users from light users, which creates perverse incentives."
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "For Engineering Teams:", text: "\"This helps you understand which parts of your system are expensive so you can optimize effectively. Right now you're guessing.\"" },
+    { lead: "For Finance:", text: "\"We can finally answer 'what does this API cost per team' and make data-driven decisions about pricing, capacity, and investment.\"" },
+    { lead: "For Leadership:", text: "\"This enables us to scale sustainably. We're currently cross-subsidizing heavy users from light users, which creates perverse incentives.\"" },
+  ]}
+/>
 
 The most common objection: "This will create budget battles between teams." True. But the alternative is cross-subsidization where one team's budget unknowingly funds everyone else's usage. Cost visibility creates accountability—budget battles are a feature, not a bug.
 
@@ -1053,13 +1071,15 @@ Soft Enforce warnings look like this:
 
 This gives teams actionable information and time to respond before enforcement kicks in.
 
-**Instrument phase**: Build the metering pipeline, get data flowing, validate accuracy. You don't see anything yet. Use this time to debug your instrumentation and handle edge cases.
-
-**Report phase**: Launch showback dashboards. You can see your usage but it doesn't affect budgets. Watch usage patterns change—you optimize just from visibility, even without financial pressure.
-
-**Soft enforce phase**: Add quota warnings and alerts. "You're at 90% of your monthly quota" emails start going out. Behavior changes again as you realize quotas are real.
-
-**Hard enforce phase**: Turn on quota enforcement and chargebacks. Requests over quota get throttled or billed at overage rates. This is when you find out if your pricing is right.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Instrument phase:", text: "Build the metering pipeline, get data flowing, validate accuracy. You don't see anything yet. Use this time to debug your instrumentation and handle edge cases." },
+    { lead: "Report phase:", text: "Launch showback dashboards. You can see your usage but it doesn't affect budgets. Watch usage patterns change—you optimize just from visibility, even without financial pressure." },
+    { lead: "Soft enforce phase:", text: "Add quota warnings and alerts. \"You're at 90% of your monthly quota\" emails start going out. Behavior changes again as you realize quotas are real." },
+    { lead: "Hard enforce phase:", text: "Turn on quota enforcement and chargebacks. Requests over quota get throttled or billed at overage rates. This is when you find out if your pricing is right." },
+  ]}
+/>
 
 <Callout type="success">
 Start with visibility. You can't optimize what you can't see. Give yourself 2-3 months of usage data before introducing hard quotas or chargebacks.
@@ -1100,13 +1120,15 @@ The pattern that works: start with instrumentation, add visibility through dashb
 
 The key principles:
 
-**Meter everything**—even if you're not billing for it today. You can't retroactively meter usage you never captured. Start with request count, data transfer, and compute time. Add more dimensions as you understand cost drivers.
-
-**Enforce quotas at multiple levels**—rate limits protect infrastructure, monthly quotas control costs. You need both. Hard limits prevent abuse, soft limits with overages enable growth.
-
-**Attribute costs transparently**—showback before chargeback. Teams need to understand their usage patterns before costs hit their budgets. Disputes are inevitable; raw usage events are your defense.
-
-**Roll out gradually**—instrumentation, reporting, soft enforcement, hard enforcement. Each phase builds trust and gives teams time to optimize. Jumping straight to hard enforcement creates organizational friction.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Meter everything—", text: "even if you're not billing for it today. You can't retroactively meter usage you never captured. Start with request count, data transfer, and compute time. Add more dimensions as you understand cost drivers." },
+    { lead: "Enforce quotas at multiple levels—", text: "rate limits protect infrastructure, monthly quotas control costs. You need both. Hard limits prevent abuse, soft limits with overages enable growth." },
+    { lead: "Attribute costs transparently—", text: "showback before chargeback. Teams need to understand their usage patterns before costs hit their budgets. Disputes are inevitable; raw usage events are your defense." },
+    { lead: "Roll out gradually—", text: "instrumentation, reporting, soft enforcement, hard enforcement. Each phase builds trust and gives teams time to optimize. Jumping straight to hard enforcement creates organizational friction." },
+  ]}
+/>
 
 API cost management enables business decisions you couldn't make before. You can offer usage-based pricing that aligns with value delivered. You can identify optimization opportunities by seeing which endpoints are expensive. You can make capacity decisions based on data instead of politics.
 
@@ -1117,4 +1139,3 @@ API cost management isn't about charging customers more—it's about understandi
 Here's your starting point: pick your highest-traffic API (the one consuming the most infrastructure budget), instrument it to meter request count only, and deploy a read-only dashboard showing usage by consumer. Run this for 30 days without enforcement. You'll immediately see usage patterns you didn't know existed—teams making 10x more requests than others, endpoints that are unexpectedly expensive, retry storms from misconfigured clients. Fix the obvious problems, then add more dimensions (data transfer, compute time) and introduce soft quotas. Expand from there.
 
 The infrastructure you build now—the metering pipeline, the quota counters, the cost attribution logic—will serve you for years. Get the foundation right, then iterate on pricing and enforcement.
-

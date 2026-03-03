@@ -54,13 +54,16 @@ Before diving into blue/green and canary specifically, it helps to see where the
   }}
 />
 
-_Recreate_ is the simplest: stop old version, start new version. If you're running a batch job or an internal tool where 30 seconds of downtime doesn't matter, this is fine. Don't add complexity you don't need.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Recreate_:", text: "is the simplest: stop old version, start new version. If you're running a batch job or an internal tool where 30 seconds of downtime doesn't matter, this is fine. Don't add complexity you don't need." },
+    { lead: "_Rolling_:", text: "updates pods gradually—some run the old version while others run the new. Kubernetes does this by default. It works well for stateless workloads but creates a window where mixed versions handle traffic, and rollback means deploying the old image again (minutes, not seconds)." },
+    { lead: "_Blue/green_ and _canary_:", text: "are where most production web services land. We'll spend the rest of this article on these two." },
+    { lead: "_Progressive delivery_:", text: "extends canary with automated analysis, often using machine learning to detect anomalies. Tools like Argo Rollouts and Flagger can automate promotion decisions. This is powerful but requires mature observability and operational investment." },
+  ]}
+/>
 
-_Rolling_ updates pods gradually—some run the old version while others run the new. Kubernetes does this by default. It works well for stateless workloads but creates a window where mixed versions handle traffic, and rollback means deploying the old image again (minutes, not seconds).
-
-_Blue/green_ and _canary_ are where most production web services land. We'll spend the rest of this article on these two.
-
-_Progressive delivery_ extends canary with automated analysis, often using machine learning to detect anomalies. Tools like Argo Rollouts and Flagger can automate promotion decisions. This is powerful but requires mature observability and operational investment.
 
 ### When Simple Wins
 
@@ -384,13 +387,15 @@ Flagger is an open-source progressive delivery operator for Kubernetes that simp
 
 Canary's gradual approach comes with significant complexity. You need infrastructure that most teams don't have out of the box.
 
-_Traffic splitting_ requires L7 load balancing or a service mesh. Standard L4 load balancers can't do percentage-based routing. You need Istio, Linkerd, NGINX Ingress with canary annotations, or cloud provider ALBs with weighted target groups. If you don't have this infrastructure, canary isn't an option—blue/green is more achievable.
-
-_Observability_ must be version-aware. Your metrics need to distinguish canary from stable so you can compare error rates and latencies. "Overall error rate is 0.5%" doesn't help—you need "canary error rate is 2%, stable is 0.3%." This means version labels on all metrics, dashboards that compare versions side by side, and alerting that understands the traffic split.
-
-_Stateful requests_ create consistency problems. If a user's session spans multiple requests, they might hit v1.0 for the first request and v1.1 for the second. For stateless APIs this is fine, but for stateful workflows it can cause bugs that only appear in production during canary.
-
-_Database schema_ affects canary exactly as it affects blue/green—both versions must work with the same schema. Canary doesn't solve this problem; it just means both versions run simultaneously for longer.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Traffic splitting_:", text: "requires L7 load balancing or a service mesh. Standard L4 load balancers can't do percentage-based routing. You need Istio, Linkerd, NGINX Ingress with canary annotations, or cloud provider ALBs with weighted target groups. If you don't have this infrastructure, canary isn't an option—blue/green is more achievable." },
+    { lead: "_Observability_:", text: "must be version-aware. Your metrics need to distinguish canary from stable so you can compare error rates and latencies. \"Overall error rate is 0.5%\" doesn't help—you need \"canary error rate is 2%, stable is 0.3%.\" This means version labels on all metrics, dashboards that compare versions side by side, and alerting that understands the traffic split." },
+    { lead: "_Stateful requests_:", text: "create consistency problems. If a user's session spans multiple requests, they might hit v1.0 for the first request and v1.1 for the second. For stateless APIs this is fine, but for stateful workflows it can cause bugs that only appear in production during canary." },
+    { lead: "_Database schema_:", text: "affects canary exactly as it affects blue/green—both versions must work with the same schema. Canary doesn't solve this problem; it just means both versions run simultaneously for longer." },
+  ]}
+/>
 
 <Callout type="info">
 Canary's value is validation with real traffic. If your monitoring can't distinguish canary performance from stable, or you can't act on the data, canary provides little benefit over blue/green.
@@ -521,36 +526,38 @@ With both strategies understood, the choice comes down to your constraints and p
   }}
 />
 
-
 The "database handling" row is intentionally identical—neither strategy solves schema compatibility. That problem is orthogonal to traffic routing.
 
 ### When to Choose Blue/Green
 
 Blue/green is the right choice when you value simplicity and instant rollback over gradual validation:
 
-_Instant rollback is non-negotiable._ Financial systems, compliance-heavy environments, or anywhere a bad deployment could cost real money benefit from sub-second rollback. Canary's 10-30 second rollback might be fast enough for most systems, but blue/green's instant cutback is faster.
-
-_You don't have traffic splitting infrastructure._ If your load balancer is L4-only, or you don't have a service mesh, canary isn't practical. Blue/green works with basic DNS or load balancer configuration that every team already has.
-
-_Your team is new to advanced deployments._ Blue/green is conceptually simpler—two environments, switch traffic, done. Canary requires understanding traffic percentages, metric analysis, and promotion criteria. Start with blue/green, graduate to canary when you've outgrown it.
-
-_Your workload has long-running connections._ WebSocket connections, gRPC streams, or persistent TCP connections don't play well with gradual traffic shifts. Blue/green's clean cutover, combined with proper connection draining, handles these better.
-
-_Pre-deployment testing is sufficient._ If your staging environment accurately mirrors production, and you trust your test suite, blue/green's "test then deploy" model works. Canary's value is production validation—if you don't need it, you're paying for complexity you won't use.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Instant rollback is non-negotiable._", text: "Financial systems, compliance-heavy environments, or anywhere a bad deployment could cost real money benefit from sub-second rollback. Canary's 10-30 second rollback might be fast enough for most systems, but blue/green's instant cutback is faster." },
+    { lead: "_You don't have traffic splitting infrastructure._", text: "If your load balancer is L4-only, or you don't have a service mesh, canary isn't practical. Blue/green works with basic DNS or load balancer configuration that every team already has." },
+    { lead: "_Your team is new to advanced deployments._", text: "Blue/green is conceptually simpler—two environments, switch traffic, done. Canary requires understanding traffic percentages, metric analysis, and promotion criteria. Start with blue/green, graduate to canary when you've outgrown it." },
+    { lead: "_Your workload has long-running connections._", text: "WebSocket connections, gRPC streams, or persistent TCP connections don't play well with gradual traffic shifts. Blue/green's clean cutover, combined with proper connection draining, handles these better." },
+    { lead: "_Pre-deployment testing is sufficient._", text: "If your staging environment accurately mirrors production, and you trust your test suite, blue/green's 'test then deploy' model works. Canary's value is production validation—if you don't need it, you're paying for complexity you won't use." },
+  ]}
+/>
 
 ### When to Choose Canary
 
 Canary is the right choice when you need production validation and can afford the complexity:
 
-_You've been burned by staging-production differences._ "It worked in staging" is a common refrain. If your production traffic patterns, data volumes, or edge cases differ from staging, canary lets you validate with real traffic before full commitment.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_You've been burned by staging-production differences._", text: "\"It worked in staging\" is a common refrain. If your production traffic patterns, data volumes, or edge cases differ from staging, canary lets you validate with real traffic before full commitment." },
+    { lead: "_Blast radius matters more than rollback speed._", text: "For high-traffic services, affecting 1% of users for 5 minutes is better than affecting 100% of users for 10 seconds. Canary catches problems before most users see them." },
+    { lead: "_You have the infrastructure._", text: "Service mesh (Istio, Linkerd), L7 load balancer with weighted routing (AWS ALB, NGINX), and version-aware observability are prerequisites. If you already have these for other reasons, canary's marginal complexity is lower." },
+    { lead: "_You have enough traffic for statistical significance._", text: "Canary analysis needs enough requests to distinguish signal from noise. If your service handles 10 requests per minute, you can't meaningfully compare canary vs. stable error rates. Blue/green is more appropriate for low-traffic services." },
+    { lead: "_Resource cost matters._", text: "Blue/green's 2x infrastructure during deployment adds up. Canary's 10-50% overhead is cheaper, especially for large deployments or frequent releases." },
+  ]}
+/>
 
-_Blast radius matters more than rollback speed._ For high-traffic services, affecting 1% of users for 5 minutes is better than affecting 100% of users for 10 seconds. Canary catches problems before most users see them.
-
-_You have the infrastructure._ Service mesh (Istio, Linkerd), L7 load balancer with weighted routing (AWS ALB, NGINX), and version-aware observability are prerequisites. If you already have these for other reasons, canary's marginal complexity is lower.
-
-_You have enough traffic for statistical significance._ Canary analysis needs enough requests to distinguish signal from noise. If your service handles 10 requests per minute, you can't meaningfully compare canary vs. stable error rates. Blue/green is more appropriate for low-traffic services.
-
-_Resource cost matters._ Blue/green's 2x infrastructure during deployment adds up. Canary's 10-50% overhead is cheaper, especially for large deployments or frequent releases.
 
 <Callout type="warning">
 Don't choose canary because it sounds more sophisticated. If you don't have the traffic management and observability to make it work, canary becomes complexity without benefit.
@@ -708,13 +715,15 @@ Code: Feature flags providing canary-like gradual rollout without traffic splitt
 
 This approach has real advantages over infrastructure-level canary:
 
-_User consistency._ With traffic-based canary, the same user might hit v1.0 on one request and v1.1 on the next. With feature flags, you can ensure the same user always sees the same version—important for stateful workflows or when you're measuring user behavior.
-
-_Feature-level granularity._ Canary routes all traffic for all features together. Feature flags let you canary individual features independently. Your new pricing algorithm can be at 5% while your new checkout flow is at 50%.
-
-_Simpler infrastructure._ You don't need a service mesh or L7 load balancer. A standard rolling deployment works fine—the flag service controls exposure, not the traffic routing.
-
-_Instant disable._ If something breaks, you flip the flag. No deployment needed, no traffic routing to reconfigure. The problematic code path is disabled in seconds.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_User consistency._", text: "With traffic-based canary, the same user might hit v1.0 on one request and v1.1 on the next. With feature flags, you can ensure the same user always sees the same version—important for stateful workflows or when you're measuring user behavior." },
+    { lead: "_Feature-level granularity._", text: "Canary routes all traffic for all features together. Feature flags let you canary individual features independently. Your new pricing algorithm can be at 5% while your new checkout flow is at 50%." },
+    { lead: "_Simpler infrastructure._", text: "You don't need a service mesh or L7 load balancer. A standard rolling deployment works fine—the flag service controls exposure, not the traffic routing." },
+    { lead: "_Instant disable._", text: "If something breaks, you flip the flag. No deployment needed, no traffic routing to reconfigure. The problematic code path is disabled in seconds." },
+  ]}
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -743,11 +752,14 @@ Feature flags and deployment strategies aren't mutually exclusive. Many teams us
 
 Rollback speed is often the deciding factor between deployment strategies. Here's what actually happens when you need to roll back:
 
-_Blue/green rollback_ is the fastest. The old version is already running, warmed up, with established connection pools. You change a selector or DNS record, and traffic shifts in under a second. No pods terminate, no images pull, no health checks wait. The only users affected are those with in-flight requests at the moment of cutover—and proper connection draining handles most of those.
-
-_Canary rollback_ is nearly as fast but involves more moving parts. You reconfigure traffic weights to send 100% to stable, which takes 5-30 seconds depending on your service mesh's propagation time. The canary pods keep running (useful for debugging), and stable was never affected. Users who were hitting the canary see a version change, but that's usually a small percentage.
-
-_Rolling update rollback_ is the slowest because it's actually a new deployment. You're telling Kubernetes "deploy the old image," which triggers the same gradual pod replacement. During rollback, you have mixed versions—some pods running the bad new version, some running the old version you're rolling back to. This can take minutes for large deployments.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Blue/green rollback_:", text: "is the fastest. The old version is already running, warmed up, with established connection pools. You change a selector or DNS record, and traffic shifts in under a second. No pods terminate, no images pull, no health checks wait. The only users affected are those with in-flight requests at the moment of cutover—and proper connection draining handles most of those." },
+    { lead: "_Canary rollback_:", text: "is nearly as fast but involves more moving parts. You reconfigure traffic weights to send 100% to stable, which takes 5-30 seconds depending on your service mesh's propagation time. The canary pods keep running (useful for debugging), and stable was never affected. Users who were hitting the canary see a version change, but that's usually a small percentage." },
+    { lead: "_Rolling update rollback_:", text: "is the slowest because it's actually a new deployment. You're telling Kubernetes \"deploy the old image,\" which triggers the same gradual pod replacement. During rollback, you have mixed versions—some pods running the bad new version, some running the old version you're rolling back to. This can take minutes for large deployments." },
+  ]}
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -789,11 +801,14 @@ Consider a scenario: v1.1 adds a `preferences_json` column and starts writing us
 
 The solutions are all variations of "design for this upfront":
 
-_Forward compatibility_ means the old version can handle data written by the new version. If v1.0 ignores `preferences_json` but doesn't break when it exists, and v1.1 writes to both columns during the transition period, rollback is safe. This is the expand-contract pattern applied to application code, not just schema.
-
-_Idempotent writes_ mean the same operation can be applied multiple times without changing the result. If v1.1 wrote data and you roll back to v1.0, v1.0's writes should produce correct results even if v1.1's writes are still in the database.
-
-_Compensating transactions_ mean you have a way to "undo" what v1.1 did. This is complex and often impractical, but for some operations (financial transactions, inventory changes) it's necessary.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Forward compatibility_:", text: "means the old version can handle data written by the new version. If v1.0 ignores `preferences_json` but doesn't break when it exists, and v1.1 writes to both columns during the transition period, rollback is safe. This is the expand-contract pattern applied to application code, not just schema." },
+    { lead: "_Idempotent writes_:", text: "mean the same operation can be applied multiple times without changing the result. If v1.1 wrote data and you roll back to v1.0, v1.0's writes should produce correct results even if v1.1's writes are still in the database." },
+    { lead: "_Compensating transactions_:", text: "mean you have a way to \"undo\" what v1.1 did. This is complex and often impractical, but for some operations (financial transactions, inventory changes) it's necessary." },
+  ]}
+/>
 
 <Callout type="warning">
 Rollback is never truly instant for stateful applications. Even with instant traffic shift, data written by the new version may cause problems for the old version. Design for forward compatibility, not just backward.
@@ -807,49 +822,84 @@ Before implementing either strategy, audit your current capabilities. These chec
 
 **Infrastructure readiness:**
 
-- Two identical environments that can run simultaneously. "Identical" means same instance types, same configuration, same network topology. Drift between blue and green causes subtle bugs that only appear after cutover.
-- Load balancer or DNS that supports quick target switching. Kubernetes Services work. AWS ALB target groups work. If your only option is DNS with a 5-minute TTL, blue/green's "instant rollback" becomes "5-minute rollback."
-- Database accessible from both environments with the same credentials and connection strings. This sounds obvious until you discover your connection pool is hard-coded to the blue environment's internal hostname.
-- Shared session storage if your application is stateful. Users shouldn't lose their session when traffic switches. Redis, Memcached, or database-backed sessions work; in-memory sessions don't.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Two identical environments that can run simultaneously.", text: "\"Identical\" means same instance types, same configuration, same network topology. Drift between blue and green causes subtle bugs that only appear after cutover." },
+    { lead: "Load balancer or DNS that supports quick target switching.", text: "Kubernetes Services work. AWS ALB target groups work. If your only option is DNS with a 5-minute TTL, blue/green's \"instant rollback\" becomes \"5-minute rollback.\"" },
+    { lead: "Database accessible from both environments with the same credentials and connection strings.", text: "This sounds obvious until you discover your connection pool is hard-coded to the blue environment's internal hostname." },
+    { lead: "Shared session storage if your application is stateful.", text: "Users shouldn't lose their session when traffic switches. Redis, Memcached, or database-backed sessions work; in-memory sessions don't." },
+  ]}
+/>
 
 **Process readiness:**
 
-- Automated deployment to the green environment. If deploying to green requires manual steps, someone will forget one at 2 AM.
-- Smoke test suite that runs against green before cutover. At minimum: health check passes, critical endpoints return 200, database connectivity works.
-- Documented cutover runbook. Who approves? What's the command? What do you check immediately after?
-- Documented and _tested_ rollback runbook. Untested rollback procedures fail when you need them most. Run a rollback drill at least quarterly.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Automated deployment to the green environment.", text: "If deploying to green requires manual steps, someone will forget one at 2 AM." },
+    { lead: "Smoke test suite that runs against green before cutover.", text: "At minimum: health check passes, critical endpoints return 200, database connectivity works." },
+    { lead: "Documented cutover runbook.", text: "Who approves? What's the command? What do you check immediately after?" },
+    { lead: "Documented and _tested_ rollback runbook.", text: "Untested rollback procedures fail when you need them most. Run a rollback drill at least quarterly." },
+  ]}
+/>
 
 **Observability readiness:**
 
-- Health checks on both environments, not just the active one. You need to know if blue degrades while green is live.
-- Alerting that distinguishes between environments. "Error rate high" doesn't help if you don't know which environment.
-- Traffic monitoring that confirms cutover actually happened. DNS caching and load balancer propagation delays can make cutover slower than expected.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Health checks on both environments, not just the active one.", text: "You need to know if blue degrades while green is live." },
+    { lead: "Alerting that distinguishes between environments.", text: "\"Error rate high\" doesn't help if you don't know which environment." },
+    { lead: "Traffic monitoring that confirms cutover actually happened.", text: "DNS caching and load balancer propagation delays can make cutover slower than expected." },
+  ]}
+/>
 
 ### Canary Checklist
 
 **Infrastructure readiness:**
 
-- Traffic splitting capability at L7. Service mesh (Istio, Linkerd), ingress controller with canary support (NGINX, Traefik), or cloud ALB with weighted target groups. If you don't have this, stop here—canary requires it.
-- Version-aware routing configured and tested. Deploy a canary with 0% traffic and verify it receives no requests. Then set 100% and verify it receives all requests. Misconfigurations here are subtle and dangerous.
-- Canary deployment pipeline that handles the full lifecycle: deploy canary, configure traffic split, run analysis, promote or rollback, cleanup.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Traffic splitting capability at L7.", text: "Service mesh (Istio, Linkerd), ingress controller with canary support (NGINX, Traefik), or cloud ALB with weighted target groups. If you don't have this, stop here—canary requires it." },
+    { lead: "Version-aware routing configured and tested.", text: "Deploy a canary with 0% traffic and verify it receives no requests. Then set 100% and verify it receives all requests. Misconfigurations here are subtle and dangerous." },
+    { lead: "Canary deployment pipeline that handles the full lifecycle:", text: "deploy canary, configure traffic split, run analysis, promote or rollback, cleanup." },
+  ]}
+/>
 
 **Observability readiness:**
 
-- All metrics labeled by version. Error rates, latencies, throughput—every metric you'll use for promotion decisions must distinguish canary from stable. This usually means adding a `version` label to your metrics library configuration.
-- Dashboards that compare canary vs. stable side-by-side. You should be able to answer "is canary worse than stable?" at a glance.
-- Alerting on canary-specific thresholds. "Canary error rate > 2x stable error rate" is more useful than "error rate > 1%."
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "All metrics labeled by version.", text: "Error rates, latencies, throughput—every metric you'll use for promotion decisions must distinguish canary from stable. This usually means adding a `version` label to your metrics library configuration." },
+    { lead: "Dashboards that compare canary vs. stable side-by-side.", text: "You should be able to answer \"is canary worse than stable?\" at a glance." },
+    { lead: "Alerting on canary-specific thresholds.", text: "\"Canary error rate > 2x stable error rate\" is more useful than \"error rate > 1%.\"" },
+  ]}
+/>
 
 **Analysis readiness:**
 
-- Promotion criteria defined _before_ the first canary. What error rate is acceptable? What latency regression? What's the minimum observation time? Write these down; don't decide during the deployment.
-- Analysis automation configured. Argo Rollouts, Flagger, or custom scripts that query your metrics and make promote/hold/rollback decisions. Manual analysis works for learning but doesn't scale.
-- Rollback triggers defined. At what point does the system automatically roll back without waiting for human approval?
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Promotion criteria defined _before_ the first canary.", text: "What error rate is acceptable? What latency regression? What's the minimum observation time? Write these down; don't decide during the deployment." },
+    { lead: "Analysis automation configured.", text: "Argo Rollouts, Flagger, or custom scripts that query your metrics and make promote/hold/rollback decisions. Manual analysis works for learning but doesn't scale." },
+    { lead: "Rollback triggers defined.", text: "At what point does the system automatically roll back without waiting for human approval?" },
+  ]}
+/>
 
 **Operational readiness:**
 
-- Team trained on canary-specific debugging. When the canary shows elevated errors, how do you determine if it's a real problem or statistical noise? How do you get logs from just the canary pods?
-- Manual override process documented. Sometimes you need to force-promote or force-rollback despite what the analysis says. Make sure the team knows how.
-- Incident response updated for canary scenarios. Your runbooks should cover "canary is failing but won't auto-rollback" and "canary promoted but problems appeared after."
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Team trained on canary-specific debugging.", text: "When the canary shows elevated errors, how do you determine if it's a real problem or statistical noise? How do you get logs from just the canary pods?" },
+    { lead: "Manual override process documented.", text: "Sometimes you need to force-promote or force-rollback despite what the analysis says. Make sure the team knows how." },
+    { lead: "Incident response updated for canary scenarios.", text: "Your runbooks should cover \"canary is failing but won't auto-rollback\" and \"canary promoted but problems appeared after.\"" },
+  ]}
+/>
 
 ## Conclusion
 

@@ -89,16 +89,43 @@ Code: HTTPRoute with cross-namespace reference to a shared Gateway.
 
 The critical difference: HTTPRoute uses native fields for routing configuration, not annotations. These fields work identically across any Gateway API implementation—Envoy Gateway, Istio, Contour, Kong, NGINX Gateway Fabric. Portability is built in, not bolted on.
 
-| Aspect | Ingress | Gateway API |
-|--------|---------|-------------|
-| Resource types | 1 | 3+ (GatewayClass, Gateway, *Route) |
-| Configuration | Annotations (not portable) | Native fields (portable) |
-| Namespace scope | Same namespace only | Cross-namespace supported |
-| Protocols | HTTP/HTTPS | HTTP, HTTPS, TCP, UDP, gRPC, TLS |
-| Traffic splitting | Annotation-dependent | Native support |
-| Role separation | No | Yes (infra/platform/app) |
-
-Table: Ingress vs Gateway API comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Aspect', 'Ingress', 'Gateway API'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Resource types',
+          td: ['1', '3+ (GatewayClass, Gateway, *Route)'],
+        },
+        {
+          th: 'Configuration',
+          td: ['Annotations (not portable)', 'Native fields (portable)'],
+        },
+        {
+          th: 'Namespace scope',
+          td: ['Same namespace only', 'Cross-namespace supported'],
+        },
+        {
+          th: 'Protocols',
+          td: ['HTTP/HTTPS', 'HTTP, HTTPS, TCP, UDP, gRPC, TLS'],
+        },
+        {
+          th: 'Traffic splitting',
+          td: ['Annotation-dependent', 'Native support'],
+        },
+        {
+          th: 'Role separation',
+          td: ['No', 'Yes (infra/platform/app)'],
+        },
+      ],
+    },
+    figure: 'Ingress vs Gateway API comparison.',
+  }}
+/>
 
 Gateway API's layered architecture also enables something Ingress can't: application teams defining their own routes without needing access to shared infrastructure. An HTTPRoute in namespace `team-a` can reference a Gateway in namespace `gateway-system`. The Gateway controls which namespaces can attach routes through `allowedRoutes`, creating self-service routing with guardrails.
 

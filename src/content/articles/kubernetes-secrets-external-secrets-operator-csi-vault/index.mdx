@@ -9,9 +9,9 @@ tags: ["cloud-platforms", "kubernetes", "aws", "azure"]
 featured: true
 ---
 
-*[K8s]: Kubernetes
-*[ESO]: External Secrets Operator
 *[CSI]: Container Storage Interface
+*[ESO]: External Secrets Operator
+*[K8s]: Kubernetes
 *[RBAC]: Role-Based Access Control
 
 It's 3 AM and Vault is down. Your on-call engineer gets paged because deployments are failing—pods stuck in ContainerCreating, blocking a critical hotfix. Meanwhile, another team's services keep humming along despite the same outage. The difference isn't luck. It's how secrets get into pods.
@@ -24,12 +24,27 @@ External secrets management in Kubernetes has consolidated around two dominant p
 
 Both work fine when your secret manager is healthy. The difference is what happens when it isn't. ESO decouples secret fetching from pod lifecycle—the controller syncs independently, and pods consume cached Kubernetes Secrets. CSI couples them tightly—pods can't start until secrets are fetched. This architectural difference determines everything about how your applications behave during an outage.
 
-| Pattern | Existing Pods | New Pods | Recovery |
-|---------|---------------|----------|----------|
-| ESO | ✅ Running | ✅ Start (cached) | Automatic |
-| CSI Driver | ✅ Running | ❌ Blocked | May need intervention |
-
-Table: Behavior during a 30-minute Vault outage.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Pattern', 'Existing Pods', 'New Pods', 'Recovery'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'ESO',
+          td: ['✅ Running', '✅ Start (cached)', 'Automatic'],
+        },
+        {
+          th: 'CSI Driver',
+          td: ['✅ Running', '❌ Blocked', 'May need intervention'],
+        },
+      ],
+    },
+    figure: 'Behavior during a 30-minute Vault outage.',
+  }}
+/>
 
 Init containers offer a third path—DIY scripts that fetch secrets before your main container starts—but they require you to implement retry logic, fallback sources, and monitoring yourself. For most organizations, ESO or CSI covers the use case without that operational burden. (We cover init container patterns with fallback logic in our full guide.)
 

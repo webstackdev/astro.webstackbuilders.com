@@ -59,9 +59,14 @@ Cache keys are the mechanism that determines when to use cached artifacts versus
 
 The art is in designing keys that change when (and only when) the cached content should change. A good cache key has three components:
 
-- A _static prefix_ for namespacing and manual invalidation (e.g., `v1-deps-`)
-- _Dynamic components_ that capture everything affecting the cached content (e.g., lockfile hash)
-- Optionally, a _version or OS component_ for environment-specific caches (e.g., `runner.os`)
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "A _static prefix_", text: "for namespacing and manual invalidation (e.g., `v1-deps-`)" },
+    { lead: "_Dynamic components_", text: "that capture everything affecting the cached content (e.g., lockfile hash)" },
+    { lead: "Optionally, a _version or OS component_", text: "for environment-specific caches (e.g., `runner.os`)" },
+  ]}
+/>
 
 Here's how GitHub Actions cache keys work in practice:
 
@@ -89,11 +94,14 @@ Restore keys provide fallback options when the exact cache key doesn't match. Th
 
 Three principles determine whether a cache is safe to use:
 
-_Completeness_ means the cache key includes everything that affects the output. If your compiled artifact depends on the compiler version, the compiler version must be in the cache key. If it depends on source files, those file hashes must be in the key. Miss something, and you'll serve stale artifacts.
-
-_Determinism_ means the same inputs always produce the same outputs. If your build embeds timestamps, downloads "latest" versions of tools, or has race conditions in parallel jobs, caching becomes unsafe—the cached artifact won't match what a fresh build would produce.
-
-_Isolation_ means caches don't leak between unrelated builds. PR builds shouldn't pollute the main branch cache. Different workflows should have separate cache namespaces. Without isolation, one build's experimental changes can corrupt another build's cache.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Completeness_ means the cache key includes everything that affects the output.", text: "If your compiled artifact depends on the compiler version, the compiler version must be in the cache key. If it depends on source files, those file hashes must be in the key. Miss something, and you'll serve stale artifacts." },
+    { lead: "_Determinism_ means the same inputs always produce the same outputs.", text: "If your build embeds timestamps, downloads \"latest\" versions of tools, or has race conditions in parallel jobs, caching becomes unsafe—the cached artifact won't match what a fresh build would produce." },
+    { lead: "_Isolation_ means caches don't leak between unrelated builds.", text: "PR builds shouldn't pollute the main branch cache. Different workflows should have separate cache namespaces. Without isolation, one build's experimental changes can corrupt another build's cache." },
+  ]}
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -546,13 +554,16 @@ Caching assumes determinism: the same inputs produce the same outputs. If your b
 
 Common sources of non-determinism:
 
-_Floating versions_: Using `npm install` instead of `npm ci` allows the package manager to resolve different versions on different runs, even with the same lockfile.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Floating versions_", text: "Using `npm install` instead of `npm ci` allows the package manager to resolve different versions on different runs, even with the same lockfile." },
+    { lead: "_Timestamps_", text: "If your build embeds the current timestamp in artifacts, a cached artifact won't match a fresh build. Use `SOURCE_DATE_EPOCH` for reproducible builds." },
+    { lead: "_Parallel race conditions_", text: "If multiple jobs write to the same cache simultaneously, you get undefined behavior. Use job-specific keys or configure jobs to only read from the cache." },
+    { lead: "_Network fetches_", text: "If your build downloads \"latest\" versions of tools or resources, different builds get different versions. Pin versions and cache the downloads." },
+  ]}
+/>
 
-_Timestamps_: If your build embeds the current timestamp in artifacts, a cached artifact won't match a fresh build. Use `SOURCE_DATE_EPOCH` for reproducible builds.
-
-_Parallel race conditions_: If multiple jobs write to the same cache simultaneously, you get undefined behavior. Use job-specific keys or configure jobs to only read from the cache.
-
-_Network fetches_: If your build downloads "latest" versions of tools or resources, different builds get different versions. Pin versions and cache the downloads.
 
 The test for non-determinism: run the same build twice with a clean cache. If the outputs differ (beyond timestamps you can't control), you have a non-determinism bug that will eventually cause caching problems.
 
@@ -671,13 +682,16 @@ GitHub Actions shows cache hit/miss in workflow logs and provides cache manageme
 
 Four metrics tell you whether caching is working:
 
-1. __Cache hit ratio__ is the percentage of builds that found a usable cache. Calculate it as `cache_hits / (cache_hits + cache_misses)`. A healthy ratio is above 80%. Below 50% for more than a day means something is wrong with your cache key design.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Cache hit ratio", text: "Is the percentage of builds that found a usable cache. Calculate it as `cache_hits / (cache_hits + cache_misses)`. A healthy ratio is above 80%. Below 50% for more than a day means something is wrong with your cache key design." },
+    { lead: "Time saved", text: "Is the cumulative time you didn't spend rebuilding. Track this per workflow and per job to identify which caches are most valuable. If a cache saves 30 seconds but adds 45 seconds of overhead (downloading, extracting, uploading), it's not worth it." },
+    { lead: "Cache size", text: "Matters because storage isn't free, and most platforms have limits. GitHub Actions has a 10GB limit per repository, shared across all workflows. Track current size and growth rate, and alert before you hit limits." },
+    { lead: "Build time percentiles", text: "(p50, p95) tell you what engineers actually experience. Compare cached builds to uncached builds to quantify the improvement. If your p95 build time is still 20 minutes, caching isn't solving the right problem." },
+  ]}
+/>
 
-2. __Time saved__ is the cumulative time you didn't spend rebuilding. Track this per workflow and per job to identify which caches are most valuable. If a cache saves 30 seconds but adds 45 seconds of overhead (downloading, extracting, uploading), it's not worth it.
-
-3. __Cache size__ matters because storage isn't free, and most platforms have limits. GitHub Actions has a 10GB limit per repository, shared across all workflows. Track current size and growth rate, and alert before you hit limits.
-
-4. __Build time percentiles__ (p50, p95) tell you what engineers actually experience. Compare cached builds to uncached builds to quantify the improvement. If your p95 build time is still 20 minutes, caching isn't solving the right problem.
 
 ### Debugging Cache Misses
 
@@ -719,11 +733,17 @@ Code: Script to list cache entries via GitHub API.
 
 Common causes of unexpected misses:
 
-- Lockfile changed (intended behavior, but verify the change was intentional)
-- Cache key includes something volatile (like a timestamp or random value)
-- Cache was evicted due to size limits or inactivity
-- Restore keys aren't matching due to prefix mismatch
-- Different runner OS or architecture than the cached build
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Lockfile changed (intended behavior, but verify the change was intentional)" },
+    { text: "Cache key includes something volatile (like a timestamp or random value)" },
+    { text: "Cache was evicted due to size limits or inactivity" },
+    { text: "Restore keys aren't matching due to prefix mismatch" },
+    { text: "Different runner OS or architecture than the cached build" },
+  ]}
+/>
+
 
 ## Platform-Specific Guides
 
@@ -877,13 +897,16 @@ The `dependencies` key tells GitLab to download artifacts from the install job. 
 
 CI caching is deceptively simple on the surface: save files, restore files, skip work. But effective caching requires understanding the principles beneath the configuration.
 
-_Cache keys must capture everything that affects build output._ If your key doesn't include all the inputs, you'll restore stale artifacts. If your key includes too much, you'll never hit the cache. The sweet spot is a key that changes exactly when the cached content should change.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Cache keys must capture everything that affects build output._", text: "If your key doesn't include all the inputs, you'll restore stale artifacts. If your key includes too much, you'll never hit the cache. The sweet spot is a key that changes exactly when the cached content should change." },
+    { lead: "_Correctness comes before speed._", text: "A cache that serves wrong artifacts is worse than no cache. When debugging mysterious failures, always test with a clean cache first. If the problem disappears, your cache key is incomplete." },
+    { lead: "_Measure continuously._", text: "Cache hit ratio tells you whether caching is working. A 50% hit ratio means half your builds are paying full price. Investigate misses systematically: is the key too specific? Is something non-deterministic? Are caches being evicted?" },
+    { lead: "_Layer ordering matters for Docker._", text: "Put stable content early in your Dockerfile, volatile content late. A single misplaced `COPY . .` can invalidate the entire layer cache on every commit." },
+  ]}
+/>
 
-_Correctness comes before speed._ A cache that serves wrong artifacts is worse than no cache. When debugging mysterious failures, always test with a clean cache first. If the problem disappears, your cache key is incomplete.
-
-_Measure continuously._ Cache hit ratio tells you whether caching is working. A 50% hit ratio means half your builds are paying full price. Investigate misses systematically: is the key too specific? Is something non-deterministic? Are caches being evicted?
-
-_Layer ordering matters for Docker._ Put stable content early in your Dockerfile, volatile content late. A single misplaced `COPY . .` can invalidate the entire layer cache on every commit.
 
 The patterns in this article can reduce build times by 70-90%. But the improvement isn't automatic. You need to design your cache keys deliberately, monitor hit ratios continuously, and debug misses when they occur. Fast builds that produce correct artifacts are the goal. Get there systematically.
 

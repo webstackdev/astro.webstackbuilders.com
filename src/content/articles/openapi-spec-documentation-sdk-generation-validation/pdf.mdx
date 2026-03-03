@@ -170,11 +170,30 @@ Code: Using allOf to compose shared base properties into entity schemas.
 
 For polymorphic types—where a field can be one of several shapes—use `oneOf` with a discriminator. Payment methods are the classic example: credit cards have `last4` and `expiryMonth`, bank transfers have `routingNumber` and `accountNumber`, PayPal has `email`. The discriminator tells parsers which schema applies based on a `type` field.
 
-| Pattern | When to Use |
-| ------- | ----------- |
-| Separate CRUD schemas | Create/update/read operations have different field requirements |
-| `allOf` composition | Multiple entities share identical base fields (audit timestamps, IDs) |
-| `oneOf` polymorphism | A field can be one of several distinct types with different structures |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Pattern', 'When to Use'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Separate CRUD schemas',
+          td: ['Create/update/read operations have different field requirements'],
+        },
+        {
+          th: '`allOf` composition',
+          td: ['Multiple entities share identical base fields (audit timestamps, IDs)'],
+        },
+        {
+          th: '`oneOf` polymorphism',
+          td: ['A field can be one of several distinct types with different structures'],
+        },
+      ],
+    },
+  }}
+/>
 
 The `oneOf` pattern in practice:
 
@@ -228,15 +247,39 @@ The workflow looks like this: design the API in your spec editor, review with st
 
 You'll want a decent editor for spec-first work. Here are the main options:
 
-| Editor | Best For |
-| ------ | -------- |
-| Swagger Editor Next | Browser-based editing with real-time validation; supports OpenAPI 3.1 and AsyncAPI |
-| Stoplight Studio | Visual, GUI-driven design without memorizing YAML syntax |
-| 42Crunch OpenAPI Editor (VS Code) | IDE-integrated editing with IntelliSense, visual navigation, and "Try it" testing |
-| IntelliJ OpenAPI Plugin | Teams already in JetBrains IDEs; can generate specs from existing controllers |
-| Postman | Teams already using Postman for testing who want spec editing in the same workspace |
-
-Table: OpenAPI spec editors for design-first workflows.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Editor', 'Best For'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Swagger Editor Next',
+          td: ['Browser-based editing with real-time validation; supports OpenAPI 3.1 and AsyncAPI'],
+        },
+        {
+          th: 'Stoplight Studio',
+          td: ['Visual, GUI-driven design without memorizing YAML syntax'],
+        },
+        {
+          th: '42Crunch OpenAPI Editor (VS Code)',
+          td: ['IDE-integrated editing with IntelliSense, visual navigation, and "Try it" testing'],
+        },
+        {
+          th: 'IntelliJ OpenAPI Plugin',
+          td: ['Teams already in JetBrains IDEs; can generate specs from existing controllers'],
+        },
+        {
+          th: 'Postman',
+          td: ['Teams already using Postman for testing who want spec editing in the same workspace'],
+        },
+      ],
+    },
+    figure: 'OpenAPI spec editors for design-first workflows.',
+  }}
+/>
 
 The downsides are real too. Generated code rarely matches your team's style preferences perfectly. Every change requires editing the spec first, which adds friction when you're iterating quickly. And spec-first requires discipline—it's tempting to make a quick fix in code and "update the spec later," which is how drift starts.
 
@@ -304,11 +347,9 @@ Once you have an OpenAPI spec, generating documentation is almost trivially easy
 
 The three main options cover different use cases:
 
-__Redoc__ generates static HTML from your spec. You get a three-panel layout (navigation, content, code samples), search, and nested schema expansion. It's a single HTML file you can host anywhere—GitHub Pages, S3, your CDN. No backend required. This is my default choice for most projects because it's zero-maintenance once deployed.
-
-__Swagger UI__ provides interactive documentation where developers can make live requests against your API. The "Try it out" button is genuinely useful for exploration and debugging. The tradeoff: you need to think about authentication, CORS, and whether you want people hitting your production API from the docs.
-
-__Stoplight Elements__ is a React component library for embedding documentation in an existing portal or documentation site. If you're building a developer portal with tutorials, guides, and API reference together, Elements lets you integrate the API docs natively rather than linking out to a separate site.
+- __Redoc__ generates static HTML from your spec. You get a three-panel layout (navigation, content, code samples), search, and nested schema expansion. It's a single HTML file you can host anywhere—GitHub Pages, S3, your CDN. No backend required. This is my default choice for most projects because it's zero-maintenance once deployed.
+- __Swagger UI__ provides interactive documentation where developers can make live requests against your API. The "Try it out" button is genuinely useful for exploration and debugging. The tradeoff: you need to think about authentication, CORS, and whether you want people hitting your production API from the docs.
+- __Stoplight Elements__ is a React component library for embedding documentation in an existing portal or documentation site. If you're building a developer portal with tutorials, guides, and API reference together, Elements lets you integrate the API docs natively rather than linking out to a separate site.
 
 ```bash title="generate-docs.sh"
 #!/bin/bash
@@ -375,14 +416,35 @@ responses:
 ```
 Code: Named examples for different order states.
 
-| Documentation Element | What to Include |
-| --------------------- | --------------- |
-| Operation description | Auth requirements, rate limits, caching behavior, business context |
-| Parameter descriptions | Format constraints, valid ranges, default behavior |
-| Response examples | Multiple scenarios (success variants, common errors) |
-| Schema descriptions | Field meanings, valid values, relationships to other entities |
-
-Table: Documentation elements that improve developer experience.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Documentation Element', 'What to Include'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Operation description',
+          td: ['Auth requirements, rate limits, caching behavior, business context'],
+        },
+        {
+          th: 'Parameter descriptions',
+          td: ['Format constraints, valid ranges, default behavior'],
+        },
+        {
+          th: 'Response examples',
+          td: ['Multiple scenarios (success variants, common errors)'],
+        },
+        {
+          th: 'Schema descriptions',
+          td: ['Field meanings, valid values, relationships to other entities'],
+        },
+      ],
+    },
+    figure: 'Documentation elements that improve developer experience.',
+  }}
+/>
 
 <Callout type="success">
 The time you spend on descriptions and examples pays off in reduced support requests. Developers who can self-serve from good docs don't need to ask you questions.
@@ -400,20 +462,39 @@ The good news is that SDK generation has matured significantly. With the right g
 
 The SDK generator landscape breaks down into three categories: comprehensive multi-language tools, language-specific tools with better output, and types-only generators.
 
-__OpenAPI Generator__ (the open-source fork of Swagger Codegen) supports 50+ languages and is the default choice for teams that need SDKs in multiple languages from the same spec. The TypeScript output is decent, the Python output is usable, and you get consistent behavior across languages. The tradeoff is that "decent" and "usable" aren't "great"—the generated code tends toward verbosity and doesn't always follow language idioms.
+- __OpenAPI Generator__ (the open-source fork of Swagger Codegen) supports 50+ languages and is the default choice for teams that need SDKs in multiple languages from the same spec. The TypeScript output is decent, the Python output is usable, and you get consistent behavior across languages. The tradeoff is that "decent" and "usable" aren't "great"—the generated code tends toward verbosity and doesn't always follow language idioms.
+- __Orval__ focuses exclusively on TypeScript but produces notably better output. It generates React Query hooks, Zod validation schemas, and MSW mock handlers out of the box. If your consumers are React developers, Orval's output feels like code they'd actually write.
+- __openapi-typescript__ takes a different approach: it generates only TypeScript types, no runtime code. You get interfaces for your request/response bodies and use your own HTTP client. This is the lightest-weight option and works well when you want type safety without adopting a generated SDK wholesale.
 
-__Orval__ focuses exclusively on TypeScript but produces notably better output. It generates React Query hooks, Zod validation schemas, and MSW mock handlers out of the box. If your consumers are React developers, Orval's output feels like code they'd actually write.
-
-__openapi-typescript__ takes a different approach: it generates only TypeScript types, no runtime code. You get interfaces for your request/response bodies and use your own HTTP client. This is the lightest-weight option and works well when you want type safety without adopting a generated SDK wholesale.
-
-| Generator | Languages | Best For |
-| --------- | --------- | -------- |
-| OpenAPI Generator | 50+ (TypeScript, Python, Java, Go, etc.) | Multi-language SDK needs, polyglot organizations |
-| Orval | TypeScript only | React apps, teams wanting React Query/Zod integration |
-| openapi-typescript | TypeScript types only | Type safety without generated runtime code |
-| AutoRest | TypeScript, Python, Java, C#, Go | Azure integrations, Microsoft ecosystem |
-
-Table: SDK generators and their sweet spots.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Generator', 'Languages', 'Best For'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'OpenAPI Generator',
+          td: ['50+ (TypeScript, Python, Java, Go, etc.)', 'Multi-language SDK needs, polyglot organizations'],
+        },
+        {
+          th: 'Orval',
+          td: ['TypeScript only', 'React apps, teams wanting React Query/Zod integration'],
+        },
+        {
+          th: 'openapi-typescript',
+          td: ['TypeScript types only', 'Type safety without generated runtime code'],
+        },
+        {
+          th: 'AutoRest',
+          td: ['TypeScript, Python, Java, C#, Go', 'Azure integrations, Microsoft ecosystem'],
+        },
+      ],
+    },
+    figure: 'SDK generators and their sweet spots.',
+  }}
+/>
 
 ### Generating Your First SDK
 
@@ -513,15 +594,39 @@ For Python, FastAPI handles this automatically if you're using Pydantic models. 
 
 Other ecosystems have their own solutions:
 
-| Framework | Library | Approach |
-| --------- | ------- | -------- |
-| Rails | `committee` | Rack middleware that validates against OpenAPI specs |
-| Laravel | `spectator` | Request/response validation with PHPUnit integration |
-| .NET | `Microsoft.AspNetCore.OpenApi` | Built-in validation in ASP.NET Core 9+; earlier versions use `NSwag` |
-| Go | `kin-openapi` | Middleware for Echo, Chi, Gin; validates requests and responses |
-| Spring Boot | `springdoc-openapi` | Code-first with automatic spec generation and validation |
-
-Table: OpenAPI validation libraries across frameworks.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Framework', 'Library', 'Approach'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Rails',
+          td: ['`committee`', 'Rack middleware that validates against OpenAPI specs'],
+        },
+        {
+          th: 'Laravel',
+          td: ['`spectator`', 'Request/response validation with PHPUnit integration'],
+        },
+        {
+          th: '.NET',
+          td: ['`Microsoft.AspNetCore.OpenApi`', 'Built-in validation in ASP.NET Core 9+; earlier versions use `NSwag`'],
+        },
+        {
+          th: 'Go',
+          td: ['`kin-openapi`', 'Middleware for Echo, Chi, Gin; validates requests and responses'],
+        },
+        {
+          th: 'Spring Boot',
+          td: ['`springdoc-openapi`', 'Code-first with automatic spec generation and validation'],
+        },
+      ],
+    },
+    figure: 'OpenAPI validation libraries across frameworks.',
+  }}
+/>
 
 ### Handling Validation Errors
 
@@ -567,15 +672,39 @@ Code: Error handler that transforms technical validation errors into readable me
 
 It's important to understand the boundaries of schema validation:
 
-| Validation Catches | Validation Misses |
-| ------------------ | ----------------- |
-| Wrong types (string instead of integer) | Valid types with invalid business meaning |
-| Missing required fields | Fields that are conditionally required |
-| Format violations (invalid UUID, email) | Valid formats that don't exist (nonexistent user ID) |
-| Out-of-range values (quantity < 1) | Domain-specific constraints (can't order discontinued items) |
-| Invalid enum values | Contextually invalid values (can't cancel a shipped order) |
-
-Table: Schema validation boundaries.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Validation Catches', 'Validation Misses'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Wrong types (string instead of integer)',
+          td: ['Valid types with invalid business meaning'],
+        },
+        {
+          th: 'Missing required fields',
+          td: ['Fields that are conditionally required'],
+        },
+        {
+          th: 'Format violations (invalid UUID, email)',
+          td: ["Valid formats that don't exist (nonexistent user ID)"],
+        },
+        {
+          th: 'Out-of-range values (quantity < 1)',
+          td: ["Domain-specific constraints (can't order discontinued items)"],
+        },
+        {
+          th: 'Invalid enum values',
+          td: ["Contextually invalid values (can't cancel a shipped order)"],
+        },
+      ],
+    },
+    figure: 'Schema validation boundaries.',
+  }}
+/>
 
 Schema validation is your first line of defense—it rejects obviously malformed requests before they hit your business logic. But you still need business validation after schema validation passes. A request with `{"customerId": "valid-uuid", "productId": "valid-uuid"}` passes schema validation perfectly, but both IDs might reference entities that don't exist or aren't accessible to the requesting user.
 
@@ -695,9 +824,8 @@ Run it in PR checks with `--fail-on-incompatible` to block merges that would bre
 
 Contract tests verify your implementation actually matches your spec. Dredd and Schemathesis are the main tools:
 
-__Dredd__ reads your spec, generates requests for each endpoint, hits your running server, and validates responses against the schema. It's deterministic—same spec produces same tests.
-
-__Schemathesis__ takes a property-based testing approach. It generates random valid inputs based on your schemas and looks for edge cases that break your implementation. It's better at finding bugs but less predictable.
+- __Dredd__ reads your spec, generates requests for each endpoint, hits your running server, and validates responses against the schema. It's deterministic—same spec produces same tests.
+- __Schemathesis__ takes a property-based testing approach. It generates random valid inputs based on your schemas and looks for edge cases that break your implementation. It's better at finding bugs but less predictable.
 
 I typically use Dredd in CI for consistent, fast feedback and Schemathesis periodically for deeper testing.
 

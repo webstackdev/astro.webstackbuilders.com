@@ -120,9 +120,14 @@ Code: Commands for identifying where sync failed.
 
 The output tells you sync status (Synced, OutOfSync, Unknown) and health status (Healthy, Progressing, Degraded). The combination reveals the problem category:
 
-- **OutOfSync + Healthy**: Drift problem—something's modifying the resource after ArgoCD applies it
-- **Degraded**: Something failed to start—check pod events
-- **Progressing for a long time**: Something's stuck—likely a hook or slow rollout
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "OutOfSync + Healthy:", text: "Drift problem—something's modifying the resource after ArgoCD applies it" },
+    { lead: "Degraded:", text: "Something failed to start—check pod events" },
+    { lead: "Progressing for a long time:", text: "Something's stuck—likely a hook or slow rollout" },
+  ]}
+/>
 
 The `--show-operation` flag shows which phase the sync is in. "Running PreSync hooks" means a hook is stuck. "Sync error" with a message means apply failed.
 

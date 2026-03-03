@@ -119,13 +119,15 @@ It's better to reject 20% of requests immediately than to accept 100% and fail 4
 
 I've found four approaches cover most scenarios:
 
-**Rate limiting** is the simplest—cap throughput at N requests per second regardless of what the system can handle. It's blunt but effective as a safety valve.
-
-**Concurrency limiting** is smarter because it naturally adapts. Allow N requests in-flight simultaneously. If requests are fast, you serve more per second; if they're slow, you serve fewer but don't overload.
-
-**Latency-based admission** is the most sophisticated—it directly targets the metric you care about. As P99 latency increases, admission probability decreases. The system automatically finds its sustainable capacity.
-
-**Queue depth limiting** rejects when the work queue exceeds a threshold. This bounds worst-case latency since you know how much work is ahead of any new request.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Rate limiting:", text: "cap throughput at N requests per second regardless of what the system can handle. It's blunt but effective as a safety valve." },
+    { lead: "Concurrency limiting:", text: "smarter because it naturally adapts. Allow N requests in-flight simultaneously. If requests are fast, you serve more per second; if they're slow, you serve fewer but don't overload." },
+    { lead: "Latency-based admission:", text: "the most sophisticated—it directly targets the metric you care about. As P99 latency increases, admission probability decreases. The system automatically finds its sustainable capacity." },
+    { lead: "Queue depth limiting:", text: "rejects when the work queue exceeds a threshold. This bounds worst-case latency since you know how much work is ahead of any new request." },
+  ]}
+/>
 
 ```typescript title="latency-admission-middleware.ts"
 // Express middleware for latency-based admission control
@@ -327,10 +329,13 @@ Every system has limits. The question isn't whether yours will face overload—i
 
 Three principles to carry forward:
 
-**Fast rejection beats slow failure.** When you can't serve a request, say so immediately. A 503 returned in 5ms is infinitely better than a timeout after 30 seconds. The fast rejection frees resources and gives clients useful information.
-
-**Not all work is equal—prioritize ruthlessly.** During overload, protect what matters: health checks, payments, authenticated users. Shed the non-essential to preserve the critical.
-
-**Degrade predictably rather than fail catastrophically.** A system that maintains 50% goodput during a 10x traffic spike is succeeding. A system that accepts everything and serves nothing has failed completely.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Fast rejection beats slow failure:", text: "When you can't serve a request, say so immediately. A 503 returned in 5ms is infinitely better than a timeout after 30 seconds. The fast rejection frees resources and gives clients useful information." },
+    { lead: "Not all work is equal—prioritize ruthlessly:", text: "During overload, protect what matters: health checks, payments, authenticated users. Shed the non-essential to preserve the critical." },
+    { lead: "Degrade predictably rather than fail catastrophically:", text: "A system that maintains 50% goodput during a 10x traffic spike is succeeding. A system that accepts everything and serves nothing has failed completely." },
+  ]}
+/>
 
 The underlying principle is simple: _some_ work completing successfully is better than _all_ work failing. Build systems that know their limits, and you'll build systems that survive.

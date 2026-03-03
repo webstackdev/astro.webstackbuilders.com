@@ -9,12 +9,12 @@ tags: ["apis-and-gateways", "kubernetes", "prometheus"]
 featured: true
 ---
 
-*[mTLS]: Mutual Transport Layer Security
-*[TLS]: Transport Layer Security
 *[CA]: Certificate Authority
-*[TTL]: Time To Live
-*[SAN]: Subject Alternative Name
 *[CSR]: Certificate Signing Request
+*[mTLS]: Mutual Transport Layer Security
+*[SAN]: Subject Alternative Name
+*[TLS]: Transport Layer Security
+*[TTL]: Time To Live
 
 A team enables Istio mTLS across their 50-service mesh. Initial rollout goes smoothly. Everyone celebrates the "zero-trust network." Three months later, at 2:47 AM, all inter-service communication fails simultaneously. The intermediate CA certificate expired. No one knew it had a 90-day TTL—it was the default, and nobody thought to check.
 
@@ -30,14 +30,35 @@ Mutual TLS adds a second handshake step: after the client validates the server's
 
 The operational cost difference is significant. With standard TLS, you manage certificates for servers—maybe dozens or hundreds. With mTLS, _every_ service needs a certificate, and every service needs to validate certificates from every other service it communicates with. In a 100-service mesh, that's potentially thousands of certificate validation paths to maintain.
 
-| Aspect | Standard TLS | Mutual TLS |
-|--------|--------------|------------|
-| Trust direction | Client trusts server | Bidirectional |
-| Certificates needed | Servers only | Every service |
-| Identity verification | Server only | Both parties |
-| Operational complexity | Low | High |
-
-Table: Comparison of standard TLS and mutual TLS operational requirements
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Aspect', 'Standard TLS', 'Mutual TLS'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Trust direction',
+          td: ['Client trusts server', 'Bidirectional'],
+        },
+        {
+          th: 'Certificates needed',
+          td: ['Servers only', 'Every service'],
+        },
+        {
+          th: 'Identity verification',
+          td: ['Server only', 'Both parties'],
+        },
+        {
+          th: 'Operational complexity',
+          td: ['Low', 'High'],
+        },
+      ],
+    },
+    figure: 'Comparison of standard TLS and mutual TLS operational requirements',
+  }}
+/>
 
 <Callout type="warning">
 The mTLS system has multiple certificate layers (workload, issuing CA, intermediate CA, root CA), each with different TTLs. An outage can originate at any layer. Most teams monitor workload certificates but forget about the CAs that sign them.
@@ -129,14 +150,35 @@ groups:
 
 Different certificate levels need different alert thresholds:
 
-| Certificate Type | Typical TTL | Warning | Critical |
-|------------------|-------------|---------|----------|
-| Workload | 24 hours | 4 hours | 1 hour |
-| Issuing CA | 1 year | 30 days | 7 days |
-| Intermediate CA | 5 years | 6 months | 30 days |
-| Root CA | 20 years | 2 years | 6 months |
-
-Table: Alert thresholds by certificate type
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Certificate Type', 'Typical TTL', 'Warning', 'Critical'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Workload',
+          td: ['24 hours', '4 hours', '1 hour'],
+        },
+        {
+          th: 'Issuing CA',
+          td: ['1 year', '30 days', '7 days'],
+        },
+        {
+          th: 'Intermediate CA',
+          td: ['5 years', '6 months', '30 days'],
+        },
+        {
+          th: 'Root CA',
+          td: ['20 years', '2 years', '6 months'],
+        },
+      ],
+    },
+    figure: 'Alert thresholds by certificate type',
+  }}
+/>
 
 The CA that expires is rarely the one you're watching. Set alerts at every level of the hierarchy.
 
@@ -146,25 +188,46 @@ mTLS failures produce cryptic errors. The TLS handshake fails, and you get a gen
 
 ### Common Failure Modes
 
-**Certificate expired**: The most common cause of mTLS outages. Error messages include `x509: certificate has expired`. Check expiration with `openssl x509 -enddate -noout -in cert.pem`. Fix by forcing rotation or restarting the workload to trigger certificate renewal.
-
-**Trust chain broken**: The certificate is valid but the CA that signed it isn't in the trust store. You'll see `x509: certificate signed by unknown authority`. This happens during CA rotation if trust bundles aren't updated before new certificates are issued.
-
-**SAN mismatch**: The certificate is valid but doesn't include the hostname being used. Error: `x509: certificate is valid for X, not Y`. This commonly happens when DNS names change or when certificates are issued with incomplete SAN lists.
-
-**Wrong key usage**: The certificate exists but wasn't issued for mTLS. If it only has `serverAuth` in Extended Key Usage, it can't be used as a client certificate. Reissue with both `serverAuth` and `clientAuth`.
+- **Certificate expired**: The most common cause of mTLS outages. Error messages include `x509: certificate has expired`. Check expiration with `openssl x509 -enddate -noout -in cert.pem`. Fix by forcing rotation or restarting the workload to trigger certificate renewal.
+- **Trust chain broken**: The certificate is valid but the CA that signed it isn't in the trust store. You'll see `x509: certificate signed by unknown authority`. This happens during CA rotation if trust bundles aren't updated before new certificates are issued.
+- **SAN mismatch**: The certificate is valid but doesn't include the hostname being used. Error: `x509: certificate is valid for X, not Y`. This commonly happens when DNS names change or when certificates are issued with incomplete SAN lists.
+- **Wrong key usage**: The certificate exists but wasn't issued for mTLS. If it only has `serverAuth` in Extended Key Usage, it can't be used as a client certificate. Reissue with both `serverAuth` and `clientAuth`.
 
 I once spent two hours debugging a "connection reset by peer" that turned out to be a certificate with `serverAuth` only—no `clientAuth`. The error message mentioned nothing about key usage. The fix was a one-line change to the certificate spec, but finding it required systematically ruling out every other possibility.
 
-| Symptom | Likely Cause | First Check |
-|---------|--------------|-------------|
-| Connection refused | Service not listening | `netstat -tlnp` |
-| Connection reset | TLS version mismatch or expired cert | `openssl x509 -enddate` |
-| "Unknown authority" | Trust bundle missing CA | `openssl verify -CAfile` |
-| "Valid for X, not Y" | SAN mismatch | Check certificate SANs |
-| Intermittent failures | Rotation in progress | Check rotation timing |
-
-Table: Common mTLS failure symptoms and diagnostic starting points
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Symptom', 'Likely Cause', 'First Check'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Connection refused',
+          td: ['Service not listening', '`netstat -tlnp`'],
+        },
+        {
+          th: 'Connection reset',
+          td: ['TLS version mismatch or expired cert', '`openssl x509 -enddate`'],
+        },
+        {
+          th: '"Unknown authority"',
+          td: ['Trust bundle missing CA', '`openssl verify -CAfile`'],
+        },
+        {
+          th: '"Valid for X, not Y"',
+          td: ['SAN mismatch', 'Check certificate SANs'],
+        },
+        {
+          th: 'Intermittent failures',
+          td: ['Rotation in progress', 'Check rotation timing'],
+        },
+      ],
+    },
+    figure: 'Common mTLS failure symptoms and diagnostic starting points',
+  }}
+/>
 
 ### The Diagnostic Toolkit
 

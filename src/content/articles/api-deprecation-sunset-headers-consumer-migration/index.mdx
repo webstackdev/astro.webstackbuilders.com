@@ -43,10 +43,27 @@ You cannot deprecate what you cannot measure. Before announcing a deprecation—
 
 The minimum data to capture for each consumer:
 
-- _Consumer identity_: API key, OAuth client ID, or whatever authentication mechanism you use. You need to know who to contact.
-- _Request volume_: Total requests over the tracking period. High-volume consumers need more attention.
-- _Endpoint coverage_: Which specific endpoints they use. A consumer using one endpoint is easier to migrate than one using twenty.
-- _Last seen_: When they last made a request. A consumer who has not called the API in 60 days may have already migrated or abandoned their integration.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Consumer identity:",
+      text: "API key, OAuth client ID, or whatever authentication mechanism you use. You need to know who to contact.",
+    },
+    {
+      lead: "Request volume:",
+      text: "Total requests over the tracking period. High-volume consumers need more attention.",
+    },
+    {
+      lead: "Endpoint coverage:",
+      text: "Which specific endpoints they use. A consumer using one endpoint is easier to migrate than one using twenty.",
+    },
+    {
+      lead: "Last seen:",
+      text: "When they last made a request. A consumer who has not called the API in 60 days may have already migrated or abandoned their integration.",
+    },
+  ]}
+/>
 
 Run this analysis weekly throughout the deprecation period. The output becomes your migration tracking list. Sort by request count to prioritize outreach—in my experience, the top 10 consumers by volume typically represent 80% or more of deprecated traffic.
 
@@ -132,12 +149,17 @@ Effective deprecation communication requires multiple channels, repeated over ti
 
 The escalation timeline ties communication to enforcement:
 
-- _T-90 days_: Send email warning. Update documentation. Add deprecation headers.
-- _T-60 days_: Direct outreach to top consumers by traffic. Monthly reminder email.
-- _T-30 days_: Bring in account managers for enterprise customers. Begin rate limiting.
-- _T-14 days_: Final warning. Aggressive rate limiting.
-- _T-7 days_: Last chance communication. Minimal rate limits.
-- _Sunset_: Return 410 Gone.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "T-90 days:", text: "Send email warning. Update documentation. Add deprecation headers." },
+    { lead: "T-60 days:", text: "Direct outreach to top consumers by traffic. Monthly reminder email." },
+    { lead: "T-30 days:", text: "Bring in account managers for enterprise customers. Begin rate limiting." },
+    { lead: "T-14 days:", text: "Final warning. Aggressive rate limiting." },
+    { lead: "T-7 days:", text: "Last chance communication. Minimal rate limits." },
+    { lead: "Sunset:", text: "Return 410 Gone." },
+  ]}
+/>
 
 Document every escalation attempt. When a consumer claims they were not warned, you need a record showing the emails sent, the calls attempted, and the responses (or lack thereof). This documentation protects you organizationally and sometimes legally.
 
@@ -171,9 +193,26 @@ The sunset date slipped by four months. But we removed it—actually removed it,
 
 The principles are straightforward:
 
-- _Communicate early and often_. Multiple channels, repeated over months, with increasing urgency.
-- _Track usage obsessively_. Know exactly who is using the deprecated API and whether they are making progress.
-- _Enforce gradually but firmly_. Soft warnings escalate to rate limits escalate to removal. The consequences are real and the timeline is non-negotiable.
-- _Plan for resistance_. Some consumers will not migrate until it hurts. Build your escalation path assuming this, and you will be pleasantly surprised when consumers migrate early.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Communicate early and often.",
+      text: "Multiple channels, repeated over months, with increasing urgency.",
+    },
+    {
+      lead: "Track usage obsessively.",
+      text: "Know exactly who is using the deprecated API and whether they are making progress.",
+    },
+    {
+      lead: "Enforce gradually but firmly.",
+      text: "Soft warnings escalate to rate limits escalate to removal. The consequences are real and the timeline is non-negotiable.",
+    },
+    {
+      lead: "Plan for resistance.",
+      text: "Some consumers will not migrate until it hurts. Build your escalation path assuming this, and you will be pleasantly surprised when consumers migrate early.",
+    },
+  ]}
+/>
 
 Deprecation is not a single announcement—it is a sustained campaign that requires attention for months. Staff it accordingly.

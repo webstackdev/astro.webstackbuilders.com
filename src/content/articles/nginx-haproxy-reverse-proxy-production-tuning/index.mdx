@@ -86,15 +86,39 @@ The `timeout queue` setting deserves attention. When all backend servers reach t
 
 When translating configurations between Nginx and HAProxy, the following table maps the key timeout settings. They're not exact equivalents—Nginx's per-read semantics differ from HAProxy's total-time semantics—but this helps when translating configurations.
 
-| Phase | Nginx | HAProxy | Recommended |
-|-------|-------|---------|-------------|
-| Client request | client_header_timeout | timeout http-request | 10-30s |
-| Client body | client_body_timeout | timeout client | 30-120s |
-| Backend connect | proxy_connect_timeout | timeout connect | 3-10s |
-| Backend response | proxy_read_timeout | timeout server | 30-300s |
-| Keep-alive idle | keepalive_timeout | timeout http-keep-alive | 30-120s |
-
-Table: Nginx and HAProxy timeout comparison with recommended production values.
+<Table
+    variant="vertical-column-delineation-table"
+    content={{
+        thead: {
+            th: ['Phase', 'Nginx', 'HAProxy', 'Recommended'],
+        },
+        tbody: {
+            tr: [
+                {
+                    th: 'Client request',
+                    td: ['client_header_timeout', 'timeout http-request', '10-30s'],
+                },
+                {
+                    th: 'Client body',
+                    td: ['client_body_timeout', 'timeout client', '30-120s'],
+                },
+                {
+                    th: 'Backend connect',
+                    td: ['proxy_connect_timeout', 'timeout connect', '3-10s'],
+                },
+                {
+                    th: 'Backend response',
+                    td: ['proxy_read_timeout', 'timeout server', '30-300s'],
+                },
+                {
+                    th: 'Keep-alive idle',
+                    td: ['keepalive_timeout', 'timeout http-keep-alive', '30-120s'],
+                },
+            ],
+        },
+        figure: 'Nginx and HAProxy timeout comparison with recommended production values.',
+    }}
+/>
 
 <Callout type="warning">
 The most common timeout mistake: setting `proxy_read_timeout` too short. Know your P99 backend latency and add 20-30% headroom. If your slowest endpoint takes 45 seconds at P99, set the timeout to at least 60 seconds.
@@ -153,14 +177,35 @@ If you're seeing 400 errors in HAProxy specifically, check whether `tune.bufsize
 
 The following table summarizes buffer settings by scenario. Note that the directive names are Nginx-specific; for HAProxy, adjust `tune.bufsize` to accommodate larger headers or bodies.
 
-| Scenario | Nginx Setting | Recommendation |
-|----------|-------------------|----------------|
-| Large cookies/auth headers | client_header_buffer_size | 4k-16k |
-| File uploads | client_body_buffer_size | 128k-1m |
-| Large API responses | proxy_buffers | 16-32 × 32k-64k |
-| Streaming/SSE | proxy_buffering | off |
-
-Table: Buffer sizing recommendations by scenario.
+<Table
+    variant="vertical-column-delineation-table"
+    content={{
+        thead: {
+            th: ['Scenario', 'Nginx Setting', 'Recommendation'],
+        },
+        tbody: {
+            tr: [
+                {
+                    th: 'Large cookies/auth headers',
+                    td: ['client_header_buffer_size', '4k-16k'],
+                },
+                {
+                    th: 'File uploads',
+                    td: ['client_body_buffer_size', '128k-1m'],
+                },
+                {
+                    th: 'Large API responses',
+                    td: ['proxy_buffers', '16-32 × 32k-64k'],
+                },
+                {
+                    th: 'Streaming/SSE',
+                    td: ['proxy_buffering', 'off'],
+                },
+            ],
+        },
+        figure: 'Buffer sizing recommendations by scenario.',
+    }}
+/>
 
 <Callout type="info">
 Quick decision guide: If you're seeing 400 Bad Request errors, increase `client_header_buffer_size`. If backends complain about slow clients, turn `proxy_buffering` on. If you're proxying Server-Sent Events or WebSockets, turn `proxy_buffering` off.

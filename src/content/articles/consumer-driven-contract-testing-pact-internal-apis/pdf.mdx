@@ -42,14 +42,35 @@ The problems compound from there. Shared test databases accumulate garbage data 
 
 When an integration test fails, debugging becomes archaeology. A failure in Service X might be caused by a change in Service Y, but the stack trace only shows where the exception was thrown, not where the problem originated. Reproducing the failure locally requires spinning up the entire environment, which often behaves differently than CI.
 
-| Testing Approach | Speed | Reliability | Isolation | Catches Breaking Changes |
-|------------------|-------|-------------|-----------|-------------------------|
-| Unit tests | Fast | High | Complete | No (mocks hide reality) |
-| Integration tests | Slow | Low | None | Yes (but late) |
-| E2E tests | Very slow | Very low | None | Yes (in production-like) |
-| Contract tests | Fast | High | Complete | Yes (at PR time) |
-
-Table: Comparison of testing approaches for API compatibility.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Comparison of testing approaches for API compatibility.",
+    thead: {
+      th: ["Testing Approach", "Speed", "Reliability", "Isolation", "Catches Breaking Changes"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "Unit tests",
+          td: ["Fast", "High", "Complete", "No (mocks hide reality)"],
+        },
+        {
+          th: "Integration tests",
+          td: ["Slow", "Low", "None", "Yes (but late)"],
+        },
+        {
+          th: "E2E tests",
+          td: ["Very slow", "Very low", "None", "Yes (in production-like)"],
+        },
+        {
+          th: "Contract tests",
+          td: ["Fast", "High", "Complete", "Yes (at PR time)"],
+        },
+      ],
+    },
+  }}
+/>
 
 The fundamental problem is that integration tests conflate two concerns: verifying that your code works correctly, and verifying that your code is compatible with its dependencies. Contract tests separate these concerns. Unit tests verify correctness. Contract tests verify compatibility. Neither requires spinning up the entire world.
 
@@ -133,15 +154,22 @@ A contract verifies _structure_: the request path, HTTP method, required headers
 
 A contract does _not_ verify business logic: it shouldn't check that user 123 has a specific email address, or that creating a user with duplicate email returns a particular error message. Those are integration test concerns. The consumer shouldn't know or care about the provider's database state.
 
-| In Scope | Out of Scope |
-|----------|--------------|
-| Request path and method | Specific data values |
-| Required headers | Database state |
-| Response status codes | Exact error messages |
-| Response body structure | Performance characteristics |
-| Field types (string, number, array) | Security rules |
-
-Table: Contract scope boundaries.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Contract scope boundaries.",
+    thead: { th: ["In Scope", "Out of Scope"] },
+    tbody: {
+      tr: [
+        { th: "Request path and method", td: ["Specific data values"] },
+        { th: "Required headers", td: ["Database state"] },
+        { th: "Response status codes", td: ["Exact error messages"] },
+        { th: "Response body structure", td: ["Performance characteristics"] },
+        { th: "Field types (string, number, array)", td: ["Security rules"] },
+      ],
+    },
+  }}
+/>
 
 This boundary keeps contracts stable. Business logic changes frequently—error messages get reworded, validation rules evolve, edge cases get handled differently. API structure changes rarely, and when it does, it's usually a breaking change that consumers need to know about.
 
@@ -389,17 +417,24 @@ Code: Pact matchers for flexible contract definitions.
 
 The table below summarizes the most commonly used matchers. In practice, `like()` handles 80% of cases—use it as your default and reach for more specific matchers when you need tighter validation.
 
-| Matcher | Use Case | Contract Meaning |
-|---------|----------|------------------|
-| `like(example)` | Most fields | Same type as example |
-| `eachLike(example)` | Arrays | Array with items of same type |
-| `regex(pattern, example)` | Enums, formats | Must match regex |
-| `datetime(format)` | Timestamps | Valid datetime in format |
-| `integer(example)` | Counts, IDs | Integer number |
-| `decimal(example)` | Prices, rates | Decimal number |
-| `uuid()` | Identifiers | Valid UUID format |
-
-Table: Common Pact matchers and their use cases.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Common Pact matchers and their use cases.",
+    thead: { th: ["Matcher", "Use Case", "Contract Meaning"] },
+    tbody: {
+      tr: [
+        { th: "`like(example)`", td: ["Most fields", "Same type as example"] },
+        { th: "`eachLike(example)`", td: ["Arrays", "Array with items of same type"] },
+        { th: "`regex(pattern, example)`", td: ["Enums, formats", "Must match regex"] },
+        { th: "`datetime(format)`", td: ["Timestamps", "Valid datetime in format"] },
+        { th: "`integer(example)`", td: ["Counts, IDs", "Integer number"] },
+        { th: "`decimal(example)`", td: ["Prices, rates", "Decimal number"] },
+        { th: "`uuid()`", td: ["Identifiers", "Valid UUID format"] },
+      ],
+    },
+  }}
+/>
 
 <Callout type="info">
 Matchers are the key to maintainable contracts. Use `like()` for most fields—it verifies structure without coupling to specific values.
@@ -520,17 +555,47 @@ Not every team needs Pact. Schema-based approaches offer simpler tooling when yo
 
 OpenAPI-based tools flip the script: instead of consumers generating contracts, you maintain a specification and validate both sides against it. Several tools take your OpenAPI spec and generate tests automatically:
 
-- **Prism** (from Stoplight) acts as a mock server and validation proxy. Point it at your OpenAPI spec and it validates requests/responses in real-time.
-- **Dredd** generates and runs tests from your spec, comparing actual API responses to documented examples.
-- **Schemathesis** takes a property-based testing approach, generating hundreds of test cases from your schema to find edge cases.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "**Prism** (from Stoplight)", text: "acts as a mock server and validation proxy. Point it at your OpenAPI spec and it validates requests/responses in real-time." },
+    { lead: "**Dredd**", text: "generates and runs tests from your spec, comparing actual API responses to documented examples." },
+    { lead: "**Schemathesis**", text: "takes a property-based testing approach, generating hundreds of test cases from your schema to find edge cases." },
+  ]}
+/>
 
-| Approach | Contract Source | Strengths | Weaknesses |
-|----------|----------------|-----------|------------|
-| Pact CDC | Consumer tests | Tests actual consumer needs; fine-grained matchers; built-in broker | Requires buy-in from all teams; learning curve |
-| OpenAPI tools | OpenAPI specification | Uses existing specs; simpler mental model | Specs drift from reality; tests provider, not consumer needs |
-| GraphQL Schema | GraphQL schema | Schema is the contract; breaking change detection | GraphQL-specific |
 
-Table: Contract testing approaches compared.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Contract testing approaches compared.",
+    thead: { th: ["Approach", "Contract Source", "Strengths", "Weaknesses"] },
+    tbody: {
+      tr: [
+        {
+          th: "Pact CDC",
+          td: [
+            "Consumer tests",
+            "Tests actual consumer needs; fine-grained matchers; built-in broker",
+            "Requires buy-in from all teams; learning curve",
+          ],
+        },
+        {
+          th: "OpenAPI tools",
+          td: [
+            "OpenAPI specification",
+            "Uses existing specs; simpler mental model",
+            "Specs drift from reality; tests provider, not consumer needs",
+          ],
+        },
+        {
+          th: "GraphQL Schema",
+          td: ["GraphQL schema", "Schema is the contract; breaking change detection", "GraphQL-specific"],
+        },
+      ],
+    },
+  }}
+/>
 
 The fundamental difference: Pact tests what consumers actually use, while schema-based tools test what the specification says. If your spec is always accurate and complete, schema-based works great. If your spec drifts (as specs often do), you're testing against documentation, not reality.
 
@@ -557,16 +622,23 @@ graph TD
 ```
 Figure: Decision tree for choosing contract testing approach.
 
-| Scenario | Recommended Approach |
-|----------|---------------------|
-| Internal microservices, known consumers | Pact CDC |
-| Public API, unknown consumers | OpenAPI + semantic versioning |
-| GraphQL API | GraphQL schema + Apollo Studio |
-| Small team, few services | Pact or schema-based both work |
-| Large org, many teams | Pact with Pact Broker |
-| Legacy API, can't change provider | Schema-based validation only |
-
-Table: Contract testing approach by scenario.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Contract testing approach by scenario.",
+    thead: { th: ["Scenario", "Recommended Approach"] },
+    tbody: {
+      tr: [
+        { th: "Internal microservices, known consumers", td: ["Pact CDC"] },
+        { th: "Public API, unknown consumers", td: ["OpenAPI + semantic versioning"] },
+        { th: "GraphQL API", td: ["GraphQL schema + Apollo Studio"] },
+        { th: "Small team, few services", td: ["Pact or schema-based both work"] },
+        { th: "Large org, many teams", td: ["Pact with Pact Broker"] },
+        { th: "Legacy API, can't change provider", td: ["Schema-based validation only"] },
+      ],
+    },
+  }}
+/>
 
 For most internal microservice architectures, Pact is the stronger choice. It catches the exact breaking changes that affect your specific consumers—not theoretical breakages based on a spec that might be outdated.
 
@@ -810,16 +882,23 @@ The `commonMatchers` object is where you'll see the biggest maintainability wins
 
 Contract tests accumulate technical debt like any other code. These guidelines keep the debt manageable:
 
-| Guideline | Why It Matters |
-|-----------|----------------|
-| One interaction per test | Easier to debug; clearer failure messages |
-| Use matchers, not literals | Contracts verify structure, not specific data |
-| Minimal provider states | Contract tests aren't integration tests |
-| Share common patterns | Consistency across contracts |
-| Version contracts with code | Contract changes = code changes |
-| Review generated pacts | Catch overly specific or missing matchers |
-
-Table: Guidelines for maintainable contract tests.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Guidelines for maintainable contract tests.",
+    thead: { th: ["Guideline", "Why It Matters"] },
+    tbody: {
+      tr: [
+        { th: "One interaction per test", td: ["Easier to debug; clearer failure messages"] },
+        { th: "Use matchers, not literals", td: ["Contracts verify structure, not specific data"] },
+        { th: "Minimal provider states", td: ["Contract tests aren't integration tests"] },
+        { th: "Share common patterns", td: ["Consistency across contracts"] },
+        { th: "Version contracts with code", td: ["Contract changes = code changes"] },
+        { th: "Review generated pacts", td: ["Catch overly specific or missing matchers"] },
+      ],
+    },
+  }}
+/>
 
 The "one interaction per test" rule deserves emphasis. When a test file has ten interactions in a single `describe` block, failures become cryptic. When each interaction is its own test case, the failure message tells you exactly which API call broke.
 
@@ -917,15 +996,28 @@ At minimum, test 400 (validation errors), 401 (authentication), 404 (not found),
 
 Provider states should be the simplest possible setup that satisfies the contract. When state handlers grow complex—spinning up elaborate fixtures, seeding production-like data, managing cleanup—you've drifted into integration test territory.
 
-| State Description | Problem / Implementation |
-|-------------------|-------------------------|
-| ❌ "production-like database with 1000 users" | Slow, brittle, not what contract tests are for |
-| ❌ "user 123 with orders 456, 789 and payment method ending 4242" | Too specific, couples consumer to provider data model |
-| ✅ "a user exists" | Create one user with auto-generated data |
-| ✅ "user has orders" | Create user with 2 generic orders |
-| ✅ "unauthorized" | No setup needed, just don't auth |
-
-Table: Provider state complexity pitfalls.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Provider state complexity pitfalls.",
+    thead: { th: ["State Description", "Problem / Implementation"] },
+    tbody: {
+      tr: [
+        {
+          th: "❌ \"production-like database with 1000 users\"",
+          td: ["Slow, brittle, not what contract tests are for"],
+        },
+        {
+          th: "❌ \"user 123 with orders 456, 789 and payment method ending 4242\"",
+          td: ["Too specific, couples consumer to provider data model"],
+        },
+        { th: "✅ \"a user exists\"", td: ["Create one user with auto-generated data"] },
+        { th: "✅ \"user has orders\"", td: ["Create user with 2 generic orders"] },
+        { th: "✅ \"unauthorized\"", td: ["No setup needed, just don't auth"] },
+      ],
+    },
+  }}
+/>
 
 If your state handler takes more than 5 lines, question whether you're testing the right thing. Contract tests verify "given X exists, the API returns this shape." They don't verify "given a complex business scenario, the API behaves correctly"—that's what integration and E2E tests are for.
 
@@ -969,15 +1061,38 @@ Figure: Contract testing at scale with Pact Broker as central registry.
 
 As services multiply, you'll need these scaling strategies:
 
-| Strategy | What It Does |
-|----------|-------------|
-| Environment management | `record-deployment` tracks which versions run where, so `can-i-deploy` knows what to check against |
-| Webhook triggers | Auto-trigger provider verification when consumers publish new contracts—no waiting for scheduled builds |
-| Pending pacts | New contracts don't fail provider builds until providers explicitly support them |
-| WIP pacts | Include work-in-progress contracts in verification for early feedback |
-| Matrix view | Pact Broker UI visualizes compatibility across all services at a glance |
-
-Table: Strategies for scaling contract testing.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Strategies for scaling contract testing.",
+    thead: { th: ["Strategy", "What It Does"] },
+    tbody: {
+      tr: [
+        {
+          th: "Environment management",
+          td: [
+            "`record-deployment` tracks which versions run where, so `can-i-deploy` knows what to check against",
+          ],
+        },
+        {
+          th: "Webhook triggers",
+          td: [
+            "Auto-trigger provider verification when consumers publish new contracts—no waiting for scheduled builds",
+          ],
+        },
+        {
+          th: "Pending pacts",
+          td: ["New contracts don't fail provider builds until providers explicitly support them"],
+        },
+        { th: "WIP pacts", td: ["Include work-in-progress contracts in verification for early feedback"] },
+        {
+          th: "Matrix view",
+          td: ["Pact Broker UI visualizes compatibility across all services at a glance"],
+        },
+      ],
+    },
+  }}
+/>
 
 The pending pacts feature deserves special attention. Without it, adding a new consumer interaction immediately breaks the provider build—even before the provider team knows about the change. With pending pacts enabled, new contracts are "pending" until the provider verifies them at least once. This gives provider teams time to implement support without blocking consumer development.
 
@@ -1070,23 +1185,34 @@ Consumer-driven contract testing solves the coordination problem that plagues mi
 
 The key insights:
 
-- **Contracts capture what consumers actually use**, not what providers think they provide. This focus on real dependencies eliminates false positives from unused fields.
-- **The Pact Broker is your safety net.** The `can-i-deploy` command answers "will this deployment break anything?" with certainty, not hope.
-- **Contract tests verify structure, not business logic.** Use matchers to specify types and patterns; leave exact values to integration tests.
-- **The investment scales well.** While integration test complexity grows quadratically with service count, contract testing grows linearly.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "**Contracts capture what consumers actually use**", text: "not what providers think they provide. This focus on real dependencies eliminates false positives from unused fields." },
+    { lead: "**The Pact Broker is your safety net.**", text: "The `can-i-deploy` command answers \"will this deployment break anything?\" with certainty, not hope." },
+    { lead: "**Contract tests verify structure, not business logic.**", text: "Use matchers to specify types and patterns; leave exact values to integration tests." },
+    { lead: "**The investment scales well.**", text: "While integration test complexity grows quadratically with service count, contract testing grows linearly." },
+  ]}
+/>
+
 
 Getting started is straightforward:
 
 <Callout type="info">
-**Getting Started Checklist**
+  **Getting Started Checklist**
 
-1. Pick one consumer-provider pair with a stable, well-understood integration
-2. Write 2-3 consumer contract tests covering your most critical interactions
-3. Deploy Pact Broker (Docker Compose for dev, Kubernetes for production)
-4. Add provider verification tests with state handlers
-5. Wire both into CI: publish on consumer builds, verify on provider builds
-6. Add `can-i-deploy` checks before deployments
-7. Expand to additional service pairs
+  <List
+    variant="check-icons-list"
+    items={[
+      { text: "Pick one consumer-provider pair with a stable, well-understood integration" },
+      { text: "Write 2-3 consumer contract tests covering your most critical interactions" },
+      { text: "Deploy Pact Broker (Docker Compose for dev, Kubernetes for production)" },
+      { text: "Add provider verification tests with state handlers" },
+      { text: "Wire both into CI: publish on consumer builds, verify on provider builds" },
+      { text: "Add `can-i-deploy` checks before deployments" },
+      { text: "Expand to additional service pairs" },
+    ]}
+  />
 </Callout>
 
 Once that first pair is working, expanding to other services follows the same pattern.

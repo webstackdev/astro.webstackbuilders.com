@@ -25,18 +25,51 @@ _Will existing client code still work?_ That's the question that determines whet
 
 Some changes are obviously breaking - removing endpoints, changing HTTP methods, adding required fields. These require full deprecation process, no exceptions. Other changes are obviously safe - adding optional fields, new endpoints, loosening validation. The table below draws the line.
 
-| Change | Breaking? | Why |
-|--------|-----------|-----|
-| Remove endpoint | Yes | Returns 404 to existing callers |
-| Change HTTP method | Yes | Returns 405 to existing callers |
-| Add required request field | Yes | Existing requests fail validation |
-| Change field type | Yes | Deserialization fails |
-| Add optional request field | No | Existing requests still valid |
-| Add response field | No | Clients should ignore unknown fields |
-| Add new endpoint | No | Existing endpoints unchanged |
-| Loosen validation | No | Previously valid requests still work |
-
-Table: Breaking vs safe changes.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Breaking vs safe changes.",
+    thead: {
+      th: ["Change", "Breaking?", "Why"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "Remove endpoint",
+          td: ["Yes", "Returns 404 to existing callers"],
+        },
+        {
+          th: "Change HTTP method",
+          td: ["Yes", "Returns 405 to existing callers"],
+        },
+        {
+          th: "Add required request field",
+          td: ["Yes", "Existing requests fail validation"],
+        },
+        {
+          th: "Change field type",
+          td: ["Yes", "Deserialization fails"],
+        },
+        {
+          th: "Add optional request field",
+          td: ["No", "Existing requests still valid"],
+        },
+        {
+          th: "Add response field",
+          td: ["No", "Clients should ignore unknown fields"],
+        },
+        {
+          th: "Add new endpoint",
+          td: ["No", "Existing endpoints unchanged"],
+        },
+        {
+          th: "Loosen validation",
+          td: ["No", "Previously valid requests still work"],
+        },
+      ],
+    },
+  }}
+/>
 
 The tricky cases fall in between - changes that are technically compatible but break consumer assumptions:
 
@@ -52,29 +85,49 @@ When you're unsure whether a change breaks existing clients, treat it as breakin
 
 Once you've identified a breaking change, follow a structured process that gives consumers time to adapt. Skipping steps is how you end up with 40 broken pipelines and a week of emergency migrations.
 
-_Step 1: Identify affected consumers._ Before announcing anything, know who's using the affected endpoints. API gateway logs tell you which services call which endpoints. Service mesh telemetry shows call patterns. SDK analytics reveal version distribution. Query the last 30 days of traffic - this catches regular callers and weekly batch jobs.
-
-_Step 2: Create a proposal document._ Write down what's changing, why it's changing, which endpoints are affected, estimated migration effort, and the proposed timeline. This becomes the single source of truth for the deprecation.
-
-_Step 3: Open a feedback period._ Give affected teams 30 days to review the proposal and raise concerns. Maybe you're missing a use case. Maybe the timeline is too aggressive for their roadmap. Maybe there's a simpler migration path you hadn't considered. Listen to the feedback - internal customers have context you don't.
-
-_Step 4: Notify affected teams directly._ Broadcast announcements get ignored. Target the teams you identified in step 1. Send to their Slack channels. Email their tech leads. Make it impossible to miss. The notification should include what's changing, why, the timeline, the migration guide, and where to ask questions.
-
-_Step 5: Schedule the timeline with milestones._ Set dates for feedback deadline, new version release, 90-day warning, 30-day warning, and sunset date. Put them in the team calendar. Configure automated reminders. Don't rely on anyone remembering.
+- _Step 1: Identify affected consumers._ Before announcing anything, know who's using the affected endpoints. API gateway logs tell you which services call which endpoints. Service mesh telemetry shows call patterns. SDK analytics reveal version distribution. Query the last 30 days of traffic - this catches regular callers and weekly batch jobs.
+- _Step 2: Create a proposal document._ Write down what's changing, why it's changing, which endpoints are affected, estimated migration effort, and the proposed timeline. This becomes the single source of truth for the deprecation.
+- _Step 3: Open a feedback period._ Give affected teams 30 days to review the proposal and raise concerns. Maybe you're missing a use case. Maybe the timeline is too aggressive for their roadmap. Maybe there's a simpler migration path you hadn't considered. Listen to the feedback - internal customers have context you don't.
+- _Step 4: Notify affected teams directly._ Broadcast announcements get ignored. Target the teams you identified in step 1. Send to their Slack channels. Email their tech leads. Make it impossible to miss. The notification should include what's changing, why, the timeline, the migration guide, and where to ask questions.
+- _Step 5: Schedule the timeline with milestones._ Set dates for feedback deadline, new version release, 90-day warning, 30-day warning, and sunset date. Put them in the team calendar. Configure automated reminders. Don't rely on anyone remembering.
 
 <Newsletter />
 
 The key insight is that urgency should escalate as the deadline approaches. Early communication is broad and informational - changelog updates, Slack posts, email announcements. As sunset nears, communication becomes targeted and direct.
 
-| Timeline | Channel | Consumer Response |
-|----------|---------|-------------------|
-| Announcement | Changelog, Slack, email | Read and acknowledge |
-| 90 days out | Slack reminder, dashboard | Create migration ticket |
-| 30 days out | Direct email, Slack DM | Begin migration work |
-| 7 days out | Personal outreach | Emergency completion |
-| Sunset day | Final notice | Migration complete |
-
-Table: Deprecation communication timeline.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Deprecation communication timeline.",
+    thead: {
+      th: ["Timeline", "Channel", "Consumer Response"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "Announcement",
+          td: ["Changelog, Slack, email", "Read and acknowledge"],
+        },
+        {
+          th: "90 days out",
+          td: ["Slack reminder, dashboard", "Create migration ticket"],
+        },
+        {
+          th: "30 days out",
+          td: ["Direct email, Slack DM", "Begin migration work"],
+        },
+        {
+          th: "7 days out",
+          td: ["Personal outreach", "Emergency completion"],
+        },
+        {
+          th: "Sunset day",
+          td: ["Final notice", "Migration complete"],
+        },
+      ],
+    },
+  }}
+/>
 
 Your API should also warn consumers programmatically. HTTP headers provide machine-readable deprecation signals that consumers can build automation around:
 

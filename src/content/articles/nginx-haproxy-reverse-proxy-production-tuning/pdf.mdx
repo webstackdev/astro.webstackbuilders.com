@@ -270,16 +270,43 @@ Figure: Nginx timeout chain showing where each timeout applies in the request li
 
 The following table maps Nginx and HAProxy timeout settings to each other. They're not exact equivalents—Nginx's per-read semantics differ from HAProxy's total-time semantics—but this helps when translating configurations between the two.
 
-| Timeout | Nginx | HAProxy | Recommended |
-|---------|-------|---------|-------------|
-| Client connect | N/A (kernel) | N/A (kernel) | Kernel default |
-| Client request | client_header_timeout | timeout http-request | 10-30s |
-| Client body | client_body_timeout | timeout client | 30-120s |
-| Backend connect | proxy_connect_timeout | timeout connect | 3-10s |
-| Backend response | proxy_read_timeout | timeout server | 30-300s |
-| Keep-alive idle | keepalive_timeout | timeout http-keep-alive | 30-120s |
-
-Table: Timeout comparison.
+<Table
+    variant="vertical-column-delineation-table"
+    content={{
+        thead: {
+            th: ['Timeout', 'Nginx', 'HAProxy', 'Recommended'],
+        },
+        tbody: {
+            tr: [
+                {
+                    th: 'Client connect',
+                    td: ['N/A (kernel)', 'N/A (kernel)', 'Kernel default'],
+                },
+                {
+                    th: 'Client request',
+                    td: ['client_header_timeout', 'timeout http-request', '10-30s'],
+                },
+                {
+                    th: 'Client body',
+                    td: ['client_body_timeout', 'timeout client', '30-120s'],
+                },
+                {
+                    th: 'Backend connect',
+                    td: ['proxy_connect_timeout', 'timeout connect', '3-10s'],
+                },
+                {
+                    th: 'Backend response',
+                    td: ['proxy_read_timeout', 'timeout server', '30-300s'],
+                },
+                {
+                    th: 'Keep-alive idle',
+                    td: ['keepalive_timeout', 'timeout http-keep-alive', '30-120s'],
+                },
+            ],
+        },
+        figure: 'Timeout comparison.',
+    }}
+/>
 
 <Callout type="warning">
 The most common timeout mistake: setting `proxy_read_timeout` too short. A backend that occasionally takes 45 seconds (database query, external API) will cause 502 errors with a 30-second timeout. Know your P99 backend latency and add headroom.
@@ -418,15 +445,39 @@ backend api
 
 The `http-request deny if { req.body_size gt 104857600 }` line is worth noting: it rejects oversized requests _before_ buffering them. Without this, HAProxy would accept a 10GB upload attempt before rejecting it—wasting bandwidth and potentially filling disk.
 
-| Scenario | Buffer Setting | Recommendation |
-|----------|---------------|----------------|
-| Large cookies/headers | client_header_buffer_size | 4k-16k |
-| File uploads | client_body_buffer_size | 128k-1m |
-| Large API responses | proxy_buffers | 16-32 × 32k-64k |
-| Streaming/SSE | proxy_buffering | off |
-| Memory constrained | proxy_max_temp_file_size | Limit spillover |
-
-Table: Buffer sizing recommendations by scenario. These are starting points—profile your actual traffic to refine.
+<Table
+    variant="vertical-column-delineation-table"
+    content={{
+        thead: {
+            th: ['Scenario', 'Buffer Setting', 'Recommendation'],
+        },
+        tbody: {
+            tr: [
+                {
+                    th: 'Large cookies/headers',
+                    td: ['client_header_buffer_size', '4k-16k'],
+                },
+                {
+                    th: 'File uploads',
+                    td: ['client_body_buffer_size', '128k-1m'],
+                },
+                {
+                    th: 'Large API responses',
+                    td: ['proxy_buffers', '16-32 × 32k-64k'],
+                },
+                {
+                    th: 'Streaming/SSE',
+                    td: ['proxy_buffering', 'off'],
+                },
+                {
+                    th: 'Memory constrained',
+                    td: ['proxy_max_temp_file_size', 'Limit spillover'],
+                },
+            ],
+        },
+        figure: 'Buffer sizing recommendations by scenario. These are starting points—profile your actual traffic to refine.',
+    }}
+/>
 
 <Callout type="info">
 **Quick decision**: If you're seeing 400 Bad Request errors, increase `client_header_buffer_size`. If backends complain about slow clients, turn `proxy_buffering` on. If you're proxying Server-Sent Events or WebSockets, turn `proxy_buffering` off.
@@ -721,15 +772,39 @@ backend canary
 
 The canary deployment example shows a common pattern: routing 5% of traffic to a new version while 95% goes to the stable version. If the canary starts failing health checks or returning errors, you can quickly shift traffic back to stable by adjusting weights or marking the canary server as `disabled`.
 
-| Algorithm | Use Case | Session Affinity | Even Distribution |
-|-----------|----------|------------------|-------------------|
-| Round-robin | Stateless services | No | Yes |
-| Least-conn | Varying request duration | No | Adaptive |
-| IP hash | Simple session affinity | Yes (IP-based) | Depends on IPs |
-| Cookie | Reliable session affinity | Yes (cookie) | Yes |
-| URI hash | Caching proxies | Yes (URL-based) | Depends on URLs |
-
-Table: Load balancing algorithm selection guide. Start with round-robin and change only if you have a specific reason.
+<Table
+    variant="vertical-column-delineation-table"
+    content={{
+        thead: {
+            th: ['Algorithm', 'Use Case', 'Session Affinity', 'Even Distribution'],
+        },
+        tbody: {
+            tr: [
+                {
+                    th: 'Round-robin',
+                    td: ['Stateless services', 'No', 'Yes'],
+                },
+                {
+                    th: 'Least-conn',
+                    td: ['Varying request duration', 'No', 'Adaptive'],
+                },
+                {
+                    th: 'IP hash',
+                    td: ['Simple session affinity', 'Yes (IP-based)', 'Depends on IPs'],
+                },
+                {
+                    th: 'Cookie',
+                    td: ['Reliable session affinity', 'Yes (cookie)', 'Yes'],
+                },
+                {
+                    th: 'URI hash',
+                    td: ['Caching proxies', 'Yes (URL-based)', 'Depends on URLs'],
+                },
+            ],
+        },
+        figure: 'Load balancing algorithm selection guide. Start with round-robin and change only if you have a specific reason.',
+    }}
+/>
 
 <Callout type="info">
 For stateless services, `least_conn` often outperforms `round_robin` when request durations vary significantly. It naturally avoids sending requests to servers still processing slow requests.
@@ -865,15 +940,39 @@ frontend tcp_passthrough
 
 The TCP passthrough frontend (`mode tcp`) is useful when you need to route encrypted traffic without terminating TLS. HAProxy inspects just the SNI hostname in the TLS handshake to make routing decisions, then passes the encrypted connection directly to the backend. This preserves end-to-end encryption when required.
 
-| Optimization | Impact | Trade-off |
-|-------------|--------|-----------|
-| Session cache | Reduces handshakes | Memory usage |
-| OCSP stapling | Faster validation | Requires resolver |
-| TLS 1.3 | Faster handshake, better security | Client support |
-| HTTP/2 | Multiplexing, fewer connections | Complexity |
-| Early data (0-RTT) | Faster first request | Replay risk |
-
-Table: SSL optimization options. Session caching and TLS 1.3 provide the biggest wins with minimal downside.
+<Table
+    variant="vertical-column-delineation-table"
+    content={{
+        thead: {
+            th: ['Optimization', 'Impact', 'Trade-off'],
+        },
+        tbody: {
+            tr: [
+                {
+                    th: 'Session cache',
+                    td: ['Reduces handshakes', 'Memory usage'],
+                },
+                {
+                    th: 'OCSP stapling',
+                    td: ['Faster validation', 'Requires resolver'],
+                },
+                {
+                    th: 'TLS 1.3',
+                    td: ['Faster handshake, better security', 'Client support'],
+                },
+                {
+                    th: 'HTTP/2',
+                    td: ['Multiplexing, fewer connections', 'Complexity'],
+                },
+                {
+                    th: 'Early data (0-RTT)',
+                    td: ['Faster first request', 'Replay risk'],
+                },
+            ],
+        },
+        figure: 'SSL optimization options. Session caching and TLS 1.3 provide the biggest wins with minimal downside.',
+    }}
+/>
 
 <Callout type="warning">
 TLS 1.3's 0-RTT (early data) is vulnerable to replay attacks. Only enable it for idempotent requests (GET), and ensure backends check the `Early-Data` header to handle replays appropriately.
@@ -1245,15 +1344,39 @@ http {
 
 Note the `buffer=16k flush=2m` on the access log—this buffers log writes to reduce disk I/O, flushing every 2 minutes or when the buffer fills. At high request rates, unbuffered logging becomes a bottleneck.
 
-| Category | Default | Production | Why |
-|----------|---------|------------|-----|
-| worker_connections | 1024 | 4096+ | Handle more concurrent connections |
-| keepalive_timeout | 75s | 65s | Balance reuse vs. resource usage |
-| proxy_connect_timeout | 60s | 5s | Fail fast on unreachable backends |
-| proxy_buffers | 8 4k | 16 32k | Handle larger responses |
-| ssl_session_cache | none | shared:50m | Reduce TLS handshakes |
-
-Table: Default vs. production values. These are starting points—profile your actual traffic to determine optimal values.
+<Table
+    variant="vertical-column-delineation-table"
+    content={{
+        thead: {
+            th: ['Category', 'Default', 'Production', 'Why'],
+        },
+        tbody: {
+            tr: [
+                {
+                    th: 'worker_connections',
+                    td: ['1024', '4096+', 'Handle more concurrent connections'],
+                },
+                {
+                    th: 'keepalive_timeout',
+                    td: ['75s', '65s', 'Balance reuse vs. resource usage'],
+                },
+                {
+                    th: 'proxy_connect_timeout',
+                    td: ['60s', '5s', 'Fail fast on unreachable backends'],
+                },
+                {
+                    th: 'proxy_buffers',
+                    td: ['8 4k', '16 32k', 'Handle larger responses'],
+                },
+                {
+                    th: 'ssl_session_cache',
+                    td: ['none', 'shared:50m', 'Reduce TLS handshakes'],
+                },
+            ],
+        },
+        figure: 'Default vs. production values. These are starting points—profile your actual traffic to determine optimal values.',
+    }}
+/>
 
 <Callout type="danger">
 Before deploying configuration changes to production, test under realistic load. Use tools like `wrk`, `hey`, or `k6` to simulate traffic patterns. Configuration that works at 100 RPS may fail at 10,000 RPS.

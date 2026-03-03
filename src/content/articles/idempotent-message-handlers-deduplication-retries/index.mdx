@@ -120,14 +120,35 @@ Figure: Idempotency flow showing first delivery processing and second delivery s
 
 Which storage should you use? It depends on your consistency requirements and latency budget:
 
-| Storage | Latency | Durability | Complexity | Best For |
-|---------|---------|------------|------------|----------|
-| Redis | ~1ms | Configurable | Low | High-throughput, short TTL |
-| PostgreSQL | ~5ms | High (ACID) | Medium | Transactional consistency |
-| DynamoDB | ~10ms | High | Low | Serverless, global scale |
-| In-memory | &lt;1ms | None | Very low | Single instance, testing |
-
-Table: Idempotency store options comparison.
+<Table
+    variant="vertical-column-delineation-table"
+    content={{
+        figure: "Idempotency store options comparison.",
+        thead: {
+            th: ["Storage", "Latency", "Durability", "Complexity", "Best For"],
+        },
+        tbody: {
+            tr: [
+                {
+                    th: "Redis",
+                    td: ["~1ms", "Configurable", "Low", "High-throughput, short TTL"],
+                },
+                {
+                    th: "PostgreSQL",
+                    td: ["~5ms", "High (ACID)", "Medium", "Transactional consistency"],
+                },
+                {
+                    th: "DynamoDB",
+                    td: ["~10ms", "High", "Low", "Serverless, global scale"],
+                },
+                {
+                    th: "In-memory",
+                    td: ["&lt;1ms", "None", "Very low", "Single instance, testing"],
+                },
+            ],
+        },
+    }}
+/>
 
 ## What's Next
 

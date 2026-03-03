@@ -399,10 +399,15 @@ Your availability ceiling isn't set by your ambition—it's set by your weakest 
 
 Consider a checkout service with four dependencies:
 
-- **Payment gateway** (external): 99.95% SLA, _blocking_—checkout fails without it
-- **Inventory service** (internal): 99.9% SLO, _blocking_—can't sell what you can't verify
-- **Email service** (internal): 99.5% SLO, _non-blocking_—can queue and retry confirmations later
-- **Analytics** (internal): 99% SLO, _non-blocking_—fire and forget
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Payment gateway (external):", text: "99.95% SLA, blocking—checkout fails without it" },
+    { lead: "Inventory service (internal):", text: "99.9% SLO, blocking—can't sell what you can't verify" },
+    { lead: "Email service (internal):", text: "99.5% SLO, non-blocking—can queue and retry confirmations later" },
+    { lead: "Analytics (internal):", text: "99% SLO, non-blocking—fire and forget" },
+  ]}
+/>
 
 The distinction between blocking and non-blocking dependencies is crucial. Email confirmation can fail without breaking checkout—you queue it and retry later. But if the payment gateway is down, checkout is down, period. Only blocking dependencies factor into your availability ceiling.
 
@@ -438,11 +443,16 @@ Figure: Simple two-nines architecture with basic redundancy.
 
 **Characteristics:**
 
-- Single region, single availability zone acceptable
-- Basic load balancing (can be DNS-based)
-- Single database with backup/restore
-- Manual intervention expected during failures
-- On-call response time: hours acceptable
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Single region, single availability zone acceptable" },
+    { text: "Basic load balancing (can be DNS-based)" },
+    { text: "Single database with backup/restore" },
+    { text: "Manual intervention expected during failures" },
+    { text: "On-call response time: hours acceptable" },
+  ]}
+/>
 
 This is where most early-stage startups should be. You're not building for scale yet—you're building to learn what customers want. Every hour spent on redundancy is an hour not spent on product discovery.
 
@@ -465,11 +475,16 @@ Figure: Three-nines architecture with multi-AZ deployment.
 
 **Additions from 99%:**
 
-- Multi-availability zone deployment
-- Database replication with automated failover
-- Health checks and automated instance replacement
-- Comprehensive monitoring and alerting
-- On-call response time: minutes required
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Multi-availability zone deployment" },
+    { text: "Database replication with automated failover" },
+    { text: "Health checks and automated instance replacement" },
+    { text: "Comprehensive monitoring and alerting" },
+    { text: "On-call response time: minutes required" },
+  ]}
+/>
 
 This is the sweet spot for most SaaS products. It's achievable with standard cloud provider tools, doesn't require exotic architecture, and provides reliability that users perceive as "always works." Going beyond this tier requires deliberate justification.
 
@@ -503,12 +518,17 @@ Figure: Four-nines architecture with multi-region deployment.
 
 **Additions from 99.9%:**
 
-- Multi-region deployment
-- Global load balancing with health-based routing
-- Cross-region database replication
-- Automated regional failover
-- Zero-downtime deployments required
-- 24/7 on-call with &lt;15 minute response
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Multi-region deployment" },
+    { text: "Global load balancing with health-based routing" },
+    { text: "Cross-region database replication" },
+    { text: "Automated regional failover" },
+    { text: "Zero-downtime deployments required" },
+    { text: "24/7 on-call with <15 minute response" },
+  ]}
+/>
 
 The jump from three nines to four nines is where costs explode. You're not just adding more servers—you're fundamentally changing how you operate. Cross-region data replication alone introduces complexity that many teams underestimate: latency, consistency tradeoffs, split-brain scenarios.
 
@@ -522,12 +542,17 @@ Five nines (5.26 minutes/year of downtime) means you cannot have a single failur
 
 **Requirements for 99.999%:**
 
-- Active-active multi-region (not failover, _simultaneous_)
-- No single points of failure anywhere
-- Sub-second automated recovery
-- Chaos engineering as standard practice
-- Dedicated reliability engineering team
-- Feature velocity sacrificed for stability
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Active-active multi-region (not failover, simultaneous)" },
+    { text: "No single points of failure anywhere" },
+    { text: "Sub-second automated recovery" },
+    { text: "Chaos engineering as standard practice" },
+    { text: "Dedicated reliability engineering team" },
+    { text: "Feature velocity sacrificed for stability" },
+  ]}
+/>
 
 The organizational requirements are as demanding as the technical ones. You need executive commitment that reliability trumps feature delivery. You need a dedicated SRE team that does nothing but reliability work. You need a culture where "move fast and break things" is heresy.
 
@@ -571,13 +596,15 @@ Not every availability request deserves a "yes." Part of engineering leadership 
 
 **When to push back on five nines:**
 
-1. **Revenue doesn't justify it** — Calculate downtime hours saved multiplied by revenue per hour. If this is less than the cost, the math doesn't work.
-
-2. **Dependencies don't support it** — "We cannot exceed our payment provider's 99.95%" is a constraint, not an excuse. Show the composite availability math.
-
-3. **Team can't sustain it** — 24/7 on-call requires 4-5 engineers minimum for a sustainable rotation. Burnout is a reliability risk too.
-
-4. **Better alternatives exist** — "We could improve from 99.9% to 99.95% for $70k, or add Feature X for $70k. Which creates more value?"
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Revenue doesn't justify it", text: "Calculate downtime hours saved multiplied by revenue per hour. If this is less than the cost, the math doesn't work." },
+    { lead: "Dependencies don't support it", text: "\"We cannot exceed our payment provider's 99.95%\" is a constraint, not an excuse. Show the composite availability math." },
+    { lead: "Team can't sustain it", text: "24/7 on-call requires 4-5 engineers minimum for a sustainable rotation. Burnout is a reliability risk too." },
+    { lead: "Better alternatives exist", text: "\"We could improve from 99.9% to 99.95% for $70k, or add Feature X for $70k. Which creates more value?\"" },
+  ]}
+/>
 
 **How to present alternatives:**
 
@@ -589,17 +616,17 @@ Whatever you decide, write it down. Availability targets have a way of becoming 
 
 A good availability decision record includes:
 
-1. **Context**: What triggered the discussion? Was it a customer request, a competitive claim, an outage, or a planning exercise?
-
-2. **Business impact analysis**: What's the actual revenue at risk during downtime? What's current availability and what does that cost?
-
-3. **Options considered**: Present at least three tiers with their downtime, lost revenue, infrastructure cost, and net cost. Make the tradeoffs explicit.
-
-4. **Dependency constraints**: What's the maximum achievable given external dependencies? This often eliminates options immediately.
-
-5. **Decision and rationale**: State the chosen target and _why_. "99.99% is not achievable given our payment gateway's 99.95% SLA" is more useful than "we chose 99.9%."
-
-6. **Approvals**: Get sign-off from engineering leadership, product, and ideally finance. Availability targets are business decisions, not just technical ones.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    { lead: "Context:", text: "What triggered the discussion? Was it a customer request, a competitive claim, an outage, or a planning exercise?" },
+    { lead: "Business impact analysis:", text: "What's the actual revenue at risk during downtime? What's current availability and what does that cost?" },
+    { lead: "Options considered:", text: "Present at least three tiers with their downtime, lost revenue, infrastructure cost, and net cost. Make the tradeoffs explicit." },
+    { lead: "Dependency constraints:", text: "What's the maximum achievable given external dependencies? This often eliminates options immediately." },
+    { lead: "Decision and rationale:", text: "State the chosen target and _why_. \"99.99% is not achievable given our payment gateway's 99.95% SLA\" is more useful than \"we chose 99.9%.\"" },
+    { lead: "Approvals:", text: "Get sign-off from engineering leadership, product, and ideally finance. Availability targets are business decisions, not just technical ones." },
+  ]}
+/>
 
 The most important part is the rationale. When someone asks "why aren't we five nines?" in two years, the answer is documented: because our dependencies don't support it, and the cost exceeds the benefit by 3x.
 

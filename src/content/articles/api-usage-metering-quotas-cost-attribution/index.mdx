@@ -31,12 +31,17 @@ Here's the foundation you need: usage metering and quota enforcement. Get these 
 
 The dimensions you capture become your billable units and cost attribution keys. Start with six essential dimensions:
 
-1. **Request count** - Basic usage tracking, quota enforcement
-2. **Endpoint/route** - Cost per feature, optimization targets
-3. **Compute time** - Processing-intensive API pricing
-4. **Data transfer** - Bandwidth costs, egress pricing
-5. **Consumer ID** - Per-team/customer attribution
-6. **Response status** - Error rate tracking, retry detection
+<List
+  variant="numbered-with-background-list"
+  items={[
+    { lead: "Request count", text: "Basic usage tracking, quota enforcement" },
+    { lead: "Endpoint/route", text: "Cost per feature, optimization targets" },
+    { lead: "Compute time", text: "Processing-intensive API pricing" },
+    { lead: "Data transfer", text: "Bandwidth costs, egress pricing" },
+    { lead: "Consumer ID", text: "Per-team/customer attribution" },
+    { lead: "Response status", text: "Error rate tracking, retry detection" },
+  ]}
+/>
 
 You don't need all six on day one. Start with request count and consumer ID—that gets you 80% of the value. Add compute time and data transfer once you understand usage patterns. The endpoint dimension becomes critical when you realize one route costs 10x more than others.
 
@@ -260,11 +265,14 @@ Implement this in your application logic: if a request is denied due to quota bu
 
 You don't need to implement everything at once. Here's the path that works:
 
-**Week 1**: Pick your highest-traffic API. Add request count metering only. Emit events to SQS, write to TimescaleDB. Don't enforce anything yet—just capture data.
-
-**Week 2-3**: Deploy a read-only dashboard showing usage by consumer. Sort by request count descending. You'll immediately see patterns: one team making 10x more requests than others, endpoints with unexpected traffic, retry storms from misconfigured clients.
-
-**Week 4**: Identify the obvious problems. That team making 5 million requests per day when everyone else makes 50,000? Talk to them. That endpoint showing 2 million requests but only 100 unique consumers? Investigate why.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    { lead: "Week 1", text: "Pick your highest-traffic API. Add request count metering only. Emit events to SQS, write to TimescaleDB. Don't enforce anything yet—just capture data." },
+    { lead: "Week 2-3", text: "Deploy a read-only dashboard showing usage by consumer. Sort by request count descending. You'll immediately see patterns: one team making 10x more requests than others, endpoints with unexpected traffic, retry storms from misconfigured clients." },
+    { lead: "Week 4", text: "Identify the obvious problems. That team making 5 million requests per day when everyone else makes 50,000? Talk to them. That endpoint showing 2 million requests but only 100 unique consumers? Investigate why." },
+  ]}
+/>
 
 Also set up monitoring for the metering pipeline itself: track SQS queue depth, Lambda error rates, and aggregation job success. If events get stuck or aggregation fails, you lose billing data. The metering stack (SQS + Lambda + Timestream) typically costs less than 5% of what you're measuring—a worthwhile investment for visibility.
 

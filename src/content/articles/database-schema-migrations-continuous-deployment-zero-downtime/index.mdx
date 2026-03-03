@@ -59,15 +59,37 @@ The solution is that every schema change must be backward-compatible. The schema
 
 These failure modes appear repeatedly across teams:
 
-| Failure Mode | Cause | Prevention |
-|--------------|-------|------------|
-| Table lock timeout | Long-running ALTER | Non-locking DDL or live schema tools |
-| Column not found | Code deployed before migration | Deploy migration first |
-| NOT NULL violation | Old code doesn't provide new column | Add column as nullable first |
-| Foreign key violation | Data violates new constraint | Clean data before constraint |
-| Rollback impossible | Destructive migration ran | Always write reversible migrations |
-
-Table: Common migration failures and their prevention.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Common migration failures and their prevention.",
+    thead: { th: ["Failure Mode", "Cause", "Prevention"] },
+    tbody: {
+      tr: [
+        {
+          th: "Table lock timeout",
+          td: ["Long-running ALTER", "Non-locking DDL or live schema tools"],
+        },
+        {
+          th: "Column not found",
+          td: ["Code deployed before migration", "Deploy migration first"],
+        },
+        {
+          th: "NOT NULL violation",
+          td: ["Old code doesn't provide new column", "Add column as nullable first"],
+        },
+        {
+          th: "Foreign key violation",
+          td: ["Data violates new constraint", "Clean data before constraint"],
+        },
+        {
+          th: "Rollback impossible",
+          td: ["Destructive migration ran", "Always write reversible migrations"],
+        },
+      ],
+    },
+  }}
+/>
 
 The theme across all of these: migrations fail when they assume atomic, instantaneous changes in a system that's actually gradual and concurrent. The fix is always some form of phased rollout.
 
@@ -78,9 +100,7 @@ The expand-contract pattern (sometimes called parallel change) is the fundamenta
 The pattern has three phases:
 
 1. _Expand_: Add the new structure alongside the old. Both exist simultaneously. Deploy application code that writes to both structures but still reads from the old one.
-
 2. _Migrate_: Backfill existing data into the new structure. Once complete, deploy code that reads from the new structure (still writing to both for safety).
-
 3. _Contract_: Remove the old structure. Deploy code that only uses the new structure, then drop the old column or table.
 
 ```mermaid
@@ -108,11 +128,14 @@ Figure: Expand-contract pattern phases.
 
 Let's trace through renaming a column from `email` to `email_address`. A direct `ALTER TABLE RENAME COLUMN` would break every query referencing the old name instantly. Here's the expand-contract approach:
 
-_Week 1 (Expand)_: Run a migration to add the `email_address` column. Deploy code that writes to both columns on every insert and update, but still reads from `email`. At this point, new rows have both columns populated; old rows only have `email`.
-
-_Week 2 (Migrate)_: Run a backfill job to copy `email` values to `email_address` for existing rows. Once complete, deploy code that reads from `email_address` instead of `email`. Keep writing to both columns—old pods might still be running.
-
-_Week 3 (Contract)_: After all old pods are gone and you've verified nothing reads `email`, deploy code that only uses `email_address`. Then run a migration to drop the `email` column.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Week 1 (Expand)_:", text: "Run a migration to add the `email_address` column. Deploy code that writes to both columns on every insert and update, but still reads from `email`. At this point, new rows have both columns populated; old rows only have `email`." },
+    { lead: "_Week 2 (Migrate)_:", text: "Run a backfill job to copy `email` values to `email_address` for existing rows. Once complete, deploy code that reads from `email_address` instead of `email`. Keep writing to both columns—old pods might still be running." },
+    { lead: "_Week 3 (Contract)_:", text: "After all old pods are gone and you've verified nothing reads `email`, deploy code that only uses `email_address`. Then run a migration to drop the `email` column." },
+  ]}
+/>
 
 <Newsletter />
 

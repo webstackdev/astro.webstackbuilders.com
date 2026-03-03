@@ -9,13 +9,11 @@ tags: ["system-modernization", "ruby", "typescript", "dotnet"]
 featured: true
 ---
 
-*[TDD]: Test-Driven Development
-*[SUT]: System Under Test
 *[DI]: Dependency Injection
-*[API]: Application Programming Interface
-*[OOP]: Object-Oriented Programming
 *[IoC]: Inversion of Control
-*[IDE]: Integrated Development Environment
+*[OOP]: Object-Oriented Programming
+*[SUT]: System Under Test
+*[TDD]: Test-Driven Development
 
 You've inherited a codebase with no tests. The classes are tightly coupled, dependencies are created inline, global state is everywhere, and methods run hundreds of lines. The standard advice—"write unit tests"—assumes the code was designed for testability. It wasn't.
 
@@ -70,7 +68,6 @@ end
 Code: Characterization tests document observed behavior, not intended behavior.
 
 The process to discover behavior is deliberately low-tech: write a test with an obviously wrong expected value, run it, and let the failure message tell you the actual output. Then update the test with the real value.
-
 
 ```ruby title="behavior_discovery_spec.rb"
 RSpec.describe 'LegacyPriceCalculator (discovery)' do
@@ -283,17 +280,47 @@ Code: Types of seams.
 
 The _object seam_ is the most common and usually the cleanest. You pass a dependency through a constructor or method parameter, and the enabling point is the call site where you can pass a different implementation. Ruby makes this trivially easy with default arguments—existing callers get production behavior, tests pass doubles. The same pattern works across many different frameworks.
 
-| Language/Framework | Object Seam Technique |
-| ------------------ | --------------------- |
-| Ruby | Default arguments in `initialize` |
-| C# / Java | Constructor overloads or optional parameters |
-| PHP | Default parameter values |
-| TypeScript | Optional parameters with nullish coalescing (`??`) |
-| Spring Boot | `@Autowired` with test `@Configuration` bindings |
-| Laravel | Service container with `$this->app->bind()` in tests |
-| .NET | `IServiceCollection` with test service registration |
-
-Table: Object seam techniques by language and framework.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Language/Framework', 'Object Seam Technique'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Ruby',
+          td: ['Default arguments in `initialize`'],
+        },
+        {
+          th: 'C# / Java',
+          td: ['Constructor overloads or optional parameters'],
+        },
+        {
+          th: 'PHP',
+          td: ['Default parameter values'],
+        },
+        {
+          th: 'TypeScript',
+          td: ['Optional parameters with nullish coalescing (`??`)'],
+        },
+        {
+          th: 'Spring Boot',
+          td: ['`@Autowired` with test `@Configuration` bindings'],
+        },
+        {
+          th: 'Laravel',
+          td: ['Service container with `$this->app->bind()` in tests'],
+        },
+        {
+          th: '.NET',
+          td: ['`IServiceCollection` with test service registration'],
+        },
+      ],
+    },
+    figure: 'Object seam techniques by language and framework.',
+  }}
+/>
 
 _Link seams_ operate at the module level. In Ruby, you can use `stub_const` to replace a class entirely. In TypeScript/JavaScript, Jest's `jest.mock()` intercepts imports. PHP's Mockery can override class instantiation. Java has PowerMock for static method mocking, though it's a code smell. The enabling point is the test setup. Link seams are powerful but fragile—they couple tests to implementation details like class names, and they break if someone renames things.
 
@@ -636,14 +663,35 @@ Code: Instance delegator technique.
 
 The alternative approach—injecting the validator classes themselves rather than wrapping their calls—produces cleaner code long-term. You can pass mock classes in tests that respond to `.validate` however you need. This is effectively Parameterize Constructor applied to class method dependencies.
 
-| Technique | When to Use | Pros | Cons |
-| ----------- | ------------- | ------ | ------ |
-| Extract and Override | Quick wins, no API change | Minimal code change | Test class inheritance |
-| Parameterize Constructor | Long-term solution | Clean DI pattern | May require interface |
-| Instance Delegator | Static method calls | Enables testing | Adds indirection |
-| Link Seam (mocking) | Can't modify code | No production changes | Fragile to refactoring |
-
-Table: Dependency breaking techniques.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Technique', 'When to Use', 'Pros', 'Cons'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Extract and Override',
+          td: ['Quick wins, no API change', 'Minimal code change', 'Test class inheritance'],
+        },
+        {
+          th: 'Parameterize Constructor',
+          td: ['Long-term solution', 'Clean DI pattern', 'May require interface'],
+        },
+        {
+          th: 'Instance Delegator',
+          td: ['Static method calls', 'Enables testing', 'Adds indirection'],
+        },
+        {
+          th: 'Link Seam (mocking)',
+          td: ["Can't modify code", 'No production changes', 'Fragile to refactoring'],
+        },
+      ],
+    },
+    figure: 'Dependency breaking techniques.',
+  }}
+/>
 
 Choose based on your constraints. If you need tests today and can't change the constructor signature, Extract and Override gets you there. If you're building for the long term and can modify call sites, Parameterize Constructor produces better designs. Instance Delegator is your escape hatch for static cling. Link seams are the last resort when you truly can't touch the code.
 

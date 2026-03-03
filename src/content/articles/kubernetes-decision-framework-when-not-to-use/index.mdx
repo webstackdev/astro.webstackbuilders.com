@@ -7,17 +7,15 @@ author: "kevin-brown"
 publishDate: 2022-11-06
 tags: ["cloud-platforms","kubernetes","helm","aws","azure"]
 featured: true
-abbreviations:
-  - K8s
-  - VM
-  - PaaS
-  - IaaS
-  - FaaS
-  - CI/CD
-  - SLA
-  - TCO
-  - FTE
 ---
+
+*[FaaS]: Function as a Service
+*[IaaS]: Infrastructure as a Service
+*[K8s]: Kubernetes
+*[PaaS]: Platform as a Service
+*[SLA]: Service Level Agreement
+*[TCO]: Total Cost of Ownership
+*[VM]: Virtual Machine
 
 A startup I advised last year had a familiar story. They'd spent three months migrating their Node.js monolith to Kubernetes because "that's what serious companies use." Three months of learning curves, failed deployments, and configuration rabbit holes later, their deployment went from a simple `git push` to a complex dance of Helm charts, ingress configurations, and persistent volume claims. Their two-person team was now spending 40% of their engineering time on infrastructure instead of building features.
 
@@ -41,14 +39,35 @@ This isn't optional learning. It's the baseline for keeping production running.
 
 The managed Kubernetes pricing page shows the control plane cost. It doesn't show the full picture.
 
-| Cost Category | What the Pricing Page Shows | What You'll Actually Pay |
-|--------------|----------------------------|-------------------------|
-| Compute | Node instance costs | 20-30% overhead for system pods, monitoring, logging |
-| Operations | Control plane fee ($72/month on most clouds) | 0.5-1.0 FTE for cluster operations at minimum |
-| Networking | Load balancer costs | Cross-AZ data transfer, NAT gateway charges, ingress controller resources |
-| Storage | Persistent volume pricing | Snapshot costs, backup solutions, storage class management |
-
-Table: Hidden Cost Comparison for Kubernetes Deployments
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Cost Category', 'What the Pricing Page Shows', "What You'll Actually Pay"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Compute',
+          td: ['Node instance costs', '20-30% overhead for system pods, monitoring, logging'],
+        },
+        {
+          th: 'Operations',
+          td: ['Control plane fee ($72/month on most clouds)', '0.5-1.0 FTE for cluster operations at minimum'],
+        },
+        {
+          th: 'Networking',
+          td: ['Load balancer costs', 'Cross-AZ data transfer, NAT gateway charges, ingress controller resources'],
+        },
+        {
+          th: 'Storage',
+          td: ['Persistent volume pricing', 'Snapshot costs, backup solutions, storage class management'],
+        },
+      ],
+    },
+    figure: 'Hidden Cost Comparison for Kubernetes Deployments',
+  }}
+/>
 
 The operational overhead is where most teams underestimate. Even with managed Kubernetes, someone needs to handle upgrades, security patches, capacity planning, and incident response. A small team running K8s is a team with less time for product development.
 
@@ -70,20 +89,48 @@ The platform shines when you have a team capable of operating it. That means ded
 
 K8s is probably wrong if you're running a single application with predictable traffic, if your team has fewer than 15 engineers total, or if your deployment frequency is measured in weeks rather than hours. Startups in particular fall into the trap of adopting enterprise tooling before they have enterprise problems.
 These guidelines give you a starting point, but every situation has nuance. The following scorecard helps you weigh multiple factors together.
+
 ### Score Your Situation
 
 Evaluate each factor on a 1-5 scale, where 1 strongly favors simpler alternatives and 5 strongly favors Kubernetes.
 
-| Factor | 1 (Simpler is Better) | 5 (K8s Fits) |
-|--------|----------------------|--------------|
-| Traffic variability | Steady, predictable load | 10x+ traffic spikes, unpredictable patterns |
-| Service count | Monolith or 2-3 services | 10+ independently deployable services |
-| Team size | Under 15 engineers | 25+ engineers across multiple teams |
-| Deployment frequency | Weekly or less | Multiple times daily |
-| Multi-cloud/hybrid needs | Single cloud provider | Active multi-cloud or hybrid requirements |
-| Existing expertise | No container experience | Team has K8s production experience |
-
-Table: Kubernetes Decision Scorecard
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Factor', '1 (Simpler is Better)', '5 (K8s Fits)'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Traffic variability',
+          td: ['Steady, predictable load', '10x+ traffic spikes, unpredictable patterns'],
+        },
+        {
+          th: 'Service count',
+          td: ['Monolith or 2-3 services', '10+ independently deployable services'],
+        },
+        {
+          th: 'Team size',
+          td: ['Under 15 engineers', '25+ engineers across multiple teams'],
+        },
+        {
+          th: 'Deployment frequency',
+          td: ['Weekly or less', 'Multiple times daily'],
+        },
+        {
+          th: 'Multi-cloud/hybrid needs',
+          td: ['Single cloud provider', 'Active multi-cloud or hybrid requirements'],
+        },
+        {
+          th: 'Existing expertise',
+          td: ['No container experience', 'Team has K8s production experience'],
+        },
+      ],
+    },
+    figure: 'Kubernetes Decision Scorecard',
+  }}
+/>
 
 **Interpreting your score:** If you're scoring below 18, you'll likely get more value from simpler alternatives like managed VMs, serverless functions, or platform-as-a-service offerings. Scores between 18-24 suggest evaluating both paths carefully. Above 24, Kubernetes probably makes sense, assuming you can staff the operational requirements.
 
