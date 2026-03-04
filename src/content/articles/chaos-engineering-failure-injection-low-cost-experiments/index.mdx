@@ -28,14 +28,21 @@ The term "chaos engineering" sounds destructive, which leads to a common misconc
 
 Real chaos engineering follows the scientific method. You form a hypothesis about how your system should behave under specific failure conditions, you design a controlled experiment to test that hypothesis, and you observe whether reality matches your expectations. The goal isn't to cause outages; it's to build confidence that your system handles failures gracefully—or to learn exactly how it doesn't.
 
-| Chaos Engineering IS | Chaos Engineering IS NOT |
-|---------------------|-------------------------|
-| Hypothesis-driven experimentation | Random destruction |
-| Controlled failure injection | Breaking things for fun |
-| Learning about system behavior | Proving you can cause outages |
-| Building confidence | Testing in production blindly |
-
-Table: The distinction that separates chaos engineering from breaking things.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "The distinction that separates chaos engineering from breaking things.",
+    thead: { th: ["Chaos Engineering IS", "Chaos Engineering IS NOT"] },
+    tbody: {
+      tr: [
+        { th: "Hypothesis-driven experimentation", td: ["Random destruction"] },
+        { th: "Controlled failure injection", td: ["Breaking things for fun"] },
+        { th: "Learning about system behavior", td: ["Proving you can cause outages"] },
+        { th: "Building confidence", td: ["Testing in production blindly"] },
+      ],
+    },
+  }}
+/>
 
 The key insight: without a hypothesis, you're just breaking things. If you kill a pod and the service degrades, what did you learn? Was that expected? Was it acceptable? Without a hypothesis—"the service should recover within 30 seconds with no user-visible errors"—you can't answer those questions. You can't distinguish expected behavior from bugs, and you won't know if your system got better or worse.
 
@@ -47,9 +54,14 @@ The simplest and most valuable first experiment is killing a pod. If you've neve
 
 **Prerequisites:**
 
-- Your deployment has replicas > 1 (so traffic continues on surviving pods during recovery)
-- Health checks (liveness and readiness probes) are configured
-- You have monitoring in place to observe the experiment
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Your deployment has replicas > 1 (so traffic continues on surviving pods during recovery)" },
+    { text: "Health checks (liveness and readiness probes) are configured" },
+    { text: "You have monitoring in place to observe the experiment" },
+  ]}
+/>
 
 **Steps:**
 
@@ -60,9 +72,15 @@ The simplest and most valuable first experiment is killing a pod. If you've neve
 
 **Success criteria:**
 
-- New pod running within 60 seconds
-- No 5xx errors during recovery
-- Latency returned to baseline within 2 minutes
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "New pod running within 60 seconds" },
+    { text: "No 5xx errors during recovery" },
+    { text: "Latency returned to baseline within 2 minutes" },
+  ]}
+/>
+
 
 Here's the kubectl command to kill one random pod from a deployment and watch the recovery:
 
@@ -81,9 +99,15 @@ Code: Simple pod termination experiment with recovery observation.
 
 **What teams commonly discover from this experiment:**
 
-- _Slow container startup delays recovery._ If your container takes 45 seconds to start, that's 45 seconds of degraded capacity. Optimize image size, add startup probes, or adjust replica counts.
-- _Missing readiness probes cause traffic to unhealthy pods._ Without a readiness probe, Kubernetes sends traffic to pods that aren't ready to handle it, causing errors during startup.
-- _No alerts fired despite degradation._ This is the "aha" moment—your monitoring gap was invisible until you tested it.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "_Slow container startup delays recovery._", text: "If your container takes 45 seconds to start, that's 45 seconds of degraded capacity. Optimize image size, add startup probes, or adjust replica counts." },
+    { lead: "_Missing readiness probes cause traffic to unhealthy pods._", text: "Without a readiness probe, Kubernetes sends traffic to pods that aren't ready to handle it, causing errors during startup." },
+    { lead: "_No alerts fired despite degradation._", text: "This is the \"aha\" moment—your monitoring gap was invisible until you tested it." },
+  ]}
+/>
+
 
 These findings alone justify the experiment. And you can run it in staging today, with no budget approval, no platform purchase, and no dedicated chaos team.
 

@@ -9,13 +9,13 @@ tags: ["observability-and-telemetry", "typescript"]
 featured: true
 ---
 
-*[OTel]: OpenTelemetry
-*[SDK]: Software Development Kit
-*[gRPC]: gRPC Remote Procedure Calls
 *[DB]: Database
-*[SLA]: Service Level Agreement
-*[P99]: 99th Percentile
+*[gRPC]: gRPC Remote Procedure Calls
+*[OTel]: OpenTelemetry
 *[OTLP]: OpenTelemetry Protocol
+*[P99]: 99th Percentile
+*[SDK]: Software Development Kit
+*[SLA]: Service Level Agreement
 
 More spans provide more visibility. That's the intuition, anyway. But each span has costs: CPU overhead for creation, memory for attributes, network bandwidth for export, storage in your backend, and cognitive load when you're actually trying to read the trace. A request that creates 500 spans might have excellent granularity, but the trace waterfall becomes a solid block of color—no white space, no visible hierarchy. Debugging means scrolling through hundreds of spans looking for the slow one. Storage costs explode. The instrumentation itself becomes a performance concern.
 
@@ -39,19 +39,39 @@ Before diving into granularity decisions, it helps to understand what you're act
 
 A span has six core components:
 
-__Identity__ ties the span to its trace. The `trace_id` (16 bytes) is shared across every span in the trace—it's what lets your backend stitch together spans from different services. The `span_id` (8 bytes) uniquely identifies this span. The `parent_span_id` links to the parent span, creating the hierarchy that becomes your waterfall visualization.
-
-__Naming__ tells you what operation this span represents. The name should describe the operation (`HTTP GET /api/orders/{orderId}`), and the kind indicates the span's role in the request flow: `SERVER` for handling incoming requests, `CLIENT` for outgoing calls, `PRODUCER` and `CONSUMER` for async messaging, `INTERNAL` for operations that don't cross network boundaries.
-
-__Timing__ captures when the span started and ended, with nanosecond precision. Duration is simply end minus start—this is what your trace backend uses to identify slow operations.
-
-__Status__ records the outcome: `UNSET` (no status set), `OK` (operation succeeded), or `ERROR` (operation failed). For errors, you can include a message describing what went wrong.
-
-__Attributes__ are key-value pairs that add context. Some follow OpenTelemetry semantic conventions (`http.method`, `db.system`), others are custom to your domain (`order.id`, `customer.tier`). Attributes are where most of your per-span overhead comes from—each attribute requires memory allocation and serialization.
-
-__Events__ are timestamped logs within the span's lifetime. Use them for milestones: `cache.miss`, `retry.attempt`, `validation.failed`. Events are lighter than child spans but still have overhead.
-
-__Links__ connect spans across traces—useful when one request triggers another asynchronously. For example, when processing a message from a queue, you can link back to the span that originally enqueued it:
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Identity',
+      text: 'ties the span to its trace. The `trace_id` (16 bytes) is shared across every span in the trace—it\'s what lets your backend stitch together spans from different services. The `span_id` (8 bytes) uniquely identifies this span. The `parent_span_id` links to the parent span, creating the hierarchy that becomes your waterfall visualization.',
+    },
+    {
+      lead: 'Naming',
+      text: 'tells you what operation this span represents. The name should describe the operation (`HTTP GET /api/orders/{orderId}`), and the kind indicates the span\'s role in the request flow: `SERVER` for handling incoming requests, `CLIENT` for outgoing calls, `PRODUCER` and `CONSUMER` for async messaging, `INTERNAL` for operations that don\'t cross network boundaries.',
+    },
+    {
+      lead: 'Timing',
+      text: 'captures when the span started and ended, with nanosecond precision. Duration is simply end minus start—this is what your trace backend uses to identify slow operations.',
+    },
+    {
+      lead: 'Status',
+      text: 'records the outcome: `UNSET` (no status set), `OK` (operation succeeded), or `ERROR` (operation failed). For errors, you can include a message describing what went wrong.',
+    },
+    {
+      lead: 'Attributes',
+      text: 'are key-value pairs that add context. Some follow OpenTelemetry semantic conventions (`http.method`, `db.system`), others are custom to your domain (`order.id`, `customer.tier`). Attributes are where most of your per-span overhead comes from—each attribute requires memory allocation and serialization.',
+    },
+    {
+      lead: 'Events',
+      text: 'are timestamped logs within the span\'s lifetime. Use them for milestones: `cache.miss`, `retry.attempt`, `validation.failed`. Events are lighter than child spans but still have overhead.',
+    },
+    {
+      lead: 'Links',
+      text: 'connect spans across traces—useful when one request triggers another asynchronously. For example, when processing a message from a queue, you can link back to the span that originally enqueued it:',
+    },
+  ]}
+/>
 
 ```typescript title="span-links.ts"
 import { trace, SpanKind, context } from '@opentelemetry/api';
@@ -189,45 +209,119 @@ Span hierarchy creates the waterfall visualization. Parent-child relationships s
 
 The question "should this operation have a span?" comes up constantly. Here's how I think about it.
 
-__Always instrument service boundaries.__ Incoming HTTP/gRPC requests, outgoing HTTP/gRPC calls, message queue publish/consume—these are the spans that stitch your distributed trace together. Without them, your trace stops at service boundaries and you lose visibility into cross-service latency.
-
-__Always instrument I/O operations.__ Database queries, cache reads/writes, file system operations. I/O is where latency lives. A trace that doesn't show database time is a trace that can't explain why a request was slow.
-
-__Always instrument external dependencies.__ Third-party APIs, payment processors, cloud service SDKs. External services are the leading cause of incidents. When Stripe is slow or an S3 call times out, you want that visible in your traces.
-
-__Instrument significant business operations.__ Order processing, payment validation, user authentication—operations that matter to your business and that you might need to debug. The keyword is "significant." Not every function, just the ones you'd want to see in a trace when something goes wrong.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Always instrument service boundaries.',
+      text: 'Incoming HTTP/gRPC requests, outgoing HTTP/gRPC calls, message queue publish/consume—these are the spans that stitch your distributed trace together. Without them, your trace stops at service boundaries and you lose visibility into cross-service latency.',
+    },
+    {
+      lead: 'Always instrument I/O operations.',
+      text: 'Database queries, cache reads/writes, file system operations. I/O is where latency lives. A trace that doesn\'t show database time is a trace that can\'t explain why a request was slow.',
+    },
+    {
+      lead: 'Always instrument external dependencies.',
+      text: 'Third-party APIs, payment processors, cloud service SDKs. External services are the leading cause of incidents. When Stripe is slow or an S3 call times out, you want that visible in your traces.',
+    },
+    {
+      lead: 'Instrument significant business operations.',
+      text: 'Order processing, payment validation, user authentication—operations that matter to your business and that you might need to debug. The keyword is "significant." Not every function, just the ones you\'d want to see in a trace when something goes wrong.',
+    },
+  ]}
+/>
 
 Some operations need judgment:
 
-- __Loops with external calls__: Wrap the loop, not each iteration. A batch that processes 100 items should create one span for the batch, not 100 spans.
-- __Retry logic__: One span per attempt can be useful for debugging retry storms, but link them together so you can see the full retry sequence.
-- __Parallel operations__: A span for the fan-out operation, with child spans for each parallel branch.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Loops with external calls',
+      text: 'Wrap the loop, not each iteration. A batch that processes 100 items should create one span for the batch, not 100 spans.',
+    },
+    {
+      lead: 'Retry logic',
+      text: 'One span per attempt can be useful for debugging retry storms, but link them together so you can see the full retry sequence.',
+    },
+    {
+      lead: 'Parallel operations',
+      text: 'A span for the fan-out operation, with child spans for each parallel branch.',
+    },
+    {
+      lead: 'Avoid instrumenting pure computation.',
+      text: 'JSON parsing, field validation, data transformation—these are CPU-bound operations that rarely need their own spans. If you need timing, add it as an attribute on the parent span.',
+    },
+    {
+      lead: 'Avoid instrumenting every function call.',
+      text: 'This is the trap that creates unreadable traces. Instrument boundaries and I/O, not internal implementation details.',
+    },
+  ]}
+/>
 
-__Avoid instrumenting pure computation.__ JSON parsing, field validation, data transformation—these are CPU-bound operations that rarely need their own spans. If you need timing, add it as an attribute on the parent span.
-
-__Avoid instrumenting every function call.__ This is the trap that creates unreadable traces. Instrument boundaries and I/O, not internal implementation details.
-
-| Operation | Span? | Alternative | Why |
-|-----------|-------|-------------|-----|
-| HTTP request handler | Yes | - | Service boundary |
-| Database query | Yes | - | I/O latency |
-| JSON parsing | No | Attribute | Pure computation |
-| Each loop iteration | No | Wrap loop | Overhead |
-| External API call | Yes | - | Dependency visibility |
-| Field validation | No | Attribute | Too granular |
-| Error handling | No | Event | Within parent span |
-
-Table: Span decision matrix.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Operation', 'Span?', 'Alternative', 'Why'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'HTTP request handler',
+          td: ['Yes', '-', 'Service boundary'],
+        },
+        {
+          th: 'Database query',
+          td: ['Yes', '-', 'I/O latency'],
+        },
+        {
+          th: 'JSON parsing',
+          td: ['No', 'Attribute', 'Pure computation'],
+        },
+        {
+          th: 'Each loop iteration',
+          td: ['No', 'Wrap loop', 'Overhead'],
+        },
+        {
+          th: 'External API call',
+          td: ['Yes', '-', 'Dependency visibility'],
+        },
+        {
+          th: 'Field validation',
+          td: ['No', 'Attribute', 'Too granular'],
+        },
+        {
+          th: 'Error handling',
+          td: ['No', 'Event', 'Within parent span'],
+        },
+      ],
+    },
+    figure: 'Span decision matrix.',
+  }}
+/>
 
 ### Span vs Event vs Attribute
 
 Once you've decided something deserves visibility in a trace, you have three options: span, event, or attribute. Each has different costs and use cases.
 
-__Spans__ represent operations with duration. They have start and end times, can have child spans, and appear as bars in your waterfall. Use them for I/O operations and significant boundaries. Cost: highest (memory allocation, context propagation, serialization).
-
-__Events__ are timestamped points within a span's lifetime. They don't have duration—they mark moments. Use them for milestones: "validation started," "cache miss," "retry attempted." Cost: moderate (stored with parent span, but no separate context).
-
-__Attributes__ are key-value metadata attached to a span. They describe the operation: IDs, counts, flags, outcomes. Use them for context that helps you understand the span. Cost: lowest (just map entries).
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Spans',
+      text: 'represent operations with duration. They have start and end times, can have child spans, and appear as bars in your waterfall. Use them for I/O operations and significant boundaries. Cost: highest (memory allocation, context propagation, serialization).',
+    },
+    {
+      lead: 'Events',
+      text: 'are timestamped points within a span\'s lifetime. They don\'t have duration—they mark moments. Use them for milestones: "validation started," "cache miss," "retry attempted." Cost: moderate (stored with parent span, but no separate context).',
+    },
+    {
+      lead: 'Attributes',
+      text: 'are key-value metadata attached to a span. They describe the operation: IDs, counts, flags, outcomes. Use them for context that helps you understand the span. Cost: lowest (just map entries).',
+    },
+  ]}
+/>
 
 Here's the pattern in practice:
 
@@ -301,26 +395,63 @@ Span overhead is real but often misunderstood. People either ignore it entirely 
 
 Here's what you're paying for with each span:
 
-__Span creation__ costs 1-5 microseconds. You're allocating a span object, generating an 8-byte span ID, copying the parent context, and recording a start timestamp.
-
-__Attribute setting__ costs 0.1-1 microsecond per attribute. Type conversion, string allocation, map insertion. Attribute _count_ matters more than attribute _size_—ten small attributes cost more than one large one.
-
-__Span ending__ costs 1-2 microseconds. Recording the end timestamp, calculating duration, enqueueing for export.
-
-__Export__ is amortized across batches (typically 512-2048 spans). Serialization to OTLP protobuf, network I/O to your collector, ingestion at your backend.
-
-__Memory__ runs 200-500 bytes per in-flight span, depending on attribute count.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Span creation',
+      text: 'costs 1-5 microseconds. You\'re allocating a span object, generating an 8-byte span ID, copying the parent context, and recording a start timestamp.',
+    },
+    {
+      lead: 'Attribute setting',
+      text: 'costs 0.1-1 microsecond per attribute. Type conversion, string allocation, map insertion. Attribute count matters more than attribute size—ten small attributes cost more than one large one.',
+    },
+    {
+      lead: 'Span ending',
+      text: 'costs 1-2 microseconds. Recording the end timestamp, calculating duration, enqueueing for export.',
+    },
+    {
+      lead: 'Export',
+      text: 'is amortized across batches (typically 512-2048 spans). Serialization to OTLP protobuf, network I/O to your collector, ingestion at your backend.',
+    },
+    {
+      lead: 'Memory',
+      text: 'runs 200-500 bytes per in-flight span, depending on attribute count.',
+    },
+  ]}
+/>
 
 In aggregate, a single span with a few attributes costs roughly 5-10 microseconds of CPU time. That sounds negligible, but it multiplies:
 
-| Throughput | Spans/Request | Spans/Second | CPU Overhead | Action |
-|------------|---------------|--------------|--------------|--------|
-| 100 RPS | 20 | 2,000 | &lt;1% | None needed |
-| 1,000 RPS | 20 | 20,000 | 1-3% | Monitor |
-| 10,000 RPS | 20 | 200,000 | 5-15% | Sample |
-| 1,000 RPS | 200 | 200,000 | 10-20% | Reduce spans |
-
-Table: Overhead scales with span volume, not request volume.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Throughput', 'Spans/Request', 'Spans/Second', 'CPU Overhead', 'Action'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '100 RPS',
+          td: ['20', '2,000', '&lt;1%', 'None needed'],
+        },
+        {
+          th: '1,000 RPS',
+          td: ['20', '20,000', '1-3%', 'Monitor'],
+        },
+        {
+          th: '10,000 RPS',
+          td: ['20', '200,000', '5-15%', 'Sample'],
+        },
+        {
+          th: '1,000 RPS',
+          td: ['200', '200,000', '10-20%', 'Reduce spans'],
+        },
+      ],
+    },
+    figure: 'Overhead scales with span volume, not request volume.',
+  }}
+/>
 
 The last row is the trap. Over-instrumented services (200 spans per request) hit the same overhead as high-throughput services (10,000 RPS) at a fraction of the traffic. The fix isn't sampling—it's reducing span count.
 
@@ -328,7 +459,15 @@ The last row is the trap. Over-instrumented services (200 spans per request) hit
 
 When overhead becomes a concern, sampling lets you capture representative traces without instrumenting everything. There are two fundamental approaches: head sampling (decide at span creation) and tail sampling (decide after seeing the complete trace).
 
-__Head sampling__ decides whether to create spans before the request starts. The upside is zero overhead for dropped traces—if you're not sampling this request, you don't create any spans. The downside is you might drop interesting traces (errors, slow requests) because you couldn't know they'd be interesting when sampling occurred.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Head sampling',
+      text: 'decides whether to create spans before the request starts. The upside is zero overhead for dropped traces—if you\'re not sampling this request, you don\'t create any spans. The downside is you might drop interesting traces (errors, slow requests) because you couldn\'t know they\'d be interesting when sampling occurred.',
+    },
+  ]}
+/>
 
 The most common head sampler is ratio-based: sample 10% of traces by hashing the trace ID. Parent-based sampling builds on this—if an upstream service already sampled a trace, continue sampling; if they dropped it, you drop it too. This keeps distributed traces coherent.
 
@@ -346,7 +485,15 @@ const parentBasedSampler = new ParentBasedSampler({
 ```
 Code: Head sampling with ratio and parent-based samplers.
 
-__Tail sampling__ decides after seeing the complete trace. This happens in your collector, not your application. The collector buffers traces for a few seconds, then applies policies: keep all errors, keep slow traces, keep traces from enterprise customers, drop the rest. The upside is you never miss interesting traces. The downside is you still pay the overhead of creating all those spans—you're just dropping them before storage.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Tail sampling',
+      text: 'decides after seeing the complete trace. This happens in your collector, not your application. The collector buffers traces for a few seconds, then applies policies: keep all errors, keep slow traces, keep traces from enterprise customers, drop the rest. The upside is you never miss interesting traces. The downside is you still pay the overhead of creating all those spans—you\'re just dropping them before storage.',
+    },
+  ]}
+/>
 
 ```yaml title="otel-collector-tail-sampling.yaml"
 # OpenTelemetry Collector tail sampling configuration
@@ -406,15 +553,31 @@ Head sampling reduces instrumentation overhead but might drop interesting traces
 
 A trace is only useful if you can read it. I've seen traces that technically contain all the information needed to debug a problem, but the information is buried in noise. Here are the anti-patterns to avoid.
 
-__Wall of spans.__ The waterfall is solid color—no gaps, no white space. You can't see the structure because there's a span for everything. Every function call, every loop iteration, every trivial operation. The cause is over-instrumentation. The fix is reducing span count and using events for milestones instead of child spans.
-
-__Flat hierarchy.__ All spans at the same level, no nesting. You can't tell which operations are contained within others, or whether operations ran sequentially or in parallel. The cause is usually not using `startActiveSpan` (which automatically sets parent context) or not propagating context to background tasks. The fix is ensuring child spans inherit from their parents.
-
-__Missing gaps.__ Spans account for 100% of request time—no uninstrumented periods visible. This sounds good but actually hides information. The gaps in a trace show where time went to uninstrumented code (JSON parsing, business logic, framework overhead). If there are no gaps, you can't distinguish "the database was slow" from "the instrumentation overhead was high."
-
-__Cryptic names.__ Span names like "span," "operation," "handler," or "process" that don't explain what's happening. Auto-instrumentation often produces these—you get a span for every HTTP call, but the name is just "GET" without any indication of what resource. The fix is customizing span names to follow the pattern "operation resource" (`HTTP GET /api/orders`, `db.query orders`).
-
-__Attribute explosion.__ Hundreds of attributes per span because someone dumped all available context. The trace viewer loads slowly, important attributes are buried in noise, and storage costs balloon. The fix is selecting relevant attributes deliberately, not including everything available.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Wall of spans.',
+      text: 'The waterfall is solid color—no gaps, no white space. You can\'t see the structure because there\'s a span for everything. Every function call, every loop iteration, every trivial operation. The cause is over-instrumentation. The fix is reducing span count and using events for milestones instead of child spans.',
+    },
+    {
+      lead: 'Flat hierarchy.',
+      text: 'All spans at the same level, no nesting. You can\'t tell which operations are contained within others, or whether operations ran sequentially or in parallel. The cause is usually not using `startActiveSpan` (which automatically sets parent context) or not propagating context to background tasks. The fix is ensuring child spans inherit from their parents.',
+    },
+    {
+      lead: 'Missing gaps.',
+      text: 'Spans account for 100% of request time—no uninstrumented periods visible. This sounds good but actually hides information. The gaps in a trace show where time went to uninstrumented code (JSON parsing, business logic, framework overhead). If there are no gaps, you can\'t distinguish "the database was slow" from "the instrumentation overhead was high."',
+    },
+    {
+      lead: 'Cryptic names.',
+      text: 'Span names like "span," "operation," "handler," or "process" that don\'t explain what\'s happening. Auto-instrumentation often produces these—you get a span for every HTTP call, but the name is just "GET" without any indication of what resource. The fix is customizing span names to follow the pattern "operation resource" (`HTTP GET /api/orders`, `db.query orders`).',
+    },
+    {
+      lead: 'Attribute explosion.',
+      text: 'Hundreds of attributes per span because someone dumped all available context. The trace viewer loads slowly, important attributes are buried in noise, and storage costs balloon. The fix is selecting relevant attributes deliberately, not including everything available.',
+    },
+  ]}
+/>
 
 A good trace has 10-30 spans per request, 3-5 levels of nesting, clear names that explain each operation, and visible gaps that show where uninstrumented time went. You should be able to identify the critical path (the longest sequence of spans) at a glance.
 
@@ -469,15 +632,39 @@ For __caches__, use `cache.{operation}`: `cache.get`, `cache.set`. Include the k
 
 For __internal operations__, use `{domain}.{operation}`: `order.validate`, `payment.process`, `inventory.reserve`.
 
-| Context | Good Name | Bad Name | Problem with Bad Name |
-|---------|-----------|----------|----------------------|
-| HTTP handler | `HTTP GET /api/orders/{id}` | `handler` | No indication of method or resource |
-| Database | `db.query orders` | `SELECT * FROM...` | SQL syntax noise, potential sensitive data |
-| Cache | `cache.get` | `redis` | Technology not operation—what did you do? |
-| Business logic | `order.validate` | `validateOrder` | Function name leaks implementation detail |
-| External API | `HTTP POST` | `API call` | No method, no way to distinguish calls |
-
-Table: Span naming patterns.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Context', 'Good Name', 'Bad Name', 'Problem with Bad Name'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'HTTP handler',
+          td: ['`HTTP GET /api/orders/{id}`', '`handler`', 'No indication of method or resource'],
+        },
+        {
+          th: 'Database',
+          td: ['`db.query orders`', '`SELECT * FROM...`', 'SQL syntax noise, potential sensitive data'],
+        },
+        {
+          th: 'Cache',
+          td: ['`cache.get`', '`redis`', 'Technology not operation—what did you do?'],
+        },
+        {
+          th: 'Business logic',
+          td: ['`order.validate`', '`validateOrder`', 'Function name leaks implementation detail'],
+        },
+        {
+          th: 'External API',
+          td: ['`HTTP POST`', '`API call`', 'No method, no way to distinguish calls'],
+        },
+      ],
+    },
+    figure: 'Span naming patterns.',
+  }}
+/>
 
 <Callout type="info">
 Span names should answer "what operation on what resource?" at a glance. A developer should understand the trace without reading code. Use the OpenTelemetry semantic conventions as a starting point.
@@ -489,13 +676,27 @@ Span names should answer "what operation on what resource?" at a glance. A devel
 
 Attributes carry the metadata that makes traces useful. Choose them carefully—every attribute consumes storage, affects query performance, and either helps or clutters your debugging experience.
 
-**Essential attributes** belong on every relevant span. Identity attributes (`service.name`, `service.version`) let you filter traces by service and compare behavior across deployments—trace and span IDs are added automatically. Request attributes (`http.method`, `http.route`, `http.status_code`) describe the operation. User attributes (`user.id`, `user.role`, `tenant.id`) enable filtering by customer segment. Business attributes (`order.id`, `customer.tier`, `feature.flag`) connect technical traces to domain concepts.
-
-**Contextual attributes** add value in specific situations. Performance attributes (`db.rows_affected`, `cache.hit`, `retry.count`, `queue.depth`) help explain why an operation was slow. Debugging attributes (`error.type`, `error.message`, `exception.stacktrace`) accelerate root cause analysis. Business attributes like `payment.amount` or `order.item_count` provide context when investigating specific transactions.
-
-**Avoid certain attribute categories entirely.** PII (email addresses, names, credit card numbers, full IP addresses) creates compliance risk and rarely helps debugging—use pseudonymous identifiers instead. High-cardinality values (request IDs, timestamps, session IDs) bloat indexes without adding queryable value—use the trace ID for correlation, not a separate request ID. Large values (full request bodies, complete SQL queries) waste storage and obscure other attributes—log these elsewhere if needed. Redundant data (duration, parent span ID) duplicates information already in the span structure.
-
-**Cardinality determines query performance.** Low-cardinality attributes (under 100 unique values) like `http.method` or `http.status_code` index efficiently and query quickly. Medium-cardinality attributes (100–10,000 values) like `http.route` or `tenant.id` work acceptably for most backends. High-cardinality attributes (over 10,000 values) like timestamps or UUIDs cause index bloat and slow queries—avoid them unless essential.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Essential attributes',
+      text: 'belong on every relevant span. Identity attributes (`service.name`, `service.version`) let you filter traces by service and compare behavior across deployments—trace and span IDs are added automatically. Request attributes (`http.method`, `http.route`, `http.status_code`) describe the operation. User attributes (`user.id`, `user.role`, `tenant.id`) enable filtering by customer segment. Business attributes (`order.id`, `customer.tier`, `feature.flag`) connect technical traces to domain concepts.',
+    },
+    {
+      lead: 'Contextual attributes',
+      text: 'add value in specific situations. Performance attributes (`db.rows_affected`, `cache.hit`, `retry.count`, `queue.depth`) help explain why an operation was slow. Debugging attributes (`error.type`, `error.message`, `exception.stacktrace`) accelerate root cause analysis. Business attributes like `payment.amount` or `order.item_count` provide context when investigating specific transactions.',
+    },
+    {
+      lead: 'Avoid certain attribute categories entirely.',
+      text: 'PII (email addresses, names, credit card numbers, full IP addresses) creates compliance risk and rarely helps debugging—use pseudonymous identifiers instead. High-cardinality values (request IDs, timestamps, session IDs) bloat indexes without adding queryable value—use the trace ID for correlation, not a separate request ID. Large values (full request bodies, complete SQL queries) waste storage and obscure other attributes—log these elsewhere if needed. Redundant data (duration, parent span ID) duplicates information already in the span structure.',
+    },
+    {
+      lead: 'Cardinality determines query performance.',
+      text: 'Low-cardinality attributes (under 100 unique values) like `http.method` or `http.status_code` index efficiently and query quickly. Medium-cardinality attributes (100-10,000 values) like `http.route` or `tenant.id` work acceptably for most backends. High-cardinality attributes (over 10,000 values) like timestamps or UUIDs cause index bloat and slow queries—avoid them unless essential.',
+    },
+  ]}
+/>
 
 ### Attribute Value Patterns
 
@@ -560,7 +761,15 @@ High-cardinality attributes kill trace backend performance. Every unique attribu
 
 A well-instrumented request follows a predictable pattern: extract incoming trace context, create a root span for your service, add child spans for I/O operations, propagate context on outgoing calls, and record the outcome.
 
-**Middleware creates the root span.** The tracing middleware extracts any incoming trace context (so your service continues an existing trace rather than starting a new one), creates the root span with `SpanKind.SERVER`, and ensures the span ends when the response finishes—regardless of success or failure.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Middleware creates the root span.',
+      text: 'The tracing middleware extracts any incoming trace context (so your service continues an existing trace rather than starting a new one), creates the root span with `SpanKind.SERVER`, and ensures the span ends when the response finishes—regardless of success or failure.',
+    },
+  ]}
+/>
 
 ```typescript title="tracing-middleware.ts"
 import { trace, context, SpanKind, SpanStatusCode, propagation } from '@opentelemetry/api';
@@ -599,7 +808,15 @@ function tracingMiddleware(req: express.Request, res: express.Response, next: ex
 ```
 Code: Tracing middleware creates the root span.
 
-**Route handlers add child spans for I/O.** With the middleware handling span lifecycle, route handlers focus on business logic. Create child spans only for I/O operations—cache lookups, database queries, external calls—not for in-memory computation.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Route handlers add child spans for I/O.',
+      text: 'With the middleware handling span lifecycle, route handlers focus on business logic. Create child spans only for I/O operations—cache lookups, database queries, external calls—not for in-memory computation.',
+    },
+  ]}
+/>
 
 ```typescript title="route-handler.ts"
 async function getOrderHandler(req: express.Request, res: express.Response) {
@@ -641,7 +858,15 @@ async function getOrderHandler(req: express.Request, res: express.Response) {
 ```
 Code: Route handler with child spans for I/O operations.
 
-**External calls propagate context.** When calling other services, inject the current trace context into outgoing headers. This connects spans across service boundaries into a single distributed trace.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'External calls propagate context.',
+      text: 'When calling other services, inject the current trace context into outgoing headers. This connects spans across service boundaries into a single distributed trace.',
+    },
+  ]}
+/>
 
 ```typescript title="external-call.ts"
 async function fetchCustomer(customerId: string): Promise<Customer> {
@@ -698,7 +923,15 @@ Figure: Request instrumentation sequence.
 
 Batch processing is where span proliferation gets dangerous. Creating a span per item in a 10,000-item batch generates 10,000 spans—overwhelming your collector, bloating storage, and producing unreadable waterfalls.
 
-**The correct pattern: one span for the batch.** Wrap the entire batch in a single span. Record individual failures as events rather than child spans. Use attributes to capture summary statistics.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'The correct pattern: one span for the batch.',
+      text: 'Wrap the entire batch in a single span. Record individual failures as events rather than child spans. Use attributes to capture summary statistics.',
+    },
+  ]}
+/>
 
 ```typescript title="batch-single-span.ts"
 import { trace, SpanKind, SpanStatusCode } from '@opentelemetry/api';
@@ -735,7 +968,15 @@ async function processBatch(items: Item[]): Promise<BatchResult> {
 ```
 Code: Single span for a batch with events for failures.
 
-**For very large batches: spans per chunk.** If you need more granularity than a single batch span provides, create spans for chunks of 10–100 items—never for individual items. This gives you visibility into which portion of the batch had problems without creating thousands of spans.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'For very large batches: spans per chunk.',
+      text: 'If you need more granularity than a single batch span provides, create spans for chunks of 10-100 items—never for individual items. This gives you visibility into which portion of the batch had problems without creating thousands of spans.',
+    },
+  ]}
+/>
 
 ```typescript title="batch-chunked.ts"
 async function processLargeBatch(items: Item[]): Promise<BatchResult> {
@@ -768,7 +1009,15 @@ async function processLargeBatch(items: Item[]): Promise<BatchResult> {
 ```
 Code: Chunked spans for large batches.
 
-**The anti-pattern: span per item.** This looks intuitive but scales terribly. A 10,000-item batch creates 10,000 spans, each with overhead for creation, context propagation, and export.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'The anti-pattern: span per item.',
+      text: 'This looks intuitive but scales terribly. A 10,000-item batch creates 10,000 spans, each with overhead for creation, context propagation, and export.',
+    },
+  ]}
+/>
 
 ```typescript title="batch-wrong.ts"
 // WRONG: Creates thousands of spans

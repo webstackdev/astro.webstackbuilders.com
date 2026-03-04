@@ -27,14 +27,35 @@ The problems compound quickly. Shared test databases accumulate garbage data fro
 
 When an integration test fails, debugging becomes archaeology. A failure in Service X might be caused by a change in Service Y, but the stack trace only shows where the exception was thrown, not where the problem originated. Reproducing the failure locally requires spinning up the entire environment, which often behaves differently than CI.
 
-| Testing Approach | Speed | Reliability | Isolation | Catches Breaking Changes |
-|------------------|-------|-------------|-----------|-------------------------|
-| Unit tests | Fast | High | Complete | No (mocks hide reality) |
-| Integration tests | Slow | Low | None | Yes (in staging/prod) |
-| E2E tests | Very slow | Very low | None | Yes (in production-like) |
-| Contract tests | Fast | High | Complete | Yes (at PR time) |
-
-Table: Comparison of testing approaches for API compatibility.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Comparison of testing approaches for API compatibility.",
+    thead: {
+      th: ["Testing Approach", "Speed", "Reliability", "Isolation", "Catches Breaking Changes"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "Unit tests",
+          td: ["Fast", "High", "Complete", "No (mocks hide reality)"],
+        },
+        {
+          th: "Integration tests",
+          td: ["Slow", "Low", "None", "Yes (in staging/prod)"],
+        },
+        {
+          th: "E2E tests",
+          td: ["Very slow", "Very low", "None", "Yes (in production-like)"],
+        },
+        {
+          th: "Contract tests",
+          td: ["Fast", "High", "Complete", "Yes (at PR time)"],
+        },
+      ],
+    },
+  }}
+/>
 
 The fundamental problem is that integration tests conflate two concerns: verifying that your code works correctly, and verifying that your code is compatible with its dependencies. Unit tests verify correctness. Contract tests verify compatibility. Neither requires spinning up the entire world.
 

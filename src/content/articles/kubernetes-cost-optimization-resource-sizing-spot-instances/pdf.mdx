@@ -44,15 +44,39 @@ This distinction matters for cost because _requests determine how many nodes you
 
 Kubernetes assigns a QoS class based on how you set resources. _Guaranteed_ pods (requests equal limits for all resources) get the highest priority and are evicted last under pressure. _Burstable_ pods (requests less than limits) are the common case. _BestEffort_ pods (no requests or limits) are evicted first - avoid these in production. To control your pod's QoS class, set both CPU and memory requests equal to their limits for Guaranteed, or set requests lower than limits (or omit limits) for Burstable.
 
-| Aspect | Request | Limit |
-|--------|---------|-------|
-| Scheduling | Used for placement decisions | Not considered |
-| CPU behavior | Guaranteed minimum | Throttled if exceeded |
-| Memory behavior | Guaranteed minimum | OOM killed if exceeded |
-| Cluster capacity | Sum of requests = schedulable capacity | Sum of limits can exceed node capacity |
-| Cost impact | Directly determines node count | Indirectly affects density |
-
-Table: Requests vs limits comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Aspect', 'Request', 'Limit'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Scheduling',
+          td: ['Used for placement decisions', 'Not considered'],
+        },
+        {
+          th: 'CPU behavior',
+          td: ['Guaranteed minimum', 'Throttled if exceeded'],
+        },
+        {
+          th: 'Memory behavior',
+          td: ['Guaranteed minimum', 'OOM killed if exceeded'],
+        },
+        {
+          th: 'Cluster capacity',
+          td: ['Sum of requests = schedulable capacity', 'Sum of limits can exceed node capacity'],
+        },
+        {
+          th: 'Cost impact',
+          td: ['Directly determines node count', 'Indirectly affects density'],
+        },
+      ],
+    },
+    figure: 'Requests vs limits comparison.',
+  }}
+/>
 
 <Callout type="warning">
 Setting requests too high wastes money (nodes appear full but aren't). Setting requests too low causes scheduling failures (pods can't find nodes) or performance issues (resource contention). The goal is requests that match actual usage with a small buffer.
@@ -268,13 +292,31 @@ When a spot instance is about to be reclaimed, something needs to cordon the nod
 
 On AWS, deploy the `aws-node-termination-handler` as a DaemonSet on spot nodes. It monitors the instance metadata service for interruption warnings and triggers a drain when one arrives. GKE has built-in handling. AKS requires a separate node drain handler.
 
-| Provider | Warning Time | Detection Method | Handler |
-|----------|--------------|------------------|---------|
-| AWS | 2 minutes | IMDS + EventBridge | aws-node-termination-handler |
-| GCP | 30 seconds | Metadata server | Built-in GKE handling |
-| Azure | 30 seconds | Scheduled Events API | Node drain handler |
-
-Table: Spot interruption handling by provider.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Provider', 'Warning Time', 'Detection Method', 'Handler'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'AWS',
+          td: ['2 minutes', 'IMDS + EventBridge', 'aws-node-termination-handler'],
+        },
+        {
+          th: 'GCP',
+          td: ['30 seconds', 'Metadata server', 'Built-in GKE handling'],
+        },
+        {
+          th: 'Azure',
+          td: ['30 seconds', 'Scheduled Events API', 'Node drain handler'],
+        },
+      ],
+    },
+    figure: 'Spot interruption handling by provider.',
+  }}
+/>
 
 The 2-minute warning on AWS is usually enough to drain most pods, especially if they have short termination grace periods. GCP's 30-second warning is tighter - workloads need to shut down fast. If your pods take longer than the warning window to drain, they'll be killed ungracefully.
 
@@ -376,14 +418,35 @@ Code: Priority expander configuration for preferring spot instances.
 
 With this configuration, the autoscaler first tries to scale spot pools. If spot capacity isn't available (the cloud provider is out of that instance type), it falls back to general on-demand. The critical on-demand pool only gets used when everything else fails. Add `--expander=priority` and `--expanderConfigMap=cluster-autoscaler-priority-expander` to the autoscaler command to enable it.
 
-| Setting | Cost Optimization | Stability | Recommendation |
-|---------|-------------------|-----------|----------------|
-| scale-down-utilization-threshold | 0.5 (aggressive) | Lower | Start at 0.5, increase if too much churn |
-| scale-down-unneeded-time | 5m (aggressive) | Lower | 10m is balanced default |
-| scale-down-delay-after-add | 10m (balanced) | Higher | Prevents thrashing |
-| expander | priority or least-waste | N/A | Use priority for spot preference |
-
-Table: Autoscaler tuning recommendations.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Setting', 'Cost Optimization', 'Stability', 'Recommendation'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'scale-down-utilization-threshold',
+          td: ['0.5 (aggressive)', 'Lower', 'Start at 0.5, increase if too much churn'],
+        },
+        {
+          th: 'scale-down-unneeded-time',
+          td: ['5m (aggressive)', 'Lower', '10m is balanced default'],
+        },
+        {
+          th: 'scale-down-delay-after-add',
+          td: ['10m (balanced)', 'Higher', 'Prevents thrashing'],
+        },
+        {
+          th: 'expander',
+          td: ['priority or least-waste', 'N/A', 'Use priority for spot preference'],
+        },
+      ],
+    },
+    figure: 'Autoscaler tuning recommendations.',
+  }}
+/>
 
 ## Conclusion
 

@@ -62,10 +62,15 @@ Figure: Request lifecycle showing gateway overhead vs. backend latency with typi
 
 At minimum, instrument these separately:
 
-- _Gateway overhead_: Total request time minus upstream time
-- _Upstream time_: Time from sending the backend request until receiving the complete response
-- _Auth time_: Time spent on authentication and authorization
-- _Rate limit time_: Time spent checking rate limits
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Gateway overhead:", text: "Total request time minus upstream time" },
+    { lead: "Upstream time:", text: "Time from sending the backend request until receiving the complete response" },
+    { lead: "Auth time:", text: "Time spent on authentication and authorization" },
+    { lead: "Rate limit time:", text: "Time spent checking rate limits" },
+  ]}
+/>
 
 Here is how to instrument this in Prometheus:
 
@@ -110,13 +115,23 @@ For AWS API Gateway, use CloudWatch metrics (`Latency` and `IntegrationLatency`)
 
 When latency increases, this breakdown immediately narrows your investigation:
 
-- **Total latency is 3.2 seconds**: Is that a problem with the gateway or the backend?
-- **Gateway time is 5ms, backend time is 3.2 seconds**: The backend is slow. Don't investigate the gateway. (Good gateway time is typically under 10ms for simple auth and routing.)
-- **Gateway time is 3 seconds, backend time is 200ms**: The gateway has a problem (slow auth plugin, connection pool exhaustion, rate limiter blocking).
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Total latency is 3.2 seconds:", text: "Is that a problem with the gateway or the backend?" },
+    { lead: "Gateway time is 5ms, backend time is 3.2 seconds:", text: "The backend is slow. Don't investigate the gateway. (Good gateway time is typically under 10ms for simple auth and routing.)" },
+    { lead: "Gateway time is 3 seconds, backend time is 200ms:", text: "The gateway has a problem (slow auth plugin, connection pool exhaustion, rate limiter blocking)." },
+  ]}
+/>
 
-- **Gateway overhead spiked, upstream time flat**: Problem is in the gateway itself—check CPU, memory, connection pools, or auth provider latency.
-- **Upstream time spiked, gateway overhead flat**: Problem is in the backend—check backend service metrics, database performance, or downstream API calls.
-- **Both spiked**: Problem is systemic—check network issues, load balancer health, or cascading failures.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Gateway overhead spiked, upstream time flat:", text: "Problem is in the gateway itself—check CPU, memory, connection pools, or auth provider latency." },
+    { lead: "Upstream time spiked, gateway overhead flat:", text: "Problem is in the backend—check backend service metrics, database performance, or downstream API calls." },
+    { lead: "Both spiked:", text: "Problem is systemic—check network issues, load balancer health, or cascading failures." },
+  ]}
+/>
 
 The real-world impact: I once investigated a "slow gateway" complaint where P99 latency was 3.2 seconds. The breakdown showed 2ms gateway overhead and 3.198 seconds upstream time. The problem was a slow database query in the backend, not the gateway. Without the breakdown, we would have spent days optimizing the wrong component.
 
@@ -161,9 +176,14 @@ These tracing systems are interoperable via W3C Trace Context—you can trace fr
 
 Common propagation failures that break traces:
 
-- _No propagation_: Gateway doesn't forward `traceparent` to backends. Traces end at the gateway.
-- _Mixed formats_: Consumer sends W3C format, gateway converts to B3 format for some backends but not others. Traces fragment.
-- _Sampling ignored_: Consumer marks trace as "don't sample" but gateway samples anyway, or vice versa.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "No propagation:", text: "Gateway doesn't forward `traceparent` to backends. Traces end at the gateway." },
+    { lead: "Mixed formats:", text: "Consumer sends W3C format, gateway converts to B3 format for some backends but not others. Traces fragment." },
+    { lead: "Sampling ignored:", text: "Consumer marks trace as \"don't sample\" but gateway samples anyway, or vice versa." },
+  ]}
+/>
 
 Verify propagation by checking a trace end-to-end in your tracing UI. You should see a single trace with spans from consumer, gateway, and all backends. If you see disconnected traces, propagation is broken.
 
@@ -171,18 +191,25 @@ Verify propagation by checking a trace end-to-end in your tracing UI. You should
 
 A minimal span that just records "request happened" is useless. A well-designed span captures the context needed to understand the request:
 
-| Span Attribute | Source | Example Value |
-|----------------|--------|---------------|
-| `http.method` | Request | `POST` |
-| `http.route` | Route match | `/users/:id` |
-| `http.status_code` | Response | `200` |
-| `gateway.upstream.name` | Routing decision | `users-service` |
-| `gateway.consumer_id` | Auth plugin | `consumer-abc123` (opaque ID, not PII) |
-| `gateway.retry_count` | Retry logic | `2` |
-| `gateway.circuit_breaker.state` | Circuit breaker | `closed` |
-| `auth.method` | Auth plugin | `jwt`, `api-key` |
-
-Table: Essential gateway span attributes for debugging.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Essential gateway span attributes for debugging.",
+    thead: { th: ["Span Attribute", "Source", "Example Value"] },
+    tbody: {
+      tr: [
+        { th: "http.method", td: ["Request", "`POST`"] },
+        { th: "http.route", td: ["Route match", "`/users/:id`"] },
+        { th: "http.status_code", td: ["Response", "`200`"] },
+        { th: "gateway.upstream.name", td: ["Routing decision", "`users-service`"] },
+        { th: "gateway.consumer_id", td: ["Auth plugin", "`consumer-abc123` (opaque ID, not PII)"] },
+        { th: "gateway.retry_count", td: ["Retry logic", "`2`"] },
+        { th: "gateway.circuit_breaker.state", td: ["Circuit breaker", "`closed`"] },
+        { th: "auth.method", td: ["Auth plugin", "`jwt`, `api-key`"] },
+      ],
+    },
+  }}
+/>
 
 These attributes let you filter traces by consumer, route, or upstream in your tracing UI. When investigating a consumer complaint, you can immediately find all their traces and see which routes they hit and which backends served them.
 
@@ -248,10 +275,15 @@ If gateway overhead is high, check gateway resources (CPU, memory, connection po
 
 Find slow traces for the affected route in your tracing UI (Jaeger, Tempo, AWS X-Ray). Sort by duration. Look for:
 
-- Long spans indicating slow backend calls
-- Multiple retry attempts
-- Time spent waiting for connections (connection pool exhaustion)
-- Slow auth or rate limiting checks
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Long spans indicating slow backend calls" },
+    { text: "Multiple retry attempts" },
+    { text: "Time spent waiting for connections (connection pool exhaustion)" },
+    { text: "Slow auth or rate limiting checks" },
+  ]}
+/>
 
 ### Step 4: Check Upstream Health
 
@@ -271,10 +303,15 @@ If circuit breakers are open, the gateway's protecting itself from a failing bac
 
 Search logs for the affected time range and route. Look for:
 
-- Error messages from backends
-- Timeout logs
-- Retry attempts
-- Connection errors or exhausted connection pool warnings
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Error messages from backends" },
+    { text: "Timeout logs" },
+    { text: "Retry attempts" },
+    { text: "Connection errors or exhausted connection pool warnings" },
+  ]}
+/>
 
 The pattern is always the same: start broad with metrics, zoom in with traces, explain with logs.
 

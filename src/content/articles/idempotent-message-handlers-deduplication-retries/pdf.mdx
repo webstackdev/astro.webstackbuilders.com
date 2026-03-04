@@ -36,11 +36,23 @@ Before diving into implementation, it's worth understanding why duplicates are i
 
 ### Understanding Message Delivery Semantics
 
-**At-most-once** delivery is the simplest: acknowledge the message immediately upon receipt, before processing. If your handler crashes mid-processing, the message is gone. This works for telemetry, cache invalidation, and anything where losing the occasional message is acceptable. You'll never see duplicates, but you will lose data.
-
-**At-least-once** delivery flips the tradeoff: acknowledge only after successful processing. If your handler crashes, the message gets redelivered. You won't lose messages, but you will see duplicates. A handler can also explicitly reject a message with a NACK (negative acknowledgment) to trigger immediate redelivery - useful when you detect a transient failure and want to retry without waiting for a timeout. This is the right choice for business events, payments, order processing - anything where losing a message is worse than processing it twice.
-
-**Exactly-once** delivery is what everyone wants and nobody truly gets. What systems actually provide is "effectively once" - at-least-once delivery combined with idempotent handlers. The message may arrive multiple times, but idempotent processing ensures the result is the same as if it arrived once.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "At-most-once",
+      text: "delivery is the simplest: acknowledge the message immediately upon receipt, before processing. If your handler crashes mid-processing, the message is gone. This works for telemetry, cache invalidation, and anything where losing the occasional message is acceptable. You'll never see duplicates, but you will lose data.",
+    },
+    {
+      lead: "At-least-once",
+      text: "delivery flips the tradeoff: acknowledge only after successful processing. If your handler crashes, the message gets redelivered. You won't lose messages, but you will see duplicates. A handler can also explicitly reject a message with a NACK (negative acknowledgment) to trigger immediate redelivery - useful when you detect a transient failure and want to retry without waiting for a timeout. This is the right choice for business events, payments, order processing - anything where losing a message is worse than processing it twice.",
+    },
+    {
+      lead: "Exactly-once",
+      text: "delivery is what everyone wants and nobody truly gets. What systems actually provide is \"effectively once\" - at-least-once delivery combined with idempotent handlers. The message may arrive multiple times, but idempotent processing ensures the result is the same as if it arrived once.",
+    },
+  ]}
+/>
 
 ```mermaid
 graph LR
@@ -67,13 +79,31 @@ Figure: Message delivery semantics - at-most-once risks loss, at-least-once risk
 
 The table below summarizes when to use each guarantee:
 
-| Guarantee | Message Loss | Duplicates | Complexity | When to Use |
-|-----------|--------------|------------|------------|-------------|
-| At-most-once | Possible | Never | Low | Metrics, logs, non-critical |
-| At-least-once | Never | Possible | Medium | Most business events |
-| Exactly-once | Never | Never | High | Financial, requires idempotency |
-
-Table: Delivery guarantee comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Delivery guarantee comparison.",
+    thead: {
+      th: ["Guarantee", "Message Loss", "Duplicates", "Complexity", "When to Use"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "At-most-once",
+          td: ["Possible", "Never", "Low", "Metrics, logs, non-critical"],
+        },
+        {
+          th: "At-least-once",
+          td: ["Never", "Possible", "Medium", "Most business events"],
+        },
+        {
+          th: "Exactly-once",
+          td: ["Never", "Never", "High", "Financial, requires idempotency"],
+        },
+      ],
+    },
+  }}
+/>
 
 Why is at-least-once so common? Because the failure modes that cause redelivery are unavoidable in distributed systems. Network partitions mean acknowledgments get lost even when processing succeeded. Consumer crashes mean the process completes but never reports success. Timeouts mean processing took too long and the queue assumed failure. Consumer group rebalances in Kafka, visibility timeouts in SQS - all of these lead to the same outcome: a message that was already processed gets delivered again.
 
@@ -85,13 +115,27 @@ The idempotency key is the identifier your handler uses to recognize duplicate m
 
 There are four common strategies, each with distinct tradeoffs:
 
-**Producer-supplied message ID** is the cleanest approach. The producer generates a UUID or ULID when creating the message and includes it in the payload. This key survives redeliveries because it's part of the message content, not queue metadata. The downside is that it requires producer discipline - every producer must generate and include a unique ID.
-
-**Content hash** works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content _should_ be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.
-
-**Business key composite** combines entity identifiers with operation context: `order:12345:payment:v3`. This approach has semantic meaning, making debugging easier, but requires careful thought about what constitutes a unique operation. Does a payment retry get a new version, or should it reuse the same key?
-
-**Queue message ID** - don't use this. SQS assigns a new MessageId on each redelivery. RabbitMQ's delivery tag changes. This approach only deduplicates within a single delivery attempt, which defeats the purpose entirely.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Producer-supplied message ID",
+      text: "is the cleanest approach. The producer generates a UUID or ULID when creating the message and includes it in the payload. This key survives redeliveries because it's part of the message content, not queue metadata. The downside is that it requires producer discipline - every producer must generate and include a unique ID.",
+    },
+    {
+      lead: "Content hash",
+      text: "works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content _should_ be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
+    },
+    {
+      lead: "Business key composite",
+      text: "combines entity identifiers with operation context: `order:12345:payment:v3`. This approach has semantic meaning, making debugging easier, but requires careful thought about what constitutes a unique operation. Does a payment retry get a new version, or should it reuse the same key?",
+    },
+    {
+      lead: "Queue message ID",
+      text: "- don't use this. SQS assigns a new MessageId on each redelivery. RabbitMQ's delivery tag changes. This approach only deduplicates within a single delivery attempt, which defeats the purpose entirely.",
+    },
+  ]}
+/>
 
 The recommended pattern combines producer-supplied IDs with business context:
 
@@ -120,11 +164,23 @@ Code: Recommended idempotency key pattern combining producer ID with business co
 
 Beyond the key format, you need to decide how long to remember processed keys and at what scope.
 
-**Global scope** means any service can check whether a message ID was already processed. This requires a centralized idempotency store (typically Redis or a shared database) and makes sense when the same message might be consumed by multiple services.
-
-**Entity scope** limits deduplication to a specific business entity. The key `order:12345:payment` only needs to be unique within the context of order 12345. This allows storing idempotency state alongside the entity itself, eliminating the need for a separate store.
-
-**Time-windowed scope** partitions keys by time period: `metric:cpu:host-789:2024-01-15T10:00`. This bounds storage growth for high-volume systems where eventual consistency is acceptable.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Global scope",
+      text: "means any service can check whether a message ID was already processed. This requires a centralized idempotency store (typically Redis or a shared database) and makes sense when the same message might be consumed by multiple services.",
+    },
+    {
+      lead: "Entity scope",
+      text: "limits deduplication to a specific business entity. The key `order:12345:payment` only needs to be unique within the context of order 12345. This allows storing idempotency state alongside the entity itself, eliminating the need for a separate store.",
+    },
+    {
+      lead: "Time-windowed scope",
+      text: "partitions keys by time period: `metric:cpu:host-789:2024-01-15T10:00`. This bounds storage growth for high-volume systems where eventual consistency is acceptable.",
+    },
+  ]}
+/>
 
 For key lifetime (TTL), the rule is straightforward: your TTL must exceed the maximum redelivery window. If a message can be redelivered up to 7 days after initial delivery, your idempotency keys must survive at least that long. For most systems, 7 days covers retry scenarios. Financial systems often extend to 30-90 days to satisfy audit requirements.
 
@@ -255,14 +311,35 @@ Figure: Idempotency flow - second delivery skips processing entirely.
 
 Which storage should you use? It depends on your consistency requirements and latency budget:
 
-| Storage | Latency | Durability | Complexity | Best For |
-|---------|---------|------------|------------|----------|
-| Redis | ~1ms | Configurable (AOF) | Low | High-throughput, short TTL |
-| PostgreSQL | ~5ms | High (ACID) | Medium | Transactional consistency |
-| DynamoDB | ~10ms | High | Low | Serverless, global scale |
-| In-memory | &lt;1ms | None | Very low | Single instance, testing |
-
-Table: Idempotency store options comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Idempotency store options comparison.",
+    thead: {
+      th: ["Storage", "Latency", "Durability", "Complexity", "Best For"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "Redis",
+          td: ["~1ms", "Configurable (AOF)", "Low", "High-throughput, short TTL"],
+        },
+        {
+          th: "PostgreSQL",
+          td: ["~5ms", "High (ACID)", "Medium", "Transactional consistency"],
+        },
+        {
+          th: "DynamoDB",
+          td: ["~10ms", "High", "Low", "Serverless, global scale"],
+        },
+        {
+          th: "In-memory",
+          td: ["&lt;1ms", "None", "Very low", "Single instance, testing"],
+        },
+      ],
+    },
+  }}
+/>
 
 <Callout type="success">
 For financial operations, use database-level deduplication with the idempotency key as a unique constraint on the business table. This guarantees atomicity - you can't insert a duplicate payment because the database itself prevents it.
@@ -326,23 +403,49 @@ Code: Idempotent handler base class separating deduplication from business logic
 
 Not every operation needs explicit deduplication. Some operations are _naturally idempotent_ - executing them multiple times produces the same result as executing once.
 
-**Set operations** are naturally idempotent. `user.email = 'new@example.com'` produces the same state whether you run it once or ten times. Same with `UPDATE users SET email = $1 WHERE id = $2`.
-
-**Upserts** are naturally idempotent. `INSERT ... ON CONFLICT UPDATE` converges to the same final state regardless of how many times you execute it.
-
-**Deletes by ID** are naturally idempotent. `DELETE FROM orders WHERE id = 123` succeeds once and becomes a no-op on subsequent executions.
-
-**Absolute state sets** are naturally idempotent. `inventory.setQuantity(sku, 5)` sets the quantity to 5, not "adds 5." Running it twice still leaves the quantity at 5.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Set operations",
+      text: "are naturally idempotent. `user.email = 'new@example.com'` produces the same state whether you run it once or ten times. Same with `UPDATE users SET email = $1 WHERE id = $2`.",
+    },
+    {
+      lead: "Upserts",
+      text: "are naturally idempotent. `INSERT ... ON CONFLICT UPDATE` converges to the same final state regardless of how many times you execute it.",
+    },
+    {
+      lead: "Deletes by ID",
+      text: "are naturally idempotent. `DELETE FROM orders WHERE id = 123` succeeds once and becomes a no-op on subsequent executions.",
+    },
+    {
+      lead: "Absolute state sets",
+      text: "are naturally idempotent. `inventory.setQuantity(sku, 5)` sets the quantity to 5, not \"adds 5.\" Running it twice still leaves the quantity at 5.",
+    },
+  ]}
+/>
 
 ### Operations That Require Deduplication
 
 The operations that _aren't_ naturally idempotent are the ones that accumulate:
 
-**Increments** compound on each execution. `balance += 100` adds 100 every time. The fix is to track which operations have been applied: `applyDeposit(depositId, 100)` can check whether `depositId` was already applied.
-
-**Appends** grow the collection. `items.push(newItem)` adds another entry each time. The fix is to include an item ID and check before appending: `if (!items.some(i => i.id === newItem.id)) items.push(newItem)`.
-
-**External side effects** like sending emails or notifications aren't naturally idempotent. The user receives the email on each execution. Track sent notifications by key to prevent duplicates.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Increments",
+      text: "compound on each execution. `balance += 100` adds 100 every time. The fix is to track which operations have been applied: `applyDeposit(depositId, 100)` can check whether `depositId` was already applied.",
+    },
+    {
+      lead: "Appends",
+      text: "grow the collection. `items.push(newItem)` adds another entry each time. The fix is to include an item ID and check before appending: `if (!items.some(i => i.id === newItem.id)) items.push(newItem)`.",
+    },
+    {
+      lead: "External side effects",
+      text: "like sending emails or notifications aren't naturally idempotent. The user receives the email on each execution. Track sent notifications by key to prevent duplicates.",
+    },
+  ]}
+/>
 
 <Callout type="info">
 Prefer naturally idempotent operations when possible. "Set quantity to 5" is naturally idempotent. "Decrease quantity by 1" requires deduplication. Design your domain model to favor absolute state over relative changes.
@@ -671,15 +774,39 @@ Code: Kafka idempotent consumer with database-backed deduplication.
 
 The table below summarizes what each major queue provides out of the box. The pattern is consistent: every queue requires handler-side idempotency for production workloads. Built-in deduplication helps at the margins but doesn't eliminate the need for application-level duplicate detection.
 
-| Queue | Built-in Deduplication | Scope | Handler Idempotency Needed? |
-|-------|------------------------|-------|----------------------------|
-| SQS Standard | None | N/A | Yes |
-| SQS FIFO | MessageDeduplicationId | 5 minutes | Yes (for longer) |
-| Kafka | Idempotent producer | Producer session | Yes (consumer side) |
-| RabbitMQ | None | N/A | Yes |
-| Azure Service Bus | MessageId | Session/window | Yes |
-
-Table: Queue deduplication capabilities - all require handler-side idempotency.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Queue deduplication capabilities - all require handler-side idempotency.",
+    thead: {
+      th: ["Queue", "Built-in Deduplication", "Scope", "Handler Idempotency Needed?"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "SQS Standard",
+          td: ["None", "N/A", "Yes"],
+        },
+        {
+          th: "SQS FIFO",
+          td: ["MessageDeduplicationId", "5 minutes", "Yes (for longer)"],
+        },
+        {
+          th: "Kafka",
+          td: ["Idempotent producer", "Producer session", "Yes (consumer side)"],
+        },
+        {
+          th: "RabbitMQ",
+          td: ["None", "N/A", "Yes"],
+        },
+        {
+          th: "Azure Service Bus",
+          td: ["MessageId", "Session/window", "Yes"],
+        },
+      ],
+    },
+  }}
+/>
 
 <Callout type="success">
 Queue-level deduplication is a bonus, not a replacement for handler idempotency. Design your handlers assuming messages will be delivered multiple times, regardless of what the queue documentation says about "exactly-once."

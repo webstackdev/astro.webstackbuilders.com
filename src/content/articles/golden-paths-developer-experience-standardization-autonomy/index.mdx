@@ -32,26 +32,48 @@ There's a better way. Golden paths offer curated, supported ways to accomplish c
 
 A golden path is a supported, well-documented way to accomplish a common task that the platform team actively maintains and improves. That definition has important implications:
 
-_Opinionated but not mandatory_: The path has strong defaults, but usage is optional. Your default CI template uses standard runners, but teams can bring their own if they have a reason.
-
-_Optimized for the common case_: The 80/20 rule applies. Your REST API template covers 80% of services; gRPC teams use an escape hatch. You're not trying to solve every problem—you're making the common case trivial.
-
-_Actively maintained_: The platform team owns updates, security patches, and improvements. Teams on the path get those updates automatically. This is the value proposition: stay on the path and maintenance is someone else's problem.
-
-_Well documented_: Clear docs, tutorials, examples, and troubleshooting guides. A getting-started guide that works, and a decision tree for when to use (and not use) the path.
-
-_Measurably better_: The path has demonstrable advantages over alternatives—50% faster deployments, 3x fewer security incidents, whatever the metrics are for your context. If you can't show the path is better, why should teams use it?
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Opinionated but not mandatory", text: "The path has strong defaults, but usage is optional. Your default CI template uses standard runners, but teams can bring their own if they have a reason." },
+    { lead: "Optimized for the common case", text: "The 80/20 rule applies. Your REST API template covers 80% of services; gRPC teams use an escape hatch. You're not trying to solve every problem—you're making the common case trivial." },
+    { lead: "Actively maintained", text: "The platform team owns updates, security patches, and improvements. Teams on the path get those updates automatically. This is the value proposition: stay on the path and maintenance is someone else's problem." },
+    { lead: "Well documented", text: "Clear docs, tutorials, examples, and troubleshooting guides. A getting-started guide that works, and a decision tree for when to use (and not use) the path." },
+    { lead: "Measurably better", text: "The path has demonstrable advantages over alternatives—50% faster deployments, 3x fewer security incidents, whatever the metrics are for your context. If you can't show the path is better, why should teams use it?" },
+  ]}
+/>
 
 The difference between a golden path and golden handcuffs comes down to choice:
 
-| Golden Path | Golden Handcuffs |
-|-------------|------------------|
-| Opinionated defaults, optional usage | Mandatory compliance, no exceptions |
-| Escape hatches for edge cases | Edge cases forced into ill-fitting solutions |
-| Adoption driven by value | Adoption driven by enforcement |
-| Teams choose it because it's better | Teams resent it because they have no choice |
-
-Table: Golden paths vs. golden handcuffs.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Golden paths vs. golden handcuffs.",
+    thead: {
+      th: ["Golden Path", "Golden Handcuffs"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "Opinionated defaults, optional usage",
+          td: ["Mandatory compliance, no exceptions"],
+        },
+        {
+          th: "Escape hatches for edge cases",
+          td: ["Edge cases forced into ill-fitting solutions"],
+        },
+        {
+          th: "Adoption driven by value",
+          td: ["Adoption driven by enforcement"],
+        },
+        {
+          th: "Teams choose it because it's better",
+          td: ["Teams resent it because they have no choice"],
+        },
+      ],
+    },
+  }}
+/>
 
 But having the right philosophy isn't enough. The mechanism that makes golden paths work in practice is the escape hatch.
 
@@ -61,13 +83,15 @@ But having the right philosophy isn't enough. The mechanism that makes golden pa
 
 Escape hatches are how teams leave the golden path when they have a legitimate reason. Done well, they're a first-class feature of the platform. Done poorly, they're either so hidden that teams work around them anyway, or so easy that everyone uses them and the path becomes meaningless.
 
-_Escape hatches should be documented, not hidden_. They're part of the platform, not loopholes. The alternative deployment guide lives in the main docs, not on a hidden wiki page. If teams have to discover escape hatches through word of mouth, you've created a two-tier system where connected teams have options and everyone else doesn't.
-
-_Friction should be proportional to risk_. Not all deviations are equal. A custom Dockerfile might need only a self-review and a note in the README—that's a minor override. Custom network configuration needs a security review—that's a significant exception. An entirely separate infrastructure stack needs VP approval and a convergence plan—that's off-platform. The process should match the risk, not be uniformly heavy or uniformly light.
-
-_A path back should exist_. Teams should be able to return to the golden path later. If taking an escape hatch is a one-way door, teams will be reluctant to use it even when appropriate, and you'll accumulate permanent exceptions. Provide migration guides from custom to standard.
-
-_Support levels should be clear_. Teams know what support they'll get (or won't). Escape hatch means best-effort support, not SLA. This isn't punitive—it's honest about where the platform team's expertise and tooling apply.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Escape hatches should be documented, not hidden", text: "They're part of the platform, not loopholes. The alternative deployment guide lives in the main docs, not on a hidden wiki page. If teams have to discover escape hatches through word of mouth, you've created a two-tier system where connected teams have options and everyone else doesn't." },
+    { lead: "Friction should be proportional to risk", text: "Not all deviations are equal. A custom Dockerfile might need only a self-review and a note in the README—that's a minor override. Custom network configuration needs a security review—that's a significant exception. An entirely separate infrastructure stack needs VP approval and a convergence plan—that's off-platform. The process should match the risk, not be uniformly heavy or uniformly light." },
+    { lead: "A path back should exist", text: "Teams should be able to return to the golden path later. If taking an escape hatch is a one-way door, teams will be reluctant to use it even when appropriate, and you'll accumulate permanent exceptions. Provide migration guides from custom to standard." },
+    { lead: "Support levels should be clear", text: "Teams know what support they'll get (or won't). Escape hatch means best-effort support, not SLA. This isn't punitive—it's honest about where the platform team's expertise and tooling apply." },
+  ]}
+/>
 
 <Callout type="info">
 Escape hatches without tracking become invisible technical debt. If you don't know who's using alternatives and why, you can't plan path improvements, estimate migration costs, or sunset deprecated options. Every escape hatch usage should be registered.

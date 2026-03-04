@@ -110,6 +110,24 @@ describe('remark-restore-time-colons', () => {
     })
   })
 
+  describe('citation page ranges', () => {
+    it('corrupts citation page ranges without the fix', async () => {
+      const output = await processWithoutFix(
+        'AACN Adv Crit Care. 2013 Oct-Dec;24(4):378-86.'
+      )
+      expect(output).toContain('<div></div>')
+      expect(output).not.toContain('24(4):378-86')
+    })
+
+    it('preserves citation page ranges with the fix', async () => {
+      const output = await processToHtml(
+        'AACN Adv Crit Care. 2013 Oct-Dec;24(4):378-86.'
+      )
+      expect(output).toContain('24(4):378-86')
+      expect(output).not.toContain('<div></div>')
+    })
+  })
+
   describe('non-time directives are unaffected', () => {
     it('does not interfere with alphabetic text directives', async () => {
       // A real text directive like :abbr[HTML] should not be touched

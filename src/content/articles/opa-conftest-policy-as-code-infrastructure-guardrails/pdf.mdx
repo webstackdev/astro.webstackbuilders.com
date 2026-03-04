@@ -39,9 +39,23 @@ OPA is a general-purpose policy engine that decouples policy decisions from poli
 
 Three deployment modes serve different use cases:
 
-- **Library mode**: Embed OPA directly in applications for authorization decisions. Go applications can import OPA as a package; other languages use WASM or REST APIs.
-- **Daemon mode**: Run OPA as a sidecar or standalone service. Kubernetes admission controllers use this pattern—the API server sends admission requests to OPA, which returns allow/deny decisions.
-- **CLI mode**: Evaluate policies from the command line. This is where Conftest enters: it wraps OPA's CLI with ergonomic defaults for infrastructure files.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Library mode',
+      text: 'Embed OPA directly in applications for authorization decisions. Go applications can import OPA as a package; other languages use WASM or REST APIs.',
+    },
+    {
+      lead: 'Daemon mode',
+      text: 'Run OPA as a sidecar or standalone service. Kubernetes admission controllers use this pattern—the API server sends admission requests to OPA, which returns allow/deny decisions.',
+    },
+    {
+      lead: 'CLI mode',
+      text: 'Evaluate policies from the command line. This is where Conftest enters: it wraps OPA\'s CLI with ergonomic defaults for infrastructure files.',
+    },
+  ]}
+/>
 
 Conftest handles the plumbing that makes OPA practical for IaC. It parses Terraform, Kubernetes YAML, Dockerfiles, and other formats into JSON that OPA can evaluate. It provides sensible output formatting, exit codes for CI, and project conventions for organizing policies.
 
@@ -152,14 +166,42 @@ With these fundamentals in place—rules, iteration, sets, and data—you have t
 
 ### Common Rego Patterns
 
-| Pattern | Use Case | Example |
-|---------|----------|---------|
-| Required field | Ensure configuration exists | `not input.spec.selector` |
-| Allowed values | Whitelist valid options | `input.type in {"ClusterIP", "NodePort"}` |
-| Regex matching | Pattern validation | `regex.match("^[a-z][a-z0-9-]*$", name)` |
-| Numeric constraints | Range validation | `input.replicas > 0; input.replicas <= 10` |
-| Cross-resource | Reference related objects | `data.namespaces[input.metadata.namespace]` |
-| Conditional | Environment-specific rules | `is_production; ... production-only rule ...` |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Pattern', 'Use Case', 'Example'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Required field',
+          td: ['Ensure configuration exists', '`not input.spec.selector`'],
+        },
+        {
+          th: 'Allowed values',
+          td: ['Whitelist valid options', '`input.type in {"ClusterIP", "NodePort"}`'],
+        },
+        {
+          th: 'Regex matching',
+          td: ['Pattern validation', '`regex.match("^[a-z][a-z0-9-]*$", name)`'],
+        },
+        {
+          th: 'Numeric constraints',
+          td: ['Range validation', '`input.replicas > 0; input.replicas <= 10`'],
+        },
+        {
+          th: 'Cross-resource',
+          td: ['Reference related objects', '`data.namespaces[input.metadata.namespace]`'],
+        },
+        {
+          th: 'Conditional',
+          td: ['Environment-specific rules', '`is_production; ... production-only rule ...`'],
+        },
+      ],
+    },
+  }}
+/>
 
 The patterns most useful for infrastructure policies combine iteration with existence checks:
 
@@ -199,13 +241,27 @@ Rego's learning curve is real but bounded. Most infrastructure policies use a sm
 
 Four principles separate policies that get adopted from policies that get bypassed:
 
-**Single responsibility.** Each rule should check one thing. A 50-line rule that validates images, resources, _and_ labels produces confusing violations and resists modification. Split concerns into separate rules: `deny_unauthorized_image`, `deny_missing_resources`, `deny_missing_labels`. When a violation fires, developers know exactly what to fix.
-
-**Actionable messages.** "Policy violation" tells the developer nothing. "Container missing resource limits" is better. "Container 'nginx' missing resource limits. Add `spec.containers[].resources.limits.cpu` and `memory`" is what they actually need. Include the resource name, the violation, and the fix path.
-
-**Minimal false positives.** Precision matters more than recall. A policy that blocks valid configurations trains developers to request exceptions—or bypass the system entirely. Start permissive and tighten over time. Test against real configurations before enforcing. Provide escape hatches for legitimate edge cases.
-
-**Fast evaluation.** Policies should evaluate in milliseconds, not seconds. Avoid external HTTP calls within policies—pre-load data into bundles. Avoid complex regex on large inputs. Avoid deep recursion. The goal is sub-second feedback that doesn't interrupt flow.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Single responsibility.',
+      text: 'Each rule should check one thing. A 50-line rule that validates images, resources, and labels produces confusing violations and resists modification. Split concerns into separate rules: `deny_unauthorized_image`, `deny_missing_resources`, `deny_missing_labels`. When a violation fires, developers know exactly what to fix.',
+    },
+    {
+      lead: 'Actionable messages.',
+      text: '"Policy violation" tells the developer nothing. "Container missing resource limits" is better. "Container \'nginx\' missing resource limits. Add `spec.containers[].resources.limits.cpu` and `memory`" is what they actually need. Include the resource name, the violation, and the fix path.',
+    },
+    {
+      lead: 'Minimal false positives.',
+      text: 'Precision matters more than recall. A policy that blocks valid configurations trains developers to request exceptions—or bypass the system entirely. Start permissive and tighten over time. Test against real configurations before enforcing. Provide escape hatches for legitimate edge cases.',
+    },
+    {
+      lead: 'Fast evaluation.',
+      text: 'Policies should evaluate in milliseconds, not seconds. Avoid external HTTP calls within policies—pre-load data into bundles. Avoid complex regex on large inputs. Avoid deep recursion. The goal is sub-second feedback that doesn\'t interrupt flow.',
+    },
+  ]}
+/>
 
 Structure violation messages consistently:
 
@@ -217,8 +273,17 @@ Code: Violation message template.
 
 Examples:
 
-- `Deployment 'api-server': Missing required label 'team'. Fix: Add metadata.labels.team with your team name.`
-- `Pod 'worker': Container 'app' uses image from unauthorized registry 'docker.io'. Fix: Use images from 'gcr.io/company-project' or 'artifactory.company.com'.`
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: "`Deployment 'api-server': Missing required label 'team'. Fix: Add metadata.labels.team with your team name.`",
+    },
+    {
+      text: "`Pod 'worker': Container 'app' uses image from unauthorized registry 'docker.io'. Fix: Use images from 'gcr.io/company-project' or 'artifactory.company.com'.`",
+    },
+  ]}
+/>
 
 ### Policy Organization
 
@@ -493,16 +558,43 @@ Pre-commit only runs against staged files by default, which keeps evaluation fas
 
 The [pre-commit framework](https://pre-commit.com/) shown above is language-agnostic and works across ecosystems, but each stack has its canonical approach:
 
-| Ecosystem | Pre-commit Tool | Installation |
-|-----------|-----------------|---------------|
-| Python | pre-commit | `pip install pre-commit && pre-commit install` |
-| Node.js | Husky + lint-staged | `npx husky init` (works for any project with package.json) |
-| Ruby/Rails | Overcommit | `gem install overcommit && overcommit --install` |
-| PHP/Laravel | GrumPHP | `composer require --dev phpro/grumphp` |
-| .NET/C# | Husky.Net | `dotnet tool install husky` |
-| Go | pre-commit or lefthook | `go install github.com/evilmartians/lefthook` |
-
-Table: Pre-commit tools by ecosystem.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Ecosystem', 'Pre-commit Tool', 'Installation'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Python',
+          td: ['pre-commit', '`pip install pre-commit && pre-commit install`'],
+        },
+        {
+          th: 'Node.js',
+          td: ['Husky + lint-staged', '`npx husky init` (works for any project with package.json)'],
+        },
+        {
+          th: 'Ruby/Rails',
+          td: ['Overcommit', '`gem install overcommit && overcommit --install`'],
+        },
+        {
+          th: 'PHP/Laravel',
+          td: ['GrumPHP', '`composer require --dev phpro/grumphp`'],
+        },
+        {
+          th: '.NET/C#',
+          td: ['Husky.Net', '`dotnet tool install husky`'],
+        },
+        {
+          th: 'Go',
+          td: ['pre-commit or lefthook', '`go install github.com/evilmartians/lefthook`'],
+        },
+      ],
+    },
+    figure: 'Pre-commit tools by ecosystem.',
+  }}
+/>
 
 Husky is Node.js-based but runs any shell command, making it viable for polyglot repositories with a `package.json`. For pure infrastructure repos without Node, the Python pre-commit framework or Lefthook (Go-based, no runtime dependencies) are better choices.
 
@@ -583,15 +675,39 @@ The `--output github` flag formats violations as GitHub annotations, surfacing t
 
 Other platforms have equivalent mechanisms:
 
-| Platform | Protection Mechanism | Configuration Location |
-|----------|---------------------|------------------------|
-| GitHub | Branch protection rules | Settings → Branches → Add rule |
-| GitLab | Protected branches + merge request approvals | Settings → Repository → Protected branches |
-| Bitbucket | Branch permissions + merge checks | Repository settings → Branch permissions |
-| Azure DevOps | Branch policies | Repos → Branches → Branch policies |
-| AWS CodePipeline | Approval actions + CodeBuild gates | Pipeline definition (no native branch protection) |
-
-Table: Branch protection across CI platforms.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Platform', 'Protection Mechanism', 'Configuration Location'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'GitHub',
+          td: ['Branch protection rules', 'Settings → Branches → Add rule'],
+        },
+        {
+          th: 'GitLab',
+          td: ['Protected branches + merge request approvals', 'Settings → Repository → Protected branches'],
+        },
+        {
+          th: 'Bitbucket',
+          td: ['Branch permissions + merge checks', 'Repository settings → Branch permissions'],
+        },
+        {
+          th: 'Azure DevOps',
+          td: ['Branch policies', 'Repos → Branches → Branch policies'],
+        },
+        {
+          th: 'AWS CodePipeline',
+          td: ['Approval actions + CodeBuild gates', 'Pipeline definition (no native branch protection)'],
+        },
+      ],
+    },
+    figure: 'Branch protection across CI platforms.',
+  }}
+/>
 
 AWS CodePipeline lacks native branch protection—you'll need to combine it with a Git provider's branch rules or add manual approval stages. Azure DevOps and GitLab offer the most granular controls, including path-based policies and approval requirements.
 
@@ -635,15 +751,39 @@ Code: Pre-compiled policy bundles.
 ```
 Code: GitHub Actions cache configuration.
 
-| Optimization | Speedup | Example (50 policies, 100 files) | Complexity |
-|-------------|---------|----------------------------------|------------|
-| Namespace filtering | 2-4x | 8s → 2s | Low |
-| Parallel execution | 2-4x | 8s → 2s | Low |
-| Policy bundling | 1.5-2x | 8s → 5s | Medium |
-| Selective file patterns | 2-5x | 8s → 2s | Low |
-| Combined | 5-15x | 8s → 0.6s | Medium |
-
-Table: Performance optimization impact.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Optimization', 'Speedup', 'Example (50 policies, 100 files)', 'Complexity'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Namespace filtering',
+          td: ['2-4x', '8s → 2s', 'Low'],
+        },
+        {
+          th: 'Parallel execution',
+          td: ['2-4x', '8s → 2s', 'Low'],
+        },
+        {
+          th: 'Policy bundling',
+          td: ['1.5-2x', '8s → 5s', 'Medium'],
+        },
+        {
+          th: 'Selective file patterns',
+          td: ['2-5x', '8s → 2s', 'Low'],
+        },
+        {
+          th: 'Combined',
+          td: ['5-15x', '8s → 0.6s', 'Medium'],
+        },
+      ],
+    },
+    figure: 'Performance optimization impact.',
+  }}
+/>
 
 ### Debugging Policy Failures
 
@@ -789,27 +929,69 @@ Code: Required tagging policy.
 
 Two approaches exist for evaluating Terraform configurations, each with tradeoffs. HCL (HashiCorp Configuration Language) is Terraform's native syntax—the `.tf` files developers write. Plan JSON is the output of `terraform show -json`, containing the fully resolved execution plan with all variables interpolated and modules expanded.
 
-| Aspect | HCL Parsing | Plan JSON |
-|--------|-------------|-----------|
-| Speed | Fast (< 1 second) | Slow (requires `terraform plan`) |
-| Credentials | None required | Cloud credentials needed |
-| Variable resolution | No | Yes |
-| Module expansion | No | Yes |
-| Data source values | No | Yes |
-
-Table: HCL vs Plan JSON comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Aspect', 'HCL Parsing', 'Plan JSON'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Speed',
+          td: ['Fast (< 1 second)', 'Slow (requires `terraform plan`)'],
+        },
+        {
+          th: 'Credentials',
+          td: ['None required', 'Cloud credentials needed'],
+        },
+        {
+          th: 'Variable resolution',
+          td: ['No', 'Yes'],
+        },
+        {
+          th: 'Module expansion',
+          td: ['No', 'Yes'],
+        },
+        {
+          th: 'Data source values',
+          td: ['No', 'Yes'],
+        },
+      ],
+    },
+    figure: 'HCL vs Plan JSON comparison.',
+  }}
+/>
 
 HCL parsing is best for syntax checks and naming conventions where speed matters. Plan JSON is best for security policies and compliance checks that need the complete resolved configuration.
 
 HCL parsing (`conftest test *.tf --parser hcl2`) catches static violations without cloud access. Plan JSON evaluation sees the complete resolved configuration. Use both at different stages:
 
-| Stage | Check | Time |
-|-------|-------|------|
-| Developer machine | HCL static analysis | < 5 seconds |
-| PR opened | HCL + basic plan | < 2 minutes |
-| PR approved | Full plan analysis | < 5 minutes |
-
-Table: Layered evaluation stages.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Stage', 'Check', 'Time'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Developer machine',
+          td: ['HCL static analysis', '< 5 seconds'],
+        },
+        {
+          th: 'PR opened',
+          td: ['HCL + basic plan', '< 2 minutes'],
+        },
+        {
+          th: 'PR approved',
+          td: ['Full plan analysis', '< 5 minutes'],
+        },
+      ],
+    },
+    figure: 'Layered evaluation stages.',
+  }}
+/>
 
 <Callout type="info">
 Use HCL parsing for fast feedback (pre-commit, early CI) and plan JSON for comprehensive checks (late CI, pre-deploy). The two approaches complement each other.
@@ -992,14 +1174,35 @@ Code: Image tag and registry policies.
 
 Conftest supports three severity levels: `deny` (blocks deployment), `warn` (allows with warning), and `violation` (informational). Map severity to policy type and environment:
 
-| Policy Type | Production | Non-Production |
-|-------------|------------|----------------|
-| Security (privileged, root) | deny | deny |
-| Resource limits | deny | warn |
-| Image tags | deny | warn |
-| Naming conventions | warn | info |
-
-Table: Severity mapping by environment.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Policy Type', 'Production', 'Non-Production'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Security (privileged, root)',
+          td: ['deny', 'deny'],
+        },
+        {
+          th: 'Resource limits',
+          td: ['deny', 'warn'],
+        },
+        {
+          th: 'Image tags',
+          td: ['deny', 'warn'],
+        },
+        {
+          th: 'Naming conventions',
+          td: ['warn', 'info'],
+        },
+      ],
+    },
+    figure: 'Severity mapping by environment.',
+  }}
+/>
 
 A single policy file can define both `deny` and `warn` rules. Conftest evaluates all rules and reports violations by severity—`deny` violations cause a non-zero exit code, `warn` violations are reported but don't block:
 
@@ -1109,11 +1312,26 @@ Code: Data-driven exception lookup with glob matching.
 
 Exceptions without governance accumulate indefinitely. A structured process keeps exceptions visible and time-bounded:
 
-1. Developer adds exception annotation with reason
-2. PR triggers policy check—warns about exception usage
-3. Security team reviews exception request
-4. If approved, merge with exception and expiration date
-5. Exception logged in audit system
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      text: 'Developer adds exception annotation with reason',
+    },
+    {
+      text: 'PR triggers policy check—warns about exception usage',
+    },
+    {
+      text: 'Security team reviews exception request',
+    },
+    {
+      text: 'If approved, merge with exception and expiration date',
+    },
+    {
+      text: 'Exception logged in audit system',
+    },
+  ]}
+/>
 
 The annotation format captures required metadata:
 
@@ -1129,15 +1347,39 @@ Code: Exception annotation format.
 
 Different exception types warrant different governance levels:
 
-| Exception Type | Max Duration | Review Frequency | Approval Required |
-|---------------|--------------|------------------|-------------------|
-| Privileged container | 30 days | Weekly | Security team |
-| Host network | 30 days | Weekly | Security team |
-| Missing limits | 90 days | Monthly | Team lead |
-| Non-standard image | 90 days | Monthly | Team lead |
-| Deprecated API | 180 days | Quarterly | Platform team |
-
-Table: Exception governance by type.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Exception Type', 'Max Duration', 'Review Frequency', 'Approval Required'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Privileged container',
+          td: ['30 days', 'Weekly', 'Security team'],
+        },
+        {
+          th: 'Host network',
+          td: ['30 days', 'Weekly', 'Security team'],
+        },
+        {
+          th: 'Missing limits',
+          td: ['90 days', 'Monthly', 'Team lead'],
+        },
+        {
+          th: 'Non-standard image',
+          td: ['90 days', 'Monthly', 'Team lead'],
+        },
+        {
+          th: 'Deprecated API',
+          td: ['180 days', 'Quarterly', 'Platform team'],
+        },
+      ],
+    },
+    figure: 'Exception governance by type.',
+  }}
+/>
 
 Track exception metrics to identify patterns: total active exceptions, exceptions by policy type, exceptions by team, expired exceptions still in use, average exception age. Alert on anomalies—exceptions granted without expiration, exceptions older than 90 days, namespaces with excessive exceptions.
 

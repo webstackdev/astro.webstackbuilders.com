@@ -56,14 +56,35 @@ The `validateResponses: true` option deserves attention. Enable it in developmen
 
 Other frameworks have equivalent solutions. If you're in Python, FastAPI handles this automatically—your Pydantic type hints _are_ your validation schema, and FastAPI generates an OpenAPI spec from them. You get validation and documentation from the same source without any additional configuration. Rails has `committee` (Rack middleware that validates against a spec file), Laravel has `spectator`, Go has `kin-openapi` for Echo, Chi, and Gin. The pattern is the same across all of them: point middleware at your spec, let it reject malformed requests before they hit your business logic.
 
-| Framework | Library | Approach |
-| --------- | ------- | -------- |
-| Express/Node | `express-openapi-validator` | Middleware validates against spec file |
-| FastAPI/Python | Built-in with Pydantic | Type hints become validation schema |
-| Rails | `committee` | Rack middleware validates against spec |
-| Go | `kin-openapi` | Middleware for Echo, Chi, Gin |
-
-Table: OpenAPI validation libraries across frameworks.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Framework', 'Library', 'Approach'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Express/Node',
+          td: ['`express-openapi-validator`', 'Middleware validates against spec file'],
+        },
+        {
+          th: 'FastAPI/Python',
+          td: ['Built-in with Pydantic', 'Type hints become validation schema'],
+        },
+        {
+          th: 'Rails',
+          td: ['`committee`', 'Rack middleware validates against spec'],
+        },
+        {
+          th: 'Go',
+          td: ['`kin-openapi`', 'Middleware for Echo, Chi, Gin'],
+        },
+      ],
+    },
+    figure: 'OpenAPI validation libraries across frameworks.',
+  }}
+/>
 
 One detail that's easy to overlook: raw validation errors are developer-friendly but user-hostile. You'll get JSON Pointer paths like `/body/items/0/quantity` and messages like `must be >= 1`. Transform these into something API consumers can actually use—`/body/items/0/quantity` becomes `items[0].quantity must be at least 1`. Your error handler becomes the translation layer between spec-level validation and user-facing errors.
 

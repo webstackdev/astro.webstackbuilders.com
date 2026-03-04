@@ -46,10 +46,27 @@ Code: ECS-compliant log entry. Field names like `user.id` and `error.type` are s
 
 The key field groups to adopt immediately:
 
-- `service.*` — which service emitted the log (`service.name`, `service.version`)
-- `trace.*` — correlation context (`trace.id`, `span.id`)
-- `event.*` — what happened (`event.action`, `event.outcome`)
-- `error.*` — failure details (`error.type`, `error.message`, `error.stack_trace`)
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'service.\*',
+      text: 'which service emitted the log (service.name, service.version)',
+    },
+    {
+      lead: 'trace.\*',
+      text: 'correlation context (trace.id, span.id)',
+    },
+    {
+      lead: 'event.\*',
+      text: 'what happened (event.action, event.outcome)',
+    },
+    {
+      lead: 'error.\*',
+      text: 'failure details (error.type, error.message, error.stack_trace)',
+    },
+  ]}
+/>
 
 You don't need to adopt all 800 fields. Start with these four groups and expand as needed.
 
@@ -65,14 +82,35 @@ A consistent schema lets you query individual services reliably. Correlation IDs
 
 Not all correlation IDs serve the same purpose. Here's the hierarchy you need:
 
-| ID Type | Scope | Purpose | Example |
-|---------|-------|---------|---------|
-| Trace ID | Entire request tree | Connect all services in a request | `4bf92f3577b34da6a...` |
-| Span ID | Single service hop | Distinguish parent/child operations | `00f067aa0ba902b7` |
-| Request ID | Single HTTP request | Correlate with load balancer logs | `req_abc123` |
-| Transaction ID | Business operation | Group related requests (e.g., checkout flow) | `order-12345` |
-
-_Table: Correlation ID types and their scopes. Trace ID is the most important—it stays constant across all services._
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['ID Type', 'Scope', 'Purpose', 'Example'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Trace ID',
+          td: ['Entire request tree', 'Connect all services in a request', '`4bf92f3577b34da6a...`'],
+        },
+        {
+          th: 'Span ID',
+          td: ['Single service hop', 'Distinguish parent/child operations', '`00f067aa0ba902b7`'],
+        },
+        {
+          th: 'Request ID',
+          td: ['Single HTTP request', 'Correlate with load balancer logs', '`req_abc123`'],
+        },
+        {
+          th: 'Transaction ID',
+          td: ['Business operation', 'Group related requests (e.g., checkout flow)', '`order-12345`'],
+        },
+      ],
+    },
+    figure: 'Correlation ID types and their scopes. Trace ID is the most important—it stays constant across all services.',
+  }}
+/>
 
 The key insight: _trace ID stays constant_ across every service that handles the request. When you query `trace.id:4bf92f3577b34da6a`, you get logs from the API gateway, order service, payment service, inventory service, and notification service—everything involved in that single user action.
 
@@ -104,7 +142,7 @@ Async messaging requires a different approach since there are no HTTP headers. I
 }
 ```
 
-_Code: Message envelope with correlation context. The `causationId` creates an audit trail of what triggered what._
+Code: Message envelope with correlation context. The `causationId` creates an audit trail of what triggered what._
 
 ### AsyncLocalStorage for Automatic Context
 
@@ -144,7 +182,7 @@ async function fetchWithCorrelation(url: string, options: RequestInit = {}) {
 }
 ```
 
-_Code: AsyncLocalStorage pattern for correlation context. Extract in middleware, access anywhere via `getCorrelationContext()`, inject automatically in outbound calls._
+Code: AsyncLocalStorage pattern for correlation context. Extract in middleware, access anywhere via `getCorrelationContext()`, inject automatically in outbound calls._
 
 With this pattern, your logger can call `getCorrelationContext()` and automatically include trace IDs in every log—no explicit ID passing required.
 
@@ -156,10 +194,27 @@ Every HTTP client in your codebase must propagate correlation headers. A single 
 
 These patterns break correlation in production. Each creates gaps in your trace data:
 
-- _Generating new trace IDs per service_ — Logs can't be joined. Extract the incoming `traceparent`; only generate if missing.
-- _Direct HTTP client usage_ — Outbound calls don't propagate headers. Use `fetchWithCorrelation()` or instrumented clients.
-- _Fire-and-forget async_ — Background work loses context. Capture context before spawning; restore in the async handler.
-- _Batched message processing_ — All messages share one correlation. Process each message in its own `contextStorage.run()` scope.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Generating new trace IDs per service',
+      text: "Logs can't be joined. Extract the incoming traceparent; only generate if missing.",
+    },
+    {
+      lead: 'Direct HTTP client usage',
+      text: 'Outbound calls do not propagate headers. Use fetchWithCorrelation() or instrumented clients.',
+    },
+    {
+      lead: 'Fire-and-forget async',
+      text: 'Background work loses context. Capture context before spawning; restore in the async handler.',
+    },
+    {
+      lead: 'Batched message processing',
+      text: 'All messages share one correlation. Process each message in its own contextStorage.run() scope.',
+    },
+  ]}
+/>
 
 ## Making It Stick
 
@@ -179,7 +234,7 @@ it('emits valid ECS-compliant logs', () => {
 })
 ```
 
-_Code: Schema compliance test. Ajv validates the log structure; the regex assertion ensures trace IDs are present and correctly formatted._
+Code: Schema compliance test. Ajv validates the log structure; the regex assertion ensures trace IDs are present and correctly formatted._
 
 In production, Prometheus metrics can track correlation coverage. Set a target—99% of logs should have trace IDs—and alert when it drops. Missing correlation usually indicates logging from outside request context: background jobs, startup code, or uninstrumented libraries.
 
@@ -191,10 +246,27 @@ A 99% correlation target is achievable within weeks. The remaining 1% is typical
 
 You don't need to fix every service at once. A practical rollout:
 
-1. _Week 1_: Adopt ECS field names for new logs in one service
-2. _Week 2_: Add correlation middleware to that service
-3. _Week 3_: Query for logs missing `trace.id` and fix the gaps—usually background jobs or uninstrumented libraries
-4. _Week 4_: Expand to the next service in your critical path
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: 'Week 1:',
+      text: 'Adopt ECS field names for new logs in one service',
+    },
+    {
+      lead: 'Week 2:',
+      text: 'Add correlation middleware to that service',
+    },
+    {
+      lead: 'Week 3:',
+      text: 'Query for logs missing trace.id and fix the gaps-usually background jobs or uninstrumented libraries',
+    },
+    {
+      lead: 'Week 4:',
+      text: 'Expand to the next service in your critical path',
+    },
+  ]}
+/>
 
 Within a month, your most important request paths will be fully correlated. The rest can follow incrementally.
 

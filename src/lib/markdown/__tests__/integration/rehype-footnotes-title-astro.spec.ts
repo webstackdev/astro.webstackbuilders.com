@@ -19,4 +19,22 @@ describe('rehype-footnotes-title (Layer 2: With Astro Pipeline)', () => {
     expect(html).toContain('data-footnote-backref')
     expect(html).toContain('title="Return to footnote 1"')
   })
+
+  it('should set aria-labelledby on the footnotes section', async () => {
+    const markdown = `Here is a footnote.[^1]
+
+[^1]: My reference.`
+
+    const html = await processWithAstroSettings({
+      markdown,
+      plugin: rehypeFootnotesTitle,
+      pluginOptions: rehypeFootnotesTitleConfig,
+      stage: 'rehype',
+    })
+
+    expect(html).toContain('data-footnotes')
+    expect(html).toContain('aria-labelledby="footnote-label"')
+    expect(html).toContain('id="footnote-label"')
+    expect(html).not.toContain('class="sr-only"')
+  })
 })

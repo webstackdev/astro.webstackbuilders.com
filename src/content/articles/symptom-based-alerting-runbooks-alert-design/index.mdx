@@ -21,11 +21,23 @@ The most common alerting mistake is alerting on _causes_ rather than _symptoms_.
 
 Consider three classic cause-based alerts and their symptom-based alternatives:
 
-_High CPU usage_ fires when `cpu_usage > 90%`. But CPU can spike during legitimate load, garbage collection, or batch jobs without any user impact. The symptom-based alternative—elevated request latency—only fires when users are actually affected. Many different causes lead to latency; one symptom alert catches them all.
-
-_Low disk space_ fires when `disk_free < 10%`. But this triggers on expected growth, archival systems, and cold storage that's supposed to be full. The symptom-based alternative—write failures increasing—only fires when disk space is causing actual failures. Keep disk space as a ticket for business hours, not a 2 AM page.
-
-_Database connections high_ fires when connections exceed 80% of max. But connection pools often run hot without issues. The symptom-based alternative—query timeouts—only fires when connection exhaustion impacts queries. Connection monitoring becomes a dashboard metric, not an alert.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'High CPU usage',
+      text: 'fires when cpu_usage > 90%. But CPU can spike during legitimate load, garbage collection, or batch jobs without any user impact. The symptom-based alternative-elevated request latency-only fires when users are actually affected. Many different causes lead to latency; one symptom alert catches them all.',
+    },
+    {
+      lead: 'Low disk space',
+      text: "fires when disk_free < 10%. But this triggers on expected growth, archival systems, and cold storage that's supposed to be full. The symptom-based alternative-write failures increasing-only fires when disk space is causing actual failures. Keep disk space as a ticket for business hours, not a 2 AM page.",
+    },
+    {
+      lead: 'Database connections high',
+      text: 'fires when connections exceed 80% of max. But connection pools often run hot without issues. The symptom-based alternative-query timeouts-only fires when connection exhaustion impacts queries. Connection monitoring becomes a dashboard metric, not an alert.',
+    },
+  ]}
+/>
 
 The pattern is consistent: causes are _potential_ problems; symptoms are _actual_ problems. This leads to a simple rule: page on symptoms, ticket on causes.
 
@@ -70,14 +82,35 @@ Burn rate measures how fast you're consuming your error budget relative to a sus
 
 The math: if your monthly budget is 0.1% errors and you're currently seeing 1.44% errors (14.4 × 0.1%), you're burning 14.4x faster than sustainable. At that rate, your 30-day budget disappears in 30 days ÷ 14.4 ≈ 2 hours.
 
-| Burn Rate | Budget Exhaustion | Appropriate Response |
-|-----------|-------------------|----------------------|
-| 14.4x | 2 hours | Page immediately |
-| 6x | 5 hours | Page during waking hours |
-| 3x | 10 days | Create ticket |
-| 1x | 30 days | Dashboard metric only |
-
-Table: Burn rate to response mapping. The exhaustion timeline determines urgency, not the raw error rate.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Burn Rate', 'Budget Exhaustion', 'Appropriate Response'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '14.4x',
+          td: ['2 hours', 'Page immediately'],
+        },
+        {
+          th: '6x',
+          td: ['5 hours', 'Page during waking hours'],
+        },
+        {
+          th: '3x',
+          td: ['10 days', 'Create ticket'],
+        },
+        {
+          th: '1x',
+          td: ['30 days', 'Dashboard metric only'],
+        },
+      ],
+    },
+    figure: 'Burn rate to response mapping. The exhaustion timeline determines urgency, not the raw error rate.',
+  }}
+/>
 
 Here's what a 14.4x burn rate alert looks like in Prometheus:
 
@@ -121,11 +154,23 @@ The symptom vs cause distinction and burn rate math are the technical foundation
   ]}
 />
 
-_Every alert needs a runbook._ If you can't write down how to diagnose and remediate an alert, you don't understand it well enough to wake someone up for it. The runbook doesn't need to be exhaustive—a summary of user impact, links to relevant dashboards, common causes ranked by likelihood, and escalation criteria are enough. The point is that a 2 AM responder shouldn't have to reverse-engineer what the alert means.
-
-_Track your actionable rate._ If fewer than 80% of your alerts require human intervention to resolve, you have a noise problem. An alert that auto-recovers, requires no action, or fires for non-issues is training your team to ignore the pager. Track this metric weekly and treat declining actionable rates as a priority issue.
-
-_Review alerts monthly._ Alerts decay. Thresholds that made sense six months ago may be too sensitive or too lax today. Services get renamed. Runbooks reference deprecated tools. Schedule a monthly review where you walk through every alert that fired, ask whether it was actionable, and decide whether to keep, modify, or delete it. Retire any alert that hasn't fired in 6 months or has less than 50% actionable rate.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Every alert needs a runbook.',
+      text: "If you can't write down how to diagnose and remediate an alert, you don't understand it well enough to wake someone up for it. The runbook doesn't need to be exhaustive-a summary of user impact, links to relevant dashboards, common causes ranked by likelihood, and escalation criteria are enough. The point is that a 2 AM responder shouldn't have to reverse-engineer what the alert means.",
+    },
+    {
+      lead: 'Track your actionable rate.',
+      text: 'If fewer than 80% of your alerts require human intervention to resolve, you have a noise problem. An alert that auto-recovers, requires no action, or fires for non-issues is training your team to ignore the pager. Track this metric weekly and treat declining actionable rates as a priority issue.',
+    },
+    {
+      lead: 'Review alerts monthly.',
+      text: "Alerts decay. Thresholds that made sense six months ago may be too sensitive or too lax today. Services get renamed. Runbooks reference deprecated tools. Schedule a monthly review where you walk through every alert that fired, ask whether it was actionable, and decide whether to keep, modify, or delete it. Retire any alert that hasn't fired in 6 months or has less than 50% actionable rate.",
+    },
+  ]}
+/>
 
 <Callout type="info">
 The goal isn't zero alerts—it's ensuring every alert that fires represents a real problem that requires human intervention, and the human receiving it has everything they need to resolve it quickly. Start by auditing your current alerts: calculate your actionable rate over the past month. If it's below 80%, you have work to do.

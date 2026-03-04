@@ -73,10 +73,27 @@ Code: Terraform state file structure showing the key fields.
 
 The critical fields are:
 
-- __version__: The state format version (currently 4). Terraform uses this to handle state migrations between versions.
-- __serial__: Incremented on every state change. This is how Terraform detects concurrent modifications — if you try to write serial 43 but the backend has serial 44, someone else modified state while you were working.
-- __lineage__: A unique identifier for this state's history. If lineage doesn't match, you're trying to push state from an entirely different Terraform configuration.
-- __resources__: The mapping between your config (`aws_vpc.main`) and real infrastructure (`vpc-0123456789abcdef0`), including all the attributes Terraform knows about.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'version',
+      text: 'The state format version (currently 4). Terraform uses this to handle state migrations between versions.',
+    },
+    {
+      lead: 'serial',
+      text: 'Incremented on every state change. This is how Terraform detects concurrent modifications — if you try to write serial 43 but the backend has serial 44, someone else modified state while you were working.',
+    },
+    {
+      lead: 'lineage',
+      text: "A unique identifier for this state's history. If lineage doesn't match, you're trying to push state from an entirely different Terraform configuration.",
+    },
+    {
+      lead: 'resources',
+      text: 'The mapping between your config (`aws_vpc.main`) and real infrastructure (`vpc-0123456789abcdef0`), including all the attributes Terraform knows about.',
+    },
+  ]}
+/>
 
 When you run `terraform plan`, Terraform reads this state, queries the cloud provider for current reality, compares both against your configuration, and calculates the diff. If any of these three inputs are wrong — stale state, API errors, or config mistakes — the plan will be wrong.
 
@@ -84,15 +101,39 @@ When you run `terraform plan`, Terraform reads this state, queries the cloud pro
 
 State solves essential problems, but each solution introduces its own failure modes.
 
-| Purpose | How State Helps | What Can Go Wrong |
-|---------|-----------------|-------------------|
-| Resource mapping | Maps config names to cloud IDs | Mapping lost = orphaned resources |
-| Dependency ordering | Tracks implicit dependencies | Corrupted deps = wrong destroy order |
-| Performance | Caches attributes, avoids API calls | Stale cache = drift detection fails |
-| Collaboration | Shared state enables team workflows | Concurrent writes = corruption |
-| Drift detection | Compares state to reality | State-reality mismatch = confusion |
-
-Table: State file purposes and their associated failure modes.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Purpose', 'How State Helps', 'What Can Go Wrong'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Resource mapping',
+          td: ['Maps config names to cloud IDs', 'Mapping lost = orphaned resources'],
+        },
+        {
+          th: 'Dependency ordering',
+          td: ['Tracks implicit dependencies', 'Corrupted deps = wrong destroy order'],
+        },
+        {
+          th: 'Performance',
+          td: ['Caches attributes, avoids API calls', 'Stale cache = drift detection fails'],
+        },
+        {
+          th: 'Collaboration',
+          td: ['Shared state enables team workflows', 'Concurrent writes = corruption'],
+        },
+        {
+          th: 'Drift detection',
+          td: ['Compares state to reality', 'State-reality mismatch = confusion'],
+        },
+      ],
+    },
+    figure: 'State file purposes and their associated failure modes.',
+  }}
+/>
 
 <Callout type="warning">
 State files contain sensitive data in plaintext: database passwords, API keys, private keys. Treat state as a secret. Encrypt at rest, restrict access, and never commit to version control.
@@ -173,15 +214,39 @@ Point-in-time recovery on the lock table might seem excessive, but it's saved me
 
 Different backends implement locking differently, with varying reliability and recovery procedures.
 
-| Backend | Lock Mechanism | Lock Timeout | Force Unlock Method |
-|---------|---------------|--------------|---------------------|
-| S3 + DynamoDB | DynamoDB conditional writes | Infinite | `terraform force-unlock LOCK_ID` |
-| Azure Blob | Blob lease | 60s (renewable) | Break lease via Azure CLI |
-| GCS | Object generation numbers | None (optimistic) | Delete lock object |
-| PostgreSQL | Advisory locks | Session-based | Kill database session |
-| Terraform Cloud | Built-in run queue | Configurable | Cancel run in UI/API |
-
-Table: Backend locking mechanisms and recovery methods.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Backend', 'Lock Mechanism', 'Lock Timeout', 'Force Unlock Method'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'S3 + DynamoDB',
+          td: ['DynamoDB conditional writes', 'Infinite', '`terraform force-unlock LOCK_ID`'],
+        },
+        {
+          th: 'Azure Blob',
+          td: ['Blob lease', '60s (renewable)', 'Break lease via Azure CLI'],
+        },
+        {
+          th: 'GCS',
+          td: ['Object generation numbers', 'None (optimistic)', 'Delete lock object'],
+        },
+        {
+          th: 'PostgreSQL',
+          td: ['Advisory locks', 'Session-based', 'Kill database session'],
+        },
+        {
+          th: 'Terraform Cloud',
+          td: ['Built-in run queue', 'Configurable', 'Cancel run in UI/API'],
+        },
+      ],
+    },
+    figure: 'Backend locking mechanisms and recovery methods.',
+  }}
+/>
 
 Azure Blob uses lease-based locking with a 60-second timeout that auto-renews during operations. The upside: if your process crashes, the lock releases automatically. The downside: long-running applies can lose their lock if renewal fails due to network issues, leaving you with a partially applied state and no lock. GCS uses optimistic locking via object generations, which means conflicts are detected at write time rather than prevented upfront.
 
@@ -195,17 +260,35 @@ State corruption isn't always obvious. Sometimes Terraform tells you directly wi
 
 The most frequent causes of state problems, roughly in order of how often I've encountered them:
 
-__Interrupted applies__ happen when someone hits Ctrl+C during an apply, or a network failure kills the connection, or CI times out. The cloud resource might be partially created, fully created, or not created at all — but state reflects whatever Terraform believed at the moment of interruption. Symptoms: plan shows unexpected changes, or tries to create resources that already exist.
-
-__Concurrent modifications__ occur despite locking, usually because someone ran Terraform locally while CI was running, or two CI jobs targeted the same state due to misconfigured triggers. Symptoms: "state serial mismatch" errors, or changes from one apply silently missing after another.
-
-__Manual state edits__ are tempting when you need to fix something quickly, but JSON is unforgiving. A missing comma, a wrong type, or a malformed resource address can corrupt the entire file. Symptoms: parse errors on any Terraform command.
-
-__Provider version mismatches__ happen when you upgrade providers without considering state compatibility. The provider's internal schema version might change, and state written by the old provider might not be readable by the new one. Symptoms: warnings about schema versions, unexpected replacement plans.
-
-__External changes__ (drift) aren't corruption in the strict sense, but they cause the same confusion. Someone modified a resource in the AWS console, or another tool manages the same resource. Symptoms: plan shows changes you didn't make in code.
-
-__Backend migration failures__ are the worst because they can leave you with state in two places (or nowhere). If migration is interrupted, you might have partial state in the new backend and full state in the old one, or orphaned locks. Symptoms: resources appear to not exist, lock errors referencing the wrong backend.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Interrupted applies',
+      text: "happen when someone hits Ctrl+C during an apply, or a network failure kills the connection, or CI times out. The cloud resource might be partially created, fully created, or not created at all — but state reflects whatever Terraform believed at the moment of interruption. Symptoms: plan shows unexpected changes, or tries to create resources that already exist.",
+    },
+    {
+      lead: 'Concurrent modifications',
+      text: 'occur despite locking, usually because someone ran Terraform locally while CI was running, or two CI jobs targeted the same state due to misconfigured triggers. Symptoms: "state serial mismatch" errors, or changes from one apply silently missing after another.',
+    },
+    {
+      lead: 'Manual state edits',
+      text: 'are tempting when you need to fix something quickly, but JSON is unforgiving. A missing comma, a wrong type, or a malformed resource address can corrupt the entire file. Symptoms: parse errors on any Terraform command.',
+    },
+    {
+      lead: 'Provider version mismatches',
+      text: "happen when you upgrade providers without considering state compatibility. The provider's internal schema version might change, and state written by the old provider might not be readable by the new one. Symptoms: warnings about schema versions, unexpected replacement plans.",
+    },
+    {
+      lead: 'External changes (drift)',
+      text: "aren't corruption in the strict sense, but they cause the same confusion. Someone modified a resource in the AWS console, or another tool manages the same resource. Symptoms: plan shows changes you didn't make in code.",
+    },
+    {
+      lead: 'Backend migration failures',
+      text: 'are the worst because they can leave you with state in two places (or nowhere). If migration is interrupted, you might have partial state in the new backend and full state in the old one, or orphaned locks. Symptoms: resources appear to not exist, lock errors referencing the wrong backend.',
+    },
+  ]}
+/>
 
 ### Detecting State Issues
 
@@ -410,16 +493,43 @@ Your choice of backend determines how state is stored, how locking works, and wh
 
 ### Backend Comparison
 
-| Factor | S3 + DynamoDB | Azure Blob | GCS | PostgreSQL | Terraform Cloud |
-|--------|--------------|------------|-----|------------|------------------|
-| Setup complexity | Medium | Low | Low | High | Very Low |
-| Locking reliability | High | Medium | Medium | High | Very High |
-| Cost | Low | Low | Low | Self-managed | Free tier available |
-| Encryption | KMS | Built-in | KMS | Manual | Built-in |
-| Versioning | S3 versioning | Blob versioning | Object versioning | Manual | Built-in |
-| Access control | IAM policies | Azure RBAC | IAM policies | Database ACLs | Team permissions |
-
-Table: Backend comparison for common deployment scenarios.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Factor', 'S3 + DynamoDB', 'Azure Blob', 'GCS', 'PostgreSQL', 'Terraform Cloud'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Setup complexity',
+          td: ['Medium', 'Low', 'Low', 'High', 'Very Low'],
+        },
+        {
+          th: 'Locking reliability',
+          td: ['High', 'Medium', 'Medium', 'High', 'Very High'],
+        },
+        {
+          th: 'Cost',
+          td: ['Low', 'Low', 'Low', 'Self-managed', 'Free tier available'],
+        },
+        {
+          th: 'Encryption',
+          td: ['KMS', 'Built-in', 'KMS', 'Manual', 'Built-in'],
+        },
+        {
+          th: 'Versioning',
+          td: ['S3 versioning', 'Blob versioning', 'Object versioning', 'Manual', 'Built-in'],
+        },
+        {
+          th: 'Access control',
+          td: ['IAM policies', 'Azure RBAC', 'IAM policies', 'Database ACLs', 'Team permissions'],
+        },
+      ],
+    },
+    figure: 'Backend comparison for common deployment scenarios.',
+  }}
+/>
 
 S3 + DynamoDB is the most battle-tested option for AWS shops. Azure Blob works well for Azure-centric teams. GCS is solid but uses optimistic locking, which means conflicts are detected at write time rather than prevented upfront. PostgreSQL is a good choice if you're already running a database and want to avoid cloud-specific dependencies — it uses advisory locks which are reliable but require managing the database yourself. Terraform Cloud handles everything for you but adds a dependency on HashiCorp's infrastructure.
 
@@ -513,7 +623,15 @@ The lifecycle configuration keeps 90 days of old versions, transitioning them to
 
 How you organize state files across environments and components affects both security and operational complexity. There are three common patterns:
 
-__Path-based separation__ uses different S3 key prefixes for each environment and component. This is the simplest approach and works well for most teams.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Path-based separation',
+      text: 'uses different S3 key prefixes for each environment and component. This is the simplest approach and works well for most teams.',
+    },
+  ]}
+/>
 
 ```hcl title="environments/production/backend.tf"
 terraform {
@@ -529,9 +647,19 @@ terraform {
 
 Code: Path-based state separation by environment and component.
 
-__Workspace-based separation__ uses Terraform workspaces to manage multiple environments from the same configuration. The state key includes the workspace name automatically. This works for simple cases but can get confusing when environments need different configurations.
-
-__Account-based separation__ puts state in the same AWS account as the infrastructure it manages. This is more complex to set up but provides stronger isolation — a compromise in one account's state doesn't expose other accounts.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Workspace-based separation',
+      text: 'uses Terraform workspaces to manage multiple environments from the same configuration. The state key includes the workspace name automatically. This works for simple cases but can get confusing when environments need different configurations.',
+    },
+    {
+      lead: 'Account-based separation',
+      text: "puts state in the same AWS account as the infrastructure it manages. This is more complex to set up but provides stronger isolation — a compromise in one account's state doesn't expose other accounts.",
+    },
+  ]}
+/>
 
 ```mermaid
 flowchart TD
@@ -652,13 +780,27 @@ Having backups is not enough — you must verify you can restore from them. Sche
 
 Beyond CI/CD and backups, a few operational practices significantly reduce state problems:
 
-__Pin provider and Terraform versions.__ Provider updates can change resource schemas in ways that corrupt state. Pin versions in your configuration and upgrade deliberately with testing.
-
-__Use `-out` for plans.__ Always save plans to a file and apply that file. This prevents drift between plan and apply, especially in CI where infrastructure might change between the two steps.
-
-__Never edit state manually.__ If you find yourself opening a state file in an editor, stop. Use `terraform state mv`, `terraform state rm`, or `terraform import` instead. Manual edits bypass validation and corrupt checksums.
-
-__Review plans carefully.__ A plan that wants to destroy and recreate resources might indicate state drift. Investigate unexpected changes before applying — they often reveal state problems that are easier to fix before apply than after.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Pin provider and Terraform versions.',
+      text: 'Provider updates can change resource schemas in ways that corrupt state. Pin versions in your configuration and upgrade deliberately with testing.',
+    },
+    {
+      lead: 'Use `-out` for plans.',
+      text: 'Always save plans to a file and apply that file. This prevents drift between plan and apply, especially in CI where infrastructure might change between the two steps.',
+    },
+    {
+      lead: 'Never edit state manually.',
+      text: 'If you find yourself opening a state file in an editor, stop. Use `terraform state mv`, `terraform state rm`, or `terraform import` instead. Manual edits bypass validation and corrupt checksums.',
+    },
+    {
+      lead: 'Review plans carefully.',
+      text: 'A plan that wants to destroy and recreate resources might indicate state drift. Investigate unexpected changes before applying — they often reveal state problems that are easier to fix before apply than after.',
+    },
+  ]}
+/>
 
 ## Conclusion
 

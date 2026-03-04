@@ -72,10 +72,31 @@ export function rehypeTailwindClasses() {
       return false
     }
 
+    /**
+     * Skip elements inside SVG trees (e.g. Mermaid inline SVGs).
+     * rehype-mermaid renders diagrams before this plugin runs. Adding
+     * Tailwind classes to elements inside foreignObject would change
+     * their box model after Mermaid has already computed dimensions.
+     */
+    const isInsideSvg = (node: Element): boolean => {
+      let currentParent = getParent(node)
+
+      while (isHastElement(currentParent)) {
+        if (currentParent.tagName === 'svg') return true
+        currentParent = getParent(currentParent as Element)
+      }
+
+      return false
+    }
+
     visit(tree, 'element', (node: Element, index, parent): void | typeof SKIP => {
       if (parent) {
         parentByNode.set(node, parent)
       }
+
+      /** Skip all elements inside SVG trees (Mermaid diagrams, MathJax, etc.) */
+      if (node.tagName === 'svg') return SKIP
+      if (isInsideSvg(node)) return
 
       /**
        * =============================================================================
@@ -129,7 +150,7 @@ export function rehypeTailwindClasses() {
       if (node.tagName === 'figure' && !hasClass(node, 'blockquote')) {
         node.properties = node.properties || {}
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
-          'my-8',
+          'my-4',
           'mx-auto',
           'max-w-none',
         ])
@@ -198,10 +219,11 @@ export function rehypeTailwindClasses() {
        */
       if (['h2', 'h3', 'h4'].includes(node.tagName)) {
         node.properties = node.properties || {}
+        const headingTextClass = 'text-page-inverse'
         node.properties['className'] = ((node.properties['className'] as string[]) || []).concat([
           'relative',
           'my-6',
-          'text-page-inverse',
+          headingTextClass,
           /**
            * Remove top margin from first child element of headings since we're
            * controlling bottom margin here.

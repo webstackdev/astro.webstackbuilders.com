@@ -3,12 +3,20 @@
  */
 
 /**
- * Ensure components have proper spacing
+ * Prevent Mermaid diagram text from clipping at foreignObject boundaries.
+ *
+ * rehype-mermaid computes foreignObject dimensions during build-time rendering
+ * in Playwright headless Chromium. Slight font-metric differences between the
+ * build environment and the user's browser cause text to overflow its container
+ * by a few pixels. Allowing overflow prevents the last characters from being
+ * clipped while keeping the node background shapes correctly sized.
  */
-.markdown-content__prose .callout,
-.markdown-content__prose .carousel,
-.markdown-content__prose .testimonials {
-  margin-block: var(--space-lg);
+.markdown-content__prose svg[id^="mermaid-"] foreignObject {
+  overflow: visible;
+}
+
+.markdown-content__prose [id^="mermaid-"] foreignObject > div {
+  overflow: visible;
 }
 
 /**
@@ -22,7 +30,36 @@
 }
 
 /**
- * Details and Summary stylings
+ * Footnote backref icon link should not inherit dotted underline decoration.
+ */
+.markdown-content__prose a[data-footnote-backref],
+.markdown-content__prose a.footnote-backref {
+  display: inline-block;
+  text-decoration: none;
+  transition: color 150ms ease, transform 150ms ease;
+}
+
+.markdown-content__prose a[data-footnote-backref]:hover,
+.markdown-content__prose a[data-footnote-backref]:focus-visible,
+.markdown-content__prose a.footnote-backref:hover,
+.markdown-content__prose a.footnote-backref:focus-visible {
+  color: var(--color-content-offset);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+/**
+ * Add a separator above the generated footnotes section.
+ */
+.markdown-content__prose section[data-footnotes] {
+  border-top: 1px solid var(--color-trim);
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+
+/**
+ * Details and Summary stylings. Gives a thin line with a "+" symbol,
+ * and animates the content when opening and closing.
  */
 .markdown-content__prose details {
   border-block-end: 1px solid var(--theme-color-content);
@@ -89,17 +126,9 @@
 
 @media (prefers-reduced-motion) {
   .markdown-content__prose details::details-content {
-     /** slower speed */
+     /** Use slower speed to open details box on reduced motion preference */
     transition-duration: 0.8s;
   }
-}
-
-/**
- * Image styling
- */
-.markdown-content__prose img {
-  height: auto;
-  max-width: 100%;
 }
 
 /**
@@ -132,7 +161,7 @@
  */
 .markdown-list ul,
 .markdown-list ol {
-  margin-bottom: var(--space-lg);
+  margin-bottom: 2rem;
   margin-left: 1rem;
 }
 
@@ -203,6 +232,7 @@
 }
 
 .markdown-list ul:not(.contains-task-list) > li::after {
+  /* A checkmark SVG as a mask for the custom unordered list marker */
   --ul-check-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M9.999%2013.587L7.7%2011.292l-1.412%201.416%203.713%203.705%207.206-7.206-1.414-1.414z%22/%3E%3C/svg%3E");
 
   background-color: var(--color-content-inverse);
@@ -225,6 +255,26 @@
 .markdown-list ol > li:last-child,
 .markdown-list ul > li:last-child {
   margin-bottom: 0;
+}
+
+/**
+ * Footnote list marker numbers should fit comfortably inside the circular marker.
+ */
+.markdown-content__prose [data-footnotes] ol {
+  margin-left: 4px;
+}
+
+.markdown-content__prose [data-footnotes] ol > li {
+  padding-left: calc(1.32em + 0.375rem);
+}
+
+.markdown-content__prose [data-footnotes] ol > li::before {
+  background-color: var(--color-content-active);
+  font-size: 0.8em;
+  height: 1.32em;
+  line-height: 1em;
+  top: calc(0.15em + 2px);
+  width: 1.32em;
 }
 
 /**

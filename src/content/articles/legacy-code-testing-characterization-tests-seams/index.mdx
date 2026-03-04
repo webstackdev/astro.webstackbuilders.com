@@ -10,7 +10,6 @@ featured: true
 ---
 
 *[DI]: Dependency Injection
-*[API]: Application Programming Interface
 *[OOP]: Object-Oriented Programming
 
 You've inherited a codebase with no tests. The classes are tightly coupled, dependencies are created inline, and methods run hundreds of lines. You need to make changes, but touching anything feels like defusing a bomb blindfolded.
@@ -66,25 +65,75 @@ Consider a method that sends emails. The email-sending code is deep inside a 500
 
 ### The Four Seam Types
 
-_Object seams_ are the most common and usually the cleanest. You pass a dependency through a constructor or method parameter, and the enabling point is the call site where you can pass a different implementation. This is the foundation of dependency injection. Most languages and frameworks have idiomatic ways to create object seams:
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Object seams',
+      text: 'are the most common and usually the cleanest. You pass a dependency through a constructor or method parameter, and the enabling point is the call site where you can pass a different implementation. This is the foundation of dependency injection. Most languages and frameworks have idiomatic ways to create object seams:',
+    },
+  ]}
+/>
 
-| Language/Framework | Object Seam Technique |
-| ------------------ | --------------------- |
-| Ruby | Default arguments in `initialize` |
-| C# / Java | Constructor overloads or optional parameters |
-| PHP | Default parameter values |
-| TypeScript | Optional parameters with nullish coalescing (`??`) |
-| Spring Boot | `@Autowired` with test `@Configuration` bindings |
-| Laravel | Service container with `$this->app->bind()` in tests |
-| .NET | `IServiceCollection` with test service registration |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Language/Framework', 'Object Seam Technique'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Ruby',
+          td: ['Default arguments in `initialize`'],
+        },
+        {
+          th: 'C# / Java',
+          td: ['Constructor overloads or optional parameters'],
+        },
+        {
+          th: 'PHP',
+          td: ['Default parameter values'],
+        },
+        {
+          th: 'TypeScript',
+          td: ['Optional parameters with nullish coalescing (`??`)'],
+        },
+        {
+          th: 'Spring Boot',
+          td: ['`@Autowired` with test `@Configuration` bindings'],
+        },
+        {
+          th: 'Laravel',
+          td: ['Service container with `$this->app->bind()` in tests'],
+        },
+        {
+          th: '.NET',
+          td: ['`IServiceCollection` with test service registration'],
+        },
+      ],
+    },
+    figure: 'Object seam techniques by language and framework.',
+  }}
+/>
 
-Table: Object seam techniques by language and framework.
-
-_Link seams_ operate at the module level. In Ruby, you can use `stub_const` to replace a class entirely. In TypeScript/JavaScript, Jest's `jest.mock()` intercepts imports. The enabling point is the test setup. Link seams are powerful but fragile—they couple tests to implementation details like class names.
-
-_Subclass seams_ work by extracting behavior into a protected method, then overriding it in a test subclass. This technique is underrated for legacy code because it requires minimal changes—you extract one line into a method, and suddenly you have a seam.
-
-_Preprocessor seams_ apply anywhere you use environment-based branching. Rails' `Rails.env.test?`, Laravel's `app()->environment('testing')`, and Node's `process.env.NODE_ENV === 'test'` are all effectively preprocessor seams. Use them sparingly—they litter production code with test concerns.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Link seams',
+      text: 'operate at the module level. In Ruby, you can use `stub_const` to replace a class entirely. In TypeScript/JavaScript, Jest\'s `jest.mock()` intercepts imports. The enabling point is the test setup. Link seams are powerful but fragile—they couple tests to implementation details like class names.',
+    },
+    {
+      lead: 'Subclass seams',
+      text: 'work by extracting behavior into a protected method, then overriding it in a test subclass. This technique is underrated for legacy code because it requires minimal changes—you extract one line into a method, and suddenly you have a seam.',
+    },
+    {
+      lead: 'Preprocessor seams',
+      text: 'apply anywhere you use environment-based branching. Rails\' `Rails.env.test?`, Laravel\'s `app()->environment(\'testing\')`, and Node\'s `process.env.NODE_ENV === \'test\'` are all effectively preprocessor seams. Use them sparingly—they litter production code with test concerns.',
+    },
+  ]}
+/>
 
 <Newsletter />
 

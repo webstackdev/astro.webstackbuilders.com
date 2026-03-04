@@ -9,12 +9,13 @@ tags: ["reliability-and-testing", "prometheus"]
 featured: true
 ---
 
-*[SLO]: Service Level Objective
-*[SLI]: Service Level Indicator
-*[MTTR]: Mean Time To Recovery
+*[DataDog]: Observability platform
 *[MTTA]: Mean Time To Acknowledge
-*[PagerDuty]: Incident management platform
+*[MTTR]: Mean Time To Recovery
 *[OpsGenie]: Incident alerting service
+*[PagerDuty]: Incident management platform
+*[SLI]: Service Level Indicator
+*[SLO]: Service Level Objective
 
 # Alert Fatigue: From 200 Alerts to 5 Pages
 
@@ -40,10 +41,27 @@ Beyond response time, there's the burnout factor. On-call rotations with high al
 
 The metrics worth tracking:
 
-- _Alerts per on-call shift_: Total alert volume during a rotation. Anything above 20 per 24-hour shift is a red flag.
-- _Action rate_: Percentage of alerts that required human intervention beyond acknowledgment. Below 50% means more than half your alerts are noise.
-- _MTTA trend_: Is acknowledgment time increasing? That's a leading indicator of fatigue.
-- _On-call satisfaction_: Periodic surveys. Engineers will tell you when on-call is unsustainable if you ask.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Alerts per on-call shift:",
+      text: "Total alert volume during a rotation. Anything above 20 per 24-hour shift is a red flag.",
+    },
+    {
+      lead: "Action rate:",
+      text: "Percentage of alerts that required human intervention beyond acknowledgment. Below 50% means more than half your alerts are noise.",
+    },
+    {
+      lead: "MTTA trend:",
+      text: "Is acknowledgment time increasing? That's a leading indicator of fatigue.",
+    },
+    {
+      lead: "On-call satisfaction:",
+      text: "Periodic surveys. Engineers will tell you when on-call is unsustainable if you ask.",
+    },
+  ]}
+/>
 
 The feedback loop is real. After an incident caused by a missed alert, the instinct is to add more alerts. But if the alert was missed because of volume, adding more alerts makes the next miss more likely, not less.
 
@@ -67,16 +85,59 @@ Export your alert definitions and firing history. Prometheus/Alertmanager stores
 
 For each alert, capture:
 
-| Field | Description | Why It Matters |
-|-------|-------------|----------------|
-| Alert Name | Identifier in monitoring system | Tracking and deduplication |
-| Firing Frequency | Alerts/week over last 90 days | Identifies noisy alerts |
-| Action Rate | % of firings requiring human action | Core signal for usefulness |
-| Owning Team | Team responsible for response | Accountability |
-| Last Modified | When alert was last updated | Staleness indicator |
-| Linked Runbook | URL to response documentation | Actionability check |
-
-Table: Alert inventory fields for the audit process.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Alert inventory fields for the audit process.",
+    thead: { th: ["Field", "Description", "Why It Matters"] },
+    tbody: {
+      tr: [
+        {
+          th: "Alert Name",
+          td: [
+            "Identifier in monitoring system",
+            "Tracking and deduplication",
+          ],
+        },
+        {
+          th: "Firing Frequency",
+          td: [
+            "Alerts/week over last 90 days",
+            "Identifies noisy alerts",
+          ],
+        },
+        {
+          th: "Action Rate",
+          td: [
+            "% of firings requiring human action",
+            "Core signal for usefulness",
+          ],
+        },
+        {
+          th: "Owning Team",
+          td: [
+            "Team responsible for response",
+            "Accountability",
+          ],
+        },
+        {
+          th: "Last Modified",
+          td: [
+            "When alert was last updated",
+            "Staleness indicator",
+          ],
+        },
+        {
+          th: "Linked Runbook",
+          td: [
+            "URL to response documentation",
+            "Actionability check",
+          ],
+        },
+      ],
+    },
+  }}
+/>
 
 The "action rate" column is the most important and the hardest to populate. You'll need to cross-reference alert firings with incident tickets or on-call logs. If your tooling doesn't track this automatically, you'll need to reconstruct it from memory or start tracking it going forward.
 
@@ -126,9 +187,14 @@ But an alert that fires constantly and gets ignored isn't a lesson learned—it'
 
 The talking points that work:
 
-- "This alert fired 47 times last quarter. How many of those were real problems?" (Usually: zero or one.)
-- "Would you notice if this alert stopped firing tomorrow?" (Usually: no.)
-- "If we delete this, what's the worst case?" (Usually: we'd notice the problem some other way, slightly later.)
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "\"This alert fired 47 times last quarter. How many of those were real problems?\" (Usually: zero or one.)" },
+    { text: "\"Would you notice if this alert stopped firing tomorrow?\" (Usually: no.)" },
+    { text: "\"If we delete this, what's the worst case?\" (Usually: we'd notice the problem some other way, slightly later.)" },
+  ]}
+/>
 
 The goal isn't to delete every alert—it's to delete the alerts that provide no signal. An alert with 5% action rate isn't coverage. It's noise that makes the 95% action-rate alerts harder to notice.
 
@@ -147,7 +213,13 @@ Two tiers work better: pages and notifications. A page wakes someone up or inter
 The decision is binary: does this require immediate human attention, or can it wait until someone is already working? If you can't answer that question clearly for an alert, the alert isn't well-defined.
 
 ```mermaid
+---
+title: Decision tree for page vs. notification classification
+---
 graph TD
+    accTitle: Alert severity decision tree
+    accDescr: Flowchart showing how to classify an alert as a Page or Notification. When an alert fires, check if there is user-facing impact. If no, it is a Notification. If yes, check if there is immediate revenue or safety impact. If yes, it is a Page. If no, check if the SLO burn rate is critical. If yes, it is a Page. If no, it is a Notification.
+
     A[Alert Fires] --> B{User-Facing Impact?}
     B -->|Yes| C{Immediate Revenue/Safety?}
     B -->|No| D[Notification]
@@ -163,22 +235,34 @@ Figure: Decision tree for page vs. notification classification.
 
 A page should meet all three criteria:
 
-1. _Something is broken right now._ Not "might break soon" or "is trending toward a problem." Actually broken.
-2. _Users are affected._ Either external customers or internal users who can't do their jobs.
-3. _Human judgment is required._ Automated remediation can't handle it, or hasn't been implemented yet.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    { lead: "Something is broken right now.", text: "Not \"might break soon\" or \"is trending toward a problem.\" Actually broken." },
+    { lead: "Users are affected.", text: "Either external customers or internal users who can't do their jobs." },
+    { lead: "Human judgment is required.", text: "Automated remediation can't handle it, or hasn't been implemented yet." },
+  ]}
+/>
 
 If an alert doesn't meet all three, it's a notification at most.
 
-| Criterion | Page | Notification |
-|-----------|------|--------------|
-| User-facing functionality down | ✅ | |
-| SLO error budget exhausted | ✅ | |
-| Security incident in progress | ✅ | |
-| Capacity threshold (proactive) | | ✅ |
-| Background job failure | | ✅ |
-| Non-critical dependency degraded | | ✅ |
-
-Table: Page vs. notification decision matrix.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Page vs. notification decision matrix.",
+    thead: { th: ["Criterion", "Page", "Notification"] },
+    tbody: {
+      tr: [
+        { th: "User-facing functionality down", td: ["✅", ""] },
+        { th: "SLO error budget exhausted", td: ["✅", ""] },
+        { th: "Security incident in progress", td: ["✅", ""] },
+        { th: "Capacity threshold (proactive)", td: ["", "✅"] },
+        { th: "Background job failure", td: ["", "✅"] },
+        { th: "Non-critical dependency degraded", td: ["", "✅"] },
+      ],
+    },
+  }}
+/>
 
 The hardest calls are proactive alerts—things that aren't broken yet but will be soon. Disk filling up, certificate expiring, capacity approaching limits. These should almost never be pages. If you have time to address it proactively, you have time to address it during business hours. Page-worthy means _right now_, not _sometime today_.
 
@@ -281,10 +365,15 @@ This requires labeling your alerts with their dependencies. When you create an a
 
 Build your inhibition rules to match your architecture. Common patterns:
 
-- Network partition alerts suppress all cross-zone communication failures
-- Load balancer alerts suppress backend health check failures
-- DNS alerts suppress all hostname resolution failures
-- Cloud provider alerts suppress regional service alerts
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Network partition alerts suppress all cross-zone communication failures" },
+    { text: "Load balancer alerts suppress backend health check failures" },
+    { text: "DNS alerts suppress all hostname resolution failures" },
+    { text: "Cloud provider alerts suppress regional service alerts" },
+  ]}
+/>
 
 The goal is one alert per root cause, not one alert per affected component. Map your dependencies and configure suppression accordingly.
 
@@ -312,9 +401,14 @@ Define an SLO—say, 99.9% of requests succeed within acceptable latency over a 
 Burn rate = (error rate) / (1 - SLO target)
 
 Example:
-- SLO target: 99.9% (0.1% error budget)
-- Current error rate: 0.5%
-- Burn rate: 0.5% / 0.1% = 5x
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "SLO target: 99.9% (0.1% error budget)" },
+    { text: "Current error rate: 0.5%" },
+    { text: "Burn rate: 0.5% / 0.1% = 5x" },
+  ]}
+/>
 
 At 5x burn rate, you exhaust a 30-day error budget in 6 days.
 ```
@@ -333,13 +427,20 @@ A single burn rate window has a tradeoff: short windows catch acute incidents bu
 
 Use multiple windows together. Alert when _both_ a short window and a long window show elevated burn rates. This filters out transient spikes (which only show in the short window) while still catching acute incidents quickly.
 
-| Window | Burn Rate | Catches |
-|--------|-----------|---------|
-| 5m | 14.4x | Acute incidents, sudden failures |
-| 1h | 6x | Sustained degradation |
-| 6h | 1x | Slow-burn issues |
-
-Table: Multi-window burn rate thresholds for a 99.9% SLO.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Multi-window burn rate thresholds for a 99.9% SLO.",
+    thead: { th: ["Window", "Burn Rate", "Catches"] },
+    tbody: {
+      tr: [
+        { th: "5m", td: ["14.4x", "Acute incidents, sudden failures"] },
+        { th: "1h", td: ["6x", "Sustained degradation"] },
+        { th: "6h", td: ["1x", "Slow-burn issues"] },
+      ],
+    },
+  }}
+/>
 
 The 5-minute/14.4x combination catches a complete outage within minutes. If your error rate jumps to 100%, burn rate hits 1000x—well above the 14.4x threshold. But the 1-hour window must also show elevated burn rate before the alert fires. A 30-second blip won't trigger anything.
 
@@ -382,10 +483,15 @@ A page without a runbook is a puzzle delivered at 3 AM. The on-call engineer get
 
 Every page-worthy alert needs a runbook. Not a novel, not comprehensive documentation of the entire system—a focused document that answers the immediate questions:
 
-1. _What does this alert mean?_ One paragraph explaining the symptom in user terms.
-2. _What should I check first?_ Three to five diagnostic commands or dashboard links.
-3. _Who do I escalate to?_ Contact information for specialized help.
-4. _Can I roll back?_ If applicable, the exact rollback command.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    { lead: "What does this alert mean?", text: "One paragraph explaining the symptom in user terms." },
+    { lead: "What should I check first?", text: "Three to five diagnostic commands or dashboard links." },
+    { lead: "Who do I escalate to?", text: "Contact information for specialized help." },
+    { lead: "Can I roll back?", text: "If applicable, the exact rollback command." },
+  ]}
+/>
 
 ```markdown title="runbook-template.md"
 # Alert: CheckoutLatencyHigh
@@ -395,23 +501,43 @@ Checkout API p99 latency exceeds 2 seconds. Users are experiencing
 slow or failed purchases.
 
 ## Immediate Actions
-1. Check deployment status: `kubectl get deployments -n checkout`
-2. Verify database connectivity: `psql -h $DB_HOST -c "SELECT 1"`
-3. Check downstream dependencies: [Dependency Dashboard](/dashboards/checkout-deps)
+<List
+  variant="numbered-with-background-list"
+  items={[
+    { text: "Check deployment status: `kubectl get deployments -n checkout`" },
+    { text: "Verify database connectivity: `psql -h $DB_HOST -c \"SELECT 1\"`" },
+    { text: "Check downstream dependencies: [Dependency Dashboard](/dashboards/checkout-deps)" },
+  ]}
+/>
 
 ## Recent Changes
-- Check recent deployments: `kubectl rollout history deployment/checkout-api`
-- Review commits: [Last 24h commits](https://github.com/org/checkout/commits)
-- Check infra changes: [Terraform runs](https://app.terraform.io/org/runs)
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Check recent deployments: `kubectl rollout history deployment/checkout-api`" },
+    { text: "Review commits: [Last 24h commits](https://github.com/org/checkout/commits)" },
+    { text: "Check infra changes: [Terraform runs](https://app.terraform.io/org/runs)" },
+  ]}
+/>
 
 ## Known False Positives
-- End-of-month batch processing (1st-3rd of each month) causes latency spikes
-- Payment provider maintenance windows (check StatusPage first)
-- Expected during large promotional events—verify with marketing calendar
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "End-of-month batch processing (1st-3rd of each month) causes latency spikes" },
+    { text: "Payment provider maintenance windows (check StatusPage first)" },
+    { text: "Expected during large promotional events—verify with marketing calendar" },
+  ]}
+/>
 
 ## Escalation
-- If database issue: Page DBA on-call
-- If payment provider: Check [StatusPage](https://status.stripe.com)
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "If database issue: Page DBA on-call" },
+    { text: "If payment provider: Check [StatusPage](https://status.stripe.com)" },
+  ]}
+/>
 
 ## Rollback
 If recent deployment: `kubectl rollout undo deployment/checkout-api`
@@ -433,11 +559,16 @@ The alert notification itself should contain enough context to begin investigati
 
 Include in every alert:
 
-- _What's happening_ — the symptom in plain language
-- _Where it's happening_ — environment, region, service
-- _How bad it is_ — current metric values
-- _Where to look_ — direct links to relevant dashboards
-- _What to do_ — link to the runbook
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "What's happening", text: "— the symptom in plain language" },
+    { lead: "Where it's happening", text: "— environment, region, service" },
+    { lead: "How bad it is", text: "— current metric values" },
+    { lead: "Where to look", text: "— direct links to relevant dashboards" },
+    { lead: "What to do", text: "— link to the runbook" },
+  ]}
+/>
 
 ```yaml title="prometheus-annotations.yaml" {8-15}
 groups:
@@ -471,14 +602,21 @@ Avoid jargon in summaries. The alert will often be read on a phone, possibly by 
 
 Establish a cadence for reviewing alerts. Suggest monthly reviews of alert firing patterns and quarterly reviews of alert usefulness. Include what questions to ask in each review.
 
-| Review Type | Frequency | Questions |
-|-------------|-----------|-----------|
-| Firing Review | Monthly | Which alerts fired most? What was the action rate? |
-| Usefulness Review | Quarterly | Do we still need this alert? Is the threshold still valid? |
-| Runbook Review | Quarterly | Is the runbook current? Did it help in recent incidents? |
-| Owner Review | Annually | Does the owning team still exist? Do they still own this service? |
-
-Table: Alert maintenance review cadence.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Alert maintenance review cadence.",
+    thead: { th: ["Review Type", "Frequency", "Questions"] },
+    tbody: {
+      tr: [
+        { th: "Firing Review", td: ["Monthly", "Which alerts fired most? What was the action rate?"] },
+        { th: "Usefulness Review", td: ["Quarterly", "Do we still need this alert? Is the threshold still valid?"] },
+        { th: "Runbook Review", td: ["Quarterly", "Is the runbook current? Did it help in recent incidents?"] },
+        { th: "Owner Review", td: ["Annually", "Does the owning team still exist? Do they still own this service?"] },
+      ],
+    },
+  }}
+/>
 
 Monthly firing reviews catch the immediate problems: which alerts are generating noise, which have low action rates. Pull the data, identify the worst offenders, and either fix them or delete them.
 
@@ -525,10 +663,15 @@ Alerts that have never fired are alerts you can't trust. You don't know if the t
 
 Test alerts intentionally. During maintenance windows or in staging environments, create the conditions that should fire each critical alert:
 
-- Saturate CPU or memory to test resource alerts
-- Return 500 errors from a canary endpoint to test error rate alerts
-- Add artificial latency to test SLO burn rate alerts
-- Take down a dependency to test downstream failure alerts
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Saturate CPU or memory to test resource alerts" },
+    { text: "Return 500 errors from a canary endpoint to test error rate alerts" },
+    { text: "Add artificial latency to test SLO burn rate alerts" },
+    { text: "Take down a dependency to test downstream failure alerts" },
+  ]}
+/>
 
 This is chaos engineering applied to observability. If you're running game days or disaster recovery exercises, include alert verification as part of the scenario. When you simulate a database failover, verify that the database alerts fire and route correctly.
 
@@ -561,13 +704,10 @@ Alerts that can't be tested are alerts that might not work when you need them. I
 
 You can't improve what you don't measure. Track these metrics to understand whether your alerting is getting better or worse:
 
-_Action rate_ is the percentage of alerts that result in human action—creating an incident, making a change, or escalating to another team. An 80% action rate means 80% of alerts were worth investigating. Below 50%, most of your alerts are noise.
-
-_Mean Time to Acknowledge (MTTA)_ measures how long it takes someone to start responding to an alert. High MTTA indicates either too many alerts (responders are overwhelmed) or poor alert routing (alerts going to the wrong people).
-
-_Alerts per on-call shift_ counts the total alert volume during a rotation. More than 25 alerts per shift usually means someone is getting paged multiple times per hour, which is unsustainable.
-
-_On-call satisfaction_ is a subjective measure, but it matters. Survey your on-call rotation quarterly. If satisfaction is low, your alerting needs work regardless of what the other metrics say.
+- _Action rate_ is the percentage of alerts that result in human action—creating an incident, making a change, or escalating to another team. An 80% action rate means 80% of alerts were worth investigating. Below 50%, most of your alerts are noise.
+- _Mean Time to Acknowledge (MTTA)_ measures how long it takes someone to start responding to an alert. High MTTA indicates either too many alerts (responders are overwhelmed) or poor alert routing (alerts going to the wrong people).
+- _Alerts per on-call shift_ counts the total alert volume during a rotation. More than 25 alerts per shift usually means someone is getting paged multiple times per hour, which is unsustainable.
+- _On-call satisfaction_ is a subjective measure, but it matters. Survey your on-call rotation quarterly. If satisfaction is low, your alerting needs work regardless of what the other metrics say.
 
 ```mermaid
 graph TD
@@ -582,14 +722,21 @@ graph TD
 
 Figure: Alert outcome tracking for health metrics.
 
-| Metric | Healthy | Warning | Critical |
-|--------|---------|---------|----------|
-| Action Rate | &gt; 80% | 50-80% | &lt; 50% |
-| MTTA | &lt; 5 min | 5-15 min | &gt; 15 min |
-| Alerts per On-Call Shift | &lt; 10 | 10-25 | &gt; 25 |
-| On-Call Satisfaction | &gt; 7/10 | 5-7/10 | &lt; 5/10 |
-
-Table: Alert health metric thresholds.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Alert health metric thresholds.",
+    thead: { th: ["Metric", "Healthy", "Warning", "Critical"] },
+    tbody: {
+      tr: [
+        { th: "Action Rate", td: ["> 80%", "50-80%", "< 50%"] },
+        { th: "MTTA", td: ["< 5 min", "5-15 min", "> 15 min"] },
+        { th: "Alerts per On-Call Shift", td: ["< 10", "10-25", "> 25"] },
+        { th: "On-Call Satisfaction", td: ["> 7/10", "5-7/10", "< 5/10"] },
+      ],
+    },
+  }}
+/>
 
 These thresholds aren't universal—adjust them based on your context. A small team with a simple service might target fewer than 5 alerts per shift. A large platform team might accept more. What matters is that you're tracking the numbers and trending in the right direction.
 

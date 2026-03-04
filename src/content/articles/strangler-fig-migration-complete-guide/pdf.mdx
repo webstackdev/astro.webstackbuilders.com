@@ -44,10 +44,26 @@ The core insight is simple: _you can't migrate what you can't observe_. Before t
 
 The pattern eliminates the single point of failure that kills most migrations. With a big-bang approach, you're betting everything on one deployment. If it fails, you're scrambling to roll back while users pile into your support queue. With strangler fig, each increment is a small bet. A failure at 5% traffic is annoying; a failure at 100% traffic is a much bigger problem.
 
-| Approach | Blast Radius | Rollback | Time to Value | Observability |
-|----------|--------------|----------|---------------|---------------|
-| Big-bang | 100% of traffic | Full rollback (maybe) | All at the end | Post-migration only |
-| Strangler fig | Only migrated traffic | Route back to legacy | Incremental | Required at every step |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Approach', 'Blast Radius', 'Rollback', 'Time to Value', 'Observability'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Big-bang',
+          td: ['100% of traffic', 'Full rollback (maybe)', 'All at the end', 'Post-migration only'],
+        },
+        {
+          th: 'Strangler fig',
+          td: ['Only migrated traffic', 'Route back to legacy', 'Incremental', 'Required at every step'],
+        },
+      ],
+    },
+  }}
+/>
 
 The strangler fig approach also delivers value earlier. You don't wait months for a complete rewrite—you start seeing benefits as soon as the first piece migrates successfully. This keeps stakeholders engaged and gives you opportunities to course-correct before you've invested heavily in the wrong direction.
 
@@ -513,10 +529,23 @@ Shadow traffic works for read operations but is dangerous for writes. Duplicatin
 
 Run shadow traffic for at least a week before considering real traffic migration. You're looking for:
 
-- Mismatch rate below 0.1% (or whatever threshold you've defined as acceptable)
-- No systematic errors—random noise is fine, but patterns indicate bugs
-- Latency within 20% of legacy system (the new system being faster is fine; much slower is a problem)
-- No memory leaks or connection pool exhaustion under sustained load
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: "Mismatch rate below 0.1% (or whatever threshold you've defined as acceptable)",
+    },
+    {
+      text: 'No systematic errors-random noise is fine, but patterns indicate bugs',
+    },
+    {
+      text: 'Latency within 20% of legacy system (the new system being faster is fine; much slower is a problem)',
+    },
+    {
+      text: 'No memory leaks or connection pool exhaustion under sustained load',
+    },
+  ]}
+/>
 
 Once these criteria are met, you're ready to start shifting real traffic.
 
@@ -528,14 +557,42 @@ With validation complete, you shift from testing to construction. Shadow traffic
 
 Design the interface before writing implementation code. For an auth service, the contract typically includes public endpoints for login, logout, and password management, plus internal endpoints for token validation that other services will call.
 
-| Endpoint                      | Method | Purpose                               | SLO                          |
-|-------------------------------|--------|---------------------------------------|------------------------------|
-| `/auth/login`                 | POST   | Authenticate user, return tokens      | P99 < 200ms, 99.9% available |
-| `/auth/logout`                | POST   | Invalidate tokens                     | P99 < 50ms, 99.9% available  |
-| `/auth/refresh`               | POST   | Exchange refresh token for new access | P99 < 50ms, 99.9% available  |
-| `/auth/password/reset-request`| POST   | Initiate password reset               | P99 < 100ms, 99.9% available |
-| `/auth/password/reset`        | POST   | Complete password reset               | P99 < 100ms, 99.9% available |
-| `/internal/validate`          | POST   | Validate token (internal only)        | P99 < 10ms, 99.99% available |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Endpoint', 'Method', 'Purpose', 'SLO'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '`/auth/login`',
+          td: ['POST', 'Authenticate user, return tokens', 'P99 < 200ms, 99.9% available'],
+        },
+        {
+          th: '`/auth/logout`',
+          td: ['POST', 'Invalidate tokens', 'P99 < 50ms, 99.9% available'],
+        },
+        {
+          th: '`/auth/refresh`',
+          td: ['POST', 'Exchange refresh token for new access', 'P99 < 50ms, 99.9% available'],
+        },
+        {
+          th: '`/auth/password/reset-request`',
+          td: ['POST', 'Initiate password reset', 'P99 < 100ms, 99.9% available'],
+        },
+        {
+          th: '`/auth/password/reset`',
+          td: ['POST', 'Complete password reset', 'P99 < 100ms, 99.9% available'],
+        },
+        {
+          th: '`/internal/validate`',
+          td: ['POST', 'Validate token (internal only)', 'P99 < 10ms, 99.99% available'],
+        },
+      ],
+    },
+  }}
+/>
 
 The `/internal/validate` endpoint deserves attention—it's called on every authenticated request across your entire system. It needs to be fast (sub-10ms P99) and highly available. Consider local JWT validation with periodic key refresh rather than a network call for every request.
 
@@ -779,17 +836,47 @@ Shadow traffic validated the new system; now you're moving real users. This is w
 
 The most common approach: route a percentage of requests to the new system, increasing the percentage as confidence grows. Start small (1%), wait for metrics to stabilize, then increase.
 
-Table: Progressive traffic shift schedule
-
-| Day  | New System % | Gate Criteria                                    |
-|------|--------------|--------------------------------------------------|
-| 0    | 1%           | Manual verification of first requests            |
-| 1    | 5%           | 24h at 1% with &lt;0.1% error rate increase         |
-| 3    | 10%          | 48h at 5% with latency within 10%                |
-| 5    | 25%          | 48h at 10% with no incidents                     |
-| 7    | 50%          | 48h at 25% with no incidents                     |
-| 10   | 75%          | 72h at 50% with no incidents                     |
-| 14   | 100%         | 96h at 75% with no incidents                     |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Day', 'New System %', 'Gate Criteria'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '0',
+          td: ['1%', 'Manual verification of first requests'],
+        },
+        {
+          th: '1',
+          td: ['5%', '24h at 1% with &lt;0.1% error rate increase'],
+        },
+        {
+          th: '3',
+          td: ['10%', '48h at 5% with latency within 10%'],
+        },
+        {
+          th: '5',
+          td: ['25%', '48h at 10% with no incidents'],
+        },
+        {
+          th: '7',
+          td: ['50%', '48h at 25% with no incidents'],
+        },
+        {
+          th: '10',
+          td: ['75%', '72h at 50% with no incidents'],
+        },
+        {
+          th: '14',
+          td: ['100%', '96h at 75% with no incidents'],
+        },
+      ],
+    },
+    figure: 'Progressive traffic shift schedule',
+  }}
+/>
 
 The wait periods matter. Two days at each level gives you time to observe behavior across different traffic patterns (weekday vs. weekend, peak vs. off-peak). The gate criteria should be measurable—define "no incidents" before you start.
 
@@ -831,10 +918,27 @@ Percentage-based splitting is random—any user might hit either system on any r
 
 Cohort-based migration routes entire user segments rather than random requests. Start with low-risk cohorts:
 
-1. **Internal employees**: Your own team uses the new system first. They can report issues directly.
-2. **Beta opt-ins**: Users who explicitly want new features and understand the tradeoffs.
-3. **Low-tier accounts**: Free users or small organizations where an issue has limited blast radius.
-4. **New signups**: Users with no history in the legacy system avoid data migration issues.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: 'Internal employees:',
+      text: 'Your own team uses the new system first. They can report issues directly.',
+    },
+    {
+      lead: 'Beta opt-ins:',
+      text: 'Users who explicitly want new features and understand the tradeoffs.',
+    },
+    {
+      lead: 'Low-tier accounts:',
+      text: 'Free users or small organizations where an issue has limited blast radius.',
+    },
+    {
+      lead: 'New signups:',
+      text: 'Users with no history in the legacy system avoid data migration issues.',
+    },
+  ]}
+/>
 
 The cohort router needs to be deterministic—the same user hits the same system every time:
 
@@ -984,14 +1088,35 @@ When metrics degrade during traffic shifting, you need to roll back immediately�
 
 Define clear thresholds before you start shifting traffic:
 
-Table: Automatic rollback trigger thresholds
-
-| Trigger           | Threshold                                      | Rationale                              |
-|-------------------|------------------------------------------------|----------------------------------------|
-| Error rate        | >1% absolute or >0.5% above baseline           | Catches both spikes and regressions    |
-| Latency (P99)     | >2x legacy baseline                            | New system shouldn't be slower         |
-| Availability      | &lt;99.5% successful responses                 | Users notice at this level             |
-| Evaluation window | 5 minutes with 2-minute sustained violation    | Filters brief spikes from real issues  |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Trigger', 'Threshold', 'Rationale'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Error rate',
+          td: ['>1% absolute or >0.5% above baseline', 'Catches both spikes and regressions'],
+        },
+        {
+          th: 'Latency (P99)',
+          td: ['>2x legacy baseline', "New system shouldn't be slower"],
+        },
+        {
+          th: 'Availability',
+          td: ['&lt;99.5% successful responses', 'Users notice at this level'],
+        },
+        {
+          th: 'Evaluation window',
+          td: ['5 minutes with 2-minute sustained violation', 'Filters brief spikes from real issues'],
+        },
+      ],
+    },
+    figure: 'Automatic rollback trigger thresholds',
+  }}
+/>
 
 ```yaml
 # Prometheus alerting rules for migration rollback
@@ -1109,29 +1234,77 @@ You've reached 100% traffic on the new system. The migration isn't complete unti
 
 Don't declare victory too soon. Before decommissioning the legacy system, verify:
 
-Table: Migration completion checklist
-
-| Category       | Criteria                                                                           |
-|----------------|------------------------------------------------------------------------------------|
-| Traffic        | 100% on new system; no legacy traffic for 7+ days; all endpoints including jobs    |
-| Stability      | 7 days at 100% with no rollbacks; error rate at/below baseline; latency within 10% |
-| Observability  | Dashboards complete; alerting configured and tested; runbooks updated              |
-| Data           | Migration verified; no legacy DB dependencies; reconciliation shows zero drift     |
-| Organizational | Team trained; documentation updated; stakeholder sign-off obtained                 |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Category', 'Criteria'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Traffic',
+          td: ['100% on new system; no legacy traffic for 7+ days; all endpoints including jobs'],
+        },
+        {
+          th: 'Stability',
+          td: ['7 days at 100% with no rollbacks; error rate at/below baseline; latency within 10%'],
+        },
+        {
+          th: 'Observability',
+          td: ['Dashboards complete; alerting configured and tested; runbooks updated'],
+        },
+        {
+          th: 'Data',
+          td: ['Migration verified; no legacy DB dependencies; reconciliation shows zero drift'],
+        },
+        {
+          th: 'Organizational',
+          td: ['Team trained; documentation updated; stakeholder sign-off obtained'],
+        },
+      ],
+    },
+    figure: 'Migration completion checklist',
+  }}
+/>
 
 ### Legacy System Sunset
 
 Decommissioning happens in phases, each designed to catch problems before they become emergencies:
 
-Table: Legacy system sunset phases
-
-| Phase           | Duration | Actions                                                                                  |
-|-----------------|----------|------------------------------------------------------------------------------------------|
-| Traffic removal | Complete | 100% traffic to new system; legacy running but idle                                      |
-| Monitoring      | 2 weeks  | Watch for unexpected legacy traffic, hardcoded references, background jobs               |
-| Read-only mode  | 1 week   | Disable writes on legacy; return 503 with helpful message; log all requests              |
-| Scream test     | 1 week   | Stop legacy service entirely; monitor dependent systems; keep infrastructure for restart |
-| Decommission    | 1 day    | Remove infrastructure, archive code, delete databases (after backup)                     |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Phase', 'Duration', 'Actions'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Traffic removal',
+          td: ['Complete', '100% traffic to new system; legacy running but idle'],
+        },
+        {
+          th: 'Monitoring',
+          td: ['2 weeks', 'Watch for unexpected legacy traffic, hardcoded references, background jobs'],
+        },
+        {
+          th: 'Read-only mode',
+          td: ['1 week', 'Disable writes on legacy; return 503 with helpful message; log all requests'],
+        },
+        {
+          th: 'Scream test',
+          td: ['1 week', 'Stop legacy service entirely; monitor dependent systems; keep infrastructure for restart'],
+        },
+        {
+          th: 'Decommission',
+          td: ['1 day', 'Remove infrastructure, archive code, delete databases (after backup)'],
+        },
+      ],
+    },
+    figure: 'Legacy system sunset phases',
+  }}
+/>
 
 The scream test is the final validation. If stopping the legacy system causes errors anywhere, you've found a dependency you missed. Better to find it during a planned test than during infrastructure deprovisioning.
 
@@ -1206,10 +1379,27 @@ When the reconciliation job reports zero mismatches for a week straight, you can
 
 After decommissioning, hold a retrospective while the details are fresh. Track these metrics to improve future migrations:
 
-- **Duration**: Planned vs. actual (aim for &lt;50% overrun)
-- **Rollbacks**: Number of automatic rollbacks during traffic shifting (aim for &lt;3)
-- **Incidents**: User-facing incidents during migration (aim for zero)
-- **Downtime**: Total downtime attributable to the migration (aim for zero)
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Duration:',
+      text: 'Planned vs. actual (aim for <50% overrun)',
+    },
+    {
+      lead: 'Rollbacks:',
+      text: 'Number of automatic rollbacks during traffic shifting (aim for <3)',
+    },
+    {
+      lead: 'Incidents:',
+      text: 'User-facing incidents during migration (aim for zero)',
+    },
+    {
+      lead: 'Downtime:',
+      text: 'Total downtime attributable to the migration (aim for zero)',
+    },
+  ]}
+/>
 
 Document what worked and what didn't. The patterns you develop during auth extraction—dual-write, cohort routing, shadow traffic—apply to future service extractions.
 

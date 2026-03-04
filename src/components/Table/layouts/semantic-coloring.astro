@@ -1,0 +1,217 @@
+---
+export type Props = {
+  content: {
+    caption?: string
+    subcaption?: string
+    thead?: {
+      th: string[]
+    }
+    tbody: {
+      tr: {
+        th?: string | { label: string; color?: string }
+        td: string[]
+      }[]
+    }
+    tfoot?: {
+      tr: {
+        th?: string
+        td: string[]
+      }[]
+    }
+  }
+  classes?: {
+    table?: string
+    caption?: string
+    thead?: string
+    tbody?: string
+    tfoot?: string
+  }
+}
+
+const { content, classes }: Props = Astro.props
+
+const tableClass = 'w-full text-left border-collapse'
+const captionClass = 'text-left px-5 py-3 text-content-offset'
+const headerClass = 'px-5 py-3 font-semibold text-content'
+const theadClass = 'bg-note-inverse/50 border-b border-trim'
+const tbodyClass = ''
+const tfootClass = ''
+
+const stateClasses = {
+  success: {
+    rowBgClass: 'bg-success-inverse',
+    barClass: 'bg-success',
+    textClass: 'text-success-offset',
+  },
+  warning: {
+    rowBgClass: 'bg-warning-inverse',
+    barClass: 'bg-warning',
+    textClass: 'text-warning-offset',
+  },
+  danger: {
+    rowBgClass: 'bg-danger-inverse',
+    barClass: 'bg-danger',
+    textClass: 'text-danger-offset',
+  },
+  info: {
+    rowBgClass: 'bg-info-inverse',
+    barClass: 'bg-info',
+    textClass: 'text-info-offset',
+  },
+} as const
+
+type SemanticStateName = keyof typeof stateClasses
+
+const isSemanticStateName = (value: string): value is SemanticStateName => {
+  return value === 'success' || value === 'warning' || value === 'danger' || value === 'info'
+}
+
+const getStateClass = (row: Props['content']['tbody']['tr'][number], rowIndex: number) => {
+  if (typeof row.th === 'object' && row.th?.color && isSemanticStateName(row.th.color)) {
+    return stateClasses[row.th.color]
+  }
+
+  switch (rowIndex % 4) {
+    case 0:
+      return stateClasses.success
+    case 1:
+      return stateClasses.warning
+    case 2:
+      return stateClasses.danger
+    default:
+      return stateClasses.info
+  }
+}
+
+const getStateLabel = (row: Props['content']['tbody']['tr'][number]): string => {
+  if (typeof row.th === 'object') {
+    return row.th.label
+  }
+
+  return row.th ?? row.td[0] ?? ''
+}
+---
+
+<table class:list={[tableClass, classes?.table]}>
+    {content.caption && (
+      <caption class:list={[captionClass, classes?.caption]} set:html={content.caption}></caption>
+    )}
+    {content.subcaption && (
+      <caption class:list={[captionClass, classes?.caption]} set:html={content.subcaption}></caption>
+    )}
+
+    {content.thead && (
+      <thead class:list={[theadClass, classes?.thead]}>
+        <tr>
+          <th class="px-5 py-3 font-semibold text-content">State</th>
+          {content.thead.th.map((th) => (
+            <th scope="col" class:list={[headerClass, classes?.thead]} set:html={th}></th>
+          ))}
+        </tr>
+      </thead>
+    )}
+
+    <tbody class:list={[tbodyClass, classes?.tbody]}>
+      {content.tbody.tr.map((row, rowIndex) => {
+        const stateClass = getStateClass(row, rowIndex)
+
+        return (
+          <tr class:list={[
+            'border-b last:border-b-0 border-trim',
+            stateClass.rowBgClass,
+          ]}>
+            <td class="px-5 py-3 font-bold relative">
+              <span class={stateClass.textClass}>
+                {getStateLabel(row)}
+              </span>
+            </td>
+            {row.th ? (
+              row.td.map((td, index) => (
+                <td
+                  class:list={[
+                    'px-5 py-3',
+                    index === 0 ? 'font-medium text-content' : 'text-content',
+                    classes?.tbody,
+                  ]}
+                  set:html={td}
+                ></td>
+              ))
+            ) : (
+              row.td.map((td, index) => {
+                if (index === 0) return null
+
+                return (
+                  <td
+                    class:list={[
+                      'px-5 py-3',
+                      index === 1 ? 'font-medium text-content' : 'text-content',
+                      classes?.tbody,
+                    ]}
+                    set:html={td}
+                  ></td>
+                )
+              })
+            )}
+          </tr>
+        )
+      })}
+    </tbody>
+
+    {content.tfoot && (
+      <tfoot class:list={[tfootClass, classes?.tfoot]}>
+        {content.tfoot.tr.map((row, rowIndex) => {
+          const fallbackRow: Props['content']['tbody']['tr'][number] =
+            row.th !== undefined
+              ? {
+                th: row.th as string,
+                td: row.td,
+              }
+              : {
+                td: row.td,
+              }
+          const stateClass = getStateClass(fallbackRow, rowIndex)
+
+          return (
+            <tr class:list={[
+              'border-b last:border-b-0 border-trim',
+              stateClass.rowBgClass,
+            ]}>
+              <td class="px-5 py-3 font-bold relative">
+                <div class:list={['absolute inset-y-0 left-0 w-1', stateClass.barClass]} />
+                <span class={stateClass.textClass}>
+                  {row.th ?? row.td[0]}
+                </span>
+              </td>
+              {row.th ? (
+                row.td.map((td, index) => (
+                  <td
+                    class:list={[
+                      'px-5 py-3',
+                      index === 0 ? 'font-medium text-content' : 'text-content',
+                      classes?.tfoot,
+                    ]}
+                    set:html={td}
+                  ></td>
+                ))
+              ) : (
+                row.td.map((td, index) => {
+                  if (index === 0) return null
+
+                  return (
+                    <td
+                      class:list={[
+                        'px-5 py-3',
+                        index === 1 ? 'font-medium text-content' : 'text-content',
+                        classes?.tfoot,
+                      ]}
+                      set:html={td}
+                    ></td>
+                  )
+                })
+              )}
+            </tr>
+          )
+        })}
+      </tfoot>
+    )}
+</table>

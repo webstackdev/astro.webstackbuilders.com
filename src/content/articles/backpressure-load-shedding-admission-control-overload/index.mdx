@@ -68,13 +68,20 @@ Consider a system processing 100 RPS with 200ms latency—that's 20 requests in 
 
 Here's a counterintuitive truth: throughput can _increase_ during overload while your system becomes effectively useless. The distinction is between throughput (work attempted) and goodput (work successfully completed).
 
-| Metric | Definition | Normal Load | Under Overload |
-|--------|------------|-------------|----------------|
-| Throughput | Requests processed | 1000 RPS | 1200 RPS |
-| Goodput | Successful responses | 1000 RPS | 400 RPS |
-| Badput | Failed/timed out | 0 RPS | 800 RPS |
-
-Table: Throughput can increase during overload while goodput collapses.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Throughput can increase during overload while goodput collapses.",
+    thead: { th: ["Metric", "Definition", "Normal Load", "Under Overload"] },
+    tbody: {
+      tr: [
+        { th: "Throughput", td: ["Requests processed", "1000 RPS", "1200 RPS"] },
+        { th: "Goodput", td: ["Successful responses", "1000 RPS", "400 RPS"] },
+        { th: "Badput", td: ["Failed/timed out", "0 RPS", "800 RPS"] },
+      ],
+    },
+  }}
+/>
 
 Under overload, your system might process more requests than ever—but most of that work is wasted. Requests timeout after consuming resources. Database queries complete but the client already gave up.
 
@@ -112,13 +119,15 @@ It's better to reject 20% of requests immediately than to accept 100% and fail 4
 
 I've found four approaches cover most scenarios:
 
-**Rate limiting** is the simplest—cap throughput at N requests per second regardless of what the system can handle. It's blunt but effective as a safety valve.
-
-**Concurrency limiting** is smarter because it naturally adapts. Allow N requests in-flight simultaneously. If requests are fast, you serve more per second; if they're slow, you serve fewer but don't overload.
-
-**Latency-based admission** is the most sophisticated—it directly targets the metric you care about. As P99 latency increases, admission probability decreases. The system automatically finds its sustainable capacity.
-
-**Queue depth limiting** rejects when the work queue exceeds a threshold. This bounds worst-case latency since you know how much work is ahead of any new request.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Rate limiting:", text: "cap throughput at N requests per second regardless of what the system can handle. It's blunt but effective as a safety valve." },
+    { lead: "Concurrency limiting:", text: "smarter because it naturally adapts. Allow N requests in-flight simultaneously. If requests are fast, you serve more per second; if they're slow, you serve fewer but don't overload." },
+    { lead: "Latency-based admission:", text: "the most sophisticated—it directly targets the metric you care about. As P99 latency increases, admission probability decreases. The system automatically finds its sustainable capacity." },
+    { lead: "Queue depth limiting:", text: "rejects when the work queue exceeds a threshold. This bounds worst-case latency since you know how much work is ahead of any new request." },
+  ]}
+/>
 
 ```typescript title="latency-admission-middleware.ts"
 // Express middleware for latency-based admission control
@@ -219,12 +228,21 @@ The key insight is that critical traffic can _borrow_ capacity from lower tiers.
 
 Load shedding is the deliberate dropping of work to preserve system stability. It sounds brutal, but the alternative is worse. When you're drowning, you throw cargo overboard to keep the ship afloat.
 
-| Strategy | When to Use | Tradeoff |
-|----------|-------------|----------|
-| Random | Simple implementation | May drop important requests |
-| LIFO (newest first) | Reduce queuing latency | Fresh requests rejected fast |
-| Priority-based | Protect important traffic | Complexity, starvation risk |
-| CoDel | Adaptive, self-tuning | More complex to implement |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Load shedding strategies and their tradeoffs.",
+    thead: { th: ["Strategy", "When to Use", "Tradeoff"] },
+    tbody: {
+      tr: [
+        { th: "Random", td: ["Simple implementation", "May drop important requests"] },
+        { th: "LIFO (newest first)", td: ["Reduce queuing latency", "Fresh requests rejected fast"] },
+        { th: "Priority-based", td: ["Protect important traffic", "Complexity, starvation risk"] },
+        { th: "CoDel", td: ["Adaptive, self-tuning", "More complex to implement"] },
+      ],
+    },
+  }}
+/>
 
 Table: Load shedding strategies and their tradeoffs.
 
@@ -311,10 +329,13 @@ Every system has limits. The question isn't whether yours will face overload—i
 
 Three principles to carry forward:
 
-**Fast rejection beats slow failure.** When you can't serve a request, say so immediately. A 503 returned in 5ms is infinitely better than a timeout after 30 seconds. The fast rejection frees resources and gives clients useful information.
-
-**Not all work is equal—prioritize ruthlessly.** During overload, protect what matters: health checks, payments, authenticated users. Shed the non-essential to preserve the critical.
-
-**Degrade predictably rather than fail catastrophically.** A system that maintains 50% goodput during a 10x traffic spike is succeeding. A system that accepts everything and serves nothing has failed completely.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Fast rejection beats slow failure:", text: "When you can't serve a request, say so immediately. A 503 returned in 5ms is infinitely better than a timeout after 30 seconds. The fast rejection frees resources and gives clients useful information." },
+    { lead: "Not all work is equal—prioritize ruthlessly:", text: "During overload, protect what matters: health checks, payments, authenticated users. Shed the non-essential to preserve the critical." },
+    { lead: "Degrade predictably rather than fail catastrophically:", text: "A system that maintains 50% goodput during a 10x traffic spike is succeeding. A system that accepts everything and serves nothing has failed completely." },
+  ]}
+/>
 
 The underlying principle is simple: _some_ work completing successfully is better than _all_ work failing. Build systems that know their limits, and you'll build systems that survive.

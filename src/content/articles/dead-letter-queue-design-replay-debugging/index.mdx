@@ -26,13 +26,15 @@ Messages fail for different reasons, and those reasons determine how you should 
 
 The failure taxonomy matters because different failure types require fundamentally different responses:
 
-- __Transient failures__ are temporary issues that resolve themselves: database connection timeouts, downstream service unavailability, rate limit errors, lock contention. These should succeed on retry. The right strategy is automatic replay after a cooldown period - no human intervention required if your retry policy is sound.
-
-- __Permanent failures__ won't resolve without intervention: invalid message format, referenced entity doesn't exist, business rule violation, schema version mismatch. These will never succeed without a fix. Someone needs to look at the payload, understand what's wrong, and either fix the data or discard the message.
-
-- __Poison messages__ crash the consumer: null pointer in a required field, infinite loop triggered by specific data, memory exhaustion from an oversized payload. The consumer dies on every attempt. These are the most dangerous because they can take down your processing capacity. The strategy is to isolate immediately, fix the consumer code, then replay.
-
-- __Ordering failures__ fail due to sequence issues: an update arriving before the create, a delete for a non-existent record. These may succeed if replayed in correct order. The strategy is to hold for reordering, then replay - but this often requires understanding the business context to determine the correct sequence.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "__Transient failures__ are temporary issues that resolve themselves: database connection timeouts, downstream service unavailability, rate limit errors, lock contention. These should succeed on retry. The right strategy is automatic replay after a cooldown period - no human intervention required if your retry policy is sound." },
+    { text: "__Permanent failures__ won't resolve without intervention: invalid message format, referenced entity doesn't exist, business rule violation, schema version mismatch. These will never succeed without a fix. Someone needs to look at the payload, understand what's wrong, and either fix the data or discard the message." },
+    { text: "__Poison messages__ crash the consumer: null pointer in a required field, infinite loop triggered by specific data, memory exhaustion from an oversized payload. The consumer dies on every attempt. These are the most dangerous because they can take down your processing capacity. The strategy is to isolate immediately, fix the consumer code, then replay." },
+    { text: "__Ordering failures__ fail due to sequence issues: an update arriving before the create, a delete for a non-existent record. These may succeed if replayed in correct order. The strategy is to hold for reordering, then replay - but this often requires understanding the business context to determine the correct sequence." },
+  ]}
+/>
 
 When you classify failures at write time - the moment the message moves to the DLQ - you enable automation. Transient failures route to an auto-replay queue with a delay. Permanent failures route to a team-specific triage queue. Poison messages trigger an immediate alert. Without classification, every message requires a human to open it, read the error, and decide what to do. That's why DLQs accumulate for months.
 
@@ -46,18 +48,49 @@ If your DLQ treats all failures the same, you're forcing humans to do what softw
 
 Traditional DLQs fail at their job because they don't capture enough context. Most give you the original message payload, a timestamp when the message was DLQ'd, and maybe the number of retries. That's it. When you're debugging a failure three weeks later, you're staring at a payload with no idea what went wrong.
 
-| What You Need for Debugging | Why It Matters |
-|-----------------------------|----------------|
-| Original payload (exact bytes) | Replay exactly what was sent, not a re-serialized interpretation |
-| First failure, last failure, DLQ timestamps | Understand the failure timeline and retry behavior |
-| Full attempt history with timing | See patterns across retries, not just the final error |
-| Error type, message, stack trace per attempt | Debug without guessing what went wrong |
-| Consumer version and host | Know which code version failed and where |
-| Correlation ID, trace ID | Connect to distributed traces and related requests |
-| Failure classification | Enable automated routing and alerting |
-| Operational state | Track triage progress, avoid duplicate investigation |
-
-Table: Context required for a debuggable DLQ.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Context required for a debuggable DLQ.",
+    thead: { th: ["What You Need for Debugging", "Why It Matters"] },
+    tbody: {
+      tr: [
+        {
+          th: "Original payload (exact bytes)",
+          td: ["Replay exactly what was sent, not a re-serialized interpretation"],
+        },
+        {
+          th: "First failure, last failure, DLQ timestamps",
+          td: ["Understand the failure timeline and retry behavior"],
+        },
+        {
+          th: "Full attempt history with timing",
+          td: ["See patterns across retries, not just the final error"],
+        },
+        {
+          th: "Error type, message, stack trace per attempt",
+          td: ["Debug without guessing what went wrong"],
+        },
+        {
+          th: "Consumer version and host",
+          td: ["Know which code version failed and where"],
+        },
+        {
+          th: "Correlation ID, trace ID",
+          td: ["Connect to distributed traces and related requests"],
+        },
+        {
+          th: "Failure classification",
+          td: ["Enable automated routing and alerting"],
+        },
+        {
+          th: "Operational state",
+          td: ["Track triage progress, avoid duplicate investigation"],
+        },
+      ],
+    },
+  }}
+/>
 
 The gap between what most DLQs capture and what you need for debugging is enormous. Closing that gap requires capturing context at the right moment.
 

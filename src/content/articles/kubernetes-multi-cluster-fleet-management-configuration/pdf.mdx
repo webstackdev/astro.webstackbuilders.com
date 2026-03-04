@@ -27,7 +27,7 @@ The multi-cluster management problem isn't primarily about tools. It's about the
 The hardest part of multi-cluster isn't deploying to many clusters—it's knowing what's supposed to be the same vs. different, and detecting when drift occurs. Without this clarity, you're managing independent configurations, not a fleet.
 </Callout>
 
-### A Brief History: Why Not Federation?
+## A Brief History: Why Not Federation?
 
 Kubernetes Federation (KubeFed) was the original attempt to solve multi-cluster management. The idea was appealing: a control plane that could deploy resources across multiple clusters from a single API. You'd create a "FederatedDeployment" and it would propagate to member clusters automatically.
 
@@ -41,13 +41,27 @@ The industry moved toward a different model: GitOps-based fleet management. Inst
 
 Organizations arrive at multi-cluster architectures for different reasons, and the reason shapes the configuration strategy. Understanding _why_ you have multiple clusters determines what should be consistent versus different across them.
 
-_Environment-based_ clusters are the most common pattern: dev, staging, and production running as separate clusters. The configuration model here is straightforward—core add-ons, security policies, and RBAC structure should be identical, while resource quotas, replica counts, and feature flags differ by environment. You want staging to behave like production, just smaller.
-
-_Regional_ clusters serve global applications or data sovereignty requirements. US-East, US-West, EU-West, and AP-Southeast might all run the same application versions and security policies, but with region-specific endpoints, compliance settings, and capacity. The challenge here is keeping application deployments synchronized while allowing regional customization.
-
-_Workload isolation_ clusters separate concerns by team or workload type: frontend, backend, data platform, ML training. Each cluster shares network policies and security baselines, but node types, add-ons, and resource profiles differ dramatically. An ML training cluster needs GPUs and tolerates batch job failures; a frontend cluster needs fast scaling and zero-downtime deployments.
-
-_Hybrid cloud_ clusters span providers: AWS primary, GCP disaster recovery, Azure edge, on-premises for sensitive workloads. Application manifests and security policies stay consistent, but cloud-specific integrations (load balancers, storage classes, IAM bindings) differ by necessity.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Environment-based',
+      text: 'clusters are the most common pattern: dev, staging, and production running as separate clusters. The configuration model here is straightforward—core add-ons, security policies, and RBAC structure should be identical, while resource quotas, replica counts, and feature flags differ by environment. You want staging to behave like production, just smaller.',
+    },
+    {
+      lead: 'Regional',
+      text: 'clusters serve global applications or data sovereignty requirements. US-East, US-West, EU-West, and AP-Southeast might all run the same application versions and security policies, but with region-specific endpoints, compliance settings, and capacity. The challenge here is keeping application deployments synchronized while allowing regional customization.',
+    },
+    {
+      lead: 'Workload isolation',
+      text: 'clusters separate concerns by team or workload type: frontend, backend, data platform, ML training. Each cluster shares network policies and security baselines, but node types, add-ons, and resource profiles differ dramatically. An ML training cluster needs GPUs and tolerates batch job failures; a frontend cluster needs fast scaling and zero-downtime deployments.',
+    },
+    {
+      lead: 'Hybrid cloud',
+      text: 'clusters span providers: AWS primary, GCP disaster recovery, Azure edge, on-premises for sensitive workloads. Application manifests and security policies stay consistent, but cloud-specific integrations (load balancers, storage classes, IAM bindings) differ by necessity.',
+    },
+  ]}
+/>
 
 ```mermaid
 graph TD
@@ -78,26 +92,61 @@ Figure: Multi-cluster topology patterns.
 
 Every multi-cluster strategy sits somewhere on a spectrum from "all clusters are identical" to "each cluster is independent." Neither extreme works well in practice.
 
-_Fully consistent_ means all clusters get exactly the same configuration. This is simple to reason about and guarantees reproducibility, but it's inflexible. You end up over-provisioning dev and staging to match production, or you can't tune production for its actual load patterns. This approach only works for small fleets with simple applications.
-
-_Layered configuration_ uses a base configuration with environment-specific overrides. This is the sweet spot for most organizations. You define what's shared (security policies, monitoring stack, core add-ons) and what varies (replica counts, resource limits, feature flags). Kustomize overlays and Helm values files are the typical implementation. The risk is "override explosion"—so many layers of patches that nobody can trace what a cluster actually runs.
-
-_Policy-governed_ configuration sets guardrails rather than identical configs. Teams can customize their clusters within bounds enforced by OPA/Gatekeeper[^opa-gatekeeper] or Kyverno[^kyverno]. This enables innovation and team autonomy, but drift happens within the policy bounds. Debugging becomes harder because clusters are intentionally different.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Fully consistent',
+      text: 'means all clusters get exactly the same configuration. This is simple to reason about and guarantees reproducibility, but it\'s inflexible. You end up over-provisioning dev and staging to match production, or you can\'t tune production for its actual load patterns. This approach only works for small fleets with simple applications.',
+    },
+    {
+      lead: 'Layered configuration',
+      text: 'uses a base configuration with environment-specific overrides. This is the sweet spot for most organizations. You define what\'s shared (security policies, monitoring stack, core add-ons) and what varies (replica counts, resource limits, feature flags). Kustomize overlays and Helm values files are the typical implementation. The risk is "override explosion"—so many layers of patches that nobody can trace what a cluster actually runs.',
+    },
+    {
+      lead: 'Policy-governed',
+      text: 'configuration sets guardrails rather than identical configs. Teams can customize their clusters within bounds enforced by OPA/Gatekeeper[^opa-gatekeeper] or Kyverno[^kyverno]. This enables innovation and team autonomy, but drift happens within the policy bounds. Debugging becomes harder because clusters are intentionally different.',
+    },
+    {
+      lead: 'Fully flexible',
+      text: 'means each cluster is independent, with its own GitOps repo and configuration. Maximum autonomy, maximum chaos. Security risks emerge when teams deviate from baselines. This only works with truly autonomous teams who don\'t need cross-cluster consistency.',
+    },
+  ]}
+/>
 
 [^opa-gatekeeper]: OPA (Open Policy Agent) is an open-source, general-purpose policy engine that unifies policy enforcement across the stack, using a declarative language called Rego to define complex rules. Gatekeeper is a specialized project that integrates OPA into Kubernetes—it acts as a validating admission controller, intercepting requests to the Kubernetes API and checking them against OPA policies before resources are created or modified.
 
 [^kyverno]: Kyverno is a Kubernetes-native policy engine. Unlike Gatekeeper, it doesn't require learning Rego; policies are written in standard YAML. It can validate, mutate (modify), and generate resources, as well as verify container image signatures.
 
-_Fully flexible_ means each cluster is independent, with its own GitOps repo and configuration. Maximum autonomy, maximum chaos. Security risks emerge when teams deviate from baselines. This only works with truly autonomous teams who don't need cross-cluster consistency.
-
-| Approach | Consistency | Flexibility | Operational Overhead | Best For |
-|----------|-------------|-------------|---------------------|----------|
-| Fully Consistent | Very High | Very Low | Low | Small fleet, simple apps |
-| Layered Config | High | Medium | Medium | Typical enterprise |
-| Policy Governed | Medium | High | High | Platform teams, multi-tenant |
-| Fully Flexible | Low | Very High | Variable | Autonomous teams |
-
-Table: Consistency vs flexibility tradeoffs.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Approach', 'Consistency', 'Flexibility', 'Operational Overhead', 'Best For'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Fully Consistent',
+          td: ['Very High', 'Very Low', 'Low', 'Small fleet, simple apps'],
+        },
+        {
+          th: 'Layered Config',
+          td: ['High', 'Medium', 'Medium', 'Typical enterprise'],
+        },
+        {
+          th: 'Policy Governed',
+          td: ['Medium', 'High', 'High', 'Platform teams, multi-tenant'],
+        },
+        {
+          th: 'Fully Flexible',
+          td: ['Low', 'Very High', 'Variable', 'Autonomous teams'],
+        },
+      ],
+    },
+    figure: 'Consistency vs flexibility tradeoffs.',
+  }}
+/>
 
 <Callout type="info">
 Most organizations land on "layered configuration" with policy guardrails. Pure consistency is too rigid; pure flexibility is chaos. The middle ground—shared base with controlled overrides—balances predictability with practicality.
@@ -109,24 +158,61 @@ The fleet management landscape has matured around a few dominant approaches. All
 
 ### Tool Comparison
 
-_ArgoCD ApplicationSets_ extend ArgoCD's Application concept with generators that create Applications dynamically based on clusters, Git directories, or custom lists. If you're already running ArgoCD, ApplicationSets are the natural choice. The generator patterns (cluster, list, git, matrix, merge) handle most multi-cluster scenarios elegantly. The limitation is scale: beyond 500 clusters, the ApplicationSet controller can struggle, and you'll need sharding or multiple ArgoCD instances.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'ArgoCD ApplicationSets',
+      text: 'extend ArgoCD\'s Application concept with generators that create Applications dynamically based on clusters, Git directories, or custom lists. If you\'re already running ArgoCD, ApplicationSets are the natural choice. The generator patterns (cluster, list, git, matrix, merge) handle most multi-cluster scenarios elegantly. The limitation is scale: beyond 500 clusters, the ApplicationSet controller can struggle, and you\'ll need sharding or multiple ArgoCD instances.',
+    },
+    {
+      lead: 'Flux',
+      text: 'takes a different approach, building multi-cluster support into its Kustomization hierarchy. Each cluster runs its own Flux controllers pulling from Git, with dependencies between Kustomizations enabling layered configuration. Flux excels at lightweight, distributed deployments where each cluster is fairly autonomous. The trade-off is less centralized visibility—there\'s no built-in UI showing fleet-wide status.',
+    },
+    {
+      lead: 'Rancher Fleet',
+      text: 'provides centralized multi-cluster GitOps with a strong UI for fleet visibility. The "bundle" concept groups related resources for deployment across cluster groups. It\'s pull-based (clusters pull their configs), but the Rancher UI gives operators a single pane of glass. The downside is ecosystem lock-in—Fleet integrates deeply with Rancher\'s cluster management.',
+    },
+    {
+      lead: 'Google Config Sync',
+      text: '(part of Anthos) offers deep GKE integration with built-in policy controller and namespace hierarchy management. If your fleet is GKE-centric, Config Sync provides tight integration with Google Cloud\'s IAM and audit logging. For multi-cloud or on-prem clusters, it\'s less flexible.',
+    },
+    {
+      lead: 'Crossplane',
+      text: 'approaches fleet management differently—as a Kubernetes-native control plane extension for both infrastructure and configuration. You define Compositions that abstract cluster provisioning and configuration together. This is powerful for platform teams building internal developer platforms, but the learning curve is steep.',
+    },
+  ]}
+/>
 
-_Flux_ takes a different approach, building multi-cluster support into its Kustomization hierarchy. Each cluster runs its own Flux controllers pulling from Git, with dependencies between Kustomizations enabling layered configuration. Flux excels at lightweight, distributed deployments where each cluster is fairly autonomous. The trade-off is less centralized visibility—there's no built-in UI showing fleet-wide status.
-
-_Rancher Fleet_ provides centralized multi-cluster GitOps with a strong UI for fleet visibility. The "bundle" concept groups related resources for deployment across cluster groups. It's pull-based (clusters pull their configs), but the Rancher UI gives operators a single pane of glass. The downside is ecosystem lock-in—Fleet integrates deeply with Rancher's cluster management.
-
-_Google Config Sync_ (part of Anthos) offers deep GKE integration with built-in policy controller and namespace hierarchy management. If your fleet is GKE-centric, Config Sync provides tight integration with Google Cloud's IAM and audit logging. For multi-cloud or on-prem clusters, it's less flexible.
-
-_Crossplane_ approaches fleet management differently—as a Kubernetes-native control plane extension for both infrastructure and configuration. You define Compositions that abstract cluster provisioning and configuration together. This is powerful for platform teams building internal developer platforms, but the learning curve is steep.
-
-| Tool | Model | Best For | Scale Ceiling | Learning Curve |
-|------|-------|----------|---------------|----------------|
-| ArgoCD ApplicationSets | Pull-based, centralized | Teams already using ArgoCD | ~500 clusters | Medium |
-| Flux | Pull-based, distributed | CLI-first, GitOps-native teams | 1000+ clusters | Medium-High |
-| Rancher Fleet | Pull-based, central UI | Rancher ecosystem users | ~500 clusters | Low-Medium |
-| Config Sync | Pull-based, GKE-native | GKE-centric organizations | GKE limits | Low |
-
-Table: Fleet management tool comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Tool', 'Model', 'Best For', 'Scale Ceiling', 'Learning Curve'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'ArgoCD ApplicationSets',
+          td: ['Pull-based, centralized', 'Teams already using ArgoCD', '~500 clusters', 'Medium'],
+        },
+        {
+          th: 'Flux',
+          td: ['Pull-based, distributed', 'CLI-first, GitOps-native teams', '1000+ clusters', 'Medium-High'],
+        },
+        {
+          th: 'Rancher Fleet',
+          td: ['Pull-based, central UI', 'Rancher ecosystem users', '~500 clusters', 'Low-Medium'],
+        },
+        {
+          th: 'Config Sync',
+          td: ['Pull-based, GKE-native', 'GKE-centric organizations', 'GKE limits', 'Low'],
+        },
+      ],
+    },
+    figure: 'Fleet management tool comparison.',
+  }}
+/>
 
 <Callout type="info">
 Crossplane deserves mention but serves a different purpose—it's a control plane for provisioning infrastructure _and_ configuration together, not purely a fleet deployment tool. If you're building an internal developer platform where cluster provisioning and app deployment are unified, Crossplane is worth evaluating. For pure configuration management across existing clusters, stick with the GitOps tools above.
@@ -547,14 +633,35 @@ releases:
 
 Code: Helmfile for multi-cluster deployment orchestration.
 
-| Approach | Pros | Cons | Best For |
-|----------|------|------|----------|
-| Kustomize overlays | Native K8s, no templating | Patch complexity grows | Simple environment overrides |
-| Helm values hierarchy | Powerful templating | Values file explosion | Complex apps with many variants |
-| Jsonnet | Programmable, DRY | Steep learning curve | Large-scale platforms |
-| CUE | Type-safe, validation | Newer, less ecosystem adoption | Configuration validation focus |
-
-Table: Configuration templating approaches.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Approach', 'Pros', 'Cons', 'Best For'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Kustomize overlays',
+          td: ['Native K8s, no templating', 'Patch complexity grows', 'Simple environment overrides'],
+        },
+        {
+          th: 'Helm values hierarchy',
+          td: ['Powerful templating', 'Values file explosion', 'Complex apps with many variants'],
+        },
+        {
+          th: 'Jsonnet',
+          td: ['Programmable, DRY', 'Steep learning curve', 'Large-scale platforms'],
+        },
+        {
+          th: 'CUE',
+          td: ['Type-safe, validation', 'Newer, less ecosystem adoption', 'Configuration validation focus'],
+        },
+      ],
+    },
+    figure: 'Configuration templating approaches.',
+  }}
+/>
 
 <Callout type="info">
 The "values file explosion" problem is real: base + environment + region + cluster = many files to manage. Combat this with clear naming conventions, validation in CI, and documentation of which values are set where.
@@ -604,11 +711,23 @@ Detection tells you when drift happens; prevention stops it from happening in th
 
 The two main policy engines are OPA/Gatekeeper and Kyverno. For drift prevention, the common patterns are:
 
-1. **Require fleet management labels**: Reject resources that lack labels indicating they're fleet-managed. This catches resources created outside the GitOps flow.
-
-2. **Require GitOps annotations**: Reject modifications to resources that should only be changed through Git. ArgoCD adds tracking annotations; policies can require their presence.
-
-3. **Restrict manual changes in production**: Allow direct kubectl access in dev/staging but block it in production namespaces.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: 'Require fleet management labels',
+      text: 'Reject resources that lack labels indicating they\'re fleet-managed. This catches resources created outside the GitOps flow.',
+    },
+    {
+      lead: 'Require GitOps annotations',
+      text: 'Reject modifications to resources that should only be changed through Git. ArgoCD adds tracking annotations; policies can require their presence.',
+    },
+    {
+      lead: 'Restrict manual changes in production',
+      text: 'Allow direct kubectl access in dev/staging but block it in production namespaces.',
+    },
+  ]}
+/>
 
 Here's a Gatekeeper constraint that requires fleet management labels on all workloads:
 
@@ -704,9 +823,23 @@ Never deploy to all production clusters simultaneously. A bad configuration chan
 
 The typical wave structure is:
 
-1. **Canary cluster**: A single non-critical cluster (or a dedicated canary) that receives changes first. If something breaks, the blast radius is minimal.
-2. **Non-critical production**: Secondary regions, lower-traffic clusters, or less critical workloads. These validate the change works at production scale without risking your primary clusters.
-3. **Primary production**: The clusters that matter most. By the time changes reach here, they've been validated in real production conditions.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: 'Canary cluster',
+      text: 'A single non-critical cluster (or a dedicated canary) that receives changes first. If something breaks, the blast radius is minimal.',
+    },
+    {
+      lead: 'Non-critical production',
+      text: 'Secondary regions, lower-traffic clusters, or less critical workloads. These validate the change works at production scale without risking your primary clusters.',
+    },
+    {
+      lead: 'Primary production',
+      text: 'The clusters that matter most. By the time changes reach here, they\'ve been validated in real production conditions.',
+    },
+  ]}
+/>
 
 ArgoCD's ApplicationSet supports progressive rollout through its RollingSync strategy. You assign wave labels to clusters and define steps that sync clusters matching each wave:
 
@@ -800,19 +933,57 @@ Sometimes you need to perform operations across the entire fleet that don't fit 
 
 The key principles are:
 
-1. **Order by criticality**: Operate on canary/dev clusters first, production last. If something fails, you find out before touching critical infrastructure.
-2. **Verify between clusters**: Don't blindly proceed. Check health, validate the operation succeeded, wait for stabilization.
-3. **Have a rollback plan**: Know how to undo the operation. For some operations (like config changes), rollback is straightforward. For others (like data migrations), it's not.
-4. **Respect rate limits**: Don't hammer your clusters. Add delays between operations, especially in production.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: 'Order by criticality',
+      text: 'Operate on canary/dev clusters first, production last. If something fails, you find out before touching critical infrastructure.',
+    },
+    {
+      lead: 'Verify between clusters',
+      text: 'Don\'t blindly proceed. Check health, validate the operation succeeded, wait for stabilization.',
+    },
+    {
+      lead: 'Have a rollback plan',
+      text: 'Know how to undo the operation. For some operations (like config changes), rollback is straightforward. For others (like data migrations), it\'s not.',
+    },
+    {
+      lead: 'Respect rate limits',
+      text: 'Don\'t hammer your clusters. Add delays between operations, especially in production.',
+    },
+  ]}
+/>
 
-| Operation Type | Strategy | Verification | Rollback |
-|----------------|----------|--------------|----------|
-| Security patch | Parallel (all at once) | Basic health | Per-cluster |
-| Feature rollout | Progressive waves | Canary metrics | Full fleet |
-| Config change | Sequential | Config validation | Previous config |
-| Add-on upgrade | Progressive | Integration tests | Previous version |
-
-Table: Fleet operation strategies by type.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Operation Type', 'Strategy', 'Verification', 'Rollback'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Security patch',
+          td: ['Parallel (all at once)', 'Basic health', 'Per-cluster'],
+        },
+        {
+          th: 'Feature rollout',
+          td: ['Progressive waves', 'Canary metrics', 'Full fleet'],
+        },
+        {
+          th: 'Config change',
+          td: ['Sequential', 'Config validation', 'Previous config'],
+        },
+        {
+          th: 'Add-on upgrade',
+          td: ['Progressive', 'Integration tests', 'Previous version'],
+        },
+      ],
+    },
+    figure: 'Fleet operation strategies by type.',
+  }}
+/>
 
 <Callout type="success">
 Progressive rollout is essential for production fleet operations. Start with a canary cluster, verify health, then proceed to non-critical clusters, and finally critical clusters. Each wave should have clear success criteria before proceeding.

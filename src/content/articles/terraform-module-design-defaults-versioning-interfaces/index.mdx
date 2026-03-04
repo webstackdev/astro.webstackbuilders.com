@@ -27,11 +27,23 @@ Think of it this way: if 80% of your consumers will use the same value, make it 
 
 I organize variables into three categories based on what consumers need to provide:
 
-_Required variables_ have no default. The module cannot function without them. VPC ID is a classic example — the module has no way to know which VPC you want to deploy into. Environment is another; defaulting to "development" when someone actually wanted production would be a disaster.
-
-_Optional with sensible default_ covers most settings. Instance type defaults to t3.medium because it works for most workloads. Backup retention defaults to 7 days because some retention is almost always better than none. Consumers can override these, but they don't have to think about them on day one.
-
-_Opt-in with null_ handles features that most consumers don't need. Custom KMS keys, custom domains, advanced monitoring — these use `null` as the default, signaling "skip this feature" or "use platform defaults."
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Required variables',
+      text: 'have no default. The module cannot function without them. VPC ID is a classic example-the module has no way to know which VPC you want to deploy into. Environment is another; defaulting to "development" when someone actually wanted production would be a disaster.',
+    },
+    {
+      lead: 'Optional with sensible default',
+      text: "covers most settings. Instance type defaults to t3.medium because it works for most workloads. Backup retention defaults to 7 days because some retention is almost always better than none. Consumers can override these, but they don't have to think about them on day one.",
+    },
+    {
+      lead: 'Opt-in with null',
+      text: 'handles features that most consumers do not need. Custom KMS keys, custom domains, advanced monitoring-these use null as the default, signaling "skip this feature" or "use platform defaults."',
+    },
+  ]}
+/>
 
 ```hcl title="modules/database/variables.tf"
 # Required: module cannot safely guess
@@ -111,16 +123,43 @@ Users can opt out for development environments; they shouldn't have to opt _in_ 
 
 Here's where module maintenance gets tricky. You want to improve your module — fix bugs, add features, clean up technical debt. But every change risks breaking someone's deployment. Understanding which changes are safe and which require a major version bump saves you from angry Slack messages.
 
-| Change Type | Breaking? | Migration Action |
-|-------------|-----------|------------------|
-| Add optional input with default | No | Ship it |
-| Remove input variable | Yes | Deprecate in prior version; document in changelog |
-| Change input type | Yes | Document migration steps in changelog |
-| Add new output | No | Ship it |
-| Remove output | Yes | Deprecate in prior version; document replacement |
-| Rename resource | Yes | Add `moved` block to preserve state |
-
-Table: Common module changes and whether they break consumers.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Change Type', 'Breaking?', 'Migration Action'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Add optional input with default',
+          td: ['No', 'Ship it'],
+        },
+        {
+          th: 'Remove input variable',
+          td: ['Yes', 'Deprecate in prior version; document in changelog'],
+        },
+        {
+          th: 'Change input type',
+          td: ['Yes', 'Document migration steps in changelog'],
+        },
+        {
+          th: 'Add new output',
+          td: ['No', 'Ship it'],
+        },
+        {
+          th: 'Remove output',
+          td: ['Yes', 'Deprecate in prior version; document replacement'],
+        },
+        {
+          th: 'Rename resource',
+          td: ['Yes', 'Add `moved` block to preserve state'],
+        },
+      ],
+    },
+    figure: 'Common module changes and whether they break consumers.',
+  }}
+/>
 
 The key insight: _outputs are promises_. Even if you think nobody uses a particular output, removing it is a breaking change. Someone, somewhere, has wired it into their Terragrunt wrapper or their CI pipeline. Deprecate outputs for at least one major version before removal — add a description that says "DEPRECATED: Use xyz instead. Will be removed in v3.0" and give consumers time to migrate.
 
@@ -139,9 +178,23 @@ moved {
 
 Semantic versioning tells consumers what to expect:
 
-- _Major version_ (2.0.0 → 3.0.0): Breaking changes. Consumers should read the changelog before upgrading.
-- _Minor version_ (2.1.0 → 2.2.0): New features, backward compatible. Safe to upgrade.
-- _Patch version_ (2.1.1 → 2.1.2): Bug fixes only. Always safe.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Major version (2.0.0 → 3.0.0):',
+      text: 'Breaking changes. Consumers should read the changelog before upgrading.',
+    },
+    {
+      lead: 'Minor version (2.1.0 → 2.2.0):',
+      text: 'New features, backward compatible. Safe to upgrade.',
+    },
+    {
+      lead: 'Patch version (2.1.1 → 2.1.2):',
+      text: 'Bug fixes only. Always safe.',
+    },
+  ]}
+/>
 
 The discipline is in classifying correctly. Renaming an output feels like cleanup, but it's a breaking change. Adding a new resource with side effects (like a CloudWatch alarm that pages someone) might technically be backward compatible, but it'll still surprise your consumers.
 

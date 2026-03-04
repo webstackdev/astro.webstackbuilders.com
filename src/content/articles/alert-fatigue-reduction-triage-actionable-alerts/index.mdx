@@ -29,7 +29,7 @@ The most visible symptom of alert fatigue is MTTA drift—mean time to acknowled
 
 There's solid research on this from healthcare, where alarm fatigue kills patients. Studies in ICUs found that 72-99% of alarms required no clinical intervention[^1], and staff developed coping mechanisms—turning down volume, disabling non-critical alarms, or simply not rushing to respond. Software operations is no different.
 
-[^1]: Sendelbach S, Funk M. "Alarm fatigue: a patient safety concern." AACN Adv Crit Care. 2013 Oct-Dec;24(4):378-86.
+[^1]: Sendelbach S, Funk M. "Alarm fatigue: a patient safety concern." AACN Adv Crit Care. 2013 Oct-Dec: 378-86.
 
 The feedback loop makes it worse. After an incident caused by a missed alert, the instinct is to add more alerts. But if the alert was missed because of volume, adding more alerts makes the next miss more likely, not less. You can't fix what you haven't measured—and most teams have never actually measured their alert usefulness.
 
@@ -41,9 +41,9 @@ Before you can fix alert noise, you need to know what you have. Most teams can't
 
 Export your alert definitions and firing history. Prometheus/Alertmanager stores this in rules files and the `ALERTS` metric. Datadog and PagerDuty have API endpoints for historical data. You want at least 90 days of history to capture weekly and monthly patterns.
 
-For each alert, capture: alert name, firing frequency over the last 90 days, action rate (percentage of firings that required human intervention), owning team, and whether a runbook exists. The action rate column is the most important and the hardest to populate—you'll need to cross-reference alert firings with incident tickets or on-call logs.
-
 <Newsletter />
+
+For each alert, capture: alert name, firing frequency over the last 90 days, action rate (percentage of firings that required human intervention), owning team, and whether a runbook exists. The action rate column is the most important and the hardest to populate—you'll need to cross-reference alert firings with incident tickets or on-call logs.
 
 ### Step 2: Classify by Action Rate
 
@@ -53,14 +53,47 @@ The question to answer: when this alert fired, did someone _do_ something? Not "
 
 I use four buckets:
 
-| Classification | Criteria | What To Do |
-|----------------|-------------|------------|
-| Actionable | ≥ 80% | Keep, improve runbook |
-| Noisy | 20-80% | Investigate thresholds, consider aggregation |
-| Useless | &lt; 20% | Delete or convert to dashboard metric |
-| Stale | Not fired in 3+ months | Review for deletion |
-
-Table: Alert classification buckets based on action rate.
+<Table
+  variant="timeline-labels-table"
+  content={{
+    figure: 'Alert classification buckets based on action rate.',
+    thead: {
+      th: ['Classification', 'Criteria', 'What To Do'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: {
+            label: 'Actionable',
+            color: 'success',
+          },
+          td: ['≥ 80%', 'Keep, improve runbook'],
+        },
+        {
+          th: {
+            label: 'Noisy',
+            color: 'warning',
+          },
+          td: ['20-80%', 'Investigate thresholds, consider aggregation'],
+        },
+        {
+          th: {
+            label: 'Useless',
+            color: 'danger',
+          },
+          td: ['&lt; 20%', 'Delete or convert to dashboard metric'],
+        },
+        {
+          th: {
+            label: 'Stale',
+            color: 'spotlight',
+          },
+          td: ['Not fired in 3+ months', 'Review for deletion'],
+        },
+      ],
+    },
+  }}
+/>
 
 The "noisy" bucket is where most of the work happens. These alerts fire for real issues, but the threshold is wrong or multiple alerts fire for the same underlying problem. Fixing them requires understanding _why_ action wasn't taken—was the alert a false positive, or did the problem resolve itself before anyone could respond?
 
@@ -72,9 +105,23 @@ But an alert that fires constantly and gets ignored isn't a lesson learned—it'
 
 The talking points that work:
 
-- "This alert fired 47 times last quarter. How many of those were real problems?" (Usually: zero or one.)
-- "Would you notice if this alert stopped firing tomorrow?" (Usually: no.)
-- "If we delete this, what's the worst case?" (Usually: we'd notice the problem some other way, slightly later.)
+<List
+  variant="chevron-list"
+  items={[
+    {
+      lead: '"This alert fired 47 times last quarter. How many of those were real problems?"',
+      text: "(Usually: zero or one.)",
+    },
+    {
+      lead: '"Would you notice if this alert stopped firing tomorrow?"',
+      text: "(Usually: no.)",
+    },
+    {
+      lead: '"If we delete this, what\'s the worst case?"',
+      text: "(Usually: we'd notice the problem some other way, slightly later.)",
+    },
+  ]}
+/>
 
 <Callout type="danger">An alert with a 5% action rate is not "coverage"—it is noise that makes your 95% action-rate alerts harder to notice. Delete it or fix it.</Callout>
 
@@ -82,7 +129,7 @@ The talking points that work:
 
 Most alert configurations work backwards. They alert on causes—CPU spikes, memory pressure, disk I/O, connection pool exhaustion—hoping to catch problems before users notice. The result is dozens of alerts for a single incident, each describing a different aspect of the same failure.
 
-Flip this around. Alert on symptoms instead: what users actually experience. A single "checkout latency exceeds SLO" alert replaces the CPU alert, the database alert, the cache alert, and the memory alert. They're all symptoms of the same underlying problem, and the responder doesn't need to be told about each one separately.
+Flip this around. <Highlighter>Alert on symptoms instead: what users actually experience.</Highlighter> A single "checkout latency exceeds SLO" alert replaces the CPU alert, the database alert, the cache alert, and the memory alert. They're all symptoms of the same underlying problem, and the responder doesn't need to be told about each one separately.
 
 Cause-based alerts still have a place—as diagnostic information in dashboards and runbooks, not as paging conditions. When the symptom alert fires, the responder can check the cause metrics to understand _why_. But the page itself should describe the user impact, not the infrastructure state.
 
@@ -93,8 +140,6 @@ This principle extends to alert grouping and dependency suppression. If the data
 Alert counts grow naturally. Someone adds an alert during an incident, another gets added during a deployment, a third comes from a vendor integration. Rarely does anyone go back and remove alerts. Without discipline, the count ratchets upward.
 
 Establish a cadence: monthly reviews of which alerts fired most and what their action rates were, quarterly reviews of whether alerts still make sense given how your system has evolved. Every alert needs an owner—encode it in a label. Orphaned alerts are the first candidates for deletion.
-
-Counter the growth with a deletion budget: every quarter, each team must delete or significantly improve 10% of their alerts. It's aggressive enough to force real decisions, but sustainable enough that teams don't feel like they're dismantling their monitoring.
 
 <Download
   resource="alert-fatigue-reduction-triage-actionable-alerts"
@@ -115,6 +160,8 @@ Counter the growth with a deletion budget: every quarter, each team must delete 
     },
   ]}
 />
+
+Counter the growth with a deletion budget: every quarter, each team must delete or significantly improve 10% of their alerts. It's aggressive enough to force real decisions, but sustainable enough that teams don't feel like they're dismantling their monitoring.
 
 ## The Results
 

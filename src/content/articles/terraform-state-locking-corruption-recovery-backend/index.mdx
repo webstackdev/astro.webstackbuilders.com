@@ -26,13 +26,27 @@ State corruption isn't always obvious. Sometimes Terraform tells you directly wi
 
 The most common causes, roughly in order of frequency:
 
-__Interrupted applies__ happen when someone hits Ctrl+C during an apply, a network failure kills the connection, or CI times out. The cloud resource might be partially created, fully created, or not created at all — but state reflects whatever Terraform believed at the moment of interruption. You'll see plan showing unexpected changes, or attempting to create resources that already exist.
-
-__Concurrent modifications__ occur despite locking, usually because someone ran Terraform locally while CI was running, or two CI jobs targeted the same state due to misconfigured triggers. Look for "state serial mismatch" errors, or changes from one apply silently missing after another completes.
-
-__Manual state edits__ are tempting when you need to fix something quickly, but JSON is unforgiving. A missing comma, wrong type, or malformed resource address can corrupt the entire file. Any Terraform command will fail with parse errors.
-
-__Provider version mismatches__ happen when you upgrade providers without considering state compatibility. The provider's internal schema version might change, and state written by the old provider might not be readable by the new one. Watch for warnings about schema versions or unexpected replacement plans.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Interrupted applies',
+      text: "happen when someone hits Ctrl+C during an apply, a network failure kills the connection, or CI times out. The cloud resource might be partially created, fully created, or not created at all — but state reflects whatever Terraform believed at the moment of interruption. You'll see plan showing unexpected changes, or attempting to create resources that already exist.",
+    },
+    {
+      lead: 'Concurrent modifications',
+      text: 'occur despite locking, usually because someone ran Terraform locally while CI was running, or two CI jobs targeted the same state due to misconfigured triggers. Look for "state serial mismatch" errors, or changes from one apply silently missing after another completes.',
+    },
+    {
+      lead: 'Manual state edits',
+      text: 'are tempting when you need to fix something quickly, but JSON is unforgiving. A missing comma, wrong type, or malformed resource address can corrupt the entire file. Any Terraform command will fail with parse errors.',
+    },
+    {
+      lead: 'Provider version mismatches',
+      text: "happen when you upgrade providers without considering state compatibility. The provider's internal schema version might change, and state written by the old provider might not be readable by the new one. Watch for warnings about schema versions or unexpected replacement plans.",
+    },
+  ]}
+/>
 
 When something seems wrong, start by ruling out configuration problems. Run `terraform validate` first — it checks HCL syntax and provider schema without touching state or making API calls. If validate passes but plan fails, you're dealing with a state issue, not a config issue.
 
@@ -196,11 +210,34 @@ A successful recovery should result in a plan showing no changes, or minimal dri
 
 Most state problems are preventable. These practices eliminate the patterns that cause corruption:
 
-- _Enable S3 versioning with DynamoDB locking._ This is your recovery safety net and your concurrency protection.
-- _Use CI/CD concurrency controls._ Set `cancel-in-progress: false` in GitHub Actions — never cancel a running apply.
-- _Pin provider and Terraform versions._ Upgrade deliberately with testing, not accidentally.
-- _Save plans to files._ Run `terraform plan -out=tfplan`, then `terraform apply tfplan`. This prevents drift between plan and apply.
-- _Never edit state manually._ Use `terraform state` commands instead. Manual JSON edits bypass validation and corrupt checksums.
-- _Practice recovery quarterly._ Restore from backup in a test environment. Import a throwaway resource. Force-unlock a test state. When the incident happens, these commands should be muscle memory.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Enable S3 versioning with DynamoDB locking.',
+      text: 'This is your recovery safety net and your concurrency protection.',
+    },
+    {
+      lead: 'Use CI/CD concurrency controls.',
+      text: 'Set `cancel-in-progress: false` in GitHub Actions — never cancel a running apply.',
+    },
+    {
+      lead: 'Pin provider and Terraform versions.',
+      text: 'Upgrade deliberately with testing, not accidentally.',
+    },
+    {
+      lead: 'Save plans to files.',
+      text: 'Run `terraform plan -out=tfplan`, then `terraform apply tfplan`. This prevents drift between plan and apply.',
+    },
+    {
+      lead: 'Never edit state manually.',
+      text: 'Use `terraform state` commands instead. Manual JSON edits bypass validation and corrupt checksums.',
+    },
+    {
+      lead: 'Practice recovery quarterly.',
+      text: 'Restore from backup in a test environment. Import a throwaway resource. Force-unlock a test state. When the incident happens, these commands should be muscle memory.',
+    },
+  ]}
+/>
 
 The failure modes are well-documented, and so are the fixes. With the right backend configuration and practiced recovery procedures, you can turn a potential multi-day outage into a 15-minute recovery.

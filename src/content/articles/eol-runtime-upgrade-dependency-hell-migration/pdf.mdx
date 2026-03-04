@@ -127,16 +127,41 @@ The `npm explain` and `yarn why` commands are particularly useful when you have 
 
 Once you have visibility into the graph, you need to classify blockers by type. Not all incompatibilities are equal. Some require a one-line version bump. Others require replacing a core library and touching every file that imports it. The table below shows the most common blocker categories and the typical resolution path for each.
 
-| Blocker Type | Example | Resolution Strategy |
-|--------------|---------|---------------------|
-| Native modules | node-sass, bcrypt older versions | Upgrade or replace with pure JS |
-| Deprecated packages | request, node-uuid | Replace with maintained alternative |
-| Abandoned packages | No updates in 2+ years | Fork, replace, or vendor |
-| Internal packages | Company packages not updated | Coordinate with owning team |
-| Version constraints | Peer dependency conflicts | Negotiate with upstream |
-| Binary distributions | Pre-built binaries for old runtime | Rebuild or find new source |
-
-Table: Common dependency blocker types and strategies.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Common dependency blocker types and strategies.",
+    thead: { th: ["Blocker Type", "Example", "Resolution Strategy"] },
+    tbody: {
+      tr: [
+        {
+          th: "Native modules",
+          td: ["node-sass, bcrypt older versions", "Upgrade or replace with pure JS"],
+        },
+        {
+          th: "Deprecated packages",
+          td: ["request, node-uuid", "Replace with maintained alternative"],
+        },
+        {
+          th: "Abandoned packages",
+          td: ["No updates in 2+ years", "Fork, replace, or vendor"],
+        },
+        {
+          th: "Internal packages",
+          td: ["Company packages not updated", "Coordinate with owning team"],
+        },
+        {
+          th: "Version constraints",
+          td: ["Peer dependency conflicts", "Negotiate with upstream"],
+        },
+        {
+          th: "Binary distributions",
+          td: ["Pre-built binaries for old runtime", "Rebuild or find new source"],
+        },
+      ],
+    },
+  }}
+/>
 
 Native modules are usually the most painful. They ship compiled binaries that link against the Node.js or Python C ABI, and when that ABI changes between major versions, the binary fails to load. The classic example is `node-sass`: it bundles LibSass compiled for a specific Node version, and upgrading Node requires waiting for a new release or switching to `sass` (Dart Sass), which is pure JavaScript.
 
@@ -164,11 +189,14 @@ Most ecosystems have tooling that helps with this. The npm `npm outdated` comman
 
 The order matters. Some upgrades unblock others. Some create risk that you want to isolate. The general pattern I follow:
 
-1. __Unblock__ means eliminating packages that have no path forward on the new runtime. If you are stuck on Node 16 because of `node-sass`, replacing it with Dart Sass is the first step—not because it is the most important change, but because everything else depends on it. These blockers sit at the bottom of your dependency graph, and until they are gone, you cannot move.
-
-2. __Core dependencies__ are the major libraries that define your application's architecture: your ORM, your web framework, your authentication library. These often have breaking changes between major versions, so upgrading them is real work. But they are also well-documented, with migration guides and changelogs. Do these upgrades while you are still on the old runtime. That way, if something breaks, you know it is the library upgrade, not the runtime change.
-
-3. __Runtime change__ comes last. By the time you change the Node version or .NET target framework, every dependency should already be compatible. The runtime switch itself should be anticlimactic—a container base image change and a CI configuration update. If you have done the preparation correctly, your tests pass on the first try.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "__Unblock__ means eliminating packages that have no path forward on the new runtime. If you are stuck on Node 16 because of `node-sass`, replacing it with Dart Sass is the first step—not because it is the most important change, but because everything else depends on it. These blockers sit at the bottom of your dependency graph, and until they are gone, you cannot move." },
+    { text: "__Core dependencies__ are the major libraries that define your application's architecture: your ORM, your web framework, your authentication library. These often have breaking changes between major versions, so upgrading them is real work. But they are also well-documented, with migration guides and changelogs. Do these upgrades while you are still on the old runtime. That way, if something breaks, you know it is the library upgrade, not the runtime change." },
+    { text: "__Runtime change__ comes last. By the time you change the Node version or .NET target framework, every dependency should already be compatible. The runtime switch itself should be anticlimactic—a container base image change and a CI configuration update. If you have done the preparation correctly, your tests pass on the first try." },
+  ]}
+/>
 
 <Callout type="warning">
 Do not skip intermediate versions when the gap is large. Jumping from Node 14 to Node 20 means debugging breakage from three major versions simultaneously. Go 14 → 16 → 18 → 20, validating at each step. The extra time is worth the clarity.
@@ -202,16 +230,32 @@ The .NET ecosystem has a unique challenge that Node and Python developers do not
 
 The breaking changes fall into three categories. _Removed APIs_ are namespaces and classes that do not exist in .NET Core at all—`System.Web` is the biggest one, but `WCF` server-side, `AppDomain.CreateDomain`, and various Windows-specific APIs are also gone. _Changed APIs_ still exist but work differently—`HttpContext` becomes `IHttpContextAccessor` with dependency injection, `ConfigurationManager` becomes `IConfiguration`, and `System.Drawing` has limited cross-platform support. _Architecture changes_ are the deepest—the entire application startup model moved from `Global.asax` to `Program.cs`, configuration moved from `Web.config` to `appsettings.json`, and dependency injection is now built into the framework rather than bolted on.
 
-| Blocker | Replacement | Migration Effort |
-|---------|-------------|------------------|
-| ASP.NET Web Forms | Blazor or Razor Pages | Extreme—full rewrite |
-| WCF server-side | gRPC or REST APIs | High—new service contracts |
-| Entity Framework 6 | EF Core | Medium-high—query translation differences |
-| System.Web dependencies | ASP.NET Core equivalents | High—scattered throughout codebase |
-| Crystal Reports | Third-party or custom | High—report redesign |
-| Windows-only APIs | Platform-specific code or alternatives | Varies |
-
-Table: Common .NET Framework blockers and their modern replacements.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Common .NET Framework blockers and their modern replacements.",
+    thead: { th: ["Blocker", "Replacement", "Migration Effort"] },
+    tbody: {
+      tr: [
+        { th: "ASP.NET Web Forms", td: ["Blazor or Razor Pages", "Extreme—full rewrite"] },
+        { th: "WCF server-side", td: ["gRPC or REST APIs", "High—new service contracts"] },
+        {
+          th: "Entity Framework 6",
+          td: ["EF Core", "Medium-high—query translation differences"],
+        },
+        {
+          th: "System.Web dependencies",
+          td: ["ASP.NET Core equivalents", "High—scattered throughout codebase"],
+        },
+        { th: "Crystal Reports", td: ["Third-party or custom", "High—report redesign"] },
+        {
+          th: "Windows-only APIs",
+          td: ["Platform-specific code or alternatives", "Varies"],
+        },
+      ],
+    },
+  }}
+/>
 
 Web Forms deserves special mention. There is no migration path. If your application uses Web Forms, you are looking at a rewrite in Blazor, Razor Pages, or a JavaScript frontend. This is often the blocker that kills .NET modernization projects—the effort is so large that teams choose to maintain Framework indefinitely or rebuild from scratch.
 
@@ -336,14 +380,49 @@ The third option is pinning to the last CommonJS version of the package. Check t
 
 Before moving on to the operating system layer, it is worth noting that the patterns we have covered for .NET and Node apply to other major frameworks as well. Rails, Django, and Spring Boot each have their own release cycles, deprecation policies, and upgrade friction points. The methodology is the same: map the dependency graph, classify blockers, sequence the work. But the specific pain points differ.
 
-| Framework | EOL Pattern | Common Blockers | Key Friction |
-|-----------|-------------|-----------------|--------------|
-| Ruby on Rails | 3 versions supported; older dropped aggressively | Ruby version requirements, gem native extensions, database adapter changes | Rails version often forces Ruby version; gems lag behind Rails releases |
-| Django | 2 versions supported; ~8 month release cycle | Python version requirements, third-party app compatibility, ORM query changes | Aggressive deprecation warnings become errors; middleware API changes |
-| Spring Boot | 12 months OSS support per minor; commercial extended | Java version requirements, Spring Framework major version jumps | Java 8 → 17 jump required; XML config to Java config migration |
-| Laravel | 2 years bug fixes, 3 years security | PHP version requirements, Composer dependency conflicts | PHP 7 → 8 type system changes break packages |
-
-Table: Framework EOL patterns and common upgrade blockers.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Framework EOL patterns and common upgrade blockers.",
+    thead: { th: ["Framework", "EOL Pattern", "Common Blockers", "Key Friction"] },
+    tbody: {
+      tr: [
+        {
+          th: "Ruby on Rails",
+          td: [
+            "3 versions supported; older dropped aggressively",
+            "Ruby version requirements, gem native extensions, database adapter changes",
+            "Rails version often forces Ruby version; gems lag behind Rails releases",
+          ],
+        },
+        {
+          th: "Django",
+          td: [
+            "2 versions supported; ~8 month release cycle",
+            "Python version requirements, third-party app compatibility, ORM query changes",
+            "Aggressive deprecation warnings become errors; middleware API changes",
+          ],
+        },
+        {
+          th: "Spring Boot",
+          td: [
+            "12 months OSS support per minor; commercial extended",
+            "Java version requirements, Spring Framework major version jumps",
+            "Java 8 → 17 jump required; XML config to Java config migration",
+          ],
+        },
+        {
+          th: "Laravel",
+          td: [
+            "2 years bug fixes, 3 years security",
+            "PHP version requirements, Composer dependency conflicts",
+            "PHP 7 → 8 type system changes break packages",
+          ],
+        },
+      ],
+    },
+  }}
+/>
 
 Rails and Django tie closely to their language runtimes. A Rails 7 upgrade typically requires Ruby 3.1+, which means the Ruby upgrade and the Rails upgrade are coupled. Django 5 requires Python 3.10+, dropping support for older Python versions. If you have been deferring language upgrades, the framework EOL will force them.
 
@@ -396,13 +475,15 @@ When you maintain images for multiple applications, consider a staged rollout: u
 
 For non-containerized infrastructure, OS upgrades require more coordination. The safest approach is blue-green deployment at the infrastructure level: provision new instances on the new OS, migrate traffic gradually, and keep the old instances available for rollback.
 
-1. __Preparation__ starts weeks before the migration. Inventory every server and its OS version. Identify applications with dependencies on OS-level packages or paths. Test applications on the new OS in dev and staging environments. Update CI/CD pipelines to build artifacts compatible with both OS versions.
-
-2. __Parallel operation__ runs both OS versions simultaneously in production. Route a small percentage of traffic to new-OS instances and monitor closely for errors, latency changes, and functional issues. This is where you discover the edge cases that testing missed—the hardcoded path that changed, the system call that behaves differently, the package that is no longer available.
-
-3. __Cutover__ shifts the majority of traffic to the new OS while keeping old instances warm. Do not decommission old infrastructure immediately. Give yourself a week to catch issues that only manifest under full production load or at specific times (batch jobs, month-end processing).
-
-4. __Cleanup__ is where you finally remove the old infrastructure, update documentation, and simplify CI/CD back to a single target OS.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "__Preparation__ starts weeks before the migration. Inventory every server and its OS version. Identify applications with dependencies on OS-level packages or paths. Test applications on the new OS in dev and staging environments. Update CI/CD pipelines to build artifacts compatible with both OS versions." },
+    { text: "__Parallel operation__ runs both OS versions simultaneously in production. Route a small percentage of traffic to new-OS instances and monitor closely for errors, latency changes, and functional issues. This is where you discover the edge cases that testing missed—the hardcoded path that changed, the system call that behaves differently, the package that is no longer available." },
+    { text: "__Cutover__ shifts the majority of traffic to the new OS while keeping old instances warm. Do not decommission old infrastructure immediately. Give yourself a week to catch issues that only manifest under full production load or at specific times (batch jobs, month-end processing)." },
+    { text: "__Cleanup__ is where you finally remove the old infrastructure, update documentation, and simplify CI/CD back to a single target OS." },
+  ]}
+/>
 
 <Callout type="success">
 Never upgrade OS in place on production servers. Deploy new instances with the new OS, migrate traffic gradually, and keep the old instances available for rollback. Blue-green deployment for infrastructure.
@@ -424,11 +505,14 @@ Check the GitHub repository (or equivalent) before concluding a package is aband
 
 Your options, roughly in order of preference:
 
-__Find a replacement.__ Many abandoned packages have actively maintained alternatives. The `request` library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements—`node-fetch`, `axios`, `got`—are well documented and widely adopted. Search for "[package name] alternative" or check the npm deprecation notice for suggestions.
-
-__Upgrade to a compatible version.__ Sometimes the package is not abandoned; you are just on an old version. Check whether a newer major version exists that supports your target runtime. This requires a migration, but it is often less work than replacing the package entirely.
-
-__Fork and patch.__ If the package is abandoned and has no replacement, you can fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. Update your package.json to reference the fork:
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "__Find a replacement.__ Many abandoned packages have actively maintained alternatives. The `request` library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements—`node-fetch`, `axios`, `got`—are well documented and widely adopted. Search for \"[package name] alternative\" or check the npm deprecation notice for suggestions." },
+    { text: "__Upgrade to a compatible version.__ Sometimes the package is not abandoned; you are just on an old version. Check whether a newer major version exists that supports your target runtime. This requires a migration, but it is often less work than replacing the package entirely." },
+    { text: "__Fork and patch.__ If the package is abandoned and has no replacement, you can fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. Update your package.json to reference the fork:" },
+  ]}
+/>
 
 ```json title="package.json"
 {
@@ -444,9 +528,13 @@ Code: Referencing a forked package while maintaining the original import paths.
 
 The `npm:` prefix lets you alias the fork to the original package name, so you do not need to update import statements throughout your codebase. The `overrides` entry ensures that transitive dependencies also use your fork.
 
-__Vendor the code.__ For small packages with simple functionality, copying the source code into your repository may be simpler than maintaining a fork. Put it in a `vendor/` directory, update your imports, and apply whatever patches you need. This removes the dependency from your package.json entirely.
-
-__Rewrite.__ If the package's functionality is narrow and well-defined, writing a replacement yourself may be faster than maintaining someone else's code. The infamous `left-pad` incident aside, many utility packages are just a few functions that you could implement in an afternoon.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "__Vendor the code.__ For small packages with simple functionality, copying the source code into your repository may be simpler than maintaining a fork. Put it in a `vendor/` directory, update your imports, and apply whatever patches you need. This removes the dependency from your package.json entirely." },
+    { text: "__Rewrite.__ If the package's functionality is narrow and well-defined, writing a replacement yourself may be faster than maintaining someone else's code. The infamous `left-pad` incident aside, many utility packages are just a few functions that you could implement in an afternoon." },
+  ]}
+/>
 
 <Callout type="warning">
 Forking means you own it. Before forking, calculate the true cost: security monitoring, compatibility testing, responding to issues. Sometimes paying for a commercial alternative is cheaper than maintaining a fork.
@@ -607,13 +695,18 @@ Each item should be checkable, not aspirational. "Tests pass" means you have see
 
 Document each step with its command, expected outcome, and rollback action if it fails. For example:
 
-1. Deploy canary instances with the new runtime. _Verify: pods running, health checks passing._
-2. Route 1% of traffic to canary. _Verify: metrics show traffic split._
-3. Monitor for 15 minutes. _Rollback if: error rate > 2x baseline or p99 latency > 2x baseline._
-4. Expand to 10% of traffic. _Monitor for 1 hour._
-5. Expand to 50% of traffic. _Monitor for 4 hours._
-6. Complete rollout. _Monitor for 24 hours._
-7. Decommission old runtime instances after soak period.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Deploy canary instances with the new runtime.", lead: "Verify: pods running, health checks passing." },
+    { text: "Route 1% of traffic to canary.", lead: "Verify: metrics show traffic split." },
+    { text: "Monitor for 15 minutes.", lead: "Rollback if: error rate > 2x baseline or p99 latency > 2x baseline." },
+    { text: "Expand to 10% of traffic.", lead: "Monitor for 1 hour." },
+    { text: "Expand to 50% of traffic.", lead: "Monitor for 4 hours." },
+    { text: "Complete rollout.", lead: "Monitor for 24 hours." },
+    { text: "Decommission old runtime instances after soak period." },
+  ]}
+/>
 
 The specifics depend on your deployment tooling and traffic patterns. The principle is incremental exposure with monitoring gates.
 

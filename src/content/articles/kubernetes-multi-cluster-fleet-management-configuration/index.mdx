@@ -9,9 +9,9 @@ tags: ["cloud-platforms","kubernetes","argo-cd","helm"]
 featured: true
 ---
 
-*[K8s]: Kubernetes
-*[GitOps]: Git Operations
 *[CRD]: Custom Resource Definition
+*[GitOps]: Git Operations
+*[K8s]: Kubernetes
 
 A platform team I worked with managed 15 Kubernetes clusters across dev, staging, and three production regions. They'd started with infrastructure-as-code, consistent tooling, and documented architecture. Two years later, hotfixes had been applied to some clusters and not others. "Temporary" manual changes became permanent. Someone upgraded the service mesh in US-East but forgot US-West. The clusters that started identical had become 15 unique configurations—and nobody could confidently say what was _intentionally_ different versus what had _accidentally_ drifted.
 
@@ -192,11 +192,23 @@ Drift prevention through admission control is powerful but can block emergency c
 
 The tools only work if you've done the organizational groundwork:
 
-_Document your fleet topology first._ Before choosing tools, map out which clusters exist, what purpose each serves, and what configuration should be shared versus different. Explicitly categorize each configuration element: fleet-wide (security policies, monitoring), environment-specific (replica counts, feature flags), or cluster-specific (regional endpoints, compliance settings).
-
-_Start drift detection on day one._ It's far easier to maintain consistency than to restore it after clusters have diverged for months. Don't wait until you have "time to set it up properly"—basic detection with alerting is better than nothing.
-
-_Match auto-remediation to risk tolerance._ Auto-heal everything in dev and staging where the cost of mistakes is low. In production, alert and review. The goal is catching drift quickly, not necessarily fixing it automatically.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Document your fleet topology first.',
+      text: 'Before choosing tools, map out which clusters exist, what purpose each serves, and what configuration should be shared versus different. Explicitly categorize each configuration element: fleet-wide (security policies, monitoring), environment-specific (replica counts, feature flags), or cluster-specific (regional endpoints, compliance settings).',
+    },
+    {
+      lead: 'Start drift detection on day one.',
+      text: 'It\'s far easier to maintain consistency than to restore it after clusters have diverged for months. Don\'t wait until you have "time to set it up properly"—basic detection with alerting is better than nothing.',
+    },
+    {
+      lead: 'Match auto-remediation to risk tolerance.',
+      text: 'Auto-heal everything in dev and staging where the cost of mistakes is low. In production, alert and review. The goal is catching drift quickly, not necessarily fixing it automatically.',
+    },
+  ]}
+/>
 
 <Download
   resource="kubernetes-multi-cluster-fleet-management-configuration"

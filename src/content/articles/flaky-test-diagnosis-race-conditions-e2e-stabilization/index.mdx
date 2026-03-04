@@ -128,11 +128,14 @@ Starting fresh is more reliable than cleaning up. Cleanup can fail silently (a c
 
 Database pollution is trickier. Three common approaches, each with tradeoffs:
 
-_Transaction rollback_: Wrap each test in a database transaction and roll back after. Fast and clean, but doesn't work if your test needs to verify committed data, test triggers, or observe behavior across transaction boundaries. Best for most unit and integration tests.
-
-_Database per test_: Create an isolated database for each test with a unique name. Slower but provides complete isolation. Works well with containerized databases. Best when you need to test committed data or database-level behavior.
-
-_Seeded snapshots_: Reset to a known state before each test using database snapshots or seed scripts. Good balance of isolation and speed. Best for E2E tests where you need realistic data without per-test database overhead.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "_Transaction rollback_", lead: "Wrap each test in a database transaction and roll back after. Fast and clean, but doesn't work if your test needs to verify committed data, test triggers, or observe behavior across transaction boundaries. Best for most unit and integration tests." },
+    { text: "_Database per test_", lead: "Create an isolated database for each test with a unique name. Slower but provides complete isolation. Works well with containerized databases. Best when you need to test committed data or database-level behavior." },
+    { text: "_Seeded snapshots_", lead: "Reset to a known state before each test using database snapshots or seed scripts. Good balance of isolation and speed. Best for E2E tests where you need realistic data without per-test database overhead." },
+  ]}
+/>
 
 ```typescript title="database-isolation.ts"
 // Transaction rollback approach
@@ -190,9 +193,13 @@ Race conditions and environment issues cause 85% of flakes. Fixing these two cat
 
 The approach is systematic:
 
-1. For race conditions, find every place your test uses `waitForTimeout()` or assumes immediate state changes after actions. Replace them with waits for specific conditions—network responses, DOM elements, URL changes.
-
-2. For environment issues, audit your test setup. Clear browser state between tests. Isolate database state through transactions, per-test databases, or seed scripts. Freeze time or use timezone-agnostic assertions. Disable animations.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "For race conditions, find every place your test uses `waitForTimeout()` or assumes immediate state changes after actions.", lead: "Replace them with waits for specific conditions—network responses, DOM elements, URL changes." },
+    { text: "For environment issues, audit your test setup.", lead: "Clear browser state between tests. Isolate database state through transactions, per-test databases, or seed scripts. Freeze time or use timezone-agnostic assertions. Disable animations." },
+  ]}
+/>
 
 The deeper lesson is that flaky tests are symptoms. They reveal race conditions in your tests, instability in your application, or inconsistency in your environments. Fixing flakes often uncovers real bugs—an API that's slower under load, a component that renders before its data arrives, a cleanup process that doesn't handle edge cases.
 

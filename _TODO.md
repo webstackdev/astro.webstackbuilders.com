@@ -84,23 +84,79 @@ if (window.matchMedia) {
 }
 ```
 
-- Need a workflow to generate PDF files from Markdown for downloads.
-
 - Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page.
 
-- Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page. Need a fixed cover page format that adds article title, subtitle, and date.
-
-- We have two print scenarios: black and white, and color for PDF output. Can use two different media queries to accomplish getting colored variables.
+- Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page. Need a fixed header format that adds article title, subtitle, and date.
 
 - Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden. The styling should be different for print for the code block. Maybe move other language code tabs to an appendix and add a link to them.
 
-- Need to only load print style sheet when needed.
+[This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
+
+For printed pages, your header should shift from a navigation tool to a document identifier. Since users cannot click links or icons on paper, these elements are "cruft" that waste space and ink.
+
+1. Recommended Print Header Format
+
+A professional print header typically includes only these three elements:
+
+- Brand Identity: A high-contrast version of your logo or the site name in plain text for brand recognition.
+- Document Title: The main title of the page (usually the <h1>), ensuring the reader knows exactly what the document is.
+- Source URL: A small, plain-text URL so the reader can find the live version later.
+
+2. Elements to Remove
+
+Hide any interactive or screen-specific components using display: none; in your @media print block:
+
+- Navigation Menus: All top-level and dropdown links.
+- Search Icons/Bars: These are non-functional on paper.
+- Breadcrumbs: While useful on-screen for site hierarchy, they often look like cluttered, disconnected text on paper. Most designers remove them to keep the focus on the primary content.
+- Social Media & CTA Buttons: "Sign In" or "Follow Us" buttons are irrelevant in print.
+
+3. Expand External Links For Print:
+
+We can't (yet) directly interface with a printed page to explore links, so link URLs should be visible on the printed version of the Web page. To keep the page relatively clean, I prefer to expand only outbound links in articles, and suppress internal ones. If you've used relative URLs on your website for local links, you can easily do this through an attribute selector and :after pseudo=classes, thus preventing internal links and links around images from being printed:
+
+```css
+@media print {
+   article a {
+      font-weight: bolder;
+      text-decoration: none;
+   }
+
+   article a[href^=http]:after {
+      content:" <" attr(href) "> ";
+   }
+}
+```
+
+## PDF File Generation
+
+- Need a workflow to generate PDF files from Markdown for downloads.
+
+- Need a fixed cover page format that adds article title, subtitle, and date.
+
+- Table of Contents (Workarounds)
+
+Because the browser doesn't know which page an element (like an <h1>) will land on until the PDF is fully rendered, you cannot generate a TOC with correct page numbers in a single pass. Common workarounds include:
+
+Paged.js Polyfill: Use the Paged.js library to handle sophisticated print layouts (like TOCs and cross-references) within the browser before Puppeteer "prints" the result.
 
 [Paged.js](https://pagedjs.org/en/documentation/) polyfills `@page` properties, and lays out an HTML document in print format where it can have page numbers generated to update in a table of contents.
 
-[This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
-
 This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
+
+- Headers and Footers (Native Support)
+
+Puppeteer can inject dynamic data into your headers and footers using specific CSS classes. To use this, you must set `displayHeaderFooter: true` in the `page.pdf()` options.
+
+Dynamic Classes: Puppeteer automatically replaces these classes with actual values:
+`.pageNumber`: Current page number.
+`.totalPages`: Total number of pages.
+`.title`: The document's `<title>` tag.
+`.date`: The date the PDF was generated.
+
+Requirements: You must provide sufficient margins (e.g.,` margin: { top: '50px', bottom: '50px' }`), or the headers/footers will be hidden behind the content.
+
+Styling: You must use inline CSS within your `headerTemplate` or `footerTemplate` strings, as they cannot access your external stylesheet.
 
 ## ToolTips
 
@@ -141,6 +197,8 @@ The text, diagrams, and images in this work are licensed under CC BY-NC 4.0
 All code samples in this article are licensed under the MIT License. Feel free to use, modify, and distribute them in any project.
 ```
 
+- When someone's already given their email address, the Download CTA should just have a download button - not require them to sign up again
+
 ## Search
 
 - How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
@@ -162,9 +220,23 @@ https://mermaid.js.org/config/directives.html
 
 - Add Inset component and convert `text` code blocks to use it.
 
-- Only needed if images used in content: Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
-
 - Focus-visible / active handling on ToC nav items
+
+- Style "Share to Mastodon" modal in src/components/Social/Mastodon/client/index.ts
+
+- There's a pretty long delay when you push the Content Switcher to go from short to deep dive, what's causing it? It should be fast - maybe it's a prefetch issue, prefetch on page load
+
+- Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
+
+- Search box in header should have blue outline, not highlight
+
+- Contact page Uppy file upload not displaying. Submit button is huge on Contact page.
+
+- Hero animation not loading on home page.
+
+- Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
+
+- Service worker isn't caching favicon
 
 ## List Component
 
@@ -177,6 +249,29 @@ https://mermaid.js.org/config/directives.html
 ## Header
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
+
+## Image component
+
+Only needed if images used in content: Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
+
+- `accTitle`: Alert severity decision tree
+- `accDescr`: Flowchart showing how to classify an alert as a Page or Notification. When an alert fires, check if there is user-facing impact. If no, it is a Notification. If yes, check if there is immediate revenue or safety impact. If yes, it is a Page. If no, check if the SLO burn rate is critical. If yes, it is a Page. If no, it is a Notification.
+
+<figure>
+  <!-- 1. The Image with a concise title -->
+  <img src="diagram.jpg" alt="[accTitle] - see details below for full text description">
+
+  <figcaption>
+    <!-- 2. Visible caption (if needed) -->
+    <strong>Figure 1:</strong> Process Workflow
+
+    <!-- 3. Collapsible detailed description -->
+    <details>
+      <summary>View detailed text description</summary>
+      <p>[Insert your full accDescr content here]</p>
+    </details>
+  </figcaption>
+</figure>
 
 ## Content Issues
 
@@ -193,3 +288,57 @@ https://mermaid.js.org/config/directives.html
 - Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`. Might be one of the list formats.
 
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
+
+## Table Refactor Instructions
+
+Our current articles have markdown tables. I want to refactor these into using our Table component. I'd like you to take it and use it for the content prop in a Table component instance you add so that the table renders using the same layout as the markdown table. Use the string variant in the tbody -> tr -> th element. Use "vertical-column-delineation-table" for the "variant" prop of the Table component.
+
+Each table will have the "figure" prop as a line below the table, prefixed with "Table: ". We should remove the "Table: " prefix from the figure string as this is used by our Markdown setup to identify figure captions. Do not leave multiple trailing empty lines after the table.
+
+The first file to update is:
+
+## List Refactor Instructions
+
+numbered-with-background-list, check-icons-list
+
+We have lists in our current articles that are of two variants: those that are plain text lists (either ordered or unordered), and those that are lists with both leads and plain texts. Our List component layouts handle both lists with leads and those without. We can identify leads because that text is emphasized with markdown in some fashion: "_", "__", "*", or "**". We need to refactor the markdown lists in a file into either an ordered (numbered-with-background-list) or unordered (check-icons-list) list, and extract lead text if present into the optional lead prop if any lead text is present. The "lead" prop should come first and before the "text" prop in the object. The "lead" prop is the emphasized text that comes first in the list items we are converting to the List component
+
+An example is as follows:
+
+- _Alerts per on-call shift_: Total alert volume during a rotation. Anything above 20 per 24-hour shift is a red flag.
+
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Alerts per on-call shift:",
+      text: "Total alert volume during a rotation. Anything above 20 per 24-hour shift is a red flag.",
+    },
+  ]}
+/>
+
+The first file to update is:
+
+### Timelines
+
+- Good generation:
+
+api-gateway-metrics-traces-logs-debugging/trace-context-propagation-creating-connected-spans-across-gateway-boundary.jpg
+
+- Needs done:
+
+backpressure-load-shedding-admission-control-overload/backpressure-propagates-from-the-constrained-resource-back-to-the-client.png
+
+argocd-sync-failures-gitops-debugging-troubleshooting/hook-execution-sequence-during-argoc-sync-lifecycle.png
+
+- Not close enough in details:
+
+argocd-sync-failures-gitops-debugging-troubleshooting/resource-dependency-graph-showing-potential-failure-points.png
+
+### Figure captions are broken:
+
+src/content/articles/structured-logging-correlation-ids-log-schema-design/pdf.mdx
+
+### This file was badly mangled during refactoring, need to compare against original:
+
+src/content/articles/internal-developer-portal-platform-self-service-actions/pdf.mdx

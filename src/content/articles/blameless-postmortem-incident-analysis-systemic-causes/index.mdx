@@ -23,15 +23,22 @@ Blame provides closure. We have a narrative: someone did something wrong, we ide
 
 But blame produces terrible outcomes. When people fear punishment for mistakes, they stop reporting near-misses. They hedge their language in postmortems. They cover their tracks. The information you need to prevent future incidents disappears into self-protective silence.
 
-| Blame-Based Approach | Systemic Approach |
-|---------------------|-------------------|
-| Finds a person to hold accountable | Finds system conditions to improve |
-| Investigation stops at human action | Investigation continues to context |
-| "Don't do that again" | "Make that harder to do" |
-| People hide mistakes | People report near-misses |
-| Same incident recurs with different person | Incident class becomes less likely |
-
-Table: How blame-based and systemic approaches differ in practice and outcomes.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "How blame-based and systemic approaches differ in practice and outcomes.",
+    thead: { th: ["Blame-Based Approach", "Systemic Approach"] },
+    tbody: {
+      tr: [
+        { th: "Finds a person to hold accountable", td: ["Finds system conditions to improve"] },
+        { th: "Investigation stops at human action", td: ["Investigation continues to context"] },
+        { th: "\"Don't do that again\"", td: ["\"Make that harder to do\""] },
+        { th: "People hide mistakes", td: ["People report near-misses"] },
+        { th: "Same incident recurs with different person", td: ["Incident class becomes less likely"] },
+      ],
+    },
+  }}
+/>
 
 The divergence compounds over time. Blame-focused organizations accumulate hidden risk because they've optimized for concealment. Systems-focused organizations accumulate learning because they've optimized for disclosure.
 
@@ -45,15 +52,23 @@ If you fire the engineer who made today's mistake, someone else will make a simi
 
 "Blameless" is frequently misunderstood. It doesn't mean no one is accountable. It doesn't mean we ignore mistakes or lower our standards. It means we hold the _right things_ accountable—and in complex systems, that's almost never an individual human making a one-off error.
 
-| What Blameless IS | What Blameless IS NOT |
-|-------------------|----------------------|
-| Holding systems accountable | Letting individuals off the hook |
-| Safe to report errors | Safe to be negligent |
-| Learning from mistakes | Ignoring mistakes |
-| Improving processes | Accepting poor processes |
-| Psychological safety | Lack of standards |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Clarifying what blameless culture actually means.",
+    thead: { th: ["What Blameless IS", "What Blameless IS NOT"] },
+    tbody: {
+      tr: [
+        { th: "Holding systems accountable", td: ["Letting individuals off the hook"] },
+        { th: "Safe to report errors", td: ["Safe to be negligent"] },
+        { th: "Learning from mistakes", td: ["Ignoring mistakes"] },
+        { th: "Improving processes", td: ["Accepting poor processes"] },
+        { th: "Psychological safety", td: ["Lack of standards"] },
+      ],
+    },
+  }}
+/>
 
-Table: Clarifying what blameless culture actually means.
 
 The distinction matters because different types of accountability call for different responses. An engineer who made an honest mistake while following normal practices needs system improvements. A manager who created deadline pressure that encouraged skipping safety checks needs to change their leadership approach. These are both accountability—just not the "find someone to blame" kind.
 
@@ -61,9 +76,14 @@ The distinction matters because different types of accountability call for diffe
 
 The Just Culture framework, developed in healthcare and aviation, helps distinguish between behaviors:
 
-- _Human error_ is inadvertent—a typo, a misremembered procedure. The response is system improvement.
-- _At-risk behavior_ involves conscious shortcuts where the person doesn't fully appreciate the risk—skipping a checklist because "it's always fine." The response is coaching and removing incentives for the shortcut.
-- _Reckless behavior_ is conscious disregard of a known substantial risk—genuinely rare in professional settings and the only category where punitive action may be appropriate.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Human error:", text: "is inadvertent—a typo, a misremembered procedure. The response is system improvement." },
+    { lead: "At-risk behavior:", text: "involves conscious shortcuts where the person doesn't fully appreciate the risk—skipping a checklist because \"it's always fine.\" The response is coaching and removing incentives for the shortcut." },
+    { lead: "Reckless behavior:", text: "is conscious disregard of a known substantial risk—genuinely rare in professional settings and the only category where punitive action may be appropriate." },
+  ]}
+/>
 
 Most incidents involve human error or at-risk behavior. Both call for system-level responses, not individual punishment.
 
@@ -135,19 +155,30 @@ The analysis is only as valuable as the actions it produces. I've seen beautiful
 
 Good action items share specific characteristics:
 
-| Characteristic | What It Means | Example |
-|---------------|---------------|----------|
-| Specific | Describes the exact change, not the general area | "Add validation for auth config changes" |
-| Measurable | Has a clear done/not-done state you can verify | "Deploy canary to 1% before full rollout" |
-| Assignable | Names a team and person, not "we" or "someone" | "Platform team owns, Sarah implements" |
-| Realistic | Scoped to complete in the committed timeframe | "Can be completed in one sprint" |
-| Systemic | Blocks the failure mode, not just this instance | "Blocks all invalid configs, not just this format" |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Characteristics of effective action items.",
+    thead: { th: ["Characteristic", "What It Means", "Example"] },
+    tbody: {
+      tr: [
+        { th: "Specific", td: ["Describes the exact change, not the general area", "\"Add validation for auth config changes\""] },
+        { th: "Measurable", td: ["Has a clear done/not-done state you can verify", "\"Deploy canary to 1% before full rollout\""] },
+        { th: "Assignable", td: ["Names a team and person, not \"we\" or \"someone\"", "\"Platform team owns, Sarah implements\""] },
+        { th: "Realistic", td: ["Scoped to complete in the committed timeframe", "\"Can be completed in one sprint\""] },
+        { th: "Systemic", td: ["Blocks the failure mode, not just this instance", "\"Blocks all invalid configs, not just this format\""] },
+      ],
+    },
+  }}
+/>
 
-Table: Characteristics of effective action items.
-
-__Good examples:__ "Add pre-deploy hook that validates config schema." "Implement 1% canary with automatic rollback on error spike." "Add config change review requirement to deploy pipeline."
-
-__Bad examples:__ "Be more careful with config changes." "Engineer X needs training." "Review all configs." "Improve monitoring."
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Good examples:", text: "\"Add pre-deploy hook that validates config schema.\" \"Implement 1% canary with automatic rollback on error spike.\" \"Add config change review requirement to deploy pipeline.\"" },
+    { lead: "Bad examples:", text: "\"Be more careful with config changes.\" \"Engineer X needs training.\" \"Review all configs.\" \"Improve monitoring.\"" },
+  ]}
+/>
 
 The "bad" examples are common because they're easy to write. But "be more careful" changes nothing structural and relies on human vigilance—exactly what failed. "Engineer X needs training" is blame dressed up as remediation. "Review all configs" and "improve monitoring" lack the specificity needed to actually get done.
 
@@ -183,13 +214,15 @@ Blameless postmortems aren't soft—they're more rigorous than blame culture. Th
 
 The core principles:
 
-- __Human error is where investigation begins, not where it ends.__ The interesting question is always: what made that action likely, possible, and undetected?
-
-- __Blame produces hiding; systems thinking produces learning.__ When people fear punishment, they stop reporting. When they feel safe, they share near-misses that prevent future incidents.
-
-- __Incidents have contributing factors, not root causes.__ Complex failures arise from multiple interacting conditions. Identify them all before deciding which to fix.
-
-- __Effective remediation requires specific, systemic action items tracked to completion.__ Vague actions don't get done. Person-focused actions don't prevent recurrence.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Human error is where investigation begins, not where it ends:", text: "The interesting question is always: what made that action likely, possible, and undetected?" },
+    { lead: "Blame produces hiding; systems thinking produces learning:", text: "When people fear punishment, they stop reporting. When they feel safe, they share near-misses that prevent future incidents." },
+    { lead: "Incidents have contributing factors, not root causes:", text: "Complex failures arise from multiple interacting conditions. Identify them all before deciding which to fix." },
+    { lead: "Effective remediation requires specific, systemic action items tracked to completion:", text: "Vague actions don't get done. Person-focused actions don't prevent recurrence." },
+  ]}
+/>
 
 The organizations that learn fastest are the ones where people feel safe enough to say "I made a mistake, and here's what we should change so it doesn't happen again."
 

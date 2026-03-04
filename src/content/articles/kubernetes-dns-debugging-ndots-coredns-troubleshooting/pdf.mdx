@@ -9,15 +9,15 @@ tags: ["cloud-platforms","kubernetes"]
 featured: true
 ---
 
-*[FQDN]: Fully Qualified Domain Name
-*[TTL]: Time To Live
-*[SRV]: Service Record
-*[CNAME]: Canonical Name Record
 *[A]: Address Record (IPv4)
 *[AAAA]: Address Record (IPv6)
+*[CNAME]: Canonical Name Record
+*[FQDN]: Fully Qualified Domain Name
 *[PTR]: Pointer Record
-*[UDP]: User Datagram Protocol
+*[SRV]: Service Record
 *[TCP]: Transmission Control Protocol
+*[TTL]: Time To Live
+*[UDP]: User Datagram Protocol
 
 An application works perfectly in development. In Kubernetes, external API calls take 5+ seconds. The API itself responds in 100ms. After hours of debugging network policies, service meshes, and egress configurations, the team discovers the culprit: `ndots:5`.
 
@@ -116,15 +116,39 @@ Code: Examining pod DNS configuration.
 
 The options in `resolv.conf` control DNS behavior in ways that matter for debugging and performance tuning.
 
-| DNS Option | Default | Purpose | Impact |
-|------------|---------|---------|--------|
-| ndots | 5 | Dots threshold for search domain use | Lower = fewer unnecessary queries |
-| timeout | 5 | Seconds before query timeout | Lower = faster failure, but risk of false negatives |
-| attempts | 2 | Retry count per nameserver | Higher = more resilient, but slower failure |
-| rotate | off | Round-robin nameservers | On = better load distribution |
-| single-request | off | One request at a time | On = fixes some UDP issues |
-
-Table: DNS options in resolv.conf.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['DNS Option', 'Default', 'Purpose', 'Impact'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'ndots',
+          td: ['5', 'Dots threshold for search domain use', 'Lower = fewer unnecessary queries'],
+        },
+        {
+          th: 'timeout',
+          td: ['5', 'Seconds before query timeout', 'Lower = faster failure, but risk of false negatives'],
+        },
+        {
+          th: 'attempts',
+          td: ['2', 'Retry count per nameserver', 'Higher = more resilient, but slower failure'],
+        },
+        {
+          th: 'rotate',
+          td: ['off', 'Round-robin nameservers', 'On = better load distribution'],
+        },
+        {
+          th: 'single-request',
+          td: ['off', 'One request at a time', 'On = fixes some UDP issues'],
+        },
+      ],
+    },
+    figure: 'DNS options in resolv.conf.',
+  }}
+/>
 
 <Callout type="info" title="Why ndots Defaults to 5">
 The default `ndots:5` exists because Kubernetes service names can have up to 4 dots (service.namespace.svc.cluster.local). This ensures internal service discovery works without requiring an FQDN. But it also means external hostnames like `api.stripe.com` (2 dots) trigger multiple failed lookups before succeeding. For applications making many external calls, this adds significant latency.
@@ -494,13 +518,27 @@ Figure: DNS debugging decision tree.
 
 Here's what to check for each common scenario:
 
-**DNS timeouts or intermittent failures**: Check if CoreDNS pods are overloaded (`kubectl top pods -n kube-system -l k8s-app=kube-dns`), look for NetworkPolicies blocking UDP/TCP port 53, and verify the upstream DNS in CoreDNS's forward configuration is reachable.
-
-**External DNS slow, internal DNS fast**: This is almost always an ndots issue. Compare resolution time with and without a trailing dot. If the FQDN is faster, reduce ndots in pod dnsConfig or use FQDNs in your application configuration.
-
-**Service discovery fails for new services**: Services usually propagate to CoreDNS within 10 seconds. If lookups fail, verify the service exists and has endpoints (`kubectl get svc,ep -n <namespace>`). Also check that you're using the correct namespace in the FQDN.
-
-**DNS works in some pods but not others**: Compare `/etc/resolv.conf` between working and broken pods. Check each pod's `dnsPolicy` setting. If the broken pod is on a specific node, investigate node-level DNS or NetworkPolicies scoped to that namespace.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "DNS timeouts or intermittent failures",
+      text: "Check if CoreDNS pods are overloaded (`kubectl top pods -n kube-system -l k8s-app=kube-dns`), look for NetworkPolicies blocking UDP/TCP port 53, and verify the upstream DNS in CoreDNS's forward configuration is reachable.",
+    },
+    {
+      lead: "External DNS slow, internal DNS fast",
+      text: "This is almost always an ndots issue. Compare resolution time with and without a trailing dot. If the FQDN is faster, reduce ndots in pod dnsConfig or use FQDNs in your application configuration.",
+    },
+    {
+      lead: "Service discovery fails for new services",
+      text: "Services usually propagate to CoreDNS within 10 seconds. If lookups fail, verify the service exists and has endpoints (`kubectl get svc,ep -n <namespace>`). Also check that you're using the correct namespace in the FQDN.",
+    },
+    {
+      lead: "DNS works in some pods but not others",
+      text: "Compare `/etc/resolv.conf` between working and broken pods. Check each pod's `dnsPolicy` setting. If the broken pod is on a specific node, investigate node-level DNS or NetworkPolicies scoped to that namespace.",
+    },
+  ]}
+/>
 
 <Callout type="warning" title="Always Test From Inside a Pod">
 When debugging DNS, always test from inside a pod. Node-level DNS and pod-level DNS are configured differently. A successful `nslookup` from the node doesn't prove DNS works for your application pods.
@@ -565,14 +603,35 @@ Now `legacy-db.production.svc.cluster.local` resolves to both IP addresses, and 
 
 The `dnsPolicy` field on a pod controls which DNS server the pod uses. Most pods use the default (`ClusterFirst`), but certain scenarios require different configurations.
 
-| Policy | CoreDNS Used | Use Case |
-|--------|--------------|----------|
-| `ClusterFirst` | Yes | Default for standard workloads |
-| `Default` | No | Pod needs the node's DNS, not cluster DNS |
-| `ClusterFirstWithHostNet` | Yes | Pods with `hostNetwork: true` that still need cluster DNS |
-| `None` | No | Fully custom DNS configuration via `dnsConfig` |
-
-Table: DNS policy comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Policy', 'CoreDNS Used', 'Use Case'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '`ClusterFirst`',
+          td: ['Yes', 'Default for standard workloads'],
+        },
+        {
+          th: '`Default`',
+          td: ["No", "Pod needs the node's DNS, not cluster DNS"],
+        },
+        {
+          th: '`ClusterFirstWithHostNet`',
+          td: ['Yes', 'Pods with `hostNetwork: true` that still need cluster DNS'],
+        },
+        {
+          th: '`None`',
+          td: ['No', 'Fully custom DNS configuration via `dnsConfig`'],
+        },
+      ],
+    },
+    figure: 'DNS policy comparison.',
+  }}
+/>
 
 The `None` policy with explicit `dnsConfig` is useful when you need complete control—for example, a pod that should only resolve against specific nameservers and ignore cluster DNS entirely:
 
@@ -667,11 +726,31 @@ For production clusters, the optimizations that matter most are negative caching
 <Callout type="info" title="DNS Quick Check Runbook">
 When connectivity issues arise, run through this checklist:
 
-1. **Is CoreDNS running?** `kubectl get pods -n kube-system -l k8s-app=kube-dns`
-2. **Can you resolve internal names?** `nslookup kubernetes.default` from inside a pod
-3. **Can you resolve external names?** `nslookup google.com` from inside a pod
-4. **Is it an ndots issue?** Compare `time nslookup api.example.com` vs `time nslookup api.example.com.`
-5. **Check CoreDNS logs** for errors: `kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50`
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: "Is CoreDNS running?",
+      text: "`kubectl get pods -n kube-system -l k8s-app=kube-dns`",
+    },
+    {
+      lead: "Can you resolve internal names?",
+      text: "`nslookup kubernetes.default` from inside a pod",
+    },
+    {
+      lead: "Can you resolve external names?",
+      text: "`nslookup google.com` from inside a pod",
+    },
+    {
+      lead: "Is it an ndots issue?",
+      text: "Compare `time nslookup api.example.com` vs `time nslookup api.example.com.`",
+    },
+    {
+      lead: "Check CoreDNS logs",
+      text: "for errors: `kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50`",
+    },
+  ]}
+/>
 
 DNS should be guilty until proven innocent—ruling it out takes 30 seconds and saves hours debugging in the wrong direction.
 </Callout>

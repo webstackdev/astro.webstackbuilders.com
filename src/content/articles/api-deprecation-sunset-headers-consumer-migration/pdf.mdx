@@ -51,14 +51,21 @@ graph LR
 
 Figure: API deprecation lifecycle with parallel migration support track.
 
-| Phase | Duration | Consumer Communication | Enforcement |
-|-------|----------|----------------------|-------------|
-| Deprecated | See timeline guidance below | Announcement, docs update | Deprecation header |
-| Sunset Warning | 3 months | Direct outreach to active consumers | Sunset header with date |
-| Read-Only | 2-4 weeks | Final warning, support escalation | Write operations disabled |
-| Removed | — | Post-removal documentation | 410 Gone response |
-
-Table: Deprecation phase timeline with communication and enforcement actions.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Deprecation phase timeline with communication and enforcement actions.",
+    thead: { th: ["Phase", "Duration", "Consumer Communication", "Enforcement"] },
+    tbody: {
+      tr: [
+        { th: "Deprecated", td: ["See timeline guidance below", "Announcement, docs update", "Deprecation header"] },
+        { th: "Sunset Warning", td: ["3 months", "Direct outreach to active consumers", "Sunset header with date"] },
+        { th: "Read-Only", td: ["2-4 weeks", "Final warning, support escalation", "Write operations disabled"] },
+        { th: "Removed", td: ["—", "Post-removal documentation", "410 Gone response"] },
+      ],
+    },
+  }}
+/>
 
 The read-only phase is optional but valuable. Disabling write operations while keeping reads working gives consumers a preview of what full removal will feel like. It also reduces the blast radius if someone has a critical read path they forgot about—they will discover it before complete removal, and you will get a support ticket instead of a production outage.
 
@@ -68,9 +75,23 @@ The biggest mistake in deprecation planning is setting timelines based on how lo
 
 Timeline guidance varies by consumer type:
 
-- _Internal APIs_ (consumed by teams in your organization): 3-6 months. You can coordinate directly and have organizational leverage to prioritize migration work.
-- _External APIs_ (consumed by third-party developers): 6-12 months minimum. These consumers have their own backlogs and no inherent motivation to prioritize your deprecation.
-- _Enterprise APIs_ (consumed by large customers with contracts): 12 months minimum. Enterprise customers often have quarterly release cycles, change control boards, and contractual review processes. A 3-month window gives them exactly one release cycle to complete migration—assuming they prioritize it immediately, which they will not.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Internal APIs (consumed by teams in your organization):",
+      text: "3-6 months. You can coordinate directly and have organizational leverage to prioritize migration work.",
+    },
+    {
+      lead: "External APIs (consumed by third-party developers):",
+      text: "6-12 months minimum. These consumers have their own backlogs and no inherent motivation to prioritize your deprecation.",
+    },
+    {
+      lead: "Enterprise APIs (consumed by large customers with contracts):",
+      text: "12 months minimum. Enterprise customers often have quarterly release cycles, change control boards, and contractual review processes. A 3-month window gives them exactly one release cycle to complete migration—assuming they prioritize it immediately, which they will not.",
+    },
+  ]}
+/>
 
 <Callout type="info">
 The timeline guidance above represents minimums. When in doubt, add time. The cost of maintaining a deprecated version for a few extra months is almost always lower than the cost of breaking consumers who needed more runway.
@@ -78,10 +99,27 @@ The timeline guidance above represents minimums. When in doubt, add time. The co
 
 Factors that extend your timeline:
 
-- _Contractual obligations_: If your SLA or terms of service guarantee API availability for a period, you are bound by that regardless of your technical preferences.
-- _Consumer update cycles_: Mobile apps have app store review delays. Enterprise software has change control processes. B2B integrations have their own release schedules.
-- _Migration complexity_: Breaking changes require more time than additive changes. Authentication changes are particularly painful.
-- _Consumer count_: More consumers means more support load and more edge cases. Budget time accordingly.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Contractual obligations:",
+      text: "If your SLA or terms of service guarantee API availability for a period, you are bound by that regardless of your technical preferences.",
+    },
+    {
+      lead: "Consumer update cycles:",
+      text: "Mobile apps have app store review delays. Enterprise software has change control processes. B2B integrations have their own release schedules.",
+    },
+    {
+      lead: "Migration complexity:",
+      text: "Breaking changes require more time than additive changes. Authentication changes are particularly painful.",
+    },
+    {
+      lead: "Consumer count:",
+      text: "More consumers means more support load and more edge cases. Budget time accordingly.",
+    },
+  ]}
+/>
 
 The cost of maintaining a deprecated version longer is usually lower than the cost of breaking consumers who did not have time to migrate. Set aggressive-but-achievable timelines, then hold firm on enforcement.
 
@@ -107,11 +145,23 @@ Code: Response headers for a deprecated endpoint with sunset date and successor 
 
 The header format is straightforward, but there are common implementation mistakes:
 
-_Wrong date format_: The Sunset header requires HTTP-date format (RFC 7231), not ISO 8601. `Sat, 01 Jun 2025 00:00:00 GMT` is correct. `2025-06-01T00:00:00Z` is not.
-
-_Timezone confusion_: Always use GMT. Local timezones create ambiguity about exactly when the sunset occurs.
-
-_Missing Link header_: The Sunset header tells consumers _when_ the endpoint goes away, but not _where_ to go instead. Always include a Link header with `rel="successor-version"` pointing to the replacement endpoint.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Wrong date format:",
+      text: "The Sunset header requires HTTP-date format (RFC 7231), not ISO 8601. `Sat, 01 Jun 2025 00:00:00 GMT` is correct. `2025-06-01T00:00:00Z` is not.",
+    },
+    {
+      lead: "Timezone confusion:",
+      text: "Always use GMT. Local timezones create ambiguity about exactly when the sunset occurs.",
+    },
+    {
+      lead: "Missing Link header:",
+      text: "The Sunset header tells consumers when the endpoint goes away, but not where to go instead. Always include a Link header with `rel=\"successor-version\"` pointing to the replacement endpoint.",
+    },
+  ]}
+/>
 
 Clients that understand the Sunset header can parse it and take automated action—logging warnings, alerting operators, or even failing builds if a dependency has a sunset date in the past. Most clients ignore it entirely, which is why you need additional communication channels.
 
@@ -119,8 +169,13 @@ Clients that understand the Sunset header can parse it and take automated action
 
 The Deprecation header (defined in a separate draft specification) signals that a resource is deprecated, distinct from the Sunset header that signals when it will be removed. The two headers serve different purposes and should be used together.
 
-- _Deprecation_ signals intent: "We plan to remove this."
-- _Sunset_ signals deadline: "We will remove this on this date."
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Deprecation signals intent:", text: "\"We plan to remove this.\"" },
+    { lead: "Sunset signals deadline:", text: "\"We will remove this on this date.\"" },
+  ]}
+/>
 
 An endpoint can be deprecated without a sunset date (you know you want to remove it but have not committed to a timeline), and in rare cases an endpoint can have a sunset date without being deprecated (scheduled maintenance windows, for example). In practice, you will usually set both.
 
@@ -181,11 +236,16 @@ You cannot deprecate what you cannot measure. Before announcing a deprecation, y
 
 The minimum data to capture for each consumer:
 
-- _Consumer identity_: API key, OAuth client ID, or whatever authentication mechanism you use. You need to know who to contact.
-- _Request volume_: Total requests over the tracking period. High-volume consumers need more attention.
-- _Endpoint coverage_: Which specific endpoints they use. A consumer using one endpoint is easier to migrate than one using twenty.
-- _Last seen_: When they last made a request. A consumer who has not called the API in 60 days may have already migrated or abandoned their integration.
-- _First seen_: When they started using the API. Consumers who adopted recently may be easier to move.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Consumer identity:", text: "API key, OAuth client ID, or whatever authentication mechanism you use. You need to know who to contact." },
+    { lead: "Request volume:", text: "Total requests over the tracking period. High-volume consumers need more attention." },
+    { lead: "Endpoint coverage:", text: "Which specific endpoints they use. A consumer using one endpoint is easier to migrate than one using twenty." },
+    { lead: "Last seen:", text: "When they last made a request. A consumer who has not called the API in 60 days may have already migrated or abandoned their integration." },
+    { lead: "First seen:", text: "When they started using the API. Consumers who adopted recently may be easier to move." },
+  ]}
+/>
 
 ```sql title="consumer-usage-query.sql"
 -- Query to identify active consumers of a deprecated API version
@@ -229,14 +289,21 @@ Figure: Consumer migration status breakdown for deprecation tracking.
 
 Track consumer status manually or through automated detection. A consumer is "migrated" when they have zero requests to the deprecated API and non-zero requests to the new API. "In progress" means they are calling both versions. "Not started" means they are only calling the deprecated version. "Blocked" is a manual flag for consumers who have communicated that they cannot migrate without help.
 
-| Metric | Purpose | Alert Threshold |
-|--------|---------|-----------------|
-| Deprecated Traffic % | Overall migration progress | &gt; 20% at T-30 days |
-| Active Consumer Count | Remaining migration work | &gt; 5 at T-30 days |
-| New Consumer Sign-ups | Preventing new adoption | Any new consumer |
-| Traffic by Consumer | Identify largest blockers | Top 3 consumers |
-
-Table: Deprecation dashboard metrics with alert thresholds.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Deprecation dashboard metrics with alert thresholds.",
+    thead: { th: ["Metric", "Purpose", "Alert Threshold"] },
+    tbody: {
+      tr: [
+        { th: "Deprecated Traffic %", td: ["Overall migration progress", "> 20% at T-30 days"] },
+        { th: "Active Consumer Count", td: ["Remaining migration work", "> 5 at T-30 days"] },
+        { th: "New Consumer Sign-ups", td: ["Preventing new adoption", "Any new consumer"] },
+        { th: "Traffic by Consumer", td: ["Identify largest blockers", "Top 3 consumers"] },
+      ],
+    },
+  }}
+/>
 
 Set alerts on these metrics. If deprecated traffic is still above 20% with 30 days until sunset, something is wrong—either consumers are not migrating, or your timeline was unrealistic. Either way, you need to act.
 
@@ -252,13 +319,15 @@ Never allow new consumers to start using a deprecated API. Every new adoption ex
 
 Enforcement mechanisms:
 
-_API key provisioning_: When creating new API keys or OAuth clients, do not grant access to deprecated API versions. The provisioning system should default to the latest stable version.
-
-_Documentation_: Remove the deprecated API from public documentation, or move it to an "archived" section with prominent deprecation warnings. New developers should not find the deprecated API when searching for how to integrate.
-
-_SDK distribution_: If you publish SDKs, stop distributing versions that use the deprecated API. Remove them from package managers or mark them as deprecated in the registry metadata.
-
-_Gateway enforcement_: Configure your API gateway to reject requests from API keys created after the deprecation announcement date:
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "API key provisioning:", text: "When creating new API keys or OAuth clients, do not grant access to deprecated API versions. The provisioning system should default to the latest stable version." },
+    { lead: "Documentation:", text: "Remove the deprecated API from public documentation, or move it to an \"archived\" section with prominent deprecation warnings. New developers should not find the deprecated API when searching for how to integrate." },
+    { lead: "SDK distribution:", text: "If you publish SDKs, stop distributing versions that use the deprecated API. Remove them from package managers or mark them as deprecated in the registry metadata." },
+    { lead: "Gateway enforcement:", text: "Configure your API gateway to reject requests from API keys created after the deprecation announcement date:" },
+  ]}
+/>
 
 ```typescript title="deprecation-authorizer.ts"
 import { APIGatewayTokenAuthorizerEvent, APIGatewayAuthorizerResult } from 'aws-lambda';
@@ -329,19 +398,29 @@ A deprecation announcement is a legal document as much as a technical one. When 
 
 Every deprecation announcement must include:
 
-- _Timeline with specific dates_: Not "Q2 2025" but "June 1, 2025." Ambiguous dates create confusion and arguments.
-- _Migration guide link_: The announcement tells consumers _what_ is happening; the guide tells them _how_ to respond.
-- _Breaking changes summary_: A quick list of what will break. Consumers need to assess migration effort.
-- _Support contact_: Where to get help. Include both self-service resources and human contact options.
-- _FAQ for common concerns_: Pre-answer the questions you know consumers will ask.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Timeline with specific dates:", text: "Not \"Q2 2025\" but \"June 1, 2025.\" Ambiguous dates create confusion and arguments." },
+    { lead: "Migration guide link:", text: "The announcement tells consumers what is happening; the guide tells them how to respond." },
+    { lead: "Breaking changes summary:", text: "A quick list of what will break. Consumers need to assess migration effort." },
+    { lead: "Support contact:", text: "Where to get help. Include both self-service resources and human contact options." },
+    { lead: "FAQ for common concerns:", text: "Pre-answer the questions you know consumers will ask." },
+  ]}
+/>
 
 ```markdown title="deprecation-announcement-template.md"
 # API v1 Deprecation Notice
 
 ## Timeline
-- **Deprecated**: January 15, 2024
-- **Sunset**: June 1, 2025
-- **Removal**: July 1, 2025
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "**Deprecated**: January 15, 2024" },
+    { text: "**Sunset**: June 1, 2025" },
+    { text: "**Removal**: July 1, 2025" },
+  ]}
+/>
 
 ## What Is Changing
 API v1 endpoints will return 410 Gone after July 1, 2025.
@@ -350,14 +429,24 @@ API v1 endpoints will return 410 Gone after July 1, 2025.
 Complete migration documentation: [V1 to V2 Migration Guide](link)
 
 ## Breaking Changes in V2
-- Authentication moved from API key to OAuth 2.0
-- Pagination changed from offset to cursor-based
-- Response envelope removed (data no longer wrapped)
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Authentication moved from API key to OAuth 2.0" },
+    { text: "Pagination changed from offset to cursor-based" },
+    { text: "Response envelope removed (data no longer wrapped)" },
+  ]}
+/>
 
 ## Support
-- Migration office hours: Thursdays 2-3pm UTC
-- Support channel: #api-migration-help
-- Direct support: api-support@example.com
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Migration office hours: Thursdays 2-3pm UTC" },
+    { text: "Support channel: #api-migration-help" },
+    { text: "Direct support: api-support@example.com" },
+  ]}
+/>
 
 ## FAQ
 **Q: Can I get an extension?**
@@ -372,27 +461,35 @@ Publish the announcement in a permanent location with a stable URL. You will ref
 
 A single announcement email has approximately a 20% open rate on a good day. If your deprecation strategy relies on one email, 80% of your consumers will miss it. Effective deprecation communication requires multiple channels, repeated over time, with increasing urgency as the sunset approaches.
 
-| Channel | Timing | Audience |
-|---------|--------|----------|
-| Blog/Changelog | Announcement | All developers |
-| Email | Announcement + monthly | Registered consumers |
-| API Headers | Every request | Active consumers |
-| Dashboard Banner | Continuous | Logged-in users |
-| Direct Outreach | T-90, T-30, T-7 days | High-traffic consumers |
-
-Table: Multi-channel deprecation communication schedule.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Multi-channel deprecation communication schedule.",
+    thead: { th: ["Channel", "Timing", "Audience"] },
+    tbody: {
+      tr: [
+        { th: "Blog/Changelog", td: ["Announcement", "All developers"] },
+        { th: "Email", td: ["Announcement + monthly", "Registered consumers"] },
+        { th: "API Headers", td: ["Every request", "Active consumers"] },
+        { th: "Dashboard Banner", td: ["Continuous", "Logged-in users"] },
+        { th: "Direct Outreach", td: ["T-90, T-30, T-7 days", "High-traffic consumers"] },
+      ],
+    },
+  }}
+/>
 
 The channels serve different purposes:
 
-_Blog and changelog_ reach the broadest audience, including developers who are evaluating your API but have not yet integrated. They set the public record.
-
-_Email_ reaches registered consumers directly. Send the initial announcement, then monthly reminders with updated migration statistics. Include the consumer's own usage data if possible—"Your API key made 50,000 requests to deprecated endpoints last month" is more compelling than generic warnings.
-
-_API headers_ reach consumers who are actively using the deprecated API, even if they ignore emails. The Deprecation and Sunset headers we discussed earlier serve this purpose.
-
-_Dashboard banners_ catch consumers when they log in to manage their integration. A persistent, non-dismissable banner during the final 30 days is appropriate.
-
-_Direct outreach_ is reserved for high-traffic consumers and the final push before sunset. This means phone calls, not emails. If a consumer represents 10% of deprecated traffic and has not responded to automated communications, someone needs to call them.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Blog and changelog reach the broadest audience:", text: "including developers who are evaluating your API but have not yet integrated. They set the public record." },
+    { lead: "Email reaches registered consumers directly:", text: "Send the initial announcement, then monthly reminders with updated migration statistics. Include the consumer's own usage data if possible—\"Your API key made 50,000 requests to deprecated endpoints last month\" is more compelling than generic warnings." },
+    { lead: "API headers reach consumers who are actively using the deprecated API:", text: "even if they ignore emails. The Deprecation and Sunset headers we discussed earlier serve this purpose." },
+    { lead: "Dashboard banners catch consumers when they log in to manage their integration:", text: "A persistent, non-dismissable banner during the final 30 days is appropriate." },
+    { lead: "Direct outreach is reserved for high-traffic consumers and the final push before sunset:", text: "This means phone calls, not emails. If a consumer represents 10% of deprecated traffic and has not responded to automated communications, someone needs to call them." },
+  ]}
+/>
 
 ### Escalation Paths When Consumers Ignore Warnings
 
@@ -402,9 +499,13 @@ A typical escalation timeline looks like this: at T-90 days, send an email warni
 
 The escalation path has two tracks: technical and organizational.
 
-_Technical escalation_ includes rate limiting, degraded service quality, and eventually hard removal. These are the consequences that make ignoring deprecation uncomfortable.
-
-_Organizational escalation_ involves account managers, customer success teams, and potentially executives. For enterprise customers, the engineering team sending emails is often less effective than their account manager explaining that continued API access is at risk.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Technical escalation includes rate limiting, degraded service quality, and eventually hard removal:", text: "These are the consequences that make ignoring deprecation uncomfortable." },
+    { lead: "Organizational escalation involves account managers, customer success teams, and potentially executives:", text: "For enterprise customers, the engineering team sending emails is often less effective than their account manager explaining that continued API access is at risk." },
+  ]}
+/>
 
 <Callout type="warning">
 Enterprise consumers may require executive-to-executive escalation. Build relationships with account managers early in the deprecation process—you will need them for the final push.
@@ -422,13 +523,15 @@ Most migration guides are useless. They describe what changed without showing ho
 
 The components of a useful migration guide:
 
-_Endpoint mapping tables_ show every old endpoint, its new equivalent, and what changed. Developers should be able to look up any v1 endpoint and immediately find the v2 replacement.
-
-_Code examples in multiple languages_ demonstrate the actual code changes. If your consumers use JavaScript, Python, and Go, show examples in all three. Abstract descriptions help no one.
-
-_Common pitfalls_ list the mistakes developers will make and how to avoid them. You know what these are—you made them yourself when building v2.
-
-_Validation tools_ let developers verify their migration is correct before switching production traffic.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Endpoint mapping tables show every old endpoint, its new equivalent, and what changed:", text: "Developers should be able to look up any v1 endpoint and immediately find the v2 replacement." },
+    { lead: "Code examples in multiple languages demonstrate the actual code changes:", text: "If your consumers use JavaScript, Python, and Go, show examples in all three. Abstract descriptions help no one." },
+    { lead: "Common pitfalls list the mistakes developers will make and how to avoid them:", text: "You know what these are—you made them yourself when building v2." },
+    { lead: "Validation tools let developers verify their migration is correct before switching production traffic:", text: "" },
+  ]}
+/>
 
 ```typescript title="migration-example-before-after.ts"
 // BEFORE: API v1
@@ -454,19 +557,31 @@ Every migration guide needs a comprehensive endpoint mapping table. This is the 
 
 The table should include:
 
-- The old endpoint path and method
-- The new endpoint path and method (if different)
-- A summary of behavioral changes (not just "changed"—what specifically changed)
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "The old endpoint path and method" },
+    { text: "The new endpoint path and method (if different)" },
+    { text: "A summary of behavioral changes (not just \"changed\"—what specifically changed)" },
+  ]}
+/>
 
-| V1 Endpoint | V2 Endpoint | Changes |
-|-------------|-------------|---------|
-| `GET /v1/users` | `GET /v2/users` | Cursor pagination, no envelope |
-| `GET /v1/users/:id` | `GET /v2/users/:id` | Field renames: `created` → `createdAt` |
-| `POST /v1/users` | `POST /v2/users` | Request body schema changed |
-| `DELETE /v1/users/:id` | `DELETE /v2/users/:id` | Now returns 204, not 200 with body |
-| `GET /v1/users/:id/orders` | `GET /v2/orders?userId=:id` | Moved to orders resource |
-
-Table: V1 to V2 endpoint mapping with behavioral changes noted.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "V1 to V2 endpoint mapping with behavioral changes noted.",
+    thead: { th: ["V1 Endpoint", "V2 Endpoint", "Changes"] },
+    tbody: {
+      tr: [
+        { th: "`GET /v1/users`", td: ["`GET /v2/users`", "Cursor pagination, no envelope"] },
+        { th: "`GET /v1/users/:id`", td: ["`GET /v2/users/:id`", "Field renames: `created` → `createdAt`"] },
+        { th: "`POST /v1/users`", td: ["`POST /v2/users`", "Request body schema changed"] },
+        { th: "`DELETE /v1/users/:id`", td: ["`DELETE /v2/users/:id`", "Now returns 204, not 200 with body"] },
+        { th: "`GET /v1/users/:id/orders`", td: ["`GET /v2/orders?userId=:id`", "Moved to orders resource"] },
+      ],
+    },
+  }}
+/>
 
 For complex changes, link from the table to detailed documentation. The table provides the overview; linked pages provide the depth. A developer migrating one endpoint should not have to read documentation for endpoints they do not use.
 
@@ -494,10 +609,15 @@ Code: SDK method with runtime deprecation warning to drive consumer awareness.
 
 Runtime warnings have a problem: developers only see them if they run their code and look at logs. For stronger enforcement, use compile-time deprecation. Most languages have deprecation annotations that generate warnings or errors at build time:
 
-- TypeScript/JavaScript: JSDoc `@deprecated` tag (shows in IDE, but no build errors)
-- Java: `@Deprecated` annotation with `forRemoval = true`
-- Python: `warnings.warn()` with `DeprecationWarning`
-- Go: Comment convention `// Deprecated:` (recognized by `staticcheck`)
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "TypeScript/JavaScript: JSDoc `@deprecated` tag (shows in IDE, but no build errors)" },
+    { text: "Java: `@Deprecated` annotation with `forRemoval = true`" },
+    { text: "Python: `warnings.warn()` with `DeprecationWarning`" },
+    { text: "Go: Comment convention `// Deprecated:` (recognized by `staticcheck`)" },
+  ]}
+/>
 
 For the strongest enforcement, stop publishing new versions of the deprecated SDK. If consumers cannot `npm install` or `pip install` a new version, they are forced to migrate. This is aggressive—use it in the final phase of deprecation when you need to force action.
 
@@ -540,25 +660,34 @@ Enforcement is the difference between a deprecation that succeeds and one that d
 
 Graduated enforcement applies increasing pressure over time. Each step is uncomfortable enough to motivate action but not so severe that it causes outages. Consumers who ignore soft warnings eventually hit hard consequences, but they have multiple opportunities to respond before that happens.
 
-| Phase | Mechanism | Consumer Impact |
-|-------|-----------|-----------------|
-| Warning | Deprecation headers only | None (headers ignored by most) |
-| Logging | Log all deprecated calls | None (internal tracking) |
-| Rate Limiting | Reduce rate limits by 50% | Degraded performance |
-| Read-Only | Disable write operations | Partial functionality loss |
-| Removal | Return 410 Gone | Complete failure |
-
-Table: Graduated enforcement progression for API deprecation.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Graduated enforcement progression for API deprecation.",
+    thead: { th: ["Phase", "Mechanism", "Consumer Impact"] },
+    tbody: {
+      tr: [
+        { th: "Warning", td: ["Deprecation headers only", "None (headers ignored by most)"] },
+        { th: "Logging", td: ["Log all deprecated calls", "None (internal tracking)"] },
+        { th: "Rate Limiting", td: ["Reduce rate limits by 50%", "Degraded performance"] },
+        { th: "Read-Only", td: ["Disable write operations", "Partial functionality loss"] },
+        { th: "Removal", td: ["Return 410 Gone", "Complete failure"] },
+      ],
+    },
+  }}
+/>
 
 The key insight is that each phase serves a different purpose:
 
-_Warning and logging_ are for you, not consumers. They establish the paper trail and give you data on who needs to migrate.
-
-_Rate limiting_ is the first enforcement consumers actually feel. Their integrations still work, but they work worse. This motivates action without causing outages.
-
-_Read-only mode_ previews removal. Consumers discover which parts of their integration will break, but reads still work. This is particularly valuable for consumers who have forgotten they depend on the deprecated API.
-
-_Removal_ is the final step. By this point, you have given consumers months of warning and multiple escalations. Anyone still hitting the deprecated API has chosen not to migrate.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Warning and logging are for you, not consumers.", text: "They establish the paper trail and give you data on who needs to migrate." },
+    { lead: "Rate limiting is the first enforcement consumers actually feel.", text: "Their integrations still work, but they work worse. This motivates action without causing outages." },
+    { lead: "Read-only mode previews removal.", text: "Consumers discover which parts of their integration will break, but reads still work. This is particularly valuable for consumers who have forgotten they depend on the deprecated API." },
+    { lead: "Removal is the final step.", text: "By this point, you have given consumers months of warning and multiple escalations. Anyone still hitting the deprecated API has chosen not to migrate." },
+  ]}
+/>
 
 ### Rate Limiting Deprecated Endpoints
 
@@ -628,13 +757,15 @@ Contracts complicate everything. An enterprise customer's contract may explicitl
 
 When you discover a contractual conflict, you have several options:
 
-_Renegotiate the contract_: Work with your sales or legal team to amend the contract. Offer something in exchange—extended support for the new API, migration assistance, a discount. Many customers will accept a reasonable deal if approached early.
-
-_Create an extended support tier_: Offer continued v1 access as a paid add-on. This shifts the cost of maintenance to the customers who require it and creates a financial incentive to migrate. Price it high enough that migration looks attractive.
-
-_Provide dedicated migration assistance_: Some enterprise customers cannot migrate because they lack engineering resources, not because they lack willingness. Offering to help—whether through documentation, office hours, or direct engineering support—can unblock them.
-
-_Wait it out_: If the contract expires in 6 months and your deprecation timeline is 12 months, you may be able to simply wait. Maintain the deprecated API until the contractual obligation expires, then proceed with removal.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Renegotiate the contract:", text: "Work with your sales or legal team to amend the contract. Offer something in exchange—extended support for the new API, migration assistance, a discount. Many customers will accept a reasonable deal if approached early." },
+    { lead: "Create an extended support tier:", text: "Offer continued v1 access as a paid add-on. This shifts the cost of maintenance to the customers who require it and creates a financial incentive to migrate. Price it high enough that migration looks attractive." },
+    { lead: "Provide dedicated migration assistance:", text: "Some enterprise customers cannot migrate because they lack engineering resources, not because they lack willingness. Offering to help—whether through documentation, office hours, or direct engineering support—can unblock them." },
+    { lead: "Wait it out:", text: "If the contract expires in 6 months and your deprecation timeline is 12 months, you may be able to simply wait. Maintain the deprecated API until the contractual obligation expires, then proceed with removal." },
+  ]}
+/>
 
 The key is discovering contractual obligations early. Before announcing any deprecation, ask your sales and legal teams: "Do any customer contracts reference this API version?" Finding out at T-30 days that you cannot proceed is worse than finding out at the start.
 
@@ -650,11 +781,14 @@ The engineering team cannot solve business problems. If a critical consumer is n
 
 Strategies for critical integrations:
 
-_Extended maintenance windows_: Keep the deprecated API running for specific consumers past the general sunset date. This is expensive but sometimes necessary. Be explicit about the end date—"We will maintain v1 for your integration until December 31, 2025, after which it will be removed regardless."
-
-_Dedicated migration support_: Assign engineering resources to help the consumer migrate. Pair programming sessions, code reviews of their migration, direct Slack access to your team. Make migration as easy as possible.
-
-_Executive escalation on both sides_: Sometimes the consumer's engineering team wants to migrate but cannot get prioritization from their leadership. Your executive calling their executive can unlock resources.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Extended maintenance windows:", text: "Keep the deprecated API running for specific consumers past the general sunset date. This is expensive but sometimes necessary. Be explicit about the end date—\"We will maintain v1 for your integration until December 31, 2025, after which it will be removed regardless.\"" },
+    { lead: "Dedicated migration support:", text: "Assign engineering resources to help the consumer migrate. Pair programming sessions, code reviews of their migration, direct Slack access to your team. Make migration as easy as possible." },
+    { lead: "Executive escalation on both sides:", text: "Sometimes the consumer's engineering team wants to migrate but cannot get prioritization from their leadership. Your executive calling their executive can unlock resources." },
+  ]}
+/>
 
 The goal is migration, not accommodation. Every special case you create extends your maintenance burden. Use these strategies to get critical consumers migrated, not to excuse them from migrating indefinitely.
 
@@ -666,19 +800,29 @@ The best time to think about deprecation is when designing the API. Versioning s
 
 The three common approaches each have tradeoffs:
 
-_URL path versioning_ (`/v1/users`, `/v2/users`) is the most explicit. Versions are visible in every request, easy to route at the gateway level, and cacheable independently. The downside is URL proliferation—you end up with parallel URL hierarchies that can be confusing.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "URL Path versioning (`/v1/users`, `/v2/users`):", text: "is the most explicit. Versions are visible in every request, easy to route at the gateway level, and cacheable independently. The downside is URL proliferation—you end up with parallel URL hierarchies that can be confusing." },
+    { lead: "Header versioning (`Accept: application/vnd.api.v1+json`):", text: "keeps URLs clean but hides the version in headers. This makes debugging harder—you cannot tell from a URL which version a request targets. It also complicates caching since the same URL returns different responses based on headers." },
+    { lead: "Query parameter versioning (`?version=1`):", text: "is flexible and visible, but it complicates cache keys and can be accidentally omitted." },
+  ]}
+/>
 
-_Header versioning_ (`Accept: application/vnd.api.v1+json`) keeps URLs clean but hides the version in headers. This makes debugging harder—you cannot tell from a URL which version a request targets. It also complicates caching since the same URL returns different responses based on headers.
-
-_Query parameter versioning_ (`?version=1`) is flexible and visible, but it complicates cache keys and can be accidentally omitted.
-
-| Strategy | Visibility | Cacheability | Routing Complexity |
-|----------|------------|--------------|-------------------|
-| URL Path | High | Simple | Simple |
-| Header | Low | Complex | Moderate |
-| Query Parameter | Medium | Complex | Simple |
-
-Table: API versioning strategy comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "API versioning strategy comparison.",
+    thead: { th: ["Strategy", "Visibility", "Cacheability", "Routing Complexity"] },
+    tbody: {
+      tr: [
+        { th: "URL Path", td: ["High", "Simple", "Simple"] },
+        { th: "Header", td: ["Low", "Complex", "Moderate"] },
+        { th: "Query Parameter", td: ["Medium", "Complex", "Simple"] },
+      ],
+    },
+  }}
+/>
 
 For most teams, URL path versioning is the right choice. The explicitness is worth the URL proliferation. When you deprecate v1, the migration path is obvious: change `/v1/` to `/v2/` in your URLs. No header manipulation, no query parameter changes, just a straightforward find-and-replace.
 
@@ -686,13 +830,15 @@ For most teams, URL path versioning is the right choice. The explicitness is wor
 
 Beyond choosing a strategy, certain principles make future deprecations smoother:
 
-_Version at the API level, not the endpoint level_. Consumers should interact with a single API version at a time. Mixed-version integrations (calling some v1 endpoints and some v2 endpoints simultaneously) are fragile and complicate migration tracking.
-
-_Plan for at least two live versions_. Your infrastructure should support running the current version and the previous version in parallel. This gives consumers a migration runway while you develop the next version.
-
-_Document version differences incrementally_. Every time you add to v2 something that differs from v1, document the change immediately. Waiting until deprecation to write migration docs means reconstructing months of changes from memory and commit logs.
-
-_Automate version routing_. Your API gateway should route requests to the correct backend based on version. Manual routing or application-level version switching creates operational burden during deprecation.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Version at the API level, not the endpoint level:", text: "Consumers should interact with a single API version at a time. Mixed-version integrations (calling some v1 endpoints and some v2 endpoints simultaneously) are fragile and complicate migration tracking." },
+    { lead: "Plan for at least two live versions:", text: "Your infrastructure should support running the current version and the previous version in parallel. This gives consumers a migration runway while you develop the next version." },
+    { lead: "Document version differences incrementally:", text: "Every time you add to v2 something that differs from v1, document the change immediately. Waiting until deprecation to write migration docs means reconstructing months of changes from memory and commit logs." },
+    { lead: "Automate version routing:", text: "Your API gateway should route requests to the correct backend based on version. Manual routing or application-level version switching creates operational burden during deprecation." },
+  ]}
+/>
 
 Whatever strategy you choose, be consistent. Mixing versioning strategies within an API creates confusion and makes deprecation harder.
 
@@ -704,22 +850,31 @@ A deprecation succeeds when the deprecated API is actually removed. But you need
 
 The core metrics:
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Deprecated Traffic | &lt; 5% at sunset | API gateway metrics |
-| Migrated Consumers | &gt; 95% at sunset | Consumer tracking dashboard |
-| Support Tickets | Declining trend | Support system |
-| Migration Incidents | Zero P1s | Incident tracking |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Deprecation success metrics with targets.",
+    thead: { th: ["Metric", "Target", "Measurement"] },
+    tbody: {
+      tr: [
+        { th: "Deprecated Traffic", td: ["< 5% at sunset", "API gateway metrics"] },
+        { th: "Migrated Consumers", td: ["> 95% at sunset", "Consumer tracking dashboard"] },
+        { th: "Support Tickets", td: ["Declining trend", "Support system"] },
+        { th: "Migration Incidents", td: ["Zero P1s", "Incident tracking"] },
+      ],
+    },
+  }}
+/>
 
-Table: Deprecation success metrics with targets.
-
-_Deprecated traffic percentage_ is your primary metric. Track it weekly and plot the trend. A healthy deprecation shows steady decline. If the percentage is flat or rising, something is wrong—either consumers are not migrating, or new consumers are adopting the deprecated API despite your blocks.
-
-_Consumer migration rate_ tracks how many distinct consumers have completed migration, regardless of their traffic volume. A small number of high-traffic consumers can dominate your traffic metrics while dozens of smaller consumers remain unmigrated. Track both.
-
-_Support ticket volume_ indicates whether your migration documentation and tooling are working. A spike in tickets suggests confusion or missing documentation. A steady decline suggests consumers are self-serving their migrations successfully.
-
-_Migration incidents_ track problems caused by the migration itself—consumers who migrated but hit bugs, performance regressions, or unexpected behavior differences. Zero P1 incidents is the goal. Any P1 incident during migration erodes trust and slows adoption.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Deprecated traffic percentage:", text: "is your primary metric. Track it weekly and plot the trend. A healthy deprecation shows steady decline. If the percentage is flat or rising, something is wrong—either consumers are not migrating, or new consumers are adopting the deprecated API despite your blocks." },
+    { lead: "Consumer migration rate:", text: "tracks how many distinct consumers have completed migration, regardless of their traffic volume. A small number of high-traffic consumers can dominate your traffic metrics while dozens of smaller consumers remain unmigrated. Track both." },
+    { lead: "Support ticket volume:", text: "indicates whether your migration documentation and tooling are working. A spike in tickets suggests confusion or missing documentation. A steady decline suggests consumers are self-serving their migrations successfully." },
+    { lead: "Migration incidents:", text: "track problems caused by the migration itself—consumers who migrated but hit bugs, performance regressions, or unexpected behavior differences. Zero P1 incidents is the goal. Any P1 incident during migration erodes trust and slows adoption." },
+  ]}
+/>
 
 Set alerts on these metrics at key milestones. If deprecated traffic is above 20% at T-30 days, you need to escalate. If it is above 5% at T-7 days, you may need to delay the sunset or accept breaking some consumers.
 
@@ -733,9 +888,14 @@ Run a retrospective within two weeks of final removal. Include everyone involved
 # API v1 Deprecation Retrospective
 
 ## Timeline Adherence
-- Planned sunset: June 1, 2025
-- Actual removal: August 15, 2025
-- Delay reason: 3 enterprise customers required extended migration support
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Planned sunset: June 1, 2025" },
+    { text: "Actual removal: August 15, 2025" },
+    { text: "Delay reason: 3 enterprise customers required extended migration support" },
+  ]}
+/>
 
 ## Consumer Migration
 - Total consumers at announcement: 147
@@ -743,19 +903,34 @@ Run a retrospective within two weeks of final removal. Include everyone involved
 - Required extended support: 9 (6%)
 
 ## What Worked
-- Early direct outreach to top 20 consumers by traffic
-- Migration office hours for live support
-- Endpoint mapping table reduced support tickets
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Early direct outreach to top 20 consumers by traffic" },
+    { text: "Migration office hours for live support" },
+    { text: "Endpoint mapping table reduced support tickets" },
+  ]}
+/>
 
 ## What Did Not Work
-- Initial 6-month timeline too short for enterprise customers
-- SDK deprecation warnings not visible enough
-- Rate limiting escalation started too late
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Initial 6-month timeline too short for enterprise customers" },
+    { text: "SDK deprecation warnings not visible enough" },
+    { text: "Rate limiting escalation started too late" },
+  ]}
+/>
 
 ## Recommendations for Next Deprecation
-- Start with 12-month timeline for external APIs
-- Add SDK deprecation warnings at compile time, not runtime
-- Begin rate limiting at T-90 days, not T-30 days
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Start with 12-month timeline for external APIs" },
+    { text: "Add SDK deprecation warnings at compile time, not runtime" },
+    { text: "Begin rate limiting at T-90 days, not T-30 days" },
+  ]}
+/>
 ```
 
 Code: Post-deprecation retrospective template for process improvement.
@@ -764,11 +939,16 @@ The retrospective document becomes institutional knowledge. When someone new joi
 
 Common lessons that emerge from retrospectives:
 
-- Timelines were too aggressive (almost always)
-- Communication started too late or was not persistent enough
-- Enterprise customers need more lead time than anticipated
-- Migration tooling gaps created unnecessary support load
-- Rate limiting should have started earlier
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Timelines were too aggressive (almost always)" },
+    { text: "Communication started too late or was not persistent enough" },
+    { text: "Enterprise customers need more lead time than anticipated" },
+    { text: "Migration tooling gaps created unnecessary support load" },
+    { text: "Rate limiting should have started earlier" },
+  ]}
+/>
 
 Document these lessons and apply them to the next deprecation. The goal is continuous improvement—each deprecation should be smoother than the last.
 
@@ -780,13 +960,15 @@ API deprecation is a coordination problem disguised as a technical problem. The 
 
 The principles that make deprecation work:
 
-_Communicate early and often_. One email is not enough. Multiple channels, repeated over months, with increasing urgency. Make it impossible for consumers to claim they did not know.
-
-_Track usage obsessively_. You cannot manage what you do not measure. Know exactly who is using the deprecated API, how much traffic they send, and whether they are making progress on migration.
-
-_Enforce gradually but firmly_. Soft warnings escalate to rate limits escalate to removal. Each step gives consumers a chance to respond, but the consequences are real and the timeline is non-negotiable.
-
-_Plan for the consumers who will not move voluntarily_. Some consumers will not migrate until it hurts. Build your escalation path assuming resistance, and you will be pleasantly surprised when consumers migrate early.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Communicate early and often.", text: "One email is not enough. Multiple channels, repeated over months, with increasing urgency. Make it impossible for consumers to claim they did not know." },
+    { lead: "Track usage obsessively.", text: "You cannot manage what you do not measure. Know exactly who is using the deprecated API, how much traffic they send, and whether they are making progress on migration." },
+    { lead: "Enforce gradually but firmly.", text: "Soft warnings escalate to rate limits escalate to removal. Each step gives consumers a chance to respond, but the consequences are real and the timeline is non-negotiable." },
+    { lead: "Plan for the consumers who will not move voluntarily.", text: "Some consumers will not migrate until it hurts. Build your escalation path assuming resistance, and you will be pleasantly surprised when consumers migrate early." },
+  ]}
+/>
 
 Deprecation is not a single announcement—it is a sustained campaign that requires attention for months. Staff it accordingly. The alternative is deprecated APIs that linger for years, consuming maintenance effort, blocking architectural improvements, and frustrating everyone involved.
 

@@ -30,22 +30,57 @@ Let's look at the metrics that actually demonstrate platform value.
 
 Lead time metrics measure how long things take. They're the clearest indicators of platform friction because they directly answer "how fast can developers move?"
 
-__Time to first deployment__ is the single most revealing onboarding metric. Measure from a developer's start date (HR system) to their first production deployment (deployment system). This captures everything: account provisioning, access requests, documentation quality, tooling complexity. If it takes two weeks, something is broken. If it's under a day, your platform is doing its job.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Time to first deployment',
+      text: "is the single most revealing onboarding metric. Measure from a developer's start date (HR system) to their first production deployment (deployment system). This captures everything: account provisioning, access requests, documentation quality, tooling complexity. If it takes two weeks, something is broken. If it's under a day, your platform is doing its job.",
+    },
+    {
+      lead: 'Time to new service',
+      text: 'measures self-service effectiveness. From service creation request (portal submission or ticket) to first successful health check in production—how much of this is automated versus waiting on humans? Anything over a week suggests manual provisioning steps. Under an hour means your automation is mature.',
+    },
+    {
+      lead: 'Time to new environment',
+      text: 'measures infrastructure automation maturity. If developers wait days for a staging environment, your Terraform modules or Crossplane claims need work. Under 15 minutes means your infrastructure-as-code is doing its job.',
+    },
+    {
+      lead: 'Deployment lead time',
+      text: 'tracks CI/CD efficiency: from code commit to running in production. This exposes approval bottlenecks, slow builds, and deployment friction. Elite teams hit under 15 minutes; struggling teams measure in days.',
+    },
+  ]}
+/>
 
-__Time to new service__ measures self-service effectiveness. From service creation request (portal submission or ticket) to first successful health check in production—how much of this is automated versus waiting on humans? Anything over a week suggests manual provisioning steps. Under an hour means your automation is mature.
-
-__Time to new environment__ measures infrastructure automation maturity. If developers wait days for a staging environment, your Terraform modules or Crossplane claims need work. Under 15 minutes means your infrastructure-as-code is doing its job.
-
-__Deployment lead time__ tracks CI/CD efficiency: from code commit to running in production. This exposes approval bottlenecks, slow builds, and deployment friction. Elite teams hit under 15 minutes; struggling teams measure in days.
-
-| Metric | Poor | Acceptable | Excellent |
-|--------|------|------------|-----------|
-| Time to first deployment | > 2 weeks | 1-5 days | < 1 day |
-| Time to new service | > 1 week | 1-24 hours | < 1 hour |
-| Time to new environment | > 3 days | 1-4 hours | < 15 minutes |
-| Deployment lead time | > 1 day | 1-4 hours | < 15 minutes |
-
-Table: Lead time targets by maturity level, aligned with DORA's research-backed framework.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'Poor', 'Acceptable', 'Excellent'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Time to first deployment',
+          td: ['> 2 weeks', '1-5 days', '< 1 day'],
+        },
+        {
+          th: 'Time to new service',
+          td: ['> 1 week', '1-24 hours', '< 1 hour'],
+        },
+        {
+          th: 'Time to new environment',
+          td: ['> 3 days', '1-4 hours', '< 15 minutes'],
+        },
+        {
+          th: 'Deployment lead time',
+          td: ['> 1 day', '1-4 hours', '< 15 minutes'],
+        },
+      ],
+    },
+    figure: "Lead time targets by maturity level, aligned with DORA's research-backed framework.",
+  }}
+/>
 
 ### Developer Friction Metrics
 
@@ -53,11 +88,23 @@ Lead time tells you _how long_. Friction metrics tell you _how hard_. They measu
 
 <Newsletter />
 
-__Ticket volume per developer__ is the baseline friction indicator. More than 2 tickets per developer per month means developers are stuck regularly. Under 0.5 means the platform is largely self-service. But raw numbers don't tell the whole story—segment by ticket type. "How do I" tickets indicate documentation gaps. "Access request" tickets indicate poor provisioning automation. "It's broken" tickets indicate reliability problems.
-
-__Self-service rate__ measures what percentage of common tasks developers complete without human intervention. Track portal completions against tickets for the same task types. If developers can provision an environment through the portal but 40% still file tickets, something's wrong with the self-service experience.
-
-__Cognitive load__ is harder to quantify but equally important. Count the config files developers must understand to deploy a service, the distinct tools in the deployment path, the context switches between systems for a single workflow. A platform that requires understanding Kubernetes manifests, Helm values, Terraform variables, CI workflow configs, Dockerfile, and secrets references—each with different syntax—isn't self-service. It's a maze.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Ticket volume per developer',
+      text: 'is the baseline friction indicator. More than 2 tickets per developer per month means developers are stuck regularly. Under 0.5 means the platform is largely self-service. But raw numbers don\'t tell the whole story—segment by ticket type. "How do I" tickets indicate documentation gaps. "Access request" tickets indicate poor provisioning automation. "It\'s broken" tickets indicate reliability problems.',
+    },
+    {
+      lead: 'Self-service rate',
+      text: "measures what percentage of common tasks developers complete without human intervention. Track portal completions against tickets for the same task types. If developers can provision an environment through the portal but 40% still file tickets, something's wrong with the self-service experience.",
+    },
+    {
+      lead: 'Cognitive load',
+      text: "is harder to quantify but equally important. Count the config files developers must understand to deploy a service, the distinct tools in the deployment path, the context switches between systems for a single workflow. A platform that requires understanding Kubernetes manifests, Helm values, Terraform variables, CI workflow configs, Dockerfile, and secrets references—each with different syntax—isn't self-service. It's a maze.",
+    },
+  ]}
+/>
 
 <Callout type="info">
 Ticket volume is a lagging indicator—it tells you friction exists but not why. Combine with ticket categorization to identify which platform areas cause the most pain.
@@ -69,17 +116,61 @@ Some metrics exist primarily to impress stakeholders. They show activity without
 
 The test for a good metric: does it tell you what to do? "We have 1000 users" tells you nothing. "50% of users struggle with authentication" tells you to improve the auth flow. Here's how common platform metrics break down:
 
-| Vanity Metric | Why It's Misleading | Actionable Alternative |
-|---------------|---------------------|------------------------|
-| "500 developers use the platform" | Doesn't indicate if they're productive | Time to first deployment for new developers |
-| "10 million API calls/month" | Could be inefficient polling or errors | Successful self-service completions |
-| "99.99% uptime" | Available but unusable is still failure | Successful deployment rate, P99 latency |
-| "1000 deployments this month" | Includes failures, rollbacks, test envs | Production deployment success rate |
-| "500 documentation pages" | Quantity ≠ quality or findability | Search success rate, ticket deflection |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Vanity Metric', "Why It's Misleading", 'Actionable Alternative'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '"500 developers use the platform"',
+          td: [
+            "Doesn't indicate if they're productive",
+            'Time to first deployment for new developers',
+          ],
+        },
+        {
+          th: '"10 million API calls/month"',
+          td: [
+            'Could be inefficient polling or errors',
+            'Successful self-service completions',
+          ],
+        },
+        {
+          th: '"99.99% uptime"',
+          td: [
+            'Available but unusable is still failure',
+            'Successful deployment rate, P99 latency',
+          ],
+        },
+        {
+          th: '"1000 deployments this month"',
+          td: [
+            'Includes failures, rollbacks, test envs',
+            'Production deployment success rate',
+          ],
+        },
+        {
+          th: '"500 documentation pages"',
+          td: ['Quantity ≠ quality or findability', 'Search success rate, ticket deflection'],
+        },
+      ],
+    },
+    figure: 'Vanity metrics and their actionable alternatives.',
+  }}
+/>
 
-Table: Vanity metrics and their actionable alternatives.
-
-__Goodhart's Law__ is the biggest trap: when a measure becomes a target, it ceases to be a good measure. Target ticket reduction and support becomes harder to access. Target deployment frequency and teams artificially split deployments to hit the number. Target NPS and only the happy teams get surveyed. The antidote is measuring outcomes (developer productivity) rather than activities (ticket counts).
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Goodhart's Law",
+      text: 'is the biggest trap: when a measure becomes a target, it ceases to be a good measure. Target ticket reduction and support becomes harder to access. Target deployment frequency and teams artificially split deployments to hit the number. Target NPS and only the happy teams get surveyed. The antidote is measuring outcomes (developer productivity) rather than activities (ticket counts).',
+    },
+  ]}
+/>
 
 Beyond gaming, there's a more fundamental problem: you can't show improvement without knowing your starting point. The most common mistake is launching a platform, then asking "how much did we improve?" Measure before changes, even if the measurement is imperfect. Document your methodology. Accept that baselines may be incomplete. Track consistently over time. If you can't say "before the platform, X took Y time," you can't prove the platform helped.
 
@@ -87,10 +178,27 @@ Beyond gaming, there's a more fundamental problem: you can't show improvement wi
 
 If you're starting from scratch, don't try to build everything at once. Start with four baseline metrics you can measure today, even imperfectly:
 
-1. __Time to first deployment__ — ask new hires how long it took
-2. __Tickets per developer__ — query your ticketing system
-3. __Deployment frequency__ — check your CI logs
-4. __Quarterly NPS survey__ — a simple "How likely are you to recommend this platform?" question
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: 'Time to first deployment',
+      text: 'ask new hires how long it took',
+    },
+    {
+      lead: 'Tickets per developer',
+      text: 'query your ticketing system',
+    },
+    {
+      lead: 'Deployment frequency',
+      text: 'check your CI logs',
+    },
+    {
+      lead: 'Quarterly NPS survey',
+      text: 'a simple "How likely are you to recommend this platform?" question',
+    },
+  ]}
+/>
 
 Instrument as you go, automate what you can, and add sophistication over time. A spreadsheet tracking the right metrics beats a sophisticated dashboard tracking the wrong ones.
 

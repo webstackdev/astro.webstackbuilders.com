@@ -9,10 +9,10 @@ tags: ["reliability-and-testing", "typescript", "python"]
 featured: true
 ---
 
-*[RPS]: Requests Per Second
 *[P50]: 50th Percentile (Median)
 *[P95]: 95th Percentile
 *[P99]: 99th Percentile
+*[RPS]: Requests Per Second
 
 The post-mortem was awkward. A team had spent three weeks building a performance test suite for their new API gateway. The benchmark showed 50,000 RPS with 2ms P99 latency. Leadership signed off on the deployment. Production fell over at 5,000 RPS.
 
@@ -83,14 +83,35 @@ Averages collapse under outliers in both directions. A single 10-second timeout 
 
 _Percentiles_ tell a more honest story:
 
-| Metric | What It Shows | Why It Matters |
-|--------|---------------|----------------|
-| Average | Arithmetic mean | Hides bimodal distributions and outliers |
-| P50 | Half of requests faster | Typical user experience |
-| P95 | 95% of requests faster | Most users' worst case |
-| P99 | 99% of requests faster | Where SLA problems hide |
-
-Table: Average vs percentile metrics and their meaning.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'What It Shows', 'Why It Matters'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Average',
+          td: ['Arithmetic mean', 'Hides bimodal distributions and outliers'],
+        },
+        {
+          th: 'P50',
+          td: ['Half of requests faster', 'Typical user experience'],
+        },
+        {
+          th: 'P95',
+          td: ["95% of requests faster", "Most users' worst case"],
+        },
+        {
+          th: 'P99',
+          td: ['99% of requests faster', 'Where SLA problems hide'],
+        },
+      ],
+    },
+    figure: 'Average vs percentile metrics and their meaning.',
+  }}
+/>
 
 Distribution shape matters too. Latency is never normally distributed—it's right-skewed with a long tail. A histogram reveals patterns summary statistics hide: bimodal distributions indicate cache hits vs misses, long tails indicate slow queries or external dependencies.
 
@@ -116,11 +137,23 @@ Report percentiles, not averages. Show distributions, not just summary statistic
 
 Coordinated omission and average-worship are the most common problems, but they're not the only ones. A few other factors regularly invalidate benchmarks:
 
-**Test duration matters.** A 2-minute benchmark misses garbage collection patterns that take 10-30 minutes to stabilize. It won't catch memory leaks, connection pool exhaustion, or cache eviction issues. For anything beyond quick smoke tests, run at least 30 minutes.
-
-**Environment parity is non-negotiable.** A test database with 10,000 rows behaves differently than production with 10 million. Queries that use indexes in test might trigger full table scans in production. Mocked external APIs with instant responses hide the latency that dominates real-world performance.
-
-**Single runs prove nothing.** Run-to-run variance of 10-20% is normal, even on identical systems. Background processes, CPU frequency scaling, and network conditions all contribute. Run at least 3 iterations and report the spread.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Test duration matters.',
+      text: 'A 2-minute benchmark misses garbage collection patterns that take 10-30 minutes to stabilize. It won\'t catch memory leaks, connection pool exhaustion, or cache eviction issues. For anything beyond quick smoke tests, run at least 30 minutes.',
+    },
+    {
+      lead: 'Environment parity is non-negotiable.',
+      text: 'A test database with 10,000 rows behaves differently than production with 10 million. Queries that use indexes in test might trigger full table scans in production. Mocked external APIs with instant responses hide the latency that dominates real-world performance.',
+    },
+    {
+      lead: 'Single runs prove nothing.',
+      text: 'Run-to-run variance of 10-20% is normal, even on identical systems. Background processes, CPU frequency scaling, and network conditions all contribute. Run at least 3 iterations and report the spread.',
+    },
+  ]}
+/>
 
 Each of these deserves deeper treatment than space allows here. The point is that performance testing has many failure modes, and getting impressive numbers is easy—getting _meaningful_ numbers requires understanding all the ways benchmarks can mislead.
 

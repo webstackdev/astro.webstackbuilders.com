@@ -9,9 +9,6 @@ tags: ["build-and-deploy", "typescript", "aws", "azure", "docker", "kubernetes"]
 featured: true
 ---
 
-*[PR]: Pull Request
-*[CI]: Continuous Integration
-
 Every growing monorepo eventually faces the same problem: CI that started fast becomes unbearably slow. The repository that began with 10 packages and a 5-minute pipeline has grown to 150 packages, and now every PR takes 45 minutes to validate. Developers stack PRs to avoid waiting. The CI queue backs up. Engineers context-switch while waiting for feedback. The monorepo that was supposed to simplify collaboration has become a productivity drain.
 
 The instinct is to throw hardware at it—faster runners, more parallelism, bigger machines. That helps, but it's treating the symptom. A 200-package monorepo that builds everything on every commit will always be slow, no matter how fast your runners are.
@@ -34,10 +31,23 @@ The impact of a change depends on where it lands in the graph. Change a widely-u
 
 The key insight for calculating affected packages is that you need to _reverse_ the dependency graph. Instead of asking "what does this package depend on," you ask "what depends on this package." The algorithm is straightforward:
 
-1. Map each changed file to its containing package
-2. Build a reversed dependency graph (dependents instead of dependencies)
-3. Walk the graph from each changed package, collecting everything reachable
-4. Everything not in the affected set can be skipped
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      text: 'Map each changed file to its containing package',
+    },
+    {
+      text: 'Build a reversed dependency graph (dependents instead of dependencies)',
+    },
+    {
+      text: 'Walk the graph from each changed package, collecting everything reachable',
+    },
+    {
+      text: 'Everything not in the affected set can be skipped',
+    },
+  ]}
+/>
 
 Both Nx and Turborepo implement this algorithm automatically. The concepts also apply beyond JavaScript—Bazel, Pants, and Gradle offer similar capabilities for polyglot monorepos.
 
@@ -47,14 +57,35 @@ Affected calculation compares the current state against a _base reference_—a g
 
 A PR that branched from main two weeks ago will have many more affected packages than one that branched yesterday, simply because main has moved. Long-lived feature branches accumulate affected packages. This is one reason teams prefer short-lived branches and frequent rebasing—it keeps the affected set small.
 
-| Scenario | Base Reference | What Gets Rebuilt |
-|----------|---------------|-------------------|
-| PR to main | `origin/main` | All changes in the PR |
-| Push to main | `HEAD~1` or last successful CI | Just the pushed commit(s) |
-| Release build | Last release tag | Everything since previous release |
-| Nightly build | Last successful CI | Minimal (only failures to retry) |
-
-Table: Base reference strategies by CI scenario.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Scenario', 'Base Reference', 'What Gets Rebuilt'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'PR to main',
+          td: ['`origin/main`', 'All changes in the PR'],
+        },
+        {
+          th: 'Push to main',
+          td: ['`HEAD~1` or last successful CI', 'Just the pushed commit(s)'],
+        },
+        {
+          th: 'Release build',
+          td: ['Last release tag', 'Everything since previous release'],
+        },
+        {
+          th: 'Nightly build',
+          td: ['Last successful CI', 'Minimal (only failures to retry)'],
+        },
+      ],
+    },
+    figure: 'Base reference strategies by CI scenario.',
+  }}
+/>
 
 ## Remote Caching
 
@@ -93,13 +124,31 @@ Code: Turborepo remote cache with signature verification.
 
 Both tools offer self-hosted options for organizations that can't use external services. Nx Cloud supports Docker/Kubernetes deployment with S3, Azure Blob, or GCS backends. Turborepo works with the community-maintained `ducktors/turborepo-remote-cache` Docker image.
 
-| Provider | Setup Complexity | Cost | Self-Hosted Option |
-|----------|------------------|------|-------------------|
-| Nx Cloud | Low | Free tier, paid for teams | Yes (enterprise) |
-| Vercel (Turbo) | Low | Free tier, paid for teams | Yes (community) |
-| Custom S3 | High | S3 costs only | Yes
-
-Table: Remote caching provider comparison.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Provider', 'Setup Complexity', 'Cost', 'Self-Hosted Option'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Nx Cloud',
+          td: ['Low', 'Free tier, paid for teams', 'Yes (enterprise)'],
+        },
+        {
+          th: 'Vercel (Turbo)',
+          td: ['Low', 'Free tier, paid for teams', 'Yes (community)'],
+        },
+        {
+          th: 'Custom S3',
+          td: ['High', 'S3 costs only', 'Yes'],
+        },
+      ],
+    },
+    figure: 'Remote caching provider comparison.',
+  }}
+/>
 
 <Callout type="warning">
 Remote cache without authentication is a security risk. Anyone with cache access could inject malicious outputs that get downloaded and executed by other developers or CI. Always use signed caches or authenticated endpoints with proper access controls.

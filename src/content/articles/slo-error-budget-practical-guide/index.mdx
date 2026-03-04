@@ -30,9 +30,20 @@ The hierarchy works like this: SLIs measure what matters to users. SLOs set targ
 
 The math is straightforward. If your SLO is 99.9% availability over a 30-day window (using a simplified month for easy calculation):
 
-- Error budget = 100% - 99.9% = 0.1%
-- Minutes in month = 30 days × 24 hours × 60 minutes = 43,200
-- Allowed downtime = 43,200 × 0.001 = 43.2 minutes
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: 'Error budget = 100% - 99.9% = 0.1%',
+    },
+    {
+      text: 'Minutes in month = 30 days × 24 hours × 60 minutes = 43,200',
+    },
+    {
+      text: 'Allowed downtime = 43,200 × 0.001 = 43.2 minutes',
+    },
+  ]}
+/>
 
 Those 43 minutes are yours to spend however you want. A 10-minute deployment that causes errors? That's 10 minutes of budget consumed. A 30-minute outage? You've used most of your month's budget in one incident.
 
@@ -64,14 +75,35 @@ Poor investments include untested deployments (unpredictable budget impact), Fri
 
 This is where error budgets prove their worth. Product wants to launch a new payment flow next week. Engineering estimates the change is medium-risk—it touches the checkout path and historically similar changes cause 5-10 minutes of elevated errors during rollout. SRE checks the dashboard: 25 minutes of budget remaining this month.
 
-| Without Error Budgets | With Error Budgets |
-|-----------------------|-------------------|
-| "Is this safe?" | "We have 25 minutes of budget remaining." |
-| Opinion-based arguments about risk tolerance | "This change historically costs 5-10 minutes." |
-| Whoever argues loudest wins | "If we hit the high end, we'll have 15 minutes left." |
-| Lingering resentment from overruled parties | "Are we comfortable with that margin?" |
-
-Table: How error budgets transform deployment conversations.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Without Error Budgets', 'With Error Budgets'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '"Is this safe?"',
+          td: ['"We have 25 minutes of budget remaining."'],
+        },
+        {
+          th: 'Opinion-based arguments about risk tolerance',
+          td: ['"This change historically costs 5-10 minutes."'],
+        },
+        {
+          th: 'Whoever argues loudest wins',
+          td: ['"If we hit the high end, we\'ll have 15 minutes left."'],
+        },
+        {
+          th: 'Lingering resentment from overruled parties',
+          td: ['"Are we comfortable with that margin?"'],
+        },
+      ],
+    },
+    figure: 'How error budgets transform deployment conversations.',
+  }}
+/>
 
 The answer might still be yes—but now it's an informed yes, with shared understanding of the tradeoff. Everyone sees the same number. Everyone understands what's being spent and what's left. The decision is collaborative rather than political.
 
@@ -79,14 +111,35 @@ The answer might still be yes—but now it's an informed yes, with shared unders
 
 An error budget without a policy is just a dashboard. The policy defines what happens when budget gets low—and critically, it defines this _before_ you're in crisis mode making decisions under pressure.
 
-| Budget Remaining | Status | What Changes |
-|------------------|--------|--------------|
-| > 50% | Green | Normal velocity. Feature work prioritized. Deploy at will. |
-| 25% - 50% | Yellow | Increased scrutiny. Reliability work gets equal priority. |
-| 10% - 25% | Orange | Feature freeze for high-risk changes. SRE approval required. |
-| < 10% | Red | Complete feature freeze. Only reliability improvements deployed. |
-
-Table: Error budget policy thresholds—define these before you need them.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Budget Remaining', 'Status', 'What Changes'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '> 50%',
+          td: ['Green', 'Normal velocity. Feature work prioritized. Deploy at will.'],
+        },
+        {
+          th: '25% - 50%',
+          td: ['Yellow', 'Increased scrutiny. Reliability work gets equal priority.'],
+        },
+        {
+          th: '10% - 25%',
+          td: ['Orange', 'Feature freeze for high-risk changes. SRE approval required.'],
+        },
+        {
+          th: '< 10%',
+          td: ['Red', 'Complete feature freeze. Only reliability improvements deployed.'],
+        },
+      ],
+    },
+    figure: 'Error budget policy thresholds—define these before you need them.',
+  }}
+/>
 
 The specific thresholds will vary by organization and service criticality. A payment system might trigger Orange at 30% remaining; an internal tool might not freeze features until budget is exhausted. The important thing is having agreed-upon rules before you need them.
 

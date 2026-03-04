@@ -17,11 +17,19 @@ import type { Plugin } from 'unified'
 import { visit } from 'unist-util-visit'
 
 /**
- * Test whether a directive name is purely numeric (0-9).
- * No valid remark directive would use a numeric-only name, so these are
- * always false positives created from time-like strings.
+ * Test whether a directive name is numeric-like and therefore a likely
+ * false positive from prose (time/citation/page-range text).
+ *
+ * Examples we want to restore:
+ * - :47            (time)
+ * - :59            (time)
+ * - :378-86        (citation page range)
+ * - :378–86 / :378—86 (en/em dash variants)
+ *
+ * We intentionally avoid alphabetic names so real directives such as
+ * `:abbr[...]` remain untouched.
  */
-const isNumericName = (name: string): boolean => /^\d+$/.test(name)
+const isNumericLikeName = (name: string): boolean => /^\d[\d\-–—]*$/.test(name)
 
 /** Record of a directive node to restore, collected during walk. */
 interface PendingRestore {
@@ -43,8 +51,8 @@ const remarkRestoreTimeColons: Plugin<[], Root> = () => {
         return
       }
 
-      // Only restore purely-numeric names; real directives have alphabetic names
-      if (!isNumericName(node.name)) return
+      // Restore numeric-like names; real directives have alphabetic names
+      if (!isNumericLikeName(node.name)) return
       if (index === undefined || !parent) return
 
       pending.push({ parent: parent as Parent, index, name: node.name })

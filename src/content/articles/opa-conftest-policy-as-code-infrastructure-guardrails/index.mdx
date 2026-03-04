@@ -56,14 +56,35 @@ Pre-commit only runs against staged files by default, which keeps evaluation fas
 
 The pre-commit framework shown above is language-agnostic, but each ecosystem has its canonical approach:
 
-| Ecosystem | Pre-commit Tool | Installation |
-| --------- | --------------- | ------------ |
-| Python | pre-commit | `pip install pre-commit && pre-commit install` |
-| Node.js | Husky + lint-staged | `npx husky init` |
-| Ruby/Rails | Overcommit | `gem install overcommit && overcommit --install` |
-| Go | Lefthook | `go install github.com/evilmartians/lefthook` |
-
-Table: Pre-commit tools by ecosystem.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Ecosystem', 'Pre-commit Tool', 'Installation'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Python',
+          td: ['pre-commit', '`pip install pre-commit && pre-commit install`'],
+        },
+        {
+          th: 'Node.js',
+          td: ['Husky + lint-staged', '`npx husky init`'],
+        },
+        {
+          th: 'Ruby/Rails',
+          td: ['Overcommit', '`gem install overcommit && overcommit --install`'],
+        },
+        {
+          th: 'Go',
+          td: ['Lefthook', '`go install github.com/evilmartians/lefthook`'],
+        },
+      ],
+    },
+    figure: 'Pre-commit tools by ecosystem.',
+  }}
+/>
 
 Husky is Node.js-based but runs any shell command, making it viable for polyglot repositories with a `package.json`. For pure infrastructure repos without Node, the Python pre-commit framework or Lefthook (Go-based, no runtime dependencies) are better choices.
 
@@ -73,13 +94,27 @@ Speed is non-negotiable: if policy checks take more than a few seconds, develope
 
 Four principles separate policies that get adopted from policies that get bypassed:
 
-_Single responsibility._ Each rule should check one thing. A 50-line rule that validates images, resources, _and_ labels produces confusing violations and resists modification. Split concerns into separate rules: `deny_unauthorized_image`, `deny_missing_resources`, `deny_missing_labels`. When a violation fires, developers know exactly what to fix.
-
-_Actionable messages._ "Policy violation" tells the developer nothing. "Container missing resource limits" is better. "Container 'nginx' missing resource limits. Add `spec.containers[].resources.limits.cpu` and `memory`" is what they actually need. Include the resource name, the violation, and the fix path.
-
-_Minimal false positives._ Precision matters more than recall. A policy that blocks valid configurations trains developers to request exceptions—or bypass the system entirely. Start permissive and tighten over time. Test against real configurations before enforcing. Provide escape hatches for legitimate edge cases.
-
-_Fast evaluation._ Policies should evaluate in milliseconds, not seconds. Avoid external HTTP calls within policies—pre-load data into bundles. Avoid complex regex on large inputs. Avoid deep recursion.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Single responsibility.',
+      text: 'Each rule should check one thing. A 50-line rule that validates images, resources, and labels produces confusing violations and resists modification. Split concerns into separate rules: `deny_unauthorized_image`, `deny_missing_resources`, `deny_missing_labels`. When a violation fires, developers know exactly what to fix.',
+    },
+    {
+      lead: 'Actionable messages.',
+      text: '"Policy violation" tells the developer nothing. "Container missing resource limits" is better. "Container \'nginx\' missing resource limits. Add `spec.containers[].resources.limits.cpu` and `memory`" is what they actually need. Include the resource name, the violation, and the fix path.',
+    },
+    {
+      lead: 'Minimal false positives.',
+      text: 'Precision matters more than recall. A policy that blocks valid configurations trains developers to request exceptions—or bypass the system entirely. Start permissive and tighten over time. Test against real configurations before enforcing. Provide escape hatches for legitimate edge cases.',
+    },
+    {
+      lead: 'Fast evaluation.',
+      text: 'Policies should evaluate in milliseconds, not seconds. Avoid external HTTP calls within policies—pre-load data into bundles. Avoid complex regex on large inputs. Avoid deep recursion.',
+    },
+  ]}
+/>
 
 Structure violation messages consistently:
 

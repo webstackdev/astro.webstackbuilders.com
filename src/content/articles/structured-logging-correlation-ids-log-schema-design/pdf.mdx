@@ -34,11 +34,31 @@ The transition from `printf`-style logging to JSON is just the first step. Witho
 
 Consider what happens when five services each log authentication events their own way:
 
-- **Service A**: `User 12345 logged in from 192.168.1.1`
-- **Service B**: `[INFO] Login successful - user_id=12345, ip=192.168.1.1`
-- **Service C**: `{"user":"12345","action":"login","source_ip":"192.168.1.1"}`
-- **Service D**: `2024-01-15 14:30:00 INFO user 12345 authenticated`
-- **Service E**: `{"userId":"12345","event":"AUTH_SUCCESS"}`
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Service A:',
+      text: 'User 12345 logged in from 192.168.1.1',
+    },
+    {
+      lead: 'Service B:',
+      text: '[INFO] Login successful - user_id=12345, ip=192.168.1.1',
+    },
+    {
+      lead: 'Service C:',
+      text: '{"user":"12345","action":"login","source_ip":"192.168.1.1"}',
+    },
+    {
+      lead: 'Service D:',
+      text: '2024-01-15 14:30:00 INFO user 12345 authenticated',
+    },
+    {
+      lead: 'Service E:',
+      text: '{"userId":"12345","event":"AUTH_SUCCESS"}',
+    },
+  ]}
+/>
 
 Finding all logins for user 12345 now requires five different search patterns. Worse, you _don't know what you're missing_. Did you account for the service that uses `customer` instead of `user`? The one that logs to a different index? The one with the typo in the field name?
 
@@ -73,16 +93,43 @@ _Query complexity comparison. Without a schema, you write multiple queries and s
 
 The difference between ad-hoc logging and schema-based logging shows up in every metric that matters during incidents.
 
-| Metric | Ad-hoc Logging | Schema-based Logging | Impact |
-|--------|----------------|----------------------|--------|
-| Time to find relevant logs | 15 min | 2 min | 87% reduction |
-| Query accuracy | ~70% | 99%+ | 30% fewer false negatives |
-| Storage cost | Baseline | 0.7x baseline | 30% reduction |
-| Dashboard creation time | Hours | Minutes | 90%+ reduction |
-| Cross-service correlation | Manual | Automatic | Hours saved per incident |
-| Compliance audit time | Days | Hours | 80% reduction |
-
-_Business impact comparison between ad-hoc and schema-based logging approaches._
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'Ad-hoc Logging', 'Schema-based Logging', 'Impact'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Time to find relevant logs',
+          td: ['15 min', '2 min', '87% reduction'],
+        },
+        {
+          th: 'Query accuracy',
+          td: ['~70%', '99%+', '30% fewer false negatives'],
+        },
+        {
+          th: 'Storage cost',
+          td: ['Baseline', '0.7x baseline', '30% reduction'],
+        },
+        {
+          th: 'Dashboard creation time',
+          td: ['Hours', 'Minutes', '90%+ reduction'],
+        },
+        {
+          th: 'Cross-service correlation',
+          td: ['Manual', 'Automatic', 'Hours saved per incident'],
+        },
+        {
+          th: 'Compliance audit time',
+          td: ['Days', 'Hours', '80% reduction'],
+        },
+      ],
+    },
+    figure: 'Business impact comparison between ad-hoc and schema-based logging approaches.',
+  }}
+/>
 
 The storage savings come from better compression—consistent field names compress dramatically better than arbitrary strings. The query accuracy improvement comes from knowing _exactly_ which field to search. The time savings compound: every query, every dashboard, every alert benefits from the consistency.
 
@@ -100,16 +147,43 @@ Every schema decision you make in month one will constrain your queries for year
 
 Six rules that prevent the most common schema regrets:
 
-| Principle | Rationale | Good | Bad |
-|-----------|-----------|------|-----|
-| Namespaced field names | Prevents collisions, enables discovery | `http.request.method`, `user.id` | `method`, `id` (ambiguous) |
-| Consistent data types | Enables indexing and aggregation | `user.id`: always string | `user.id`: sometimes string, sometimes int |
-| ISO 8601 timestamps | Timezone-aware, sortable, universal | `2024-01-15T14:30:00.123Z` | `01/15/2024 2:30 PM`, epoch ms |
-| Flat over nested | Most log platforms query flat fields better | `http.request.headers.content_type` | `http: { request: { headers: {...}}}` |
-| Enums for categories | Enables faceted search, prevents typos | `log.level`: `error`, `warn`, `info` | `level`: `ERROR`, `Error`, `err` |
-| Units in field names | Prevents calculation errors | `http.response.time_ms` | `response_time` (seconds? ms?) |
-
-_Core schema design principles—violating any of these creates friction that compounds over time._
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Principle', 'Rationale', 'Good', 'Bad'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Namespaced field names',
+          td: ['Prevents collisions, enables discovery', '`http.request.method`, `user.id`', '`method`, `id` (ambiguous)'],
+        },
+        {
+          th: 'Consistent data types',
+          td: ['Enables indexing and aggregation', '`user.id`: always string', '`user.id`: sometimes string, sometimes int'],
+        },
+        {
+          th: 'ISO 8601 timestamps',
+          td: ['Timezone-aware, sortable, universal', '`2024-01-15T14:30:00.123Z`', '`01/15/2024 2:30 PM`, epoch ms'],
+        },
+        {
+          th: 'Flat over nested',
+          td: ['Most log platforms query flat fields better', '`http.request.headers.content_type`', '`http: { request: { headers: {...}}}`'],
+        },
+        {
+          th: 'Enums for categories',
+          td: ['Enables faceted search, prevents typos', '`log.level`: `error`, `warn`, `info`', '`level`: `ERROR`, `Error`, `err`'],
+        },
+        {
+          th: 'Units in field names',
+          td: ['Prevents calculation errors', '`http.response.time_ms`', '`response_time` (seconds? ms?)'],
+        },
+      ],
+    },
+    figure: 'Core schema design principles—violating any of these creates friction that compounds over time.',
+  }}
+/>
 
 The flat-over-nested rule surprises people. Dot notation like `http.request.method` _looks_ nested but stores flat in Elasticsearch. Actual nested JSON objects require special nested field mappings, slow down queries, and complicate aggregations. Use dots in field names, not actual object nesting.
 
@@ -165,16 +239,43 @@ _Logging an HTTP request with ECS field names. Every field follows the ECS names
 
 The key ECS namespaces you'll use most often:
 
-| Namespace | Purpose | Common Fields |
-|-----------|---------|---------------|
-| `service.*` | Service identification | `service.name`, `service.version`, `service.environment` |
-| `http.*` | HTTP request/response | `http.request.method`, `http.response.status_code` |
-| `error.*` | Error details | `error.type`, `error.message`, `error.stack_trace` |
-| `user.*` | User context | `user.id`, `user.name`, `user.roles` |
-| `trace.*` | Distributed tracing | `trace.id`, `span.id` |
-| `event.*` | Event categorization | `event.action`, `event.outcome`, `event.category` |
-
-_Most frequently used ECS namespaces. The full ECS specification covers hundreds of fields._
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Namespace', 'Purpose', 'Common Fields'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '`service.*`',
+          td: ['Service identification', '`service.name`, `service.version`, `service.environment`'],
+        },
+        {
+          th: '`http.*`',
+          td: ['HTTP request/response', '`http.request.method`, `http.response.status_code`'],
+        },
+        {
+          th: '`error.*`',
+          td: ['Error details', '`error.type`, `error.message`, `error.stack_trace`'],
+        },
+        {
+          th: '`user.*`',
+          td: ['User context', '`user.id`, `user.name`, `user.roles`'],
+        },
+        {
+          th: '`trace.*`',
+          td: ['Distributed tracing', '`trace.id`, `span.id`'],
+        },
+        {
+          th: '`event.*`',
+          td: ['Event categorization', '`event.action`, `event.outcome`, `event.category`'],
+        },
+      ],
+    },
+    figure: 'Most frequently used ECS namespaces. The full ECS specification covers hundreds of fields.',
+  }}
+/>
 
 ### Custom Fields and Extensions
 
@@ -213,16 +314,43 @@ Correlation IDs solve this by threading a common identifier through every log en
 
 Not all correlation happens at the same scope. A single user session might span hundreds of requests, each request might fan out to dozens of service calls, and async operations might continue long after the original request completes. Different ID types address different correlation needs:
 
-| ID Type | Scope | Generated By | Lifespan | Use Case |
-|---------|-------|--------------|----------|----------|
-| `trace.id` | Distributed trace | Edge/first service | Single request tree | Debugging request flow |
-| `span.id` | Single operation | Each service | One operation | Identifying service involvement |
-| `request.id` | HTTP request | API gateway | Single HTTP request | Correlating gateway with downstream |
-| `session.id` | User session | Auth system | Session duration | Tracking user activity across requests |
-| `transaction.id` | Business operation | Domain service | Until completion | Tracking sagas and workflows |
-| `causation.id` | Event chain | Message producer | One hop | Understanding event triggers |
-
-_Correlation ID types and their scopes. Most logs need `trace.id` and `span.id`; other IDs depend on your debugging patterns._
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['ID Type', 'Scope', 'Generated By', 'Lifespan', 'Use Case'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '`trace.id`',
+          td: ['Distributed trace', 'Edge/first service', 'Single request tree', 'Debugging request flow'],
+        },
+        {
+          th: '`span.id`',
+          td: ['Single operation', 'Each service', 'One operation', 'Identifying service involvement'],
+        },
+        {
+          th: '`request.id`',
+          td: ['HTTP request', 'API gateway', 'Single HTTP request', 'Correlating gateway with downstream'],
+        },
+        {
+          th: '`session.id`',
+          td: ['User session', 'Auth system', 'Session duration', 'Tracking user activity across requests'],
+        },
+        {
+          th: '`transaction.id`',
+          td: ['Business operation', 'Domain service', 'Until completion', 'Tracking sagas and workflows'],
+        },
+        {
+          th: '`causation.id`',
+          td: ['Event chain', 'Message producer', 'One hop', 'Understanding event triggers'],
+        },
+      ],
+    },
+    figure: 'Correlation ID types and their scopes. Most logs need `trace.id` and `span.id`; other IDs depend on your debugging patterns.',
+  }}
+/>
 
 The interface below shows the full correlation context. In practice, you won't use every field in every log—include what you'll actually query:
 
@@ -475,15 +603,39 @@ _Message correlation pattern. The `causationId` creates an audit trail: each mes
 
 I've seen all of these break correlation in production. Each one creates gaps in your trace data that make debugging harder:
 
-| Anti-Pattern | Why It Breaks | Solution |
-|--------------|--------------|----------|
-| Generating new trace IDs per service | Logs can't be joined across services | Extract incoming `traceparent`; generate only if missing |
-| Logging outside AsyncLocalStorage | Logs lack correlation context | Run all request handlers within `contextStorage.run()` |
-| Direct HTTP client usage | Outbound calls don't propagate headers | Use `fetchWithCorrelation()` or OpenTelemetry auto-instrumentation |
-| Fire-and-forget async | Background work loses context | Capture context before spawning; restore in async handler |
-| Batched message processing | All messages share one correlation | Process each message in its own `contextStorage.run()` scope |
-
-_Correlation anti-patterns with specific solutions. The "Solution" column tells you exactly what to fix._
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Anti-Pattern', 'Why It Breaks', 'Solution'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Generating new trace IDs per service',
+          td: ["Logs can't be joined across services", 'Extract incoming `traceparent`; generate only if missing'],
+        },
+        {
+          th: 'Logging outside AsyncLocalStorage',
+          td: ['Logs lack correlation context', 'Run all request handlers within `contextStorage.run()`'],
+        },
+        {
+          th: 'Direct HTTP client usage',
+          td: ["Outbound calls don't propagate headers", 'Use `fetchWithCorrelation()` or OpenTelemetry auto-instrumentation'],
+        },
+        {
+          th: 'Fire-and-forget async',
+          td: ['Background work loses context', 'Capture context before spawning; restore in async handler'],
+        },
+        {
+          th: 'Batched message processing',
+          td: ['All messages share one correlation', 'Process each message in its own `contextStorage.run()` scope'],
+        },
+      ],
+    },
+    figure: 'Correlation anti-patterns with specific solutions. The "Solution" column tells you exactly what to fix.',
+  }}
+/>
 
 <Callout type="success">
 Test correlation by making a request, collecting logs from all services, and verifying they share the same `trace.id`. If any service's logs are missing from the trace, you have a propagation gap. Automated tests should verify this on every deployment.
@@ -773,17 +925,47 @@ Not all logs deserve storage. Health checks fire every few seconds and rarely ma
 
 This framework helps decide how to handle different log patterns. The "Connection events" row uses aggregation—the same technique shown in the code example that follows:
 
-| Pattern | Action | Rationale |
-|---------|--------|-----------|
-| Health checks (`/health`, `/ready`) | Drop | High volume, rarely useful for debugging |
-| Metrics endpoint requests | Drop | Already captured in metrics, redundant |
-| Debug logs in production | Drop | Should never reach production storage |
-| Cache hits | Sample (1%) | Keep trend visibility, reduce volume |
-| Connection events | Aggregate | Count per minute, not individual events |
-| All errors | Keep | Every error is valuable for debugging |
-| Authentication events | Keep | Security-relevant, audit requirements |
-
-_Noise classification framework. The goal is 10x volume reduction without losing debugging capability._
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Pattern', 'Action', 'Rationale'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Health checks (`/health`, `/ready`)',
+          td: ['Drop', 'High volume, rarely useful for debugging'],
+        },
+        {
+          th: 'Metrics endpoint requests',
+          td: ['Drop', 'Already captured in metrics, redundant'],
+        },
+        {
+          th: 'Debug logs in production',
+          td: ['Drop', 'Should never reach production storage'],
+        },
+        {
+          th: 'Cache hits',
+          td: ['Sample (1%)', 'Keep trend visibility, reduce volume'],
+        },
+        {
+          th: 'Connection events',
+          td: ['Aggregate', 'Count per minute, not individual events'],
+        },
+        {
+          th: 'All errors',
+          td: ['Keep', 'Every error is valuable for debugging'],
+        },
+        {
+          th: 'Authentication events',
+          td: ['Keep', 'Security-relevant, audit requirements'],
+        },
+      ],
+    },
+    figure: 'Noise classification framework. The goal is 10x volume reduction without losing debugging capability.',
+  }}
+/>
 
 For high-volume events that still have value, aggregation preserves information while dramatically reducing storage. Instead of 1,000 individual connection logs per minute, emit one aggregated log:
 
@@ -823,11 +1005,23 @@ A schema is only useful if everyone follows it. Without governance, you'll have 
 
 You need a central source of truth for field definitions—what fields exist, their types, who owns them, and whether they're deprecated. Unfortunately, there's no dominant open source "log schema registry" the way there's a Confluent Schema Registry for Kafka. Your options:
 
-**Use your log platform's native schema management.** Elasticsearch has index templates and component templates that define field mappings. DataDog has facets. Splunk has field extractions. These work well if you're single-platform, but they're vendor-specific and don't help at log-emit time.
-
-**JSON Schema in your repo.** Define your schema as JSON Schema files, validate in CI (we'll cover this in the Testing section), and generate documentation from the schema. This is lightweight and works across platforms.
-
-**Build a lightweight registry service.** For larger organizations, a simple service that stores field definitions with ownership and versioning metadata. This doesn't need to be complex—a YAML file in a shared repo with a PR review process often suffices.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Use your log platform's native schema management.",
+      text: "Elasticsearch has index templates and component templates that define field mappings. DataDog has facets. Splunk has field extractions. These work well if you're single-platform, but they're vendor-specific and don't help at log-emit time.",
+    },
+    {
+      lead: 'JSON Schema in your repo.',
+      text: "Define your schema as JSON Schema files, validate in CI (we'll cover this in the Testing section), and generate documentation from the schema. This is lightweight and works across platforms.",
+    },
+    {
+      lead: 'Build a lightweight registry service.',
+      text: 'For larger organizations, a simple service that stores field definitions with ownership and versioning metadata. This does not need to be complex-a YAML file in a shared repo with a PR review process often suffices.',
+    },
+  ]}
+/>
 
 The key insight: the _format_ of your registry matters less than _having one at all_ and _enforcing it in CI_. A YAML file that every service validates against beats a sophisticated registry that nobody uses.
 
@@ -839,17 +1033,47 @@ If you're using ECS, you already have a schema—the [ECS field reference](https
 
 Schemas change—new features need new fields, old patterns get replaced. The key is managing change without breaking consumers. Here's the evolution process that's worked for me:
 
-| Phase | Duration | Action |
-|-------|----------|--------|
-| Proposal | 1 week | RFC for new field, review by platform team |
-| Addition | Immediate | Add field as optional, update registry |
-| Adoption | 2-4 weeks | Teams start using new field |
-| Promotion | After adoption | Consider making field required if universal |
-| Deprecation Notice | 1 month | Mark field deprecated, log warnings |
-| Migration Period | 3 months | Teams migrate to replacement field |
-| Removal | After migration | Remove field from registry, update parsers |
-
-_Schema evolution timeline. The long migration period prevents surprise breakages._
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Phase', 'Duration', 'Action'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Proposal',
+          td: ['1 week', 'RFC for new field, review by platform team'],
+        },
+        {
+          th: 'Addition',
+          td: ['Immediate', 'Add field as optional, update registry'],
+        },
+        {
+          th: 'Adoption',
+          td: ['2-4 weeks', 'Teams start using new field'],
+        },
+        {
+          th: 'Promotion',
+          td: ['After adoption', 'Consider making field required if universal'],
+        },
+        {
+          th: 'Deprecation Notice',
+          td: ['1 month', 'Mark field deprecated, log warnings'],
+        },
+        {
+          th: 'Migration Period',
+          td: ['3 months', 'Teams migrate to replacement field'],
+        },
+        {
+          th: 'Removal',
+          td: ['After migration', 'Remove field from registry, update parsers'],
+        },
+      ],
+    },
+    figure: 'Schema evolution timeline. The long migration period prevents surprise breakages.',
+  }}
+/>
 
 <Callout type="success">
 New fields must be optional. Parsers must ignore unknown fields. Type changes require a new field name. These rules keep old logs queryable and prevent producer/consumer version coupling.
@@ -958,9 +1182,23 @@ _Integration tests for correlation ID extraction and propagation. These verify t
 
 In production, monitor log quality the same way you monitor application health. Three Prometheus counters give you visibility into schema compliance and correlation coverage:
 
-- `log_schema_validation_total{result, service}` — counts valid vs invalid log entries
-- `log_schema_violations_total{field, violation_type, service}` — tracks which fields fail and why
-- `log_missing_correlation_total{service, log_location}` — flags logs without trace IDs
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'log_schema_validation_total{result, service}',
+      text: 'counts valid vs invalid log entries',
+    },
+    {
+      lead: 'log_schema_violations_total{field, violation_type, service}',
+      text: 'tracks which fields fail and why',
+    },
+    {
+      lead: 'log_missing_correlation_total{service, log_location}',
+      text: 'flags logs without trace IDs',
+    },
+  ]}
+/>
 
 Hook these counters into your logger's output path to track every log entry. Alert when violation rates spike or correlation coverage drops below your target (e.g., 99% of logs should have trace IDs).
 

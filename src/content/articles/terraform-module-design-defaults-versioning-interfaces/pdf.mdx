@@ -30,15 +30,31 @@ A module's interface is everything a consumer can observe or depend on. That's m
 
 Think of a module interface in five layers:
 
-__Input variables__ are the parameters consumers provide. Some are required (the module can't guess your VPC ID), others have sensible defaults (instance type can default to t3.medium). The types, names, and validation rules are all part of the contract.
-
-__Output values__ are the data consumers reference. When someone writes `module.vpc.private_subnet_ids[0]`, they're depending on that output existing, being a list, and having at least one element. Change the output name or type and their code breaks.
-
-__Resource behavior__ is what actually gets created. If your module creates a security group that allows HTTPS traffic, consumers might depend on that. Adding or removing resources can break downstream assumptions.
-
-__Provider requirements__ constrain which provider versions work with your module. If you bump the minimum AWS provider from 4.0 to 5.0, consumers on 4.x can't use your module until they upgrade.
-
-__Implicit contracts__ are the undocumented assumptions. Maybe your module names resources with a specific pattern (`{environment}-{name}-{resource_type}`), applies a standard set of tags, or assumes the VPC has DNS hostnames enabled. Perhaps it expects certain IAM permissions to exist, or assumes subnets have internet access through a NAT gateway. These are the trickiest because they're easy to break without realizing it — you rename your tagging convention and suddenly a downstream cost allocation dashboard stops working.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Input variables',
+      text: "are the parameters consumers provide. Some are required (the module can't guess your VPC ID), others have sensible defaults (instance type can default to t3.medium). The types, names, and validation rules are all part of the contract.",
+    },
+    {
+      lead: 'Output values',
+      text: "are the data consumers reference. When someone writes `module.vpc.private_subnet_ids[0]`, they're depending on that output existing, being a list, and having at least one element. Change the output name or type and their code breaks.",
+    },
+    {
+      lead: 'Resource behavior',
+      text: 'is what actually gets created. If your module creates a security group that allows HTTPS traffic, consumers might depend on that. Adding or removing resources can break downstream assumptions.',
+    },
+    {
+      lead: 'Provider requirements',
+      text: 'constrain which provider versions work with your module. If you bump the minimum AWS provider from 4.0 to 5.0, consumers on 4.x can\'t use your module until they upgrade.',
+    },
+    {
+      lead: 'Implicit contracts',
+      text: 'are the undocumented assumptions. Maybe your module names resources with a specific pattern (`{environment}-{name}-{resource_type}`), applies a standard set of tags, or assumes the VPC has DNS hostnames enabled. Perhaps it expects certain IAM permissions to exist, or assumes subnets have internet access through a NAT gateway. These are the trickiest because they\'re easy to break without realizing it — you rename your tagging convention and suddenly a downstream cost allocation dashboard stops working.',
+    },
+  ]}
+/>
 
 ```mermaid
 flowchart TB
@@ -67,20 +83,59 @@ Figure: Module interface separates what consumers depend on from implementation 
 
 Not all changes are equal. Some are safe to make in a minor version; others require a major version bump and migration guidance.
 
-| Change Type | Breaking? | Example | Migration Path |
-|-------------|-----------|---------|----------------|
-| Add optional input with default | No | `variable "tags" { default = {} }` | None needed |
-| Remove input variable | Yes | Delete `variable "legacy_flag"` | Deprecate first; document in changelog |
-| Change input type | Yes | `string` → `list(string)` | Provide migration example in changelog |
-| Add new output | No | `output "new_arn" { ... }` | None needed |
-| Remove output | Yes | Delete `output "old_id"` | Deprecate for one major version first |
-| Change output type | Yes | `string` → `object` | Add new output; deprecate old one |
-| Add new resource | Usually no | Add `aws_cloudwatch_log_group` | None if no side effects |
-| Remove resource | Yes | Delete `aws_s3_bucket` | Document state rm commands |
-| Rename resource | Yes | `aws_instance.main` → `aws_instance.primary` | Requires `moved` block |
-| Change provider version | Maybe | `>= 4.0` → `>= 5.0` | Depends on provider changes |
-
-Table: Breaking vs non-breaking changes in module interfaces.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Change Type', 'Breaking?', 'Example', 'Migration Path'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Add optional input with default',
+          td: ['No', '`variable "tags" { default = {} }`', 'None needed'],
+        },
+        {
+          th: 'Remove input variable',
+          td: ['Yes', 'Delete `variable "legacy_flag"`', 'Deprecate first; document in changelog'],
+        },
+        {
+          th: 'Change input type',
+          td: ['Yes', '`string` → `list(string)`', 'Provide migration example in changelog'],
+        },
+        {
+          th: 'Add new output',
+          td: ['No', '`output "new_arn" { ... }`', 'None needed'],
+        },
+        {
+          th: 'Remove output',
+          td: ['Yes', 'Delete `output "old_id"`', 'Deprecate for one major version first'],
+        },
+        {
+          th: 'Change output type',
+          td: ['Yes', '`string` → `object`', 'Add new output; deprecate old one'],
+        },
+        {
+          th: 'Add new resource',
+          td: ['Usually no', 'Add `aws_cloudwatch_log_group`', 'None if no side effects'],
+        },
+        {
+          th: 'Remove resource',
+          td: ['Yes', 'Delete `aws_s3_bucket`', 'Document state rm commands'],
+        },
+        {
+          th: 'Rename resource',
+          td: ['Yes', '`aws_instance.main` → `aws_instance.primary`', 'Requires `moved` block'],
+        },
+        {
+          th: 'Change provider version',
+          td: ['Maybe', '`>= 4.0` → `>= 5.0`', 'Depends on provider changes'],
+        },
+      ],
+    },
+    figure: 'Breaking vs non-breaking changes in module interfaces.',
+  }}
+/>
 
 The key insight: _outputs are promises_. Even if you think nobody uses a particular output, removing it is a breaking change. Someone, somewhere, has probably wired it into their configuration. Deprecate outputs for at least one major version before removal, giving consumers time to migrate.
 
@@ -151,11 +206,23 @@ Code: Variable definitions showing required, optional with default, and opt-in p
 
 Choosing good defaults is harder than it looks. A few principles help:
 
-__Default to the safer option.__ If a setting affects data durability or security, default to the more protective choice. Deletion protection should default to `true`. Encryption should default to enabled. Backup retention should be non-zero. Users can opt out for development environments; they shouldn't have to opt in for production safety.
-
-__Default to the cheaper option when safety isn't at stake.__ Instance types, storage sizes, and replica counts can default to smaller values. Users will scale up when they need to; defaulting to expensive configurations just creates surprise bills.
-
-__Use environment-aware defaults when behavior should differ.__ Some settings legitimately differ between environments — deletion protection makes sense in production but blocks rapid iteration in development. You can use `null` as a sentinel value and compute the actual default in a local:
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Default to the safer option.',
+      text: "If a setting affects data durability or security, default to the more protective choice. Deletion protection should default to `true`. Encryption should default to enabled. Backup retention should be non-zero. Users can opt out for development environments; they shouldn't have to opt in for production safety.",
+    },
+    {
+      lead: "Default to the cheaper option when safety isn't at stake.",
+      text: 'Instance types, storage sizes, and replica counts can default to smaller values. Users will scale up when they need to; defaulting to expensive configurations just creates surprise bills.',
+    },
+    {
+      lead: 'Use environment-aware defaults when behavior should differ.',
+      text: 'Some settings legitimately differ between environments — deletion protection makes sense in production but blocks rapid iteration in development. You can use `null` as a sentinel value and compute the actual default in a local:',
+    },
+  ]}
+/>
 
 ```hcl title="modules/database/main.tf"
 variable "deletion_protection" {
@@ -433,26 +500,69 @@ SemVer's core principle applies directly to Terraform modules: major versions fo
 
 _Major version bumps_ are required when you change the interface contract in ways that could break existing consumers:
 
-- Remove or rename an input variable
-- Change an input variable's type
-- Remove an output
-- Change an output's type or structure
-- Remove a resource (causes state issues for consumers)
-- Bump a provider minimum version that has breaking changes
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: 'Remove or rename an input variable',
+    },
+    {
+      text: "Change an input variable's type",
+    },
+    {
+      text: 'Remove an output',
+    },
+    {
+      text: "Change an output's type or structure",
+    },
+    {
+      text: 'Remove a resource (causes state issues for consumers)',
+    },
+    {
+      text: 'Bump a provider minimum version that has breaking changes',
+    },
+  ]}
+/>
 
 _Minor version bumps_ are for backward-compatible additions:
 
-- Add a new input variable with a default value
-- Add a new output
-- Add a new resource (assuming no side effects)
-- Deprecate (but not remove) an input or output
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: 'Add a new input variable with a default value',
+    },
+    {
+      text: 'Add a new output',
+    },
+    {
+      text: 'Add a new resource (assuming no side effects)',
+    },
+    {
+      text: 'Deprecate (but not remove) an input or output',
+    },
+  ]}
+/>
 
 _Patch version bumps_ are for fixes that don't touch the interface:
 
-- Fix a bug without changing behavior consumers depend on
-- Update documentation
-- Internal refactoring that doesn't affect state
-- Update provider constraints within compatible ranges
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: "Fix a bug without changing behavior consumers depend on",
+    },
+    {
+      text: 'Update documentation',
+    },
+    {
+      text: "Internal refactoring that doesn't affect state",
+    },
+    {
+      text: 'Update provider constraints within compatible ranges',
+    },
+  ]}
+/>
 
 ### Version Constraints
 
@@ -474,14 +584,35 @@ Code: Pessimistic constraint for most modules, exact pinning for critical infras
 
 The pessimistic constraint (`~>`) is the sweet spot for most use cases. It accepts patch and minor updates but stops at the next major version, giving you bug fixes without breaking changes. For critical infrastructure like databases, exact pinning provides maximum stability at the cost of manual updates.
 
-| Strategy | Constraint | Use Case | Trade-off |
-|----------|-----------|----------|-----------|
-| Pessimistic | `~> 2.0` | Most modules | Gets patches automatically, no breaking changes |
-| Exact | `2.3.1` | Critical infrastructure | Maximum stability, requires manual updates |
-| Range | `>= 2.0, < 3.0` | Same as pessimistic | More explicit about intent |
-| Minimum | `>= 2.0` | Development only | Gets latest, may break unexpectedly |
-
-Table: Version constraint strategies and their trade-offs.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Strategy', 'Constraint', 'Use Case', 'Trade-off'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Pessimistic',
+          td: ['`~> 2.0`', 'Most modules', 'Gets patches automatically, no breaking changes'],
+        },
+        {
+          th: 'Exact',
+          td: ['`2.3.1`', 'Critical infrastructure', 'Maximum stability, requires manual updates'],
+        },
+        {
+          th: 'Range',
+          td: ['`>= 2.0, < 3.0`', 'Same as pessimistic', 'More explicit about intent'],
+        },
+        {
+          th: 'Minimum',
+          td: ['`>= 2.0`', 'Development only', 'Gets latest, may break unexpectedly'],
+        },
+      ],
+    },
+    figure: 'Version constraint strategies and their trade-offs.',
+  }}
+/>
 
 <Callout type="danger">
 A constraint like `>= 2.0` means Terraform will use the latest version, including major versions with breaking changes. Always specify an upper bound for production modules.
@@ -530,12 +661,35 @@ Code: Changelog with migration instructions for breaking changes.
 
 A good changelog tells consumers exactly what changed and what they need to do about it. Follow the [Keep a Changelog](https://keepachangelog.com/) format:
 
-- _Added_ for new features
-- _Changed_ for changes in existing functionality
-- _Deprecated_ for soon-to-be removed features
-- _Removed_ for removed features
-- _Fixed_ for bug fixes
-- _Security_ for vulnerability fixes
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Added',
+      text: 'for new features',
+    },
+    {
+      lead: 'Changed',
+      text: 'for changes in existing functionality',
+    },
+    {
+      lead: 'Deprecated',
+      text: 'for soon-to-be removed features',
+    },
+    {
+      lead: 'Removed',
+      text: 'for removed features',
+    },
+    {
+      lead: 'Fixed',
+      text: 'for bug fixes',
+    },
+    {
+      lead: 'Security',
+      text: 'for vulnerability fixes',
+    },
+  ]}
+/>
 
 For breaking changes, include explicit upgrade instructions. Don't make consumers guess what broke — tell them exactly which lines of their configuration need to change.
 

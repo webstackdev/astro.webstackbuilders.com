@@ -9,16 +9,16 @@ tags: ["reliability-and-testing", "typescript", "python"]
 featured: true
 ---
 
-*[RPS]: Requests Per Second
-*[TPS]: Transactions Per Second
+*[GC]: Garbage Collection
+*[JIT]: Just-In-Time Compilation
+*[JVM]: Java Virtual Machine
 *[P50]: 50th Percentile (Median)
 *[P95]: 95th Percentile
 *[P99]: 99th Percentile
-*[JIT]: Just-In-Time Compilation
-*[JVM]: Java Virtual Machine
-*[SUT]: System Under Test
+*[RPS]: Requests Per Second
 *[SLA]: Service Level Agreement
-*[GC]: Garbage Collection
+*[SUT]: System Under Test
+*[TPS]: Transactions Per Second
 
 Most performance benchmarks produce numbers that look precise but mean nothing. A test that hammers an endpoint with 10,000 RPS for 60 seconds tells you how the system behaves under that specific, artificial load—but not how it handles production traffic patterns. The numbers are accurate; they're just not useful.
 
@@ -48,13 +48,27 @@ The bigger question is where to run these tests. Quick regression checks (2-5 mi
 
 A complete load model has four components: throughput (how much load), distribution (when requests arrive), workload mix (what operations), and user behavior (how users interact).
 
-__Throughput__ is the simplest dimension—how many requests per second. But even this has nuance. Constant RPS is useful for baseline capacity testing but unrealistic. Ramping load helps find breaking points. Stepped increases identify specific thresholds. Variable patterns that follow time-of-day curves match production reality.
-
-__Distribution__ determines how requests arrive within each second. Uniform distribution spaces requests evenly—one request every 10ms at 100 RPS. Real traffic doesn't work that way. Production traffic follows Poisson distributions with random arrivals, or bursty patterns where requests cluster together. A system that handles 1,000 evenly-spaced RPS might fall over when those same 1,000 requests arrive in bursts of 50.
-
-__Workload mix__ specifies what operations you're testing. Most APIs have a power-law distribution: a few endpoints handle most traffic. E-commerce sites see 80% of requests on product browsing, 15% on cart operations, and 5% on checkout. If your benchmark hits the checkout endpoint at 100% weight, you're testing a scenario that never happens.
-
-__User behavior__ is often overlooked but critical. Real users have think time—they read content, fill out forms, compare options. A benchmark that fires requests as fast as possible tests maximum theoretical throughput, not realistic capacity. Think time also affects connection pooling, session state, and resource contention.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Throughput',
+      text: 'is the simplest dimension—how many requests per second. But even this has nuance. Constant RPS is useful for baseline capacity testing but unrealistic. Ramping load helps find breaking points. Stepped increases identify specific thresholds. Variable patterns that follow time-of-day curves match production reality.',
+    },
+    {
+      lead: 'Distribution',
+      text: 'determines how requests arrive within each second. Uniform distribution spaces requests evenly—one request every 10ms at 100 RPS. Real traffic doesn\'t work that way. Production traffic follows Poisson distributions with random arrivals, or bursty patterns where requests cluster together. A system that handles 1,000 evenly-spaced RPS might fall over when those same 1,000 requests arrive in bursts of 50.',
+    },
+    {
+      lead: 'Workload mix',
+      text: 'specifies what operations you\'re testing. Most APIs have a power-law distribution: a few endpoints handle most traffic. E-commerce sites see 80% of requests on product browsing, 15% on cart operations, and 5% on checkout. If your benchmark hits the checkout endpoint at 100% weight, you\'re testing a scenario that never happens.',
+    },
+    {
+      lead: 'User behavior',
+      text: 'is often overlooked but critical. Real users have think time—they read content, fill out forms, compare options. A benchmark that fires requests as fast as possible tests maximum theoretical throughput, not realistic capacity. Think time also affects connection pooling, session state, and resource contention.',
+    },
+  ]}
+/>
 
 ```mermaid
 graph LR
@@ -169,15 +183,39 @@ Code: Test harness with weighted endpoint selection and realistic think time.
 
 Different load patterns serve different purposes. Choose based on what you're trying to learn.
 
-| Pattern | Description | When to Use |
-|---------|-------------|-------------|
-| Constant | Fixed RPS for duration | Baseline capacity measurement |
-| Ramping | Gradual increase/decrease | Find breaking points and saturation |
-| Stepped | Discrete jumps | Identify specific capacity thresholds |
-| Spike | Sudden burst | Test auto-scaling response time |
-| Soak | Long duration at steady load | Memory leaks, connection exhaustion, degradation |
-
-Table: Load patterns and their use cases.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Pattern', 'Description', 'When to Use'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Constant',
+          td: ['Fixed RPS for duration', 'Baseline capacity measurement'],
+        },
+        {
+          th: 'Ramping',
+          td: ['Gradual increase/decrease', 'Find breaking points and saturation'],
+        },
+        {
+          th: 'Stepped',
+          td: ['Discrete jumps', 'Identify specific capacity thresholds'],
+        },
+        {
+          th: 'Spike',
+          td: ['Sudden burst', 'Test auto-scaling response time'],
+        },
+        {
+          th: 'Soak',
+          td: ['Long duration at steady load', 'Memory leaks, connection exhaustion, degradation'],
+        },
+      ],
+    },
+    figure: 'Load patterns and their use cases.',
+  }}
+/>
 
 <Callout type="info">
 Production traffic is never uniform. Real users browse, pause, click, wait, and leave. Model this with think time distributions and realistic endpoint mixes derived from production analytics. If you don't have production data yet, start with industry benchmarks for your application type and refine once you have real traffic.
@@ -191,15 +229,31 @@ A cold system behaves nothing like a warm one. If you measure performance during
 
 Several systems need time to reach optimal performance:
 
-__JIT compilation__ is the biggest factor for JVM, V8, and .NET runtimes. Code starts interpreted and gets compiled to native code as hot paths are identified. The JVM's tiered compilation means code goes through multiple optimization passes. A cold JVM can be 10-100x slower than a warmed one on the same workload. Node.js has the same dynamic—V8 needs to see code paths executed thousands of times before full optimization kicks in.
-
-__Connection pools__ start empty. The first requests establish connections to databases, caches, and downstream services. Connection establishment adds latency and may require TLS handshakes. Once pools are filled, requests reuse existing connections with sub-millisecond overhead.
-
-__Caches__ at every layer start cold. CPU caches, OS page cache, database buffer pools, Redis/Memcached—all need to be populated with working set data. A query that takes 100ms against cold buffers might take 2ms when the data pages are already in memory.
-
-__Auto-scaling__ adds another dimension in cloud environments. If your test starts with minimum instance counts, you're measuring scale-up latency, not steady-state performance. The first few minutes include pods starting, health checks passing, and load balancers adding backends.
-
-__Garbage collection__ patterns stabilize over time. Young generation collections are frequent during warmup as short-lived objects accumulate. After warmup, GC patterns become more predictable, and major collections become less frequent.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'JIT compilation',
+      text: 'is the biggest factor for JVM, V8, and .NET runtimes. Code starts interpreted and gets compiled to native code as hot paths are identified. The JVM\'s tiered compilation means code goes through multiple optimization passes. A cold JVM can be 10-100x slower than a warmed one on the same workload. Node.js has the same dynamic—V8 needs to see code paths executed thousands of times before full optimization kicks in.',
+    },
+    {
+      lead: 'Connection pools',
+      text: 'start empty. The first requests establish connections to databases, caches, and downstream services. Connection establishment adds latency and may require TLS handshakes. Once pools are filled, requests reuse existing connections with sub-millisecond overhead.',
+    },
+    {
+      lead: 'Caches',
+      text: 'at every layer start cold. CPU caches, OS page cache, database buffer pools, Redis/Memcached—all need to be populated with working set data. A query that takes 100ms against cold buffers might take 2ms when the data pages are already in memory.',
+    },
+    {
+      lead: 'Auto-scaling',
+      text: 'adds another dimension in cloud environments. If your test starts with minimum instance counts, you\'re measuring scale-up latency, not steady-state performance. The first few minutes include pods starting, health checks passing, and load balancers adding backends.',
+    },
+    {
+      lead: 'Garbage collection',
+      text: 'patterns stabilize over time. Young generation collections are frequent during warmup as short-lived objects accumulate. After warmup, GC patterns become more predictable, and major collections become less frequent.',
+    },
+  ]}
+/>
 
 ### Warmup Implementation
 
@@ -271,13 +325,27 @@ An average latency of 100ms might mean all requests completed in roughly 100ms. 
 
 Averages also collapse under outliers. A single 10-second timeout in a thousand requests shifts the average dramatically, even though 99.9% of users had a good experience. Conversely, if that timeout represents a real failure mode that will hit 1% of users in production, the average masks it.
 
-__Percentiles__ tell a more honest story. P50 (median) shows the typical experience. P95 shows what most users experience at worst. P99 captures tail latency—the experience of that 1 in 100 users who might be your most important customers (large accounts tend to make complex requests). P99.9 shows the worst common case, useful for services with strict SLAs.
-
-__Distribution shape__ matters too. Latency distributions are rarely normal—they're typically right-skewed with a long tail. Skewness greater than zero indicates that tail; high kurtosis means the tail is heavy. A histogram reveals patterns that summary statistics hide. Bimodal distributions indicate two distinct code paths (cache hits vs misses, fast queries vs slow queries). Long-tail distributions are typical—most requests are fast, but outliers can be orders of magnitude slower like from slow database queries.
-
-__Sample size__ determines reliability. You need at least 1,000 requests for stable P95 numbers, 10,000 for stable P99, and 100,000 for meaningful P99.9. If you're reporting P99.9 from a 5-minute test at 100 RPS, you have 30,000 samples—barely enough to be meaningful. Short tests produce unstable tail metrics.
-
-__Variance__ indicates system stability. The coefficient of variation (standard deviation divided by mean) shows relative spread. Below 0.1 suggests a stable system; above 0.2 indicates concerning variability. High variance means unpredictable user experience even when averages look fine.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Percentiles',
+      text: 'tell a more honest story. P50 (median) shows the typical experience. P95 shows what most users experience at worst. P99 captures tail latency—the experience of that 1 in 100 users who might be your most important customers (large accounts tend to make complex requests). P99.9 shows the worst common case, useful for services with strict SLAs.',
+    },
+    {
+      lead: 'Distribution shape',
+      text: 'matters too. Latency distributions are rarely normal—they\'re typically right-skewed with a long tail. Skewness greater than zero indicates that tail; high kurtosis means the tail is heavy. A histogram reveals patterns that summary statistics hide. Bimodal distributions indicate two distinct code paths (cache hits vs misses, fast queries vs slow queries). Long-tail distributions are typical—most requests are fast, but outliers can be orders of magnitude slower like from slow database queries.',
+    },
+    {
+      lead: 'Sample size',
+      text: 'determines reliability. You need at least 1,000 requests for stable P95 numbers, 10,000 for stable P99, and 100,000 for meaningful P99.9. If you\'re reporting P99.9 from a 5-minute test at 100 RPS, you have 30,000 samples—barely enough to be meaningful. Short tests produce unstable tail metrics.',
+    },
+    {
+      lead: 'Variance',
+      text: 'indicates system stability. The coefficient of variation (standard deviation divided by mean) shows relative spread. Below 0.1 suggests a stable system; above 0.2 indicates concerning variability. High variance means unpredictable user experience even when averages look fine.',
+    },
+  ]}
+/>
 
 ### Analyzing Results
 
@@ -332,16 +400,43 @@ The comparison works on raw latency arrays—not pre-computed percentiles. Pre-c
 
 Here's what to watch for in your metrics:
 
-| Metric | What It Tells You | Watch For |
-|--------|-------------------|-----------|
-| P50 (Median) | Typical user experience | Large gap between mean and median indicates skew |
-| P95 | Most users' worst case | Common SLA compliance target |
-| P99 | Tail latency | 1 in 100 requests; often where problems hide |
-| Std Dev | Consistency | High variance suggests system instability |
-| CV | Relative spread | Above 0.2 indicates concerning variability |
-| Throughput | Achieved capacity | Compare against target; watch for saturation |
-
-Table: Key performance metrics and interpretation.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Metric', 'What It Tells You', 'Watch For'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'P50 (Median)',
+          td: ['Typical user experience', 'Large gap between mean and median indicates skew'],
+        },
+        {
+          th: 'P95',
+          td: ["Most users' worst case", 'Common SLA compliance target'],
+        },
+        {
+          th: 'P99',
+          td: ['Tail latency', '1 in 100 requests; often where problems hide'],
+        },
+        {
+          th: 'Std Dev',
+          td: ['Consistency', 'High variance suggests system instability'],
+        },
+        {
+          th: 'CV',
+          td: ['Relative spread', 'Above 0.2 indicates concerning variability'],
+        },
+        {
+          th: 'Throughput',
+          td: ['Achieved capacity', 'Compare against target; watch for saturation'],
+        },
+      ],
+    },
+    figure: 'Key performance metrics and interpretation.',
+  }}
+/>
 
 <Callout type="success">
 Report percentiles, not averages. Include confidence intervals. Show the distribution, not just summary statistics. A histogram of latencies tells a story that P99 alone cannot.
@@ -357,37 +452,95 @@ The gap between test and production environments creates systematic errors that 
 
 Four categories of factors determine whether your test environment will produce representative results:
 
-__Compute resources__ directly affect capacity and saturation points. CPU type matters—an Intel Xeon and an AMD EPYC at the same core count have different single-thread performance, different cache hierarchies, and different memory bandwidth. Instance types in cloud environments bundle CPU, memory, and network in specific ratios. A memory-bound workload on an undersized test instance will saturate at a completely different point than production.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Compute resources',
+      text: 'directly affect capacity and saturation points. CPU type matters—an Intel Xeon and an AMD EPYC at the same core count have different single-thread performance, different cache hierarchies, and different memory bandwidth. Instance types in cloud environments bundle CPU, memory, and network in specific ratios. A memory-bound workload on an undersized test instance will saturate at a completely different point than production.',
+    },
+    {
+      lead: 'Data characteristics',
+      text: 'change query behavior. Database query planners make decisions based on table statistics—row counts, value distributions, index selectivity. A test database with uniform data distribution might use different execution plans than production with skewed data. Cache hit rates depend on working set size relative to cache capacity. If your test data fits entirely in the buffer pool but production doesn\'t, you\'re measuring a different system.',
+    },
+    {
+      lead: 'Network topology',
+      text: 'affects latency distributions. Production might have services spread across availability zones with 1-2ms inter-zone latency. A test environment with everything in one zone or on localhost eliminates that latency entirely. Load balancer configuration, connection limits, and DNS resolution all contribute to real-world behavior that tests often skip.',
+    },
+    {
+      lead: 'Dependencies',
+      text: 'are frequently mocked or simplified. External API calls get stubbed with instant responses. Rate limits don\'t exist in test. Third-party services behave predictably instead of having their own performance characteristics. Every mocked dependency is a place where your benchmark diverges from reality.',
+    },
+  ]}
+/>
 
-__Data characteristics__ change query behavior. Database query planners make decisions based on table statistics—row counts, value distributions, index selectivity. A test database with uniform data distribution might use different execution plans than production with skewed data. Cache hit rates depend on working set size relative to cache capacity. If your test data fits entirely in the buffer pool but production doesn't, you're measuring a different system.
-
-__Network topology__ affects latency distributions. Production might have services spread across availability zones with 1-2ms inter-zone latency. A test environment with everything in one zone or on localhost eliminates that latency entirely. Load balancer configuration, connection limits, and DNS resolution all contribute to real-world behavior that tests often skip.
-
-__Dependencies__ are frequently mocked or simplified. External API calls get stubbed with instant responses. Rate limits don't exist in test. Third-party services behave predictably instead of having their own performance characteristics. Every mocked dependency is a place where your benchmark diverges from reality.
-
-| Factor | Test Environment Difference | Impact on Results |
-|--------|----------------------------|-------------------|
-| Database size | 1% of production | 10x faster queries (all in index/cache) |
-| Instance type | Half the CPU/memory | Earlier saturation, different bottlenecks |
-| Mocked APIs | Instant responses | 2-3x higher apparent throughput |
-| Cold caches | Empty at test start | Warmup not representative |
-| Network | Same-zone or localhost | Missing 1-5ms latency per hop |
-
-Table: Common environment differences and their impact.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Factor', 'Test Environment Difference', 'Impact on Results'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Database size',
+          td: ['1% of production', '10x faster queries (all in index/cache)'],
+        },
+        {
+          th: 'Instance type',
+          td: ['Half the CPU/memory', 'Earlier saturation, different bottlenecks'],
+        },
+        {
+          th: 'Mocked APIs',
+          td: ['Instant responses', '2-3x higher apparent throughput'],
+        },
+        {
+          th: 'Cold caches',
+          td: ['Empty at test start', 'Warmup not representative'],
+        },
+        {
+          th: 'Network',
+          td: ['Same-zone or localhost', 'Missing 1-5ms latency per hop'],
+        },
+      ],
+    },
+    figure: 'Common environment differences and their impact.',
+  }}
+/>
 
 ### Achieving Parity
 
 Perfect parity is expensive—a full production replica for testing might double your infrastructure costs. The goal is sufficient parity: matching the factors that actually affect your specific workload's performance characteristics.
 
-__Infrastructure as Code__ is the foundation. If production and test environments are defined in the same Terraform or Pulumi configurations with only scale parameters differing, you eliminate configuration drift. The test environment uses the same AMIs, the same security groups, the same load balancer settings. This doesn't solve data differences, but it ensures the infrastructure behaves identically.
-
-__Scaled-down production__ works when bottlenecks scale linearly. If you run 1/10th the instances with 1/10th the load, you might see the same behavior—assuming the bottleneck isn't something that doesn't scale (like a single database writer or a shared lock). This approach is cost-effective but requires validation that your specific workload scales proportionally.
-
-__Production traffic replay__ gives you realistic request patterns without the risk of affecting real users. Tools like GoReplay capture production traffic and replay it against test environments. You get the actual endpoint distribution, the actual request timing, the actual payload sizes. The challenges are privacy (requests may contain PII that needs scrubbing) and data dependencies (requests might reference entities that don't exist in the test database).
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Infrastructure as Code',
+      text: 'is the foundation. If production and test environments are defined in the same Terraform or Pulumi configurations with only scale parameters differing, you eliminate configuration drift. The test environment uses the same AMIs, the same security groups, the same load balancer settings. This doesn\'t solve data differences, but it ensures the infrastructure behaves identically.',
+    },
+    {
+      lead: 'Scaled-down production',
+      text: 'works when bottlenecks scale linearly. If you run 1/10th the instances with 1/10th the load, you might see the same behavior—assuming the bottleneck isn\'t something that doesn\'t scale (like a single database writer or a shared lock). This approach is cost-effective but requires validation that your specific workload scales proportionally.',
+    },
+    {
+      lead: 'Production traffic replay',
+      text: 'gives you realistic request patterns without the risk of affecting real users. Tools like GoReplay capture production traffic and replay it against test environments. You get the actual endpoint distribution, the actual request timing, the actual payload sizes. The challenges are privacy (requests may contain PII that needs scrubbing) and data dependencies (requests might reference entities that don\'t exist in the test database).',
+    },
+  ]}
+/>
 
 If you don't have traffic capture set up, you can derive endpoint distributions from existing data sources: APM tools like Datadog or New Relic report endpoint hit rates, load balancer access logs contain request paths and timing, and OpenTelemetry traces show request patterns across services. Even approximate distributions from these sources are better than synthetic 50/50 splits.
 
-__Shadow traffic__ takes replay further by mirroring production requests in real-time. A load balancer or service mesh duplicates each request to both production and the test environment. You see exactly how the test environment handles real traffic. The limitation is write operations—you can't replay a purchase or account creation without side effects. Shadow traffic works best for read-heavy workloads.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Shadow traffic',
+      text: 'takes replay further by mirroring production requests in real-time. A load balancer or service mesh duplicates each request to both production and the test environment. You see exactly how the test environment handles real traffic. The limitation is write operations—you can\'t replay a purchase or account creation without side effects. Shadow traffic works best for read-heavy workloads.',
+    },
+  ]}
+/>
 
 ```mermaid
 graph TD
@@ -405,13 +558,27 @@ Figure: Environment parity strategies ordered by increasing realism and cost.
 
 Databases deserve special attention because they're often the primary bottleneck—and the hardest to replicate accurately.
 
-__Data volume__ should be the same order of magnitude as production. A 100GB test database won't reveal the problems you'll hit with 10TB in production. Query planners make different decisions, indexes have different depths, and data that fits in memory in test requires disk I/O in production.
-
-__Data distribution__ matters as much as volume. If production has 80% of orders from 5% of customers, your test data should have similar skew. Uniform test data produces uniform query plans that don't match production behavior.
-
-__Index statistics__ must be current. After loading test data, run `ANALYZE` (PostgreSQL) or equivalent to update statistics. Without this, the query planner works from stale information and may choose suboptimal plans.
-
-__Buffer pool warmth__ affects every query. A cold database hits disk; a warm one serves from memory. Pre-warm the buffer pool by running representative queries before starting measurement. Some databases have explicit warmup features (`pg_prewarm` in PostgreSQL).
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Data volume',
+      text: 'should be the same order of magnitude as production. A 100GB test database won\'t reveal the problems you\'ll hit with 10TB in production. Query planners make different decisions, indexes have different depths, and data that fits in memory in test requires disk I/O in production.',
+    },
+    {
+      lead: 'Data distribution',
+      text: 'matters as much as volume. If production has 80% of orders from 5% of customers, your test data should have similar skew. Uniform test data produces uniform query plans that don\'t match production behavior.',
+    },
+    {
+      lead: 'Index statistics',
+      text: 'must be current. After loading test data, run `ANALYZE` (PostgreSQL) or equivalent to update statistics. Without this, the query planner works from stale information and may choose suboptimal plans.',
+    },
+    {
+      lead: 'Buffer pool warmth',
+      text: 'affects every query. A cold database hits disk; a warm one serves from memory. Pre-warm the buffer pool by running representative queries before starting measurement. Some databases have explicit warmup features (`pg_prewarm` in PostgreSQL).',
+    },
+  ]}
+/>
 
 The ideal approach: use a production database snapshot with PII removed or anonymized. This gives you real data volumes, real distributions, and real relationships between tables. The snapshot can be automated as part of a nightly pipeline—restore production backup, run anonymization scripts, make available to test environments.
 
@@ -509,15 +676,39 @@ Percentiles are easy to get wrong. The most common mistake: averaging percentile
 
 Similarly, calculating P99.9 from 1,000 samples gives you exactly one data point at that percentile—statistically meaningless. You need at least 10,000 samples for stable P99, and 100,000 for meaningful P99.9.
 
-| Issue | Symptom | Fix |
-|-------|---------|-----|
-| Coordinated omission | Load drops under stress | Open-loop generation (arrival-rate executor) |
-| Client bottleneck | Client CPU at 100% | Distributed load generation |
-| Single run variance | Results differ 20% between runs | Multiple runs with statistical analysis |
-| Short test duration | No GC patterns, cold caches | Longer tests (30+ minutes) |
-| Wrong percentiles | P99 from averaged windows | Calculate once from all raw data |
-
-Table: Common pitfalls and their fixes.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Issue', 'Symptom', 'Fix'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Coordinated omission',
+          td: ['Load drops under stress', 'Open-loop generation (arrival-rate executor)'],
+        },
+        {
+          th: 'Client bottleneck',
+          td: ['Client CPU at 100%', 'Distributed load generation'],
+        },
+        {
+          th: 'Single run variance',
+          td: ['Results differ 20% between runs', 'Multiple runs with statistical analysis'],
+        },
+        {
+          th: 'Short test duration',
+          td: ['No GC patterns, cold caches', 'Longer tests (30+ minutes)'],
+        },
+        {
+          th: 'Wrong percentiles',
+          td: ['P99 from averaged windows', 'Calculate once from all raw data'],
+        },
+      ],
+    },
+    figure: 'Common pitfalls and their fixes.',
+  }}
+/>
 
 <Callout type="danger">
 Coordinated omission is the most common and dangerous benchmark mistake. If your load generator waits for responses before sending the next request, slow responses reduce load, making the system appear healthier than it is. Use open-loop (arrival-rate) load generation.

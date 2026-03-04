@@ -69,15 +69,22 @@ The formula is simple: $$(r + 1)^n$$ where $$r$$ is retries per service and $$n$
 
 The table below shows how quickly this gets out of hand. These numbers assume every request at every layer fails and triggers full retries—a worst case, but exactly what happens during a cascade failure:
 
-| Services in Chain | Retries Each | Load Amplification |
-|-------------------|--------------|-------------------|
-| 2 | 3 | 16x |
-| 3 | 3 | 64x |
-| 4 | 3 | 256x |
-| 3 | 5 | 216x |
-| 4 | 5 | 1,296x |
-
-Table: Load amplification from retries across service chains.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Load amplification from retries across service chains.",
+    thead: { th: ["Services in Chain", "Retries Each", "Load Amplification"] },
+    tbody: {
+      tr: [
+        { th: "2", td: ["3", "16x"] },
+        { th: "3", td: ["3", "64x"] },
+        { th: "4", td: ["3", "256x"] },
+        { th: "3", td: ["5", "216x"] },
+        { th: "4", td: ["5", "1,296x"] },
+      ],
+    },
+  }}
+/>
 
 A database that can handle 10,000 QPS under normal operation suddenly receives 640,000 QPS during a cascade failure with 3 services and 3 retries each (64x amplification). No amount of scaling can absorb that. The only solution is to prevent the amplification from happening in the first place.
 
@@ -158,11 +165,14 @@ Code: Comprehensive circuit breaker configuration
 
 There are three popular options for implementing circuit breakers, each with different tradeoffs.
 
-1. __Service mesh__ (like the Istio `DestinationRule` above) handles circuit breaking at the infrastructure layer. Your application code stays simple—it just makes HTTP calls—while Envoy sidecars handle failure detection and traffic shifting. The downside is complexity: you need a mesh deployed, and debugging "why didn't my request go through" now involves understanding Envoy configs and mesh telemetry. Service meshes work best when you want consistent resilience policies across many services without modifying application code.
-
-2. __Application libraries__ like opossum (Node.js), resilience4j (Java), or gobreaker (Go) give you fine-grained control. You can configure different thresholds per endpoint, implement custom fallback logic, and emit metrics that tie directly to your application's business logic. The tradeoff is that every service needs to implement and configure the library correctly—there's no centralized policy enforcement.
-
-3. __API gateways__ and load balancers (AWS ALB, Kong, NGINX) can implement basic circuit breaking at the edge. This protects your backend from external traffic surges but doesn't help with service-to-service calls within your infrastructure.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "__Service mesh__", text: "(like the Istio `DestinationRule` above) handles circuit breaking at the infrastructure layer. Your application code stays simple—it just makes HTTP calls—while Envoy sidecars handle failure detection and traffic shifting. The downside is complexity: you need a mesh deployed, and debugging \"why didn't my request go through\" now involves understanding Envoy configs and mesh telemetry. Service meshes work best when you want consistent resilience policies across many services without modifying application code." },
+    { lead: "__Application libraries__", text: "like opossum (Node.js), resilience4j (Java), or gobreaker (Go) give you fine-grained control. You can configure different thresholds per endpoint, implement custom fallback logic, and emit metrics that tie directly to your application's business logic. The tradeoff is that every service needs to implement and configure the library correctly—there's no centralized policy enforcement." },
+    { lead: "__API gateways__ and load balancers__", text: "(AWS ALB, Kong, NGINX) can implement basic circuit breaking at the edge. This protects your backend from external traffic surges but doesn't help with service-to-service calls within your infrastructure." },
+  ]}
+/>
 
 For most teams, I recommend starting with an application library for critical service calls, then layering in mesh-level circuit breaking as your infrastructure matures. Here's a practical example using opossum:
 
@@ -229,15 +239,22 @@ const recommendations = await productCircuit.execute(
 ```
 Code: Fallback strategy implementations for circuit breakers.
 
-| Strategy | Use When | Tradeoff |
-|----------|----------|----------|
-| Cached response | Data can be stale | May serve outdated info |
-| Default response | Feature is optional | Degraded user experience |
-| Degraded response | Partial data is useful | Complex to implement |
-| Fail fast | Failure must be visible | Poor user experience |
-| Queue for retry | Operation can be async | Delayed processing |
-
-Table: Fallback strategies with appropriate use cases.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Fallback strategies with appropriate use cases.",
+    thead: { th: ["Strategy", "Use When", "Tradeoff"] },
+    tbody: {
+      tr: [
+        { th: "Cached response", td: ["Data can be stale", "May serve outdated info"] },
+        { th: "Default response", td: ["Feature is optional", "Degraded user experience"] },
+        { th: "Degraded response", td: ["Partial data is useful", "Complex to implement"] },
+        { th: "Fail fast", td: ["Failure must be visible", "Poor user experience"] },
+        { th: "Queue for retry", td: ["Operation can be async", "Delayed processing"] },
+      ],
+    },
+  }}
+/>
 
 The cached response strategy is usually the best choice for read operations—users would rather see slightly stale data than an error page. For recommendations, product listings, or user profiles, serving cached data during an outage maintains a functional user experience.
 
@@ -255,20 +272,38 @@ The concept is simple: instead of allowing every request to retry N times, you a
 
 __Traditional Retries:__
 
-- Each request can retry up to N times
-- Problem: Under failure, ALL requests retry
-- Result: N+1 times the load
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Each request can retry up to N times" },
+    { text: "Problem: Under failure, ALL requests retry" },
+    { text: "Result: N+1 times the load" },
+  ]}
+/>
+
 
 __Retry Budget:__
 
-- Total retries limited to X% of successful requests
-- Example: 10% retry budget
-- If 1000 successful requests, allow 100 retries total
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Total retries limited to X% of successful requests" },
+    { text: "Example: 10% retry budget" },
+    { text: "If 1000 successful requests, allow 100 retries total" },
+  ]}
+/>
+
 
 __Under failure:__
 
-- Budget depletes quickly
-- Result: System stabilizes instead of amplifying
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Budget depletes quickly" },
+    { text: "Result: System stabilizes instead of amplifying" },
+  ]}
+/>
+
 
 This creates a natural throttle. During normal operation when most requests succeed, the budget stays full and retries work as expected. During a failure, the budget depletes quickly because there are few successes to replenish it. The system automatically backs off without requiring manual intervention.
 
@@ -526,27 +561,51 @@ When a circuit isn't behaving as expected, the problem usually falls into one of
 
 __Circuit opens unexpectedly:__
 
-| Cause | Remediation |
-|-------|-------------|
-| Threshold too sensitive | Review `failure_threshold` and `minimum_requests` |
-| Timeouts causing false failures | Compare timeout settings to actual P99 response times |
-| Window too short | Increase `window_duration` for bursty traffic patterns |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: { th: ["Cause", "Remediation"] },
+    tbody: {
+      tr: [
+        { th: "Threshold too sensitive", td: ["Review `failure_threshold` and `minimum_requests`"] },
+        { th: "Timeouts causing false failures", td: ["Compare timeout settings to actual P99 response times"] },
+        { th: "Window too short", td: ["Increase `window_duration` for bursty traffic patterns"] },
+      ],
+    },
+  }}
+/>
 
 __Circuit not opening:__
 
-| Cause | Remediation |
-|-------|-------------|
-| Failures not counted | Verify `failure_conditions` includes the error types you expect |
-| `minimum_requests` too high | Lower it for low-traffic services |
-| Window too long | Decrease `window_duration` to detect failures faster |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: { th: ["Cause", "Remediation"] },
+    tbody: {
+      tr: [
+        { th: "Failures not counted", td: ["Verify `failure_conditions` includes the error types you expect"] },
+        { th: "`minimum_requests` too high", td: ["Lower it for low-traffic services"] },
+        { th: "Window too long", td: ["Decrease `window_duration` to detect failures faster"] },
+      ],
+    },
+  }}
+/>
 
 __Circuit not closing:__
 
-| Cause | Remediation |
-|-------|-------------|
-| Downstream not actually recovered | Verify downstream health directly, outside the breaker |
-| Probe requests failing | Review half-open probe behavior and endpoint health |
-| `success_threshold` too high | Reduce `half_open.success_threshold` |
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: { th: ["Cause", "Remediation"] },
+    tbody: {
+      tr: [
+        { th: "Downstream not actually recovered", td: ["Verify downstream health directly, outside the breaker"] },
+        { th: "Probe requests failing", td: ["Review half-open probe behavior and endpoint health"] },
+        { th: "`success_threshold` too high", td: ["Reduce `half_open.success_threshold`"] },
+      ],
+    },
+  }}
+/>
 
 The most common issue I see is timeouts configured lower than actual P99 latency. The service responds successfully, but the circuit breaker counts it as a failure because the response arrived after the timeout. Check your latency histograms before setting timeout thresholds.
 
@@ -662,13 +721,16 @@ Coordinate timeout budgets across your service chain. If you don't control all s
 
 Most languages have mature circuit breaker implementations. The choice usually comes down to whether you want a focused library that does one thing well, or a comprehensive resilience toolkit.
 
-__JavaScript/TypeScript:__ _opossum_ is the most popular choice for Node.js. It provides a straightforward circuit breaker with built-in Prometheus metrics, event hooks for observability, and a clean promise-based API. The examples in this article use opossum. For more comprehensive needs, _cockatiel_ bundles circuit breakers with retries, timeouts, bulkheads, and fallbacks in a single package with good TypeScript support.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "__JavaScript/TypeScript:__", text: "_opossum_ is the most popular choice for Node.js. It provides a straightforward circuit breaker with built-in Prometheus metrics, event hooks for observability, and a clean promise-based API. The examples in this article use opossum. For more comprehensive needs, _cockatiel_ bundles circuit breakers with retries, timeouts, bulkheads, and fallbacks in a single package with good TypeScript support." },
+    { lead: "__Java:__", text: "_resilience4j_ is the successor to Netflix Hystrix (now in maintenance mode). It's designed for Java 8+ with functional programming patterns and integrates well with Spring Boot. Beyond circuit breakers, it includes rate limiters, bulkheads, retries, and time limiters—all composable. If you're on the JVM and need resilience patterns, resilience4j is the default choice." },
+    { lead: "__Go:__", text: "_gobreaker_ from Sony is minimal and focused—just a circuit breaker, nothing else. It's easy to understand and integrate. If you need more features, _hystrix-go_ ports Netflix's Hystrix patterns to Go, though it's less actively maintained than gobreaker." },
+    { lead: "__Python:__", text: "_pybreaker_ provides a simple circuit breaker implementation. For async Python, _aiobreaker_ offers the same patterns for asyncio-based applications." },
+  ]}
+/>
 
-__Java:__ _resilience4j_ is the successor to Netflix Hystrix (now in maintenance mode). It's designed for Java 8+ with functional programming patterns and integrates well with Spring Boot. Beyond circuit breakers, it includes rate limiters, bulkheads, retries, and time limiters—all composable. If you're on the JVM and need resilience patterns, resilience4j is the default choice.
-
-__Go:__ _gobreaker_ from Sony is minimal and focused—just a circuit breaker, nothing else. It's easy to understand and integrate. If you need more features, _hystrix-go_ ports Netflix's Hystrix patterns to Go, though it's less actively maintained than gobreaker.
-
-__Python:__ _pybreaker_ provides a simple circuit breaker implementation. For async Python, _aiobreaker_ offers the same patterns for asyncio-based applications.
 
 ### Service Mesh Integration
 

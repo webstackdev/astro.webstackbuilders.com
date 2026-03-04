@@ -31,12 +31,17 @@ Flaky tests are technical debt with compound interest. Every ignored flake teach
 
 This article is a systematic approach to diagnosing and fixing flaky tests. Here's what we'll cover:
 
-- _Categorizing flakiness_ by root cause—race conditions, environment issues, and test design flaws each have distinct symptoms and fixes
-- _Building detection infrastructure_ to track flake rates and identify patterns over time
-- _Diagnosing race conditions_ with concrete debugging techniques and stable code patterns
-- _Stabilizing test environments_ through isolation, time mocking, and animation handling
-- _Managing flaky tests at scale_ with quarantine systems, triage frameworks, and CI debugging workflows
-- _Choosing the right tools_ for flake detection and tracking
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "_Categorizing flakiness_ by root cause—race conditions, environment issues, and test design flaws each have distinct symptoms and fixes" },
+    { text: "_Building detection infrastructure_ to track flake rates and identify patterns over time" },
+    { text: "_Diagnosing race conditions_ with concrete debugging techniques and stable code patterns" },
+    { text: "_Stabilizing test environments_ through isolation, time mocking, and animation handling" },
+    { text: "_Managing flaky tests at scale_ with quarantine systems, triage frameworks, and CI debugging workflows" },
+    { text: "_Choosing the right tools_ for flake detection and tracking" },
+  ]}
+/>
 
 ## The Taxonomy of Flakiness
 
@@ -74,17 +79,47 @@ Symptoms include failures that correlate with time of day (when the external ser
 
 Fixes depend on the dependency. For third-party APIs, mock them in tests or use recorded fixtures. For shared databases, isolate test data or use dedicated test instances. For caches, clear them between tests or use test-specific cache keys.
 
-| Category | Typical Fix Time | CI Impact | Detection Difficulty |
-|----------|------------------|-----------|---------------------|
-| Race condition - simple | 15-30 min | High | Medium |
-| Race condition - complex | 2-8 hours | High | Hard |
-| Environment - resource | 30-60 min | Medium | Easy |
-| Environment - timing | 1-4 hours | Low | Hard |
-| Test design - state | 1-2 hours | High | Medium |
-| Test design - selector | 15 min | Low | Easy |
-| External dependency | Varies | High | Medium |
-
-Table: Flakiness categories and resolution characteristics.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Flakiness categories and resolution characteristics.",
+    thead: {
+      th: ["Category", "Typical Fix Time", "CI Impact", "Detection Difficulty"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "Race condition - simple",
+          td: ["15-30 min", "High", "Medium"],
+        },
+        {
+          th: "Race condition - complex",
+          td: ["2-8 hours", "High", "Hard"],
+        },
+        {
+          th: "Environment - resource",
+          td: ["30-60 min", "Medium", "Easy"],
+        },
+        {
+          th: "Environment - timing",
+          td: ["1-4 hours", "Low", "Hard"],
+        },
+        {
+          th: "Test design - state",
+          td: ["1-2 hours", "High", "Medium"],
+        },
+        {
+          th: "Test design - selector",
+          td: ["15 min", "Low", "Easy"],
+        },
+        {
+          th: "External dependency",
+          td: ["Varies", "High", "Medium"],
+        },
+      ],
+    },
+  }}
+/>
 
 <Callout type="info">
 Race conditions cause the majority of flakes. If you don't know why a test is flaky, assume it's a race condition until proven otherwise. The test is asserting before the application has finished doing something.
@@ -203,13 +238,15 @@ Race conditions are the most common cause of flakiness, and they're also the tri
 
 ### The Debugging Process
 
-**Step 1: Confirm it's actually flaky.** Run the test many times in a loop. With Playwright, use `npx playwright test specific.spec.ts --repeat-each=50`. If it passes all 50 times, you may have fixed it accidentally, or the flake rate is very low. If it fails even once, you've confirmed the flakiness and can proceed.
-
-**Step 2: Narrow down the race.** Two complementary techniques help here. First, _slow things down_—run with `PWTEST_SLOW_MO=1000` to add delays between actions. If the test becomes stable when slowed, you've confirmed a timing issue. Second, _speed things up_—run under CPU pressure (with something like `stress-ng --cpu 4 &`) to make the race more likely to trigger. Add timestamps to key events: test step start/end, network requests, DOM mutations.
-
-**Step 3: Identify the competitors.** What's racing? The usual suspects are: test assertion vs async state update, click handler vs animation completing, network response vs render, or test cleanup vs next test setup. Look at the timestamps to see what's happening out of order.
-
-**Step 4: Fix it.** The fix is almost always the same principle: wait for a specific condition, not an arbitrary amount of time.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Run the test many times in a loop. With Playwright, use `npx playwright test specific.spec.ts --repeat-each=50`. If it passes all 50 times, you may have fixed it accidentally, or the flake rate is very low. If it fails even once, you've confirmed the flakiness and can proceed.", text: "Step 1: Confirm it's actually flaky." },
+    { lead: "Two complementary techniques help here. First, _slow things down_—run with `PWTEST_SLOW_MO=1000` to add delays between actions. If the test becomes stable when slowed, you've confirmed a timing issue. Second, _speed things up_—run under CPU pressure (with something like `stress-ng --cpu 4 &`) to make the race more likely to trigger. Add timestamps to key events: test step start/end, network requests, DOM mutations.", text: "Step 2: Narrow down the race." },
+    { lead: "What's racing? The usual suspects are: test assertion vs async state update, click handler vs animation completing, network response vs render, or test cleanup vs next test setup. Look at the timestamps to see what's happening out of order.", text: "Step 3: Identify the competitors." },
+    { lead: "The fix is almost always the same principle: wait for a specific condition, not an arbitrary amount of time.", text: "Step 4: Fix it." },
+  ]}
+/>
 
 ### Common Race Patterns
 
@@ -348,11 +385,14 @@ Code: Browser state isolation strategies.
 
 Database pollution is one of the most common sources of order-dependent flakes. Test A creates a user, test B expects to find only one user, but if A runs first, B fails. Three patterns work well:
 
-_Transaction rollback_: Wrap each test in a database transaction and roll back after. Fast and clean, but doesn't work if your test needs to verify committed data, test triggers, or observe behavior across transaction boundaries. Best for: unit-style integration tests where you're testing application logic, not database behavior.
-
-_Database per test_: Create an isolated database for each test with a unique name. Slower but provides complete isolation. Works well with containerized databases (spin up a fresh Postgres container per test run). Best for: tests that need to verify committed data or test database-level features.
-
-_Seeded snapshots_: Reset to a known state before each test using database snapshots or seed scripts. Good balance of isolation and speed. Best for: E2E tests where you need realistic data but can't afford the overhead of creating fresh databases.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "_Transaction rollback_", lead: "Wrap each test in a database transaction and roll back after. Fast and clean, but doesn't work if your test needs to verify committed data, test triggers, or observe behavior across transaction boundaries. Best for: unit-style integration tests where you're testing application logic, not database behavior." },
+    { text: "_Database per test_", lead: "Create an isolated database for each test with a unique name. Slower but provides complete isolation. Works well with containerized databases (spin up a fresh Postgres container per test run). Best for: tests that need to verify committed data or test database-level features." },
+    { text: "_Seeded snapshots_", lead: "Reset to a known state before each test using database snapshots or seed scripts. Good balance of isolation and speed. Best for: E2E tests where you need realistic data but can't afford the overhead of creating fresh databases." },
+  ]}
+/>
 
 ```typescript title="database-isolation.ts"
 // Transaction rollback approach
@@ -516,19 +556,45 @@ Not all flaky tests deserve equal attention. A checkout test that flakes 8% of t
 
 I use a weighted scoring system based on four factors:
 
-- _Flake rate_ (30% weight): How often does it fail? Higher rates mean more disruption.
-- _Test importance_ (25% weight): Is this a critical path like checkout or authentication? Or an edge case?
-- _Fix complexity_ (20% weight): Quick fixes get higher priority—they're easy wins.
-- _CI impact_ (25% weight): How many people does this flake block when it triggers?
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "_Flake rate_ (30% weight): How often does it fail? Higher rates mean more disruption." },
+    { text: "_Test importance_ (25% weight): Is this a critical path like checkout or authentication? Or an edge case?" },
+    { text: "_Fix complexity_ (20% weight): Quick fixes get higher priority—they're easy wins." },
+    { text: "_CI impact_ (25% weight): How many people does this flake block when it triggers?" },
+  ]}
+/>
 
-| Test | Flake Rate | Importance | Fix Est. | CI Impact | Priority (1-10) |
-|------|------------|------------|----------|-----------|----------|
-| checkout.payment | 8% | Critical (10) | 4h (6) | Daily (10) | **8** |
-| dashboard.analytics | 3% | Core (7) | 1h (10) | Occasional (4) | **6** |
-| settings.timezone | 12% | Secondary (4) | 2d (3) | Rare (1) | **5** |
-| onboarding.tour | 2% | Edge (1) | Quick (10) | Rare (1) | **3** |
-
-Table: Example triage priority calculation (priority scored 1-10, higher = more urgent).
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Example triage priority calculation (priority scored 1-10, higher = more urgent).",
+    thead: {
+      th: ["Test", "Flake Rate", "Importance", "Fix Est.", "CI Impact", "Priority (1-10)"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: "checkout.payment",
+          td: ["8%", "Critical (10)", "4h (6)", "Daily (10)", "**8**"],
+        },
+        {
+          th: "dashboard.analytics",
+          td: ["3%", "Core (7)", "1h (10)", "Occasional (4)", "**6**"],
+        },
+        {
+          th: "settings.timezone",
+          td: ["12%", "Secondary (4)", "2d (3)", "Rare (1)", "**5**"],
+        },
+        {
+          th: "onboarding.tour",
+          td: ["2%", "Edge (1)", "Quick (10)", "Rare (1)", "**3**"],
+        },
+      ],
+    },
+  }}
+/>
 
 The checkout test has the highest priority despite not having the highest flake rate—it's critical path and blocks people daily. The timezone test has a higher flake rate but lower priority because it's secondary functionality that rarely impacts anyone.
 
@@ -636,10 +702,15 @@ Brittle selectors are a silent source of flakiness. A test might pass for months
 
 The hierarchy of selector preference, from most to least stable:
 
-1. _data-testid attributes_: Explicit test hooks that don't change with styling or structure
-2. _ARIA roles and labels_: Semantic selectors that align with accessibility, like `getByRole('button', { name: 'Submit' })`
-3. _Form element names_: Stable attributes like `[name="email"]`
-4. _Stable IDs_: If they're semantic and unlikely to change
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Explicit test hooks that don't change with styling or structure", text: "data-testid attributes" },
+    { lead: "Semantic selectors that align with accessibility, like `getByRole('button', { name: 'Submit' })`", text: "ARIA roles and labels" },
+    { lead: "Stable attributes like `[name=\"email\"]`", text: "Form element names" },
+    { lead: "If they're semantic and unlikely to change", text: "Stable IDs" },
+  ]}
+/>
 
 Avoid: generated class names (`.sc-fHjqPf`), positional selectors (`nth-child(2)`), deep path selectors (`#root > div > form > div > input`), and text content selectors (content gets internationalized or tweaked).
 
@@ -765,9 +836,14 @@ The key settings: `--repeat-each` runs the test multiple times to reproduce the 
 
 Once you have failures, compare the traces between passing and failing runs. Look for:
 
-- _Timing differences_: Do failures take longer? That suggests timeouts or resource contention.
-- _Error message patterns_: Are failures consistent (same error) or varied? Consistent errors point to a specific race; varied errors suggest environmental instability.
-- _Screenshot differences_: What did the page look like at failure? Was an element missing, or in the wrong state?
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "_Timing differences_: Do failures take longer? That suggests timeouts or resource contention." },
+    { text: "_Error message patterns_: Are failures consistent (same error) or varied? Consistent errors point to a specific race; varied errors suggest environmental instability." },
+    { text: "_Screenshot differences_: What did the page look like at failure? Was an element missing, or in the wrong state?" },
+  ]}
+/>
 
 The Playwright trace viewer is invaluable here—you can step through each action and see exactly what the test saw at each moment.
 
@@ -775,10 +851,15 @@ The Playwright trace viewer is invaluable here—you can step through each actio
 
 If you can't reproduce a flake locally, try matching the CI environment more closely:
 
-- Use Docker with the same base image as your CI runners
-- Limit CPU and memory to match CI constraints: `docker run --cpus=2 --memory=4g`
-- Run tests in parallel with the same worker count as CI
-- Add artificial load with `stress-ng` to simulate resource contention
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Use Docker with the same base image as your CI runners" },
+    { text: "Limit CPU and memory to match CI constraints: `docker run --cpus=2 --memory=4g`" },
+    { text: "Run tests in parallel with the same worker count as CI" },
+    { text: "Add artificial load with `stress-ng` to simulate resource contention" },
+  ]}
+/>
 
 A test that passes on your 16-core development machine but fails on a 2-core CI runner often has implicit timing assumptions.
 
@@ -792,19 +873,27 @@ You don't have to build flake tracking infrastructure from scratch. Several tool
 
 ### Dedicated Flake Detection Services
 
-_BuildPulse_ integrates with your CI pipeline and automatically detects flaky tests based on pass/fail patterns across runs. It calculates flake rates, identifies root causes, and prioritizes which flakes to fix first. The service tracks whether fixes actually work by monitoring the test after your change.
-
-_Trunk Flaky Tests_ provides similar functionality with automatic quarantining. When a test is detected as flaky, Trunk can automatically retry it or move it to a quarantine suite, then notify you via Slack or create a tracking issue.
-
-_Datadog CI Visibility_ takes a broader approach, correlating test performance with traces and logs. If a test is flaky because of slow database queries or API timeouts, you can see the full request traces alongside the test results.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "_BuildPulse_ integrates with your CI pipeline and automatically detects flaky tests based on pass/fail patterns across runs.", lead: "It calculates flake rates, identifies root causes, and prioritizes which flakes to fix first. The service tracks whether fixes actually work by monitoring the test after your change." },
+    { text: "_Trunk Flaky Tests_ provides similar functionality with automatic quarantining.", lead: "When a test is detected as flaky, Trunk can automatically retry it or move it to a quarantine suite, then notify you via Slack or create a tracking issue." },
+    { text: "_Datadog CI Visibility_ takes a broader approach, correlating test performance with traces and logs.", lead: "If a test is flaky because of slow database queries or API timeouts, you can see the full request traces alongside the test results." },
+  ]}
+/>
 
 ### CI Platform Built-ins
 
 Most CI platforms have basic flake detection:
 
-- _GitHub Actions_ supports automatic retries and tracks retry history, though the analytics are limited.
-- _CircleCI_ has test insights that show flaky test trends over time and can automatically rerun failed jobs.
-- _GitLab CI_ has a "retry flaky tests" feature that reruns only the failed tests rather than the whole job.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "_GitHub Actions_ supports automatic retries and tracks retry history", lead: "though the analytics are limited." },
+    { text: "_CircleCI_ has test insights that show flaky test trends over time", lead: "and can automatically rerun failed jobs." },
+    { text: "_GitLab CI_ has a \"retry flaky tests\" feature", lead: "that reruns only the failed tests rather than the whole job." },
+  ]}
+/>
 
 ### DIY Tracking
 
@@ -818,11 +907,16 @@ Whichever tool you choose, the key metric is _time to fix_, not _time to detect_
 
 Flaky tests are a solvable problem, but only if you approach them systematically. The process I've outlined breaks down into five phases:
 
-1. _Categorize_: Is it a race condition, environment issue, or test design flaw? The symptoms tell you where to look.
-2. _Detect_: Track flake rates over time. A test that was stable and becomes flaky is different from a test that's always been flaky.
-3. _Quarantine_: Isolate flaky tests so they don't block CI, but hold them accountable with owners, tickets, and deadlines.
-4. _Diagnose_: Reproduce the flake, slow things down, add logging, identify what's racing.
-5. _Fix_: Wait for specific conditions instead of time, isolate test state, use resilient selectors.
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Categorize", text: "Is it a race condition, environment issue, or test design flaw? The symptoms tell you where to look." },
+    { lead: "Detect", text: "Track flake rates over time. A test that was stable and becomes flaky is different from a test that's always been flaky." },
+    { lead: "Quarantine", text: "Isolate flaky tests so they don't block CI, but hold them accountable with owners, tickets, and deadlines." },
+    { lead: "Diagnose", text: "Reproduce the flake, slow things down, add logging, identify what's racing." },
+    { lead: "Fix", text: "Wait for specific conditions instead of time, isolate test state, use resilient selectors." },
+  ]}
+/>
 
 The deeper lesson is that flaky tests are symptoms. They reveal race conditions in your tests, instability in your application, or inconsistency in your environments. Fixing flakes often uncovers real bugs—an API that's slower under load, a component that renders before its data arrives, a cleanup process that doesn't handle edge cases.
 

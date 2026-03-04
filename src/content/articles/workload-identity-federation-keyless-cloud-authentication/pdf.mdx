@@ -35,27 +35,59 @@ I've seen the same pattern play out at multiple organizations. A key gets create
 
 The typical lifecycle looks something like this:
 
-- Day 0: Key created for CI pipeline deployment
-- Day 30: Key copied to a second repo because someone needed the same access
-- Day 90: Developer stores key in `.env` file for local testing
-- Day 180: `.env` file accidentally committed to git
-- Day 181: Git history rewritten, but the key remains in the reflog
-- Day 365: Repository made public for an open source release
-- Day 366: Automated scanners find the key in git history
-- Day 367: Cryptomining instances spinning up in your account
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "Day 0: Key created for CI pipeline deployment" },
+    { text: "Day 30: Key copied to a second repo because someone needed the same access" },
+    { text: "Day 90: Developer stores key in `.env` file for local testing" },
+    { text: "Day 180: `.env` file accidentally committed to git" },
+    { text: "Day 181: Git history rewritten, but the key remains in the reflog" },
+    { text: "Day 365: Repository made public for an open source release" },
+    { text: "Day 366: Automated scanners find the key in git history" },
+    { text: "Day 367: Cryptomining instances spinning up in your account" },
+  ]}
+/>
 
 The really insidious part is that most of this happens without anyone noticing. Keys don't send notifications when they're copied. Git doesn't warn you when you're about to expose credentials in a repository you're making public.
 
-| Risk | Impact | Detection Difficulty |
-|------|--------|---------------------|
-| Key leaked in git history | Full account access | Hard — requires scanning |
-| Key shared via Slack or email | Credential sprawl | Very hard — no audit trail |
-| Key stored in CI environment variables | Exposure via build logs | Medium — log analysis |
-| Key never rotated | Extended compromise window | Easy — check creation date |
-| Key with excessive permissions | Lateral movement after compromise | Medium — IAM analysis |
-| Key owner left company | Orphaned access with no responsible party | Easy — compare against HR data |
-
-Table: Common service account key risks and their detectability.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Risk', 'Impact', 'Detection Difficulty'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Key leaked in git history',
+          td: ['Full account access', 'Hard — requires scanning'],
+        },
+        {
+          th: 'Key shared via Slack or email',
+          td: ['Credential sprawl', 'Very hard — no audit trail'],
+        },
+        {
+          th: 'Key stored in CI environment variables',
+          td: ['Exposure via build logs', 'Medium — log analysis'],
+        },
+        {
+          th: 'Key never rotated',
+          td: ['Extended compromise window', 'Easy — check creation date'],
+        },
+        {
+          th: 'Key with excessive permissions',
+          td: ['Lateral movement after compromise', 'Medium — IAM analysis'],
+        },
+        {
+          th: 'Key owner left company',
+          td: ['Orphaned access with no responsible party', 'Easy — compare against HR data'],
+        },
+      ],
+    },
+    figure: 'Common service account key risks and their detectability.',
+  }}
+/>
 
 <Callout type="danger">
 Every long-lived credential is an attack vector. Service account keys have been the root cause of major cloud breaches — including some you've probably read about in the news. Workload identity federation eliminates this entire category of risk by replacing static keys with short-lived, automatically-rotated tokens.
@@ -130,12 +162,35 @@ Code: Standard and GitHub-specific claims in an OIDC token.
 
 The key claims for access control are:
 
-- **iss (issuer)**: Where the token came from — GitHub's OIDC endpoint in this case
-- **sub (subject)**: The unique identifier for the workload, which varies based on context (branch, environment, pull request)
-- **aud (audience)**: Who the token is intended for — your cloud provider's token exchange endpoint
-- **repository** and **repository_owner**: Which repo triggered the workflow
-- **ref**: The git reference (branch or tag) being built
-- **environment**: The GitHub Environment, if you're using environment protection rules
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "iss (issuer):",
+      text: "Where the token came from — GitHub's OIDC endpoint in this case",
+    },
+    {
+      lead: "sub (subject):",
+      text: "The unique identifier for the workload, which varies based on context (branch, environment, pull request)",
+    },
+    {
+      lead: "aud (audience):",
+      text: "Who the token is intended for — your cloud provider's token exchange endpoint",
+    },
+    {
+      lead: "repository and repository_owner:",
+      text: "Which repo triggered the workflow",
+    },
+    {
+      lead: "ref:",
+      text: "The git reference (branch or tag) being built",
+    },
+    {
+      lead: "environment:",
+      text: "The GitHub Environment, if you're using environment protection rules",
+    },
+  ]}
+/>
 
 The token is signed with GitHub's private key. Your cloud provider fetches GitHub's public keys from their well-known JWKS endpoint and verifies the signature before trusting any claims.
 
@@ -164,13 +219,18 @@ Figure: Token exchange sequence from workload to cloud credentials.
 
 Here's what's happening at each step:
 
-1. Your workflow requests an OIDC token from GitHub, specifying the intended audience (your cloud provider)
-2. GitHub signs a JWT containing claims about the workflow context
-3. Your workflow sends this JWT to your cloud provider's STS endpoint
-4. STS fetches (or retrieves from cache) GitHub's public keys to verify the signature
-5. STS validates everything: signature, issuer is trusted, claims match your policy, token isn't expired
-6. STS looks up which service account this workload should assume based on attribute mappings
-7. STS returns short-lived credentials scoped to that service account's permissions
+<List
+  variant="numbered-with-background-list"
+  items={[
+    { text: "Your workflow requests an OIDC token from GitHub, specifying the intended audience (your cloud provider)" },
+    { text: "GitHub signs a JWT containing claims about the workflow context" },
+    { text: "Your workflow sends this JWT to your cloud provider's STS endpoint" },
+    { text: "STS fetches (or retrieves from cache) GitHub's public keys to verify the signature" },
+    { text: "STS validates everything: signature, issuer is trusted, claims match your policy, token isn't expired" },
+    { text: "STS looks up which service account this workload should assume based on attribute mappings" },
+    { text: "STS returns short-lived credentials scoped to that service account's permissions" },
+  ]}
+/>
 
 The entire exchange happens in milliseconds. Your workflow never sees a long-lived credential — just a token that expires in an hour and gets automatically refreshed if needed.
 
@@ -775,20 +835,61 @@ Start by figuring out what you have. Most cloud providers offer ways to list ser
 
 For each key, you need to answer:
 
-- **What workload uses it?** CI pipeline, Kubernetes pod, application server, developer laptop?
-- **Which platform?** GitHub Actions, GitLab CI, Jenkins, EKS, GKE, a VM somewhere?
-- **Can it migrate?** Does the platform support OIDC federation? Some older CI systems don't.
-- **What's the risk?** How old is the key? How broad are its permissions? Is it in production?
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "What workload uses it?",
+      text: "CI pipeline, Kubernetes pod, application server, developer laptop?",
+    },
+    {
+      lead: "Which platform?",
+      text: "GitHub Actions, GitLab CI, Jenkins, EKS, GKE, a VM somewhere?",
+    },
+    {
+      lead: "Can it migrate?",
+      text: "Does the platform support OIDC federation? Some older CI systems don't.",
+    },
+    {
+      lead: "What's the risk?",
+      text: "How old is the key? How broad are its permissions? Is it in production?",
+    },
+  ]}
+/>
 
-| Phase | Duration | Activities | Success Criteria |
-|-------|----------|------------|------------------|
-| Discovery | 1-2 weeks | Inventory all keys, identify usage, assess risk | Complete inventory with owner/usage mapping |
-| Foundation | 2-4 weeks | Configure OIDC providers, create federated identities | Federation infrastructure deployed and tested |
-| Pilot | 2-4 weeks | Migrate low-risk, non-production workloads | 3-5 workloads using federation successfully |
-| Production | 4-8 weeks | Migrate production workloads systematically | All production workloads using federation |
-| Retirement | 2-4 weeks | Disable then delete old keys | Zero active long-lived keys |
-
-Table: Migration phases and timeline for workload identity adoption.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Phase', 'Duration', 'Activities', 'Success Criteria'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Discovery',
+          td: ['1-2 weeks', 'Inventory all keys, identify usage, assess risk', 'Complete inventory with owner/usage mapping'],
+        },
+        {
+          th: 'Foundation',
+          td: ['2-4 weeks', 'Configure OIDC providers, create federated identities', 'Federation infrastructure deployed and tested'],
+        },
+        {
+          th: 'Pilot',
+          td: ['2-4 weeks', 'Migrate low-risk, non-production workloads', '3-5 workloads using federation successfully'],
+        },
+        {
+          th: 'Production',
+          td: ['4-8 weeks', 'Migrate production workloads systematically', 'All production workloads using federation'],
+        },
+        {
+          th: 'Retirement',
+          td: ['2-4 weeks', 'Disable then delete old keys', 'Zero active long-lived keys'],
+        },
+      ],
+    },
+    figure: 'Migration phases and timeline for workload identity adoption.',
+  }}
+/>
 
 Prioritize based on risk. Keys that are old, overly permissioned, or used in production should migrate first — they represent the biggest exposure. Keys on platforms that don't support federation might require migrating the workload itself first (e.g., moving from Jenkins to GitHub Actions).
 
@@ -857,11 +958,31 @@ Once federation is working and you've confirmed no workloads are using the old k
 
 The retirement sequence:
 
-1. **Verify no recent usage**: Check CloudTrail or equivalent for any key usage in the last 30 days
-2. **Disable the key**: This makes it unusable but recoverable if something breaks
-3. **Monitor for 7-14 days**: Watch for authentication failures in your workloads
-4. **Delete the key**: Only after the monitoring period passes without issues
-5. **Document the retirement**: Record what was retired, when, and by whom for audit purposes
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: "Verify no recent usage:",
+      text: "Check CloudTrail or equivalent for any key usage in the last 30 days",
+    },
+    {
+      lead: "Disable the key:",
+      text: "This makes it unusable but recoverable if something breaks",
+    },
+    {
+      lead: "Monitor for 7-14 days:",
+      text: "Watch for authentication failures in your workloads",
+    },
+    {
+      lead: "Delete the key:",
+      text: "Only after the monitoring period passes without issues",
+    },
+    {
+      lead: "Document the retirement:",
+      text: "Record what was retired, when, and by whom for audit purposes",
+    },
+  ]}
+/>
 
 For AWS, you can automate the monitoring with a CloudWatch alarm on `AccessDenied` errors for the disabled key. If something was still using it, you'll see failures immediately and can re-enable while you investigate.
 
@@ -897,30 +1018,67 @@ The `sub` claim format changes based on workflow context. A branch push produces
 
 Once you can see what's in the token, most federation failures fall into a few categories:
 
-**Trust policy condition mismatch** is the most common issue. The `sub` claim in your OIDC token doesn't match what your trust policy expects. This happens when:
-
-- You're building from a feature branch but the policy only allows `main`
-- Someone renamed the repository
-- You're running in a pull request context but the policy expects a branch ref
-- The GitHub Environment name has a typo
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Trust policy condition mismatch",
+      text: "is the most common issue. The `sub` claim in your OIDC token doesn't match what your trust policy expects. This happens when:",
+    },
+    { text: "You're building from a feature branch but the policy only allows `main`" },
+    { text: 'Someone renamed the repository' },
+    { text: "You're running in a pull request context but the policy expects a branch ref" },
+    { text: 'The GitHub Environment name has a typo' },
+    {
+      lead: 'Audience mismatch',
+      text: "means the `aud` claim in your token doesn't match the `client_id_list` in your OIDC provider configuration. This typically means the workflow is requesting a token for a different audience than what you configured. Check that your workflow's audience parameter matches what's in your cloud provider's OIDC provider setup.",
+    },
+    {
+      lead: 'Token expiration or clock skew',
+      text: 'causes intermittent failures. OIDC tokens have short lifetimes (usually 5-10 minutes), and if there\'s clock drift between GitHub\'s servers and your cloud provider, tokens might appear expired. This usually manifests as "works on retry" — the retry gets a fresh token that validates correctly.',
+    },
+    {
+      lead: 'OIDC provider unavailable',
+      text: "happens during platform outages. If GitHub's OIDC endpoint is down, your workflows can't get tokens. There's not much you can do except wait (or fall back to static keys if you're still in migration).",
+    },
+  ]}
+/>
 
 The error usually looks like `AccessDenied: Not authorized to perform sts:AssumeRoleWithWebIdentity`. Compare the decoded `sub` claim against your trust policy condition — the mismatch is usually obvious.
 
-**Audience mismatch** means the `aud` claim in your token doesn't match the `client_id_list` in your OIDC provider configuration. This typically means the workflow is requesting a token for a different audience than what you configured. Check that your workflow's audience parameter matches what's in your cloud provider's OIDC provider setup.
-
-**Token expiration or clock skew** causes intermittent failures. OIDC tokens have short lifetimes (usually 5-10 minutes), and if there's clock drift between GitHub's servers and your cloud provider, tokens might appear expired. This usually manifests as "works on retry" — the retry gets a fresh token that validates correctly.
-
-**OIDC provider unavailable** happens during platform outages. If GitHub's OIDC endpoint is down, your workflows can't get tokens. There's not much you can do except wait (or fall back to static keys if you're still in migration).
-
-| Error | Likely Cause | Quick Fix |
-|-------|--------------|-----------|
-| `InvalidIdentityToken` | Token expired or malformed | Retry the workflow; check for clock skew |
-| `AccessDenied: Not authorized` | Trust policy condition mismatch | Decode token, compare `sub` to policy |
-| `Audience does not match` | Wrong audience in token request | Check workflow audience vs provider config |
-| `WebIdentityErr: failed to retrieve` | OIDC endpoint unreachable | Check GitHub status; retry later |
-| `Service account does not exist` | Deleted or wrong SA binding | Verify SA exists and binding is correct |
-
-Table: Common federation errors and their resolutions.
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Error', 'Likely Cause', 'Quick Fix'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '`InvalidIdentityToken`',
+          td: ['Token expired or malformed', 'Retry the workflow; check for clock skew'],
+        },
+        {
+          th: '`AccessDenied: Not authorized`',
+          td: ['Trust policy condition mismatch', 'Decode token, compare `sub` to policy'],
+        },
+        {
+          th: '`Audience does not match`',
+          td: ['Wrong audience in token request', 'Check workflow audience vs provider config'],
+        },
+        {
+          th: '`WebIdentityErr: failed to retrieve`',
+          td: ['OIDC endpoint unreachable', 'Check GitHub status; retry later'],
+        },
+        {
+          th: '`Service account does not exist`',
+          td: ['Deleted or wrong SA binding', 'Verify SA exists and binding is correct'],
+        },
+      ],
+    },
+    figure: 'Common federation errors and their resolutions.',
+  }}
+/>
 
 ## Conclusion
 

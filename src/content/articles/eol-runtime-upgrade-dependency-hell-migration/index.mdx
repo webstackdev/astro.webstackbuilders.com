@@ -37,11 +37,23 @@ Once you have visibility, classify blockers by type. Not all incompatibilities a
 
 The order matters. The general pattern I follow:
 
-1. __Unblock first.__ Eliminate packages that have no path forward on the new runtime. If you're stuck on Node 16 because of `node-sass`, replacing it with Dart Sass is the first step—not because it's the most important change, but because everything else depends on it. These blockers sit at the bottom of your dependency graph, and until they're gone, you cannot move.
-
-2. __Upgrade core dependencies.__ These are the major libraries that define your application's architecture: your ORM, your web framework, your authentication library. They often have breaking changes between major versions, but they're also well-documented, with migration guides and changelogs. Do these upgrades _while you're still on the old runtime_. That way, if something breaks, you know it's the library upgrade, not the runtime change.
-
-3. __Change the runtime last.__ By the time you change the Node version or .NET target framework, every dependency should already be compatible. The runtime switch itself should be anticlimactic—a container base image change and a CI configuration update. If you've done the preparation correctly, your tests pass on the first try.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: "Unblock first.",
+      text: "Eliminate packages that have no path forward on the new runtime. If you're stuck on Node 16 because of `node-sass`, replacing it with Dart Sass is the first step—not because it's the most important change, but because everything else depends on it. These blockers sit at the bottom of your dependency graph, and until they're gone, you cannot move.",
+    },
+    {
+      lead: "Upgrade core dependencies.",
+      text: "These are the major libraries that define your application's architecture: your ORM, your web framework, your authentication library. They often have breaking changes between major versions, but they're also well-documented, with migration guides and changelogs. Do these upgrades _while you're still on the old runtime_. That way, if something breaks, you know it's the library upgrade, not the runtime change.",
+    },
+    {
+      lead: "Change the runtime last.",
+      text: "By the time you change the Node version or .NET target framework, every dependency should already be compatible. The runtime switch itself should be anticlimactic—a container base image change and a CI configuration update. If you've done the preparation correctly, your tests pass on the first try.",
+    },
+  ]}
+/>
 
 <Callout type="warning">
 Don't skip intermediate versions when the gap is large. Jumping from Node 14 to Node 20 means debugging breakage from three major versions simultaneously. Go 14 → 16 → 18 → 20, validating at each step. The extra time is worth the clarity.
@@ -57,15 +69,16 @@ Not every old package is abandoned. Some packages are simply stable—they do on
 
 Your options, roughly in order of preference:
 
-__Find a replacement.__ Many abandoned packages have actively maintained alternatives. The `request` library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements—`node-fetch`, `axios`, `got`—are well documented and widely adopted. Search for "[package name] alternative" or check the npm deprecation notice for suggestions.
-
-__Upgrade to a compatible version.__ Sometimes the package isn't abandoned; you're just on an old version. Check whether a newer major version exists that supports your target runtime.
-
-__Fork and patch.__ If the package is abandoned and has no replacement, fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. The `npm:` prefix lets you alias the fork to the original package name, so you don't need to update import statements throughout your codebase.
-
-__Vendor the code.__ For small packages with simple functionality, copying the source into your repository may be simpler than maintaining a fork. Put it in a `vendor/` directory and apply whatever patches you need.
-
-__Rewrite.__ If the package's functionality is narrow and well-defined, writing a replacement yourself may be faster than maintaining someone else's code. Many utility packages are just a few functions you could implement in an afternoon.
+<List
+  variant="check-icons-list"
+  items={[
+    { text: "__Find a replacement.__ Many abandoned packages have actively maintained alternatives. The `request` library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements—`node-fetch`, `axios`, `got`—are well documented and widely adopted. Search for \"[package name] alternative\" or check the npm deprecation notice for suggestions." },
+    { text: "__Upgrade to a compatible version.__ Sometimes the package isn't abandoned; you're just on an old version. Check whether a newer major version exists that supports your target runtime." },
+    { text: "__Fork and patch.__ If the package is abandoned and has no replacement, fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. The `npm:` prefix lets you alias the fork to the original package name, so you don't need to update import statements throughout your codebase." },
+    { text: "__Vendor the code.__ For small packages with simple functionality, copying the source into your repository may be simpler than maintaining a fork. Put it in a `vendor/` directory and apply whatever patches you need." },
+    { text: "__Rewrite.__ If the package's functionality is narrow and well-defined, writing a replacement yourself may be faster than maintaining someone else's code. Many utility packages are just a few functions you could implement in an afternoon." },
+  ]}
+/>
 
 <Callout type="warning">
 Forking means you own it. Before forking, calculate the true cost: security monitoring, compatibility testing, responding to issues. Sometimes paying for a commercial alternative is cheaper than maintaining a fork.
