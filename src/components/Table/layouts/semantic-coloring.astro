@@ -160,10 +160,15 @@ const getStateLabel = (row: Props['content']['tbody']['tr'][number]): string => 
     {content.tfoot && (
       <tfoot class:list={[tfootClass, classes?.tfoot]}>
         {content.tfoot.tr.map((row, rowIndex) => {
-          const fallbackRow = {
-            th: row.th,
-            td: row.td,
-          }
+          const fallbackRow: Props['content']['tbody']['tr'][number] =
+            row.th !== undefined
+              ? {
+                th: row.th as string,
+                td: row.td,
+              }
+              : {
+                td: row.td,
+              }
           const stateClass = getStateClass(fallbackRow, rowIndex)
 
           return (

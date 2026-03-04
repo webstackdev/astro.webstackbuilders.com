@@ -15,7 +15,7 @@
   overflow: visible;
 }
 
-.markdown-content__prose svg[id^="mermaid-"] foreignObject > div {
+.markdown-content__prose [id^="mermaid-"] foreignObject > div {
   overflow: visible;
 }
 
@@ -33,15 +33,9 @@
  * Footnote backref icon link should not inherit dotted underline decoration.
  */
 .markdown-content__prose a[data-footnote-backref],
-.markdown-content__prose a[data-footnote-backref]:hover,
-.markdown-content__prose a.footnote-backref,
-.markdown-content__prose a.footnote-backref:hover {
-  text-decoration: none;
-}
-
-.markdown-content__prose a[data-footnote-backref],
 .markdown-content__prose a.footnote-backref {
   display: inline-block;
+  text-decoration: none;
   transition: color 150ms ease, transform 150ms ease;
 }
 
@@ -50,6 +44,7 @@
 .markdown-content__prose a.footnote-backref:hover,
 .markdown-content__prose a.footnote-backref:focus-visible {
   color: var(--color-content-offset);
+  text-decoration: none;
   transform: translateY(-2px);
 }
 
@@ -60,26 +55,6 @@
   border-top: 1px solid var(--color-trim);
   margin-top: 2rem;
   padding-top: 1rem;
-}
-
-/**
- * Footnote list marker numbers should fit comfortably inside the circular marker.
- */
-.markdown-content__prose section[data-footnotes] .markdown-list ol {
-  margin-left: 4px;
-}
-
-.markdown-content__prose section[data-footnotes] .markdown-list ol > li {
-  padding-left: calc(1.32em + 0.375rem);
-}
-
-.markdown-content__prose section[data-footnotes] .markdown-list ol > li::before {
-  background-color: var(--color-content-active);
-  font-size: 0.8em;
-  line-height: 1em;
-  height: 1.32em;
-  top: calc(0.15em + 2px);
-  width: 1.32em;
 }
 
 /**
@@ -280,6 +255,26 @@
 .markdown-list ol > li:last-child,
 .markdown-list ul > li:last-child {
   margin-bottom: 0;
+}
+
+/**
+ * Footnote list marker numbers should fit comfortably inside the circular marker.
+ */
+.markdown-content__prose [data-footnotes] ol {
+  margin-left: 4px;
+}
+
+.markdown-content__prose [data-footnotes] ol > li {
+  padding-left: calc(1.32em + 0.375rem);
+}
+
+.markdown-content__prose [data-footnotes] ol > li::before {
+  background-color: var(--color-content-active);
+  font-size: 0.8em;
+  height: 1.32em;
+  line-height: 1em;
+  top: calc(0.15em + 2px);
+  width: 1.32em;
 }
 
 /**
