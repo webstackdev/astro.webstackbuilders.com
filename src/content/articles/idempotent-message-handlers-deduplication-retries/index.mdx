@@ -31,26 +31,24 @@ There are four common strategies, each with distinct tradeoffs:
 
 <List
     variant="check-icons-list"
-    content={{
-        items: [
-            {
-                lead: "Producer-supplied message ID",
-                text: "is the cleanest approach. The producer generates a UUID or ULID when creating the message and includes it in the payload. This key survives redeliveries because it's part of the message content, not queue metadata. The downside is that it requires producer discipline - every producer must generate and include a unique ID.",
-            },
-            {
-                lead: "Content hash",
-                text: "works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content _should_ be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
-            },
-            {
-                lead: "Business key composite",
-                text: "combines entity identifiers with operation context: `order:12345:payment:v3`. This approach has semantic meaning, making debugging easier, but requires careful thought about what constitutes a unique operation.",
-            },
-            {
-                lead: "Queue message ID",
-                text: "- avoid this approach. SQS assigns a new MessageId on each redelivery. RabbitMQ's delivery tag changes. This approach only deduplicates within a single delivery attempt, which defeats the purpose entirely.",
-            },
-        ],
-    }}
+    items={[
+        {
+            lead: "Producer-supplied message ID",
+            text: "is the cleanest approach. The producer generates a UUID or ULID when creating the message and includes it in the payload. This key survives redeliveries because it's part of the message content, not queue metadata. The downside is that it requires producer discipline - every producer must generate and include a unique ID.",
+        },
+        {
+            lead: "Content hash",
+            text: "works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content _should_ be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
+        },
+        {
+            lead: "Business key composite",
+            text: "combines entity identifiers with operation context: `order:12345:payment:v3`. This approach has semantic meaning, making debugging easier, but requires careful thought about what constitutes a unique operation.",
+        },
+        {
+            lead: "Queue message ID",
+            text: "- avoid this approach. SQS assigns a new MessageId on each redelivery. RabbitMQ's delivery tag changes. This approach only deduplicates within a single delivery attempt, which defeats the purpose entirely.",
+        },
+    ]}
 />
 
 The recommended pattern combines producer-supplied IDs with business context:

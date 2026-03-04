@@ -27,26 +27,24 @@ Not all wrappers are created equal. Some genuinely earn their maintenance cost; 
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: "Complexity hiding",
-        text: "is the strongest justification. When a workflow requires five or more manual steps with dependencies and ordering constraints, a wrapper reduces cognitive load and enforces the correct sequence. A `deploy-service` command that builds, pushes, runs helm upgrade, and executes smoke tests in the right order prevents the \"I forgot to push the image before deploying\" class of errors.",
-      },
-      {
-        lead: "Guard rails",
-        text: "prevent dangerous operations. A `kubectl-safe` wrapper that blocks `delete` in production without an approval ticket prevents the kind of outages that make the news. This works when the underlying tool allows dangerous operations with severe consequences and the policy can be codified clearly.",
-      },
-      {
-        lead: "Context injection",
-        text: "automatically selects environment-specific configuration. A terraform wrapper that auto-selects workspace, backend, and var files based on your git branch eliminates \"I thought I was in staging\" mistakes - but only if it _shows_ you what it detected. Silent context switching is how you get production outages.",
-      },
-      {
-        lead: "Credential management",
-        text: "handles authentication complexity transparently. A kubectl wrapper that auto-refreshes tokens and selects the correct cluster config reduces auth friction when tokens expire frequently and manual credential management is error-prone.",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: "Complexity hiding",
+      text: "is the strongest justification. When a workflow requires five or more manual steps with dependencies and ordering constraints, a wrapper reduces cognitive load and enforces the correct sequence. A `deploy-service` command that builds, pushes, runs helm upgrade, and executes smoke tests in the right order prevents the \"I forgot to push the image before deploying\" class of errors.",
+    },
+    {
+      lead: "Guard rails",
+      text: "prevent dangerous operations. A `kubectl-safe` wrapper that blocks `delete` in production without an approval ticket prevents the kind of outages that make the news. This works when the underlying tool allows dangerous operations with severe consequences and the policy can be codified clearly.",
+    },
+    {
+      lead: "Context injection",
+      text: "automatically selects environment-specific configuration. A terraform wrapper that auto-selects workspace, backend, and var files based on your git branch eliminates \"I thought I was in staging\" mistakes - but only if it _shows_ you what it detected. Silent context switching is how you get production outages.",
+    },
+    {
+      lead: "Credential management",
+      text: "handles authentication complexity transparently. A kubectl wrapper that auto-refreshes tokens and selects the correct cluster config reduces auth friction when tokens expire frequently and manual credential management is error-prone.",
+    },
+  ]}
 />
 
 ### What Doesn't Warrant a Wrapper
@@ -123,25 +121,23 @@ The detection hierarchy should be predictable and documented:
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: "Explicit flags (`--context=prod`)",
-      },
-      {
-        text: "Environment variables (`DEPLOY_ENV=staging`)",
-      },
-      {
-        text: "Git branch detection (`main` → production)",
-      },
-      {
-        text: "Directory structure (`/environments/dev/`)",
-      },
-      {
-        text: "Default fallback (usually dev)",
-      },
-    ],
-  }}
+  items={[
+    {
+      text: "Explicit flags (`--context=prod`)",
+    },
+    {
+      text: "Environment variables (`DEPLOY_ENV=staging`)",
+    },
+    {
+      text: "Git branch detection (`main` → production)",
+    },
+    {
+      text: "Directory structure (`/environments/dev/`)",
+    },
+    {
+      text: "Default fallback (usually dev)",
+    },
+  ]}
 />
 
 And when context is injected automatically, don't override explicit user flags - if someone types `--namespace=testing`, respect it even if your wrapper thinks they should be in `production`.
@@ -152,30 +148,28 @@ Wrappers often fail gradually. Usage stays high because it's in deployment scrip
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: "Bypass rate above 20%",
-        text: "means developers don't trust the wrapper for real work. They're using the \"safe\" path for routine operations but dropping to raw tools when it matters.",
-      },
-      {
-        lead: "Support tickets mention the wrapper",
-        text: "more than the underlying tool. If \"tf-deploy\" appears in more tickets than \"terraform,\" your abstraction is creating problems instead of solving them.",
-      },
-      {
-        lead: "Developers ask \"what command is this actually running?\"",
-        text: "for basic operations. Transparency has failed - they can't predict what the wrapper does.",
-      },
-      {
-        lead: "You're more than one major version behind",
-        text: "the upstream tool. You can't track releases, and the gap will only widen.",
-      },
-      {
-        lead: "New team members learn the raw tool first",
-        text: "because the wrapper's behavior is too unpredictable. Your \"simplification\" made things more complex.",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: "Bypass rate above 20%",
+      text: "means developers don't trust the wrapper for real work. They're using the \"safe\" path for routine operations but dropping to raw tools when it matters.",
+    },
+    {
+      lead: "Support tickets mention the wrapper",
+      text: "more than the underlying tool. If \"tf-deploy\" appears in more tickets than \"terraform,\" your abstraction is creating problems instead of solving them.",
+    },
+    {
+      lead: "Developers ask \"what command is this actually running?\"",
+      text: "for basic operations. Transparency has failed - they can't predict what the wrapper does.",
+    },
+    {
+      lead: "You're more than one major version behind",
+      text: "the upstream tool. You can't track releases, and the gap will only widen.",
+    },
+    {
+      lead: "New team members learn the raw tool first",
+      text: "because the wrapper's behavior is too unpredictable. Your \"simplification\" made things more complex.",
+    },
+  ]}
 />
 
 ### Health Metrics to Track
