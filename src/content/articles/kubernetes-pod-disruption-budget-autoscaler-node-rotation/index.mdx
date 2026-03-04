@@ -95,18 +95,16 @@ Choosing the wrong mode is one of the most common causes of autoscaler deadlocks
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'minAvailable: 2',
-        text: 'means at least 2 must stay up, so 3 can be disrupted simultaneously',
-      },
-      {
-        lead: 'maxUnavailable: 1',
-        text: 'means at most 1 can be down, so only 1 can be disrupted at a time',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'minAvailable: 2',
+      text: 'means at least 2 must stay up, so 3 can be disrupted simultaneously',
+    },
+    {
+      lead: 'maxUnavailable: 1',
+      text: 'means at most 1 can be down, so only 1 can be disrupted at a time',
+    },
+  ]}
 />
 
 The math gets interesting with percentages. `minAvailable: 80%` on 5 replicas means ceil(5 × 0.8) = 4 must stay up, allowing only 1 disruption. `maxUnavailable: 25%` means floor(5 × 0.25) = 1 can be down. Same result, but the behavior diverges as you scale.
@@ -200,26 +198,24 @@ The recommended approach is surge-then-drain: add new nodes first, then drain ol
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        lead: 'Add new nodes',
-        text: 'with the updated configuration.',
-      },
-      {
-        lead: 'Cordon old nodes',
-        text: 'to prevent new pods from scheduling on them.',
-      },
-      {
-        lead: 'Drain nodes one at a time',
-        text: 'waiting for pods to reschedule before continuing.',
-      },
-      {
-        lead: 'Remove drained nodes',
-        text: 'once empty.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Add new nodes',
+      text: 'with the updated configuration.',
+    },
+    {
+      lead: 'Cordon old nodes',
+      text: 'to prevent new pods from scheduling on them.',
+    },
+    {
+      lead: 'Drain nodes one at a time',
+      text: 'waiting for pods to reschedule before continuing.',
+    },
+    {
+      lead: 'Remove drained nodes',
+      text: 'once empty.',
+    },
+  ]}
 />
 
 This sequence maintains capacity throughout the rotation. Cordoning doesn't evict anything—it just marks nodes as unschedulable. Step 3 is where PDBs do their job, ensuring availability while pods migrate. If you're using managed node groups, the autoscaler handles step 4 automatically.
@@ -259,22 +255,20 @@ Once you've identified the blocking PDB, you have several options depending on t
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Wait for pods to become healthy.',
-        text: 'If `disruptionsAllowed` is zero because pods are failing health checks, fix the health issue. Once pods are healthy, the PDB will allow disruptions again.',
-      },
-      {
-        lead: 'Scale up the deployment.',
-        text: 'If you have `minAvailable: 3` but only 3 replicas and one is unhealthy, add a fourth replica. Once it\'s ready, you\'ll have headroom to drain.',
-      },
-      {
-        lead: 'Temporarily relax the PDB.',
-        text: 'For planned maintenance windows, you can patch the PDB to be less strict:',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Wait for pods to become healthy.',
+      text: 'If `disruptionsAllowed` is zero because pods are failing health checks, fix the health issue. Once pods are healthy, the PDB will allow disruptions again.',
+    },
+    {
+      lead: 'Scale up the deployment.',
+      text: 'If you have `minAvailable: 3` but only 3 replicas and one is unhealthy, add a fourth replica. Once it\'s ready, you\'ll have headroom to drain.',
+    },
+    {
+      lead: 'Temporarily relax the PDB.',
+      text: 'For planned maintenance windows, you can patch the PDB to be less strict:',
+    },
+  ]}
 />
 
 ```bash
@@ -294,14 +288,12 @@ Code: Temporarily relaxing a PDB for maintenance.
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Force delete as last resort.',
-        text: 'If you\'re in an emergency and need the node drained _now_, you can bypass the eviction API entirely with `kubectl delete pod --force --grace-period=0`. This ignores PDBs completely—the pod just disappears.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Force delete as last resort.',
+      text: 'If you\'re in an emergency and need the node drained _now_, you can bypass the eviction API entirely with `kubectl delete pod --force --grace-period=0`. This ignores PDBs completely—the pod just disappears.',
+    },
+  ]}
 />
 
 <Table
@@ -400,18 +392,16 @@ The right percentage depends on your tolerance for gaps. For logging agents like
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Batch jobs and CronJobs',
-        text: 'generally shouldn\'t have PDBs. Jobs should be restartable by design, and a PDB on a job creates operational headaches without providing real protection.',
-      },
-      {
-        lead: 'Single-replica deployments',
-        text: 'are a judgment call. A PDB with `maxUnavailable: 1` doesn\'t prevent disruption—it just makes the eviction use the eviction API instead of direct deletion. This can be useful for visibility and for systems that watch eviction events, but it doesn\'t provide availability protection. If you need zero downtime, run more replicas.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Batch jobs and CronJobs',
+      text: 'generally shouldn\'t have PDBs. Jobs should be restartable by design, and a PDB on a job creates operational headaches without providing real protection.',
+    },
+    {
+      lead: 'Single-replica deployments',
+      text: 'are a judgment call. A PDB with `maxUnavailable: 1` doesn\'t prevent disruption—it just makes the eviction use the eviction API instead of direct deletion. This can be useful for visibility and for systems that watch eviction events, but it doesn\'t provide availability protection. If you need zero downtime, run more replicas.',
+    },
+  ]}
 />
 
 ### Anti-Patterns to Avoid
@@ -420,22 +410,20 @@ Several PDB configurations look reasonable but cause problems:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'minAvailable equals replica count.',
-        text: 'If you have 3 replicas and `minAvailable: 3`, nothing can ever be evicted. This is the most common PDB misconfiguration.',
-      },
-      {
-        lead: 'Percentages that round badly.',
-        text: '`minAvailable: 90%` with 3 replicas means ceil(2.7) = 3 pods required—blocking all evictions. Use absolute numbers for small deployments.',
-      },
-      {
-        lead: 'Multiple overlapping PDBs.',
-        text: 'If a pod matches two PDBs, _both_ must allow the disruption. This is stricter than either PDB alone and often catches teams by surprise. For example: Team A creates a PDB for `app: payments` allowing 1 disruption, Team B creates a PDB for `tier: critical` allowing 2 disruptions. Pods with both labels need _both_ PDBs to allow eviction simultaneously—effectively the stricter of the two.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'minAvailable equals replica count.',
+      text: 'If you have 3 replicas and `minAvailable: 3`, nothing can ever be evicted. This is the most common PDB misconfiguration.',
+    },
+    {
+      lead: 'Percentages that round badly.',
+      text: '`minAvailable: 90%` with 3 replicas means ceil(2.7) = 3 pods required—blocking all evictions. Use absolute numbers for small deployments.',
+    },
+    {
+      lead: 'Multiple overlapping PDBs.',
+      text: 'If a pod matches two PDBs, _both_ must allow the disruption. This is stricter than either PDB alone and often catches teams by surprise. For example: Team A creates a PDB for `app: payments` allowing 1 disruption, Team B creates a PDB for `tier: critical` allowing 2 disruptions. Pods with both labels need _both_ PDBs to allow eviction simultaneously—effectively the stricter of the two.',
+    },
+  ]}
 />
 
 ```mermaid
@@ -480,22 +468,20 @@ The kube-state-metrics project exposes PDB status as Prometheus metrics (ensure 
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'kube_poddisruptionbudget_status_pod_disruptions_allowed',
-        text: 'how many pods can currently be evicted',
-      },
-      {
-        lead: 'kube_poddisruptionbudget_status_current_healthy',
-        text: 'pods currently passing health checks',
-      },
-      {
-        lead: 'kube_poddisruptionbudget_status_desired_healthy',
-        text: 'minimum required by the PDB',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'kube_poddisruptionbudget_status_pod_disruptions_allowed',
+      text: 'how many pods can currently be evicted',
+    },
+    {
+      lead: 'kube_poddisruptionbudget_status_current_healthy',
+      text: 'pods currently passing health checks',
+    },
+    {
+      lead: 'kube_poddisruptionbudget_status_desired_healthy',
+      text: 'minimum required by the PDB',
+    },
+  ]}
 />
 
 The most important alert is for PDBs that are blocking all disruptions:

@@ -48,26 +48,24 @@ The key field groups to adopt immediately:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'service.\*',
-        text: 'which service emitted the log (service.name, service.version)',
-      },
-      {
-        lead: 'trace.\*',
-        text: 'correlation context (trace.id, span.id)',
-      },
-      {
-        lead: 'event.\*',
-        text: 'what happened (event.action, event.outcome)',
-      },
-      {
-        lead: 'error.\*',
-        text: 'failure details (error.type, error.message, error.stack_trace)',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'service.\*',
+      text: 'which service emitted the log (service.name, service.version)',
+    },
+    {
+      lead: 'trace.\*',
+      text: 'correlation context (trace.id, span.id)',
+    },
+    {
+      lead: 'event.\*',
+      text: 'what happened (event.action, event.outcome)',
+    },
+    {
+      lead: 'error.\*',
+      text: 'failure details (error.type, error.message, error.stack_trace)',
+    },
+  ]}
 />
 
 You don't need to adopt all 800 fields. Start with these four groups and expand as needed.
@@ -198,26 +196,24 @@ These patterns break correlation in production. Each creates gaps in your trace 
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Generating new trace IDs per service',
-        text: "Logs can't be joined. Extract the incoming traceparent; only generate if missing.",
-      },
-      {
-        lead: 'Direct HTTP client usage',
-        text: 'Outbound calls do not propagate headers. Use fetchWithCorrelation() or instrumented clients.',
-      },
-      {
-        lead: 'Fire-and-forget async',
-        text: 'Background work loses context. Capture context before spawning; restore in the async handler.',
-      },
-      {
-        lead: 'Batched message processing',
-        text: 'All messages share one correlation. Process each message in its own contextStorage.run() scope.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Generating new trace IDs per service',
+      text: "Logs can't be joined. Extract the incoming traceparent; only generate if missing.",
+    },
+    {
+      lead: 'Direct HTTP client usage',
+      text: 'Outbound calls do not propagate headers. Use fetchWithCorrelation() or instrumented clients.',
+    },
+    {
+      lead: 'Fire-and-forget async',
+      text: 'Background work loses context. Capture context before spawning; restore in the async handler.',
+    },
+    {
+      lead: 'Batched message processing',
+      text: 'All messages share one correlation. Process each message in its own contextStorage.run() scope.',
+    },
+  ]}
 />
 
 ## Making It Stick
@@ -252,26 +248,24 @@ You don't need to fix every service at once. A practical rollout:
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        lead: 'Week 1:',
-        text: 'Adopt ECS field names for new logs in one service',
-      },
-      {
-        lead: 'Week 2:',
-        text: 'Add correlation middleware to that service',
-      },
-      {
-        lead: 'Week 3:',
-        text: 'Query for logs missing trace.id and fix the gaps-usually background jobs or uninstrumented libraries',
-      },
-      {
-        lead: 'Week 4:',
-        text: 'Expand to the next service in your critical path',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Week 1:',
+      text: 'Adopt ECS field names for new logs in one service',
+    },
+    {
+      lead: 'Week 2:',
+      text: 'Add correlation middleware to that service',
+    },
+    {
+      lead: 'Week 3:',
+      text: 'Query for logs missing trace.id and fix the gaps-usually background jobs or uninstrumented libraries',
+    },
+    {
+      lead: 'Week 4:',
+      text: 'Expand to the next service in your critical path',
+    },
+  ]}
 />
 
 Within a month, your most important request paths will be fully correlated. The rest can follow incrementally.

@@ -36,30 +36,28 @@ Consider what happens when five services each log authentication events their ow
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Service A:',
-        text: 'User 12345 logged in from 192.168.1.1',
-      },
-      {
-        lead: 'Service B:',
-        text: '[INFO] Login successful - user_id=12345, ip=192.168.1.1',
-      },
-      {
-        lead: 'Service C:',
-        text: '{"user":"12345","action":"login","source_ip":"192.168.1.1"}',
-      },
-      {
-        lead: 'Service D:',
-        text: '2024-01-15 14:30:00 INFO user 12345 authenticated',
-      },
-      {
-        lead: 'Service E:',
-        text: '{"userId":"12345","event":"AUTH_SUCCESS"}',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Service A:',
+      text: 'User 12345 logged in from 192.168.1.1',
+    },
+    {
+      lead: 'Service B:',
+      text: '[INFO] Login successful - user_id=12345, ip=192.168.1.1',
+    },
+    {
+      lead: 'Service C:',
+      text: '{"user":"12345","action":"login","source_ip":"192.168.1.1"}',
+    },
+    {
+      lead: 'Service D:',
+      text: '2024-01-15 14:30:00 INFO user 12345 authenticated',
+    },
+    {
+      lead: 'Service E:',
+      text: '{"userId":"12345","event":"AUTH_SUCCESS"}',
+    },
+  ]}
 />
 
 Finding all logins for user 12345 now requires five different search patterns. Worse, you _don't know what you're missing_. Did you account for the service that uses `customer` instead of `user`? The one that logs to a different index? The one with the typo in the field name?
@@ -1009,22 +1007,20 @@ You need a central source of truth for field definitions—what fields exist, th
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: "Use your log platform's native schema management.",
-        text: "Elasticsearch has index templates and component templates that define field mappings. DataDog has facets. Splunk has field extractions. These work well if you're single-platform, but they're vendor-specific and don't help at log-emit time.",
-      },
-      {
-        lead: 'JSON Schema in your repo.',
-        text: "Define your schema as JSON Schema files, validate in CI (we'll cover this in the Testing section), and generate documentation from the schema. This is lightweight and works across platforms.",
-      },
-      {
-        lead: 'Build a lightweight registry service.',
-        text: 'For larger organizations, a simple service that stores field definitions with ownership and versioning metadata. This does not need to be complex-a YAML file in a shared repo with a PR review process often suffices.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: "Use your log platform's native schema management.",
+      text: "Elasticsearch has index templates and component templates that define field mappings. DataDog has facets. Splunk has field extractions. These work well if you're single-platform, but they're vendor-specific and don't help at log-emit time.",
+    },
+    {
+      lead: 'JSON Schema in your repo.',
+      text: "Define your schema as JSON Schema files, validate in CI (we'll cover this in the Testing section), and generate documentation from the schema. This is lightweight and works across platforms.",
+    },
+    {
+      lead: 'Build a lightweight registry service.',
+      text: 'For larger organizations, a simple service that stores field definitions with ownership and versioning metadata. This does not need to be complex-a YAML file in a shared repo with a PR review process often suffices.',
+    },
+  ]}
 />
 
 The key insight: the _format_ of your registry matters less than _having one at all_ and _enforcing it in CI_. A YAML file that every service validates against beats a sophisticated registry that nobody uses.
@@ -1188,22 +1184,20 @@ In production, monitor log quality the same way you monitor application health. 
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'log_schema_validation_total{result, service}',
-        text: 'counts valid vs invalid log entries',
-      },
-      {
-        lead: 'log_schema_violations_total{field, violation_type, service}',
-        text: 'tracks which fields fail and why',
-      },
-      {
-        lead: 'log_missing_correlation_total{service, log_location}',
-        text: 'flags logs without trace IDs',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'log_schema_validation_total{result, service}',
+      text: 'counts valid vs invalid log entries',
+    },
+    {
+      lead: 'log_schema_violations_total{field, violation_type, service}',
+      text: 'tracks which fields fail and why',
+    },
+    {
+      lead: 'log_missing_correlation_total{service, log_location}',
+      text: 'flags logs without trace IDs',
+    },
+  ]}
 />
 
 Hook these counters into your logger's output path to track every log entry. Alert when violation rates spike or correlation coverage drops below your target (e.g., 99% of logs should have trace IDs).

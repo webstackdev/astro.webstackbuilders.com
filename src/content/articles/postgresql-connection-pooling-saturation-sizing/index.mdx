@@ -121,22 +121,20 @@ Even with correct calculations, common mistakes undermine pool sizing:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Oversized pools',
-        text: 'Setting `pool_size = 100` "just in case" means 10 instances create 1000 connections. Size based on actual need, not fear.',
-      },
-      {
-        lead: 'No max lifetime',
-        text: 'Connections held forever accumulate memory leaks and stale state. Recycle every 30 minutes.',
-      },
-      {
-        lead: 'No idle timeout',
-        text: 'Idle connections waste resources and hide leaks. Timeout after 10 minutes of inactivity.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Oversized pools',
+      text: 'Setting `pool_size = 100` "just in case" means 10 instances create 1000 connections. Size based on actual need, not fear.',
+    },
+    {
+      lead: 'No max lifetime',
+      text: 'Connections held forever accumulate memory leaks and stale state. Recycle every 30 minutes.',
+    },
+    {
+      lead: 'No idle timeout',
+      text: 'Idle connections waste resources and hide leaks. Timeout after 10 minutes of inactivity.',
+    },
+  ]}
 />
 
 ## Saturation Signals
@@ -158,22 +156,20 @@ Code: Connection utilization query.
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Pool wait time',
-        text: 'measures how long requests wait for an available connection from the application pool. This metric comes from your pool library (HikariCP, pg-pool), not PostgreSQL. P99 wait time above 100ms indicates the pool is undersized; above 1 second means requests are timing out.',
-      },
-      {
-        lead: 'Queue depth',
-        text: 'counts requests waiting for connections. In PgBouncer, check `cl_waiting`. In application pools, check `waitingCount` or equivalent. Any sustained queue indicates saturation—the pool can\'t keep up with demand.',
-      },
-      {
-        lead: 'Idle in transaction',
-        text: 'connections are the silent killers. They hold connections hostage without doing work. These are usually application bugs—missing commits, unclosed transactions in error paths. Set `idle_in_transaction_session_timeout` to kill them automatically.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Pool wait time',
+      text: 'measures how long requests wait for an available connection from the application pool. This metric comes from your pool library (HikariCP, pg-pool), not PostgreSQL. P99 wait time above 100ms indicates the pool is undersized; above 1 second means requests are timing out.',
+    },
+    {
+      lead: 'Queue depth',
+      text: "counts requests waiting for connections. In PgBouncer, check `cl_waiting`. In application pools, check `waitingCount` or equivalent. Any sustained queue indicates saturation—the pool can't keep up with demand.",
+    },
+    {
+      lead: 'Idle in transaction',
+      text: 'connections are the silent killers. They hold connections hostage without doing work. These are usually application bugs—missing commits, unclosed transactions in error paths. Set `idle_in_transaction_session_timeout` to kill them automatically.',
+    },
+  ]}
 />
 
 <Table

@@ -43,34 +43,32 @@ The past few years have given us a painful education in supply chain attacks. Ea
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Source code compromise',
-        text: 'is the most direct attack vector. In the SolarWinds incident (2020), attackers gained access to the build process and inserted malicious code that shipped to over 18,000 customers, including multiple US government agencies. The code looked legitimate because it came through legitimate channels.',
-      },
-      {
-        lead: 'Build system compromise',
-        text: "targets the CI/CD pipeline itself. Codecov's bash uploader script was modified in 2021, causing every CI job that used it to exfiltrate credentials to attacker-controlled servers. Thousands of organizations were affected because they trusted a third-party tool in their build process.",
-      },
-      {
-        lead: 'Dependency confusion',
-        text: 'exploits how package managers resolve names. Alex Birsan\'s 2021 research demonstrated this by publishing packages to public registries that matched internal package names at Apple, Microsoft, and PayPal. When build systems checked public registries first, they pulled the malicious versions and executed arbitrary code inside corporate networks.',
-      },
-      {
-        lead: 'Typosquatting',
-        text: 'relies on human error. Packages like crossenv (malicious) sit next to cross-env (legitimate) hoping developers will mistype. These attacks are low-effort but surprisingly effective, resulting in credential theft, cryptomining, and backdoors.',
-      },
-      {
-        lead: 'Compromised maintainers',
-        text: 'introduce risk through the humans in the chain. The event-stream incident (2018) showed how a new maintainer-who had earned trust through legitimate contributions-eventually added code to steal Bitcoin from a specific cryptocurrency wallet. The attack targeted one application but affected millions of downstream users.',
-      },
-      {
-        lead: 'Artifact tampering',
-        text: 'happens after the build but before deployment. CCleaner (2017) shipped a backdoored executable to 2.3 million users because attackers modified the signed artifact after it was built but before it was distributed. The signature was valid for the tampered file.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Source code compromise',
+      text: 'is the most direct attack vector. In the SolarWinds incident (2020), attackers gained access to the build process and inserted malicious code that shipped to over 18,000 customers, including multiple US government agencies. The code looked legitimate because it came through legitimate channels.',
+    },
+    {
+      lead: 'Build system compromise',
+      text: "targets the CI/CD pipeline itself. Codecov's bash uploader script was modified in 2021, causing every CI job that used it to exfiltrate credentials to attacker-controlled servers. Thousands of organizations were affected because they trusted a third-party tool in their build process.",
+    },
+    {
+      lead: 'Dependency confusion',
+      text: 'exploits how package managers resolve names. Alex Birsan\'s 2021 research demonstrated this by publishing packages to public registries that matched internal package names at Apple, Microsoft, and PayPal. When build systems checked public registries first, they pulled the malicious versions and executed arbitrary code inside corporate networks.',
+    },
+    {
+      lead: 'Typosquatting',
+      text: 'relies on human error. Packages like crossenv (malicious) sit next to cross-env (legitimate) hoping developers will mistype. These attacks are low-effort but surprisingly effective, resulting in credential theft, cryptomining, and backdoors.',
+    },
+    {
+      lead: 'Compromised maintainers',
+      text: 'introduce risk through the humans in the chain. The event-stream incident (2018) showed how a new maintainer-who had earned trust through legitimate contributions-eventually added code to steal Bitcoin from a specific cryptocurrency wallet. The attack targeted one application but affected millions of downstream users.',
+    },
+    {
+      lead: 'Artifact tampering',
+      text: 'happens after the build but before deployment. CCleaner (2017) shipped a backdoored executable to 2.3 million users because attackers modified the signed artifact after it was built but before it was distributed. The signature was valid for the tampered file.',
+    },
+  ]}
 />
 
 ```mermaid
@@ -144,26 +142,24 @@ SLSA proves that an artifact came from a specific source through a specific buil
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Level 1',
-        text: 'is essentially "write it down." Your source code must be version controlled, your builds must be scripted (not manual), and provenance must exist even if it\'s unsigned. Most teams already meet Level 1 without trying. The protection here is minimal-it catches accidental errors in manual builds but does not stop intentional attacks.',
-      },
-      {
-        lead: 'Level 2',
-        text: "adds authentication. Your builds must run on a hosted build service (GitHub Actions, GitLab CI, etc.), and that service must sign the provenance. This is where you start getting real security value: an attacker who compromises your source repository cannot forge provenance claiming the artifact came from a different commit. The effort is mostly configuration-days, not weeks.",
-      },
-      {
-        lead: 'Level 3',
-        text: 'introduces hardening. You need two-person review for changes, retained history that cannot be deleted, and a hardened, isolated build environment that generates non-falsifiable provenance. This level protects against insider threats at the build level. The effort is significant because it requires process changes, not just tooling.',
-      },
-      {
-        lead: 'Level 4',
-        text: 'demands hermetic, reproducible builds where all dependencies also have provenance. This is the "nation-state adversary" level. Few organizations need it, and achieving it requires months of engineering investment plus ongoing maintenance.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Level 1',
+      text: 'is essentially "write it down." Your source code must be version controlled, your builds must be scripted (not manual), and provenance must exist even if it\'s unsigned. Most teams already meet Level 1 without trying. The protection here is minimal-it catches accidental errors in manual builds but does not stop intentional attacks.',
+    },
+    {
+      lead: 'Level 2',
+      text: "adds authentication. Your builds must run on a hosted build service (GitHub Actions, GitLab CI, etc.), and that service must sign the provenance. This is where you start getting real security value: an attacker who compromises your source repository cannot forge provenance claiming the artifact came from a different commit. The effort is mostly configuration-days, not weeks.",
+    },
+    {
+      lead: 'Level 3',
+      text: 'introduces hardening. You need two-person review for changes, retained history that cannot be deleted, and a hardened, isolated build environment that generates non-falsifiable provenance. This level protects against insider threats at the build level. The effort is significant because it requires process changes, not just tooling.',
+    },
+    {
+      lead: 'Level 4',
+      text: 'demands hermetic, reproducible builds where all dependencies also have provenance. This is the "nation-state adversary" level. Few organizations need it, and achieving it requires months of engineering investment plus ongoing maintenance.',
+    },
+  ]}
 />
 
 <Table
@@ -202,26 +198,24 @@ Not every artifact needs the same protection. Choose your target level based on 
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Internal tools with low security requirements',
-        text: 'can stay at Level 1. Provenance is still valuable for debugging ("which commit produced this artifact?"), but the threat model does not justify more investment. The exception: if those internal tools access production data, bump to Level 2.',
-      },
-      {
-        lead: 'Most production services',
-        text: 'should target Level 2. Authenticated provenance blocks most external attackers while keeping developer velocity high. The configuration overhead is minimal, and you get meaningful protection without changing how developers work.',
-      },
-      {
-        lead: 'Security-critical infrastructure',
-        text: 'authentication systems, secrets management, network edge services-should target Level 3. Hardened builds protect against more sophisticated attackers, and the process requirements (two-person review) are often already in place for these systems anyway.',
-      },
-      {
-        lead: 'Open source packages consumed by others',
-        text: 'present a special case. Your security posture affects everyone who depends on you. Level 3 is the responsible target; critical infrastructure packages like container runtimes or cryptographic libraries should aim for Level 4.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Internal tools with low security requirements',
+      text: 'can stay at Level 1. Provenance is still valuable for debugging ("which commit produced this artifact?"), but the threat model does not justify more investment. The exception: if those internal tools access production data, bump to Level 2.',
+    },
+    {
+      lead: 'Most production services',
+      text: 'should target Level 2. Authenticated provenance blocks most external attackers while keeping developer velocity high. The configuration overhead is minimal, and you get meaningful protection without changing how developers work.',
+    },
+    {
+      lead: 'Security-critical infrastructure',
+      text: 'authentication systems, secrets management, network edge services-should target Level 3. Hardened builds protect against more sophisticated attackers, and the process requirements (two-person review) are often already in place for these systems anyway.',
+    },
+    {
+      lead: 'Open source packages consumed by others',
+      text: 'present a special case. Your security posture affects everyone who depends on you. Level 3 is the responsible target; critical infrastructure packages like container runtimes or cryptographic libraries should aim for Level 4.',
+    },
+  ]}
 />
 
 <Callout type="info">
@@ -443,22 +437,20 @@ Three approaches dominate the current landscape, each with distinct tradeoffs.
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Long-lived keys (GPG/PGP)',
-        text: 'are the traditional approach. You generate a keypair, guard the private key carefully, and distribute the public key for verification. The tooling is mature and works offline, but the operational burden is significant. Key rotation is painful, key compromise is catastrophic (affecting all past signatures), and the Trust On First Use (TOFU) problem means first-time verifiers have no good way to know if they have the right public key. This approach still makes sense for small teams or air-gapped environments where internet connectivity is not available during signing.',
-      },
-      {
-        lead: 'Keyless signing (Sigstore/Cosign)',
-        text: 'flips the model. Instead of managing keys, you prove your identity through OIDC (the same system that lets you "Sign in with GitHub"). Sigstore issues a short-lived certificate tied to that identity, you sign with it, and the signature is recorded in a public transparency log (Rekor). Verification checks the log rather than a distributed public key. The result: no keys to manage, no rotation headaches, and signatures that are tied to specific identities at specific times. The tradeoff is a dependency on Sigstore infrastructure and internet connectivity.',
-      },
-      {
-        lead: 'KMS-backed signing',
-        text: 'puts your keys in a cloud provider\'s hardware security module. You never see the private key-it lives in tamper-resistant hardware, and signing operations happen inside the HSM. AWS KMS, Google Cloud KMS, and Azure Key Vault all support this. The keys are protected by hardware, audit logging is automatic, and IAM controls who can sign. The tradeoff is vendor lock-in, per-operation costs at high volume, and cloud connectivity requirements.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Long-lived keys (GPG/PGP)',
+      text: 'are the traditional approach. You generate a keypair, guard the private key carefully, and distribute the public key for verification. The tooling is mature and works offline, but the operational burden is significant. Key rotation is painful, key compromise is catastrophic (affecting all past signatures), and the Trust On First Use (TOFU) problem means first-time verifiers have no good way to know if they have the right public key. This approach still makes sense for small teams or air-gapped environments where internet connectivity is not available during signing.',
+    },
+    {
+      lead: 'Keyless signing (Sigstore/Cosign)',
+      text: 'flips the model. Instead of managing keys, you prove your identity through OIDC (the same system that lets you "Sign in with GitHub"). Sigstore issues a short-lived certificate tied to that identity, you sign with it, and the signature is recorded in a public transparency log (Rekor). Verification checks the log rather than a distributed public key. The result: no keys to manage, no rotation headaches, and signatures that are tied to specific identities at specific times. The tradeoff is a dependency on Sigstore infrastructure and internet connectivity.',
+    },
+    {
+      lead: 'KMS-backed signing',
+      text: 'puts your keys in a cloud provider\'s hardware security module. You never see the private key-it lives in tamper-resistant hardware, and signing operations happen inside the HSM. AWS KMS, Google Cloud KMS, and Azure Key Vault all support this. The keys are protected by hardware, audit logging is automatic, and IAM controls who can sign. The tradeoff is vendor lock-in, per-operation costs at high volume, and cloud connectivity requirements.',
+    },
+  ]}
 />
 
 <Table
@@ -927,22 +919,20 @@ Before adding security tooling, you need visibility into what you're protecting.
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Inventory your artifacts.',
-        text: 'List every container image, binary, and package your team publishes. Include internal artifacts, not just external releases. Note which registries they live in and how they are currently tagged.',
-      },
-      {
-        lead: 'Add basic provenance.',
-        text: 'Even before formal SLSA provenance, you can embed build metadata. Include the git SHA in your image tags or labels. Add build timestamps. This gives you traceability for debugging even if it is not cryptographically verified.',
-      },
-      {
-        lead: 'Document your build process.',
-        text: 'Write down how builds work today-the scripts, the CI system, the dependencies. You will need this baseline to identify gaps and measure improvement.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Inventory your artifacts.',
+      text: 'List every container image, binary, and package your team publishes. Include internal artifacts, not just external releases. Note which registries they live in and how they are currently tagged.',
+    },
+    {
+      lead: 'Add basic provenance.',
+      text: 'Even before formal SLSA provenance, you can embed build metadata. Include the git SHA in your image tags or labels. Add build timestamps. This gives you traceability for debugging even if it is not cryptographically verified.',
+    },
+    {
+      lead: 'Document your build process.',
+      text: 'Write down how builds work today-the scripts, the CI system, the dependencies. You will need this baseline to identify gaps and measure improvement.',
+    },
+  ]}
 />
 
 ### Phase 2: Signing (Week 3-4)
@@ -975,26 +965,24 @@ Signing without verification is security theater. This phase makes signatures ma
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Start with staging.',
-        text: 'Add cosign verify to your staging deployment pipeline. Configure it to warn on failure initially-you want to catch unsigned images without blocking deployments while you are still stabilizing.',
-      },
-      {
-        lead: 'Monitor success rates.',
-        text: 'Track how often verification passes. If it is not 100%, you have signing gaps to fix before enforcing in production.',
-      },
-      {
-        lead: 'Deploy admission control.',
-        text: 'For Kubernetes, install the Sigstore Policy Controller and create a ClusterImagePolicy. Start with a non-production namespace, then expand to staging, then production.',
-      },
-      {
-        lead: 'Add CI gates.',
-        text: 'For non-Kubernetes deployments, add verification steps to your deployment workflows. Block promotion if verification fails.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Start with staging.',
+      text: 'Add cosign verify to your staging deployment pipeline. Configure it to warn on failure initially-you want to catch unsigned images without blocking deployments while you are still stabilizing.',
+    },
+    {
+      lead: 'Monitor success rates.',
+      text: 'Track how often verification passes. If it is not 100%, you have signing gaps to fix before enforcing in production.',
+    },
+    {
+      lead: 'Deploy admission control.',
+      text: 'For Kubernetes, install the Sigstore Policy Controller and create a ClusterImagePolicy. Start with a non-production namespace, then expand to staging, then production.',
+    },
+    {
+      lead: 'Add CI gates.',
+      text: 'For non-Kubernetes deployments, add verification steps to your deployment workflows. Block promotion if verification fails.',
+    },
+  ]}
 />
 
 ### Phase 4: Hardening (Ongoing)
@@ -1039,22 +1027,20 @@ You'll hit these problems. Here's how to diagnose and fix them.
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Symptoms:',
-        text: 'cosign verify returns an error, admission webhook denies pods, deployments blocked.',
-      },
-      {
-        lead: 'Cause:',
-        text: "The image was signed, but the signing identity doesn't match your verification policy. This is the most common issue.",
-      },
-      {
-        lead: 'Diagnosis:',
-        text: 'Check what identity actually signed the image:',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Symptoms:',
+      text: 'cosign verify returns an error, admission webhook denies pods, deployments blocked.',
+    },
+    {
+      lead: 'Cause:',
+      text: "The image was signed, but the signing identity doesn't match your verification policy. This is the most common issue.",
+    },
+    {
+      lead: 'Diagnosis:',
+      text: 'Check what identity actually signed the image:',
+    },
+  ]}
 />
 
 ```bash
@@ -1065,22 +1051,20 @@ Compare the certificate identity in the output with what your policy expects. Co
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Branch vs tag reference:',
-        text: 'You signed from refs/heads/main but the policy expects refs/tags/v*',
-      },
-      {
-        lead: 'Workflow path changed:',
-        text: 'You renamed or moved your workflow file',
-      },
-      {
-        lead: 'Wrong OIDC issuer:',
-        text: 'Policy expects GitHub but you are using GitLab',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Branch vs tag reference:',
+      text: 'You signed from refs/heads/main but the policy expects refs/tags/v*',
+    },
+    {
+      lead: 'Workflow path changed:',
+      text: 'You renamed or moved your workflow file',
+    },
+    {
+      lead: 'Wrong OIDC issuer:',
+      text: 'Policy expects GitHub but you are using GitLab',
+    },
+  ]}
 />
 
 __Fix:__ Update either your signing workflow or your verification policy to match.
@@ -1089,22 +1073,20 @@ __Fix:__ Update either your signing workflow or your verification policy to matc
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Symptoms:',
-        text: '"Error: unable to get OIDC token", keyless signing fails.',
-      },
-      {
-        lead: 'Cause:',
-        text: 'Missing id-token: write permission in your workflow.',
-      },
-      {
-        lead: 'Fix:',
-        text: 'Add the permission block to your workflow:',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Symptoms:',
+      text: '"Error: unable to get OIDC token", keyless signing fails.',
+    },
+    {
+      lead: 'Cause:',
+      text: 'Missing id-token: write permission in your workflow.',
+    },
+    {
+      lead: 'Fix:',
+      text: 'Add the permission block to your workflow:',
+    },
+  ]}
 />
 
 ```yaml
@@ -1118,38 +1100,34 @@ permissions:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Symptoms:',
-        text: 'slsa-verifier fails, attestation download returns empty.',
-      },
-      {
-        lead: 'Cause:',
-        text: 'The provenance workflow did not run, failed silently, or the artifact digest was not passed correctly.',
-      },
-      {
-        lead: 'Diagnosis:',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Symptoms:',
+      text: 'slsa-verifier fails, attestation download returns empty.',
+    },
+    {
+      lead: 'Cause:',
+      text: 'The provenance workflow did not run, failed silently, or the artifact digest was not passed correctly.',
+    },
+    {
+      lead: 'Diagnosis:',
+    },
+  ]}
 />
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Check the GitHub Actions run-did the provenance job complete successfully?',
-      },
-      {
-        text: "Verify you're using a pinned version of slsa-github-generator (not @main)",
-      },
-      {
-        text: 'Confirm the artifact digest passed to the generator matches what you are verifying',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Check the GitHub Actions run-did the provenance job complete successfully?',
+    },
+    {
+      text: "Verify you're using a pinned version of slsa-github-generator (not @main)",
+    },
+    {
+      text: 'Confirm the artifact digest passed to the generator matches what you are verifying',
+    },
+  ]}
 />
 
 _Fix:_ Most often, this is a digest mismatch. The digest output from your build step must exactly match what you pass to the provenance generator.
@@ -1158,30 +1136,28 @@ _Fix:_ Most often, this is a digest mismatch. The digest output from your build 
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Symptoms:',
-        text: 'Build times increased significantly, SBOM action times out.',
-      },
-      {
-        lead: 'Cause:',
-        text: 'Large images with many layers take longer to analyze.',
-      },
-      {
-        lead: 'Fix options:',
-      },
-      {
-        text: 'Use multi-stage builds to reduce final image size',
-      },
-      {
-        text: 'Run SBOM generation in a parallel job (it only needs the image digest, not the build context)',
-      },
-      {
-        text: 'For very large images, consider generating SBOM from lockfiles during build rather than scanning the final image',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Symptoms:',
+      text: 'Build times increased significantly, SBOM action times out.',
+    },
+    {
+      lead: 'Cause:',
+      text: 'Large images with many layers take longer to analyze.',
+    },
+    {
+      lead: 'Fix options:',
+    },
+    {
+      text: 'Use multi-stage builds to reduce final image size',
+    },
+    {
+      text: 'Run SBOM generation in a parallel job (it only needs the image digest, not the build context)',
+    },
+    {
+      text: 'For very large images, consider generating SBOM from lockfiles during build rather than scanning the final image',
+    },
+  ]}
 />
 
 ## Conclusion

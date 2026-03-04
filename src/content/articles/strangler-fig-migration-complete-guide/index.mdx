@@ -20,37 +20,37 @@ The strangler fig pattern, named after tropical fig trees that gradually envelop
 This approach succeeds where big-bang rewrites fail because it maintains continuous validation against production reality. You're not guessing whether your new authentication service handles edge cases correctly - you're proving it with real requests.
 
 <Table
-    variant="vertical-column-delineation-table"
-    content={{
-        thead: {
-            th: ['Aspect', 'Big-Bang Rewrite', 'Strangler Fig Migration'],
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Aspect', 'Big-Bang Rewrite', 'Strangler Fig Migration'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Risk profile',
+          td: ['All-or-nothing cutover', 'Incremental, reversible changes'],
         },
-        tbody: {
-            tr: [
-                {
-                    th: 'Risk profile',
-                    td: ['All-or-nothing cutover', 'Incremental, reversible changes'],
-                },
-                {
-                    th: 'Validation approach',
-                    td: ['Testing in isolation', 'Continuous production validation'],
-                },
-                {
-                    th: 'Rollback capability',
-                    td: ['Extremely difficult', 'Built into every step'],
-                },
-                {
-                    th: 'Business continuity',
-                    td: ['Extended freeze periods', 'Continuous feature delivery'],
-                },
-                {
-                    th: 'Knowledge transfer',
-                    td: ['Assumptions about legacy behavior', 'Documented through shadow testing'],
-                },
-            ],
+        {
+          th: 'Validation approach',
+          td: ['Testing in isolation', 'Continuous production validation'],
         },
-        figure: 'Migration approach comparison',
-    }}
+        {
+          th: 'Rollback capability',
+          td: ['Extremely difficult', 'Built into every step'],
+        },
+        {
+          th: 'Business continuity',
+          td: ['Extended freeze periods', 'Continuous feature delivery'],
+        },
+        {
+          th: 'Knowledge transfer',
+          td: ['Assumptions about legacy behavior', 'Documented through shadow testing'],
+        },
+      ],
+    },
+    figure: 'Migration approach comparison',
+  }}
 />
 
 The pattern works because it forces you to understand the legacy system's actual behavior, not just its documented behavior. Every edge case, every undocumented feature, every quirky response format gets documented through the migration process itself.
@@ -128,37 +128,37 @@ Once shadow testing proves your new service matches legacy behavior, you're read
 A progressive traffic shift schedule balances validation time against migration velocity. Moving too fast risks missing problems that only appear under sustained load. Moving too slowly extends the period where you're maintaining two systems.
 
 <Table
-    variant="vertical-column-delineation-table"
-    content={{
-        thead: {
-            th: ['Phase', 'New Service Traffic', 'Duration', 'Success Criteria'],
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Phase', 'New Service Traffic', 'Duration', 'Success Criteria'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Canary',
+          td: ['1%', '24 hours', 'Error rate &lt; 0.1%, p99 latency within 10%'],
         },
-        tbody: {
-            tr: [
-                {
-                    th: 'Canary',
-                    td: ['1%', '24 hours', 'Error rate &lt; 0.1%, p99 latency within 10%'],
-                },
-                {
-                    th: 'Early adopters',
-                    td: ['10%', '48 hours', 'No increase in support tickets'],
-                },
-                {
-                    th: 'Partial rollout',
-                    td: ['50%', '72 hours', 'All SLOs maintained'],
-                },
-                {
-                    th: 'Majority',
-                    td: ['90%', '48 hours', 'Business metrics stable'],
-                },
-                {
-                    th: 'Complete',
-                    td: ['100%', 'Ongoing', 'Legacy decommission criteria met'],
-                },
-            ],
+        {
+          th: 'Early adopters',
+          td: ['10%', '48 hours', 'No increase in support tickets'],
         },
-        figure: 'Progressive traffic shift schedule',
-    }}
+        {
+          th: 'Partial rollout',
+          td: ['50%', '72 hours', 'All SLOs maintained'],
+        },
+        {
+          th: 'Majority',
+          td: ['90%', '48 hours', 'Business metrics stable'],
+        },
+        {
+          th: 'Complete',
+          td: ['100%', 'Ongoing', 'Legacy decommission criteria met'],
+        },
+      ],
+    },
+    figure: 'Progressive traffic shift schedule',
+  }}
 />
 
 The automation layer monitors these criteria continuously and triggers rollback when thresholds are breached. Human judgment still matters - some increases in error rates are acceptable during traffic shifts, and some business metric fluctuations are coincidental. But automated rollback provides a safety net that lets you shift traffic confidently.
@@ -166,33 +166,33 @@ The automation layer monitors these criteria continuously and triggers rollback 
 Effective rollback triggers balance sensitivity against false positives:
 
 <Table
-    variant="vertical-column-delineation-table"
-    content={{
-        thead: {
-            th: ['Trigger', 'Threshold', 'Rationale'],
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Trigger', 'Threshold', 'Rationale'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Error rate spike',
+          td: ['&gt;2x baseline for 5 minutes', 'Catches systematic failures quickly'],
         },
-        tbody: {
-            tr: [
-                {
-                    th: 'Error rate spike',
-                    td: ['&gt;2x baseline for 5 minutes', 'Catches systematic failures quickly'],
-                },
-                {
-                    th: 'Latency degradation',
-                    td: ['p99 &gt;150% baseline for 10 minutes', 'Identifies performance regressions'],
-                },
-                {
-                    th: 'Circuit breaker trips',
-                    td: ['&gt;3 trips in 15 minutes', 'Responds to downstream failures'],
-                },
-                {
-                    th: 'Business metric drop',
-                    td: ['&gt;5% conversion decrease for 30 minutes', 'Catches user-facing impact'],
-                },
-            ],
+        {
+          th: 'Latency degradation',
+          td: ['p99 &gt;150% baseline for 10 minutes', 'Identifies performance regressions'],
         },
-        figure: 'Automatic rollback trigger configuration',
-    }}
+        {
+          th: 'Circuit breaker trips',
+          td: ['&gt;3 trips in 15 minutes', 'Responds to downstream failures'],
+        },
+        {
+          th: 'Business metric drop',
+          td: ['&gt;5% conversion decrease for 30 minutes', 'Catches user-facing impact'],
+        },
+      ],
+    },
+    figure: 'Automatic rollback trigger configuration',
+  }}
 />
 
 When any trigger fires, the system automatically routes traffic back to the legacy service. This isn't a failure - it's the system working as designed. Each rollback provides diagnostic data about what went wrong, enabling targeted fixes before the next traffic shift attempt.

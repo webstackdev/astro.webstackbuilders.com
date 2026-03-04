@@ -127,22 +127,20 @@ Kubernetes automatically assigns every pod a Quality of Service class based on i
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Guaranteed',
-        text: 'is the highest priority class. To get it, every container in the pod must have requests _and_ limits set for both CPU and memory, and the requests must equal the limits. These pods are evicted last.',
-      },
-      {
-        lead: 'Burstable',
-        text: 'is the middle tier. Any pod with at least one resource request or limit, but that doesn\'t qualify for Guaranteed, falls here. This includes pods with requests only, limits only, or requests that don\'t match limits. Most production workloads end up Burstable.',
-      },
-      {
-        lead: 'BestEffort',
-        text: 'is the lowest priority. Pods with no resource specifications at all—no requests, no limits on any container—get this class. They\'re evicted first under pressure.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Guaranteed',
+      text: 'is the highest priority class. To get it, every container in the pod must have requests _and_ limits set for both CPU and memory, and the requests must equal the limits. These pods are evicted last.',
+    },
+    {
+      lead: 'Burstable',
+      text: 'is the middle tier. Any pod with at least one resource request or limit, but that doesn\'t qualify for Guaranteed, falls here. This includes pods with requests only, limits only, or requests that don\'t match limits. Most production workloads end up Burstable.',
+    },
+    {
+      lead: 'BestEffort',
+      text: 'is the lowest priority. Pods with no resource specifications at all—no requests, no limits on any container—get this class. They\'re evicted first under pressure.',
+    },
+  ]}
 />
 
 ```yaml title="qos-guaranteed.yaml"
@@ -290,22 +288,20 @@ I've seen the same resource misconfigurations across dozens of clusters. Here ar
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'No resources at all.',
-        text: 'Pods without any resource specs get BestEffort QoS—first to be evicted, no scheduling guarantees, can consume unlimited node resources. This is the default if you don\'t specify anything, which is why so many teams accidentally run BestEffort pods in production.',
-      },
-      {
-        lead: 'Requests only, no limits.',
-        text: 'This creates Burstable pods that can consume unbounded memory or CPU. A memory leak in one pod can starve its neighbors or trigger node-level OOM. The pod gets scheduled based on its request, but nothing stops it from using 10x that amount.',
-      },
-      {
-        lead: 'Limits only, no requests.',
-        text: 'Kubernetes helpfully sets requests equal to limits when you only specify limits. The result is Guaranteed QoS, but you\'re probably over-reserving—the pod reserves its peak capacity even when it only needs a fraction of it. This wastes cluster capacity and increases costs.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'No resources at all.',
+      text: 'Pods without any resource specs get BestEffort QoS—first to be evicted, no scheduling guarantees, can consume unlimited node resources. This is the default if you don\'t specify anything, which is why so many teams accidentally run BestEffort pods in production.',
+    },
+    {
+      lead: 'Requests only, no limits.',
+      text: 'This creates Burstable pods that can consume unbounded memory or CPU. A memory leak in one pod can starve its neighbors or trigger node-level OOM. The pod gets scheduled based on its request, but nothing stops it from using 10x that amount.',
+    },
+    {
+      lead: 'Limits only, no requests.',
+      text: 'Kubernetes helpfully sets requests equal to limits when you only specify limits. The result is Guaranteed QoS, but you\'re probably over-reserving—the pod reserves its peak capacity even when it only needs a fraction of it. This wastes cluster capacity and increases costs.',
+    },
+  ]}
 />
 
 <Callout type="info">

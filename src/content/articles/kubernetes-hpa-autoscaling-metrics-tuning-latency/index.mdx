@@ -63,34 +63,32 @@ With aggressive tuning and cached images, the timeline improves but still isn't 
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: "T+0s",
-        text: "Traffic spike begins",
-      },
-      {
-        lead: "T+15s",
-        text: "Metrics server captures the load",
-      },
-      {
-        lead: "T+30s",
-        text: "HPA evaluates and decides to scale",
-      },
-      {
-        lead: "T+45s",
-        text: "Stabilization check passes",
-      },
-      {
-        lead: "T+50s",
-        text: "New pods scheduled",
-      },
-      {
-        lead: "T+80s",
-        text: "Pods pass readiness probe, receive traffic",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: "T+0s",
+      text: "Traffic spike begins",
+    },
+    {
+      lead: "T+15s",
+      text: "Metrics server captures the load",
+    },
+    {
+      lead: "T+30s",
+      text: "HPA evaluates and decides to scale",
+    },
+    {
+      lead: "T+45s",
+      text: "Stabilization check passes",
+    },
+    {
+      lead: "T+50s",
+      text: "New pods scheduled",
+    },
+    {
+      lead: "T+80s",
+      text: "Pods pass readiness probe, receive traffic",
+    },
+  ]}
 />
 
 That's 80+ seconds of degraded performance under _favorable_ conditions. With default settings—including a 300-second stabilization window in older Kubernetes versions—it's significantly worse.

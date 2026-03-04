@@ -19,26 +19,24 @@ A well-designed scream test has four phases, each lasting about a week. The goal
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Phase 1: Soft degradation.',
-        text: "Add latency to every request-start at 100ms, increase to 500ms, then 1 second. Services that depend on you in their critical path will start seeing timeouts and SLA violations. Their monitoring should catch it. If nobody notices 1 second of added latency, that's a strong signal the dependency isn't critical.",
-      },
-      {
-        lead: 'Phase 2: Intermittent failures.',
-        text: "Start failing a percentage of requests with 503 Service Unavailable and a Retry-After header. Begin at 1%, move to 5%, then 10%. Well-behaved clients will retry and succeed. Poorly-behaved clients will surface as consumer error rates spike. Either way, you learn who's calling you.",
-      },
-      {
-        lead: 'Phase 3: Hard shutdown.',
-        text: "Return 410 Gone for all requests. This is HTTP's way of saying \"this resource existed but doesn't anymore, and it's not coming back.\" Log every caller at this stage-anyone still hitting you after weeks of deprecation warnings either isn't paying attention or has an integration nobody knew about.",
-      },
-      {
-        lead: 'Phase 4: Complete removal.',
-        text: "After a quiet period of two weeks, remove the service from the load balancer and delete the compute resources. Keep data archives for now-you're not done until you're sure nobody's screaming.",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Phase 1: Soft degradation.',
+      text: "Add latency to every request-start at 100ms, increase to 500ms, then 1 second. Services that depend on you in their critical path will start seeing timeouts and SLA violations. Their monitoring should catch it. If nobody notices 1 second of added latency, that's a strong signal the dependency isn't critical.",
+    },
+    {
+      lead: 'Phase 2: Intermittent failures.',
+      text: "Start failing a percentage of requests with 503 Service Unavailable and a Retry-After header. Begin at 1%, move to 5%, then 10%. Well-behaved clients will retry and succeed. Poorly-behaved clients will surface as consumer error rates spike. Either way, you learn who's calling you.",
+    },
+    {
+      lead: 'Phase 3: Hard shutdown.',
+      text: "Return 410 Gone for all requests. This is HTTP's way of saying \"this resource existed but doesn't anymore, and it's not coming back.\" Log every caller at this stage-anyone still hitting you after weeks of deprecation warnings either isn't paying attention or has an integration nobody knew about.",
+    },
+    {
+      lead: 'Phase 4: Complete removal.',
+      text: "After a quiet period of two weeks, remove the service from the load balancer and delete the compute resources. Keep data archives for now-you're not done until you're sure nobody's screaming.",
+    },
+  ]}
 />
 
 <Callout type="info">
@@ -113,26 +111,24 @@ With consumers identified and the scream test complete, you're ready for the act
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Pre-shutdown:',
-        text: 'Confirm all known consumers migrated. Verify data backup completed. Document and test the rollback plan. Silence monitoring alerts.',
-      },
-      {
-        lead: 'Shutdown:',
-        text: 'Remove from load balancer. Scale deployment to zero. Update DNS if applicable. Stop scheduled jobs. Revoke service account credentials.',
-      },
-      {
-        lead: 'Post-shutdown:',
-        text: 'Monitor for 24 hours for unexpected errors in dependent services. Confirm no traffic attempts in logs. Update service catalog to show decommissioned status.',
-      },
-      {
-        lead: 'Cleanup (after 30-day grace period):',
-        text: "Delete Kubernetes resources. Archive or delete database per retention policy. Remove CI/CD pipelines. Archive source code repository-don't delete it, you might need to reference how something worked later.",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Pre-shutdown:',
+      text: 'Confirm all known consumers migrated. Verify data backup completed. Document and test the rollback plan. Silence monitoring alerts.',
+    },
+    {
+      lead: 'Shutdown:',
+      text: 'Remove from load balancer. Scale deployment to zero. Update DNS if applicable. Stop scheduled jobs. Revoke service account credentials.',
+    },
+    {
+      lead: 'Post-shutdown:',
+      text: 'Monitor for 24 hours for unexpected errors in dependent services. Confirm no traffic attempts in logs. Update service catalog to show decommissioned status.',
+    },
+    {
+      lead: 'Cleanup (after 30-day grace period):',
+      text: "Delete Kubernetes resources. Archive or delete database per retention policy. Remove CI/CD pipelines. Archive source code repository-don't delete it, you might need to reference how something worked later.",
+    },
+  ]}
 />
 
 Always run shutdown scripts with dry-run mode first. The few minutes this adds is worth it compared to the hours you'd spend fixing a botched shutdown.
@@ -143,22 +139,20 @@ The checklist exists because every item on it has bitten someone. The most commo
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Forgetting cron jobs.',
-        text: 'The deployment scales to zero, the load balancer routes to nothing, but the nightly ETL job keeps trying to connect and fills up error logs-or worse, silently fails and breaks downstream reports.',
-      },
-      {
-        lead: 'Leaving DNS records.',
-        text: 'Three months later, someone provisions new infrastructure that happens to get the old IP address. Traffic meant for the decommissioned service starts hitting the new one. Debugging this is not fun.',
-      },
-      {
-        lead: 'Not revoking service accounts.',
-        text: 'The credentials still work. If they leak or get reused, you\'ve created a security hole to infrastructure that no longer exists to monitor.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Forgetting cron jobs.',
+      text: 'The deployment scales to zero, the load balancer routes to nothing, but the nightly ETL job keeps trying to connect and fills up error logs-or worse, silently fails and breaks downstream reports.',
+    },
+    {
+      lead: 'Leaving DNS records.',
+      text: 'Three months later, someone provisions new infrastructure that happens to get the old IP address. Traffic meant for the decommissioned service starts hitting the new one. Debugging this is not fun.',
+    },
+    {
+      lead: 'Not revoking service accounts.',
+      text: 'The credentials still work. If they leak or get reused, you\'ve created a security hole to infrastructure that no longer exists to monitor.',
+    },
+  ]}
 />
 
 <Callout type="warning">

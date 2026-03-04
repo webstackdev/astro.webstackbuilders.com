@@ -520,26 +520,24 @@ Here's what to check for each common scenario:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: "DNS timeouts or intermittent failures",
-        text: "Check if CoreDNS pods are overloaded (`kubectl top pods -n kube-system -l k8s-app=kube-dns`), look for NetworkPolicies blocking UDP/TCP port 53, and verify the upstream DNS in CoreDNS's forward configuration is reachable.",
-      },
-      {
-        lead: "External DNS slow, internal DNS fast",
-        text: "This is almost always an ndots issue. Compare resolution time with and without a trailing dot. If the FQDN is faster, reduce ndots in pod dnsConfig or use FQDNs in your application configuration.",
-      },
-      {
-        lead: "Service discovery fails for new services",
-        text: "Services usually propagate to CoreDNS within 10 seconds. If lookups fail, verify the service exists and has endpoints (`kubectl get svc,ep -n <namespace>`). Also check that you're using the correct namespace in the FQDN.",
-      },
-      {
-        lead: "DNS works in some pods but not others",
-        text: "Compare `/etc/resolv.conf` between working and broken pods. Check each pod's `dnsPolicy` setting. If the broken pod is on a specific node, investigate node-level DNS or NetworkPolicies scoped to that namespace.",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: "DNS timeouts or intermittent failures",
+      text: "Check if CoreDNS pods are overloaded (`kubectl top pods -n kube-system -l k8s-app=kube-dns`), look for NetworkPolicies blocking UDP/TCP port 53, and verify the upstream DNS in CoreDNS's forward configuration is reachable.",
+    },
+    {
+      lead: "External DNS slow, internal DNS fast",
+      text: "This is almost always an ndots issue. Compare resolution time with and without a trailing dot. If the FQDN is faster, reduce ndots in pod dnsConfig or use FQDNs in your application configuration.",
+    },
+    {
+      lead: "Service discovery fails for new services",
+      text: "Services usually propagate to CoreDNS within 10 seconds. If lookups fail, verify the service exists and has endpoints (`kubectl get svc,ep -n <namespace>`). Also check that you're using the correct namespace in the FQDN.",
+    },
+    {
+      lead: "DNS works in some pods but not others",
+      text: "Compare `/etc/resolv.conf` between working and broken pods. Check each pod's `dnsPolicy` setting. If the broken pod is on a specific node, investigate node-level DNS or NetworkPolicies scoped to that namespace.",
+    },
+  ]}
 />
 
 <Callout type="warning" title="Always Test From Inside a Pod">
@@ -730,30 +728,28 @@ When connectivity issues arise, run through this checklist:
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        lead: "Is CoreDNS running?",
-        text: "`kubectl get pods -n kube-system -l k8s-app=kube-dns`",
-      },
-      {
-        lead: "Can you resolve internal names?",
-        text: "`nslookup kubernetes.default` from inside a pod",
-      },
-      {
-        lead: "Can you resolve external names?",
-        text: "`nslookup google.com` from inside a pod",
-      },
-      {
-        lead: "Is it an ndots issue?",
-        text: "Compare `time nslookup api.example.com` vs `time nslookup api.example.com.`",
-      },
-      {
-        lead: "Check CoreDNS logs",
-        text: "for errors: `kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50`",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: "Is CoreDNS running?",
+      text: "`kubectl get pods -n kube-system -l k8s-app=kube-dns`",
+    },
+    {
+      lead: "Can you resolve internal names?",
+      text: "`nslookup kubernetes.default` from inside a pod",
+    },
+    {
+      lead: "Can you resolve external names?",
+      text: "`nslookup google.com` from inside a pod",
+    },
+    {
+      lead: "Is it an ndots issue?",
+      text: "Compare `time nslookup api.example.com` vs `time nslookup api.example.com.`",
+    },
+    {
+      lead: "Check CoreDNS logs",
+      text: "for errors: `kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50`",
+    },
+  ]}
 />
 
 DNS should be guilty until proven innocent—ruling it out takes 30 seconds and saves hours debugging in the wrong direction.

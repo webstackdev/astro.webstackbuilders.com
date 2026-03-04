@@ -309,30 +309,28 @@ For incident routing (the most common primary use case), you need exactly five r
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'owner:',
-        text: 'Which team is responsible',
-      },
-      {
-        lead: 'tier:',
-        text: 'How critical is this service (determines incident priority)',
-      },
-      {
-        lead: 'repository:',
-        text: "Where's the code",
-      },
-      {
-        lead: 'oncall_schedule:',
-        text: 'Who gets paged (can be on owner team)',
-      },
-      {
-        lead: 'lifecycle:',
-        text: 'Is this in production, deprecated, etc.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'owner:',
+      text: 'Which team is responsible',
+    },
+    {
+      lead: 'tier:',
+      text: 'How critical is this service (determines incident priority)',
+    },
+    {
+      lead: 'repository:',
+      text: "Where's the code",
+    },
+    {
+      lead: 'oncall_schedule:',
+      text: 'Who gets paged (can be on owner team)',
+    },
+    {
+      lead: 'lifecycle:',
+      text: 'Is this in production, deprecated, etc.',
+    },
+  ]}
 />
 
 Everything else can be recommended or optional at launch. Once you hit 90%+ coverage on those five fields, you can start requiring additional fields like runbooks for tier-1 services or dependency declarations.
@@ -507,22 +505,20 @@ The transfer workflow needs to ensure that:
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'The current owner explicitly releases responsibility',
-      },
-      {
-        text: 'The new owner explicitly accepts it',
-      },
-      {
-        text: 'Critical knowledge transfers before the handoff completes',
-      },
-      {
-        text: 'Both teams are on the escalation path during transition',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'The current owner explicitly releases responsibility',
+    },
+    {
+      text: 'The new owner explicitly accepts it',
+    },
+    {
+      text: 'Critical knowledge transfers before the handoff completes',
+    },
+    {
+      text: 'Both teams are on the escalation path during transition',
+    },
+  ]}
 />
 
 A two-week transition period where both teams receive pages has saved me more than once. The new team gets exposure to real incidents while the old team is still available to help. It surfaces knowledge gaps before they become 3 AM surprises.
@@ -607,26 +603,24 @@ Run orphan detection weekly. The rules should catch:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Dissolved teams:',
-        text: 'The team ID in the catalog no longer exists in your identity provider',
-      },
-      {
-        lead: 'Empty teams:',
-        text: 'The team exists but has zero members',
-      },
-      {
-        lead: 'Inactive teams:',
-        text: "The team hasn't deployed, committed, or responded to incidents in 90+ days",
-      },
-      {
-        lead: 'Missing oncall:',
-        text: 'tier-1/tier-2 services without a valid oncall schedule',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Dissolved teams:',
+      text: 'The team ID in the catalog no longer exists in your identity provider',
+    },
+    {
+      lead: 'Empty teams:',
+      text: 'The team exists but has zero members',
+    },
+    {
+      lead: 'Inactive teams:',
+      text: "The team hasn't deployed, committed, or responded to incidents in 90+ days",
+    },
+    {
+      lead: 'Missing oncall:',
+      text: 'tier-1/tier-2 services without a valid oncall schedule',
+    },
+  ]}
 />
 
 ```yaml title="orphan-detection-config.yaml"
@@ -783,26 +777,24 @@ The reconciliation logic compares declared dependencies against observed traffic
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Validated:',
-        text: 'Declared and observed-this dependency is real and documented',
-      },
-      {
-        lead: 'Declared but not observed:',
-        text: 'In the catalog but no recent traffic-possibly stale or only used in specific scenarios',
-      },
-      {
-        lead: 'Undeclared:',
-        text: 'Observed in traffic but not in catalog-shadow dependency, needs to be declared',
-      },
-      {
-        lead: 'Unknown:',
-        text: "Neither declared nor observed-shouldn't exist in the graph",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Validated:',
+      text: 'Declared and observed-this dependency is real and documented',
+    },
+    {
+      lead: 'Declared but not observed:',
+      text: 'In the catalog but no recent traffic-possibly stale or only used in specific scenarios',
+    },
+    {
+      lead: 'Undeclared:',
+      text: 'Observed in traffic but not in catalog-shadow dependency, needs to be declared',
+    },
+    {
+      lead: 'Unknown:',
+      text: "Neither declared nor observed-shouldn't exist in the graph",
+    },
+  ]}
 />
 
 Undeclared dependencies are the dangerous ones. They represent hidden coupling that won't show up in impact analysis. When you're planning maintenance on a service, you need to know _everything_ that depends on it, not just what's documented.
@@ -832,27 +824,25 @@ Once you have dependency data, the catalog needs to answer questions about it. T
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'What does service X depend on?',
-        text: '(direct and transitive)',
-      },
-      {
-        lead: 'What depends on service X?',
-        text: '(consumers/reverse dependencies)',
-      },
-      {
-        text: "What's the blast radius if service X fails?",
-      },
-      {
-        text: 'Are there circular dependencies?',
-      },
-      {
-        text: "What's the critical path between service A and service B?",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'What does service X depend on?',
+      text: '(direct and transitive)',
+    },
+    {
+      lead: 'What depends on service X?',
+      text: '(consumers/reverse dependencies)',
+    },
+    {
+      text: "What's the blast radius if service X fails?",
+    },
+    {
+      text: 'Are there circular dependencies?',
+    },
+    {
+      text: "What's the critical path between service A and service B?",
+    },
+  ]}
 />
 
 Blast radius is particularly useful for incident response and maintenance planning. When a tier-1 database goes down, you want to immediately know how many services are affected and which teams need to be notified.
@@ -937,26 +927,24 @@ The benefits of catalog-as-code:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Audit trail:',
-        text: 'Git history shows who changed what and when',
-      },
-      {
-        lead: 'Review process:',
-        text: 'Catalog changes get the same scrutiny as code changes',
-      },
-      {
-        lead: 'Atomic updates:',
-        text: 'Code and catalog changes ship together',
-      },
-      {
-        lead: 'Developer ownership:',
-        text: 'Teams maintain their own entries rather than relying on a central team',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Audit trail:',
+      text: 'Git history shows who changed what and when',
+    },
+    {
+      lead: 'Review process:',
+      text: 'Catalog changes get the same scrutiny as code changes',
+    },
+    {
+      lead: 'Atomic updates:',
+      text: 'Code and catalog changes ship together',
+    },
+    {
+      lead: 'Developer ownership:',
+      text: 'Teams maintain their own entries rather than relying on a central team',
+    },
+  ]}
 />
 
 ### CI/CD Integration
@@ -1042,22 +1030,20 @@ Run freshness checks weekly. The rules should enforce:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Ownership verification:',
-        text: 'Every 6 months, require teams to confirm they still own their services',
-      },
-      {
-        lead: 'Dependency review:',
-        text: 'Every 90 days for tier-1/2 services, flag declared dependencies not observed in traffic',
-      },
-      {
-        lead: 'Runbook freshness:',
-        text: 'Every 90 days, remind owners to review runbooks for accuracy',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Ownership verification:',
+      text: 'Every 6 months, require teams to confirm they still own their services',
+    },
+    {
+      lead: 'Dependency review:',
+      text: 'Every 90 days for tier-1/2 services, flag declared dependencies not observed in traffic',
+    },
+    {
+      lead: 'Runbook freshness:',
+      text: 'Every 90 days, remind owners to review runbooks for accuracy',
+    },
+  ]}
 />
 
 ```yaml title="prometheus-freshness-alerts.yaml"

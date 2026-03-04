@@ -25,19 +25,17 @@ Signal-to-noise ratio is the percentage of pages that required human action. Cal
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        text: 'Greater than 80%: healthy',
-      },
-      {
-        text: '50-80%: concerning',
-      },
-      {
-        text: 'Below 50%: your alerting is broken',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Greater than 80%: healthy',
+    },
+    {
+      text: '50-80%: concerning',
+    },
+    {
+      text: 'Below 50%: your alerting is broken',
+    },
+  ]}
 />
 
 The math is simple but brutal. A three-person team can sustainably handle maybe 3-5 pages per person per week. That's the ceiling. Waste those pages on false positives and auto-resolving transients, and you've got nothing left for real incidents.
@@ -46,25 +44,23 @@ Here's an example from a real team audit:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        text: '60 total pages this month',
-      },
-      {
-        text: '35 required action',
-      },
-      {
-        text: '20 auto-resolved before anyone could respond',
-      },
-      {
-        text: '5 were false positives',
-      },
-      {
-        text: 'SNR: 58%—concerning, needs work',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: '60 total pages this month',
+    },
+    {
+      text: '35 required action',
+    },
+    {
+      text: '20 auto-resolved before anyone could respond',
+    },
+    {
+      text: '5 were false positives',
+    },
+    {
+      text: 'SNR: 58%—concerning, needs work',
+    },
+  ]}
 />
 
 That 20 auto-resolved pages is the killer. If an alert fires and resolves before you can acknowledge it, what did it accomplish? It woke someone up, spiked their cortisol, and then... nothing. Keep interrupting people for non-events and they'll start treating every page as a non-event.
@@ -197,22 +193,20 @@ For each problematic alert, you have three options:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Delete it',
-        text: 'if the alert never leads to action. This sounds scary, but an alert that nobody acts on is worse than no alert—it trains your team to ignore pages. If you\'re nervous, demote it to a Slack notification for a month and see if anyone notices.',
-      },
-      {
-        lead: 'Tune it',
-        text: 'if the alert fires too often or at the wrong times. Add a duration requirement so transient spikes don\'t page (require the condition to persist for 5 minutes instead of firing immediately). Add hysteresis so alerts don\'t flap (fire at 90%, resolve at 80%). Adjust thresholds based on actual behavior rather than theoretical limits.',
-      },
-      {
-        lead: 'Automate it',
-        text: 'if the fix is always the same. If every disk space alert ends with "clear /tmp and rotate logs," that\'s not a human problem—that\'s a script. Auto-remediate the common case, only escalate to a human if automation fails.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Delete it',
+      text: 'if the alert never leads to action. This sounds scary, but an alert that nobody acts on is worse than no alert—it trains your team to ignore pages. If you\'re nervous, demote it to a Slack notification for a month and see if anyone notices.',
+    },
+    {
+      lead: 'Tune it',
+      text: 'if the alert fires too often or at the wrong times. Add a duration requirement so transient spikes don\'t page (require the condition to persist for 5 minutes instead of firing immediately). Add hysteresis so alerts don\'t flap (fire at 90%, resolve at 80%). Adjust thresholds based on actual behavior rather than theoretical limits.',
+    },
+    {
+      lead: 'Automate it',
+      text: 'if the fix is always the same. If every disk space alert ends with "clear /tmp and rotate logs," that\'s not a human problem—that\'s a script. Auto-remediate the common case, only escalate to a human if automation fails.',
+    },
+  ]}
 />
 
 The biggest win for most teams is after-hours filtering. Not everything needs to wake someone up at 3 AM. Implement time-based routing: P1 (service down) pages anytime, P2 (degraded but functional) pages during business hours only, P3 (needs attention but not urgent) never pages.
@@ -247,19 +241,17 @@ Start this week:
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Calculate your signal-to-noise ratio. If it\'s below 80%, you have work to do.',
-      },
-      {
-        text: 'Schedule your first weekly review during the next on-call handoff.',
-      },
-      {
-        text: 'Pick one high-volume alert and either tune it, automate it, or delete it.',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Calculate your signal-to-noise ratio. If it\'s below 80%, you have work to do.',
+    },
+    {
+      text: 'Schedule your first weekly review during the next on-call handoff.',
+    },
+    {
+      text: 'Pick one high-volume alert and either tune it, automate it, or delete it.',
+    },
+  ]}
 />
 
 The measure of good on-call isn't how many incidents you handle—it's how few incidents require handling. A small team with excellent alert hygiene sleeps better than a large team drowning in noise.

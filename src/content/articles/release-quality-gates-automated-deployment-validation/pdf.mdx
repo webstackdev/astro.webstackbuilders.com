@@ -43,26 +43,24 @@ Not all checks belong in a deployment pipeline, and not all pipeline checks shou
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Actionable',
-        text: 'means a failure provides clear next steps. "Test auth_login_test failed: expected 200, got 500" tells you exactly what broke. "Quality score below threshold" tells you nothing. If a developer can\'t understand what to fix from the gate failure message alone, the gate isn\'t actionable - and engineers will bypass rather than figuring out the reason for the failure.',
-      },
-      {
-        lead: 'Deterministic',
-        text: 'means the same code produces the same result every time. Unit tests with fixed seeds pass this bar. Performance tests on shared infrastructure don\'t—network latency, noisy neighbors, and cold starts inject variance. Flaky gates train people to retry and ignore, which defeats the purpose. Non-deterministic checks should be advisory, not blocking.',
-      },
-      {
-        lead: 'Fast',
-        text: 'means results arrive while context is still fresh. Pre-commit hooks should complete in under 30 seconds. Pre-merge gates should finish within 10 minutes. Post-deploy validation needs to reach a rollback decision within 5 minutes—longer than that, and you\'ve already served bad traffic to users. Slow gates become bottlenecks, and bottlenecks get bypassed in emergencies.',
-      },
-      {
-        lead: 'Proportional',
-        text: 'means severity matches actual risk. An authentication bypass is critical—block the deployment. A code style violation is low-risk—warn, don\'t block. A memory leak is serious but not catastrophic—block production deployments, but allow staging so you can investigate. Not all issues have equal impact; weight gates by the actual risk of the failure they detect.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Actionable',
+      text: 'means a failure provides clear next steps. "Test auth_login_test failed: expected 200, got 500" tells you exactly what broke. "Quality score below threshold" tells you nothing. If a developer can\'t understand what to fix from the gate failure message alone, the gate isn\'t actionable - and engineers will bypass rather than figuring out the reason for the failure.',
+    },
+    {
+      lead: 'Deterministic',
+      text: "means the same code produces the same result every time. Unit tests with fixed seeds pass this bar. Performance tests on shared infrastructure don't—network latency, noisy neighbors, and cold starts inject variance. Flaky gates train people to retry and ignore, which defeats the purpose. Non-deterministic checks should be advisory, not blocking.",
+    },
+    {
+      lead: 'Fast',
+      text: "means results arrive while context is still fresh. Pre-commit hooks should complete in under 30 seconds. Pre-merge gates should finish within 10 minutes. Post-deploy validation needs to reach a rollback decision within 5 minutes—longer than that, and you've already served bad traffic to users. Slow gates become bottlenecks, and bottlenecks get bypassed in emergencies.",
+    },
+    {
+      lead: 'Proportional',
+      text: 'means severity matches actual risk. An authentication bypass is critical—block the deployment. A code style violation is low-risk—warn, don\'t block. A memory leak is serious but not catastrophic—block production deployments, but allow staging so you can investigate. Not all issues have equal impact; weight gates by the actual risk of the failure they detect.',
+    },
+  ]}
 />
 
 ### Gate Categories
@@ -115,26 +113,24 @@ Some gate configurations sound reasonable but cause problems in practice:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Coverage absolutism',
-        text: '"Block if coverage drops below 80%." The problem is that refactoring can legitimately drop coverage—deleting dead code, consolidating duplicated logic, or removing tests for deprecated features all reduce line counts. A better approach: alert if coverage drops more than 5% from the baseline, which catches significant regressions without penalizing cleanup work.',
-      },
-      {
-        lead: 'All integration and E2E tests must pass',
-        text: '"Any test failure blocks deployment." This anti-pattern typically affects integration and E2E tests, not unit tests. Unit tests should be deterministic—if one fails, fix it or delete it. But integration tests depend on external services and test environments, and E2E tests are notoriously flaky due to timing, browser quirks, and infrastructure variance. Making these tests blocking creates constant friction. Better: treat unit tests as blocking (they should all pass), but quarantine flaky integration and E2E tests into a separate non-blocking job with a deadline to fix or delete. Maintain a small, stable "critical path" E2E suite that _must_ pass—ten tests maximum—and run the full suite as advisory.',
-      },
-      {
-        lead: 'Security theater',
-        text: '"Block on any security scanner finding." Security scanners generate findings for non-exploitable vulnerabilities, deprecated-but-not-dangerous patterns, and theoretical attack vectors that don\'t apply to your context. Block on CVE 9+ (critical, actively exploited), alert on high-severity findings for triage, and log everything else. Otherwise, every deployment becomes a negotiation about which security findings to ignore.',
-      },
-      {
-        lead: 'Performance regression zero tolerance',
-        text: '"Block if any metric regresses." Performance varies run to run—test infrastructure, garbage collection timing, and background processes all introduce noise. A 2% latency increase might be real or might be measurement variance. Better: block if P99 latency regresses more than 20% across multiple runs, which filters out noise while catching real regressions.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Coverage absolutism',
+      text: '"Block if coverage drops below 80%." The problem is that refactoring can legitimately drop coverage—deleting dead code, consolidating duplicated logic, or removing tests for deprecated features all reduce line counts. A better approach: alert if coverage drops more than 5% from the baseline, which catches significant regressions without penalizing cleanup work.',
+    },
+    {
+      lead: 'All integration and E2E tests must pass',
+      text: '"Any test failure blocks deployment." This anti-pattern typically affects integration and E2E tests, not unit tests. Unit tests should be deterministic—if one fails, fix it or delete it. But integration tests depend on external services and test environments, and E2E tests are notoriously flaky due to timing, browser quirks, and infrastructure variance. Making these tests blocking creates constant friction. Better: treat unit tests as blocking (they should all pass), but quarantine flaky integration and E2E tests into a separate non-blocking job with a deadline to fix or delete. Maintain a small, stable "critical path" E2E suite that _must_ pass—ten tests maximum—and run the full suite as advisory.',
+    },
+    {
+      lead: 'Security theater',
+      text: '"Block on any security scanner finding." Security scanners generate findings for non-exploitable vulnerabilities, deprecated-but-not-dangerous patterns, and theoretical attack vectors that don\'t apply to your context. Block on CVE 9+ (critical, actively exploited), alert on high-severity findings for triage, and log everything else. Otherwise, every deployment becomes a negotiation about which security findings to ignore.',
+    },
+    {
+      lead: 'Performance regression zero tolerance',
+      text: '"Block if any metric regresses." Performance varies run to run—test infrastructure, garbage collection timing, and background processes all introduce noise. A 2% latency increase might be real or might be measurement variance. Better: block if P99 latency regresses more than 20% across multiple runs, which filters out noise while catching real regressions.',
+    },
+  ]}
 />
 
 ### Measuring Gate Effectiveness
@@ -143,26 +139,24 @@ The ultimate question: is this gate worth having? Track these metrics to find ou
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Precision',
-        text: 'is the percentage of gate failures that represent real problems: true positives divided by all positives. Target 90%+ for blocking gates. If precision is 50%, half of all blocks are false alarms—engineers will stop trusting the gate.',
-      },
-      {
-        lead: 'Recall',
-        text: 'is the percentage of real problems the gate catches: true positives divided by all actual problems. A gate can achieve 100% precision by never firing, so you need balance. Target 80%+ recall for critical issue types.',
-      },
-      {
-        lead: 'False positive rate',
-        text: 'is false positives divided by total gate runs. For blocking gates, keep this under 5%. If it exceeds 10%, make the gate advisory until you\'ve fixed it. Note that precision and false positive rate are related but not identical—precision measures failures specifically, while false positive rate measures all runs. A gate that rarely fires can have a low false positive rate but poor precision.',
-      },
-      {
-        lead: 'Bypass rate',
-        text: 'is manual bypasses divided by gate failures. Target under 10%. A high bypass rate means the gate isn\'t trusted—either the gate is misconfigured or teams are cutting corners. Either way, you need to investigate.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Precision',
+      text: 'is the percentage of gate failures that represent real problems: true positives divided by all positives. Target 90%+ for blocking gates. If precision is 50%, half of all blocks are false alarms—engineers will stop trusting the gate.',
+    },
+    {
+      lead: 'Recall',
+      text: 'is the percentage of real problems the gate catches: true positives divided by all actual problems. A gate can achieve 100% precision by never firing, so you need balance. Target 80%+ recall for critical issue types.',
+    },
+    {
+      lead: 'False positive rate',
+      text: 'is false positives divided by total gate runs. For blocking gates, keep this under 5%. If it exceeds 10%, make the gate advisory until you\'ve fixed it. Note that precision and false positive rate are related but not identical—precision measures failures specifically, while false positive rate measures all runs. A gate that rarely fires can have a low false positive rate but poor precision.',
+    },
+    {
+      lead: 'Bypass rate',
+      text: 'is manual bypasses divided by gate failures. Target under 10%. A high bypass rate means the gate isn\'t trusted—either the gate is misconfigured or teams are cutting corners. Either way, you need to investigate.',
+    },
+  ]}
 />
 
 How do you actually track these metrics? Most CI/CD platforms don't provide gate effectiveness dashboards out of the box—you need to build the instrumentation. The basic approach: emit structured events for every gate execution that include the gate name, result (pass/fail/bypass), duration, and any override justification, then ship those events to your observability platform.
@@ -189,22 +183,20 @@ The most fundamental gates are deterministic and should always block:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Compilation',
-        text: 'has a near-zero false positive rate. If the code doesn\'t compile, there\'s nothing to discuss—fail fast and don\'t waste time on subsequent gates.',
-      },
-      {
-        lead: 'Linting',
-        text: 'catches syntax issues and definite bugs with very low false positives. The key is distinguishing lint _errors_ (block) from lint _warnings_ (log but don\'t block). Configure your linter to only error on rules the team has agreed are non-negotiable; demote everything else to warnings.',
-      },
-      {
-        lead: 'Type checking',
-        text: 'for TypeScript, Java, or other typed languages is effectively deterministic. Type errors represent real bugs—type mismatches, null reference risks, interface violations. Block on these.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Compilation',
+      text: 'has a near-zero false positive rate. If the code doesn\'t compile, there\'s nothing to discuss—fail fast and don\'t waste time on subsequent gates.',
+    },
+    {
+      lead: 'Linting',
+      text: 'catches syntax issues and definite bugs with very low false positives. The key is distinguishing lint _errors_ (block) from lint _warnings_ (log but don\'t block). Configure your linter to only error on rules the team has agreed are non-negotiable; demote everything else to warnings.',
+    },
+    {
+      lead: 'Type checking',
+      text: 'for TypeScript, Java, or other typed languages is effectively deterministic. Type errors represent real bugs—type mismatches, null reference risks, interface violations. Block on these.',
+    },
+  ]}
 />
 
 ### Test Gates
@@ -213,26 +205,24 @@ Test gates require more nuance because different test types have different relia
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Unit tests',
-        text: 'should be blocking with a 100% pass rate requirement. Unit tests are fast, deterministic, and isolated—if one fails, it\'s a real bug. The exception is a genuinely flaky unit test, which should be fixed immediately or deleted. Don\'t quarantine unit tests; they shouldn\'t be flaky in the first place.',
-      },
-      {
-        lead: 'Integration tests',
-        text: 'are trickier. They depend on external systems, test databases, and service dependencies that introduce variance. A test might fail because of a real bug, or because the test database wasn\'t seeded correctly, or because a downstream service timed out. Make integration tests required-advisory: run them on every build, alert on failures, but allow deployment with approval if the failure is environmental rather than code-related.',
-      },
-      {
-        lead: 'E2E tests',
-        text: 'are the most prone to flakiness—browser timing, network latency, animation races, and test infrastructure all inject variance. Run a small critical-path suite (under ten tests covering login, checkout, or whatever your core flows are) as blocking, and relegate the full E2E suite to post-deploy or nightly runs. The full suite provides valuable coverage, but it shouldn\'t gate every deployment.',
-      },
-      {
-        lead: 'Contract tests',
-        text: 'verify that API changes don\'t break consumers. If you\'re using consumer-driven contracts (Pact, for example), these should be blocking—a contract violation means you\'re about to break a downstream service. The false positive rate is low as long as contracts are properly versioned.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Unit tests',
+      text: 'should be blocking with a 100% pass rate requirement. Unit tests are fast, deterministic, and isolated—if one fails, it\'s a real bug. The exception is a genuinely flaky unit test, which should be fixed immediately or deleted. Don\'t quarantine unit tests; they shouldn\'t be flaky in the first place.',
+    },
+    {
+      lead: 'Integration tests',
+      text: 'are trickier. They depend on external systems, test databases, and service dependencies that introduce variance. A test might fail because of a real bug, or because the test database wasn\'t seeded correctly, or because a downstream service timed out. Make integration tests required-advisory: run them on every build, alert on failures, but allow deployment with approval if the failure is environmental rather than code-related.',
+    },
+    {
+      lead: 'E2E tests',
+      text: 'are the most prone to flakiness—browser timing, network latency, animation races, and test infrastructure all inject variance. Run a small critical-path suite (under ten tests covering login, checkout, or whatever your core flows are) as blocking, and relegate the full E2E suite to post-deploy or nightly runs. The full suite provides valuable coverage, but it shouldn\'t gate every deployment.',
+    },
+    {
+      lead: 'Contract tests',
+      text: 'verify that API changes don\'t break consumers. If you\'re using consumer-driven contracts (Pact, for example), these should be blocking—a contract violation means you\'re about to break a downstream service. The false positive rate is low as long as contracts are properly versioned.',
+    },
+  ]}
 />
 
 ### Coverage Gates
@@ -241,18 +231,16 @@ Coverage gates are where teams most often go wrong. Absolute coverage thresholds
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Coverage delta',
-        text: 'alerts if coverage drops more than 5% from the baseline. This catches significant regressions—someone deleting tests or adding large amounts of untested code—without blocking normal variance.',
-      },
-      {
-        lead: 'New code coverage',
-        text: 'requires that new or changed lines have reasonable coverage (70-80%). This ensures new code is tested without holding the entire codebase to an arbitrary standard. Block only if new code has zero coverage; warn if it\'s below threshold.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Coverage delta',
+      text: 'alerts if coverage drops more than 5% from the baseline. This catches significant regressions—someone deleting tests or adding large amounts of untested code—without blocking normal variance.',
+    },
+    {
+      lead: 'New code coverage',
+      text: 'requires that new or changed lines have reasonable coverage (70-80%). This ensures new code is tested without holding the entire codebase to an arbitrary standard. Block only if new code has zero coverage; warn if it\'s below threshold.',
+    },
+  ]}
 />
 
 ### Security Gates
@@ -261,14 +249,12 @@ Security gates protect against vulnerabilities, exposed secrets, and unsafe code
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Dependency vulnerability scanning',
-        text: '(Snyk, Dependabot, npm audit, or similar) checks your dependencies against known vulnerability databases. The key is severity-based thresholds:',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Dependency vulnerability scanning',
+      text: '(Snyk, Dependabot, npm audit, or similar) checks your dependencies against known vulnerability databases. The key is severity-based thresholds:',
+    },
+  ]}
 />
 
 <Table
@@ -305,18 +291,16 @@ For vulnerabilities that aren't exploitable in your context (wrong OS, unexposed
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'SAST (static analysis)',
-        text: 'tools like CodeQL, Semgrep, or SonarQube scan code for security anti-patterns, injection risks, and unsafe operations. These tools have higher false positive rates than vulnerability scanners, so start with high-confidence rules only and add rules gradually based on your team\'s capacity to triage findings. If a rule has more than 20% false positives, disable it until it\'s improved.',
-      },
-      {
-        lead: 'Secrets scanning',
-        text: '(GitLeaks, TruffleHog, detect-secrets) looks for API keys, passwords, and credentials accidentally committed to the repository. This is one of the few gates that should be zero-tolerance blocking. Modern secret scanners have very low false positive rates, and the impact of a leaked secret—exposed infrastructure, compromised accounts, data breaches—is severe enough to justify stopping everything.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'SAST (static analysis)',
+      text: 'tools like CodeQL, Semgrep, or SonarQube scan code for security anti-patterns, injection risks, and unsafe operations. These tools have higher false positive rates than vulnerability scanners, so start with high-confidence rules only and add rules gradually based on your team\'s capacity to triage findings. If a rule has more than 20% false positives, disable it until it\'s improved.',
+    },
+    {
+      lead: 'Secrets scanning',
+      text: '(GitLeaks, TruffleHog, detect-secrets) looks for API keys, passwords, and credentials accidentally committed to the repository. This is one of the few gates that should be zero-tolerance blocking. Modern secret scanners have very low false positive rates, and the impact of a leaked secret—exposed infrastructure, compromised accounts, data breaches—is severe enough to justify stopping everything.',
+    },
+  ]}
 />
 
 <Callout type="danger">
@@ -333,22 +317,20 @@ The first 30-60 seconds after deployment are critical. If something is catastrop
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Health checks',
-        text: 'are the most basic gate: can the service respond to a health endpoint? Does it report all dependencies as reachable? Is it avoiding crash loops? This gate should be blocking with automatic rollback. If the service can\'t pass a basic health check within 60 seconds, roll back immediately.',
-      },
-      {
-        lead: 'Smoke tests',
-        text: 'run slightly later, 30-120 seconds post-deploy, and verify that critical paths work: authentication, core API endpoints, essential business flows. Keep the scope small—five to ten operations maximum—so the gate completes quickly. These should also trigger automatic rollback on failure.',
-      },
-      {
-        lead: 'Startup metrics',
-        text: 'watch for resource problems during initialization: OOM kills, CPU pegged at 100%, or an explosion of error logs. These are advisory rather than blocking because some variance is expected during startup, but significant anomalies should alert for investigation.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Health checks',
+      text: 'are the most basic gate: can the service respond to a health endpoint? Does it report all dependencies as reachable? Is it avoiding crash loops? This gate should be blocking with automatic rollback. If the service can\'t pass a basic health check within 60 seconds, roll back immediately.',
+    },
+    {
+      lead: 'Smoke tests',
+      text: 'run slightly later, 30-120 seconds post-deploy, and verify that critical paths work: authentication, core API endpoints, essential business flows. Keep the scope small—five to ten operations maximum—so the gate completes quickly. These should also trigger automatic rollback on failure.',
+    },
+    {
+      lead: 'Startup metrics',
+      text: 'watch for resource problems during initialization: OOM kills, CPU pegged at 100%, or an explosion of error logs. These are advisory rather than blocking because some variance is expected during startup, but significant anomalies should alert for investigation.',
+    },
+  ]}
 />
 
 ### Canary Validation
@@ -357,26 +339,24 @@ Once immediate health is confirmed, canary validation compares the new version a
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Error rate',
-        text: 'compares 5xx responses between canary and stable traffic. Fail if the canary error rate exceeds the baseline by more than 1 percentage point, or if it exceeds 5% absolute. The observation window should be at least five minutes to gather enough data.',
-      },
-      {
-        lead: 'Latency',
-        text: 'compares P99 response times. Fail if the canary P99 exceeds 1.5x the baseline, or if it exceeds your SLO threshold regardless of baseline. Again, five minutes minimum observation.',
-      },
-      {
-        lead: 'Saturation',
-        text: 'watches resource utilization—CPU, memory, connection pools. If any metric spikes above 80% while the baseline is below 50%, something\'s wrong. This catches resource leaks and inefficient code paths before they exhaust capacity.',
-      },
-      {
-        lead: 'Business metrics',
-        text: 'like conversion rate, checkout completion, or search success rate require longer observation windows (15-30 minutes) because they have higher variance. Make these advisory for small changes, blocking only for significant regressions (more than 10% decline).',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Error rate',
+      text: 'compares 5xx responses between canary and stable traffic. Fail if the canary error rate exceeds the baseline by more than 1 percentage point, or if it exceeds 5% absolute. The observation window should be at least five minutes to gather enough data.',
+    },
+    {
+      lead: 'Latency',
+      text: 'compares P99 response times. Fail if the canary P99 exceeds 1.5x the baseline, or if it exceeds your SLO threshold regardless of baseline. Again, five minutes minimum observation.',
+    },
+    {
+      lead: 'Saturation',
+      text: 'watches resource utilization—CPU, memory, connection pools. If any metric spikes above 80% while the baseline is below 50%, something\'s wrong. This catches resource leaks and inefficient code paths before they exhaust capacity.',
+    },
+    {
+      lead: 'Business metrics',
+      text: 'like conversion rate, checkout completion, or search success rate require longer observation windows (15-30 minutes) because they have higher variance. Make these advisory for small changes, blocking only for significant regressions (more than 10% decline).',
+    },
+  ]}
 />
 
 ### Progressive Rollout Gates
@@ -751,22 +731,20 @@ Not all bypasses are equal. Categorizing them helps determine the appropriate ap
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Emergency bypass',
-        text: 'is for critical production incidents where the fix must deploy immediately. This requires approval from both the on-call engineer and an engineering manager. Document the incident ID, which gates were bypassed, and why. Every emergency bypass should become a retrospective item—either the gate was wrong (fix it) or a real problem was bypassed (understand why).',
-      },
-      {
-        lead: 'Known issue bypass',
-        text: 'handles documented false positives. If a gate fails due to a known issue that\'s already tracked, any engineer can bypass by referencing the existing issue. The bypass is tied to issue resolution—when the issue is fixed, the bypass goes away. This prevents permanent exceptions that outlive their justification.',
-      },
-      {
-        lead: 'Flaky test bypass',
-        text: 'can be automated with limits. If a test fails once but passes on retry (up to three attempts), allow the deployment but flag the flaky occurrence. Auto-file an issue after three flaky occurrences. This keeps deployments moving without letting flaky tests become invisible.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Emergency bypass',
+      text: 'is for critical production incidents where the fix must deploy immediately. This requires approval from both the on-call engineer and an engineering manager. Document the incident ID, which gates were bypassed, and why. Every emergency bypass should become a retrospective item—either the gate was wrong (fix it) or a real problem was bypassed (understand why).',
+    },
+    {
+      lead: 'Known issue bypass',
+      text: 'handles documented false positives. If a gate fails due to a known issue that\'s already tracked, any engineer can bypass by referencing the existing issue. The bypass is tied to issue resolution—when the issue is fixed, the bypass goes away. This prevents permanent exceptions that outlive their justification.',
+    },
+    {
+      lead: 'Flaky test bypass',
+      text: 'can be automated with limits. If a test fails once but passes on retry (up to three attempts), allow the deployment but flag the flaky occurrence. Auto-file an issue after three flaky occurrences. This keeps deployments moving without letting flaky tests become invisible.',
+    },
+  ]}
 />
 
 ### Implementation
@@ -802,26 +780,24 @@ Bypasses should be rare. If they're not, something's wrong—either with your ga
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Rate limiting',
-        text: 'Set a threshold like three bypasses per team per week. Beyond that, require director approval. This creates friction that encourages fixing the underlying problem rather than repeatedly bypassing.',
-      },
-      {
-        lead: 'Weekly review',
-        text: 'Engineering leadership should review all bypasses weekly. Look for patterns: same gate bypassed repeatedly (fix the gate), same team bypassing frequently (investigate why), bypasses followed by incidents (gates were right).',
-      },
-      {
-        lead: 'Automatic escalation',
-        text: 'If the same gate is bypassed three or more times, auto-create an issue assigned to the platform team. The gate either has a precision problem or teams don\'t understand what it\'s catching.',
-      },
-      {
-        lead: 'Transparency',
-        text: 'Make bypass rates visible on a dashboard accessible to all engineers. Social pressure helps—no one wants to be the team with the highest bypass rate.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Rate limiting',
+      text: 'Set a threshold like three bypasses per team per week. Beyond that, require director approval. This creates friction that encourages fixing the underlying problem rather than repeatedly bypassing.',
+    },
+    {
+      lead: 'Weekly review',
+      text: 'Engineering leadership should review all bypasses weekly. Look for patterns: same gate bypassed repeatedly (fix the gate), same team bypassing frequently (investigate why), bypasses followed by incidents (gates were right).',
+    },
+    {
+      lead: 'Automatic escalation',
+      text: 'If the same gate is bypassed three or more times, auto-create an issue assigned to the platform team. The gate either has a precision problem or teams don\'t understand what it\'s catching.',
+    },
+    {
+      lead: 'Transparency',
+      text: 'Make bypass rates visible on a dashboard accessible to all engineers. Social pressure helps—no one wants to be the team with the highest bypass rate.',
+    },
+  ]}
 />
 
 <Callout type="warning">
@@ -838,30 +814,28 @@ A few principles to carry forward:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Design for precision over recall.',
-        text: 'A gate that blocks one real problem and ten false positives is worse than no gate at all. Engineers will route around it, and trust in the whole system erodes. Better to catch fewer problems with high confidence.',
-      },
-      {
-        lead: 'Categorize ruthlessly.',
-        text: 'Not every gate belongs in the critical path. Compile failures must block. Security vulnerabilities must block. But a 2% coverage regression? A 50ms latency increase? Those deserve investigation, not pipeline failure. Advisory gates surface the signal without creating friction.',
-      },
-      {
-        lead: 'Combine threshold types.',
-        text: 'Absolute thresholds catch catastrophic failures (error rate above 5%, latency above 2 seconds). Relative thresholds catch regressions (20% worse than baseline). Used together, they\'re robust against both disaster and slow degradation.',
-      },
-      {
-        lead: 'Automate the hard part.',
-        text: 'Manual approval gates don\'t scale. Progressive delivery tools like Argo Rollouts and Flagger shift the burden from humans to metrics. Define what "healthy" means, and let automation enforce it.',
-      },
-      {
-        lead: 'Maintain escape hatches.',
-        text: 'Bypasses aren\'t a failure mode—they\'re a feature. Production incidents don\'t wait for flaky tests to stabilize. But bypasses need audit trails, approval workflows, and weekly review. Uncontrolled bypasses defeat the purpose.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Design for precision over recall.',
+      text: 'A gate that blocks one real problem and ten false positives is worse than no gate at all. Engineers will route around it, and trust in the whole system erodes. Better to catch fewer problems with high confidence.',
+    },
+    {
+      lead: 'Categorize ruthlessly.',
+      text: 'Not every gate belongs in the critical path. Compile failures must block. Security vulnerabilities must block. But a 2% coverage regression? A 50ms latency increase? Those deserve investigation, not pipeline failure. Advisory gates surface the signal without creating friction.',
+    },
+    {
+      lead: 'Combine threshold types.',
+      text: 'Absolute thresholds catch catastrophic failures (error rate above 5%, latency above 2 seconds). Relative thresholds catch regressions (20% worse than baseline). Used together, they\'re robust against both disaster and slow degradation.',
+    },
+    {
+      lead: 'Automate the hard part.',
+      text: 'Manual approval gates don\'t scale. Progressive delivery tools like Argo Rollouts and Flagger shift the burden from humans to metrics. Define what "healthy" means, and let automation enforce it.',
+    },
+    {
+      lead: 'Maintain escape hatches.',
+      text: 'Bypasses aren\'t a failure mode—they\'re a feature. Production incidents don\'t wait for flaky tests to stabilize. But bypasses need audit trails, approval workflows, and weekly review. Uncontrolled bypasses defeat the purpose.',
+    },
+  ]}
 />
 
 The goal isn't zero-risk deployments. Zero risk means zero deployments, which means zero value delivered. The goal is catching the failures that matter while maintaining the velocity your business requires.

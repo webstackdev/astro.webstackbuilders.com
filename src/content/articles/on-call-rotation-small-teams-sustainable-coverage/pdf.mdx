@@ -36,22 +36,20 @@ The rotation length question seems simple—weekly or daily?—but the answer de
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Weekly rotations',
-        text: 'work when pages are infrequent (fewer than five per week on average). One person owns the entire week, which means clear accountability and no context lost during handoffs. The downside is brutal: if you get paged six times on Monday night, you still have six more days to go. A bad week compounds. For a three-person team, weekly rotations also mean each person is "on" for a full third of the year.',
-      },
-      {
-        lead: 'Daily rotations',
-        text: 'spread the pain more evenly. A rough night doesn\'t turn into a rough week—you hand off in the morning and recover. The tradeoff is more handoffs, which means more context loss. If an incident spans multiple days, the person who started it may not be the one who finishes it. Daily rotations work better when page volume is higher or more variable.',
-      },
-      {
-        lead: 'Business-hours-only coverage',
-        text: 'is underrated. If your service can tolerate delayed response to overnight incidents—many internal tools can—this model is indefinitely sustainable. No night pages, normal sleep schedules. The honest conversation is whether your SLAs actually require 24/7 response or whether that\'s an assumption nobody has questioned.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Weekly rotations',
+      text: 'work when pages are infrequent (fewer than five per week on average). One person owns the entire week, which means clear accountability and no context lost during handoffs. The downside is brutal: if you get paged six times on Monday night, you still have six more days to go. A bad week compounds. For a three-person team, weekly rotations also mean each person is "on" for a full third of the year.',
+    },
+    {
+      lead: 'Daily rotations',
+      text: 'spread the pain more evenly. A rough night doesn\'t turn into a rough week—you hand off in the morning and recover. The tradeoff is more handoffs, which means more context loss. If an incident spans multiple days, the person who started it may not be the one who finishes it. Daily rotations work better when page volume is higher or more variable.',
+    },
+    {
+      lead: 'Business-hours-only coverage',
+      text: 'is underrated. If your service can tolerate delayed response to overnight incidents—many internal tools can—this model is indefinitely sustainable. No night pages, normal sleep schedules. The honest conversation is whether your SLAs actually require 24/7 response or whether that\'s an assumption nobody has questioned.',
+    },
+  ]}
 />
 
 The hybrid approach combines these: full coverage during business hours, but after hours only critical alerts page. P2 issues queue for morning. This is often the sweet spot for small teams—you're not ignoring problems, but you're also not waking someone up for something that can wait eight hours.
@@ -98,19 +96,17 @@ If two people need to be out simultaneously (it happens), you have three options
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Borrow someone from an adjacent team',
-      },
-      {
-        text: 'Hire a contractor for acknowledge-and-escalate coverage',
-      },
-      {
-        text: 'Temporarily reduce alerting sensitivity and accept slower response times',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Borrow someone from an adjacent team',
+    },
+    {
+      text: 'Hire a contractor for acknowledge-and-escalate coverage',
+    },
+    {
+      text: 'Temporarily reduce alerting sensitivity and accept slower response times',
+    },
+  ]}
 />
 
 For illness, the secondary takes over immediately. If the illness extends beyond a few days, the remaining team members split the rotation and escalate to management for additional support. This is when having runbooks that don't require deep system knowledge pays off—a contractor or borrowed engineer can acknowledge alerts and follow documented escalation paths even without full context.
@@ -131,26 +127,24 @@ Every alert needs a severity level, and that level determines whether it pages, 
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'P1 (Critical)',
-        text: 'means the service is down or severely degraded for users. Homepage returning 500s, payment processing failing, database unreachable. These page immediately, any time of day. Target response is under 15 minutes. If you\'re getting more than one P1 per week on average, something is fundamentally broken.',
-      },
-      {
-        lead: 'P2 (High)',
-        text: 'is significant degradation but the service is still functional. Elevated error rates, one replica down out of three, performance degraded 2x from baseline. These page during business hours but only notify (no phone call) after hours. Target response is under an hour during business hours.',
-      },
-      {
-        lead: 'P3 (Medium)',
-        text: 'needs attention but isn\'t urgent. Disk usage at 80%, certificate expiring in 14 days, elevated but stable error rate. These create tickets and get addressed the next business day. They never page.',
-      },
-      {
-        lead: 'P4 (Low)',
-        text: 'is informational. Traffic 20% above normal, new warning in logs, dependency updated. Log these for weekly review. No notification at all.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'P1 (Critical)',
+      text: 'means the service is down or severely degraded for users. Homepage returning 500s, payment processing failing, database unreachable. These page immediately, any time of day. Target response is under 15 minutes. If you\'re getting more than one P1 per week on average, something is fundamentally broken.',
+    },
+    {
+      lead: 'P2 (High)',
+      text: 'is significant degradation but the service is still functional. Elevated error rates, one replica down out of three, performance degraded 2x from baseline. These page during business hours but only notify (no phone call) after hours. Target response is under an hour during business hours.',
+    },
+    {
+      lead: 'P3 (Medium)',
+      text: 'needs attention but isn\'t urgent. Disk usage at 80%, certificate expiring in 14 days, elevated but stable error rate. These create tickets and get addressed the next business day. They never page.',
+    },
+    {
+      lead: 'P4 (Low)',
+      text: 'is informational. Traffic 20% above normal, new warning in logs, dependency updated. Log these for weekly review. No notification at all.',
+    },
+  ]}
 />
 
 The distribution matters as much as the definitions. A healthy alert portfolio looks something like 5% P1, 15% P2, 40% P3, and 40% P4. If most of your alerts are P1 or P2, you're either running a genuinely unstable system or you've miscategorized severity.
@@ -163,25 +157,23 @@ Here's an example from a real team audit:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        text: '60 total pages this month',
-      },
-      {
-        text: '35 required action',
-      },
-      {
-        text: '20 auto-resolved before anyone could respond',
-      },
-      {
-        text: '5 were false positives',
-      },
-      {
-        text: 'SNR: 58%—concerning, needs work',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: '60 total pages this month',
+    },
+    {
+      text: '35 required action',
+    },
+    {
+      text: '20 auto-resolved before anyone could respond',
+    },
+    {
+      text: '5 were false positives',
+    },
+    {
+      text: 'SNR: 58%—concerning, needs work',
+    },
+  ]}
 />
 
 That 20 auto-resolved pages number is the killer. If an alert fires and resolves before you can acknowledge it, what did it accomplish? It woke someone up, spiked their cortisol, and then... nothing. Do that enough times and your team learns to ignore pages entirely.
@@ -190,25 +182,23 @@ Every week during on-call handoff, review every page from the past week and ask 
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Did this require human action?',
-      },
-      {
-        text: 'Could it have been prevented?',
-      },
-      {
-        text: 'Could it have waited until morning?',
-      },
-      {
-        text: 'Was the runbook sufficient?',
-      },
-      {
-        text: 'Should this alert exist at all?',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Did this require human action?',
+    },
+    {
+      text: 'Could it have been prevented?',
+    },
+    {
+      text: 'Could it have waited until morning?',
+    },
+    {
+      text: 'Was the runbook sufficient?',
+    },
+    {
+      text: 'Should this alert exist at all?',
+    },
+  ]}
 />
 
 The answers drive improvements. Alert too sensitive? Tune the threshold. Could be automated? Build auto-remediation. Provided no value? Delete it. The goal is for every alert to earn its place in the rotation.
@@ -261,22 +251,20 @@ A three-person team needs exactly three escalation tiers:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Tier 1',
-        text: 'is the primary on-call. They get the initial page via push notification and phone call. The expectation is acknowledgment within 10-15 minutes and beginning investigation.',
-      },
-      {
-        lead: 'Tier 2',
-        text: 'is the secondary on-call. If the primary doesn\'t acknowledge within the timeout, the secondary gets paged. Same notification method—push plus phone call. Their job is to take over if the primary is unavailable.',
-      },
-      {
-        lead: 'Tier 3',
-        text: 'is the engineering manager or team lead. If neither primary nor secondary responds within 30 minutes total, escalate to management. At this point, the goal isn\'t necessarily for the manager to fix the problem—it\'s to coordinate a response and call in additional help if needed.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Tier 1',
+      text: 'is the primary on-call. They get the initial page via push notification and phone call. The expectation is acknowledgment within 10-15 minutes and beginning investigation.',
+    },
+    {
+      lead: 'Tier 2',
+      text: 'is the secondary on-call. If the primary doesn\'t acknowledge within the timeout, the secondary gets paged. Same notification method—push plus phone call. Their job is to take over if the primary is unavailable.',
+    },
+    {
+      lead: 'Tier 3',
+      text: 'is the engineering manager or team lead. If neither primary nor secondary responds within 30 minutes total, escalate to management. At this point, the goal isn\'t necessarily for the manager to fix the problem—it\'s to coordinate a response and call in additional help if needed.',
+    },
+  ]}
 />
 
 This should rarely reach tier 3. If it does regularly, something is wrong with your notification setup or your team's responsiveness expectations.
@@ -331,34 +319,32 @@ The incident flow has six steps, and the first three happen in the first 20 minu
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Step 1: Acknowledge within 15 minutes.',
-        text: 'This stops escalation and confirms a human is aware. Don\'t investigate yet—just acknowledge.',
-      },
-      {
-        lead: 'Step 2: Assess the severity and scope.',
-        text: 'Three questions: What\'s the user impact? How many users are affected? Is it getting worse? Spend no more than 5 minutes on initial assessment.',
-      },
-      {
-        lead: 'Step 3: Communicate for P1 and P2 incidents.',
-        text: 'Post to your incident channel with the key details: what\'s happening, what\'s the impact, current status, who\'s handling it. This keeps stakeholders informed without requiring you to answer individual questions.',
-      },
-      {
-        lead: 'Step 4: Mitigate before investigating.',
-        text: 'Stop the bleeding first—rollback a recent deployment, scale up resources, enable maintenance mode, redirect traffic. The goal is restoring service, not understanding root cause. Root cause analysis happens later, when you\'re not in crisis mode.',
-      },
-      {
-        lead: 'Step 5: Resolve by confirming service is restored.',
-        text: 'Check monitoring, spot-check user flows, verify no new error reports. Update the incident channel with resolution.',
-      },
-      {
-        lead: 'Step 6: Follow up within 24 hours.',
-        text: 'Create a post-incident ticket documenting the timeline, root cause if known, and action items. This doesn\'t need to be a formal postmortem for every incident, but there should be a record.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Step 1: Acknowledge within 15 minutes.',
+      text: 'This stops escalation and confirms a human is aware. Don\'t investigate yet—just acknowledge.',
+    },
+    {
+      lead: 'Step 2: Assess the severity and scope.',
+      text: 'Three questions: What\'s the user impact? How many users are affected? Is it getting worse? Spend no more than 5 minutes on initial assessment.',
+    },
+    {
+      lead: 'Step 3: Communicate for P1 and P2 incidents.',
+      text: 'Post to your incident channel with the key details: what\'s happening, what\'s the impact, current status, who\'s handling it. This keeps stakeholders informed without requiring you to answer individual questions.',
+    },
+    {
+      lead: 'Step 4: Mitigate before investigating.',
+      text: 'Stop the bleeding first—rollback a recent deployment, scale up resources, enable maintenance mode, redirect traffic. The goal is restoring service, not understanding root cause. Root cause analysis happens later, when you\'re not in crisis mode.',
+    },
+    {
+      lead: 'Step 5: Resolve by confirming service is restored.',
+      text: 'Check monitoring, spot-check user flows, verify no new error reports. Update the incident channel with resolution.',
+    },
+    {
+      lead: 'Step 6: Follow up within 24 hours.',
+      text: 'Create a post-incident ticket documenting the timeline, root cause if known, and action items. This doesn\'t need to be a formal postmortem for every incident, but there should be a record.',
+    },
+  ]}
 />
 
 ### Solo Incident Handling
@@ -379,28 +365,26 @@ A good runbook covers six things:
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'What this alert means in plain English',
-      },
-      {
-        text: 'Why we alert on this (what\'s the user impact)',
-      },
-      {
-        text: 'The first three things to check',
-      },
-      {
-        text: 'How to mitigate if known',
-      },
-      {
-        text: 'When to escalate',
-      },
-      {
-        text: 'Who owns this system',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'What this alert means in plain English',
+    },
+    {
+      text: 'Why we alert on this (what\'s the user impact)',
+    },
+    {
+      text: 'The first three things to check',
+    },
+    {
+      text: 'How to mitigate if known',
+    },
+    {
+      text: 'When to escalate',
+    },
+    {
+      text: 'Who owns this system',
+    },
+  ]}
 />
 
 The most important section is "First Response"—the first three things to check or do. This section must fit on one page. If your runbook requires reading a novel to understand, it's useless in an incident.
@@ -409,26 +393,24 @@ Common runbook anti-patterns:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Empty runbooks',
-        text: 'where the alert exists but there\'s no documentation. Rule: no alert goes live without a runbook.',
-      },
-      {
-        lead: 'Outdated runbooks',
-        text: 'with commands that reference old systems or defunct processes—review runbooks quarterly.',
-      },
-      {
-        lead: 'Novel-length runbooks',
-        text: 'that are too long to read at 3 AM—people skip them and make mistakes.',
-      },
-      {
-        lead: 'Expert-assumed runbooks',
-        text: 'that only make sense if you already know the system—write for someone who\'s never seen this before.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Empty runbooks',
+      text: 'where the alert exists but there\'s no documentation. Rule: no alert goes live without a runbook.',
+    },
+    {
+      lead: 'Outdated runbooks',
+      text: 'with commands that reference old systems or defunct processes—review runbooks quarterly.',
+    },
+    {
+      lead: 'Novel-length runbooks',
+      text: 'that are too long to read at 3 AM—people skip them and make mistakes.',
+    },
+    {
+      lead: 'Expert-assumed runbooks',
+      text: 'that only make sense if you already know the system—write for someone who\'s never seen this before.',
+    },
+  ]}
 />
 
 <Callout type="info">
@@ -535,26 +517,24 @@ PagerDuty, Opsgenie, and similar platforms all work for small teams. The specifi
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Two schedules',
-        text: 'primary and secondary. The secondary schedule should be offset by one position—if Alice is primary this week, Bob is secondary. This ensures the secondary is always a different person than the primary.',
-      },
-      {
-        lead: 'Support hours',
-        text: 'on each service, defining when business hours are. This enables different urgency rules during and outside business hours.',
-      },
-      {
-        lead: 'Event rules',
-        text: 'to route alerts by severity. P1 (critical) alerts should always be high urgency regardless of time. P2 (warning) alerts should be high urgency during business hours, low urgency after hours. Low urgency means push notification only—no phone call.',
-      },
-      {
-        lead: 'Suppression rules',
-        text: 'for known noisy alerts. If you have an alert that\'s flaky and you haven\'t fixed it yet, suppress it rather than training your team to ignore pages. (Then actually fix it—see the Alert Hygiene section for how to systematically address noise sources.)',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Two schedules',
+      text: 'primary and secondary. The secondary schedule should be offset by one position—if Alice is primary this week, Bob is secondary. This ensures the secondary is always a different person than the primary.',
+    },
+    {
+      lead: 'Support hours',
+      text: 'on each service, defining when business hours are. This enables different urgency rules during and outside business hours.',
+    },
+    {
+      lead: 'Event rules',
+      text: 'to route alerts by severity. P1 (critical) alerts should always be high urgency regardless of time. P2 (warning) alerts should be high urgency during business hours, low urgency after hours. Low urgency means push notification only—no phone call.',
+    },
+    {
+      lead: 'Suppression rules',
+      text: 'for known noisy alerts. If you have an alert that\'s flaky and you haven\'t fixed it yet, suppress it rather than training your team to ignore pages. (Then actually fix it—see the Alert Hygiene section for how to systematically address noise sources.)',
+    },
+  ]}
 />
 
 ### Automation for Alert Reduction
@@ -565,22 +545,20 @@ Common candidates for auto-remediation:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Disk space alerts',
-        text: 'When disk usage exceeds 85%, automatically clear /tmp files older than 7 days, rotate logs, and clear package caches. Only escalate to a human if usage is still high after cleanup.',
-      },
-      {
-        lead: 'Certificate expiration',
-        text: 'When a certificate is within 14 days of expiry, trigger cert-manager to renew it. Only page if renewal fails.',
-      },
-      {
-        lead: 'Unhealthy pods',
-        text: 'When a Kubernetes pod is unhealthy for more than 5 minutes, delete it and let the scheduler create a replacement. Only page if the replacement is also unhealthy. Limit auto-restarts to 2 per hour to prevent infinite loops.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Disk space alerts',
+      text: 'When disk usage exceeds 85%, automatically clear /tmp files older than 7 days, rotate logs, and clear package caches. Only escalate to a human if usage is still high after cleanup.',
+    },
+    {
+      lead: 'Certificate expiration',
+      text: 'When a certificate is within 14 days of expiry, trigger cert-manager to renew it. Only page if renewal fails.',
+    },
+    {
+      lead: 'Unhealthy pods',
+      text: 'When a Kubernetes pod is unhealthy for more than 5 minutes, delete it and let the scheduler create a replacement. Only page if the replacement is also unhealthy. Limit auto-restarts to 2 per hour to prevent infinite loops.',
+    },
+  ]}
 />
 
 The pattern is consistent: try automatic remediation first, escalate to human only if automation fails. This dramatically reduces page volume for well-understood problems.
@@ -636,26 +614,24 @@ You can't improve what you don't measure. Build a simple dashboard that tracks s
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Page volume',
-        text: 'is your primary health indicator. More than 10 pages per person per week is unsustainable—that\'s two pages per day, every day, on top of regular work.',
-      },
-      {
-        lead: 'Response time',
-        text: 'measures team engagement. If P95 acknowledgment time is creeping up, people are either overwhelmed or checked out. Either way, it\'s a warning sign.',
-      },
-      {
-        lead: 'After-hours pages',
-        text: 'deserve special tracking because they\'re disproportionately costly. One 3am page has more impact on a person than three 2pm pages.',
-      },
-      {
-        lead: 'Auto-resolve rate',
-        text: 'is counterintuitive—you want it low. If more than 30% of your alerts resolve before anyone acknowledges them, your thresholds are too sensitive. You\'re paging people for things that fix themselves.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Page volume',
+      text: 'is your primary health indicator. More than 10 pages per person per week is unsustainable—that\'s two pages per day, every day, on top of regular work.',
+    },
+    {
+      lead: 'Response time',
+      text: 'measures team engagement. If P95 acknowledgment time is creeping up, people are either overwhelmed or checked out. Either way, it\'s a warning sign.',
+    },
+    {
+      lead: 'After-hours pages',
+      text: 'deserve special tracking because they\'re disproportionately costly. One 3am page has more impact on a person than three 2pm pages.',
+    },
+    {
+      lead: 'Auto-resolve rate',
+      text: 'is counterintuitive—you want it low. If more than 30% of your alerts resolve before anyone acknowledges them, your thresholds are too sensitive. You\'re paging people for things that fix themselves.',
+    },
+  ]}
 />
 
 ### Collecting and Visualizing Metrics
@@ -668,18 +644,16 @@ Run the exporter as a sidecar or standalone service that scrapes your incident m
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Signal-to-noise ratio',
-        text: 'requires manual tagging. During your weekly review, categorize each incident as "actionable" or "noise." Store this in a simple database or spreadsheet, then expose it as a Prometheus gauge via a custom exporter or pushgateway. This metric can\'t be fully automated—it requires human judgment about whether an alert was worth the interruption.',
-      },
-      {
-        lead: 'Auto-resolve tracking',
-        text: 'comes from your incident management platform\'s webhook events. When an incident resolves, check whether it was ever acknowledged. If it resolved before acknowledgment, increment a counter. Most platforms expose this via their API or webhook payloads.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Signal-to-noise ratio',
+      text: 'requires manual tagging. During your weekly review, categorize each incident as "actionable" or "noise." Store this in a simple database or spreadsheet, then expose it as a Prometheus gauge via a custom exporter or pushgateway. This metric can\'t be fully automated—it requires human judgment about whether an alert was worth the interruption.',
+    },
+    {
+      lead: 'Auto-resolve tracking',
+      text: 'comes from your incident management platform\'s webhook events. When an incident resolves, check whether it was ever acknowledged. If it resolved before acknowledgment, increment a counter. Most platforms expose this via their API or webhook payloads.',
+    },
+  ]}
 />
 
 Here's a minimal Prometheus configuration for scraping PagerDuty metrics:
@@ -779,25 +753,23 @@ If you're rebuilding your on-call from scratch, here's where to begin:
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Calculate your current signal-to-noise ratio. What percentage of pages required action?',
-      },
-      {
-        text: 'Implement after-hours filtering: P1 pages anytime, P2 during business hours only',
-      },
-      {
-        text: 'Schedule your first weekly review during the next on-call handoff',
-      },
-      {
-        text: 'Pick one high-volume alert and either tune it, automate it, or delete it',
-      },
-      {
-        text: 'Set up basic metrics: page volume per person per week, auto-resolve rate',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Calculate your current signal-to-noise ratio. What percentage of pages required action?',
+    },
+    {
+      text: 'Implement after-hours filtering: P1 pages anytime, P2 during business hours only',
+    },
+    {
+      text: 'Schedule your first weekly review during the next on-call handoff',
+    },
+    {
+      text: 'Pick one high-volume alert and either tune it, automate it, or delete it',
+    },
+    {
+      text: 'Set up basic metrics: page volume per person per week, auto-resolve rate',
+    },
+  ]}
 />
 
 The goal isn't perfect on-call on day one. It's establishing the feedback loop that gets you there.

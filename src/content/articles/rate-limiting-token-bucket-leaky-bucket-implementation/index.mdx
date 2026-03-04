@@ -25,53 +25,51 @@ The naive approach—"block anything over N requests"—fails because it treats 
 Most rate limiting articles jump straight to algorithms. But the strategic question—where in your stack to enforce limits—often matters more than which algorithm you choose.
 
 <Table
-    variant="vertical-column-delineation-table"
-    content={{
-        thead: {
-            th: ['Layer', 'Tools', 'Granularity', 'Best For'],
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Layer', 'Tools', 'Granularity', 'Best For'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Edge/CDN',
+          td: ['Cloudflare, CloudFront, Fastly', 'IP, geography', 'DDoS, bot protection'],
         },
-        tbody: {
-            tr: [
-                {
-                    th: 'Edge/CDN',
-                    td: ['Cloudflare, CloudFront, Fastly', 'IP, geography', 'DDoS, bot protection'],
-                },
-                {
-                    th: 'API Gateway',
-                    td: ['AWS API Gateway, Kong, nginx', 'API key, route', 'API quotas, tiered plans'],
-                },
-                {
-                    th: 'Service Mesh',
-                    td: ['Istio, Envoy, Linkerd', 'Service identity', 'Service-to-service limits'],
-                },
-                {
-                    th: 'Application',
-                    td: ['Custom middleware', 'User, action, context', 'Fine-grained business logic'],
-                },
-            ],
+        {
+          th: 'API Gateway',
+          td: ['AWS API Gateway, Kong, nginx', 'API key, route', 'API quotas, tiered plans'],
         },
-        figure: 'Rate limiting layers comparison.',
-    }}
+        {
+          th: 'Service Mesh',
+          td: ['Istio, Envoy, Linkerd', 'Service identity', 'Service-to-service limits'],
+        },
+        {
+          th: 'Application',
+          td: ['Custom middleware', 'User, action, context', 'Fine-grained business logic'],
+        },
+      ],
+    },
+    figure: 'Rate limiting layers comparison.',
+  }}
 />
 
 <List
-    variant="check-icons-list"
-    content={{
-        items: [
-            {
-                lead: 'Edge rate limiting',
-                text: 'stops bad traffic before it reaches your infrastructure. Cloudflare, Amazon CloudFront, and similar CDNs can reject requests milliseconds from the client, before your servers even see them. But edge limiting is coarse-grained—typically by IP or region. It\'s your first line of defense against volumetric attacks, not your primary quota enforcement.',
-            },
-            {
-                lead: 'API gateway limiting',
-                text: 'is where most teams should implement their primary rate limits. AWS API Gateway, Kong, and nginx all support token bucket or similar algorithms out of the box. Gateway-level limiting handles per-API-key quotas, tiered rate limits, and route-specific throttling without touching application code.',
-            },
-            {
-                lead: 'Application-level limiting',
-                text: 'gives you the finest control—you can limit by user, by action, by context, or any combination. But it comes with complexity: you\'re responsible for state management (usually Redis), failure handling, and the actual algorithm implementation. Use it when gateway-level limits aren\'t granular enough: per-user action limits, variable-cost operations, or business-logic-driven throttling.',
-            },
-        ],
-    }}
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Edge rate limiting',
+      text: "stops bad traffic before it reaches your infrastructure. Cloudflare, Amazon CloudFront, and similar CDNs can reject requests milliseconds from the client, before your servers even see them. But edge limiting is coarse-grained—typically by IP or region. It's your first line of defense against volumetric attacks, not your primary quota enforcement.",
+    },
+    {
+      lead: 'API gateway limiting',
+      text: 'is where most teams should implement their primary rate limits. AWS API Gateway, Kong, and nginx all support token bucket or similar algorithms out of the box. Gateway-level limiting handles per-API-key quotas, tiered rate limits, and route-specific throttling without touching application code.',
+    },
+    {
+      lead: 'Application-level limiting',
+      text: "gives you the finest control—you can limit by user, by action, by context, or any combination. But it comes with complexity: you're responsible for state management (usually Redis), failure handling, and the actual algorithm implementation. Use it when gateway-level limits aren't granular enough: per-user action limits, variable-cost operations, or business-logic-driven throttling.",
+    },
+  ]}
 />
 
 <Callout type="warning">
@@ -106,33 +104,33 @@ Code: Token bucket core logic.
 Here's how traffic patterns play out with a 10-token bucket refilling at 1 token per second:
 
 <Table
-    variant="vertical-column-delineation-table"
-    content={{
-        thead: {
-            th: ['Traffic Pattern', 'What Happens'],
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Traffic Pattern', 'What Happens'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Steady 1 RPS',
+          td: ['Every request allowed—token regenerates before next'],
         },
-        tbody: {
-            tr: [
-                {
-                    th: 'Steady 1 RPS',
-                    td: ['Every request allowed—token regenerates before next'],
-                },
-                {
-                    th: 'Burst of 10',
-                    td: ['All 10 served instantly, then 1 RPS until refilled'],
-                },
-                {
-                    th: 'Sustained 2 RPS',
-                    td: ['10 initial + 5 refilled over 10s = 15 of 20 allowed; then 50% rejected'],
-                },
-                {
-                    th: 'Variable cost (GET=1, POST=5)',
-                    td: ['Heavy operations consume quota faster'],
-                },
-            ],
+        {
+          th: 'Burst of 10',
+          td: ['All 10 served instantly, then 1 RPS until refilled'],
         },
-        figure: 'Token bucket behavior under different traffic patterns.',
-    }}
+        {
+          th: 'Sustained 2 RPS',
+          td: ['10 initial + 5 refilled over 10s = 15 of 20 allowed; then 50% rejected'],
+        },
+        {
+          th: 'Variable cost (GET=1, POST=5)',
+          td: ['Heavy operations consume quota faster'],
+        },
+      ],
+    },
+    figure: 'Token bucket behavior under different traffic patterns.',
+  }}
 />
 
 The key insight: token bucket allows bursts (good for user experience) while maintaining a sustained rate that protects your backend. Compare this to _leaky bucket_, which queues requests up to capacity and serves them at a constant rate—rejecting new arrivals when the queue is full. Leaky bucket produces perfectly smooth output but adds latency as requests wait in the queue. Use it when you need constant output rate to a downstream service that can't handle any bursts, like a payment processor with strict per-second limits.
@@ -144,15 +142,13 @@ For distributed systems, you need atomic operations. The standard pattern is a R
 The rate limiting key—how you identify who's making requests—is as important as the algorithm. Choose wrong, and you'll either punish legitimate users or fail to stop abuse.
 
 <List
-    variant="check-icons-list"
-    content={{
-        items: [
-            {
-                lead: 'IP address',
-                text: 'seems obvious but has a fatal flaw: corporate NAT. Hundreds of employees behind a single public IP will exhaust per-IP quotas almost instantly. IP-based limiting works for anonymous endpoints and anti-bot protection, but it punishes shared networks.',
-            },
-        ],
-    }}
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'IP address',
+      text: 'seems obvious but has a fatal flaw: corporate NAT. Hundreds of employees behind a single public IP will exhaust per-IP quotas almost instantly. IP-based limiting works for anonymous endpoints and anti-bot protection, but it punishes shared networks.',
+    },
+  ]}
 />
 
 <Callout type="warning">
@@ -160,23 +156,21 @@ Header spoofing is trivial: `curl -H "X-Forwarded-For: 1.2.3.4" your-api.com`. I
 </Callout>
 
 <List
-    variant="check-icons-list"
-    content={{
-        items: [
-            {
-                lead: 'API key',
-                text: 'is the standard for B2B APIs. Per-customer limits, usage tracking, revocation—all straightforward. The risk: customers distributing keys to multiple applications, or keys getting stolen and abused.',
-            },
-            {
-                lead: 'User ID',
-                text: 'gives you true per-user limits that work across IPs and devices. The tradeoff is authentication overhead and the fact that it doesn\'t help with anonymous endpoints.',
-            },
-            {
-                lead: 'Composite keys',
-                text: '(user + action, IP + endpoint) give you fine-grained control at the cost of complexity. Useful when different operations need different limits.',
-            },
-        ],
-    }}
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'API key',
+      text: 'is the standard for B2B APIs. Per-customer limits, usage tracking, revocation—all straightforward. The risk: customers distributing keys to multiple applications, or keys getting stolen and abused.',
+    },
+    {
+      lead: 'User ID',
+      text: "gives you true per-user limits that work across IPs and devices. The tradeoff is authentication overhead and the fact that it doesn't help with anonymous endpoints.",
+    },
+    {
+      lead: 'Composite keys',
+      text: '(user + action, IP + endpoint) give you fine-grained control at the cost of complexity. Useful when different operations need different limits.',
+    },
+  ]}
 />
 
 Production systems often combine multiple strategies: global IP limits as a DDoS backstop, API key limits for quota enforcement, and user + action limits for abuse prevention. All must pass for a request to proceed.
@@ -200,23 +194,21 @@ Rate limiting is a valve, not a wall. The best rate limiters are invisible to no
 Three takeaways:
 
 <List
-    variant="check-icons-list"
-    content={{
-        items: [
-            {
-                lead: 'Layer appropriately',
-                text: 'Edge for DDoS, gateway for API quotas, application for business logic',
-            },
-            {
-                lead: 'Use token bucket for APIs',
-                text: 'It allows bursts (good UX) while enforcing sustained rates (protects backend)',
-            },
-            {
-                lead: 'Identify clients carefully',
-                text: 'IP addresses lie, corporate NAT punishes legitimate users, and composite keys add complexity',
-            },
-        ],
-    }}
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Layer appropriately',
+      text: 'Edge for DDoS, gateway for API quotas, application for business logic',
+    },
+    {
+      lead: 'Use token bucket for APIs',
+      text: 'It allows bursts (good UX) while enforcing sustained rates (protects backend)',
+    },
+    {
+      lead: 'Identify clients carefully',
+      text: 'IP addresses lie, corporate NAT punishes legitimate users, and composite keys add complexity',
+    },
+  ]}
 />
 
 The goal isn't to reject requests—it's to shape traffic so rejection becomes rare. Design for legitimate bursts, communicate limits clearly through response headers, and monitor rejection rates. Rate limiting done right protects your service without punishing your users.

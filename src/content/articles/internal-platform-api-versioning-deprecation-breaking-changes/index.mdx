@@ -75,22 +75,20 @@ The tricky cases fall in between - changes that are technically compatible but b
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: "Error code changes",
-        text: "(400 → 422): Technically correct, but breaks error handling logic",
-      },
-      {
-        lead: "Default value changes",
-        text: "Clients that assumed a specific page size or timeout",
-      },
-      {
-        lead: "Semantic changes",
-        text: "Making `count` include deleted items when it previously didn't - breaking even though the field name stays the same",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: "Error code changes",
+      text: "(400 → 422): Technically correct, but breaks error handling logic",
+    },
+    {
+      lead: "Default value changes",
+      text: "Clients that assumed a specific page size or timeout",
+    },
+    {
+      lead: "Semantic changes",
+      text: "Making `count` include deleted items when it previously didn't - breaking even though the field name stays the same",
+    },
+  ]}
 />
 
 <Callout type="warning">
@@ -103,30 +101,28 @@ Once you've identified a breaking change, follow a structured process that gives
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: "Step 1: Identify affected consumers.",
-        text: "Before announcing anything, know who's using the affected endpoints. API gateway logs tell you which services call which endpoints. Service mesh telemetry shows call patterns. SDK analytics reveal version distribution. Query the last 30 days of traffic - this catches regular callers and weekly batch jobs.",
-      },
-      {
-        lead: "Step 2: Create a proposal document.",
-        text: "Write down what's changing, why it's changing, which endpoints are affected, estimated migration effort, and the proposed timeline. This becomes the single source of truth for the deprecation.",
-      },
-      {
-        lead: "Step 3: Open a feedback period.",
-        text: "Give affected teams 30 days to review the proposal and raise concerns. Maybe you're missing a use case. Maybe the timeline is too aggressive for their roadmap. Maybe there's a simpler migration path you hadn't considered. Listen to the feedback - internal customers have context you don't.",
-      },
-      {
-        lead: "Step 4: Notify affected teams directly.",
-        text: "Broadcast announcements get ignored. Target the teams you identified in step 1. Send to their Slack channels. Email their tech leads. Make it impossible to miss. The notification should include what's changing, why, the timeline, the migration guide, and where to ask questions.",
-      },
-      {
-        lead: "Step 5: Schedule the timeline with milestones.",
-        text: "Set dates for feedback deadline, new version release, 90-day warning, 30-day warning, and sunset date. Put them in the team calendar. Configure automated reminders. Don't rely on anyone remembering.",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: "Step 1: Identify affected consumers.",
+      text: "Before announcing anything, know who's using the affected endpoints. API gateway logs tell you which services call which endpoints. Service mesh telemetry shows call patterns. SDK analytics reveal version distribution. Query the last 30 days of traffic - this catches regular callers and weekly batch jobs.",
+    },
+    {
+      lead: "Step 2: Create a proposal document.",
+      text: "Write down what's changing, why it's changing, which endpoints are affected, estimated migration effort, and the proposed timeline. This becomes the single source of truth for the deprecation.",
+    },
+    {
+      lead: "Step 3: Open a feedback period.",
+      text: "Give affected teams 30 days to review the proposal and raise concerns. Maybe you're missing a use case. Maybe the timeline is too aggressive for their roadmap. Maybe there's a simpler migration path you hadn't considered. Listen to the feedback - internal customers have context you don't.",
+    },
+    {
+      lead: "Step 4: Notify affected teams directly.",
+      text: "Broadcast announcements get ignored. Target the teams you identified in step 1. Send to their Slack channels. Email their tech leads. Make it impossible to miss. The notification should include what's changing, why, the timeline, the migration guide, and where to ask questions.",
+    },
+    {
+      lead: "Step 5: Schedule the timeline with milestones.",
+      text: "Set dates for feedback deadline, new version release, 90-day warning, 30-day warning, and sunset date. Put them in the team calendar. Configure automated reminders. Don't rely on anyone remembering.",
+    },
+  ]}
 />
 
 <Newsletter />

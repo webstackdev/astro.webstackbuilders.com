@@ -33,22 +33,20 @@ The key insight for calculating affected packages is that you need to _reverse_ 
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Map each changed file to its containing package',
-      },
-      {
-        text: 'Build a reversed dependency graph (dependents instead of dependencies)',
-      },
-      {
-        text: 'Walk the graph from each changed package, collecting everything reachable',
-      },
-      {
-        text: 'Everything not in the affected set can be skipped',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Map each changed file to its containing package',
+    },
+    {
+      text: 'Build a reversed dependency graph (dependents instead of dependencies)',
+    },
+    {
+      text: 'Walk the graph from each changed package, collecting everything reachable',
+    },
+    {
+      text: 'Everything not in the affected set can be skipped',
+    },
+  ]}
 />
 
 Both Nx and Turborepo implement this algorithm automatically. The concepts also apply beyond JavaScript—Bazel, Pants, and Gradle offer similar capabilities for polyglot monorepos.

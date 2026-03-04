@@ -87,37 +87,37 @@ The `timeout queue` setting deserves attention. When all backend servers reach t
 When translating configurations between Nginx and HAProxy, the following table maps the key timeout settings. They're not exact equivalents—Nginx's per-read semantics differ from HAProxy's total-time semantics—but this helps when translating configurations.
 
 <Table
-    variant="vertical-column-delineation-table"
-    content={{
-        thead: {
-            th: ['Phase', 'Nginx', 'HAProxy', 'Recommended'],
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Phase', 'Nginx', 'HAProxy', 'Recommended'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Client request',
+          td: ['client_header_timeout', 'timeout http-request', '10-30s'],
         },
-        tbody: {
-            tr: [
-                {
-                    th: 'Client request',
-                    td: ['client_header_timeout', 'timeout http-request', '10-30s'],
-                },
-                {
-                    th: 'Client body',
-                    td: ['client_body_timeout', 'timeout client', '30-120s'],
-                },
-                {
-                    th: 'Backend connect',
-                    td: ['proxy_connect_timeout', 'timeout connect', '3-10s'],
-                },
-                {
-                    th: 'Backend response',
-                    td: ['proxy_read_timeout', 'timeout server', '30-300s'],
-                },
-                {
-                    th: 'Keep-alive idle',
-                    td: ['keepalive_timeout', 'timeout http-keep-alive', '30-120s'],
-                },
-            ],
+        {
+          th: 'Client body',
+          td: ['client_body_timeout', 'timeout client', '30-120s'],
         },
-        figure: 'Nginx and HAProxy timeout comparison with recommended production values.',
-    }}
+        {
+          th: 'Backend connect',
+          td: ['proxy_connect_timeout', 'timeout connect', '3-10s'],
+        },
+        {
+          th: 'Backend response',
+          td: ['proxy_read_timeout', 'timeout server', '30-300s'],
+        },
+        {
+          th: 'Keep-alive idle',
+          td: ['keepalive_timeout', 'timeout http-keep-alive', '30-120s'],
+        },
+      ],
+    },
+    figure: 'Nginx and HAProxy timeout comparison with recommended production values.',
+  }}
 />
 
 <Callout type="warning">
@@ -178,33 +178,33 @@ If you're seeing 400 errors in HAProxy specifically, check whether `tune.bufsize
 The following table summarizes buffer settings by scenario. Note that the directive names are Nginx-specific; for HAProxy, adjust `tune.bufsize` to accommodate larger headers or bodies.
 
 <Table
-    variant="vertical-column-delineation-table"
-    content={{
-        thead: {
-            th: ['Scenario', 'Nginx Setting', 'Recommendation'],
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Scenario', 'Nginx Setting', 'Recommendation'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Large cookies/auth headers',
+          td: ['client_header_buffer_size', '4k-16k'],
         },
-        tbody: {
-            tr: [
-                {
-                    th: 'Large cookies/auth headers',
-                    td: ['client_header_buffer_size', '4k-16k'],
-                },
-                {
-                    th: 'File uploads',
-                    td: ['client_body_buffer_size', '128k-1m'],
-                },
-                {
-                    th: 'Large API responses',
-                    td: ['proxy_buffers', '16-32 × 32k-64k'],
-                },
-                {
-                    th: 'Streaming/SSE',
-                    td: ['proxy_buffering', 'off'],
-                },
-            ],
+        {
+          th: 'File uploads',
+          td: ['client_body_buffer_size', '128k-1m'],
         },
-        figure: 'Buffer sizing recommendations by scenario.',
-    }}
+        {
+          th: 'Large API responses',
+          td: ['proxy_buffers', '16-32 × 32k-64k'],
+        },
+        {
+          th: 'Streaming/SSE',
+          td: ['proxy_buffering', 'off'],
+        },
+      ],
+    },
+    figure: 'Buffer sizing recommendations by scenario.',
+  }}
 />
 
 <Callout type="info">
@@ -220,10 +220,10 @@ Timeouts and buffers are where traffic patterns meet system limits—they're the
   title="Reverse Proxy Hardening: Timeouts, Buffers, Defaults"
   description="Why default nginx and HAProxy configurations fail under load and how to tune them for production."
   listItems={[
-      { text: "Timeout baseline tuning matrix" },
-      { text: "Buffer sizing troubleshooting guide" },
-      { text: "Connection pool optimization checklist" },
-      { text: "Proxy metrics alerting pack" }
+    { text: "Timeout baseline tuning matrix" },
+    { text: "Buffer sizing troubleshooting guide" },
+    { text: "Connection pool optimization checklist" },
+    { text: "Proxy metrics alerting pack" }
   ]}
 />
 

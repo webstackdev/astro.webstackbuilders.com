@@ -319,10 +319,6 @@ An example is as follows:
 
 The first file to update is:
 
-Files with missed lists:
-
-src/content/articles/eol-runtime-upgrade-dependency-hell-migration/index.mdx
-
 ### Timelines
 
 - Good generation:
@@ -342,3 +338,7 @@ argocd-sync-failures-gitops-debugging-troubleshooting/resource-dependency-graph-
 ### Figure captions are broken:
 
 src/content/articles/structured-logging-correlation-ids-log-schema-design/pdf.mdx
+
+### This file was badly mangled during refactoring, need to compare against original:
+
+src/content/articles/internal-developer-portal-platform-self-service-actions/pdf.mdx

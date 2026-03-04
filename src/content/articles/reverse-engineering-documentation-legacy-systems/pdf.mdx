@@ -55,30 +55,28 @@ Not all documentation problems are the same, and the remediation approach differ
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Missing documentation',
-        text: 'is honestly the easiest to deal with. You know you don\'t know something, so you investigate. There\'s no unlearning required.',
-      },
-      {
-        lead: 'Outdated documentation',
-        text: 'is more dangerous. It was correct once, so it has the appearance of authority. You might follow it for weeks before realizing the integration endpoint moved six months ago.',
-      },
-      {
-        lead: 'Actively wrong documentation',
-        text: 'is the worst. This isn\'t documentation that drifted—it\'s documentation that describes a completely different system, often because someone copied a template from another project and never filled in the details.',
-      },
-      {
-        lead: 'Tribal knowledge',
-        text: 'represents information that exists only in people\'s heads. The senior engineer who knows why the cron job runs at 3:47 AM instead of midnight, or why that one table has a column that\'s always null but can\'t be removed.',
-      },
-      {
-        lead: 'Scattered documentation',
-        text: 'exists but is not findable. There\'s a Confluence page, a Google Doc, three README files, and a Slack thread with the actual answer, but no one knows which one to trust or where to look.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Missing documentation',
+      text: 'is honestly the easiest to deal with. You know you don\'t know something, so you investigate. There\'s no unlearning required.',
+    },
+    {
+      lead: 'Outdated documentation',
+      text: 'is more dangerous. It was correct once, so it has the appearance of authority. You might follow it for weeks before realizing the integration endpoint moved six months ago.',
+    },
+    {
+      lead: 'Actively wrong documentation',
+      text: 'is the worst. This isn\'t documentation that drifted—it\'s documentation that describes a completely different system, often because someone copied a template from another project and never filled in the details.',
+    },
+    {
+      lead: 'Tribal knowledge',
+      text: 'represents information that exists only in people\'s heads. The senior engineer who knows why the cron job runs at 3:47 AM instead of midnight, or why that one table has a column that\'s always null but can\'t be removed.',
+    },
+    {
+      lead: 'Scattered documentation',
+      text: 'exists but is not findable. There\'s a Confluence page, a Google Doc, three README files, and a Slack thread with the actual answer, but no one knows which one to trust or where to look.',
+    },
+  ]}
 />
 
 <Table
@@ -125,34 +123,32 @@ For each documentation artifact, I track:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Location',
-        text: 'Where does this doc live? (Wiki, repo, Google Drive, someone\'s desktop)',
-      },
-      {
-        lead: 'Last modified',
-        text: 'When was the file last changed?',
-      },
-      {
-        lead: 'Last verified',
-        text: 'When did someone confirm this matches reality?',
-      },
-      {
-        lead: 'Coverage areas',
-        text: 'What does this doc claim to cover?',
-      },
-      {
-        lead: 'Known gaps',
-        text: 'What\'s explicitly missing?',
-      },
-      {
-        lead: 'Owner',
-        text: 'Who\'s responsible for keeping this current?',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Location',
+      text: 'Where does this doc live? (Wiki, repo, Google Drive, someone\'s desktop)',
+    },
+    {
+      lead: 'Last modified',
+      text: 'When was the file last changed?',
+    },
+    {
+      lead: 'Last verified',
+      text: 'When did someone confirm this matches reality?',
+    },
+    {
+      lead: 'Coverage areas',
+      text: 'What does this doc claim to cover?',
+    },
+    {
+      lead: 'Known gaps',
+      text: 'What\'s explicitly missing?',
+    },
+    {
+      lead: 'Owner',
+      text: 'Who\'s responsible for keeping this current?',
+    },
+  ]}
 />
 
 The coverage areas I care about most are architecture (how components connect), API contracts (what services expose), data models (what gets stored where), deployment (how to ship changes), operations (how to keep it running), business rules (the logic that makes money), and integrations (what external systems we depend on).
@@ -188,22 +184,20 @@ For larger codebases, I focus on specific questions rather than trying to graph 
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        text: 'What depends on this module I\'m about to change?',
-      },
-      {
-        text: 'Which modules have the most inbound dependencies (likely core abstractions)?',
-      },
-      {
-        text: 'Which modules have the most outbound dependencies (likely orchestration layers)?',
-      },
-      {
-        text: 'Are there unexpected dependencies between domains that should be isolated?',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'What depends on this module I\'m about to change?',
+    },
+    {
+      text: 'Which modules have the most inbound dependencies (likely core abstractions)?',
+    },
+    {
+      text: 'Which modules have the most outbound dependencies (likely orchestration layers)?',
+    },
+    {
+      text: 'Are there unexpected dependencies between domains that should be isolated?',
+    },
+  ]}
 />
 
 The answers often reveal the real architecture—the one that evolved under deadline pressure rather than the one in the planning documents.
@@ -323,26 +317,24 @@ What you're looking for:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Endpoint inventory',
-        text: 'Which routes actually receive traffic versus which ones are documented',
-      },
-      {
-        lead: 'Traffic patterns',
-        text: 'Which endpoints are called together (often reveals workflows)',
-      },
-      {
-        lead: 'Dependency map',
-        text: 'Which downstream services get called for each inbound request',
-      },
-      {
-        lead: 'Error patterns',
-        text: 'Which endpoints fail and under what conditions',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Endpoint inventory',
+      text: 'Which routes actually receive traffic versus which ones are documented',
+    },
+    {
+      lead: 'Traffic patterns',
+      text: 'Which endpoints are called together (often reveals workflows)',
+    },
+    {
+      lead: 'Dependency map',
+      text: 'Which downstream services get called for each inbound request',
+    },
+    {
+      lead: 'Error patterns',
+      text: 'Which endpoints fail and under what conditions',
+    },
+  ]}
 />
 
 ### Database Query Analysis
@@ -719,85 +711,77 @@ For _architectural knowledge_, I ask questions that reveal how components intera
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        text: '"Walk me through what happens when a user places an order."',
-      },
-      {
-        text: '"What would break if the payment service went down?"',
-      },
-      {
-        text: '"What\'s the scariest part of this codebase to change?"',
-      },
-      {
-        text: '"Why did we choose Kafka instead of SQS?"',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: '"Walk me through what happens when a user places an order."',
+    },
+    {
+      text: '"What would break if the payment service went down?"',
+    },
+    {
+      text: '"What\'s the scariest part of this codebase to change?"',
+    },
+    {
+      text: '"Why did we choose Kafka instead of SQS?"',
+    },
+  ]}
 />
 
 For _operational knowledge_, I focus on failure modes and recovery:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        text: '"What\'s the most common thing that pages you at night?"',
-      },
-      {
-        text: '"What manual steps are required for deployments?"',
-      },
-      {
-        text: '"What\'s the recovery procedure when the database fills up?"',
-      },
-      {
-        text: '"Where do you look first when debugging slow API responses?"',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: '"What\'s the most common thing that pages you at night?"',
+    },
+    {
+      text: '"What manual steps are required for deployments?"',
+    },
+    {
+      text: '"What\'s the recovery procedure when the database fills up?"',
+    },
+    {
+      text: '"Where do you look first when debugging slow API responses?"',
+    },
+  ]}
 />
 
 For _historical knowledge_, I dig into decisions and evolution:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        text: '"What major changes happened in the last two years?"',
-      },
-      {
-        text: '"Why does that weird retry loop exist in the payment handler?"',
-      },
-      {
-        text: '"What features were removed, and why?"',
-      },
-      {
-        text: '"What\'s the oldest code that\'s still running in production?"',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: '"What major changes happened in the last two years?"',
+    },
+    {
+      text: '"Why does that weird retry loop exist in the payment handler?"',
+    },
+    {
+      text: '"What features were removed, and why?"',
+    },
+    {
+      text: '"What\'s the oldest code that\'s still running in production?"',
+    },
+  ]}
 />
 
 For _business rules_, I look for logic encoded in code but not in requirements:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        text: '"What business rules are in the code that aren\'t written anywhere?"',
-      },
-      {
-        text: '"What edge cases have special handling?"',
-      },
-      {
-        text: '"What compliance requirements affect this code?"',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: '"What business rules are in the code that aren\'t written anywhere?"',
+    },
+    {
+      text: '"What edge cases have special handling?"',
+    },
+    {
+      text: '"What compliance requirements affect this code?"',
+    },
+  ]}
 />
 
 <Table
@@ -841,26 +825,24 @@ I run these as facilitated whiteboard sessions, typically two hours maximum. The
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Preparation (before the session)',
-        text: 'Identify 3-5 people with different perspectives on the system. Prepare a blank architecture template. Get permission to record (audio and whiteboard photos).',
-      },
-      {
-        lead: 'Architecture walkthrough (45 minutes)',
-        text: 'One person draws the system on the whiteboard while others correct and add detail. The disagreements are the most valuable part—they reveal where mental models diverge.',
-      },
-      {
-        lead: 'Scenario walkthroughs (45 minutes)',
-        text: 'Pick 3-4 common operations and trace them through the system. "What happens when a user submits an order?" Follow the data through every component. Note where people hesitate or disagree.',
-      },
-      {
-        lead: 'Edge cases and gotchas (30 minutes)',
-        text: 'This is where tribal knowledge surfaces. Ask: "What\'s the thing that always trips up new team members?" and "What\'s the hack we\'re ashamed of but can\'t remove?"',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Preparation (before the session)',
+      text: 'Identify 3-5 people with different perspectives on the system. Prepare a blank architecture template. Get permission to record (audio and whiteboard photos).',
+    },
+    {
+      lead: 'Architecture walkthrough (45 minutes)',
+      text: 'One person draws the system on the whiteboard while others correct and add detail. The disagreements are the most valuable part—they reveal where mental models diverge.',
+    },
+    {
+      lead: 'Scenario walkthroughs (45 minutes)',
+      text: 'Pick 3-4 common operations and trace them through the system. "What happens when a user submits an order?" Follow the data through every component. Note where people hesitate or disagree.',
+    },
+    {
+      lead: 'Edge cases and gotchas (30 minutes)',
+      text: 'This is where tribal knowledge surfaces. Ask: "What\'s the thing that always trips up new team members?" and "What\'s the hack we\'re ashamed of but can\'t remove?"',
+    },
+  ]}
 />
 
 After the session, transcribe the whiteboard photos into digital diagrams, then send them back to participants for validation. The review process often surfaces additional details people forgot to mention in the session.
@@ -877,34 +859,32 @@ I capture this systematically using a simple template:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Topic',
-        text: 'What\'s the knowledge about?',
-      },
-      {
-        lead: 'Category',
-        text: 'Gotcha, workaround, historical context, undocumented feature, business rule, performance tip, or debugging tip',
-      },
-      {
-        lead: 'Description',
-        text: 'The actual knowledge, in enough detail to be useful',
-      },
-      {
-        lead: 'Source',
-        text: 'Who shared this? (Important for follow-up questions)',
-      },
-      {
-        lead: 'Affected components',
-        text: 'What parts of the system does this apply to?',
-      },
-      {
-        lead: 'Verification status',
-        text: 'Unverified, verified, or outdated',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Topic',
+      text: 'What\'s the knowledge about?',
+    },
+    {
+      lead: 'Category',
+      text: 'Gotcha, workaround, historical context, undocumented feature, business rule, performance tip, or debugging tip',
+    },
+    {
+      lead: 'Description',
+      text: 'The actual knowledge, in enough detail to be useful',
+    },
+    {
+      lead: 'Source',
+      text: 'Who shared this? (Important for follow-up questions)',
+    },
+    {
+      lead: 'Affected components',
+      text: 'What parts of the system does this apply to?',
+    },
+    {
+      lead: 'Verification status',
+      text: 'Unverified, verified, or outdated',
+    },
+  ]}
 />
 
 Here's an example entry:
@@ -1060,22 +1040,20 @@ The goal isn't comprehensive documentation of everything. That's neither achieva
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'The dangerous parts',
-        text: 'Code that everyone\'s afraid to change. These need documentation because mistakes here have outsized consequences.',
-      },
-      {
-        lead: 'The confusing parts',
-        text: 'Code that requires explanation to understand. If every new team member asks the same questions, write down the answers.',
-      },
-      {
-        lead: 'The business-critical parts',
-        text: 'Code where mistakes cost money or compliance violations. These need documentation because the stakes justify the investment.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'The dangerous parts',
+      text: 'Code that everyone\'s afraid to change. These need documentation because mistakes here have outsized consequences.',
+    },
+    {
+      lead: 'The confusing parts',
+      text: 'Code that requires explanation to understand. If every new team member asks the same questions, write down the answers.',
+    },
+    {
+      lead: 'The business-critical parts',
+      text: 'Code where mistakes cost money or compliance violations. These need documentation because the stakes justify the investment.',
+    },
+  ]}
 />
 
 Tests as documentation have an advantage that prose never will: they break when behavior changes. A characterization test that fails is more valuable than a wiki page that silently becomes wrong. Where possible, encode knowledge in tests rather than documents.

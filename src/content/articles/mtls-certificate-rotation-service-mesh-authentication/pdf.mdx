@@ -304,25 +304,23 @@ The safe order for CA rotation:
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Add the new CA to all trust bundles (services now trust both old and new)',
-      },
-      {
-        text: 'Verify all services have received the updated trust bundle',
-      },
-      {
-        text: 'Start issuing certificates from the new CA',
-      },
-      {
-        text: 'Wait for all workload certificates to rotate to the new CA',
-      },
-      {
-        text: 'Remove the old CA from trust bundles',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Add the new CA to all trust bundles (services now trust both old and new)',
+    },
+    {
+      text: 'Verify all services have received the updated trust bundle',
+    },
+    {
+      text: 'Start issuing certificates from the new CA',
+    },
+    {
+      text: 'Wait for all workload certificates to rotate to the new CA',
+    },
+    {
+      text: 'Remove the old CA from trust bundles',
+    },
+  ]}
 />
 
 ```mermaid
@@ -433,22 +431,20 @@ Istio controls mTLS through two resource types: `PeerAuthentication` for incomin
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'STRICT',
-        text: 'Require mTLS. Reject any plaintext connection.',
-      },
-      {
-        lead: 'PERMISSIVE',
-        text: 'Accept both mTLS and plaintext. Useful during migration.',
-      },
-      {
-        lead: 'DISABLE',
-        text: 'No mTLS requirement (not recommended for production).',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'STRICT',
+      text: 'Require mTLS. Reject any plaintext connection.',
+    },
+    {
+      lead: 'PERMISSIVE',
+      text: 'Accept both mTLS and plaintext. Useful during migration.',
+    },
+    {
+      lead: 'DISABLE',
+      text: 'No mTLS requirement (not recommended for production).',
+    },
+  ]}
 />
 
 Policies cascade: mesh-wide defaults in `istio-system`, namespace overrides, workload-specific rules. The most specific policy wins.
@@ -578,26 +574,24 @@ Knowing the common failure modes helps narrow down the problem quickly.
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Certificate expired',
-        text: 'The most common cause of mTLS outages. Error messages include `x509: certificate has expired` or `TLS handshake error: certificate verify failed`. Check expiration with `openssl x509 -enddate -noout -in cert.pem`. Fix by forcing rotation or restarting the workload to trigger certificate renewal.',
-      },
-      {
-        lead: 'Trust chain broken',
-        text: 'The certificate is valid but the CA that signed it isn\'t in the trust store. You\'ll see `x509: certificate signed by unknown authority`. This happens during CA rotation if trust bundles aren\'t updated before new certificates are issued. Verify the chain with `openssl verify -CAfile root.pem cert.pem`.',
-      },
-      {
-        lead: 'SAN mismatch',
-        text: 'The certificate is valid but doesn\'t include the hostname being used. Error: `x509: certificate is valid for X, not Y`. Check SANs with `openssl x509 -text -noout | grep -A1 \'Subject Alternative\'`. This commonly happens when DNS names change or when certificates are issued with incomplete SAN lists.',
-      },
-      {
-        lead: 'Wrong key usage',
-        text: 'The certificate exists but wasn\'t issued for mTLS. If it only has `serverAuth` in Extended Key Usage, it can\'t be used as a client certificate. Error: `x509: certificate specifies an incompatible key usage`. Reissue with both `serverAuth` and `clientAuth`.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Certificate expired',
+      text: 'The most common cause of mTLS outages. Error messages include `x509: certificate has expired` or `TLS handshake error: certificate verify failed`. Check expiration with `openssl x509 -enddate -noout -in cert.pem`. Fix by forcing rotation or restarting the workload to trigger certificate renewal.',
+    },
+    {
+      lead: 'Trust chain broken',
+      text: 'The certificate is valid but the CA that signed it isn\'t in the trust store. You\'ll see `x509: certificate signed by unknown authority`. This happens during CA rotation if trust bundles aren\'t updated before new certificates are issued. Verify the chain with `openssl verify -CAfile root.pem cert.pem`.',
+    },
+    {
+      lead: 'SAN mismatch',
+      text: 'The certificate is valid but doesn\'t include the hostname being used. Error: `x509: certificate is valid for X, not Y`. Check SANs with `openssl x509 -text -noout | grep -A1 \'Subject Alternative\'`. This commonly happens when DNS names change or when certificates are issued with incomplete SAN lists.',
+    },
+    {
+      lead: 'Wrong key usage',
+      text: 'The certificate exists but wasn\'t issued for mTLS. If it only has `serverAuth` in Extended Key Usage, it can\'t be used as a client certificate. Error: `x509: certificate specifies an incompatible key usage`. Reissue with both `serverAuth` and `clientAuth`.',
+    },
+  ]}
 />
 
 <Table
@@ -700,13 +694,11 @@ Before touching certificates, verify the mesh is healthy. Rotating during an exi
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Verify current certificate status—all certificates should be Ready:',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Verify current certificate status—all certificates should be Ready:',
+    },
+  ]}
 />
 
 ```bash
@@ -715,13 +707,11 @@ kubectl get certificates -A | grep -v 'True'
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Confirm trust bundle is distributed:',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Confirm trust bundle is distributed:',
+    },
+  ]}
 />
 
 ```bash
@@ -730,27 +720,23 @@ kubectl get configmap -n istio-system istio-ca-root-cert -o yaml
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Check for ongoing incidents (don\'t rotate during an outage).',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Check for ongoing incidents (don\'t rotate during an outage).',
+    },
+  ]}
 />
 
 **Execution:**
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        lead: 'Backup current certificates',
-        text: '',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Backup current certificates',
+      text: '',
+    },
+  ]}
 />
 
 ```bash
@@ -760,14 +746,12 @@ kubectl get secret -n istio-system istio-ca-secret -o yaml > ca-secret-backup.ya
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        lead: 'Trigger rotation',
-        text: 'For Istio, restart istiod to pick up new CA certificates:',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Trigger rotation',
+      text: 'For Istio, restart istiod to pick up new CA certificates:',
+    },
+  ]}
 />
 
 ```bash
@@ -776,14 +760,12 @@ kubectl rollout restart deployment/istiod -n istio-system
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        lead: 'Verify workload certificates rotated',
-        text: '',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Verify workload certificates rotated',
+      text: '',
+    },
+  ]}
 />
 
 ```bash
@@ -797,33 +779,29 @@ done
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        lead: 'Validate mTLS connectivity',
-        text: 'between services.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Validate mTLS connectivity',
+      text: 'between services.',
+    },
+  ]}
 />
 
 **Post-checks:**
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        text: 'All services report healthy',
-      },
-      {
-        text: 'No TLS errors in logs',
-      },
-      {
-        text: 'Monitor error rates for 30 minutes',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'All services report healthy',
+    },
+    {
+      text: 'No TLS errors in logs',
+    },
+    {
+      text: 'Monitor error rates for 30 minutes',
+    },
+  ]}
 />
 
 **Rollback** (if mTLS failures occur): Apply backup certificates, restart istiod, restart affected workloads.
@@ -855,22 +833,20 @@ Apply with `kubectl apply -f emergency-permissive.yaml`.
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Expired workload certs',
-        text: 'Restart workloads to trigger renewal',
-      },
-      {
-        lead: 'Expired intermediate CA',
-        text: 'Follow CA rotation runbook',
-      },
-      {
-        lead: 'Corrupted trust bundle',
-        text: 'Restart istiod to redistribute',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Expired workload certs',
+      text: 'Restart workloads to trigger renewal',
+    },
+    {
+      lead: 'Expired intermediate CA',
+      text: 'Follow CA rotation runbook',
+    },
+    {
+      lead: 'Corrupted trust bundle',
+      text: 'Restart istiod to redistribute',
+    },
+  ]}
 />
 
 **Step 5: Restore strict mode:**

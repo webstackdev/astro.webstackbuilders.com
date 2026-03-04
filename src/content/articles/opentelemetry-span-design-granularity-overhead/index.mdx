@@ -23,44 +23,40 @@ The question "should this operation have a span?" comes up constantly. Here's ho
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Always instrument service boundaries.',
-        text: 'Incoming HTTP/gRPC requests, outgoing HTTP/gRPC calls, message queue publish/consume—these are the spans that stitch your distributed trace together. Without them, your trace stops at service boundaries and you lose visibility into cross-service latency.',
-      },
-      {
-        lead: 'Always instrument I/O operations.',
-        text: 'Database queries, cache reads/writes, file system operations. I/O is where latency lives. A trace that doesn\'t show database time is a trace that can\'t explain why a request was slow.',
-      },
-      {
-        lead: 'Always instrument external dependencies.',
-        text: 'Third-party APIs, payment processors, cloud service SDKs. External services are the leading cause of incidents. When Stripe is slow or an S3 call times out, you want that visible in your traces.',
-      },
-      {
-        lead: 'Instrument significant business operations.',
-        text: 'Order processing, payment validation, user authentication—operations that matter to your business and that you might need to debug. The keyword is "significant." Not every function, just the ones you\'d want to see in a trace when something goes wrong.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Always instrument service boundaries.',
+      text: 'Incoming HTTP/gRPC requests, outgoing HTTP/gRPC calls, message queue publish/consume—these are the spans that stitch your distributed trace together. Without them, your trace stops at service boundaries and you lose visibility into cross-service latency.',
+    },
+    {
+      lead: 'Always instrument I/O operations.',
+      text: 'Database queries, cache reads/writes, file system operations. I/O is where latency lives. A trace that doesn\'t show database time is a trace that can\'t explain why a request was slow.',
+    },
+    {
+      lead: 'Always instrument external dependencies.',
+      text: 'Third-party APIs, payment processors, cloud service SDKs. External services are the leading cause of incidents. When Stripe is slow or an S3 call times out, you want that visible in your traces.',
+    },
+    {
+      lead: 'Instrument significant business operations.',
+      text: 'Order processing, payment validation, user authentication—operations that matter to your business and that you might need to debug. The keyword is "significant." Not every function, just the ones you\'d want to see in a trace when something goes wrong.',
+    },
+  ]}
 />
 
 Some operations need judgment. For loops with external calls, wrap the loop, not each iteration—a batch that processes 100 items should create one span for the batch, not 100 spans. For retry logic, one span per attempt can be useful for debugging retry storms, but link them together so you can see the full retry sequence. And on the other end of the spectrum, there are operations you should actively avoid instrumenting.
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Avoid instrumenting pure computation.',
-        text: 'JSON parsing, field validation, data transformation—these are CPU-bound operations that rarely need their own spans. If you need timing, add it as an attribute on the parent span.',
-      },
-      {
-        lead: 'Avoid instrumenting every function call.',
-        text: 'This is the trap that creates unreadable traces. Instrument boundaries and I/O, not internal implementation details.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Avoid instrumenting pure computation.',
+      text: 'JSON parsing, field validation, data transformation—these are CPU-bound operations that rarely need their own spans. If you need timing, add it as an attribute on the parent span.',
+    },
+    {
+      lead: 'Avoid instrumenting every function call.',
+      text: 'This is the trap that creates unreadable traces. Instrument boundaries and I/O, not internal implementation details.',
+    },
+  ]}
 />
 
 <Table
@@ -111,22 +107,20 @@ Once you've decided something deserves visibility in a trace, you have three opt
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Spans',
-        text: 'represent operations with duration. They have start and end times, can have child spans, and appear as bars in your waterfall. Use them for I/O operations and significant boundaries. Cost: highest (memory allocation, context propagation, serialization).',
-      },
-      {
-        lead: 'Events',
-        text: 'are timestamped points within a span\'s lifetime. They don\'t have duration—they mark moments. Use them for milestones: "validation started," "cache miss," "retry attempted." Cost: moderate (stored with parent span, but no separate context).',
-      },
-      {
-        lead: 'Attributes',
-        text: 'are key-value metadata attached to a span. They describe the operation: IDs, counts, flags, outcomes. Use them for context that helps you understand the span. Cost: lowest (just map entries).',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Spans',
+      text: 'represent operations with duration. They have start and end times, can have child spans, and appear as bars in your waterfall. Use them for I/O operations and significant boundaries. Cost: highest (memory allocation, context propagation, serialization).',
+    },
+    {
+      lead: 'Events',
+      text: 'are timestamped points within a span\'s lifetime. They don\'t have duration—they mark moments. Use them for milestones: "validation started," "cache miss," "retry attempted." Cost: moderate (stored with parent span, but no separate context).',
+    },
+    {
+      lead: 'Attributes',
+      text: 'are key-value metadata attached to a span. They describe the operation: IDs, counts, flags, outcomes. Use them for context that helps you understand the span. Cost: lowest (just map entries).',
+    },
+  ]}
 />
 
 Here's the pattern in practice:
@@ -180,30 +174,28 @@ Most readability problems fall into a few common anti-patterns:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Wall of spans.',
-        text: 'The waterfall is solid color—no gaps, no white space. You can\'t see the structure because there\'s a span for everything. Every function call, every loop iteration, every trivial operation. The fix is reducing span count and using events for milestones instead of child spans.',
-      },
-      {
-        lead: 'Flat hierarchy.',
-        text: 'All spans at the same level, no nesting. You can\'t tell which operations are contained within others, or whether operations ran sequentially or in parallel. The fix is ensuring child spans inherit from their parents using `startActiveSpan`.',
-      },
-      {
-        lead: 'Missing gaps.',
-        text: 'Spans account for 100% of request time—no uninstrumented periods visible. This sounds good but actually hides information. The gaps in a trace show where time went to uninstrumented code. If there are no gaps, you can\'t distinguish "the database was slow" from "the instrumentation overhead was high."',
-      },
-      {
-        lead: 'Cryptic names.',
-        text: 'Span names like "span," "operation," "handler," or "process" that don\'t explain what\'s happening. Auto-instrumentation often produces these. The fix is customizing span names to follow the pattern "operation resource" (`HTTP GET /api/orders`, `db.query orders`).',
-      },
-      {
-        lead: 'Attribute explosion.',
-        text: 'Hundreds of attributes per span because someone dumped all available context. The trace viewer loads slowly, important attributes are buried in noise, and storage costs balloon. The fix is selecting relevant attributes deliberately.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Wall of spans.',
+      text: 'The waterfall is solid color—no gaps, no white space. You can\'t see the structure because there\'s a span for everything. Every function call, every loop iteration, every trivial operation. The fix is reducing span count and using events for milestones instead of child spans.',
+    },
+    {
+      lead: 'Flat hierarchy.',
+      text: 'All spans at the same level, no nesting. You can\'t tell which operations are contained within others, or whether operations ran sequentially or in parallel. The fix is ensuring child spans inherit from their parents using `startActiveSpan`.',
+    },
+    {
+      lead: 'Missing gaps.',
+      text: 'Spans account for 100% of request time—no uninstrumented periods visible. This sounds good but actually hides information. The gaps in a trace show where time went to uninstrumented code. If there are no gaps, you can\'t distinguish "the database was slow" from "the instrumentation overhead was high."',
+    },
+    {
+      lead: 'Cryptic names.',
+      text: 'Span names like "span," "operation," "handler," or "process" that don\'t explain what\'s happening. Auto-instrumentation often produces these. The fix is customizing span names to follow the pattern "operation resource" (`HTTP GET /api/orders`, `db.query orders`).',
+    },
+    {
+      lead: 'Attribute explosion.',
+      text: 'Hundreds of attributes per span because someone dumped all available context. The trace viewer loads slowly, important attributes are buried in noise, and storage costs balloon. The fix is selecting relevant attributes deliberately.',
+    },
+  ]}
 />
 
 <Newsletter />

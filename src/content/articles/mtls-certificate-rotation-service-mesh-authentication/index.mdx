@@ -78,25 +78,23 @@ The safe order for CA rotation:
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        text: 'Add the new CA to all trust bundles (services now trust both old and new)',
-      },
-      {
-        text: 'Verify all services have received the updated trust bundle',
-      },
-      {
-        text: 'Start issuing certificates from the new CA',
-      },
-      {
-        text: 'Wait for all workload certificates to rotate to the new CA',
-      },
-      {
-        text: 'Remove the old CA from trust bundles',
-      },
-    ],
-  }}
+  items={[
+    {
+      text: 'Add the new CA to all trust bundles (services now trust both old and new)',
+    },
+    {
+      text: 'Verify all services have received the updated trust bundle',
+    },
+    {
+      text: 'Start issuing certificates from the new CA',
+    },
+    {
+      text: 'Wait for all workload certificates to rotate to the new CA',
+    },
+    {
+      text: 'Remove the old CA from trust bundles',
+    },
+  ]}
 />
 
 This sequence diagram shows the rotation flow:
@@ -207,26 +205,24 @@ mTLS failures produce cryptic errors. The TLS handshake fails, and you get a gen
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Certificate expired',
-        text: 'The most common cause of mTLS outages. Error messages include `x509: certificate has expired`. Check expiration with `openssl x509 -enddate -noout -in cert.pem`. Fix by forcing rotation or restarting the workload to trigger certificate renewal.',
-      },
-      {
-        lead: 'Trust chain broken',
-        text: 'The certificate is valid but the CA that signed it isn\'t in the trust store. You\'ll see `x509: certificate signed by unknown authority`. This happens during CA rotation if trust bundles aren\'t updated before new certificates are issued.',
-      },
-      {
-        lead: 'SAN mismatch',
-        text: 'The certificate is valid but doesn\'t include the hostname being used. Error: `x509: certificate is valid for X, not Y`. This commonly happens when DNS names change or when certificates are issued with incomplete SAN lists.',
-      },
-      {
-        lead: 'Wrong key usage',
-        text: 'The certificate exists but wasn\'t issued for mTLS. If it only has `serverAuth` in Extended Key Usage, it can\'t be used as a client certificate. Reissue with both `serverAuth` and `clientAuth`.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Certificate expired',
+      text: 'The most common cause of mTLS outages. Error messages include `x509: certificate has expired`. Check expiration with `openssl x509 -enddate -noout -in cert.pem`. Fix by forcing rotation or restarting the workload to trigger certificate renewal.',
+    },
+    {
+      lead: 'Trust chain broken',
+      text: 'The certificate is valid but the CA that signed it isn\'t in the trust store. You\'ll see `x509: certificate signed by unknown authority`. This happens during CA rotation if trust bundles aren\'t updated before new certificates are issued.',
+    },
+    {
+      lead: 'SAN mismatch',
+      text: 'The certificate is valid but doesn\'t include the hostname being used. Error: `x509: certificate is valid for X, not Y`. This commonly happens when DNS names change or when certificates are issued with incomplete SAN lists.',
+    },
+    {
+      lead: 'Wrong key usage',
+      text: 'The certificate exists but wasn\'t issued for mTLS. If it only has `serverAuth` in Extended Key Usage, it can\'t be used as a client certificate. Reissue with both `serverAuth` and `clientAuth`.',
+    },
+  ]}
 />
 
 I once spent two hours debugging a "connection reset by peer" that turned out to be a certificate with `serverAuth` only—no `clientAuth`. The error message mentioned nothing about key usage. The fix was a one-line change to the certificate spec, but finding it required systematically ruling out every other possibility.

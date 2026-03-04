@@ -108,22 +108,20 @@ Consider three classic cause-based alerts and their symptom-based alternatives:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'High CPU usage',
-        text: 'fires when cpu_usage > 90%. But CPU can spike during legitimate load, garbage collection, or batch jobs without any user impact. The symptom-based alternative-elevated request latency-only fires when users are actually affected. Many different causes lead to latency; one symptom alert catches them all.',
-      },
-      {
-        lead: 'Low disk space',
-        text: "fires when disk_free < 10%. But this triggers on expected growth, archival systems, and cold storage that's supposed to be full. The symptom-based alternative-write failures increasing-only fires when disk space is causing actual failures. Keep disk space as a ticket for business hours, not a 2 AM page.",
-      },
-      {
-        lead: 'Database connections high',
-        text: 'fires when connections exceed 80% of max. But connection pools often run hot without issues. The symptom-based alternative-query timeouts-only fires when connection exhaustion impacts queries. Connection monitoring becomes a dashboard metric, not an alert.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'High CPU usage',
+      text: 'fires when cpu_usage > 90%. But CPU can spike during legitimate load, garbage collection, or batch jobs without any user impact. The symptom-based alternative-elevated request latency-only fires when users are actually affected. Many different causes lead to latency; one symptom alert catches them all.',
+    },
+    {
+      lead: 'Low disk space',
+      text: "fires when disk_free < 10%. But this triggers on expected growth, archival systems, and cold storage that's supposed to be full. The symptom-based alternative-write failures increasing-only fires when disk space is causing actual failures. Keep disk space as a ticket for business hours, not a 2 AM page.",
+    },
+    {
+      lead: 'Database connections high',
+      text: 'fires when connections exceed 80% of max. But connection pools often run hot without issues. The symptom-based alternative-query timeouts-only fires when connection exhaustion impacts queries. Connection monitoring becomes a dashboard metric, not an alert.',
+    },
+  ]}
 />
 
 The pattern: causes are _potential_ problems; symptoms are _actual_ problems. Page on symptoms, ticket on causes.
@@ -381,22 +379,20 @@ Three indicators tell you if your threshold is calibrated correctly:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Too sensitive:',
-        text: 'Alert fires multiple times per day without correlating to incidents. Raise the threshold or extend the for duration.',
-      },
-      {
-        lead: 'Too insensitive:',
-        text: 'Incidents occur without the alert firing first. Lower the threshold or shorten the for duration.',
-      },
-      {
-        lead: 'Just right:',
-        text: 'More than 80% of alerts correlate with actual user-impacting incidents. Document the threshold and monitor for drift.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Too sensitive:',
+      text: 'Alert fires multiple times per day without correlating to incidents. Raise the threshold or extend the for duration.',
+    },
+    {
+      lead: 'Too insensitive:',
+      text: 'Incidents occur without the alert firing first. Lower the threshold or shorten the for duration.',
+    },
+    {
+      lead: 'Just right:',
+      text: 'More than 80% of alerts correlate with actual user-impacting incidents. Document the threshold and monitor for drift.',
+    },
+  ]}
 />
 
 Review thresholds quarterly. As your system scales, yesterday's anomaly becomes today's normal.
@@ -491,34 +487,32 @@ A good runbook follows a consistent structure that an engineer can navigate unde
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Metadata',
-        text: 'comes first: the alert name, severity, owner, when the runbook was last updated, and how often it should be reviewed. Stale runbooks are worse than no runbook-they provide false confidence while pointing to deprecated tools or outdated procedures.',
-      },
-      {
-        lead: 'Summary',
-        text: 'gives the responder immediate context: what users are experiencing, how long resolution typically takes, and who to escalate to. This section should be readable in 30 seconds and help the engineer decide whether they can handle this alone.',
-      },
-      {
-        lead: 'Diagnosis',
-        text: 'provides the investigation toolkit: key questions to answer (is this affecting all endpoints or specific ones?), dashboard links, log queries, and a table of common causes ranked by likelihood. Start with the most probable cause.',
-      },
-      {
-        lead: 'Remediation',
-        text: 'gives step-by-step instructions with expected results. Each step should include the command to run and what success looks like. If the fix does not produce the expected result, the engineer knows to move to the next step or escalate.',
-      },
-      {
-        lead: 'Escalation',
-        text: 'criteria must be explicit: escalate if not resolved in X minutes, if error rate exceeds Y%, if it affects specific critical paths like payments. Include contact information-not just "page the DBA" but how to page them.',
-      },
-      {
-        lead: 'Post-incident',
-        text: 'checklists ensure nothing gets forgotten: create the incident ticket, update the runbook if a new cause was discovered, schedule a post-mortem for P1/P2 incidents.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Metadata',
+      text: 'comes first: the alert name, severity, owner, when the runbook was last updated, and how often it should be reviewed. Stale runbooks are worse than no runbook-they provide false confidence while pointing to deprecated tools or outdated procedures.',
+    },
+    {
+      lead: 'Summary',
+      text: 'gives the responder immediate context: what users are experiencing, how long resolution typically takes, and who to escalate to. This section should be readable in 30 seconds and help the engineer decide whether they can handle this alone.',
+    },
+    {
+      lead: 'Diagnosis',
+      text: 'provides the investigation toolkit: key questions to answer (is this affecting all endpoints or specific ones?), dashboard links, log queries, and a table of common causes ranked by likelihood. Start with the most probable cause.',
+    },
+    {
+      lead: 'Remediation',
+      text: 'gives step-by-step instructions with expected results. Each step should include the command to run and what success looks like. If the fix does not produce the expected result, the engineer knows to move to the next step or escalate.',
+    },
+    {
+      lead: 'Escalation',
+      text: 'criteria must be explicit: escalate if not resolved in X minutes, if error rate exceeds Y%, if it affects specific critical paths like payments. Include contact information-not just "page the DBA" but how to page them.',
+    },
+    {
+      lead: 'Post-incident',
+      text: 'checklists ensure nothing gets forgotten: create the incident ticket, update the runbook if a new cause was discovered, schedule a post-mortem for P1/P2 incidents.',
+    },
+  ]}
 />
 
 Here's a complete example:
@@ -733,22 +727,20 @@ Key routing principles:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Group related alerts:',
-        text: "group_by: ['alertname', 'service'] prevents a cascading failure from generating 50 separate pages. One page with context is better than an inbox flood.",
-      },
-      {
-        lead: 'Set appropriate repeat intervals:',
-        text: 'Critical alerts should repeat every 15 minutes until acknowledged; warnings can wait 4 hours. Repeating too frequently causes fatigue; too infrequently risks forgotten incidents.',
-      },
-      {
-        lead: 'Include context in notifications:',
-        text: "Every page should include the runbook URL and dashboard link. The responder shouldn't have to search for these.",
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Group related alerts:',
+      text: "group_by: ['alertname', 'service'] prevents a cascading failure from generating 50 separate pages. One page with context is better than an inbox flood.",
+    },
+    {
+      lead: 'Set appropriate repeat intervals:',
+      text: 'Critical alerts should repeat every 15 minutes until acknowledged; warnings can wait 4 hours. Repeating too frequently causes fatigue; too infrequently risks forgotten incidents.',
+    },
+    {
+      lead: 'Include context in notifications:',
+      text: "Every page should include the runbook URL and dashboard link. The responder shouldn't have to search for these.",
+    },
+  ]}
 />
 
 ### Escalation Policies
@@ -759,26 +751,24 @@ A typical escalation chain for critical production issues:
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        lead: 'T+0:',
-        text: 'Page the primary on-call engineer',
-      },
-      {
-        lead: 'T+10 min (no acknowledgment):',
-        text: 'Page the secondary on-call and the engineering manager',
-      },
-      {
-        lead: 'T+20 min (still no acknowledgment):',
-        text: 'Page the engineering leadership team',
-      },
-      {
-        lead: 'T+30 min (still no acknowledgment):',
-        text: 'Page the CTO (final level)',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'T+0:',
+      text: 'Page the primary on-call engineer',
+    },
+    {
+      lead: 'T+10 min (no acknowledgment):',
+      text: 'Page the secondary on-call and the engineering manager',
+    },
+    {
+      lead: 'T+20 min (still no acknowledgment):',
+      text: 'Page the engineering leadership team',
+    },
+    {
+      lead: 'T+30 min (still no acknowledgment):',
+      text: 'Page the CTO (final level)',
+    },
+  ]}
 />
 
 Escalation policies should also handle auto-resolution. If the metric recovers and stays healthy for a reasonable period (typically 1 hour), the incident can auto-close without requiring explicit resolution. This prevents orphaned incidents that technically resolved themselves but remain open in the system.
@@ -799,30 +789,28 @@ The review process asks five questions about each alert that fired in the past m
 
 <List
   variant="numbered-with-background-list"
-  content={{
-    items: [
-      {
-        lead: 'Was it actionable?',
-        text: 'Did the alert require human intervention to resolve, or did it auto-recover or require no action?',
-      },
-      {
-        lead: 'Was the runbook helpful?',
-        text: 'Did the responder follow it, or did they have to figure things out from scratch?',
-      },
-      {
-        lead: 'Is the threshold still appropriate?',
-        text: 'Has the system changed in ways that make the threshold too sensitive or too lax?',
-      },
-      {
-        lead: 'Should this be a page or a ticket?',
-        text: 'Some alerts start as pages but should be demoted to tickets once the failure mode is better understood.',
-      },
-      {
-        lead: 'Are there duplicates?',
-        text: 'Does another alert fire for the same underlying issue?',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Was it actionable?',
+      text: 'Did the alert require human intervention to resolve, or did it auto-recover or require no action?',
+    },
+    {
+      lead: 'Was the runbook helpful?',
+      text: 'Did the responder follow it, or did they have to figure things out from scratch?',
+    },
+    {
+      lead: 'Is the threshold still appropriate?',
+      text: 'Has the system changed in ways that make the threshold too sensitive or too lax?',
+    },
+    {
+      lead: 'Should this be a page or a ticket?',
+      text: 'Some alerts start as pages but should be demoted to tickets once the failure mode is better understood.',
+    },
+    {
+      lead: 'Are there duplicates?',
+      text: 'Does another alert fire for the same underlying issue?',
+    },
+  ]}
 />
 
 Track the outcome for each alert: keep as-is, modify threshold, update runbook, convert to ticket, or delete.
@@ -831,26 +819,24 @@ A simple review meeting agenda:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Metrics review (10 min):',
-        text: 'Total alerts last month, actionable rate, false positive rate, top 5 noisiest alerts',
-      },
-      {
-        lead: 'Individual alert review (30 min):',
-        text: 'Walk through each alert that fired, answer the five questions, decide on disposition',
-      },
-      {
-        lead: 'New alert proposals (10 min):',
-        text: 'Review any proposed new alerts, ensure runbooks exist, verify symptom-based design',
-      },
-      {
-        lead: 'Action items (10 min):',
-        text: 'Assign threshold modifications, runbook updates, deletions',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Metrics review (10 min):',
+      text: 'Total alerts last month, actionable rate, false positive rate, top 5 noisiest alerts',
+    },
+    {
+      lead: 'Individual alert review (30 min):',
+      text: 'Walk through each alert that fired, answer the five questions, decide on disposition',
+    },
+    {
+      lead: 'New alert proposals (10 min):',
+      text: 'Review any proposed new alerts, ensure runbooks exist, verify symptom-based design',
+    },
+    {
+      lead: 'Action items (10 min):',
+      text: 'Assign threshold modifications, runbook updates, deletions',
+    },
+  ]}
 />
 
 ### Alert Lifecycle Management
@@ -907,18 +893,16 @@ Two signals indicate an alert should be retired:
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: "Hasn't fired in 6 months:",
-        text: 'Either the failure mode no longer occurs, or the threshold is too high to catch it. If the failure mode is still relevant, lower the threshold. If not, delete the alert.',
-      },
-      {
-        lead: 'Less than 50% actionable rate:',
-        text: 'The alert fires but does not require action more than half the time. Either raise the threshold, extend the for duration, or convert to a dashboard metric.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: "Hasn't fired in 6 months:",
+      text: 'Either the failure mode no longer occurs, or the threshold is too high to catch it. If the failure mode is still relevant, lower the threshold. If not, delete the alert.',
+    },
+    {
+      lead: 'Less than 50% actionable rate:',
+      text: 'The alert fires but does not require action more than half the time. Either raise the threshold, extend the for duration, or convert to a dashboard metric.',
+    },
+  ]}
 />
 
 <Callout type="warning">

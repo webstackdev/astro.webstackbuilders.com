@@ -23,26 +23,24 @@ Not all checks belong in a deployment pipeline, and not all pipeline checks shou
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Actionable',
-        text: 'means a failure provides clear next steps. "Test auth_login_test failed: expected 200, got 500" tells you exactly what broke. "Quality score below threshold" tells you nothing. If a developer can\'t understand what to fix from the gate failure message alone, the gate isn\'t actionable—and engineers will bypass rather than investigate.',
-      },
-      {
-        lead: 'Deterministic',
-        text: 'means the same code produces the same result every time. Unit tests with fixed seeds pass this bar. Performance tests on shared infrastructure don\'t—network latency, noisy neighbors, and cold starts inject variance. Flaky gates train people to retry and ignore, which defeats the purpose entirely. Non-deterministic checks should be advisory, not blocking.',
-      },
-      {
-        lead: 'Fast',
-        text: 'means results arrive while context is still fresh. Pre-commit hooks should complete in under 30 seconds. Pre-merge gates should finish within 10 minutes. Post-deploy validation needs to reach a rollback decision within 5 minutes—longer than that, and you\'ve already served bad traffic to users. Slow gates become bottlenecks, and bottlenecks get bypassed in emergencies.',
-      },
-      {
-        lead: 'Proportional',
-        text: 'means severity matches actual risk. An authentication bypass vulnerability is critical—block the deployment. A code style violation is low-risk—warn, don\'t block. A memory leak is serious but not immediately catastrophic—block production deployments, but allow staging so you can investigate. Not all issues have equal impact; weight gates by the actual risk of the failure they detect.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Actionable',
+      text: 'means a failure provides clear next steps. "Test auth_login_test failed: expected 200, got 500" tells you exactly what broke. "Quality score below threshold" tells you nothing. If a developer can\'t understand what to fix from the gate failure message alone, the gate isn\'t actionable—and engineers will bypass rather than investigate.',
+    },
+    {
+      lead: 'Deterministic',
+      text: "means the same code produces the same result every time. Unit tests with fixed seeds pass this bar. Performance tests on shared infrastructure don't—network latency, noisy neighbors, and cold starts inject variance. Flaky gates train people to retry and ignore, which defeats the purpose entirely. Non-deterministic checks should be advisory, not blocking.",
+    },
+    {
+      lead: 'Fast',
+      text: "means results arrive while context is still fresh. Pre-commit hooks should complete in under 30 seconds. Pre-merge gates should finish within 10 minutes. Post-deploy validation needs to reach a rollback decision within 5 minutes—longer than that, and you've already served bad traffic to users. Slow gates become bottlenecks, and bottlenecks get bypassed in emergencies.",
+    },
+    {
+      lead: 'Proportional',
+      text: 'means severity matches actual risk. An authentication bypass vulnerability is critical—block the deployment. A code style violation is low-risk—warn, don\'t block. A memory leak is serious but not immediately catastrophic—block production deployments, but allow staging so you can investigate. Not all issues have equal impact; weight gates by the actual risk of the failure they detect.',
+    },
+  ]}
 />
 
 <Callout type="info">
@@ -109,26 +107,24 @@ Some gate configurations sound reasonable but cause problems in practice. Recogn
 
 <List
   variant="check-icons-list"
-  content={{
-    items: [
-      {
-        lead: 'Coverage absolutism',
-        text: 'is the rule that blocks if coverage drops below some threshold like 80%. The problem is that refactoring can legitimately drop coverage—deleting dead code, consolidating duplicated logic, or removing tests for deprecated features all reduce line counts. A better approach: alert if coverage drops more than 5% from the baseline, which catches significant regressions without penalizing cleanup work.',
-      },
-      {
-        lead: 'All tests must pass',
-        text: 'sounds like the obvious choice, but it typically causes problems for integration and E2E tests, not unit tests. Unit tests should be deterministic—if one fails, fix it or delete it. But integration tests depend on external services and test environments, and E2E tests are notoriously flaky due to timing, browser quirks, and infrastructure variance. Better: treat unit tests as blocking, but quarantine flaky integration and E2E tests into a separate non-blocking job with a deadline to fix or delete. Maintain a small, stable "critical path" E2E suite—ten tests maximum covering your core flows—and run the full suite as advisory.',
-      },
-      {
-        lead: 'Security theater',
-        text: 'blocks on any security scanner finding. Security scanners generate findings for non-exploitable vulnerabilities, deprecated-but-not-dangerous patterns, and theoretical attack vectors that don\'t apply to your context. Block on CVE 9+ (critical, actively exploited), alert on high-severity findings for triage, and log everything else. Otherwise, every deployment becomes a negotiation about which security findings to ignore this time.',
-      },
-      {
-        lead: 'Performance zero tolerance',
-        text: 'blocks if any metric regresses. Performance varies run to run—test infrastructure, garbage collection timing, and background processes all introduce noise. A 2% latency increase might be real or might be measurement variance. Better: block if P99 (99th percentile) latency regresses more than 20% across multiple runs, which filters out noise while catching real regressions.',
-      },
-    ],
-  }}
+  items={[
+    {
+      lead: 'Coverage absolutism',
+      text: 'is the rule that blocks if coverage drops below some threshold like 80%. The problem is that refactoring can legitimately drop coverage—deleting dead code, consolidating duplicated logic, or removing tests for deprecated features all reduce line counts. A better approach: alert if coverage drops more than 5% from the baseline, which catches significant regressions without penalizing cleanup work.',
+    },
+    {
+      lead: 'All tests must pass',
+      text: 'sounds like the obvious choice, but it typically causes problems for integration and E2E tests, not unit tests. Unit tests should be deterministic—if one fails, fix it or delete it. But integration tests depend on external services and test environments, and E2E tests are notoriously flaky due to timing, browser quirks, and infrastructure variance. Better: treat unit tests as blocking, but quarantine flaky integration and E2E tests into a separate non-blocking job with a deadline to fix or delete. Maintain a small, stable "critical path" E2E suite—ten tests maximum covering your core flows—and run the full suite as advisory.',
+    },
+    {
+      lead: 'Security theater',
+      text: "blocks on any security scanner finding. Security scanners generate findings for non-exploitable vulnerabilities, deprecated-but-not-dangerous patterns, and theoretical attack vectors that don't apply to your context. Block on CVE 9+ (critical, actively exploited), alert on high-severity findings for triage, and log everything else. Otherwise, every deployment becomes a negotiation about which security findings to ignore this time.",
+    },
+    {
+      lead: 'Performance zero tolerance',
+      text: 'blocks if any metric regresses. Performance varies run to run—test infrastructure, garbage collection timing, and background processes all introduce noise. A 2% latency increase might be real or might be measurement variance. Better: block if P99 (99th percentile) latency regresses more than 20% across multiple runs, which filters out noise while catching real regressions.',
+    },
+  ]}
 />
 
 <Callout type="warning">

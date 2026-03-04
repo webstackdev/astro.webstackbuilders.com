@@ -38,41 +38,41 @@ The most dangerous justification is "it's just staging—nobody will see it." St
 Every non-production environment with real data is a breach waiting to happen. The exposure surface is larger than most teams realize.
 
 <Table
-    variant="vertical-column-delineation-table"
-    content={{
-        thead: {
-            th: ['Risk', 'Consequence', 'Real-World Example'],
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Risk', 'Consequence', 'Real-World Example'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Data breach in staging',
+          td: ['GDPR fines up to €20M or 4% revenue', 'Staging DB exposed via misconfigured security group'],
         },
-        tbody: {
-            tr: [
-                {
-                    th: 'Data breach in staging',
-                    td: ['GDPR fines up to €20M or 4% revenue', 'Staging DB exposed via misconfigured security group'],
-                },
-                {
-                    th: 'Developer laptop theft',
-                    td: ['Customer data compromise, notification requirements', 'Laptop with local DB copy stolen from car'],
-                },
-                {
-                    th: 'Log aggregation exposure',
-                    td: ['PII in logs indexed by third-party service', 'Customer names in error messages sent to Datadog'],
-                },
-                {
-                    th: 'Contractor access',
-                    td: ['PII exposure to untrusted parties', 'Offshore QA team with full production clone'],
-                },
-                {
-                    th: 'Backup retention',
-                    td: ['Production data in test backups subject to retention', 'Test DB backup stored for years, breached'],
-                },
-                {
-                    th: 'Compliance audit failure',
-                    td: ['Failed SOC2/HIPAA audit, lost enterprise deals', 'Auditor finds real SSNs in staging environment'],
-                },
-            ],
+        {
+          th: 'Developer laptop theft',
+          td: ['Customer data compromise, notification requirements', 'Laptop with local DB copy stolen from car'],
         },
-        figure: 'Common PII exposure scenarios in non-production',
-    }}
+        {
+          th: 'Log aggregation exposure',
+          td: ['PII in logs indexed by third-party service', 'Customer names in error messages sent to Datadog'],
+        },
+        {
+          th: 'Contractor access',
+          td: ['PII exposure to untrusted parties', 'Offshore QA team with full production clone'],
+        },
+        {
+          th: 'Backup retention',
+          td: ['Production data in test backups subject to retention', 'Test DB backup stored for years, breached'],
+        },
+        {
+          th: 'Compliance audit failure',
+          td: ['Failed SOC2/HIPAA audit, lost enterprise deals', 'Auditor finds real SSNs in staging environment'],
+        },
+      ],
+    },
+    figure: 'Common PII exposure scenarios in non-production',
+  }}
 />
 
 Most teams have no inventory of where production copies live. A single database export fans out to developer laptops, CI artifacts, log aggregators, error trackers, and backup systems—each one a potential breach vector.
@@ -291,45 +291,45 @@ Sometimes you genuinely need production data—debugging a specific customer iss
 Different data types need different anonymization approaches. The goal is preserving what matters for testing while destroying what identifies individuals.
 
 <Table
-    variant="vertical-column-delineation-table"
-    content={{
-        thead: {
-            th: ['Field Type', 'Technique', 'Example', "What's Preserved"],
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Field Type', 'Technique', 'Example', "What's Preserved"],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Email',
+          td: ['Format-preserving hash', 'john.doe@company.com → user_8f3k2@example.com', 'Format validity, uniqueness'],
         },
-        tbody: {
-            tr: [
-                {
-                    th: 'Email',
-                    td: ['Format-preserving hash', 'john.doe@company.com → user_8f3k2@example.com', 'Format validity, uniqueness'],
-                },
-                {
-                    th: 'Name',
-                    td: ['Consistent fake replacement', 'John Doe → Michael Smith', 'Linguistic plausibility'],
-                },
-                {
-                    th: 'Phone',
-                    td: ['Format-preserving randomization', '555-123-4567 → 555-987-6543', 'Format, area code patterns'],
-                },
-                {
-                    th: 'Address',
-                    td: ['Generalization + fake details', '123 Main St, Springfield IL → 456 Oak Ave, Springfield IL', 'Geographic region'],
-                },
-                {
-                    th: 'Date of Birth',
-                    td: ['Bucketing', '1985-03-15 → 1985-01-01', 'Age range, decade'],
-                },
-                {
-                    th: 'SSN/ID numbers',
-                    td: ['Complete replacement', '123-45-6789 → 987-65-4321', 'Format validity only'],
-                },
-                {
-                    th: 'Free text',
-                    td: ['NLP entity replacement', '"John called about his order" → "Customer called about their order"', 'Sentence structure'],
-                },
-            ],
+        {
+          th: 'Name',
+          td: ['Consistent fake replacement', 'John Doe → Michael Smith', 'Linguistic plausibility'],
         },
-        figure: 'Anonymization techniques by field type',
-    }}
+        {
+          th: 'Phone',
+          td: ['Format-preserving randomization', '555-123-4567 → 555-987-6543', 'Format, area code patterns'],
+        },
+        {
+          th: 'Address',
+          td: ['Generalization + fake details', '123 Main St, Springfield IL → 456 Oak Ave, Springfield IL', 'Geographic region'],
+        },
+        {
+          th: 'Date of Birth',
+          td: ['Bucketing', '1985-03-15 → 1985-01-01', 'Age range, decade'],
+        },
+        {
+          th: 'SSN/ID numbers',
+          td: ['Complete replacement', '123-45-6789 → 987-65-4321', 'Format validity only'],
+        },
+        {
+          th: 'Free text',
+          td: ['NLP entity replacement', '"John called about his order" → "Customer called about their order"', 'Sentence structure'],
+        },
+      ],
+    },
+    figure: 'Anonymization techniques by field type',
+  }}
 />
 
 The critical insight is _consistency_: the same real value must always map to the same fake value. Without this, referential integrity breaks. If `john@real.com` appears in both the `users` and `orders` tables, both occurrences need to become the same anonymized value.
@@ -563,41 +563,41 @@ Synthetic data isn't just a technical convenience—it's often a legal requireme
 Different regulations have different specifics, but the common thread is clear: personal data in test environments is either prohibited outright or requires controls most teams don't have.
 
 <Table
-    variant="vertical-column-delineation-table"
-    content={{
-        thead: {
-            th: ['Regulation', 'Test Data Requirement', 'Key Provision'],
+  variant="vertical-column-delineation-table"
+  content={{
+    thead: {
+      th: ['Regulation', 'Test Data Requirement', 'Key Provision'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'GDPR',
+          td: ['Cannot use personal data without consent', 'Article 5(1)(b) - Purpose limitation'],
         },
-        tbody: {
-            tr: [
-                {
-                    th: 'GDPR',
-                    td: ['Cannot use personal data without consent', 'Article 5(1)(b) - Purpose limitation'],
-                },
-                {
-                    th: 'CCPA',
-                    td: ['Must honor opt-out for non-essential processing', '§1798.120 - Right to opt out'],
-                },
-                {
-                    th: 'HIPAA',
-                    td: ['PHI must be de-identified (Safe Harbor or Expert)', '§164.514 - De-identification standard'],
-                },
-                {
-                    th: 'PCI DSS',
-                    td: ['No real PANs in non-production', 'Requirement 6.4.3'],
-                },
-                {
-                    th: 'SOX',
-                    td: ['Data accuracy for financial testing', '§302 - Corporate responsibility'],
-                },
-                {
-                    th: 'FERPA',
-                    td: ['Student records must be de-identified', '§99.31 - Disclosure requirements'],
-                },
-            ],
+        {
+          th: 'CCPA',
+          td: ['Must honor opt-out for non-essential processing', '§1798.120 - Right to opt out'],
         },
-        figure: 'Regulatory requirements for test data',
-    }}
+        {
+          th: 'HIPAA',
+          td: ['PHI must be de-identified (Safe Harbor or Expert)', '§164.514 - De-identification standard'],
+        },
+        {
+          th: 'PCI DSS',
+          td: ['No real PANs in non-production', 'Requirement 6.4.3'],
+        },
+        {
+          th: 'SOX',
+          td: ['Data accuracy for financial testing', '§302 - Corporate responsibility'],
+        },
+        {
+          th: 'FERPA',
+          td: ['Student records must be de-identified', '§99.31 - Disclosure requirements'],
+        },
+      ],
+    },
+    figure: 'Regulatory requirements for test data',
+  }}
 />
 
 The GDPR's "purpose limitation" principle is particularly strict: data collected for providing a service cannot be repurposed for testing without explicit consent. Arguing that testing improves the service won't satisfy regulators. HIPAA's de-identification standard requires either removing 18 specific identifier types ([Safe Harbor](https://www.hhs.gov/hipaa/for-professionals/special-topics/de-identification/index.html#safeharborguidance)) or having a statistician certify re-identification risk is "very small" ([Expert Determination](https://www.hhs.gov/hipaa/for-professionals/special-topics/de-identification/index.html#guidancedetermination)). PCI DSS is blunt—real card numbers in non-production environments is a compliance failure, full stop.
@@ -723,23 +723,21 @@ Keep these logs alongside your application audit logs. During a compliance revie
 Auditors look for evidence of process, not just policy. A documented policy saying "we use synthetic data" isn't sufficient. You need:
 
 <List
-    variant="numbered-with-background-list"
-    content={{
-        items: [
-            {
-                text: 'The policy document',
-            },
-            {
-                text: 'Technical controls enforcing it (scanners)',
-            },
-            {
-                text: 'Logs proving controls ran',
-            },
-            {
-                text: 'Evidence of periodic review',
-            },
-        ],
-    }}
+  variant="numbered-with-background-list"
+  items={[
+    {
+      text: 'The policy document',
+    },
+    {
+      text: 'Technical controls enforcing it (scanners)',
+    },
+    {
+      text: 'Logs proving controls ran',
+    },
+    {
+      text: 'Evidence of periodic review',
+    },
+  ]}
 />
 
 Synthetic data with this documentation passes audits easily.
