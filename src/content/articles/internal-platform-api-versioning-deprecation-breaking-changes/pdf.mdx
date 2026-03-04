@@ -36,9 +36,25 @@ Internal customers are captive customers. They can't switch to a competitor's pl
 
 Four versioning approaches dominate API design, each with tradeoffs that matter for internal platforms.
 
-- _URL path versioning_ (`/api/v1/deployments`, `/api/v2/deployments`) is explicit and visible - every request clearly shows which version it's using. Load balancers can route traffic easily, and deprecating old versions is straightforward. For internal platform APIs, this is usually the right choice because visibility trumps elegance. When debugging a failed pipeline at 2 AM, you want to immediately know which API version the client is calling.
-- _Header versioning_ (`Accept: application/vnd.platform.v2+json`) and _query parameter versioning_ (`/api/services?version=2`) both hide version information where developers forget to set it and debugging tools don't show it. Skip these unless you have specific requirements for URL stability.
-- _Date-based versioning_ (`/api/2024-01-15/services`) works well for APIs with frequent, incremental changes - Stripe and AWS use this successfully. The downside is version accumulation: after a few years, you have dozens of dated endpoints. This works best when you have the tooling to manage many concurrent versions.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "URL path versioning",
+        text: "(`/api/v1/deployments`, `/api/v2/deployments`) is explicit and visible - every request clearly shows which version it's using. Load balancers can route traffic easily, and deprecating old versions is straightforward. For internal platform APIs, this is usually the right choice because visibility trumps elegance. When debugging a failed pipeline at 2 AM, you want to immediately know which API version the client is calling.",
+      },
+      {
+        lead: "Header versioning",
+        text: "(`Accept: application/vnd.platform.v2+json`) and _query parameter versioning_ (`/api/services?version=2`) both hide version information where developers forget to set it and debugging tools don't show it. Skip these unless you have specific requirements for URL stability.",
+      },
+      {
+        lead: "Date-based versioning",
+        text: "(`/api/2024-01-15/services`) works well for APIs with frequent, incremental changes - Stripe and AWS use this successfully. The downside is version accumulation: after a few years, you have dozens of dated endpoints. This works best when you have the tooling to manage many concurrent versions.",
+      },
+    ],
+  }}
+/>
 
 For most internal platform APIs, I recommend URL path versioning. Maximum visibility, easy auditing, simple routing, and clear communication about which versions are approaching sunset.
 
@@ -46,9 +62,25 @@ For most internal platform APIs, I recommend URL path versioning. Maximum visibi
 
 Semantic versioning gives version numbers meaning. For APIs, the interpretation is straightforward:
 
-- _Major versions (v1 → v2)_ indicate breaking changes that require consumer code updates. This includes removing endpoints, removing fields from responses, adding required fields to requests, changing field types, changing authentication mechanisms, or renaming fields without backward-compatible aliases. Major bumps need 90+ days advance notice and full deprecation process. Support the previous major version for at least 12 months.
-- _Minor versions (v1.1 → v1.2)_ are backward-compatible additions. New optional endpoints, new optional request fields, new response fields, new enum values - anything that existing client code can safely ignore. No advance notice required, just release notes. Consumers can upgrade without code changes.
-- _Patch versions (v1.2.1 → v1.2.2)_ are backward-compatible fixes. Bug fixes, performance improvements, documentation updates, security patches. These should be transparent to consumers - they shouldn't even notice. Apply patches to all supported versions.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "Major versions (v1 → v2)",
+        text: "indicate breaking changes that require consumer code updates. This includes removing endpoints, removing fields from responses, adding required fields to requests, changing field types, changing authentication mechanisms, or renaming fields without backward-compatible aliases. Major bumps need 90+ days advance notice and full deprecation process. Support the previous major version for at least 12 months.",
+      },
+      {
+        lead: "Minor versions (v1.1 → v1.2)",
+        text: "are backward-compatible additions. New optional endpoints, new optional request fields, new response fields, new enum values - anything that existing client code can safely ignore. No advance notice required, just release notes. Consumers can upgrade without code changes.",
+      },
+      {
+        lead: "Patch versions (v1.2.1 → v1.2.2)",
+        text: "are backward-compatible fixes. Bug fixes, performance improvements, documentation updates, security patches. These should be transparent to consumers - they shouldn't even notice. Apply patches to all supported versions.",
+      },
+    ],
+  }}
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -186,11 +218,33 @@ When you're unsure, treat it as breaking. Consumers will tell you if you're bein
 
 Once you've identified a breaking change, follow a structured process that gives consumers time to adapt.
 
-- _Step 1: Identify affected consumers._ Before announcing anything, know who's using the affected endpoints. API gateway logs tell you which services call which endpoints. Service mesh telemetry shows call patterns. SDK analytics reveal version distribution. Query the last 30 days of traffic - this catches regular callers and weekly batch jobs.
-- _Step 2: Create a proposal document._ Write down what's changing, why it's changing, which endpoints are affected, estimated migration effort, and the proposed timeline. This becomes the single source of truth for the deprecation.
-- _Step 3: Open a feedback period._ Give affected teams 30 days to review the proposal and raise concerns. Maybe you're missing a use case. Maybe the timeline is too aggressive for their roadmap. Maybe there's a simpler migration path you hadn't considered. Listen to the feedback - internal customers have context you don't.
-- _Step 4: Notify affected teams directly._ Broadcast announcements get ignored. Target the teams you identified in step 1. Send to their Slack channels. Email their tech leads. Make it impossible to miss. The notification should include what's changing, why, the timeline, the migration guide, and where to ask questions.
-- _Step 5: Schedule the timeline._ Set milestones for feedback deadline, new version release, 90-day warning, 30-day warning, and sunset date. Put them in the team calendar. Configure automated reminders. Don't rely on anyone remembering.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "Step 1: Identify affected consumers.",
+        text: "Before announcing anything, know who's using the affected endpoints. API gateway logs tell you which services call which endpoints. Service mesh telemetry shows call patterns. SDK analytics reveal version distribution. Query the last 30 days of traffic - this catches regular callers and weekly batch jobs.",
+      },
+      {
+        lead: "Step 2: Create a proposal document.",
+        text: "Write down what's changing, why it's changing, which endpoints are affected, estimated migration effort, and the proposed timeline. This becomes the single source of truth for the deprecation.",
+      },
+      {
+        lead: "Step 3: Open a feedback period.",
+        text: "Give affected teams 30 days to review the proposal and raise concerns. Maybe you're missing a use case. Maybe the timeline is too aggressive for their roadmap. Maybe there's a simpler migration path you hadn't considered. Listen to the feedback - internal customers have context you don't.",
+      },
+      {
+        lead: "Step 4: Notify affected teams directly.",
+        text: "Broadcast announcements get ignored. Target the teams you identified in step 1. Send to their Slack channels. Email their tech leads. Make it impossible to miss. The notification should include what's changing, why, the timeline, the migration guide, and where to ask questions.",
+      },
+      {
+        lead: "Step 5: Schedule the timeline.",
+        text: "Set milestones for feedback deadline, new version release, 90-day warning, 30-day warning, and sunset date. Put them in the team calendar. Configure automated reminders. Don't rely on anyone remembering.",
+      },
+    ],
+  }}
+/>
 
 <Callout type="success">
 Identify consumers before announcing changes. API gateway logs, service mesh telemetry, and SDK analytics tell you who's actually using what. Targeted notification to affected teams gets better response than broadcast announcements that everyone ignores.
@@ -202,9 +256,25 @@ Identify consumers before announcing changes. API gateway logs, service mesh tel
 
 A well-run deprecation follows a predictable timeline that gives consumers multiple opportunities to act - and escalating urgency as the deadline approaches.
 
-- _Major version sunsets_ need 12 months total. Start with a 30-day feedback period where you announce the proposal and gather input. Release the new version, then run both versions in parallel for 12 months. Send the 90-day warning, the 30-day warning, and finally sunset the old version. This sounds like a long time, but internal teams have their own roadmaps. A migration that takes 2 days of work might not get scheduled for 3 months.
-- _Minor feature deprecations_ can move faster - 6 months is usually sufficient. Same pattern: announcement, parallel operation, escalating warnings, sunset.
-- _Security emergencies_ are the exception. When you need to remove something immediately for security reasons, the minimum is 30 days with direct contact to every known consumer. Get security team approval, document the risk, and communicate urgently. Don't use this as a shortcut for normal deprecations - it burns trust.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "Major version sunsets",
+        text: "need 12 months total. Start with a 30-day feedback period where you announce the proposal and gather input. Release the new version, then run both versions in parallel for 12 months. Send the 90-day warning, the 30-day warning, and finally sunset the old version. This sounds like a long time, but internal teams have their own roadmaps. A migration that takes 2 days of work might not get scheduled for 3 months.",
+      },
+      {
+        lead: "Minor feature deprecations",
+        text: "can move faster - 6 months is usually sufficient. Same pattern: announcement, parallel operation, escalating warnings, sunset.",
+      },
+      {
+        lead: "Security emergencies",
+        text: "are the exception. When you need to remove something immediately for security reasons, the minimum is 30 days with direct contact to every known consumer. Get security team approval, document the risk, and communicate urgently. Don't use this as a shortcut for normal deprecations - it burns trust.",
+      },
+    ],
+  }}
+/>
 
 ### Multi-Channel Communication
 
@@ -287,9 +357,25 @@ Never surprise people with deprecations. Even if policy says "90 days notice," e
 
 The faster consumers migrate, the sooner you can sunset the old version. Every friction point in migration extends the deprecation timeline. Invest in making migration as easy as possible - it pays back in reduced support load and faster adoption.
 
-- _Tier 1: Self-service._ Most migrations should be completable without platform team involvement. Provide a comprehensive migration guide with before/after code examples, a comparison table of old vs new API, an FAQ covering common questions, and a self-service validator that consumers can run to check their migration status. Support comes through async channels like #platform-help.
-- _Tier 2: Assisted._ For consumers who need more help, offer scheduled office hours for questions, code review of migration PRs, and migration progress tracking. This tier catches teams who are stuck on edge cases or unclear about specific changes.
-- _Tier 3: Hands-on._ For high-impact consumers or complex migrations, the platform team creates the migration PRs directly. This includes pair programming sessions and production deployment support. Reserve this for critical paths where a delayed migration blocks the entire deprecation.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "Tier 1: Self-service.",
+        text: "Most migrations should be completable without platform team involvement. Provide a comprehensive migration guide with before/after code examples, a comparison table of old vs new API, an FAQ covering common questions, and a self-service validator that consumers can run to check their migration status. Support comes through async channels like #platform-help.",
+      },
+      {
+        lead: "Tier 2: Assisted.",
+        text: "For consumers who need more help, offer scheduled office hours for questions, code review of migration PRs, and migration progress tracking. This tier catches teams who are stuck on edge cases or unclear about specific changes.",
+      },
+      {
+        lead: "Tier 3: Hands-on.",
+        text: "For high-impact consumers or complex migrations, the platform team creates the migration PRs directly. This includes pair programming sessions and production deployment support. Reserve this for critical paths where a delayed migration blocks the entire deprecation.",
+      },
+    ],
+  }}
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -395,9 +481,25 @@ Code: Custom jscodeshift codemod for internal API migration.
 
 The key to good codemods is conservative transformation: change what you're certain about, flag what you're not. A codemod that silently breaks edge cases is worse than no codemod at all.
 
-- _Compatibility adapters_ provide a translation layer that accepts v1 format and converts to v2 internally. This lets the platform team sunset the actual v1 implementation while giving consumers more time to migrate their code. The adapter logs usage for migration tracking, creating visibility into who still depends on the compatibility layer.
-- _Migration validators_ scan codebases for v1 API usage and generate reports. Run them in CI to block PRs that introduce new v1 dependencies. Provide them as self-service tools so consumers can check their own migration progress.
-- _Progress trackers_ aggregate data from API gateway logs, validator results, and team self-reports to show migration status across all consumers. The platform team uses this to identify holdouts and target support.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "Compatibility adapters",
+        text: "provide a translation layer that accepts v1 format and converts to v2 internally. This lets the platform team sunset the actual v1 implementation while giving consumers more time to migrate their code. The adapter logs usage for migration tracking, creating visibility into who still depends on the compatibility layer.",
+      },
+      {
+        lead: "Migration validators",
+        text: "scan codebases for v1 API usage and generate reports. Run them in CI to block PRs that introduce new v1 dependencies. Provide them as self-service tools so consumers can check their own migration progress.",
+      },
+      {
+        lead: "Progress trackers",
+        text: "aggregate data from API gateway logs, validator results, and team self-reports to show migration status across all consumers. The platform team uses this to identify holdouts and target support.",
+      },
+    ],
+  }}
+/>
 
 <Callout type="success">
 The easier migration is, the faster it happens. Codemods that automatically transform code, adapters that provide temporary compatibility, and validators that confirm migration completeness all reduce friction and accelerate adoption.
@@ -409,8 +511,21 @@ The easier migration is, the faster it happens. Codemods that automatically tran
 
 You can't manage what you can't measure. Deprecation metrics tell you whether migration is on track, where consumers are stuck, and whether the deprecation is causing problems.
 
-- _Adoption metrics_ track migration progress. New version adoption - the percentage of traffic on v2 versus v1 - is the headline number. Migration velocity shows how many consumers migrate per week; you want this linear or accelerating, not flat. Holdouts - consumers still on v1 near sunset - identify who needs urgent attention.
-- _Health metrics_ catch problems. Monitor error rates during the migration period; they shouldn't increase versus baseline. Track migration-related support tickets to ensure the platform team isn't overwhelmed. Watch for rollbacks - services that migrated to v2 then reverted to v1 indicate something's wrong with the new version.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "Adoption metrics",
+        text: "track migration progress. New version adoption - the percentage of traffic on v2 versus v1 - is the headline number. Migration velocity shows how many consumers migrate per week; you want this linear or accelerating, not flat. Holdouts - consumers still on v1 near sunset - identify who needs urgent attention.",
+      },
+      {
+        lead: "Health metrics",
+        text: "catch problems. Monitor error rates during the migration period; they shouldn't increase versus baseline. Track migration-related support tickets to ensure the platform team isn't overwhelmed. Watch for rollbacks - services that migrated to v2 then reverted to v1 indicate something's wrong with the new version.",
+      },
+    ],
+  }}
+/>
 
 _Timeline metrics_ keep the deprecation on schedule. Compare actual milestone dates to planned ones. The ultimate measure: did you successfully sunset the old version on the announced date?
 
@@ -418,17 +533,51 @@ _Timeline metrics_ keep the deprecation on schedule. Compare actual milestone da
 
 Think of migration as a funnel with stages: total consumers → aware → started migration → testing on v2 → production on v2 → v1 fully retired. Each stage has observable metrics.
 
-- _Aware_ is measured by announcement reach - did your Slack post get emoji reactions? Did affected teams acknowledge the notification?
-- _Started migration_ shows up as PRs opened, branches created, or SDK upgrades in package files.
-- _Testing on v2_ means staging or dev traffic hitting the new version.
-- _Production on v2_ is the goal - production traffic on the new version, ideally with v1 traffic dropping to zero.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "Aware",
+        text: "is measured by announcement reach - did your Slack post get emoji reactions? Did affected teams acknowledge the notification?",
+      },
+      {
+        lead: "Started migration",
+        text: "shows up as PRs opened, branches created, or SDK upgrades in package files.",
+      },
+      {
+        lead: "Testing on v2",
+        text: "means staging or dev traffic hitting the new version.",
+      },
+      {
+        lead: "Production on v2",
+        text: "is the goal - production traffic on the new version, ideally with v1 traffic dropping to zero.",
+      },
+    ],
+  }}
+/>
 
 Here's what a healthy migration funnel looks like in practice. For a deployment API v2 migration with 50 consuming services:
 
-- Week 1: 50 total → 45 aware (90%) → 0 started. _Normal - teams are reading the announcement._
-- Week 4: 50 total → 50 aware (100%) → 30 started (60%) → 5 testing. _Good velocity._
-- Week 8: 50 total → 50 aware → 45 started (90%) → 35 testing (70%) → 20 production (40%). _On track._
-- Week 12 (90 days out): 50 total → 48 production (96%) → 2 holdouts identified. _Target support at holdouts._
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: "Week 1: 50 total → 45 aware (90%) → 0 started. _Normal - teams are reading the announcement._",
+      },
+      {
+        text: "Week 4: 50 total → 50 aware (100%) → 30 started (60%) → 5 testing. _Good velocity._",
+      },
+      {
+        text: "Week 8: 50 total → 50 aware → 45 started (90%) → 35 testing (70%) → 20 production (40%). _On track._",
+      },
+      {
+        text: "Week 12 (90 days out): 50 total → 48 production (96%) → 2 holdouts identified. _Target support at holdouts._",
+      },
+    ],
+  }}
+/>
 
 When consumers are stuck at a particular stage, investigate why. Often it's a missing migration tool (stuck at "started"), unclear documentation (stuck at "testing"), or a blocking bug in v2 (stuck at "production"). Rarely is it resistance - most developers would rather move on than maintain compatibility with deprecated APIs.
 

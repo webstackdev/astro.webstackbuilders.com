@@ -83,9 +83,25 @@ Every SLO conversation surfaces the same objections. Knowing what they really me
 
 The trick is translating reliability into terms each stakeholder actually cares about. "99.9% availability" means nothing to a product manager, but "deployments fail unpredictably because internal services are unstable" gets attention.
 
-- __Engineering managers__: "Engineers spend 8 hours per week debugging integration issues with flaky dependencies. Here's the Jira query."
-- __Product managers__: "We can't give customers reliable ETAs on features because deployments fail unpredictably."
-- __Finance__: "CI pipelines are slow because internal tools timeout randomly—here's the compute cost of those retries."
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Engineering managers:',
+        text: "Engineers spend 8 hours per week debugging integration issues with flaky dependencies. Here's the Jira query.",
+      },
+      {
+        lead: 'Product managers:',
+        text: "We can't give customers reliable ETAs on features because deployments fail unpredictably.",
+      },
+      {
+        lead: 'Finance:',
+        text: "CI pipelines are slow because internal tools timeout randomly-here's the compute cost of those retries.",
+      },
+    ],
+  }}
+/>
 
 The data to support these claims usually exists already. Pull the incident reports, search Slack for complaints about the service, check CI pipeline failure rates. Concrete numbers beat abstract reliability arguments.
 
@@ -143,10 +159,29 @@ Before adopting any metric as an SLI, run it through these questions:
 
 These metrics look like SLIs but fail the user-centric test:
 
-- __CPU utilization as availability proxy__: High CPU doesn't mean users are affected. A service can return errors at 20% CPU (bad config) or run fine at 95% CPU (efficient under load).
-- __Internal health check success__: Health checks often test whether the process is running, not whether it can serve user requests. A service with a working health endpoint can still fail to connect to its database.
-- __Average latency__: Averages hide tail latency. If 1% of users wait 10 seconds while 99% get responses in 100ms, the average is ~200ms. That 1% is invisible in the number but very visible in support tickets.
-- __Uptime percentage without error rate__: The process running doesn't mean it's serving correctly. A service can be "up" while returning 500 errors to every request.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'CPU utilization as availability proxy:',
+        text: "High CPU doesn't mean users are affected. A service can return errors at 20% CPU (bad config) or run fine at 95% CPU (efficient under load).",
+      },
+      {
+        lead: 'Internal health check success:',
+        text: 'Health checks often test whether the process is running, not whether it can serve user requests. A service with a working health endpoint can still fail to connect to its database.',
+      },
+      {
+        lead: 'Average latency:',
+        text: 'Averages hide tail latency. If 1% of users wait 10 seconds while 99% get responses in 100ms, the average is ~200ms. That 1% is invisible in the number but very visible in support tickets.',
+      },
+      {
+        lead: 'Uptime percentage without error rate:',
+        text: 'The process running does not mean it is serving correctly. A service can be up while returning 500 errors to every request.',
+      },
+    ],
+  }}
+/>
 
 <Callout type="warning">
 An average latency of 100ms with a P99 of 5000ms means 1% of your users wait 50x longer than the "average" suggests. Always use percentiles[^percentiles] for latency SLIs.
@@ -196,10 +231,29 @@ Beyond success or failure: is the response actually what the user needed? A 200 
 
 Quality SLIs are necessarily service-specific:
 
-- __Search service__: Results returned within expected count range (not zero when matches exist)
-- __Data API__: Response contains all requested fields with correct types
-- __Payment processing__: Successful charges actually create orders in the order system
-- __Recommendation engine__: Recommendations are personalized, not fallback defaults
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Search service:',
+        text: 'Results returned within expected count range (not zero when matches exist)',
+      },
+      {
+        lead: 'Data API:',
+        text: 'Response contains all requested fields with correct types',
+      },
+      {
+        lead: 'Payment processing:',
+        text: 'Successful charges actually create orders in the order system',
+      },
+      {
+        lead: 'Recommendation engine:',
+        text: 'Recommendations are personalized, not fallback defaults',
+      },
+    ],
+  }}
+/>
 
 Measuring quality requires instrumentation that understands your business logic:
 
@@ -219,9 +273,25 @@ Quality SLIs are harder to measure than availability or latency because they req
 
 For services that serve data rather than compute it on demand: how stale is the information users receive?
 
-- __Real-time__ (&lt; 1 second): Trading systems, chat, live dashboards
-- __Near real-time__ (&lt; 1 minute): Activity feeds, notification counts, monitoring dashboards
-- __Periodic__ (&lt; 1 hour): Reports, analytics, batch-processed aggregations
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Real-time (< 1 second):',
+        text: 'Trading systems, chat, live dashboards',
+      },
+      {
+        lead: 'Near real-time (< 1 minute):',
+        text: 'Activity feeds, notification counts, monitoring dashboards',
+      },
+      {
+        lead: 'Periodic (< 1 hour):',
+        text: 'Reports, analytics, batch-processed aggregations',
+      },
+    ],
+  }}
+/>
 
 Freshness SLIs matter most when users make decisions based on your data. A stock price that's 30 seconds old might be acceptable for a portfolio overview but catastrophic for a trading decision. Define what "fresh enough" means for each use case.
 
@@ -263,10 +333,25 @@ I've seen teams spend months debating whether their availability target should b
 
 A better approach:
 
-1. Measure current state for 2-4 weeks
-2. Set initial SLO at or slightly below current performance
-3. Run for one quarter
-4. Adjust based on what you learn
+<List
+  variant="numbered-with-background-list"
+  content={{
+    items: [
+      {
+        text: 'Measure current state for 2-4 weeks',
+      },
+      {
+        text: 'Set initial SLO at or slightly below current performance',
+      },
+      {
+        text: 'Run for one quarter',
+      },
+      {
+        text: 'Adjust based on what you learn',
+      },
+    ],
+  }}
+/>
 
 After a quarter, you'll know whether the SLO is too tight (constant breaches, alert fatigue), too loose (never breaches, no useful signal), or about right. Adjust and repeat. Most teams need 2-3 iterations to find the right level.
 
@@ -278,10 +363,29 @@ When introducing SLOs to an organization, your choice of first service matters e
 
 Look for a service that's:
 
-- __Broken enough__ to demonstrate value when fixed—if it's already reliable, there's no win to celebrate
-- __Not so broken__ that fixing seems impossible—you need a quick win, not a multi-quarter project
-- __Visible enough__ that success will influence other teams—an obscure internal tool won't generate momentum
-- __Owned by a willing team__—hostile teams sabotage pilots, and even neutral teams won't champion the results
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Broken enough',
+        text: "to demonstrate value when fixed-if it's already reliable, there's no win to celebrate",
+      },
+      {
+        lead: 'Not so broken',
+        text: "that fixing seems impossible-you need a quick win, not a multi-quarter project",
+      },
+      {
+        lead: 'Visible enough',
+        text: "that success will influence other teams-an obscure internal tool won't generate momentum",
+      },
+      {
+        lead: 'Owned by a willing team',
+        text: "-hostile teams sabotage pilots, and even neutral teams won't champion the results",
+      },
+    ],
+  }}
+/>
 
 Avoid: legacy monoliths nobody wants to touch, services owned by teams who've already rejected the idea, services that are already perfectly reliable (no room to show improvement), and services dominated by external dependencies you can't control (your SLO will reflect someone else's reliability).
 
@@ -293,9 +397,22 @@ An SLO of 99.9% availability means you're allowed 0.1% unavailability. That 0.1%
 
 The calculation is simple. If your SLO is 99.9% availability over a 30-day window:
 
-- Error budget = 100% - 99.9% = 0.1%
-- Minutes in month = 30 days × 24 hours × 60 minutes = 43,200
-- Allowed downtime = 43,200 × 0.001 = 43.2 minutes
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'Error budget = 100% - 99.9% = 0.1%',
+      },
+      {
+        text: 'Minutes in month = 30 days × 24 hours × 60 minutes = 43,200',
+      },
+      {
+        text: 'Allowed downtime = 43,200 × 0.001 = 43.2 minutes',
+      },
+    ],
+  }}
+/>
 
 Those 43 minutes are yours to spend however you want. A 10-minute deployment that causes errors? That's 10 minutes of budget consumed. A 30-minute outage? You've used most of your month's budget in one incident. Every degradation, every error, every moment of unavailability draws from this pool.
 
@@ -363,8 +480,21 @@ Traditional threshold alerts ("error rate > 1%") catch acute incidents but miss 
 
 You need two types of burn rate alerts:
 
-- __Fast burn alerts__ catch acute incidents—a deployment gone wrong, a dependency outage, a traffic spike that overwhelms capacity. These consume budget rapidly. A typical fast burn alert fires when you'd consume 2% of your monthly budget in 1 hour. The math: 2% of a 30-day budget is 0.6 days (14.4 hours), so consuming that in 1 hour means you're burning at 14.4x the sustainable rate.
-- __Slow burn alerts__ catch chronic degradation—a memory leak that causes occasional timeouts, a flaky dependency that fails 0.5% of requests, a queue that backs up during peak hours. These never trigger traditional alerts but steadily drain budget. A typical slow burn alert fires when you'd consume 5% of monthly budget in 6 hours.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Fast burn alerts',
+        text: "catch acute incidents-a deployment gone wrong, a dependency outage, a traffic spike that overwhelms capacity. These consume budget rapidly. A typical fast burn alert fires when you'd consume 2% of your monthly budget in 1 hour. The math: 2% of a 30-day budget is 0.6 days (14.4 hours), so consuming that in 1 hour means you're burning at 14.4x the sustainable rate.",
+      },
+      {
+        lead: 'Slow burn alerts',
+        text: "catch chronic degradation-a memory leak that causes occasional timeouts, a flaky dependency that fails 0.5% of requests, a queue that backs up during peak hours. These never trigger traditional alerts but steadily drain budget. A typical slow burn alert fires when you'd consume 5% of monthly budget in 6 hours.",
+      },
+    ],
+  }}
+/>
 
 ```yaml
 # prometheus-alerts.yaml
@@ -487,9 +617,25 @@ Policies define the rules, but someone still has to apply them. The real test of
 
 Error budgets provide a shared language for the three parties who most often conflict over reliability:
 
-- __Product__ wants features shipped fast
-- __Engineering__ wants to try new things (which sometimes break)
-- __SRE/Ops__ wants stability
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Product',
+        text: 'wants features shipped fast',
+      },
+      {
+        lead: 'Engineering',
+        text: 'wants to try new things (which sometimes break)',
+      },
+      {
+        lead: 'SRE/Ops',
+        text: 'wants stability',
+      },
+    ],
+  }}
+/>
 
 Without error budgets, these conversations become political ("we need to slow down" vs "we need to ship"). With error budgets, they become mathematical.
 
@@ -505,17 +651,49 @@ Not all budget consumption is equal. Some spending generates value; some is just
 
 Good investments of error budget:
 
-- __Feature launches__: Up to 20% of monthly budget. Features are why the product exists. Spending budget to ship value to users is the point.
-- __Infrastructure migrations__: Up to 30%, scheduled when budget is healthy. Migrations reduce tech debt and often improve reliability long-term.
-- __Dependency upgrades__: Up to 15%. Staying current prevents security vulnerabilities and keeps you off unsupported versions.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Feature launches:',
+        text: 'Up to 20% of monthly budget. Features are why the product exists. Spending budget to ship value to users is the point.',
+      },
+      {
+        lead: 'Infrastructure migrations:',
+        text: 'Up to 30%, scheduled when budget is healthy. Migrations reduce tech debt and often improve reliability long-term.',
+      },
+      {
+        lead: 'Dependency upgrades:',
+        text: 'Up to 15%. Staying current prevents security vulnerabilities and keeps you off unsupported versions.',
+      },
+    ],
+  }}
+/>
 
 These percentages aren't universal rules—they're starting points. A pre-revenue startup might spend 50% on feature launches. A payment processor might cap any single change at 10%. Calibrate based on your risk tolerance and what you learn from actual deployments.
 
 Poor investments:
 
-- __Untested deployments__: Unpredictable budget impact
-- __Friday deployments__: Limited recovery time if issues arise
-- __Large batch deployments__: High risk, split into smaller changes
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Untested deployments:',
+        text: 'Unpredictable budget impact',
+      },
+      {
+        lead: 'Friday deployments:',
+        text: 'Limited recovery time if issues arise',
+      },
+      {
+        lead: 'Large batch deployments:',
+        text: 'High risk, split into smaller changes',
+      },
+    ],
+  }}
+/>
 
 ### Stakeholder Communication
 
@@ -661,8 +839,25 @@ After your first quarter, watch for these signals. If you're constantly breachin
 
 _Key principles:_
 
-- SLIs must reflect user experience, not internal metrics
-- SLOs should be achievable with current architecture (start with reality, improve over time)
-- Error budgets convert reliability into a spendable resource
-- Budget policies remove politics from reliability decisions
-- When budget is healthy, spend it on velocity; when depleted, invest in reliability
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'SLIs must reflect user experience, not internal metrics',
+      },
+      {
+        text: 'SLOs should be achievable with current architecture (start with reality, improve over time)',
+      },
+      {
+        text: 'Error budgets convert reliability into a spendable resource',
+      },
+      {
+        text: 'Budget policies remove politics from reliability decisions',
+      },
+      {
+        text: 'When budget is healthy, spend it on velocity; when depleted, invest in reliability',
+      },
+    ],
+  }}
+/>

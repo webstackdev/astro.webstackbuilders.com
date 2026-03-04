@@ -991,12 +991,37 @@ After the crisis, conduct a proper root cause analysis. The questions that matte
 
 Prevent recurrence with process changes:
 
-- **Code review**: Add cardinality review to your PR checklist. Require justification for every new label: "what bounded set of values will this have?"
-- **CI/CD gates**: Lint metric definitions for unbounded patterns. Flag any label that looks like an ID, UUID, email, or IP address.
-- **Metric unit testing**: Write unit tests that exercise metric instrumentation. If a test generates label combinations in a loop, fail the build when unique series exceed a threshold. This catches cardinality bugs before they reach production.
-- **Staging validation**: Deploy to staging first and check cardinality growth before promoting to production.
-- **Monitoring**: Alert on series count approaching limits _and_ on growth rate. A 10% hourly increase that goes unnoticed for a day means you've doubled.
-- **Documentation**: Maintain an approved label schema. Document cardinality budgets per service.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Code review',
+        text: 'Add cardinality review to your PR checklist. Require justification for every new label: "what bounded set of values will this have?"',
+      },
+      {
+        lead: 'CI/CD gates',
+        text: 'Lint metric definitions for unbounded patterns. Flag any label that looks like an ID, UUID, email, or IP address.',
+      },
+      {
+        lead: 'Metric unit testing',
+        text: 'Write unit tests that exercise metric instrumentation. If a test generates label combinations in a loop, fail the build when unique series exceed a threshold. This catches cardinality bugs before they reach production.',
+      },
+      {
+        lead: 'Staging validation',
+        text: 'Deploy to staging first and check cardinality growth before promoting to production.',
+      },
+      {
+        lead: 'Monitoring',
+        text: 'Alert on series count approaching limits _and_ on growth rate. A 10% hourly increase that goes unnoticed for a day means you\'ve doubled.',
+      },
+      {
+        lead: 'Documentation',
+        text: 'Maintain an approved label schema. Document cardinality budgets per service.',
+      },
+    ],
+  }}
+/>
 
 <Callout type="danger">
 During a cardinality crisis, your first priority is restoring monitoring, not fixing root cause. Drop the problematic metric via relabeling immediately, then investigate. You can always re-enable it after the fix is in place.

@@ -529,10 +529,25 @@ Shadow traffic works for read operations but is dangerous for writes. Duplicatin
 
 Run shadow traffic for at least a week before considering real traffic migration. You're looking for:
 
-- Mismatch rate below 0.1% (or whatever threshold you've defined as acceptable)
-- No systematic errors—random noise is fine, but patterns indicate bugs
-- Latency within 20% of legacy system (the new system being faster is fine; much slower is a problem)
-- No memory leaks or connection pool exhaustion under sustained load
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                text: "Mismatch rate below 0.1% (or whatever threshold you've defined as acceptable)",
+            },
+            {
+                text: 'No systematic errors-random noise is fine, but patterns indicate bugs',
+            },
+            {
+                text: 'Latency within 20% of legacy system (the new system being faster is fine; much slower is a problem)',
+            },
+            {
+                text: 'No memory leaks or connection pool exhaustion under sustained load',
+            },
+        ],
+    }}
+/>
 
 Once these criteria are met, you're ready to start shifting real traffic.
 
@@ -905,10 +920,29 @@ Percentage-based splitting is random—any user might hit either system on any r
 
 Cohort-based migration routes entire user segments rather than random requests. Start with low-risk cohorts:
 
-1. **Internal employees**: Your own team uses the new system first. They can report issues directly.
-2. **Beta opt-ins**: Users who explicitly want new features and understand the tradeoffs.
-3. **Low-tier accounts**: Free users or small organizations where an issue has limited blast radius.
-4. **New signups**: Users with no history in the legacy system avoid data migration issues.
+<List
+    variant="numbered-with-background-list"
+    content={{
+        items: [
+            {
+                lead: 'Internal employees:',
+                text: 'Your own team uses the new system first. They can report issues directly.',
+            },
+            {
+                lead: 'Beta opt-ins:',
+                text: 'Users who explicitly want new features and understand the tradeoffs.',
+            },
+            {
+                lead: 'Low-tier accounts:',
+                text: 'Free users or small organizations where an issue has limited blast radius.',
+            },
+            {
+                lead: 'New signups:',
+                text: 'Users with no history in the legacy system avoid data migration issues.',
+            },
+        ],
+    }}
+/>
 
 The cohort router needs to be deterministic—the same user hits the same system every time:
 
@@ -1349,10 +1383,29 @@ When the reconciliation job reports zero mismatches for a week straight, you can
 
 After decommissioning, hold a retrospective while the details are fresh. Track these metrics to improve future migrations:
 
-- **Duration**: Planned vs. actual (aim for &lt;50% overrun)
-- **Rollbacks**: Number of automatic rollbacks during traffic shifting (aim for &lt;3)
-- **Incidents**: User-facing incidents during migration (aim for zero)
-- **Downtime**: Total downtime attributable to the migration (aim for zero)
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Duration:',
+                text: 'Planned vs. actual (aim for <50% overrun)',
+            },
+            {
+                lead: 'Rollbacks:',
+                text: 'Number of automatic rollbacks during traffic shifting (aim for <3)',
+            },
+            {
+                lead: 'Incidents:',
+                text: 'User-facing incidents during migration (aim for zero)',
+            },
+            {
+                lead: 'Downtime:',
+                text: 'Total downtime attributable to the migration (aim for zero)',
+            },
+        ],
+    }}
+/>
 
 Document what worked and what didn't. The patterns you develop during auth extraction—dual-write, cohort routing, shadow traffic—apply to future service extractions.
 

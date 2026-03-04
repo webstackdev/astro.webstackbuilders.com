@@ -28,9 +28,25 @@ Kubernetes secrets have a fundamental problem: they're base64-encoded, not encry
 
 Three patterns dominate secret injection:
 
-- __External Secrets Operator__ syncs secrets on a schedule and caches them as native Kubernetes secrets.
-- __Secrets Store CSI Driver__ fetches secrets on-demand when pods start.
-- __Init containers__ give you complete control but require you to implement everything yourself.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'External Secrets Operator',
+        text: 'syncs secrets on a schedule and caches them as native Kubernetes secrets.',
+      },
+      {
+        lead: 'Secrets Store CSI Driver',
+        text: 'fetches secrets on-demand when pods start.',
+      },
+      {
+        lead: 'Init containers',
+        text: 'give you complete control but require you to implement everything yourself.',
+      },
+    ],
+  }}
+/>
 
 Each pattern fails differently when the secret manager goes away. Consider a 30-minute Vault outage during a leadership election:
 
@@ -773,10 +789,29 @@ With three patterns to choose from, the decision comes down to two questions: ho
   }}
 />
 
-- **ESO** fits most workloads. It's the simplest operationally: install the operator, create ExternalSecrets, and secrets flow into your cluster. GitOps works naturally because ExternalSecrets are declarative resources. You accept potential staleness—your secrets are only as fresh as your `refreshInterval`. For web applications, APIs, and most microservices, minutes of staleness is fine.
-- **CSI Driver** fits workloads that need fresh secrets at startup and can tolerate blocking failures. Payment processing, credential rotation during incident response, or compliance requirements that prohibit caching secrets in Kubernetes—these are CSI use cases. You accept brittleness: when Vault is down, pods don't start.
-- **Init containers** fit edge cases where ESO and CSI don't provide enough control. Legacy applications that need secrets in unusual formats, multi-source fallback logic, or integration with systems that don't have ESO/CSI providers. You're writing and maintaining the logic yourself.
-- **Native secrets** fit non-sensitive configuration and development environments. With encryption at rest configured, they're acceptable for data that doesn't require rotation or audit trails.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'ESO',
+        text: 'fits most workloads. It\'s the simplest operationally: install the operator, create ExternalSecrets, and secrets flow into your cluster. GitOps works naturally because ExternalSecrets are declarative resources. You accept potential staleness—your secrets are only as fresh as your `refreshInterval`. For web applications, APIs, and most microservices, minutes of staleness is fine.',
+      },
+      {
+        lead: 'CSI Driver',
+        text: 'fits workloads that need fresh secrets at startup and can tolerate blocking failures. Payment processing, credential rotation during incident response, or compliance requirements that prohibit caching secrets in Kubernetes—these are CSI use cases. You accept brittleness: when Vault is down, pods don\'t start.',
+      },
+      {
+        lead: 'Init containers',
+        text: 'fit edge cases where ESO and CSI don\'t provide enough control. Legacy applications that need secrets in unusual formats, multi-source fallback logic, or integration with systems that don\'t have ESO/CSI providers. You\'re writing and maintaining the logic yourself.',
+      },
+      {
+        lead: 'Native secrets',
+        text: 'fit non-sensitive configuration and development environments. With encryption at rest configured, they\'re acceptable for data that doesn\'t require rotation or audit trails.',
+      },
+    ],
+  }}
+/>
 
 ```mermaid
 flowchart TD
@@ -800,11 +835,33 @@ Figure: Pattern decision tree.
 
 ### Recommendations by Use Case
 
-- **Web applications and APIs**: ESO with 15-minute refresh. These workloads tolerate brief staleness, and ESO's graceful degradation keeps them running through secret manager outages.
-- **Database connections**: ESO with 5-minute refresh. Connection pools cache connections anyway, so the staleness window compounds. Shorter refresh reduces the risk of rotated credentials breaking pooled connections.
-- **Payment and financial processing**: CSI driver without `secretObjects`. Fresh secrets at startup, no caching in Kubernetes, clear audit trail. Accept that deployments block during Vault outages—for payment systems, that's preferable to using stale credentials.
-- **Multi-cluster deployments**: ESO with different ClusterSecretStores per cluster. Consistent pattern across environments, centralized secrets in Vault or cloud provider.
-- **Legacy applications**: Init container with fallback. When you need secrets in unusual formats or custom retry logic, you control the implementation.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Web applications and APIs',
+        text: 'ESO with 15-minute refresh. These workloads tolerate brief staleness, and ESO\'s graceful degradation keeps them running through secret manager outages.',
+      },
+      {
+        lead: 'Database connections',
+        text: 'ESO with 5-minute refresh. Connection pools cache connections anyway, so the staleness window compounds. Shorter refresh reduces the risk of rotated credentials breaking pooled connections.',
+      },
+      {
+        lead: 'Payment and financial processing',
+        text: 'CSI driver without `secretObjects`. Fresh secrets at startup, no caching in Kubernetes, clear audit trail. Accept that deployments block during Vault outages—for payment systems, that\'s preferable to using stale credentials.',
+      },
+      {
+        lead: 'Multi-cluster deployments',
+        text: 'ESO with different ClusterSecretStores per cluster. Consistent pattern across environments, centralized secrets in Vault or cloud provider.',
+      },
+      {
+        lead: 'Legacy applications',
+        text: 'Init container with fallback. When you need secrets in unusual formats or custom retry logic, you control the implementation.',
+      },
+    ],
+  }}
+/>
 
 <Callout type="success">
 Most organizations should standardize on ESO for the majority of workloads, with CSI driver reserved for specific high-security applications. This gives you operational simplicity (one pattern to understand and monitor) with escape hatches for edge cases.
@@ -818,9 +875,25 @@ Whichever pattern you choose, getting secrets into pods is only half the problem
 
 Whichever pattern you choose, the security fundamentals remain the same: authenticate with short-lived credentials, scope access narrowly, and restrict network paths.
 
-- **Vault configuration**: Use Kubernetes authentication rather than static tokens—the pod's service account becomes its identity. Scope Vault policies to specific paths: an application that reads `secret/production/database` shouldn't have access to `secret/production/payment`. Enable audit logging so you can trace who accessed what.
-- **Kubernetes configuration**: Kubernetes native RBAC should be used to limit who can read Secrets in each namespace. Use network policies to restrict which pods can reach your secret manager—the ESO controller needs access, but your application pods don't need direct Vault connectivity.
-- **Cloud provider configuration**: Use IAM roles scoped to specific secrets, not broad permissions. Route traffic through VPC endpoints rather than the public internet. Enable CloudTrail or equivalent audit logging.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Vault configuration',
+        text: 'Use Kubernetes authentication rather than static tokens—the pod\'s service account becomes its identity. Scope Vault policies to specific paths: an application that reads `secret/production/database` shouldn\'t have access to `secret/production/payment`. Enable audit logging so you can trace who accessed what.',
+      },
+      {
+        lead: 'Kubernetes configuration',
+        text: 'Kubernetes native RBAC should be used to limit who can read Secrets in each namespace. Use network policies to restrict which pods can reach your secret manager—the ESO controller needs access, but your application pods don\'t need direct Vault connectivity.',
+      },
+      {
+        lead: 'Cloud provider configuration',
+        text: 'Use IAM roles scoped to specific secrets, not broad permissions. Route traffic through VPC endpoints rather than the public internet. Enable CloudTrail or equivalent audit logging.',
+      },
+    ],
+  }}
+/>
 
 A hardened ESO setup uses internal-only endpoints, mTLS, and scoped Vault roles:
 

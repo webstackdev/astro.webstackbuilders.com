@@ -54,9 +54,25 @@ Most rate limiting articles jump straight to algorithms. But the strategic quest
     }}
 />
 
-- _Edge rate limiting_ stops bad traffic before it reaches your infrastructure. Cloudflare, Amazon CloudFront, and similar CDNs can reject requests milliseconds from the client, before your servers even see them. But edge limiting is coarse-grained—typically by IP or region. It's your first line of defense against volumetric attacks, not your primary quota enforcement.
-- _API gateway limiting_ is where most teams should implement their primary rate limits. AWS API Gateway, Kong, and nginx all support token bucket or similar algorithms out of the box. Gateway-level limiting handles per-API-key quotas, tiered rate limits, and route-specific throttling without touching application code.
-- _Application-level limiting_ gives you the finest control—you can limit by user, by action, by context, or any combination. But it comes with complexity: you're responsible for state management (usually Redis), failure handling, and the actual algorithm implementation. Use it when gateway-level limits aren't granular enough: per-user action limits, variable-cost operations, or business-logic-driven throttling.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Edge rate limiting',
+                text: 'stops bad traffic before it reaches your infrastructure. Cloudflare, Amazon CloudFront, and similar CDNs can reject requests milliseconds from the client, before your servers even see them. But edge limiting is coarse-grained—typically by IP or region. It\'s your first line of defense against volumetric attacks, not your primary quota enforcement.',
+            },
+            {
+                lead: 'API gateway limiting',
+                text: 'is where most teams should implement their primary rate limits. AWS API Gateway, Kong, and nginx all support token bucket or similar algorithms out of the box. Gateway-level limiting handles per-API-key quotas, tiered rate limits, and route-specific throttling without touching application code.',
+            },
+            {
+                lead: 'Application-level limiting',
+                text: 'gives you the finest control—you can limit by user, by action, by context, or any combination. But it comes with complexity: you\'re responsible for state management (usually Redis), failure handling, and the actual algorithm implementation. Use it when gateway-level limits aren\'t granular enough: per-user action limits, variable-cost operations, or business-logic-driven throttling.',
+            },
+        ],
+    }}
+/>
 
 <Callout type="warning">
 Don't implement rate limiting _only_ at the application layer. By the time requests reach your app, they've already consumed network bandwidth, TLS handshakes, and load balancer capacity. Use defense in depth: coarse limits at the edge, refined limits at the gateway, fine-grained limits in the app.
@@ -127,15 +143,41 @@ For distributed systems, you need atomic operations. The standard pattern is a R
 
 The rate limiting key—how you identify who's making requests—is as important as the algorithm. Choose wrong, and you'll either punish legitimate users or fail to stop abuse.
 
-- _IP address_ seems obvious but has a fatal flaw: corporate NAT. Hundreds of employees behind a single public IP will exhaust per-IP quotas almost instantly. IP-based limiting works for anonymous endpoints and anti-bot protection, but it punishes shared networks.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'IP address',
+                text: 'seems obvious but has a fatal flaw: corporate NAT. Hundreds of employees behind a single public IP will exhaust per-IP quotas almost instantly. IP-based limiting works for anonymous endpoints and anti-bot protection, but it punishes shared networks.',
+            },
+        ],
+    }}
+/>
 
 <Callout type="warning">
 Header spoofing is trivial: `curl -H "X-Forwarded-For: 1.2.3.4" your-api.com`. If your rate limiter trusts that header without validation, attackers can rotate through fake IPs indefinitely. Always validate that requests actually came through your proxy before trusting forwarded headers.
 </Callout>
 
-- _API key_ is the standard for B2B APIs. Per-customer limits, usage tracking, revocation—all straightforward. The risk: customers distributing keys to multiple applications, or keys getting stolen and abused.
-- _User ID_ gives you true per-user limits that work across IPs and devices. The tradeoff is authentication overhead and the fact that it doesn't help with anonymous endpoints.
-- _Composite keys_ (user + action, IP + endpoint) give you fine-grained control at the cost of complexity. Useful when different operations need different limits.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'API key',
+                text: 'is the standard for B2B APIs. Per-customer limits, usage tracking, revocation—all straightforward. The risk: customers distributing keys to multiple applications, or keys getting stolen and abused.',
+            },
+            {
+                lead: 'User ID',
+                text: 'gives you true per-user limits that work across IPs and devices. The tradeoff is authentication overhead and the fact that it doesn\'t help with anonymous endpoints.',
+            },
+            {
+                lead: 'Composite keys',
+                text: '(user + action, IP + endpoint) give you fine-grained control at the cost of complexity. Useful when different operations need different limits.',
+            },
+        ],
+    }}
+/>
 
 Production systems often combine multiple strategies: global IP limits as a DDoS backstop, API key limits for quota enforcement, and user + action limits for abuse prevention. All must pass for a request to proceed.
 
@@ -157,8 +199,24 @@ Rate limiting is a valve, not a wall. The best rate limiters are invisible to no
 
 Three takeaways:
 
-- _Layer appropriately_: Edge for DDoS, gateway for API quotas, application for business logic
-- _Use token bucket for APIs_: It allows bursts (good UX) while enforcing sustained rates (protects backend)
-- _Identify clients carefully_: IP addresses lie, corporate NAT punishes legitimate users, and composite keys add complexity
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Layer appropriately',
+                text: 'Edge for DDoS, gateway for API quotas, application for business logic',
+            },
+            {
+                lead: 'Use token bucket for APIs',
+                text: 'It allows bursts (good UX) while enforcing sustained rates (protects backend)',
+            },
+            {
+                lead: 'Identify clients carefully',
+                text: 'IP addresses lie, corporate NAT punishes legitimate users, and composite keys add complexity',
+            },
+        ],
+    }}
+/>
 
 The goal isn't to reject requests—it's to shape traffic so rejection becomes rare. Design for legitimate bursts, communicate limits clearly through response headers, and monitor rejection rates. Rate limiting done right protects your service without punishing your users.

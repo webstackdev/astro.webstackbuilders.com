@@ -37,10 +37,29 @@ Let's look at the metrics that actually demonstrate platform value.
 
 Lead time metrics measure how long things take. They're the clearest indicators of platform friction because they directly answer "how fast can developers move?"
 
-- __Time to first deployment__ is the single most revealing onboarding metric. Measure from a developer's start date (HR system) to their first production deployment (deployment system). This captures everything: account provisioning, access requests, documentation quality, tooling complexity. If it takes two weeks, something is broken. If it's under a day, your platform is doing its job.
-- __Time to new service__ measures self-service effectiveness. From service creation request (portal or ticket) to first successful health check in production—how much of this is automated versus waiting on humans? Anything over a week suggests manual provisioning steps. Under an hour means your automation is mature.
-- __Deployment lead time__ tracks CI/CD efficiency: from code commit to running in production. This exposes approval bottlenecks, slow builds, and deployment friction. Elite teams hit under 15 minutes; struggling teams measure in days.
-- __Time to new environment__ measures infrastructure automation maturity. From environment request to a fully functional environment passing smoke tests—this is pure platform capability. If developers wait days for a staging environment, your Terraform modules or Crossplane claims need work.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Time to first deployment',
+                text: 'is the single most revealing onboarding metric. Measure from a developer\'s start date (HR system) to their first production deployment (deployment system). This captures everything: account provisioning, access requests, documentation quality, tooling complexity. If it takes two weeks, something is broken. If it\'s under a day, your platform is doing its job.',
+            },
+            {
+                lead: 'Time to new service',
+                text: 'measures self-service effectiveness. From service creation request (portal or ticket) to first successful health check in production—how much of this is automated versus waiting on humans? Anything over a week suggests manual provisioning steps. Under an hour means your automation is mature.',
+            },
+            {
+                lead: 'Deployment lead time',
+                text: 'tracks CI/CD efficiency: from code commit to running in production. This exposes approval bottlenecks, slow builds, and deployment friction. Elite teams hit under 15 minutes; struggling teams measure in days.',
+            },
+            {
+                lead: 'Time to new environment',
+                text: 'measures infrastructure automation maturity. From environment request to a fully functional environment passing smoke tests—this is pure platform capability. If developers wait days for a staging environment, your Terraform modules or Crossplane claims need work.',
+            },
+        ],
+    }}
+/>
 
 <Table
     variant="vertical-column-delineation-table"
@@ -101,9 +120,25 @@ Figure: Lead time improvement visualization—12 days reduced to 5 hours.
 
 Lead time tells you _how long_. Friction metrics tell you _how hard_. They measure the cognitive and operational burden the platform imposes.
 
-- __Ticket volume per developer__ is the baseline friction indicator. More than 2 tickets per developer per month means developers are stuck regularly. Under 0.5 means the platform is largely self-service. But raw numbers don't tell the whole story—segment by ticket type. "How do I" tickets indicate documentation gaps. "Access request" tickets indicate poor provisioning automation. "It's broken" tickets indicate reliability problems.
-- __Self-service rate__ measures what percentage of common tasks developers complete without human intervention. Track portal/API completions against tickets for the same task types. If developers can provision an environment through the portal but 40% still file tickets, something's wrong with the self-service experience.
-- __Cognitive load__ is harder to quantify but equally important. Count the config files developers must understand to deploy a service, the distinct tools in the deployment path, the context switches between systems for a single workflow. A platform that requires understanding 15 config files across 8 tools isn't self-service—it's a maze. For example: Kubernetes manifests, Helm values, Terraform variables, CI workflow configs, secrets references, Dockerfile, and monitoring configs—each requiring different syntax and mental models. If deploying a simple service touches more than 5 files, look for ways to consolidate or abstract.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Ticket volume per developer',
+                text: 'is the baseline friction indicator. More than 2 tickets per developer per month means developers are stuck regularly. Under 0.5 means the platform is largely self-service. But raw numbers don\'t tell the whole story—segment by ticket type. "How do I" tickets indicate documentation gaps. "Access request" tickets indicate poor provisioning automation. "It\'s broken" tickets indicate reliability problems.',
+            },
+            {
+                lead: 'Self-service rate',
+                text: 'measures what percentage of common tasks developers complete without human intervention. Track portal/API completions against tickets for the same task types. If developers can provision an environment through the portal but 40% still file tickets, something\'s wrong with the self-service experience.',
+            },
+            {
+                lead: 'Cognitive load',
+                text: 'is harder to quantify but equally important. Count the config files developers must understand to deploy a service, the distinct tools in the deployment path, the context switches between systems for a single workflow. A platform that requires understanding 15 config files across 8 tools isn\'t self-service—it\'s a maze. For example: Kubernetes manifests, Helm values, Terraform variables, CI workflow configs, secrets references, Dockerfile, and monitoring configs—each requiring different syntax and mental models. If deploying a simple service touches more than 5 files, look for ways to consolidate or abstract.',
+            },
+        ],
+    }}
+/>
 
 <Table
     variant="vertical-column-delineation-table"
@@ -286,10 +321,29 @@ Automated metrics tell you _what_ is happening. Surveys tell you _why_—and cap
 
 Three survey types cover the developer lifecycle:
 
-- __Onboarding surveys__ go out 30 days after a developer's start date. Ask how long it took to make their first production deployment (validates your automated metric), what was most confusing, how they'd rate the documentation, and how many times they needed help. Free-text responses here are gold—new developers see problems that veterans have normalized.
-- __Quarterly pulse surveys__ track satisfaction trends. Keep them short: how easy is it to deploy to production? How easy is it to debug production issues? Does the platform make you more productive? What's your biggest obstacle? End with an NPS question: "How likely are you to recommend this platform to a colleague?" Track these over time—the trend matters more than any single score.
-- __Feature feedback__ triggers after someone uses a new capability. Did it solve your problem? How much time does it save per week? What would make it more useful? This validates whether your investments are paying off.
-- __Annual deep-dives__ are longer surveys (15 minutes) that explore broader themes: overall platform satisfaction, feature priorities, pain points that don't fit in pulse surveys. Run these yearly to inform roadmap planning.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Onboarding surveys',
+                text: 'go out 30 days after a developer\'s start date. Ask how long it took to make their first production deployment (validates your automated metric), what was most confusing, how they\'d rate the documentation, and how many times they needed help. Free-text responses here are gold—new developers see problems that veterans have normalized.',
+            },
+            {
+                lead: 'Quarterly pulse surveys',
+                text: 'track satisfaction trends. Keep them short: how easy is it to deploy to production? How easy is it to debug production issues? Does the platform make you more productive? What\'s your biggest obstacle? End with an NPS question: "How likely are you to recommend this platform to a colleague?" Track these over time—the trend matters more than any single score.',
+            },
+            {
+                lead: 'Feature feedback',
+                text: 'triggers after someone uses a new capability. Did it solve your problem? How much time does it save per week? What would make it more useful? This validates whether your investments are paying off.',
+            },
+            {
+                lead: 'Annual deep-dives',
+                text: 'are longer surveys (15 minutes) that explore broader themes: overall platform satisfaction, feature priorities, pain points that don\'t fit in pulse surveys. Run these yearly to inform roadmap planning.',
+            },
+        ],
+    }}
+/>
 
 <Table
     variant="vertical-column-delineation-table"
@@ -406,10 +460,29 @@ The test for a good metric: does it tell you what to do? "We have 1000 users" te
 
 ### Metric Pitfalls
 
-- __Goodhart's Law__ is the biggest trap: when a measure becomes a target, it ceases to be a good measure. Target ticket reduction and support becomes harder to access. Target deployment frequency and deployments get artificially split. Target NPS and only happy teams get surveyed. The antidote is measuring outcomes (developer productivity) rather than activities (ticket counts).
-- __Survivorship bias__ means only measuring successful cases. If you track deployment time only for successful deploys, you miss that failed deployments might indicate UX problems. If you survey only active platform users, you miss teams that left. Include failures in your metrics; run exit surveys when teams churn.
-- __Attribution errors__ credit the platform for unrelated improvements. "Lead time improved 50% after platform launch"—but the team also grew, hired senior engineers, and changed their process. Control for variables by comparing similar teams or tracking metrics that isolate platform impact.
-- __Sampling bias__ measures unrepresentative subsets. Feedback from teams in office hours comes from self-selected engaged users. Random sampling and broad surveys give you the full picture.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: "Goodhart's Law",
+                text: 'is the biggest trap: when a measure becomes a target, it ceases to be a good measure. Target ticket reduction and support becomes harder to access. Target deployment frequency and deployments get artificially split. Target NPS and only happy teams get surveyed. The antidote is measuring outcomes (developer productivity) rather than activities (ticket counts).',
+            },
+            {
+                lead: 'Survivorship bias',
+                text: 'means only measuring successful cases. If you track deployment time only for successful deploys, you miss that failed deployments might indicate UX problems. If you survey only active platform users, you miss teams that left. Include failures in your metrics; run exit surveys when teams churn.',
+            },
+            {
+                lead: 'Attribution errors',
+                text: 'credit the platform for unrelated improvements. "Lead time improved 50% after platform launch"—but the team also grew, hired senior engineers, and changed their process. Control for variables by comparing similar teams or tracking metrics that isolate platform impact.',
+            },
+            {
+                lead: 'Sampling bias',
+                text: 'measures unrepresentative subsets. Feedback from teams in office hours comes from self-selected engaged users. Random sampling and broad surveys give you the full picture.',
+            },
+        ],
+    }}
+/>
 
 ### Establishing Baselines
 
@@ -427,9 +500,25 @@ Different audiences need different views of the same data. Executives want trend
 
 ### Dashboard Design
 
-- __Executive dashboards__ show 4-6 headline metrics with trends: developer NPS, time to first deployment, ticket volume per developer, deployment success rate. Update monthly. The goal is answering "Is the platform investment paying off?" without requiring deep dives.
-- __Platform team dashboards__ are operational: deployment success rates by team and service, self-service completion rates, error rates by component, latency percentiles, active incidents. Update in real-time. These drive daily decisions about what to fix and where to invest.
-- __Team-specific views__ let product teams see their own metrics: their deployment frequency, their lead time, their ticket count, their resource usage. Comparisons to org averages help teams self-identify whether they're outliers needing help.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Executive dashboards',
+                text: 'show 4-6 headline metrics with trends: developer NPS, time to first deployment, ticket volume per developer, deployment success rate. Update monthly. The goal is answering "Is the platform investment paying off?" without requiring deep dives.',
+            },
+            {
+                lead: 'Platform team dashboards',
+                text: 'are operational: deployment success rates by team and service, self-service completion rates, error rates by component, latency percentiles, active incidents. Update in real-time. These drive daily decisions about what to fix and where to invest.',
+            },
+            {
+                lead: 'Team-specific views',
+                text: 'let product teams see their own metrics: their deployment frequency, their lead time, their ticket count, their resource usage. Comparisons to org averages help teams self-identify whether they\'re outliers needing help.',
+            },
+        ],
+    }}
+/>
 
 For executive dashboards in Grafana, structure with headline stats at the top (single-stat panels showing current value vs. last quarter), trend lines in the middle (12-month time series for deployment frequency and change failure rate), and breakdowns at the bottom (bar charts for lead time by team, pie charts for ticket categories).
 
@@ -437,10 +526,29 @@ For executive dashboards in Grafana, structure with headline stats at the top (s
 
 Dashboards show state; alerts drive action. Configure alerts for metrics that require immediate attention:
 
-- __Deployment success rate__ below 80% for 4+ hours—something is systematically broken
-- __Build queue time__ exceeding 30 minutes—capacity or configuration problems
-- __Self-service completion rate__ dropping below baseline by 20%—recent changes broke something
-- __P0 tickets__ opened—immediate platform team attention needed
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Deployment success rate',
+                text: 'below 80% for 4+ hours—something is systematically broken',
+            },
+            {
+                lead: 'Build queue time',
+                text: 'exceeding 30 minutes—capacity or configuration problems',
+            },
+            {
+                lead: 'Self-service completion rate',
+                text: 'dropping below baseline by 20%—recent changes broke something',
+            },
+            {
+                lead: 'P0 tickets',
+                text: 'opened—immediate platform team attention needed',
+            },
+        ],
+    }}
+/>
 
 Resist the urge to alert on everything. Alert fatigue leads to ignored alerts. Reserve alerts for conditions that require action within hours, not trends that require analysis over weeks.
 
@@ -478,10 +586,29 @@ Not everything belongs on a real-time dashboard. Structured reports at regular i
     }}
 />
 
-- __Weekly digests__ go to the platform team via Slack or email. Automate these with Grafana's reporting plugin or a custom script. Include deployment count and success rate, median lead time, tickets opened and resolved, and any notable incidents. Keep it scannable—if it takes more than 30 seconds to read, it won't get read.
-- __Monthly reviews__ go to engineering leadership. DORA metrics trends, developer satisfaction trends, major accomplishments, risks and blockers. This is where you add narrative: why did lead time spike in week 3? What's blocking the self-service rate improvement?
-- __Quarterly business reviews__ go to executive stakeholders. Platform ROI analysis, developer productivity trends, roadmap progress, investment requests. Translate technical metrics into business impact: "Onboarding time reduction saved 200 developer-hours this quarter."
-- __Annual reports__ go to the broader organization. Year in review, major milestones, impact stories, next year's vision. This is your chance to build organizational awareness and support for platform investment.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Weekly digests',
+                text: 'go to the platform team via Slack or email. Automate these with Grafana\'s reporting plugin or a custom script. Include deployment count and success rate, median lead time, tickets opened and resolved, and any notable incidents. Keep it scannable—if it takes more than 30 seconds to read, it won\'t get read.',
+            },
+            {
+                lead: 'Monthly reviews',
+                text: 'go to engineering leadership. DORA metrics trends, developer satisfaction trends, major accomplishments, risks and blockers. This is where you add narrative: why did lead time spike in week 3? What\'s blocking the self-service rate improvement?',
+            },
+            {
+                lead: 'Quarterly business reviews',
+                text: 'go to executive stakeholders. Platform ROI analysis, developer productivity trends, roadmap progress, investment requests. Translate technical metrics into business impact: "Onboarding time reduction saved 200 developer-hours this quarter."',
+            },
+            {
+                lead: 'Annual reports',
+                text: 'go to the broader organization. Year in review, major milestones, impact stories, next year\'s vision. This is your chance to build organizational awareness and support for platform investment.',
+            },
+        ],
+    }}
+/>
 
 <Callout type="success">
 Automate reporting wherever possible. Manual reports are time-consuming and inconsistent. Use Grafana's reporting plugin, scheduled Jupyter notebooks[^jupyter], or custom scripts. Reserve manual effort for narrative and interpretation—the "why" behind the numbers.

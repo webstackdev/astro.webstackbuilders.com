@@ -91,11 +91,33 @@ The critical thing to understand: Helm's stored manifest represents what Helm _t
 
 Drift shows up in predictable patterns, and recognizing which pattern you're dealing with speeds up recovery.
 
-- _Manual kubectl edits_ are the most common source. Someone runs `kubectl edit deployment` to bump resource limits during an incident, or `kubectl patch` to add an annotation. The cluster state changes, but Helm doesn't know. The next `helm upgrade` may revert those changes unexpectedly, or the three-way merge may produce surprising results.
-- _Partial upgrade failures_ leave you in limbo. If Helm times out or hits an error mid-upgrade, some resources may be updated while others aren't. You'll see pods running different versions, ConfigMaps updated but Deployments not, and a release status of "failed" that blocks further operations.
-- _Secret storage corruption_ is less common but more painful. If cleanup scripts, namespace recreation, or manual deletion removes Helm's release secrets, the cluster still has the resources but Helm has no record of them. `helm list` shows nothing, but `helm install` fails with "already exists."
-- _Hook failures_ create orphaned state. Pre-upgrade or post-upgrade hooks that fail can leave partial resources. The release is marked failed, but the hook's job or pod may still exist, and main resources may or may not have been deployed depending on when the hook failed.
-- _Three-way merge conflicts_ are the trickiest. When Helm computes an upgrade, it compares the old manifest, new manifest, and live cluster state. If someone modified a field in the cluster that you're also changing in the new manifest, the merge can produce unexpected results—fields deleted, values unexpectedly retained, or strategic merge patches behaving counter-intuitively.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "Manual kubectl edits",
+        text: "are the most common source. Someone runs `kubectl edit deployment` to bump resource limits during an incident, or `kubectl patch` to add an annotation. The cluster state changes, but Helm doesn't know. The next `helm upgrade` may revert those changes unexpectedly, or the three-way merge may produce surprising results.",
+      },
+      {
+        lead: "Partial upgrade failures",
+        text: "leave you in limbo. If Helm times out or hits an error mid-upgrade, some resources may be updated while others aren't. You'll see pods running different versions, ConfigMaps updated but Deployments not, and a release status of \"failed\" that blocks further operations.",
+      },
+      {
+        lead: "Secret storage corruption",
+        text: "is less common but more painful. If cleanup scripts, namespace recreation, or manual deletion removes Helm's release secrets, the cluster still has the resources but Helm has no record of them. `helm list` shows nothing, but `helm install` fails with \"already exists.\"",
+      },
+      {
+        lead: "Hook failures",
+        text: "create orphaned state. Pre-upgrade or post-upgrade hooks that fail can leave partial resources. The release is marked failed, but the hook's job or pod may still exist, and main resources may or may not have been deployed depending on when the hook failed.",
+      },
+      {
+        lead: "Three-way merge conflicts",
+        text: "are the trickiest. When Helm computes an upgrade, it compares the old manifest, new manifest, and live cluster state. If someone modified a field in the cluster that you're also changing in the new manifest, the merge can produce unexpected results—fields deleted, values unexpectedly retained, or strategic merge patches behaving counter-intuitively.",
+      },
+    ],
+  }}
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -259,9 +281,22 @@ helm list --all-namespaces --output json
 
 The output includes release name, namespace, chart name and version, app version, status, and last deployment timestamp. Aggregate this across clusters and you can answer questions like:
 
-- Which releases are using chart version X vs Y?
-- Are there any failed releases that need attention?
-- Which services haven't been deployed in over 30 days?
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: "Which releases are using chart version X vs Y?",
+      },
+      {
+        text: "Are there any failed releases that need attention?",
+      },
+      {
+        text: "Which services haven't been deployed in over 30 days?",
+      },
+    ],
+  }}
+/>
 
 For multi-cluster environments, tools like [helm-exporter](https://github.com/sstarcher/helm-exporter) expose this data as Prometheus metrics automatically. This lets you build dashboards and alerts without custom collection scripts.
 
@@ -366,11 +401,28 @@ For higher-risk changes, upgrade in stages rather than all at once.
 
 _Canary upgrades_ deploy to a subset first—typically staging, then one production namespace or cluster—and verify before continuing. This gives you a chance to catch problems before they affect all users. The process looks like:
 
-1. Upgrade in staging, run smoke tests, verify metrics
-2. Upgrade a single canary production instance
-3. Monitor for error rate increases or latency regression
-4. If healthy after your bake time (15-30 minutes), proceed with remaining instances
-5. If problems appear, rollback the canary and investigate
+<List
+  variant="numbered-with-background-list"
+  content={{
+    items: [
+      {
+        text: "Upgrade in staging, run smoke tests, verify metrics",
+      },
+      {
+        text: "Upgrade a single canary production instance",
+      },
+      {
+        text: "Monitor for error rate increases or latency regression",
+      },
+      {
+        text: "If healthy after your bake time (15-30 minutes), proceed with remaining instances",
+      },
+      {
+        text: "If problems appear, rollback the canary and investigate",
+      },
+    ],
+  }}
+/>
 
 _Rolling namespace upgrades_ work well for multi-tenant deployments where each namespace is isolated. Upgrade one namespace, verify, then move to the next. If something breaks, only one tenant is affected while you fix it.
 
@@ -463,11 +515,33 @@ helm template my-release ./my-chart -f values.yaml | kubectl apply --dry-run=ser
 
 ### Common Failure Patterns
 
-- _Hook timeouts_ show up as releases stuck in "pending-upgrade" or "pending-install." The release lock prevents further operations until you resolve it. Check for stuck hook jobs with `kubectl get jobs -l helm.sh/hook` and review their logs. If the hook is stuck, delete the job and either fix the underlying issue or temporarily skip hooks with `--no-hooks`.
-- _"Resource already exists" errors_ happen when a previous failed install left orphaned resources that Helm doesn't know about. You have two options: use `helm upgrade --force` to adopt the existing resources, or delete them manually and reinstall clean.
-- _ImagePullBackOff_ means Helm is waiting for pods that can't pull their images. Check the image name and tag in your values, verify your registry credentials (imagePullSecrets), and confirm network connectivity to the registry. Once fixed, run `helm upgrade --reuse-values --force`.
-- _Admission webhook rejections_ produce errors like "admission webhook denied the request." Your manifests are violating cluster policies. Use `helm template | kubectl apply --dry-run=server -f -` to see the exact rejection message, then update your values or templates to comply.
-- _Resource quota exceeded_ shows up as pods stuck in Pending with quota rejection events. Either reduce resource requests in your values, request a quota increase, or free up quota by removing unused releases.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "Hook timeouts",
+        text: "show up as releases stuck in \"pending-upgrade\" or \"pending-install.\" The release lock prevents further operations until you resolve it. Check for stuck hook jobs with `kubectl get jobs -l helm.sh/hook` and review their logs. If the hook is stuck, delete the job and either fix the underlying issue or temporarily skip hooks with `--no-hooks`.",
+      },
+      {
+        lead: "\"Resource already exists\" errors",
+        text: "happen when a previous failed install left orphaned resources that Helm doesn't know about. You have two options: use `helm upgrade --force` to adopt the existing resources, or delete them manually and reinstall clean.",
+      },
+      {
+        lead: "ImagePullBackOff",
+        text: "means Helm is waiting for pods that can't pull their images. Check the image name and tag in your values, verify your registry credentials (imagePullSecrets), and confirm network connectivity to the registry. Once fixed, run `helm upgrade --reuse-values --force`.",
+      },
+      {
+        lead: "Admission webhook rejections",
+        text: "produce errors like \"admission webhook denied the request.\" Your manifests are violating cluster policies. Use `helm template | kubectl apply --dry-run=server -f -` to see the exact rejection message, then update your values or templates to comply.",
+      },
+      {
+        lead: "Resource quota exceeded",
+        text: "shows up as pods stuck in Pending with quota rejection events. Either reduce resource requests in your values, request a quota increase, or free up quota by removing unused releases.",
+      },
+    ],
+  }}
+/>
 
 <Callout type="success">
 When a release is stuck in "pending-upgrade," the release lock prevents further operations. Check for stuck hooks first (`kubectl get jobs -l helm.sh/hook`). If needed, manually delete the hook job and the release secret for the pending revision, then retry.
@@ -578,12 +652,37 @@ Helm's simplicity at small scale becomes operational complexity at large scale. 
 
 The key practices that keep Helm manageable:
 
-- _Understand Helm state_: Know where release secrets live, how three-way merge works, and what causes drift. This knowledge pays off during debugging.
-- _Detect drift continuously_: Run scheduled drift checks with alerting. Don't discover drift during an incident.
-- _Maintain release inventory_: Export release metadata as metrics. Track version consistency across clusters.
-- _Use safe upgrade patterns_: Default to `--atomic` for production. Use canary or blue-green for high-risk changes.
-- _Debug systematically_: Follow the diagnosis workflow. Check status, history, events, and logs in a consistent order.
-- _Consider GitOps_: Flux and ArgoCD eliminate drift as a category by continuously reconciling cluster state to Git.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: "Understand Helm state",
+        text: "Know where release secrets live, how three-way merge works, and what causes drift. This knowledge pays off during debugging.",
+      },
+      {
+        lead: "Detect drift continuously",
+        text: "Run scheduled drift checks with alerting. Don't discover drift during an incident.",
+      },
+      {
+        lead: "Maintain release inventory",
+        text: "Export release metadata as metrics. Track version consistency across clusters.",
+      },
+      {
+        lead: "Use safe upgrade patterns",
+        text: "Default to `--atomic` for production. Use canary or blue-green for high-risk changes.",
+      },
+      {
+        lead: "Debug systematically",
+        text: "Follow the diagnosis workflow. Check status, history, events, and logs in a consistent order.",
+      },
+      {
+        lead: "Consider GitOps",
+        text: "Flux and ArgoCD eliminate drift as a category by continuously reconciling cluster state to Git.",
+      },
+    ],
+  }}
+/>
 
 The tools exist. The challenge is using them consistently. Build automation that enforces good practices—drift detection CronJobs, pre-deployment checks in CI, alerting on failed releases—rather than relying on manual discipline.
 

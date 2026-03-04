@@ -172,9 +172,25 @@ The P99 improvement is particularly dramatic because timeout-related latency spi
 
 When connectivity issues arise and you suspect DNS, here's the fastest path to confirmation:
 
-1. **Launch a debug pod**: `kubectl run dns-debug --image=nicolaka/netshoot --rm -it --restart=Never -- bash`
-2. **Run the ndots test**: Compare `time nslookup api.example.com` vs `time nslookup api.example.com.`
-3. **Interpret the results**: If the FQDN (with dot) is 10x+ faster, apply one of the fixes above
+<List
+  variant="numbered-with-background-list"
+  content={{
+    items: [
+      {
+        lead: "Launch a debug pod",
+        text: "`kubectl run dns-debug --image=nicolaka/netshoot --rm -it --restart=Never -- bash`",
+      },
+      {
+        lead: "Run the ndots test",
+        text: "Compare `time nslookup api.example.com` vs `time nslookup api.example.com.`",
+      },
+      {
+        lead: "Interpret the results",
+        text: "If the FQDN (with dot) is 10x+ faster, apply one of the fixes above",
+      },
+    ],
+  }}
+/>
 
 <Download
   resource="kubernetes-dns-debugging-ndots-coredns-troubleshooting"

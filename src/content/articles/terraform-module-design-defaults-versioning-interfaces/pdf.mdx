@@ -30,11 +30,31 @@ A module's interface is everything a consumer can observe or depend on. That's m
 
 Think of a module interface in five layers:
 
-- __Input variables__ are the parameters consumers provide. Some are required (the module can't guess your VPC ID), others have sensible defaults (instance type can default to t3.medium). The types, names, and validation rules are all part of the contract.
-- __Output values__ are the data consumers reference. When someone writes `module.vpc.private_subnet_ids[0]`, they're depending on that output existing, being a list, and having at least one element. Change the output name or type and their code breaks.
-- __Resource behavior__ is what actually gets created. If your module creates a security group that allows HTTPS traffic, consumers might depend on that. Adding or removing resources can break downstream assumptions.
-- __Provider requirements__ constrain which provider versions work with your module. If you bump the minimum AWS provider from 4.0 to 5.0, consumers on 4.x can't use your module until they upgrade.
-- __Implicit contracts__ are the undocumented assumptions. Maybe your module names resources with a specific pattern (`{environment}-{name}-{resource_type}`), applies a standard set of tags, or assumes the VPC has DNS hostnames enabled. Perhaps it expects certain IAM permissions to exist, or assumes subnets have internet access through a NAT gateway. These are the trickiest because they're easy to break without realizing it — you rename your tagging convention and suddenly a downstream cost allocation dashboard stops working.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Input variables',
+      text: "are the parameters consumers provide. Some are required (the module can't guess your VPC ID), others have sensible defaults (instance type can default to t3.medium). The types, names, and validation rules are all part of the contract.",
+    },
+    {
+      lead: 'Output values',
+      text: "are the data consumers reference. When someone writes `module.vpc.private_subnet_ids[0]`, they're depending on that output existing, being a list, and having at least one element. Change the output name or type and their code breaks.",
+    },
+    {
+      lead: 'Resource behavior',
+      text: 'is what actually gets created. If your module creates a security group that allows HTTPS traffic, consumers might depend on that. Adding or removing resources can break downstream assumptions.',
+    },
+    {
+      lead: 'Provider requirements',
+      text: 'constrain which provider versions work with your module. If you bump the minimum AWS provider from 4.0 to 5.0, consumers on 4.x can\'t use your module until they upgrade.',
+    },
+    {
+      lead: 'Implicit contracts',
+      text: 'are the undocumented assumptions. Maybe your module names resources with a specific pattern (`{environment}-{name}-{resource_type}`), applies a standard set of tags, or assumes the VPC has DNS hostnames enabled. Perhaps it expects certain IAM permissions to exist, or assumes subnets have internet access through a NAT gateway. These are the trickiest because they\'re easy to break without realizing it — you rename your tagging convention and suddenly a downstream cost allocation dashboard stops working.',
+    },
+  ]}
+/>
 
 ```mermaid
 flowchart TB
@@ -186,9 +206,23 @@ Code: Variable definitions showing required, optional with default, and opt-in p
 
 Choosing good defaults is harder than it looks. A few principles help:
 
-- __Default to the safer option.__ If a setting affects data durability or security, default to the more protective choice. Deletion protection should default to `true`. Encryption should default to enabled. Backup retention should be non-zero. Users can opt out for development environments; they shouldn't have to opt in for production safety.
-- __Default to the cheaper option when safety isn't at stake.__ Instance types, storage sizes, and replica counts can default to smaller values. Users will scale up when they need to; defaulting to expensive configurations just creates surprise bills.
-- __Use environment-aware defaults when behavior should differ.__ Some settings legitimately differ between environments — deletion protection makes sense in production but blocks rapid iteration in development. You can use `null` as a sentinel value and compute the actual default in a local:
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Default to the safer option.',
+      text: "If a setting affects data durability or security, default to the more protective choice. Deletion protection should default to `true`. Encryption should default to enabled. Backup retention should be non-zero. Users can opt out for development environments; they shouldn't have to opt in for production safety.",
+    },
+    {
+      lead: "Default to the cheaper option when safety isn't at stake.",
+      text: 'Instance types, storage sizes, and replica counts can default to smaller values. Users will scale up when they need to; defaulting to expensive configurations just creates surprise bills.',
+    },
+    {
+      lead: 'Use environment-aware defaults when behavior should differ.',
+      text: 'Some settings legitimately differ between environments — deletion protection makes sense in production but blocks rapid iteration in development. You can use `null` as a sentinel value and compute the actual default in a local:',
+    },
+  ]}
+/>
 
 ```hcl title="modules/database/main.tf"
 variable "deletion_protection" {
@@ -466,26 +500,69 @@ SemVer's core principle applies directly to Terraform modules: major versions fo
 
 _Major version bumps_ are required when you change the interface contract in ways that could break existing consumers:
 
-- Remove or rename an input variable
-- Change an input variable's type
-- Remove an output
-- Change an output's type or structure
-- Remove a resource (causes state issues for consumers)
-- Bump a provider minimum version that has breaking changes
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: 'Remove or rename an input variable',
+    },
+    {
+      text: "Change an input variable's type",
+    },
+    {
+      text: 'Remove an output',
+    },
+    {
+      text: "Change an output's type or structure",
+    },
+    {
+      text: 'Remove a resource (causes state issues for consumers)',
+    },
+    {
+      text: 'Bump a provider minimum version that has breaking changes',
+    },
+  ]}
+/>
 
 _Minor version bumps_ are for backward-compatible additions:
 
-- Add a new input variable with a default value
-- Add a new output
-- Add a new resource (assuming no side effects)
-- Deprecate (but not remove) an input or output
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: 'Add a new input variable with a default value',
+    },
+    {
+      text: 'Add a new output',
+    },
+    {
+      text: 'Add a new resource (assuming no side effects)',
+    },
+    {
+      text: 'Deprecate (but not remove) an input or output',
+    },
+  ]}
+/>
 
 _Patch version bumps_ are for fixes that don't touch the interface:
 
-- Fix a bug without changing behavior consumers depend on
-- Update documentation
-- Internal refactoring that doesn't affect state
-- Update provider constraints within compatible ranges
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: "Fix a bug without changing behavior consumers depend on",
+    },
+    {
+      text: 'Update documentation',
+    },
+    {
+      text: "Internal refactoring that doesn't affect state",
+    },
+    {
+      text: 'Update provider constraints within compatible ranges',
+    },
+  ]}
+/>
 
 ### Version Constraints
 
@@ -584,12 +661,35 @@ Code: Changelog with migration instructions for breaking changes.
 
 A good changelog tells consumers exactly what changed and what they need to do about it. Follow the [Keep a Changelog](https://keepachangelog.com/) format:
 
-- _Added_ for new features
-- _Changed_ for changes in existing functionality
-- _Deprecated_ for soon-to-be removed features
-- _Removed_ for removed features
-- _Fixed_ for bug fixes
-- _Security_ for vulnerability fixes
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Added',
+      text: 'for new features',
+    },
+    {
+      lead: 'Changed',
+      text: 'for changes in existing functionality',
+    },
+    {
+      lead: 'Deprecated',
+      text: 'for soon-to-be removed features',
+    },
+    {
+      lead: 'Removed',
+      text: 'for removed features',
+    },
+    {
+      lead: 'Fixed',
+      text: 'for bug fixes',
+    },
+    {
+      lead: 'Security',
+      text: 'for vulnerability fixes',
+    },
+  ]}
+/>
 
 For breaking changes, include explicit upgrade instructions. Don't make consumers guess what broke — tell them exactly which lines of their configuration need to change.
 

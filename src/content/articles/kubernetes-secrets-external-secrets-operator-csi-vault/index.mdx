@@ -74,10 +74,25 @@ The pod _cannot start_ until this volume mount succeeds. If Vault is unavailable
 
 This has cascading implications that aren't obvious until you experience them:
 
-- New deployments block entirely—no pods can start
-- In-progress rolling updates stall because replacement pods can't become ready
-- Horizontal pod autoscaler scales up pods that immediately get stuck
-- A node reboot during an incident restarts pods that can't fetch their secrets
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'New deployments block entirely—no pods can start',
+      },
+      {
+        text: 'In-progress rolling updates stall because replacement pods can\'t become ready',
+      },
+      {
+        text: 'Horizontal pod autoscaler scales up pods that immediately get stuck',
+      },
+      {
+        text: 'A node reboot during an incident restarts pods that can\'t fetch their secrets',
+      },
+    ],
+  }}
+/>
 
 Existing pods continue running—they already have their secrets mounted. But anything that needs to start fresh is blocked until Vault recovers.
 

@@ -65,7 +65,17 @@ Consider a method that sends emails. The email-sending code is deep inside a 500
 
 ### The Four Seam Types
 
-- _Object seams_ are the most common and usually the cleanest. You pass a dependency through a constructor or method parameter, and the enabling point is the call site where you can pass a different implementation. This is the foundation of dependency injection. Most languages and frameworks have idiomatic ways to create object seams:
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Object seams',
+        text: 'are the most common and usually the cleanest. You pass a dependency through a constructor or method parameter, and the enabling point is the call site where you can pass a different implementation. This is the foundation of dependency injection. Most languages and frameworks have idiomatic ways to create object seams:',
+      },
+    ],
+  }}
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -109,9 +119,25 @@ Consider a method that sends emails. The email-sending code is deep inside a 500
   }}
 />
 
-- _Link seams_ operate at the module level. In Ruby, you can use `stub_const` to replace a class entirely. In TypeScript/JavaScript, Jest's `jest.mock()` intercepts imports. The enabling point is the test setup. Link seams are powerful but fragile—they couple tests to implementation details like class names.
-- _Subclass seams_ work by extracting behavior into a protected method, then overriding it in a test subclass. This technique is underrated for legacy code because it requires minimal changes—you extract one line into a method, and suddenly you have a seam.
-- _Preprocessor seams_ apply anywhere you use environment-based branching. Rails' `Rails.env.test?`, Laravel's `app()->environment('testing')`, and Node's `process.env.NODE_ENV === 'test'` are all effectively preprocessor seams. Use them sparingly—they litter production code with test concerns.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Link seams',
+        text: 'operate at the module level. In Ruby, you can use `stub_const` to replace a class entirely. In TypeScript/JavaScript, Jest\'s `jest.mock()` intercepts imports. The enabling point is the test setup. Link seams are powerful but fragile—they couple tests to implementation details like class names.',
+      },
+      {
+        lead: 'Subclass seams',
+        text: 'work by extracting behavior into a protected method, then overriding it in a test subclass. This technique is underrated for legacy code because it requires minimal changes—you extract one line into a method, and suddenly you have a seam.',
+      },
+      {
+        lead: 'Preprocessor seams',
+        text: 'apply anywhere you use environment-based branching. Rails\' `Rails.env.test?`, Laravel\'s `app()->environment(\'testing\')`, and Node\'s `process.env.NODE_ENV === \'test\'` are all effectively preprocessor seams. Use them sparingly—they litter production code with test concerns.',
+      },
+    ],
+  }}
+/>
 
 <Newsletter />
 

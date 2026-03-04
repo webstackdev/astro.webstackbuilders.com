@@ -86,11 +86,47 @@ if (window.matchMedia) {
 
 - Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page.
 
-- Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page.
+- Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page. Need a fixed header format that adds article title, subtitle, and date.
 
 - Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden. The styling should be different for print for the code block. Maybe move other language code tabs to an appendix and add a link to them.
 
 [This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
+
+For printed pages, your header should shift from a navigation tool to a document identifier. Since users cannot click links or icons on paper, these elements are "cruft" that waste space and ink.
+
+1. Recommended Print Header Format
+
+A professional print header typically includes only these three elements:
+
+- Brand Identity: A high-contrast version of your logo or the site name in plain text for brand recognition.
+- Document Title: The main title of the page (usually the <h1>), ensuring the reader knows exactly what the document is.
+- Source URL: A small, plain-text URL so the reader can find the live version later.
+
+2. Elements to Remove
+
+Hide any interactive or screen-specific components using display: none; in your @media print block:
+
+- Navigation Menus: All top-level and dropdown links.
+- Search Icons/Bars: These are non-functional on paper.
+- Breadcrumbs: While useful on-screen for site hierarchy, they often look like cluttered, disconnected text on paper. Most designers remove them to keep the focus on the primary content.
+- Social Media & CTA Buttons: "Sign In" or "Follow Us" buttons are irrelevant in print.
+
+3. Expand External Links For Print:
+
+We can't (yet) directly interface with a printed page to explore links, so link URLs should be visible on the printed version of the Web page. To keep the page relatively clean, I prefer to expand only outbound links in articles, and suppress internal ones. If you've used relative URLs on your website for local links, you can easily do this through an attribute selector and :after pseudo=classes, thus preventing internal links and links around images from being printed:
+
+```css
+@media print {
+   article a {
+      font-weight: bolder;
+      text-decoration: none;
+   }
+
+   article a[href^=http]:after {
+      content:" <" attr(href) "> ";
+   }
+}
+```
 
 ## PDF File Generation
 
@@ -107,6 +143,20 @@ Paged.js Polyfill: Use the Paged.js library to handle sophisticated print layout
 [Paged.js](https://pagedjs.org/en/documentation/) polyfills `@page` properties, and lays out an HTML document in print format where it can have page numbers generated to update in a table of contents.
 
 This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
+
+- Headers and Footers (Native Support)
+
+Puppeteer can inject dynamic data into your headers and footers using specific CSS classes. To use this, you must set `displayHeaderFooter: true` in the `page.pdf()` options.
+
+Dynamic Classes: Puppeteer automatically replaces these classes with actual values:
+`.pageNumber`: Current page number.
+`.totalPages`: Total number of pages.
+`.title`: The document's `<title>` tag.
+`.date`: The date the PDF was generated.
+
+Requirements: You must provide sufficient margins (e.g.,` margin: { top: '50px', bottom: '50px' }`), or the headers/footers will be hidden behind the content.
+
+Styling: You must use inline CSS within your `headerTemplate` or `footerTemplate` strings, as they cannot access your external stylesheet.
 
 ## ToolTips
 

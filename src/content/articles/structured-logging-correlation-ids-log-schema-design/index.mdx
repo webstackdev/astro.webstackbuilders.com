@@ -46,10 +46,29 @@ Code: ECS-compliant log entry. Field names like `user.id` and `error.type` are s
 
 The key field groups to adopt immediately:
 
-- `service.*` — which service emitted the log (`service.name`, `service.version`)
-- `trace.*` — correlation context (`trace.id`, `span.id`)
-- `event.*` — what happened (`event.action`, `event.outcome`)
-- `error.*` — failure details (`error.type`, `error.message`, `error.stack_trace`)
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'service.\*',
+        text: 'which service emitted the log (service.name, service.version)',
+      },
+      {
+        lead: 'trace.\*',
+        text: 'correlation context (trace.id, span.id)',
+      },
+      {
+        lead: 'event.\*',
+        text: 'what happened (event.action, event.outcome)',
+      },
+      {
+        lead: 'error.\*',
+        text: 'failure details (error.type, error.message, error.stack_trace)',
+      },
+    ],
+  }}
+/>
 
 You don't need to adopt all 800 fields. Start with these four groups and expand as needed.
 
@@ -177,10 +196,29 @@ Every HTTP client in your codebase must propagate correlation headers. A single 
 
 These patterns break correlation in production. Each creates gaps in your trace data:
 
-- _Generating new trace IDs per service_ — Logs can't be joined. Extract the incoming `traceparent`; only generate if missing.
-- _Direct HTTP client usage_ — Outbound calls don't propagate headers. Use `fetchWithCorrelation()` or instrumented clients.
-- _Fire-and-forget async_ — Background work loses context. Capture context before spawning; restore in the async handler.
-- _Batched message processing_ — All messages share one correlation. Process each message in its own `contextStorage.run()` scope.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Generating new trace IDs per service',
+        text: "Logs can't be joined. Extract the incoming traceparent; only generate if missing.",
+      },
+      {
+        lead: 'Direct HTTP client usage',
+        text: 'Outbound calls do not propagate headers. Use fetchWithCorrelation() or instrumented clients.',
+      },
+      {
+        lead: 'Fire-and-forget async',
+        text: 'Background work loses context. Capture context before spawning; restore in the async handler.',
+      },
+      {
+        lead: 'Batched message processing',
+        text: 'All messages share one correlation. Process each message in its own contextStorage.run() scope.',
+      },
+    ],
+  }}
+/>
 
 ## Making It Stick
 
@@ -212,10 +250,29 @@ A 99% correlation target is achievable within weeks. The remaining 1% is typical
 
 You don't need to fix every service at once. A practical rollout:
 
-1. _Week 1_: Adopt ECS field names for new logs in one service
-2. _Week 2_: Add correlation middleware to that service
-3. _Week 3_: Query for logs missing `trace.id` and fix the gaps—usually background jobs or uninstrumented libraries
-4. _Week 4_: Expand to the next service in your critical path
+<List
+  variant="numbered-with-background-list"
+  content={{
+    items: [
+      {
+        lead: 'Week 1:',
+        text: 'Adopt ECS field names for new logs in one service',
+      },
+      {
+        lead: 'Week 2:',
+        text: 'Add correlation middleware to that service',
+      },
+      {
+        lead: 'Week 3:',
+        text: 'Query for logs missing trace.id and fix the gaps-usually background jobs or uninstrumented libraries',
+      },
+      {
+        lead: 'Week 4:',
+        text: 'Expand to the next service in your critical path',
+      },
+    ],
+  }}
+/>
 
 Within a month, your most important request paths will be fully correlated. The rest can follow incrementally.
 

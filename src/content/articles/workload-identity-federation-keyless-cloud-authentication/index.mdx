@@ -96,9 +96,23 @@ The JWT contains claims about the workload — which repository triggered the bu
 
 The critical claims in a GitHub Actions token look like this:
 
-- _iss (issuer)_: Where the token came from — `https://token.actions.githubusercontent.com`
-- _sub (subject)_: The specific workload identity — `repo:myorg/myrepo:ref:refs/heads/main`
-- _aud (audience)_: Who the token is intended for — your cloud provider's token exchange endpoint
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'iss (issuer)',
+      text: 'Where the token came from — `https://token.actions.githubusercontent.com`',
+    },
+    {
+      lead: 'sub (subject)',
+      text: 'The specific workload identity — `repo:myorg/myrepo:ref:refs/heads/main`',
+    },
+    {
+      lead: 'aud (audience)',
+      text: "Who the token is intended for — your cloud provider's token exchange endpoint",
+    },
+  ]}
+/>
 
 The entire exchange happens in milliseconds. Your workflow never sees a long-lived credential — just a token that expires in an hour and gets automatically refreshed if needed. There's nothing to rotate, nothing to leak, nothing to forget about in a CI variable.
 

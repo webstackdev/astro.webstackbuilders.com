@@ -283,12 +283,31 @@ A build cache works by hashing all inputs to a task—source files, configuratio
 
 The cache key composition matters. It must include everything that affects the output:
 
-- Task name and package name
-- Hash of all input files
-- Hash of dependency outputs (transitive)
-- Relevant environment variables
-- Runtime versions (Node, Ruby, Python, JDK, .NET SDK)
-- Command arguments
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'Task name and package name',
+      },
+      {
+        text: 'Hash of all input files',
+      },
+      {
+        text: 'Hash of dependency outputs (transitive)',
+      },
+      {
+        text: 'Relevant environment variables',
+      },
+      {
+        text: 'Runtime versions (Node, Ruby, Python, JDK, .NET SDK)',
+      },
+      {
+        text: 'Command arguments',
+      },
+    ],
+  }}
+/>
 
 Miss any of these, and you risk cache poisoning—returning outputs that don't match what a fresh build would produce. Include too much, and you get unnecessary cache misses.
 
@@ -606,10 +625,29 @@ Remote caching is only useful if the cache actually gets hit. A cache that misse
 
 Cache invalidation happens automatically when inputs change—that's the whole point. But understanding the different invalidation triggers helps you configure inputs correctly and debug unexpected misses.
 
-- _Input hash changes_ are the primary invalidation mechanism. When any file included in a target's inputs changes, the hash changes, and the cache misses. This is usually what you want: source code changed, so rebuild. The configuration challenge is ensuring only _relevant_ files are included in inputs.
-- _Dependency updates_ cascade through the graph. When you update a package in `package.json` or change the lock file, packages that depend on that change need to rebuild. Both Nx and Turborepo handle this automatically through their global dependencies configuration.
-- _Manual invalidation_ is occasionally necessary when something outside the tracked inputs changes—a CI environment update, a bug in the caching system, or when you need to verify that builds still work without caching. In Nx, `npx nx reset` clears the local cache. Adding `--skip-nx-cache` bypasses caching for a single run. In Turborepo, `--force` achieves the same.
-- _Time-based expiration (TTL)_ prevents caches from growing unboundedly and ensures stale artifacts eventually get cleaned up. Most remote cache providers let you configure retention periods—7 to 30 days is typical for active projects.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Input hash changes',
+        text: 'are the primary invalidation mechanism. When any file included in a target\'s inputs changes, the hash changes, and the cache misses. This is usually what you want: source code changed, so rebuild. The configuration challenge is ensuring only _relevant_ files are included in inputs.',
+      },
+      {
+        lead: 'Dependency updates',
+        text: 'cascade through the graph. When you update a package in `package.json` or change the lock file, packages that depend on that change need to rebuild. Both Nx and Turborepo handle this automatically through their global dependencies configuration.',
+      },
+      {
+        lead: 'Manual invalidation',
+        text: 'is occasionally necessary when something outside the tracked inputs changes—a CI environment update, a bug in the caching system, or when you need to verify that builds still work without caching. In Nx, `npx nx reset` clears the local cache. Adding `--skip-nx-cache` bypasses caching for a single run. In Turborepo, `--force` achieves the same.',
+      },
+      {
+        lead: 'Time-based expiration (TTL)',
+        text: 'prevents caches from growing unboundedly and ensures stale artifacts eventually get cleaned up. Most remote cache providers let you configure retention periods—7 to 30 days is typical for active projects.',
+      },
+    ],
+  }}
+/>
 
 ```bash title="cache-debugging.sh"
 #!/bin/bash
@@ -635,10 +673,29 @@ Code: Cache debugging and manual invalidation commands.
 
 Low cache hit rates usually trace back to a few common issues. Fixing them can take a 40% hit rate to 85% or higher.
 
-- _Environment inconsistency_ is the most common culprit. If your CI runners use Node 20.10 and developers use Node 20.11, the hashes won't match. Pin exact versions everywhere: `.nvmrc` or `.node-version` for Node, `Gemfile.lock` with `.ruby-version` for Ruby, `packages.lock.json` for NuGet, `composer.lock` for PHP, `requirements.txt` with pinned versions (or `pip-tools`) for Python. Ensure CI reads these version files, and consider Docker images with fixed runtimes for complete consistency.
-- _Non-deterministic outputs_ poison the cache silently. If your build includes a timestamp, a random identifier, or output that varies based on execution order, the outputs will differ even with identical inputs. Look for build timestamps in generated files, unsorted imports or exports, and random IDs in bundles. The `SOURCE_DATE_EPOCH` environment variable helps with timestamp-based non-determinism.
-- _Overly broad input specifications_ cause unnecessary invalidation. If your build target includes `{projectRoot}/**/*` as inputs, then changing a test file invalidates the production build cache—even though tests don't affect the build output. Use named input sets (like Nx's "production" pattern) that exclude test files, documentation, and other non-production artifacts.
-- _Global dependencies included incorrectly_ cause cascading invalidation. If you list `package-lock.json` in every target's inputs, then every dependency update invalidates every cache. Be selective: only include lock files in inputs for targets that actually care about dependency versions (usually everything, but some lint tasks might not).
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Environment inconsistency',
+        text: 'is the most common culprit. If your CI runners use Node 20.10 and developers use Node 20.11, the hashes won\'t match. Pin exact versions everywhere: `.nvmrc` or `.node-version` for Node, `Gemfile.lock` with `.ruby-version` for Ruby, `packages.lock.json` for NuGet, `composer.lock` for PHP, `requirements.txt` with pinned versions (or `pip-tools`) for Python. Ensure CI reads these version files, and consider Docker images with fixed runtimes for complete consistency.',
+      },
+      {
+        lead: 'Non-deterministic outputs',
+        text: 'poison the cache silently. If your build includes a timestamp, a random identifier, or output that varies based on execution order, the outputs will differ even with identical inputs. Look for build timestamps in generated files, unsorted imports or exports, and random IDs in bundles. The `SOURCE_DATE_EPOCH` environment variable helps with timestamp-based non-determinism.',
+      },
+      {
+        lead: 'Overly broad input specifications',
+        text: 'cause unnecessary invalidation. If your build target includes `{projectRoot}/**/*` as inputs, then changing a test file invalidates the production build cache—even though tests don\'t affect the build output. Use named input sets (like Nx\'s "production" pattern) that exclude test files, documentation, and other non-production artifacts.',
+      },
+      {
+        lead: 'Global dependencies included incorrectly',
+        text: 'cause cascading invalidation. If you list `package-lock.json` in every target\'s inputs, then every dependency update invalidates every cache. Be selective: only include lock files in inputs for targets that actually care about dependency versions (usually everything, but some lint tasks might not).',
+      },
+    ],
+  }}
+/>
 
 This is where the named inputs configuration from earlier pays off. The "production" input set we defined in `nx.json` excludes test files, stories, and test configuration. When your build target uses `"inputs": ["production", "^production"]`, changing a test file doesn't invalidate the build cache. The `^production` syntax extends this to dependencies—a dependency's test changes don't invalidate your build either.
 

@@ -39,9 +39,25 @@ OPA is a general-purpose policy engine that decouples policy decisions from poli
 
 Three deployment modes serve different use cases:
 
-- **Library mode**: Embed OPA directly in applications for authorization decisions. Go applications can import OPA as a package; other languages use WASM or REST APIs.
-- **Daemon mode**: Run OPA as a sidecar or standalone service. Kubernetes admission controllers use this pattern—the API server sends admission requests to OPA, which returns allow/deny decisions.
-- **CLI mode**: Evaluate policies from the command line. This is where Conftest enters: it wraps OPA's CLI with ergonomic defaults for infrastructure files.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Library mode',
+                text: 'Embed OPA directly in applications for authorization decisions. Go applications can import OPA as a package; other languages use WASM or REST APIs.',
+            },
+            {
+                lead: 'Daemon mode',
+                text: 'Run OPA as a sidecar or standalone service. Kubernetes admission controllers use this pattern—the API server sends admission requests to OPA, which returns allow/deny decisions.',
+            },
+            {
+                lead: 'CLI mode',
+                text: 'Evaluate policies from the command line. This is where Conftest enters: it wraps OPA\'s CLI with ergonomic defaults for infrastructure files.',
+            },
+        ],
+    }}
+/>
 
 Conftest handles the plumbing that makes OPA practical for IaC. It parses Terraform, Kubernetes YAML, Dockerfiles, and other formats into JSON that OPA can evaluate. It provides sensible output formatting, exit codes for CI, and project conventions for organizing policies.
 
@@ -227,10 +243,29 @@ Rego's learning curve is real but bounded. Most infrastructure policies use a sm
 
 Four principles separate policies that get adopted from policies that get bypassed:
 
-- **Single responsibility.** Each rule should check one thing. A 50-line rule that validates images, resources, _and_ labels produces confusing violations and resists modification. Split concerns into separate rules: `deny_unauthorized_image`, `deny_missing_resources`, `deny_missing_labels`. When a violation fires, developers know exactly what to fix.
-- **Actionable messages.** "Policy violation" tells the developer nothing. "Container missing resource limits" is better. "Container 'nginx' missing resource limits. Add `spec.containers[].resources.limits.cpu` and `memory`" is what they actually need. Include the resource name, the violation, and the fix path.
-- **Minimal false positives.** Precision matters more than recall. A policy that blocks valid configurations trains developers to request exceptions—or bypass the system entirely. Start permissive and tighten over time. Test against real configurations before enforcing. Provide escape hatches for legitimate edge cases.
-- **Fast evaluation.** Policies should evaluate in milliseconds, not seconds. Avoid external HTTP calls within policies—pre-load data into bundles. Avoid complex regex on large inputs. Avoid deep recursion. The goal is sub-second feedback that doesn't interrupt flow.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Single responsibility.',
+                text: 'Each rule should check one thing. A 50-line rule that validates images, resources, and labels produces confusing violations and resists modification. Split concerns into separate rules: `deny_unauthorized_image`, `deny_missing_resources`, `deny_missing_labels`. When a violation fires, developers know exactly what to fix.',
+            },
+            {
+                lead: 'Actionable messages.',
+                text: '"Policy violation" tells the developer nothing. "Container missing resource limits" is better. "Container \'nginx\' missing resource limits. Add `spec.containers[].resources.limits.cpu` and `memory`" is what they actually need. Include the resource name, the violation, and the fix path.',
+            },
+            {
+                lead: 'Minimal false positives.',
+                text: 'Precision matters more than recall. A policy that blocks valid configurations trains developers to request exceptions—or bypass the system entirely. Start permissive and tighten over time. Test against real configurations before enforcing. Provide escape hatches for legitimate edge cases.',
+            },
+            {
+                lead: 'Fast evaluation.',
+                text: 'Policies should evaluate in milliseconds, not seconds. Avoid external HTTP calls within policies—pre-load data into bundles. Avoid complex regex on large inputs. Avoid deep recursion. The goal is sub-second feedback that doesn\'t interrupt flow.',
+            },
+        ],
+    }}
+/>
 
 Structure violation messages consistently:
 
@@ -242,8 +277,19 @@ Code: Violation message template.
 
 Examples:
 
-- `Deployment 'api-server': Missing required label 'team'. Fix: Add metadata.labels.team with your team name.`
-- `Pod 'worker': Container 'app' uses image from unauthorized registry 'docker.io'. Fix: Use images from 'gcr.io/company-project' or 'artifactory.company.com'.`
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                text: "`Deployment 'api-server': Missing required label 'team'. Fix: Add metadata.labels.team with your team name.`",
+            },
+            {
+                text: "`Pod 'worker': Container 'app' uses image from unauthorized registry 'docker.io'. Fix: Use images from 'gcr.io/company-project' or 'artifactory.company.com'.`",
+            },
+        ],
+    }}
+/>
 
 ### Policy Organization
 
@@ -1272,11 +1318,28 @@ Code: Data-driven exception lookup with glob matching.
 
 Exceptions without governance accumulate indefinitely. A structured process keeps exceptions visible and time-bounded:
 
-1. Developer adds exception annotation with reason
-2. PR triggers policy check—warns about exception usage
-3. Security team reviews exception request
-4. If approved, merge with exception and expiration date
-5. Exception logged in audit system
+<List
+    variant="numbered-with-background-list"
+    content={{
+        items: [
+            {
+                text: 'Developer adds exception annotation with reason',
+            },
+            {
+                text: 'PR triggers policy check—warns about exception usage',
+            },
+            {
+                text: 'Security team reviews exception request',
+            },
+            {
+                text: 'If approved, merge with exception and expiration date',
+            },
+            {
+                text: 'Exception logged in audit system',
+            },
+        ],
+    }}
+/>
 
 The annotation format captures required metadata:
 

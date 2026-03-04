@@ -186,11 +186,11 @@ Every VPC route table starts with an implicit local route that can't be removed.
 
 The common route targets:
 
-- __Internet Gateway__: Routes `0.0.0.0/0` to the internet (requires public IP or NAT)
-- __NAT Gateway__: Outbound internet from private subnets (the NAT gateway itself must be in a public subnet)
-- __VPC Peering__: Direct connection to another VPC's CIDR (requires routes on both sides, no CIDR overlap)[^peering]
-- __Transit Gateway__: Hub-and-spoke for multiple VPCs (handles transitive routing)[^tgw]
-- __VPC Endpoint__: Routes to AWS services via prefix lists[^prefix]
+__Internet Gateway__: Routes `0.0.0.0/0` to the internet (requires public IP or NAT)
+__NAT Gateway__: Outbound internet from private subnets (the NAT gateway itself must be in a public subnet)
+__VPC Peering__: Direct connection to another VPC's CIDR (requires routes on both sides, no CIDR overlap)[^peering]
+__Transit Gateway__: Hub-and-spoke for multiple VPCs (handles transitive routing)[^tgw]
+__VPC Endpoint__: Routes to AWS services via prefix lists[^prefix]
 
 [^peering]: VPC Peering creates a direct point-to-point connection between two VPCs. If you have 4 VPCs and want them all to communicate, you must create 6 separate peering connections (a full mesh). Critically, peering does _not_ support transitive routing—if VPC A peers with B, and B peers with C, A cannot reach C through B. Each pair needs its own peering connection. For 10 VPCs, you'd need 45 peering links; for 100 VPCs, nearly 5,000.
 
@@ -346,10 +346,29 @@ The TLS handshake follows a specific sequence, and failures at each stage produc
 
 Private networking introduces specific failure patterns:
 
-- __Hostname mismatch__ is the most common. Your certificate was issued for `api.example.com` (the public name), but you're connecting to `api.internal.example.com` (the private endpoint). The certificate's SAN doesn't include the private name, so verification fails. Solutions: add the private name to the certificate's SAN, use the public name even for private connections, or configure the client to verify against a different hostname.
-- __Untrusted private CA__ happens when internal services use certificates from a private CA that clients don't trust. You'll see "unable to get local issuer certificate" or "self signed certificate in certificate chain." The fix is adding the CA certificate to the client's trust store—but every language and framework has its own way of doing this.
-- __SNI issues__ occur when multiple services share a load balancer IP. The server uses SNI to decide which certificate to return. If SNI isn't sent (older clients, misconfigured tools), you get the default certificate, which might not match the hostname you requested.
-- __Expired certificates__ hit internal services harder than public ones. Let's Encrypt certificates auto-renew. Internal certificates often don't, and they're not monitored as closely. A certificate expires at 2am, and suddenly half your services are down.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Hostname mismatch',
+                text: 'is the most common. Your certificate was issued for `api.example.com` (the public name), but you\'re connecting to `api.internal.example.com` (the private endpoint). The certificate\'s SAN doesn\'t include the private name, so verification fails. Solutions: add the private name to the certificate\'s SAN, use the public name even for private connections, or configure the client to verify against a different hostname.',
+            },
+            {
+                lead: 'Untrusted private CA',
+                text: 'happens when internal services use certificates from a private CA that clients don\'t trust. You\'ll see "unable to get local issuer certificate" or "self signed certificate in certificate chain." The fix is adding the CA certificate to the client\'s trust store—but every language and framework has its own way of doing this.',
+            },
+            {
+                lead: 'SNI issues',
+                text: 'occur when multiple services share a load balancer IP. The server uses SNI to decide which certificate to return. If SNI isn\'t sent (older clients, misconfigured tools), you get the default certificate, which might not match the hostname you requested.',
+            },
+            {
+                lead: 'Expired certificates',
+                text: 'hit internal services harder than public ones. Let\'s Encrypt certificates auto-renew. Internal certificates often don\'t, and they\'re not monitored as closely. A certificate expires at 2am, and suddenly half your services are down.',
+            },
+        ],
+    }}
+/>
 
 <Table
     variant="vertical-column-delineation-table"
@@ -497,11 +516,33 @@ The previous sections covered individual failure modes. This section puts them t
 
 Every private networking issue follows the same debugging sequence. Each layer depends on the previous one working correctly—there's no point checking TLS if packets aren't reaching the server.
 
-- __Step 1: DNS__ — Does the name resolve to the expected IP? Use `getent hosts <hostname>` (which respects system configuration) rather than just `dig`. Verify the IP is in the expected private range. Compare results from the VPC resolver versus public DNS to detect split-horizon issues.
-- __Step 2: Routing__ — Can the kernel find a path to that IP? Run `ip route get <ip>` to see the routing decision. Check the VPC route table in the console for the source subnet. Look for blackhole routes where the target was deleted but the route remains.
-- __Step 3: Connectivity__ — Is the port reachable? Use `nc -zv -w 5 <ip> <port>`. A timeout suggests routing or security group issues. "Connection refused" means packets arrive but nothing's listening—the service is down or on a different port.
-- __Step 4: TLS__ — Does the handshake succeed? Run `openssl s_client -connect <ip>:<port> -servername <hostname>`. Check that the certificate isn't expired, the hostname appears in the SAN, and the CA is trusted.
-- __Step 5: Application__ — Does the application-level connection work? At this point, networking is fine. Check authentication credentials, authorization rules, and application-level allowlists (some services restrict by source IP).
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Step 1: DNS',
+                text: 'Does the name resolve to the expected IP? Use `getent hosts <hostname>` (which respects system configuration) rather than just `dig`. Verify the IP is in the expected private range. Compare results from the VPC resolver versus public DNS to detect split-horizon issues.',
+            },
+            {
+                lead: 'Step 2: Routing',
+                text: 'Can the kernel find a path to that IP? Run `ip route get <ip>` to see the routing decision. Check the VPC route table in the console for the source subnet. Look for blackhole routes where the target was deleted but the route remains.',
+            },
+            {
+                lead: 'Step 3: Connectivity',
+                text: 'Is the port reachable? Use `nc -zv -w 5 <ip> <port>`. A timeout suggests routing or security group issues. "Connection refused" means packets arrive but nothing\'s listening—the service is down or on a different port.',
+            },
+            {
+                lead: 'Step 4: TLS',
+                text: 'Does the handshake succeed? Run `openssl s_client -connect <ip>:<port> -servername <hostname>`. Check that the certificate isn\'t expired, the hostname appears in the SAN, and the CA is trusted.',
+            },
+            {
+                lead: 'Step 5: Application',
+                text: 'Does the application-level connection work? At this point, networking is fine. Check authentication credentials, authorization rules, and application-level allowlists (some services restrict by source IP).',
+            },
+        ],
+    }}
+/>
 
 At each step, the failure mode tells you where to look next. "Connection refused" at the port check means skip security groups and check whether the service is running. "Timeout" means go back to routing and security rules.
 
@@ -523,24 +564,76 @@ Moving from a public endpoint to a private one requires coordination across DNS,
 
 __Pre-migration checklist:__
 
-- _DNS_: Private hosted zone exists, associated with all source VPCs, records created for the private endpoint, TTL lowered (60 seconds or less) to enable quick rollback
-- _Routing_: Routes exist from source subnets to the private endpoint subnet, VPC peering or transit gateway configured if cross-VPC, no CIDR conflicts
-- _Security_: Security groups allow inbound from all source IPs/security groups, NACLs allow bidirectional traffic including ephemeral ports, endpoint policies permit required actions (for AWS VPC endpoints)
-- _TLS_: Certificate includes the private DNS name in its SAN, CA trusted by all clients, certificate not expiring during the migration window
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'DNS',
+                text: 'Private hosted zone exists, associated with all source VPCs, records created for the private endpoint, TTL lowered (60 seconds or less) to enable quick rollback',
+            },
+            {
+                lead: 'Routing',
+                text: 'Routes exist from source subnets to the private endpoint subnet, VPC peering or transit gateway configured if cross-VPC, no CIDR conflicts',
+            },
+            {
+                lead: 'Security',
+                text: 'Security groups allow inbound from all source IPs/security groups, NACLs allow bidirectional traffic including ephemeral ports, endpoint policies permit required actions (for AWS VPC endpoints)',
+            },
+            {
+                lead: 'TLS',
+                text: 'Certificate includes the private DNS name in its SAN, CA trusted by all clients, certificate not expiring during the migration window',
+            },
+        ],
+    }}
+/>
 
 __Migration patterns:__
 
-- _DNS cutover_ is the simplest approach. Lower TTL beforehand, verify private connectivity works with direct IP access, update DNS to point to the private endpoint, monitor for failures. Rollback is just reverting the DNS record. The risk: it's all-or-nothing.
-- _Gradual migration_ deploys new application instances configured for the private endpoint, then shifts traffic percentage over time. More complex to orchestrate but safer for critical services.
-- _Dual-stack_ configures applications to prefer the private endpoint with fallback to public. This is the safest approach but has a subtle risk: the fallback can mask private connectivity issues, making them harder to detect.
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'DNS cutover',
+                text: 'is the simplest approach. Lower TTL beforehand, verify private connectivity works with direct IP access, update DNS to point to the private endpoint, monitor for failures. Rollback is just reverting the DNS record. The risk: it\'s all-or-nothing.',
+            },
+            {
+                lead: 'Gradual migration',
+                text: 'deploys new application instances configured for the private endpoint, then shifts traffic percentage over time. More complex to orchestrate but safer for critical services.',
+            },
+            {
+                lead: 'Dual-stack',
+                text: 'configures applications to prefer the private endpoint with fallback to public. This is the safest approach but has a subtle risk: the fallback can mask private connectivity issues, making them harder to detect.',
+            },
+        ],
+    }}
+/>
 
 __Post-migration verification:__
 
-- Confirm all source IPs can reach the private endpoint
-- Check that latency improved (it should—no internet hops)
-- Verify VPC flow logs show no public IP traffic to the service
-- Disable or restrict the public endpoint
-- Update monitoring and runbooks for the new architecture
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                text: 'Confirm all source IPs can reach the private endpoint',
+            },
+            {
+                text: 'Check that latency improved (it should—no internet hops)',
+            },
+            {
+                text: 'Verify VPC flow logs show no public IP traffic to the service',
+            },
+            {
+                text: 'Disable or restrict the public endpoint',
+            },
+            {
+                text: 'Update monitoring and runbooks for the new architecture',
+            },
+        ],
+    }}
+/>
 
 ### Cross-VPC Connectivity
 
@@ -588,9 +681,25 @@ __VPN__ provides encrypted connectivity over the public internet—useful when d
 
 Common debugging issues by pattern:
 
-- _Peering_: Routes missing on one side, DNS resolution not enabled, zone not associated with both VPCs
-- _Transit Gateway_: Blackhole routes (attachment deleted but route remains), wrong route table association, asymmetric routing on return path
-- _Private Link_: Connection stuck in "pending" (provider must accept), endpoint unavailable (check NLB health targets), private DNS not working (verify it's enabled on the endpoint)
+<List
+    variant="check-icons-list"
+    content={{
+        items: [
+            {
+                lead: 'Peering',
+                text: 'Routes missing on one side, DNS resolution not enabled, zone not associated with both VPCs',
+            },
+            {
+                lead: 'Transit Gateway',
+                text: 'Blackhole routes (attachment deleted but route remains), wrong route table association, asymmetric routing on return path',
+            },
+            {
+                lead: 'Private Link',
+                text: 'Connection stuck in "pending" (provider must accept), endpoint unavailable (check NLB health targets), private DNS not working (verify it\'s enabled on the endpoint)',
+            },
+        ],
+    }}
+/>
 
 ## Conclusion
 
@@ -602,9 +711,25 @@ Build the debugging reflex before you need it: DNS → routing → connectivity 
 
 Three investments pay off:
 
-1. __Diagnostic tooling__: Scripts that run through the checklist automatically. When you're tired and stressed, you'll skip steps. The script won't.
-2. __Architecture documentation__: Private networks have more moving parts—VPC CIDRs, route tables, peering connections, transit gateway attachments, private hosted zones. Document them so debugging isn't archaeology.
-3. __Pre-migration testing__: Before cutting over to private endpoints, verify every step of the path works. The migration itself should be boring.
+<List
+    variant="numbered-with-background-list"
+    content={{
+        items: [
+            {
+                lead: 'Diagnostic tooling',
+                text: 'Scripts that run through the checklist automatically. When you\'re tired and stressed, you\'ll skip steps. The script won\'t.',
+            },
+            {
+                lead: 'Architecture documentation',
+                text: 'Private networks have more moving parts—VPC CIDRs, route tables, peering connections, transit gateway attachments, private hosted zones. Document them so debugging isn\'t archaeology.',
+            },
+            {
+                lead: 'Pre-migration testing',
+                text: 'Before cutting over to private endpoints, verify every step of the path works. The migration itself should be boring.',
+            },
+        ],
+    }}
+/>
 
 The teams that handle private networking well aren't the ones with the fanciest tools. They're the ones who've internalized the debugging playbook before the first production incident.
 

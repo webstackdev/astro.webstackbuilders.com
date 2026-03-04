@@ -31,10 +31,25 @@ If you've worked with OpenAPI specs before, you know they can get unwieldy fast.
 
 An OpenAPI spec has four top-level sections that matter:
 
-- `info` for metadata
-- `servers` for environment URLs
-- `paths` for your actual endpoints
-- `components` for reusable definitions
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: '`info` for metadata',
+      },
+      {
+        text: '`servers` for environment URLs',
+      },
+      {
+        text: '`paths` for your actual endpoints',
+      },
+      {
+        text: '`components` for reusable definitions',
+      },
+    ],
+  }}
+/>
 
 The first two are straightforward—title, version, contact info, and a list of base URLs for production, staging, and local development.
 
@@ -347,9 +362,25 @@ Once you have an OpenAPI spec, generating documentation is almost trivially easy
 
 The three main options cover different use cases:
 
-- __Redoc__ generates static HTML from your spec. You get a three-panel layout (navigation, content, code samples), search, and nested schema expansion. It's a single HTML file you can host anywhere—GitHub Pages, S3, your CDN. No backend required. This is my default choice for most projects because it's zero-maintenance once deployed.
-- __Swagger UI__ provides interactive documentation where developers can make live requests against your API. The "Try it out" button is genuinely useful for exploration and debugging. The tradeoff: you need to think about authentication, CORS, and whether you want people hitting your production API from the docs.
-- __Stoplight Elements__ is a React component library for embedding documentation in an existing portal or documentation site. If you're building a developer portal with tutorials, guides, and API reference together, Elements lets you integrate the API docs natively rather than linking out to a separate site.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Redoc',
+        text: 'generates static HTML from your spec. You get a three-panel layout (navigation, content, code samples), search, and nested schema expansion. It\'s a single HTML file you can host anywhere—GitHub Pages, S3, your CDN. No backend required. This is my default choice for most projects because it\'s zero-maintenance once deployed.',
+      },
+      {
+        lead: 'Swagger UI',
+        text: 'provides interactive documentation where developers can make live requests against your API. The "Try it out" button is genuinely useful for exploration and debugging. The tradeoff: you need to think about authentication, CORS, and whether you want people hitting your production API from the docs.',
+      },
+      {
+        lead: 'Stoplight Elements',
+        text: 'is a React component library for embedding documentation in an existing portal or documentation site. If you\'re building a developer portal with tutorials, guides, and API reference together, Elements lets you integrate the API docs natively rather than linking out to a separate site.',
+      },
+    ],
+  }}
+/>
 
 ```bash title="generate-docs.sh"
 #!/bin/bash
@@ -462,9 +493,25 @@ The good news is that SDK generation has matured significantly. With the right g
 
 The SDK generator landscape breaks down into three categories: comprehensive multi-language tools, language-specific tools with better output, and types-only generators.
 
-- __OpenAPI Generator__ (the open-source fork of Swagger Codegen) supports 50+ languages and is the default choice for teams that need SDKs in multiple languages from the same spec. The TypeScript output is decent, the Python output is usable, and you get consistent behavior across languages. The tradeoff is that "decent" and "usable" aren't "great"—the generated code tends toward verbosity and doesn't always follow language idioms.
-- __Orval__ focuses exclusively on TypeScript but produces notably better output. It generates React Query hooks, Zod validation schemas, and MSW mock handlers out of the box. If your consumers are React developers, Orval's output feels like code they'd actually write.
-- __openapi-typescript__ takes a different approach: it generates only TypeScript types, no runtime code. You get interfaces for your request/response bodies and use your own HTTP client. This is the lightest-weight option and works well when you want type safety without adopting a generated SDK wholesale.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'OpenAPI Generator',
+        text: '(the open-source fork of Swagger Codegen) supports 50+ languages and is the default choice for teams that need SDKs in multiple languages from the same spec. The TypeScript output is decent, the Python output is usable, and you get consistent behavior across languages. The tradeoff is that "decent" and "usable" aren\'t "great"—the generated code tends toward verbosity and doesn\'t always follow language idioms.',
+      },
+      {
+        lead: 'Orval',
+        text: 'focuses exclusively on TypeScript but produces notably better output. It generates React Query hooks, Zod validation schemas, and MSW mock handlers out of the box. If your consumers are React developers, Orval\'s output feels like code they\'d actually write.',
+      },
+      {
+        lead: 'openapi-typescript',
+        text: 'takes a different approach: it generates only TypeScript types, no runtime code. You get interfaces for your request/response bodies and use your own HTTP client. This is the lightest-weight option and works well when you want type safety without adopting a generated SDK wholesale.',
+      },
+    ],
+  }}
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -812,11 +859,28 @@ Breaking changes are the silent killer of API reliability. Someone adds a requir
 
 `openapi-diff` compares two spec versions and flags incompatible changes:
 
-- Removed endpoints
-- Removed or renamed fields
-- New required fields in request bodies
-- Changed field types
-- Narrowed enum values
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'Removed endpoints',
+      },
+      {
+        text: 'Removed or renamed fields',
+      },
+      {
+        text: 'New required fields in request bodies',
+      },
+      {
+        text: 'Changed field types',
+      },
+      {
+        text: 'Narrowed enum values',
+      },
+    ],
+  }}
+/>
 
 Run it in PR checks with `--fail-on-incompatible` to block merges that would break consumers. When breaking changes are intentional (major version bumps), you can override the check—but at least it's a conscious decision, not an accident.
 
@@ -824,8 +888,21 @@ Run it in PR checks with `--fail-on-incompatible` to block merges that would bre
 
 Contract tests verify your implementation actually matches your spec. Dredd and Schemathesis are the main tools:
 
-- __Dredd__ reads your spec, generates requests for each endpoint, hits your running server, and validates responses against the schema. It's deterministic—same spec produces same tests.
-- __Schemathesis__ takes a property-based testing approach. It generates random valid inputs based on your schemas and looks for edge cases that break your implementation. It's better at finding bugs but less predictable.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Dredd',
+        text: 'reads your spec, generates requests for each endpoint, hits your running server, and validates responses against the schema. It\'s deterministic—same spec produces same tests.',
+      },
+      {
+        lead: 'Schemathesis',
+        text: 'takes a property-based testing approach. It generates random valid inputs based on your schemas and looks for edge cases that break your implementation. It\'s better at finding bugs but less predictable.',
+      },
+    ],
+  }}
+/>
 
 I typically use Dredd in CI for consistent, fast feedback and Schemathesis periodically for deeper testing.
 

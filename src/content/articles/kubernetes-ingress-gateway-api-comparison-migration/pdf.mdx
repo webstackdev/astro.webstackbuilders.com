@@ -441,9 +441,25 @@ Gateway API's layered architecture maps naturally to organizational boundaries. 
 
 The three-layer model creates clear ownership:
 
-- **Infrastructure team** manages GatewayClass resources. They select and configure the controller, set cluster-wide policies, and typically have cluster-admin access. This layer changes rarely—maybe during major upgrades or when adding new controller capabilities.
-- **Platform team** manages Gateway resources. They configure listeners, TLS certificates, and crucially, which namespaces can attach routes. They control the blast radius of application team changes through the `allowedRoutes` configuration.
-- **Application teams** manage HTTPRoute resources in their own namespaces. They define their routing rules, but can only attach to Gateways that explicitly allow their namespace. They can't affect other teams' traffic.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Infrastructure team',
+        text: 'manages GatewayClass resources. They select and configure the controller, set cluster-wide policies, and typically have cluster-admin access. This layer changes rarely—maybe during major upgrades or when adding new controller capabilities.',
+      },
+      {
+        lead: 'Platform team',
+        text: 'manages Gateway resources. They configure listeners, TLS certificates, and crucially, which namespaces can attach routes. They control the blast radius of application team changes through the `allowedRoutes` configuration.',
+      },
+      {
+        lead: 'Application teams',
+        text: 'manage HTTPRoute resources in their own namespaces. They define their routing rules, but can only attach to Gateways that explicitly allow their namespace. They can\'t affect other teams\' traffic.',
+      },
+    ],
+  }}
+/>
 
 ```yaml title="multi-team-gateway.yaml"
 # Platform team's Gateway with namespace restrictions
@@ -544,20 +560,56 @@ Assuming you've already decided Gateway API is the right fit (see the Decision F
 
 **Timing signals that suggest waiting:**
 
-- You're in the middle of a major release or incident stabilization period
-- The team responsible for routing config doesn't have capacity for learning and testing
-- Your controller's Gateway API support is still in beta or missing route types you need
-- You have a complex `configuration-snippet` annotation that doesn't have a clear Gateway API equivalent
-- Your CI/CD pipeline doesn't have good staging coverage for routing changes
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'You\'re in the middle of a major release or incident stabilization period',
+      },
+      {
+        text: 'The team responsible for routing config doesn\'t have capacity for learning and testing',
+      },
+      {
+        text: 'Your controller\'s Gateway API support is still in beta or missing route types you need',
+      },
+      {
+        text: 'You have a complex `configuration-snippet` annotation that doesn\'t have a clear Gateway API equivalent',
+      },
+      {
+        text: 'Your CI/CD pipeline doesn\'t have good staging coverage for routing changes',
+      },
+    ],
+  }}
+/>
 
 **Prerequisite checklist before starting:**
 
-- [ ] Controller supports Gateway API at GA level for the route types you need — most major controllers (NGINX Gateway Fabric, Envoy Gateway, Istio, Contour, Kong, Traefik) have GA support
-- [ ] Team has read the official Gateway API getting started guide
-- [ ] Staging environment can run parallel Ingress and Gateway API resources
-- [ ] Rollback plan documented (typically: delete HTTPRoute, traffic returns to Ingress)
-- [ ] Monitoring covers both Ingress and Gateway API traffic paths
-- [ ] At least one low-risk service identified for initial migration
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'Controller supports Gateway API at GA level for the route types you need — most major controllers (NGINX Gateway Fabric, Envoy Gateway, Istio, Contour, Kong, Traefik) have GA support',
+      },
+      {
+        text: 'Team has read the official Gateway API getting started guide',
+      },
+      {
+        text: 'Staging environment can run parallel Ingress and Gateway API resources',
+      },
+      {
+        text: 'Rollback plan documented (typically: delete HTTPRoute, traffic returns to Ingress)',
+      },
+      {
+        text: 'Monitoring covers both Ingress and Gateway API traffic paths',
+      },
+      {
+        text: 'At least one low-risk service identified for initial migration',
+      },
+    ],
+  }}
+/>
 
 **Effort estimation:**
 
@@ -599,9 +651,25 @@ Code: New routes use Gateway API while existing Ingress handles legacy paths.
 
 This coexistence works because Ingress and Gateway API are separate resource types that controllers watch independently. When a request arrives, the controller checks both APIs and routes based on the matching rules. Requests to `/v2` match the HTTPRoute; requests to `/v1` match the Ingress. There's no conflict because they handle different paths. If you need to migrate an existing path, create the HTTPRoute first with a different hostname for testing, then update DNS or the hostname field to cut over.
 
-- **Phase 2: Migrate routes (4-8 weeks)** Convert Ingress rules to HTTPRoutes one at a time. Test each migration in staging first, then deploy to production. Keep the original Ingress rule as a fallback—you can revert instantly if something breaks.
-- **Phase 3: Cutover (1-2 weeks)** Once all routes are migrated, route all traffic through Gateway. Keep Ingress resources in read-only mode (no new rules) while you monitor for issues. This is your last chance to catch problems before cleanup.
-- **Phase 4: Cleanup (1 week)** Delete unused Ingress resources, document the new patterns, and update team training. This is the point of no return—make sure you're confident before proceeding.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Phase 2: Migrate routes (4-8 weeks)',
+        text: 'Convert Ingress rules to HTTPRoutes one at a time. Test each migration in staging first, then deploy to production. Keep the original Ingress rule as a fallback—you can revert instantly if something breaks.',
+      },
+      {
+        lead: 'Phase 3: Cutover (1-2 weeks)',
+        text: 'Once all routes are migrated, route all traffic through Gateway. Keep Ingress resources in read-only mode (no new rules) while you monitor for issues. This is your last chance to catch problems before cleanup.',
+      },
+      {
+        lead: 'Phase 4: Cleanup (1 week)',
+        text: 'Delete unused Ingress resources, document the new patterns, and update team training. This is the point of no return—make sure you\'re confident before proceeding.',
+      },
+    ],
+  }}
+/>
 
 The key insight is that rollback is easy in phases 1-3. If an HTTPRoute causes problems, delete it and the traffic falls back to Ingress. Only in phase 4, when you delete Ingress resources, do you commit to Gateway API.
 
@@ -637,10 +705,29 @@ Converting an Ingress resource to an HTTPRoute is mostly mechanical, but there a
 
 The harder part is annotations. Each annotation that your Ingress uses for non-standard behavior needs to be converted to Gateway API's native features or policy attachments. Common conversions:
 
-- **Rewrite annotations** → URLRewrite filter
-- **Header add/remove annotations** → RequestHeaderModifier / ResponseHeaderModifier filters
-- **Rate limiting annotations** → Policy attachment (controller-specific)
-- **Authentication annotations** → Policy attachment or external auth service
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Rewrite annotations',
+        text: 'URLRewrite filter',
+      },
+      {
+        lead: 'Header add/remove annotations',
+        text: 'RequestHeaderModifier / ResponseHeaderModifier filters',
+      },
+      {
+        lead: 'Rate limiting annotations',
+        text: 'Policy attachment (controller-specific)',
+      },
+      {
+        lead: 'Authentication annotations',
+        text: 'Policy attachment or external auth service',
+      },
+    ],
+  }}
+/>
 
 The `configuration-snippet` annotation is the hardest to migrate. It allows arbitrary NGINX config, which means you need to understand exactly what it's doing and find the Gateway API equivalent. Sometimes there isn't one—you may need a controller-specific extension or policy.
 
@@ -768,11 +855,28 @@ After all the feature comparisons and migration details, the decision comes down
 
 Stick with Ingress if:
 
-- Your routing needs are simple: host-based routing, path prefixes, TLS termination
-- Everything lives in one namespace (or a small number of namespaces managed by one team)
-- Your current setup works and you don't have concrete problems to solve
-- Your team doesn't have capacity to learn a new API right now
-- Your controller doesn't support Gateway API yet
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'Your routing needs are simple: host-based routing, path prefixes, TLS termination',
+      },
+      {
+        text: 'Everything lives in one namespace (or a small number of namespaces managed by one team)',
+      },
+      {
+        text: 'Your current setup works and you don\'t have concrete problems to solve',
+      },
+      {
+        text: 'Your team doesn\'t have capacity to learn a new API right now',
+      },
+      {
+        text: 'Your controller doesn\'t support Gateway API yet',
+      },
+    ],
+  }}
+/>
 
 Example scenarios: a single application with a few endpoints, internal tools with basic routing, straightforward microservices where one team owns everything.
 
@@ -780,12 +884,31 @@ Example scenarios: a single application with a few endpoints, internal tools wit
 
 Choose Gateway API if:
 
-- You need cross-namespace routing (app teams routing to a shared Gateway)
-- You need native traffic splitting for canary or blue-green deployments
-- You need TCP, UDP, or gRPC routing
-- You're building a multi-team platform with self-service routing
-- You're planning a controller migration anyway
-- It's a greenfield project and you want to start with the more portable option
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'You need cross-namespace routing (app teams routing to a shared Gateway)',
+      },
+      {
+        text: 'You need native traffic splitting for canary or blue-green deployments',
+      },
+      {
+        text: 'You need TCP, UDP, or gRPC routing',
+      },
+      {
+        text: 'You\'re building a multi-team platform with self-service routing',
+      },
+      {
+        text: 'You\'re planning a controller migration anyway',
+      },
+      {
+        text: 'It\'s a greenfield project and you want to start with the more portable option',
+      },
+    ],
+  }}
+/>
 
 Example scenarios: multi-tenant platforms, deployment pipelines with canary stages, mixed-protocol workloads, service mesh integration.
 
@@ -793,8 +916,21 @@ Example scenarios: multi-tenant platforms, deployment pipelines with canary stag
 
 You don't have to choose one or the other. Many organizations run both:
 
-- **Ingress** for legacy applications and simple internal services where migration effort isn't justified
-- **Gateway API** for new platform services and anything requiring advanced features
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Ingress',
+        text: 'for legacy applications and simple internal services where migration effort isn\'t justified',
+      },
+      {
+        lead: 'Gateway API',
+        text: 'for new platform services and anything requiring advanced features',
+      },
+    ],
+  }}
+/>
 
 Consider a concrete example: your cluster runs an internal admin dashboard that hasn't changed in two years (Ingress works fine), a legacy API that's in maintenance mode (no reason to migrate), and a new public API with canary deployment requirements (Gateway API). Running both APIs lets you use Gateway API where it adds value without touching stable workloads that don't need its features.
 

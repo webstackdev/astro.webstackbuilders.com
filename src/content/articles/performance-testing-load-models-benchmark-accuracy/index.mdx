@@ -137,9 +137,25 @@ Report percentiles, not averages. Show distributions, not just summary statistic
 
 Coordinated omission and average-worship are the most common problems, but they're not the only ones. A few other factors regularly invalidate benchmarks:
 
-- **Test duration matters.** A 2-minute benchmark misses garbage collection patterns that take 10-30 minutes to stabilize. It won't catch memory leaks, connection pool exhaustion, or cache eviction issues. For anything beyond quick smoke tests, run at least 30 minutes.
-- **Environment parity is non-negotiable.** A test database with 10,000 rows behaves differently than production with 10 million. Queries that use indexes in test might trigger full table scans in production. Mocked external APIs with instant responses hide the latency that dominates real-world performance.
-- **Single runs prove nothing.** Run-to-run variance of 10-20% is normal, even on identical systems. Background processes, CPU frequency scaling, and network conditions all contribute. Run at least 3 iterations and report the spread.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Test duration matters.',
+        text: 'A 2-minute benchmark misses garbage collection patterns that take 10-30 minutes to stabilize. It won\'t catch memory leaks, connection pool exhaustion, or cache eviction issues. For anything beyond quick smoke tests, run at least 30 minutes.',
+      },
+      {
+        lead: 'Environment parity is non-negotiable.',
+        text: 'A test database with 10,000 rows behaves differently than production with 10 million. Queries that use indexes in test might trigger full table scans in production. Mocked external APIs with instant responses hide the latency that dominates real-world performance.',
+      },
+      {
+        lead: 'Single runs prove nothing.',
+        text: 'Run-to-run variance of 10-20% is normal, even on identical systems. Background processes, CPU frequency scaling, and network conditions all contribute. Run at least 3 iterations and report the spread.',
+      },
+    ],
+  }}
+/>
 
 Each of these deserves deeper treatment than space allows here. The point is that performance testing has many failure modes, and getting impressive numbers is easy—getting _meaningful_ numbers requires understanding all the ways benchmarks can mislead.
 

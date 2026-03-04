@@ -86,13 +86,41 @@ The default is always "leave it running" because turning something off requires 
 
 Not every quiet service is a decommissioning candidate. Some services are legitimately low-traffic—the annual compliance report generator doesn't need to handle requests in July. But certain signals, especially in combination, indicate a service worth investigating:
 
-- _Zero traffic_ for 30+ days (not just low traffic—literally zero)
-- _No deployments_ in 6+ months
-- _No code changes_ in 12+ months
-- _Deprecated dependencies_ that are end-of-life
-- _No valid owner_ because the team dissolved or left the company
-- _Replaced by_ a newer service that does the same thing
-- _One-time migration_ that finished months ago but the job is still running
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Zero traffic',
+        text: 'for 30+ days (not just low traffic-nearly zero)',
+      },
+      {
+        lead: 'No deployments',
+        text: 'in 6+ months',
+      },
+      {
+        lead: 'No code changes',
+        text: 'in 12+ months',
+      },
+      {
+        lead: 'Deprecated dependencies',
+        text: 'that are end-of-life',
+      },
+      {
+        lead: 'No valid owner',
+        text: 'because the team dissolved or left the company',
+      },
+      {
+        lead: 'Replaced by',
+        text: 'a newer service that does the same thing',
+      },
+      {
+        lead: 'One-time migration',
+        text: 'that finished months ago but the job is still running',
+      },
+    ],
+  }}
+/>
 
 Any one of these might be fine. Three or more together? That's a candidate. I score services by combining weighted signals—zero traffic scores highest, no deployments lower—and anything above a threshold goes on the review list.
 
@@ -106,10 +134,29 @@ But you can't just flip the switch and hope. A well-designed scream test gives c
 
 A proper scream test has four phases, each lasting about a week. The goal is progressive degradation that surfaces dependencies without causing lasting damage.
 
-- __Phase 1: Soft degradation.__ Add latency to every request—start at 100ms, increase to 500ms, then 1 second. Services that depend on you in their critical path will start seeing timeouts and SLA violations. Their monitoring should catch it. If nobody notices 1 second of added latency, that's a strong signal the dependency isn't critical.
-- __Phase 2: Intermittent failures.__ Start failing a percentage of requests with 503 Service Unavailable and a Retry-After header. Begin at 1%, move to 5%, then 10%. Well-behaved clients will retry and succeed. Poorly-behaved clients will surface as consumer error rates spike. Either way, you learn who's calling you.
-- __Phase 3: Hard shutdown.__ Return 410 Gone for all requests. This is HTTP's way of saying "this resource existed but doesn't anymore, and it's not coming back." Log every caller at this stage—anyone still hitting you after weeks of deprecation warnings either isn't paying attention or has an integration nobody knew about.
-- __Phase 4: Complete removal.__ After a quiet period (I use two weeks), remove the service from the load balancer and delete the compute resources. Keep data archives for now—you're not done until you're sure nobody's screaming.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Phase 1: Soft degradation.',
+        text: "Add latency to every request-start at 100ms, increase to 500ms, then 1 second. Services that depend on you in their critical path will start seeing timeouts and SLA violations. Their monitoring should catch it. If nobody notices 1 second of added latency, that's a strong signal the dependency isn't critical.",
+      },
+      {
+        lead: 'Phase 2: Intermittent failures.',
+        text: "Start failing a percentage of requests with 503 Service Unavailable and a Retry-After header. Begin at 1%, move to 5%, then 10%. Well-behaved clients will retry and succeed. Poorly-behaved clients will surface as consumer error rates spike. Either way, you learn who's calling you.",
+      },
+      {
+        lead: 'Phase 3: Hard shutdown.',
+        text: "Return 410 Gone for all requests. This is HTTP's way of saying \"this resource existed but doesn't anymore, and it's not coming back.\" Log every caller at this stage-anyone still hitting you after weeks of deprecation warnings either isn't paying attention or has an integration nobody knew about.",
+      },
+      {
+        lead: 'Phase 4: Complete removal.',
+        text: "After a quiet period (I use two weeks), remove the service from the load balancer and delete the compute resources. Keep data archives for now-you're not done until you're sure nobody's screaming.",
+      },
+    ],
+  }}
+/>
 
 <Callout type="info">
 Send deprecation notices to every communication channel 2-4 weeks before starting Phase 1. Email, Slack, team standups—anywhere consumers might see it. Some will self-identify, saving you discovery effort during the test.
@@ -389,11 +436,33 @@ Keep an audit trail of every escalation and resolution. When leadership asks why
 
 Spread your communications across the decommissioning timeline. Front-loading all communication in week one means everyone forgets by week four.
 
-- __Week -4 (announcement):__ Initial deprecation notice across all channels. Create the wiki page. Email known consumers directly.
-- __Week -2 (reminder + scream test start):__ Reminder that Phase 1 begins. Direct outreach to consumers who haven't acknowledged. Start soft degradation.
-- __Week -1 (status update):__ Weekly update on migration progress. List remaining consumers publicly (social pressure works). Remind about office hours.
-- __Week 0 (shutdown):__ 24-hour warning. Final call for escalations. Execute shutdown during low-traffic window.
-- __Week +1 (post-shutdown):__ Confirm successful shutdown. Publish lessons learned. Report cost savings to justify the effort.
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Week -4 (announcement):',
+        text: 'Initial deprecation notice across all channels. Create the wiki page. Email known consumers directly.',
+      },
+      {
+        lead: 'Week -2 (reminder + scream test start):',
+        text: "Reminder that Phase 1 begins. Direct outreach to consumers who haven't acknowledged. Start soft degradation.",
+      },
+      {
+        lead: 'Week -1 (status update):',
+        text: 'Weekly update on migration progress. List remaining consumers publicly (social pressure works). Remind about office hours.',
+      },
+      {
+        lead: 'Week 0 (shutdown):',
+        text: '24-hour warning. Final call for escalations. Execute shutdown during low-traffic window.',
+      },
+      {
+        lead: 'Week +1 (post-shutdown):',
+        text: 'Confirm successful shutdown. Publish lessons learned. Report cost savings to justify the effort.',
+      },
+    ],
+  }}
+/>
 
 ## Shutdown Execution
 
@@ -405,38 +474,112 @@ A checklist sounds bureaucratic, but it prevents the "oh no, we forgot to revoke
 
 _Pre-shutdown (before you touch anything):_
 
-- All known consumers migrated and confirmed
-- Scream test completed without blocking escalations
-- Data backup completed and verified
-- Rollback plan documented and tested
-- Stakeholder sign-off obtained
-- Monitoring alerts silenced or removed
-- On-call team notified
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'All known consumers migrated and confirmed',
+      },
+      {
+        text: 'Scream test completed without blocking escalations',
+      },
+      {
+        text: 'Data backup completed and verified',
+      },
+      {
+        text: 'Rollback plan documented and tested',
+      },
+      {
+        text: 'Stakeholder sign-off obtained',
+      },
+      {
+        text: 'Monitoring alerts silenced or removed',
+      },
+      {
+        text: 'On-call team notified',
+      },
+    ],
+  }}
+/>
 
 _Shutdown (the actual turning off):_
 
-- Remove from load balancer (stops new traffic)
-- Scale deployment to zero replicas
-- Update DNS if applicable (point to deprecation page or remove)
-- Stop scheduled jobs and cron tasks
-- Revoke service account credentials
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'Remove from load balancer (stops new traffic)',
+      },
+      {
+        text: 'Scale deployment to zero replicas',
+      },
+      {
+        text: 'Update DNS if applicable (point to deprecation page or remove)',
+      },
+      {
+        text: 'Stop scheduled jobs and cron tasks',
+      },
+      {
+        text: 'Revoke service account credentials',
+      },
+    ],
+  }}
+/>
 
 _Post-shutdown (the waiting period):_
 
-- Monitor for 24 hours for unexpected errors in dependent services
-- Confirm no traffic attempts in logs
-- Update service catalog to show decommissioned status
-- Update architecture diagrams
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'Monitor for 24 hours for unexpected errors in dependent services',
+      },
+      {
+        text: 'Confirm no traffic attempts in logs',
+      },
+      {
+        text: 'Update service catalog to show decommissioned status',
+      },
+      {
+        text: 'Update architecture diagrams',
+      },
+    ],
+  }}
+/>
 
 _Cleanup (after the grace period):_
 
-- Delete Kubernetes resources
-- Archive or delete database (per retention policy)
-- Remove CI/CD pipelines
-- Archive source code repository (don't delete—you might need to reference it)
-- Remove monitoring dashboards
-- Cancel related cloud resources
-- Verify no ongoing charges with FinOps
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        text: 'Delete Kubernetes resources',
+      },
+      {
+        text: 'Archive or delete database (per retention policy)',
+      },
+      {
+        text: 'Remove CI/CD pipelines',
+      },
+      {
+        text: "Archive source code repository (don't delete-you might need to reference it)",
+      },
+      {
+        text: 'Remove monitoring dashboards',
+      },
+      {
+        text: 'Cancel related cloud resources',
+      },
+      {
+        text: 'Verify no ongoing charges with FinOps',
+      },
+    ],
+  }}
+/>
 
 The cleanup phase happens after a grace period—typically 30 days. This gives you time to discover any dependencies you missed and roll back if needed.
 
@@ -556,11 +699,33 @@ Before archiving, classify the data. If you're not sure what compliance requirem
 
 Database archival has a specific workflow that's easy to get wrong. The goal is to ensure data is accessible from the archive _before_ you delete the source.
 
-1. _Take a final backup_ with a clear label indicating this is the decommission backup. Use your standard backup tooling so restores work the same way.
-2. _Verify the backup is restorable._ Actually restore it to a test environment and run validation queries. "We have a backup" means nothing if you can't restore from it.
-3. _Export to a portable format._ Database backups are great for full restores, but if someone just needs to query old data, a Parquet or CSV export to S3 is more accessible. Include the schema definition.
-4. _Create an archive manifest_ documenting what was archived, where it went, row counts by table, and instructions for accessing the data. Put this manifest somewhere discoverable—a wiki page or the service catalog entry for the decommissioned service.
-5. _Schedule deletion with a grace period._ Don't delete the source database immediately. A 30-day grace period between archival and deletion has saved many teams from disaster.
+<List
+  variant="numbered-with-background-list"
+  content={{
+    items: [
+      {
+        lead: 'Take a final backup',
+        text: 'with a clear label indicating this is the decommission backup. Use your standard backup tooling so restores work the same way.',
+      },
+      {
+        lead: 'Verify the backup is restorable.',
+        text: "Actually restore it to a test environment and run validation queries. \"We have a backup\" means nothing if you can't restore from it.",
+      },
+      {
+        lead: 'Export to a portable format.',
+        text: 'Database backups are great for full restores, but if someone just needs to query old data, a Parquet or CSV export to S3 is more accessible. Include the schema definition.',
+      },
+      {
+        lead: 'Create an archive manifest',
+        text: 'documenting what was archived, where it went, row counts by table, and instructions for accessing the data. Put this manifest somewhere discoverable-a wiki page or the service catalog entry for the decommissioned service.',
+      },
+      {
+        lead: 'Schedule deletion with a grace period.',
+        text: "Don't delete the source database immediately. A 30-day grace period between archival and deletion has saved many teams from disaster.",
+      },
+    ],
+  }}
+/>
 
 ```bash title="archive-database.sh"
 #!/bin/bash
@@ -707,12 +872,37 @@ Every decommissioning teaches you something. Capture it while it's fresh.
 
 A retrospective document should cover:
 
-- __Timeline comparison:__ How long did you plan for vs. how long did it actually take? What caused delays?
-- __Consumer discovery:__ How many consumers did you know about beforehand? How many did you discover during the scream test? What discovery methods worked best?
-- __Escalations:__ How many escalations did you handle? What categories (extension requests, migration help, rollback)? Were any surprising?
-- __What worked:__ What would you do again? Early announcements? Automated rollback triggers? Weekly status updates?
-- __What didn't work:__ What would you do differently? Did you miss a communication channel? Was the scream test too aggressive? Too slow?
-- __Surprises:__ What caught you off guard? Undocumented integrations? Foreign key constraints? Batch jobs nobody knew about?
+<List
+  variant="check-icons-list"
+  content={{
+    items: [
+      {
+        lead: 'Timeline comparison:',
+        text: 'How long did you plan for vs. how long did it actually take? What caused delays?',
+      },
+      {
+        lead: 'Consumer discovery:',
+        text: 'How many consumers did you know about beforehand? How many did you discover during the scream test? What discovery methods worked best?',
+      },
+      {
+        lead: 'Escalations:',
+        text: 'How many escalations did you handle? What categories (extension requests, migration help, rollback)? Were any surprising?',
+      },
+      {
+        lead: 'What worked:',
+        text: 'What would you do again? Early announcements? Automated rollback triggers? Weekly status updates?',
+      },
+      {
+        lead: "What didn't work:",
+        text: 'What would you do differently? Did you miss a communication channel? Was the scream test too aggressive? Too slow?',
+      },
+      {
+        lead: 'Surprises:',
+        text: 'What caught you off guard? Undocumented integrations? Foreign key constraints? Batch jobs nobody knew about?',
+      },
+    ],
+  }}
+/>
 
 This documentation becomes the playbook for the next decommissioning. The engineer who handles it in six months will thank you.
 
