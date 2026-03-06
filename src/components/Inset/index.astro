@@ -1,0 +1,27 @@
+---
+import DefaultInset from './layouts/DefaultInset.astro'
+
+export type Props = {
+  classes?: {
+    layout?: string
+    wrapper?: string
+  }
+  size?: number
+  variant: string
+}
+
+const { variant = 'default', classes } = Astro.props
+---
+
+<div class:list={[classes?.wrapper ? classes.wrapper : 'mb-8']}>
+  {variant === 'default' &&
+    (classes?.layout !== undefined ? (
+      <DefaultInset classes={{ layout: classes.layout }}>
+        <slot />
+      </DefaultInset>
+    ) : (
+      <DefaultInset>
+        <slot />
+      </DefaultInset>
+    ))}
+</div>

@@ -26,11 +26,12 @@ export type Props = {
     tbody?: string
     tfoot?: string
   }
+  fullWidth?: boolean
 }
 
-const { content, classes }: Props = Astro.props
+const { content, classes, fullWidth = true }: Props = Astro.props
 
-const tableClass = 'w-full text-left'
+const tableClass = `text-left${fullWidth ? ' w-full' : ''}`
 const captionClass = 'text-left px-4 py-3 text-content-offset'
 const headerClass = 'px-4 py-3 font-semibold text-content-active'
 const theadClass = 'bg-page-offset border-b border-trim'
@@ -63,14 +64,18 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
         <tr class={rowClass}>
           <td class="px-3 py-3 text-content-offset font-mono">{rowIndex + 1}</td>
           {row.th && (
-            <th scope="row" class:list={['px-4 py-3 text-content font-semibold', classes?.tbody]} set:html={row.th}></th>
+            <th
+              scope="row"
+              class:list={['px-4 py-3 text-page-inverse', classes?.tbody]}
+              set:html={row.th}
+            ></th>
           )}
           {row.td.map((td, index) => (
             <td
               class:list={[
                 'px-4 py-3',
-                index === 1 ? 'text-content-offset' : 'text-content',
-                index === 0 ? 'font-semibold' : '',
+                index === 0 ? 'text-content font-semibold' : '',
+                index === 1 ? 'text-content' : '',
                 classes?.tbody,
               ]}
               set:html={td}

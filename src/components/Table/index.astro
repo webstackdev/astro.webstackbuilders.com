@@ -40,28 +40,33 @@ export type Props = {
     tbody?: string
     tfoot?: string
   }
+  fullWidth?: boolean
   variant: string
 }
 
-const { content, variant = 'default', classes } = Astro.props
+const { content, variant = 'default', classes, fullWidth = true } = Astro.props
 
 const classesProps = classes ? { classes } : {}
-const wrapperClass = 'overflow-x-auto rounded-lg border border-trim bg-content-inverse'
+const layoutProps = { ...classesProps, fullWidth }
+const wrapperClass = [
+  'overflow-x-auto rounded-md border border-trim bg-content-inverse',
+  fullWidth ? 'w-full' : 'mx-auto w-fit max-w-full',
+].join(' ')
 ---
 
 <figure class:list={[content.figure ? 'my-4 mx-auto max-w-none' : '', classes?.figure]}>
   <div class={wrapperClass}>
-    {variant === 'criteria-highlight-table' && <CriteriaHighlightTable content={content} {...classesProps} />}
-    {variant === 'grid-and-accent-header-table' && <GridAndAccentHeaderTable content={content} {...classesProps} />}
-    {variant === 'minimal-borders-table' && <MinimalBordersTable content={content} {...classesProps} />}
-    {variant === 'numbered-review-table' && <NumberedReviewTable content={content} {...classesProps} />}
-    {variant === 'report-table' && <ReportTable content={content} {...classesProps} />}
-    {variant === 'semantic-coloring-table' && <SemanticColoringTable content={content} {...classesProps} />}
-    {variant === 'soft-header-card-table' && <SoftHeaderCardTable content={content} {...classesProps} />}
-    {variant === 'sticky-header-table' && <StickyHeaderTable content={content} {...classesProps} />}
-    {variant === 'striped-rows-table' && <StripedRowsTable content={content} {...classesProps} />}
-    {variant === 'timeline-labels-table' && <TimelineLabelsTable content={content} {...classesProps} />}
-    {variant === 'vertical-column-delineation-table' && <VerticalColumnDelineationTable content={content} {...classesProps} />}
+    {variant === 'criteria-highlight-table' && <CriteriaHighlightTable content={content} {...layoutProps} />}
+    {variant === 'grid-and-accent-header-table' && <GridAndAccentHeaderTable content={content} {...layoutProps} />}
+    {variant === 'minimal-borders-table' && <MinimalBordersTable content={content} {...layoutProps} />}
+    {variant === 'numbered-review-table' && <NumberedReviewTable content={content} {...layoutProps} />}
+    {variant === 'report-table' && <ReportTable content={content} {...layoutProps} />}
+    {variant === 'semantic-coloring-table' && <SemanticColoringTable content={content} {...layoutProps} />}
+    {variant === 'soft-header-card-table' && <SoftHeaderCardTable content={content} {...layoutProps} />}
+    {variant === 'sticky-header-table' && <StickyHeaderTable content={content} {...layoutProps} />}
+    {variant === 'striped-rows-table' && <StripedRowsTable content={content} {...layoutProps} />}
+    {variant === 'timeline-labels-table' && <TimelineLabelsTable content={content} {...layoutProps} />}
+    {variant === 'vertical-column-delineation-table' && <VerticalColumnDelineationTable content={content} {...layoutProps} />}
   </div>
   {content.figure && (
     <figcaption class="italic text-base text-center mt-3" set:html={content.figure}></figcaption>

@@ -250,28 +250,9 @@ https://mermaid.js.org/config/directives.html
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
 
-## Image component
+## Diagram
 
-Only needed if images used in content: Use an in-project Image component to wrap Astro's Image and Picture. Show a magnifying glass with a "+" for the cursor on hover, and a modal to show a magnified view of images on click.
-
-- `accTitle`: Alert severity decision tree
-- `accDescr`: Flowchart showing how to classify an alert as a Page or Notification. When an alert fires, check if there is user-facing impact. If no, it is a Notification. If yes, check if there is immediate revenue or safety impact. If yes, it is a Page. If no, check if the SLO burn rate is critical. If yes, it is a Page. If no, it is a Notification.
-
-<figure>
-  <!-- 1. The Image with a concise title -->
-  <img src="diagram.jpg" alt="[accTitle] - see details below for full text description">
-
-  <figcaption>
-    <!-- 2. Visible caption (if needed) -->
-    <strong>Figure 1:</strong> Process Workflow
-
-    <!-- 3. Collapsible detailed description -->
-    <details>
-      <summary>View detailed text description</summary>
-      <p>[Insert your full accDescr content here]</p>
-    </details>
-  </figcaption>
-</figure>
+Can you add a detailed description to the Diagram on line xxxx for the mermaid diagram right above it? The intention is to provide a detailed description for users with visual impairments so they can understand the diagram.
 
 ## Content Issues
 

@@ -26,11 +26,12 @@ export type Props = {
     tbody?: string
     tfoot?: string
   }
+  fullWidth?: boolean
 }
 
-const { content, classes }: Props = Astro.props
+const { content, classes, fullWidth = true }: Props = Astro.props
 
-const tableClass = 'w-full text-left'
+const tableClass = `text-left${fullWidth ? ' w-full' : ''}`
 const captionClass = 'text-left pb-3'
 const headerClass = 'px-4 py-2.5 font-semibold text-content-active'
 const theadClass = 'border-b-2 border-trim'
