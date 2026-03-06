@@ -9,6 +9,33 @@ modifiedDate: 2025-06-29
 tags: []
 isDraft: true
 ---
+
+import decisionTreeDiagram from './decision-tree-for-page-vs-notification-classification.jpg'
+
+```mermaid
+---
+title: Decision tree for page vs. notification classification
+---
+flowchart LR
+    accTitle: Alert severity decision tree
+    accDescr: Flowchart showing how to classify an alert as a Page or Notification. When an alert fires, check if there is user-facing impact. If no, it is a Notification. If yes, check if there is immediate revenue or safety impact. If yes, it is a Page. If no, check if the SLO burn rate is critical. If yes, it is a Page. If no, it is a Notification.
+
+    A[Alert Fires] --> B{User-Facing Impact?}
+    B e1@-->|Yes| C{Immediate Revenue/Safety?}
+    B e2@-->|No| D[Notification]
+    C e3@-->|Yes| E[Page]
+    C e4@-->|No| F{SLO Burn Rate Critical?}
+    F e5@-->|Yes| E
+    F e6@-->|No| D
+    e4@{ curve: linear }
+```
+
+<Diagram
+  src={decisionTreeDiagram}
+  title="Alert severity decision tree"
+  description="Flowchart showing how to classify an alert as a Page or Notification. When an alert fires, check if there is user-facing impact. If no, it is a Notification. If yes, check if there is immediate revenue or safety impact. If yes, it is a Page. If no, check if the SLO burn rate is critical. If yes, it is a Page. If no, it is a Notification."
+/>
+
 import Demo from '@components/Test/Demo.mdx'
 
 Includes from [other Markdown]('/articles/demo') files.
@@ -2802,6 +2829,16 @@ Display customer feedback and testimonials:
 
 <Testimonials count={3} />
 
-## Footnotes
+## Typography
 
-Footnotes are automatically added to the bottom of the page.
+### `font-sans`
+
+<p class="font-sans">Whereas recognition of the inherent dignity</p>
+
+### `font-serif`
+
+<p class="font-serif">Whereas recognition of the inherent dignity</p>
+
+### `font-mono`
+
+<p class="font-mono">Whereas recognition of the inherent dignity</p>

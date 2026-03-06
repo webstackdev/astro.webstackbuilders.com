@@ -1,17 +1,435 @@
 /**
- * Styles for Playwright to use when rendering Mermaid diagrams in Markdown files.
- * This file is only used during the build process and is not included in the final site CSS.
+ * Styles for Playwright to use when rendering Mermaid diagrams in Markdown
+ * files. This file is only used during the build process and is not included
+ * in the final site CSS.
  *
- * IMPORTANT: Use only system fonts here. rehype-mermaid injects this CSS as a
- * <style> tag in a Playwright blank page, so @font-face relative URLs cannot
- * resolve. The font used here MUST match what mermaidConfig.fontFamily embeds
- * in the SVG, otherwise text measured during build won't match runtime sizing.
+ * See src/lib/config/mermaid.ts for how this CSS is loaded and used by
+ * rehype-mermaid.
  */
 
-body {
-	font-family: Arial, sans-serif;
+:root {
+  --mermaid-primary-text: #fff;
+  --mermaid-primary-border: #7C0000;
+  --mermaid-line: #F8B229;
+  --mermaid-secondary: #006100;
+  --mermaid-tertiary: #fff;
 }
 
-svg {
-	font-family: Arial, sans-serif;
+/**
+ * Mermaid injects its own internal <style> block into the SVG. External
+ * CSS needs !important to override those inline-calculated styles.
+ */
+
+/**
+ * ====================================================================
+ *
+ * FLOWCHART (LR / TD)
+ *
+ * ====================================================================
+ */
+
+/** Font overrides */
+svg.flowchart,
+svg.flowchart * {
+  font-family: 'Onest Regular', 'Helvetica', 'DejaVu Sans', 'Arial', 'Roboto', sans-serif !important;
+  font-size: 16px;
+}
+
+/* Diagram title */
+.flowchart .flowchartTitleText {
+  font-size: 1.25em !important;
+}
+
+/**
+ * Primary elements background and outline (nodes)
+ */
+
+/** Standard rectangular nodes */
+.flowchart .node rect,
+/** Circular/oval nodes */
+.flowchart .node circle,
+/** Ellipse nodes */
+.flowchart .node ellipse,
+/** Diamond (decision) and hexagon shapes */
+.flowchart .node polygon,
+/** Specialized shapes like cylinders (databases) or banners */
+.flowchart .node path {
+  /** Main background color for primary nodes */
+  fill: #fef9c3 !important;
+  /** Border color around primary nodes */
+  stroke: #14532d !important;
+}
+
+ /** Edge label background and outline */
+.flowchart .edgeLabel p {
+  /** Main background color for primary nodes */
+  background-color: #fef9c3 !important;
+  /** Border color around primary nodes */
+  border-color: #14532d !important;
+  border-width: 1px;
+}
+
+/** Connection lines between nodes. */
+.flowchart .flowchart-link {
+  stroke: #14532d !important;
+}
+
+/** Arrowheads */
+.flowchart .marker {
+  fill: #14532d !important;
+  stroke: #ea580c !important;
+}
+
+/** Node label text color */
+.flowchart .nodeLabel p {
+  color: #a16207 !important;
+  padding-right: 4px !important;
+}
+
+ /** Edge label text color */
+.flowchart .edgeLabel p {
+  color: #ef4444 !important;
+  padding: 0 4px !important;
+}
+
+ /** Subgraph background  and outline color */
+.flowchart .cluster rect {
+  fill: var(--mermaid-secondary) !important;
+  stroke: var(--mermaid-primary-border) !important;
+}
+
+ /**
+ * ====================================================================
+ *
+ * SEQUENCE DIAGRAM
+ *
+ * ====================================================================
+ */
+
+/**
+ * 1. Global Font Override
+ */
+.mermaid svg,
+.mermaid svg * {
+  font-family: 'Onest Regular', 'Helvetica', 'DejaVu Sans', 'Arial', 'Roboto', sans-serif !important;
+}
+
+/* Specific title sizing that the global * doesn't address */
+.mermaid text.title {
+  font-size: 1.25em !important;
+  font-weight: bold !important;
+}
+
+/**
+ * 2. Primary Elements (Flowchart Nodes, State Nodes, Sequence Actors)
+ */
+
+/** SequenceDiagram: the boxes representing participants at the top/bottom */
+.mermaid .actor {
+  /**
+   * `primaryColor` in the Mermaid theme corresponds to the `fill`
+   * color of these elements. The main background color for primary
+   * nodes (e.g., rectangles in flowcharts, participants in sequence
+   * diagrams).
+   */
+  fill: var(--color-primary-offset) !important;
+  /**
+   * The color of the borders around primary nodes. `primaryBorderColor`
+   * in the Mermaid theme corresponds to the `stroke` color of these
+   * elements.
+   */
+  stroke: var(--mermaid-primary-border) !important;
+}
+
+/**
+ * 3. Text Colors (Labels and Actor Text)
+ *
+ * The color of the text sitting inside elements that use the primaryColor.
+ * `primaryTextColor` in the Mermaid theme corresponds to the `fill` color
+ * and `color` of these elements.
+ */
+
+/** SequenceDiagram: the names of the participants/actors */
+.mermaid .actor text {
+  fill: var(--mermaid-primary-text) !important;
+  color: var(--mermaid-primary-text) !important;
+}
+
+/**
+ * 4. Lines, Arrows, and Edges (Flowchart & State)
+ *
+ * The color used for edges and connection lines between nodes.
+ * `lineColor` in the Mermaid theme corresponds to the `fill` and
+ * `stroke` color of these elements.
+ */
+
+/** SequenceDiagram: standard solid message lines (even numbered) */
+.mermaid .messageLine0,
+/** SequenceDiagram: dashed or alternative message lines (odd numbered) */
+.mermaid .messageLine1 {
+  stroke: var(--mermaid-line) !important;
+}
+
+/**
+ * 5. Arrowheads (Matches Line Color)
+ *
+ * The color used for arrows. `lineColor` in the Mermaid theme
+ * corresponds to the `fill` and `stroke` color of these elements.
+ */
+
+/** SequenceDiagram: The container for the message arrows and labels */
+.mermaid .messageContext {
+  fill: var(--mermaid-line) !important;
+  stroke: var(--mermaid-line) !important;
+}
+
+/**
+ * Notes. Typically used for background elements, subgraphs, or even
+ * less prominent node types. `tertiaryColor` in the Mermaid theme
+ * corresponds to the `fill` color of these elements.
+ */
+.mermaid .note rect {
+  fill: var(--mermaid-tertiary) !important;
+  stroke: var(--mermaid-line) !important;
+}
+
+/** Notes usually need dark text for contrast */
+.mermaid .note text {
+  fill: var(--mermaid-primary-text) !important;
+}
+
+ /**
+ * Secondary Elements. Targets the specific SVG <rect> element that
+ * forms the box for an "actor" or "participant" at the top and
+ * bottom of the diagram
+ */
+.mermaid rect.actor {
+  fill: var(--mermaid-secondary) !important;
+  stroke: var(--mermaid-primary-border) !important;
+}
+
+ /**
+ * Tertiary Elements. Targets the background rectangle of "Note" boxes
+ * to give it a "sticky note" style.
+ */
+.mermaid .note rect {
+  fill: var(--mermaid-tertiary) !important;
+  stroke: var(--mermaid-line) !important;
+}
+
+ /**
+ * ====================================================================
+ *
+ * STATE DIAGRAM (V2)
+ *
+ * ====================================================================
+ */
+
+/**
+ * 1. Global Font Override
+ */
+.mermaid svg,
+.mermaid svg * {
+  font-family: 'Onest Regular', 'Helvetica', 'DejaVu Sans', 'Arial', 'Roboto', sans-serif !important;
+}
+
+/* Specific title sizing that the global * doesn't address */
+.mermaid text.title {
+  font-size: 1.25em !important;
+  font-weight: bold !important;
+}
+
+/**
+ * 2. Primary Elements (Flowchart Nodes, State Nodes, Sequence Actors)
+ */
+
+/** stateDiagram-v2: the specific icon for the starting state */
+.mermaid .state-start,
+/** stateDiagram-v2: the specific icon for the terminal/final state */
+.mermaid .state-end,
+/** stateDiagram-v2: rectangular containers for named states */
+.mermaid .state-node rect,
+/** stateDiagram-v2: circular containers for named states (if using specialized shapes) */
+.mermaid .state-node circle {
+  /**
+   * `primaryColor` in the Mermaid theme corresponds to the `fill`
+   * color of these elements. The main background color for primary
+   * nodes (e.g., rectangles in flowcharts, participants in sequence
+   * diagrams).
+   */
+  fill: var(--color-primary-offset) !important;
+  /**
+   * The color of the borders around primary nodes. `primaryBorderColor`
+   * in the Mermaid theme corresponds to the `stroke` color of these
+   * elements.
+   */
+  stroke: var(--mermaid-primary-border) !important;
+}
+
+/**
+ * 3. Text Colors (Labels and Actor Text)
+ *
+ * The color of the text sitting inside elements that use the primaryColor.
+ * `primaryTextColor` in the Mermaid theme corresponds to the `fill` color
+ * and `color` of these elements.
+ */
+
+/** Flowchart & State: general text elements within nodes */
+.mermaid .node text,
+/** stateDiagram-v2: labels for the individual states */
+.mermaid .stateLabel text {
+  fill: var(--mermaid-primary-text) !important;
+  color: var(--mermaid-primary-text) !important;
+}
+
+/**
+ * 4. Lines, Arrows, and Edges (Flowchart & State)
+ *
+ * The color used for edges and connection lines between nodes.
+ * `lineColor` in the Mermaid theme corresponds to the `fill` and
+ * `stroke` color of these elements.
+ */
+
+/** stateDiagram-v2: the lines representing transitions between states */
+.mermaid .transition {
+  stroke: var(--mermaid-line) !important;
+}
+
+/**
+ * 5. Arrowheads (Matches Line Color)
+ *
+ * The color used for arrows. `lineColor` in the Mermaid theme
+ * corresponds to the `fill` and `stroke` color of these elements.
+ */
+
+/** Flowchart & State: The reusable marker definition for all arrowheads */
+.mermaid .marker {
+  fill: var(--mermaid-line) !important;
+  stroke: var(--mermaid-line) !important;
+}
+
+/**
+ * Notes. Typically used for background elements, subgraphs, or even
+ * less prominent node types. `tertiaryColor` in the Mermaid theme
+ * corresponds to the `fill` color of these elements.
+ */
+.mermaid .note rect {
+  fill: var(--mermaid-tertiary) !important;
+  stroke: var(--mermaid-line) !important;
+}
+
+/** Notes usually need dark text for contrast */
+.mermaid .note text {
+  fill: var(--mermaid-primary-text) !important;
+}
+
+ /**
+ * Tertiary Elements. Targets the background rectangle of "Note" boxes
+ * to give it a "sticky note" style.
+ */
+.mermaid .note rect {
+  fill: var(--mermaid-tertiary) !important;
+  stroke: var(--mermaid-line) !important;
+}
+
+ /**
+ * ====================================================================
+ *
+ * GANTT CHART
+ *
+ * ====================================================================
+ */
+
+/**
+ * 1. Global Font Override
+ */
+.mermaid svg,
+.mermaid svg * {
+  font-family: 'Onest Regular', 'Helvetica', 'DejaVu Sans', 'Arial', 'Roboto', sans-serif !important;
+}
+
+/* Specific title sizing that the global * doesn't address */
+.mermaid text.title {
+  font-size: 1.25em !important;
+  font-weight: bold !important;
+}
+
+/**
+ * 2. Primary Elements (Flowchart Nodes, State Nodes, Sequence Actors)
+ */
+
+/** Gantt: the horizontal bars representing individual tasks */
+.mermaid .task {
+  /**
+   * `primaryColor` in the Mermaid theme corresponds to the `fill`
+   * color of these elements. The main background color for primary
+   * nodes (e.g., rectangles in flowcharts, participants in sequence
+   * diagrams).
+   */
+  fill: var(--color-primary-offset) !important;
+  /**
+   * The color of the borders around primary nodes. `primaryBorderColor`
+   * in the Mermaid theme corresponds to the `stroke` color of these
+   * elements.
+   */
+  stroke: var(--mermaid-primary-border) !important;
+}
+
+/**
+ * 3. Text Colors (Labels and Actor Text)
+ *
+ * The color of the text sitting inside elements that use the primaryColor.
+ * `primaryTextColor` in the Mermaid theme corresponds to the `fill` color
+ * and `color` of these elements.
+ */
+
+/** Gantt: the text describing the task on the bar */
+.mermaid .taskText {
+  fill: var(--mermaid-primary-text) !important;
+  color: var(--mermaid-primary-text) !important;
+}
+
+/**
+ * 6. Secondary & Tertiary Elements (Gantt Backgrounds & Notes)
+ *
+ * Used for secondary elements, such as the background of alternate
+ * sections or specific node types depending on the diagram.
+ * `secondaryColor` in the Mermaid theme corresponds to the `fill`
+ * and `stroke` color of these elements.
+ */
+
+/** Flowchart: The background rectangle for subgraphs (groups of nodes) */
+.mermaid .cluster rect,
+/** Gantt: The shaded background area for excluded dates (like weekends) */
+.mermaid .exclude-range,
+/** Gantt: The background row/container for a specific category or section */
+.mermaid .section {
+  fill: var(--mermaid-secondary) !important;
+  stroke: var(--mermaid-primary-border) !important;
+  /** Usually looks better slightly transparent */
+  opacity: 0.1;
+}
+
+/**
+ * Grid lines match theme line color
+ */
+.mermaid .grid line {
+  stroke: var(--mermaid-line) !important;
+  opacity: 0.3;
+}
+
+/**
+ * "Today" line in Gantt
+ */
+.mermaid .today {
+  stroke: var(--color-primary-offset) !important;
+}
+
+/**
+ * Tertiary Elements. Targets the background area/row for a specific group
+ * of tasks.
+ */
+.mermaid .section {
+  fill: var(--mermaid-tertiary) !important;
+  stroke: var(--mermaid-line) !important;
 }
