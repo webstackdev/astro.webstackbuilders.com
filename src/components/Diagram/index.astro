@@ -12,6 +12,7 @@ export interface Props {
 }
 
 const { src, title, description } = Astro.props
+const hasDefaultSlot = Astro.slots.has('default')
 ---
 
 <figure class="my-6 mx-auto">
@@ -30,7 +31,11 @@ const { src, title, description } = Astro.props
     />
   )}
 
-  <slot />
+  {hasDefaultSlot && (
+    <div class="flex justify-center">
+      <slot />
+    </div>
+  )}
 
   <figcaption class="mt-3 text-content">
     <details class="m-0 border-0 p-0 not-italic">

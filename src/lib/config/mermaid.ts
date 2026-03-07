@@ -39,6 +39,18 @@ export const rehypeMermaidConfig = {
   mermaidConfig: {
     securityLevel: 'loose',
     theme: 'base', /** Required to use custom themeVariables */
+    'themeVariables': {
+      /** Pie chart outer stroke width */
+      pieOuterStrokeWidth: "1px",
+      /** Pie chart colors */
+      pie1: '#22c55e',
+      pie2: '#3b82f6',
+      pie3: '#f97316',
+      pie4: '#ef4444',
+      pie5: '#facc15',
+      pie6: '#9333ea',
+      pie7: '#6b7280',
+    },
   },
 
   errorFallback: (_element: unknown, _diagram: string, error: unknown, file: unknown) => {

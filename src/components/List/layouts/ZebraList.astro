@@ -12,30 +12,37 @@ export type Props = {
     li?: string
     em?: string
   }
+  style?: {
+    hideIcon?: boolean
+  }
 }
 
-const { items, classes }: Props = Astro.props
+const { items, classes, style }: Props = Astro.props
 
 const ulClass = ["border border-trim rounded-lg overflow-hidden divide-y divide-trim", classes?.ul]
 const liClass = ["p-4 bg-page-base flex items-center justify-between group hover:bg-page-offset transition-colors", classes?.li]
-const emClass = ["text-content font-bold not-italic block mb-0.5", classes?.em]
-const textClass = ["text-sm text-content-offset"]
+const emClass = ["text-page-inverse font-bold not-italic block mb-0.5", classes?.em]
+const textClass = ["text-content"]
 ---
 
 <ul class:list={ulClass}>
   {
     items.map((item) => (
       <li class:list={liClass}>
-        <div class="pr-4">
-          <em class:list={emClass}>{item.lead}</em>
-          <span class:list={textClass}>{item.text}</span>
+        <div class="pr-8">
+          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
+          <span class:list={textClass} set:html={item.text}></span>
         </div>
-        <Icon
-          icon={"info"}
-          color={"text-trim"}
-          size={4}
-          classes={`group-hover:${item.color ?? "text-primary"} transition-colors`}
-        />
+        {!style?.hideIcon && (
+          <div class="pr-8">
+            <Icon
+              icon={"info"}
+              color={"page-inverse"}
+              size={8}
+              classes={`group-hover:${item.color ?? "text-primary"} transition-colors`}
+            />
+          </div>
+        )}
       </li>
     ))
   }

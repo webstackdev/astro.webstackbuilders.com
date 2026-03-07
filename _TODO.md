@@ -250,10 +250,6 @@ https://mermaid.js.org/config/directives.html
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
 
-## Diagram
-
-Can you add a detailed description to the Diagram on line xxxx for the mermaid diagram right above it? The intention is to provide a detailed description for users with visual impairments so they can understand the diagram.
-
 ## Content Issues
 
 - "### Geographic/Currency Mismatches" in deep-dive/cdn-edge-caching-cache-keys-vary-headers has a table -> callout -> table back to back
@@ -270,56 +266,10 @@ Can you add a detailed description to the Diagram on line xxxx for the mermaid d
 
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
 
-## Table Refactor Instructions
-
-Our current articles have markdown tables. I want to refactor these into using our Table component. I'd like you to take it and use it for the content prop in a Table component instance you add so that the table renders using the same layout as the markdown table. Use the string variant in the tbody -> tr -> th element. Use "vertical-column-delineation-table" for the "variant" prop of the Table component.
-
-Each table will have the "figure" prop as a line below the table, prefixed with "Table: ". We should remove the "Table: " prefix from the figure string as this is used by our Markdown setup to identify figure captions. Do not leave multiple trailing empty lines after the table.
-
-The first file to update is:
-
-## List Refactor Instructions
-
-numbered-with-background-list, check-icons-list
-
-We have lists in our current articles that are of two variants: those that are plain text lists (either ordered or unordered), and those that are lists with both leads and plain texts. Our List component layouts handle both lists with leads and those without. We can identify leads because that text is emphasized with markdown in some fashion: "_", "__", "*", or "**". We need to refactor the markdown lists in a file into either an ordered (numbered-with-background-list) or unordered (check-icons-list) list, and extract lead text if present into the optional lead prop if any lead text is present. The "lead" prop should come first and before the "text" prop in the object. The "lead" prop is the emphasized text that comes first in the list items we are converting to the List component
-
-An example is as follows:
-
-- _Alerts per on-call shift_: Total alert volume during a rotation. Anything above 20 per 24-hour shift is a red flag.
-
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: "Alerts per on-call shift:",
-      text: "Total alert volume during a rotation. Anything above 20 per 24-hour shift is a red flag.",
-    },
-  ]}
-/>
-
-The first file to update is:
-
-### Timelines
-
-- Good generation:
-
-api-gateway-metrics-traces-logs-debugging/trace-context-propagation-creating-connected-spans-across-gateway-boundary.jpg
-
-- Needs done:
-
-backpressure-load-shedding-admission-control-overload/backpressure-propagates-from-the-constrained-resource-back-to-the-client.png
-
-argocd-sync-failures-gitops-debugging-troubleshooting/hook-execution-sequence-during-argoc-sync-lifecycle.png
-
-- Not close enough in details:
-
-argocd-sync-failures-gitops-debugging-troubleshooting/resource-dependency-graph-showing-potential-failure-points.png
-
-### Figure captions are broken:
-
-src/content/articles/structured-logging-correlation-ids-log-schema-design/pdf.mdx
-
 ### This file was badly mangled during refactoring, need to compare against original:
 
 src/content/articles/internal-developer-portal-platform-self-service-actions/pdf.mdx
+
+## Diagram
+
+Can you add a detailed description to the Diagram on line xxxx for the mermaid diagram right above it? The intention is to provide a detailed description for users with visual impairments so they can understand the diagram.

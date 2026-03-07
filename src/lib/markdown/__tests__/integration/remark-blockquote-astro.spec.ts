@@ -12,6 +12,7 @@ describe('remark-blockquote (Layer 2: With Astro Pipeline)', () => {
     const html = await processWithAstroSettings({ markdown, plugin: remarkBlockquote })
 
     expect(html).toContain('<figure class="blockquote')
+    expect(html).toContain('md:items-stretch')
     expect(html).toContain('<figcaption class="blockquote-attribution')
     expect(html).toContain('<figcaption class="blockquote-attribution"><div><p>Neil Armstrong</p>')
     expect(html).toContain('<strong>definitely</strong>')
@@ -35,6 +36,7 @@ describe('remark-blockquote (Layer 2: With Astro Pipeline)', () => {
     const html = await processWithAstroSettings({ markdown, plugin: remarkBlockquote })
 
     expect(html).toContain('<figure class="blockquote blockquote-figure')
+    expect(html).toContain('md:items-stretch')
     expect(html).toContain('<div class="blockquote-attribution')
     expect(html).toContain('<div class="blockquote-attribution"><div><p>Attribution</p>')
     expect(html).toContain('<figcaption class="blockquote-caption')

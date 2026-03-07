@@ -36,6 +36,7 @@ const captionClass = 'text-left px-4 py-3 text-content-offset'
 const headerClass = 'px-4 py-2.5 font-semibold text-content-active'
 const theadClass = 'bg-page-offset border-b border-trim'
 const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b border-trim-offset last:border-b-0'
+const getOverallColumnIndex = (hasRowHeader: boolean, cellIndex: number) => (hasRowHeader ? cellIndex + 1 : cellIndex)
 ---
 
 
@@ -64,7 +65,7 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
           <th scope="row" class:list={['px-4 py-3 text-content font-medium', classes?.tbody]} set:html={row.th}></th>
         )}
         {row.td.map((td, index) => (
-          index === 1 ? (
+          getOverallColumnIndex(Boolean(row.th), index) === 1 ? (
             <td class:list={['px-4 py-3', classes?.tbody]}>
               <span class="inline-flex rounded-md border border-primary-offset bg-primary-inverse px-2.5 py-1 text-primary-offset" set:html={td}></span>
             </td>
@@ -72,7 +73,7 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
             <td
               class:list={[
                 'px-4 py-3',
-                index === 0 ? 'text-content font-medium' : 'text-content',
+                getOverallColumnIndex(Boolean(row.th), index) === 0 ? 'text-content font-medium' : 'text-content',
                 classes?.tbody,
               ]}
               set:html={td}
@@ -91,7 +92,7 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
             <th scope="row" class:list={['px-4 py-3 text-content font-medium', classes?.tfoot]} set:html={row.th}></th>
           )}
           {row.td.map((td, index) => (
-            index === 1 ? (
+            getOverallColumnIndex(Boolean(row.th), index) === 1 ? (
               <td class:list={['px-4 py-3', classes?.tfoot]}>
                 <span class="inline-flex rounded-md border border-secondary bg-secondary-inverse px-2.5 py-1 text-secondary font-semibold" set:html={td}></span>
               </td>
@@ -99,7 +100,7 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
               <td
                 class:list={[
                   'px-4 py-3',
-                  index === 0 ? 'text-content font-medium' : 'text-content',
+                  getOverallColumnIndex(Boolean(row.th), index) === 0 ? 'text-content font-medium' : 'text-content',
                   classes?.tfoot,
                 ]}
                 set:html={td}

@@ -25,10 +25,10 @@ const emClass = ["text-content font-bold not-italic mr-2", classes?.em]
   {
     items.map((item) => (
       <li class:list={liClass}>
-        <span class:list={titleClass}>{item.title}</span>
+        {item.title && <span class:list={titleClass} set:html={item.title}></span>}
         <span>
-          <em class:list={emClass}>{item.lead}</em>
-          <span class="text-content-offset">{item.text}</span>
+          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
+          <span class="text-content-offset" set:html={item.text}></span>
         </span>
       </li>
     ))

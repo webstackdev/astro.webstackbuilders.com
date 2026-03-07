@@ -29,9 +29,9 @@ const emClass = ["block text-page-inverse font-semibold not-italic mb-2", classe
           {item.icon && (
             <Icon icon={item.icon} color="page-inverse" size={6} classes="mr-4 -mb-2" />
           )}
-          <em class:list={emClass}>{item.lead}</em>
+          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
         </div>
-        <span class="text-content">{item.text}</span>
+        <span class="text-content" set:html={item.text}></span>
       </li>
     ))
   }

@@ -477,7 +477,7 @@ export function rehypeTailwindClasses() {
           'leading-relaxed',
           // If we also have an inline attribution element, use the same side-by-side layout
           // as attribution-only blockquotes, but inside the bordered blockquote.
-          ...(hasInlineAttributionInCaptionedBlockquote ? ['md:flex', 'md:items-center', 'md:gap-8'] : []),
+          ...(hasInlineAttributionInCaptionedBlockquote ? ['md:flex', 'md:items-stretch', 'md:gap-8'] : []),
         ]
 
         const classesToAdd = isAttributionFigure
@@ -503,7 +503,7 @@ export function rehypeTailwindClasses() {
           'my-8',
           'max-w-4xl',
           'md:flex',
-          'md:items-center',
+          'md:items-stretch',
           'md:gap-8',
           'border-2',
           'border-dashed',
