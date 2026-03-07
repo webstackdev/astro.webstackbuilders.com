@@ -9,15 +9,15 @@ tags: ["reliability-and-testing", "python"]
 featured: true
 ---
 
-*[SLA]: Service Level Agreement
-*[SLO]: Service Level Objective
-*[SLI]: Service Level Indicator
-*[MTTR]: Mean Time To Recovery
+*[DR]: Disaster Recovery
+*[HA]: High Availability
 *[MTBF]: Mean Time Between Failures
+*[MTTR]: Mean Time To Recovery
 *[RPO]: Recovery Point Objective
 *[RTO]: Recovery Time Objective
-*[HA]: High Availability
-*[DR]: Disaster Recovery
+*[SLA]: Service Level Agreement
+*[SLI]: Service Level Indicator
+*[SLO]: Service Level Objective
 
 > "We need five nines."
 
@@ -46,11 +46,26 @@ Before diving into cost analysis, let's ground the discussion in concrete number
     thead: { th: ["Availability", "Annual Downtime", "Monthly Downtime", "Weekly Downtime"] },
     tbody: {
       tr: [
-        { th: "99% (two nines)", td: ["87.6 hours", "7.31 hours", "1.68 hours"] },
-        { th: "99.9% (three nines)", td: ["8.77 hours", "43.83 minutes", "10.08 minutes"] },
-        { th: "99.95%", td: ["4.38 hours", "21.92 minutes", "5.04 minutes"] },
-        { th: "99.99% (four nines)", td: ["52.60 minutes", "4.38 minutes", "1.01 minutes"] },
-        { th: "99.999% (five nines)", td: ["5.26 minutes", "26.30 seconds", "6.05 seconds"] },
+        {
+          th: "99% (two nines)",
+          td: ["87.6 hours", "7.31 hours", "1.68 hours"],
+        },
+        {
+          th: "99.9% (three nines)",
+          td: ["8.77 hours", "43.83 minutes", "10.08 minutes"],
+        },
+        {
+          th: "99.95%",
+          td: ["4.38 hours", "21.92 minutes", "5.04 minutes"],
+        },
+        {
+          th: "99.99% (four nines)",
+          td: ["52.60 minutes", "4.38 minutes", "1.01 minutes"],
+        },
+        {
+          th: "99.999% (five nines)",
+          td: ["5.26 minutes", "26.30 seconds", "6.05 seconds"],
+        },
       ],
     },
   }}
@@ -86,22 +101,26 @@ Your system availability cannot exceed your least available dependency. If your 
 
 The composite availability formula assumes serial dependencies—requests must pass through each component in sequence. But redundancy works in the opposite direction. When you have multiple components that can handle the same request, failures have to occur _simultaneously_ to cause an outage.
 
+<Diagram
+  title="Serial dependencies multiply failure probability; parallel redundancy reduces it"
+  description="Flowchart with two grouped examples comparing dependency patterns. The first group, labeled Serial Reduces Availability, shows a request path moving through Web Server, then App Server, then Database, then Payment API. This illustrates a chain where every additional dependency lowers end-to-end availability because all components must work. The second group, labeled Parallel Improves Availability, shows a Load Balancer distributing traffic to three servers: Server 1, Server 2, and Server 3. This illustrates redundancy, where availability improves because the system can continue serving traffic as long as at least one parallel server remains available. The diagram contrasts serial dependency drag with parallel redundancy benefits."
+>
 ```mermaid
-graph TD
-    subgraph "Serial (Reduces Availability)"
-        A[Web Server] --> B[App Server]
-        B --> C[Database]
-        C --> D[Payment API]
-    end
+flowchart TD
+  subgraph serial["Serial (Reduces Availability)"]
+    A[Web Server] --> B[App Server]
+    B --> C[Database]
+    C --> D[Payment API]
+  end
 
-    subgraph "Parallel (Improves Availability)"
-        E[Load Balancer]
-        E --> F[Server 1]
-        E --> G[Server 2]
-        E --> H[Server 3]
-    end
+  subgraph parallel["Parallel ("Improves Availability)"]
+    E[Load Balancer]
+    E --> F[Server 1]
+    E --> G[Server 2]
+    E --> H[Server 3]
+  end
 ```
-Figure: Serial dependencies multiply failure probability; parallel redundancy reduces it.
+</Diagram>
 
 The formula for parallel availability inverts the logic—you multiply the _failure_ probabilities:
 
@@ -133,11 +152,26 @@ The "10x per nine" rule of thumb is surprisingly accurate when you look at real 
     thead: { th: ["Tier", "Typical Architecture", "Relative Cost"] },
     tbody: {
       tr: [
-        { th: "99%", td: ["Single region, basic monitoring", "1x (baseline)"] },
-        { th: "99.9%", td: ["Multi-AZ, load balancing, automated recovery", "2-3x"] },
-        { th: "99.95%", td: ["Active-passive DR, comprehensive monitoring", "4-6x"] },
-        { th: "99.99%", td: ["Multi-region active-active, global load balancing", "10-20x"] },
-        { th: "99.999%", td: ["Exotic redundancy, zero-downtime everything", "50-100x+"] },
+        {
+          th: "99%",
+          td: ["Single region, basic monitoring", "1x (baseline)"],
+        },
+        {
+          th: "99.9%",
+          td: ["Multi-AZ, load balancing, automated recovery", "2-3x"],
+        },
+        {
+          th: "99.95%",
+          td: ["Active-passive DR, comprehensive monitoring", "4-6x"],
+        },
+        {
+          th: "99.99%",
+          td: ["Multi-region active-active, global load balancing", "10-20x"],
+        },
+        {
+          th: "99.999%",
+          td: ["Exotic redundancy, zero-downtime everything", "50-100x+"],
+        },
       ],
     },
   }}
@@ -161,11 +195,26 @@ Infrastructure is the visible cost. The hidden costs are often larger.
     thead: { th: ["Cost Category", "Why It Scales", "Example"] },
     tbody: {
       tr: [
-        { th: "Engineering Time", td: ["More complex systems require more expertise", "Senior SREs vs. junior ops"] },
-        { th: "Testing", td: ["More failure modes to validate", "Chaos engineering programs"] },
-        { th: "On-Call", td: ["Tighter response requirements", "24/7 staffing vs. best-effort"] },
-        { th: "Tooling", td: ["Better observability needed", "$50k/year APM vs. free tier"] },
-        { th: "Opportunity Cost", td: ["Time not spent on features", "Every hour on HA is not on product"] },
+        {
+          th: "Engineering Time",
+          td: ["More complex systems require more expertise", "Senior SREs vs. junior ops"],
+        },
+        {
+          th: "Testing",
+          td: ["More failure modes to validate", "Chaos engineering programs"],
+        },
+        {
+          th: "On-Call",
+          td: ["Tighter response requirements", "24/7 staffing vs. best-effort"],
+        },
+        {
+          th: "Tooling",
+          td: ["Better observability needed", "$50k/year APM vs. free tier"],
+        },
+        {
+          th: "Opportunity Cost",
+          td: ["Time not spent on features", "Every hour on HA is not on product"],
+        },
       ],
     },
   }}
@@ -183,15 +232,19 @@ The biggest hidden cost is opportunity cost. Engineering hours spent achieving 9
 
 At some point, investing more in availability stops making economic sense. Finding that crossover point is the key decision.
 
+<Diagram
+  title="Basic cost-benefit decision for availability investment"
+  description="Left-to-right flowchart showing a simple economic decision process. Cost of Downtime and Cost of Prevention both feed into a Compare decision point. That leads to a second decision asking whether Prevention is less than Downtime. If yes, the outcome is Invest in Availability. If no, the outcome is Accept Current Level. The diagram reduces the availability target debate to an economic comparison between avoided loss and the cost of achieving the improvement."
+>
 ```mermaid
-graph LR
+flowchart LR
     A[Cost of Downtime] --> B{Compare}
     C[Cost of Prevention] --> B
     B --> D{Prevention < Downtime?}
     D -->|Yes| E[Invest in Availability]
     D -->|No| F[Accept Current Level]
 ```
-Figure: Basic cost-benefit decision for availability investment.
+</Diagram>
 
 The formula is straightforward:
 
@@ -259,10 +312,22 @@ The dirty secret of availability metrics is that they treat all minutes equally.
     thead: { th: ["Downtime Type", "User Impact", "Availability Impact"] },
     tbody: {
       tr: [
-        { th: "3am maintenance (low traffic)", td: ["Minimal", "Same as peak hours"] },
-        { th: "Peak hour outage", td: ["Severe", "Same as off-hours"] },
-        { th: "Degraded performance", td: ["Moderate", "Often not counted"] },
-        { th: "Partial outage (one feature)", td: ["Varies", "Depends on measurement"] },
+        {
+          th: "3am maintenance (low traffic)",
+          td: ["Minimal", "Same as peak hours"],
+        },
+        {
+          th: "Peak hour outage",
+          td: ["Severe", "Same as off-hours"],
+        },
+        {
+          th: "Degraded performance",
+          td: ["Moderate", "Often not counted"],
+        },
+        {
+          th: "Partial outage (one feature)",
+          td: ["Varies", "Depends on measurement"],
+        },
       ],
     },
   }}
@@ -280,18 +345,22 @@ A 99.9% availability measured 24/7 might mean all downtime happens during off-pe
 
 Infrastructure metrics lie. Your servers can report 99.99% uptime while users experience a broken checkout flow because one downstream service times out intermittently. The server is "up"—it's just not _useful_.
 
+<Diagram
+  title="Infrastructure availability vs. user experience availability"
+  description="Flowchart comparing two ways to measure reliability. Traditional Availability points to Server Up or Down, which then points to 99.99 percent server uptime and finally to a note saying Misleading: Server up but slow. User-Centric Availability points to Successful User Journeys, which then points to 98 percent checkout success and finally to a note saying Accurate: Users can buy. The diagram shows that infrastructure uptime can look excellent while the actual customer journey still fails, making user-centered measures more meaningful for business decisions."
+>
 ```mermaid
-graph TD
-    A[Traditional Availability] --> B["Server Up/Down"]
-    C[User-Centric Availability] --> D["Successful User Journeys"]
+flowchart TD
+    A[Traditional Availability] --> B[Server Up/Down]
+    C[User-Centric Availability] --> D[Successful User Journeys]
 
-    B --> E["99.99% server uptime"]
-    D --> F["98% checkout success"]
+    B --> E[99.99% server uptime]
+    D --> F[98% checkout success]
 
-    E --> G["Misleading: Server up but slow"]
-    F --> H["Accurate: Users can buy"]
+    E --> G[Misleading: Server up but slow]
+    F --> H[Accurate: Users can buy]
 ```
-Figure: Infrastructure availability vs. user experience availability.
+</Diagram>
 
 User-centric SLIs measure what actually matters: can users complete the actions they came to perform?
 
@@ -335,10 +404,22 @@ Here's a truth that frees you from the five nines trap: users have a tolerance t
     thead: { th: ["User Segment", "Acceptable Unavailability", "Reason"] },
     tbody: {
       tr: [
-        { th: "Consumer app", td: ["~30 min/month (99.9%)", "Will retry, has alternatives"] },
-        { th: "Business tool", td: ["~5 min/month (99.99%)", "Productivity impact"] },
-        { th: "Financial trading", td: ["Seconds/year (99.999%+)", "Every second costs money"] },
-        { th: "Life safety systems", td: ["Near-zero", "Lives at stake"] },
+        {
+          th: "Consumer app",
+          td: ["~30 min/month (99.9%)", "Will retry, has alternatives"],
+        },
+        {
+          th: "Business tool",
+          td: ["~5 min/month (99.99%)", "Productivity impact"],
+        },
+        {
+          th: "Financial trading",
+          td: ["Seconds/year (99.999%+)", "Every second costs money"],
+        },
+        {
+          th: "Life safety systems",
+          td: ["Near-zero", "Lives at stake"],
+        },
       ],
     },
   }}
@@ -402,10 +483,22 @@ Consider a checkout service with four dependencies:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Payment gateway (external):", text: "99.95% SLA, blocking—checkout fails without it" },
-    { lead: "Inventory service (internal):", text: "99.9% SLO, blocking—can't sell what you can't verify" },
-    { lead: "Email service (internal):", text: "99.5% SLO, non-blocking—can queue and retry confirmations later" },
-    { lead: "Analytics (internal):", text: "99% SLO, non-blocking—fire and forget" },
+    {
+      lead: "Payment gateway (external):",
+      text: "99.95% SLA, blocking—checkout fails without it",
+    },
+    {
+      lead: "Inventory service (internal):",
+      text: "99.9% SLO, blocking—can't sell what you can't verify",
+    },
+    {
+      lead: "Email service (internal):",
+      text: "99.5% SLO, non-blocking—can queue and retry confirmations later",
+    },
+    {
+      lead: "Analytics (internal):",
+      text: "99% SLO, non-blocking—fire and forget",
+    },
   ]}
 />
 
@@ -431,26 +524,40 @@ Each availability tier requires a fundamentally different architecture—not jus
 
 At 99%, you're allowed about 87 hours of downtime per year. That's generous enough that you can handle most failures manually, take scheduled maintenance windows, and still have budget left over for the occasional unexpected outage.
 
+<Diagram
+  title="Simple two-nines architecture with basic redundancy"
+  description="Flowchart showing a simple architecture for roughly 99 percent availability. Users send traffic to a Load Balancer, which distributes requests to App Server 1 and App Server 2. Both application servers connect to a single Primary DB. The diagram shows modest redundancy at the application layer but a single database dependency, reflecting a practical low-complexity architecture that improves resilience without full high-availability investment."
+>
 ```mermaid
-graph TD
+flowchart TD
     A[Users] --> B[Load Balancer]
     B --> C[App Server 1]
     B --> D[App Server 2]
     C --> E[(Primary DB)]
     D --> E
 ```
-Figure: Simple two-nines architecture with basic redundancy.
+</Diagram>
 
 **Characteristics:**
 
 <List
   variant="check-icons-list"
   items={[
-    { text: "Single region, single availability zone acceptable" },
-    { text: "Basic load balancing (can be DNS-based)" },
-    { text: "Single database with backup/restore" },
-    { text: "Manual intervention expected during failures" },
-    { text: "On-call response time: hours acceptable" },
+    {
+      text: "Single region, single availability zone acceptable",
+    },
+    {
+      text: "Basic load balancing (can be DNS-based)",
+    },
+    {
+      text: "Single database with backup/restore",
+    },
+    {
+      text: "Manual intervention expected during failures",
+    },
+    {
+      text: "On-call response time: hours acceptable",
+    },
   ]}
 />
 
@@ -460,8 +567,12 @@ This is where most early-stage startups should be. You're not building for scale
 
 At 99.9%, you're down to 8.77 hours of allowed downtime per year. That's still a meaningful budget, but it means you can no longer rely on manual intervention for common failures. Automation becomes necessary.
 
+<Diagram
+  title="Three-nines architecture with multi-AZ deployment"
+  description="Flowchart showing a multi-availability-zone design for roughly 99.9 percent availability. Users connect to a Load Balancer that distributes traffic across App Server 1 in AZ1, App Server 2 in AZ2, and App Server 3 in AZ3. All application servers connect to a Primary DB in AZ1, which replicates to a Replica DB in AZ2. The diagram illustrates added resilience through zonal distribution, automated failover potential, and database replication within a single region."
+>
 ```mermaid
-graph TD
+flowchart TD
     A[Users] --> B[Load Balancer]
     B --> C[App Server 1 - AZ1]
     B --> D[App Server 2 - AZ2]
@@ -471,18 +582,28 @@ graph TD
     E --> F
     F --> G[(Replica DB - AZ2)]
 ```
-Figure: Three-nines architecture with multi-AZ deployment.
+</Diagram>
 
 **Additions from 99%:**
 
 <List
   variant="check-icons-list"
   items={[
-    { text: "Multi-availability zone deployment" },
-    { text: "Database replication with automated failover" },
-    { text: "Health checks and automated instance replacement" },
-    { text: "Comprehensive monitoring and alerting" },
-    { text: "On-call response time: minutes required" },
+    {
+      text: "Multi-availability zone deployment",
+    },
+    {
+      text: "Database replication with automated failover",
+    },
+    {
+      text: "Health checks and automated instance replacement",
+    },
+    {
+      text: "Comprehensive monitoring and alerting",
+    },
+    {
+      text: "On-call response time: minutes required",
+    },
   ]}
 />
 
@@ -492,41 +613,57 @@ This is the sweet spot for most SaaS products. It's achievable with standard clo
 
 At 99.99%, you're allowed only 52 minutes of downtime per year. That's less than one incident. Any regional outage—and cloud providers have them—could blow your entire annual budget in a single event.
 
+<Diagram
+  title="Four-nines architecture with multi-region deployment"
+  description="Flowchart showing a multi-region architecture for roughly 99.99 percent availability. Users connect to a Global Load Balancer that routes traffic to Region 1 and Region 2. Inside Region 1, traffic is distributed across AZ1 Servers and AZ2 Servers, both connected to a DB Primary. Inside Region 2, traffic is distributed across AZ1 Servers and AZ2 Servers connected to a DB Replica. The primary and replica databases synchronize bidirectionally across regions. The diagram emphasizes that achieving four nines typically requires regional redundancy, global traffic routing, and cross-region data replication rather than only intra-region failover."
+>
 ```mermaid
-graph TD
-    A[Users] --> B[Global Load Balancer]
-    B --> C[Region 1]
-    B --> D[Region 2]
+flowchart TD
+  A[Users] --> B[Global Load Balancer]
+  B --> C[Region 1]
+  B --> D[Region 2]
 
-    subgraph Region 1
-        C --> E[AZ1 Servers]
-        C --> F[AZ2 Servers]
-        E --> G[(DB Primary)]
-        F --> G
-    end
+  subgraph region1[Region 1]
+    C --> E[AZ1 Servers]
+    C --> F[AZ2 Servers]
+    E --> G[(DB Primary)]
+    F --> G
+  end
 
-    subgraph Region 2
-        D --> H[AZ1 Servers]
-        D --> I[AZ2 Servers]
-        H --> J[(DB Replica)]
-        I --> J
-    end
+  subgraph region2[Region 2]
+    D --> H[AZ1 Servers]
+    D --> I[AZ2 Servers]
+    H --> J[(DB Replica)]
+    I --> J
+  end
 
-    G <--> J
+  G <--> J
 ```
-Figure: Four-nines architecture with multi-region deployment.
+</Diagram>
 
 **Additions from 99.9%:**
 
 <List
   variant="check-icons-list"
   items={[
-    { text: "Multi-region deployment" },
-    { text: "Global load balancing with health-based routing" },
-    { text: "Cross-region database replication" },
-    { text: "Automated regional failover" },
-    { text: "Zero-downtime deployments required" },
-    { text: "24/7 on-call with <15 minute response" },
+    {
+      text: "Multi-region deployment",
+    },
+    {
+      text: "Global load balancing with health-based routing",
+    },
+    {
+      text: "Cross-region database replication",
+    },
+    {
+      text: "Automated regional failover",
+    },
+    {
+      text: "Zero-downtime deployments required",
+    },
+    {
+      text: "24/7 on-call with <15 minute response",
+    },
   ]}
 />
 
@@ -545,12 +682,24 @@ Five nines (5.26 minutes/year of downtime) means you cannot have a single failur
 <List
   variant="check-icons-list"
   items={[
-    { text: "Active-active multi-region (not failover, simultaneous)" },
-    { text: "No single points of failure anywhere" },
-    { text: "Sub-second automated recovery" },
-    { text: "Chaos engineering as standard practice" },
-    { text: "Dedicated reliability engineering team" },
-    { text: "Feature velocity sacrificed for stability" },
+    {
+      text: "Active-active multi-region (not failover, simultaneous)",
+    },
+    {
+      text: "No single points of failure anywhere",
+    },
+    {
+      text: "Sub-second automated recovery",
+    },
+    {
+      text: "Chaos engineering as standard practice",
+    },
+    {
+      text: "Dedicated reliability engineering team",
+    },
+    {
+      text: "Feature velocity sacrificed for stability",
+    },
   ]}
 />
 
@@ -577,10 +726,22 @@ Business stakeholders don't care about architecture diagrams or failure modes. T
     thead: { th: ["Option", "Availability", "Annual Downtime", "Total Cost", "Best For"] },
     tbody: {
       tr: [
-        { th: "A", td: ["99.9%", "8.77 hours", "$50k/year", "Most SaaS products"] },
-        { th: "B", td: ["99.95%", "4.38 hours", "$120k/year", "B2B with SLA requirements"] },
-        { th: "C", td: ["99.99%", "52 minutes", "$400k/year", "Critical business systems"] },
-        { th: "D", td: ["99.999%", "5 minutes", "$2M+/year", "Financial, healthcare"] },
+        {
+          th: "A",
+          td: ["99.9%", "8.77 hours", "$50k/year", "Most SaaS products"],
+        },
+        {
+          th: "B",
+          td: ["99.95%", "4.38 hours", "$120k/year", "B2B with SLA requirements"],
+        },
+        {
+          th: "C",
+          td: ["99.99%", "52 minutes", "$400k/year", "Critical business systems"],
+        },
+        {
+          th: "D",
+          td: ["99.999%", "5 minutes", "$2M+/year", "Financial, healthcare"],
+        },
       ],
     },
   }}
@@ -599,10 +760,22 @@ Not every availability request deserves a "yes." Part of engineering leadership 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Revenue doesn't justify it", text: "Calculate downtime hours saved multiplied by revenue per hour. If this is less than the cost, the math doesn't work." },
-    { lead: "Dependencies don't support it", text: "\"We cannot exceed our payment provider's 99.95%\" is a constraint, not an excuse. Show the composite availability math." },
-    { lead: "Team can't sustain it", text: "24/7 on-call requires 4-5 engineers minimum for a sustainable rotation. Burnout is a reliability risk too." },
-    { lead: "Better alternatives exist", text: "\"We could improve from 99.9% to 99.95% for $70k, or add Feature X for $70k. Which creates more value?\"" },
+    {
+      lead: "Revenue doesn't justify it",
+      text: "Calculate downtime hours saved multiplied by revenue per hour. If this is less than the cost, the math doesn't work.",
+    },
+    {
+      lead: "Dependencies don't support it",
+      text: "\"We cannot exceed our payment provider's 99.95%\" is a constraint, not an excuse. Show the composite availability math.",
+    },
+    {
+      lead: "Team can't sustain it",
+      text: "24/7 on-call requires 4-5 engineers minimum for a sustainable rotation. Burnout is a reliability risk too.",
+    },
+    {
+      lead: "Better alternatives exist",
+      text: "\"We could improve from 99.9% to 99.95% for $70k, or add Feature X for $70k. Which creates more value?\"",
+    },
   ]}
 />
 
@@ -619,12 +792,30 @@ A good availability decision record includes:
 <List
   variant="numbered-with-background-list"
   items={[
-    { lead: "Context:", text: "What triggered the discussion? Was it a customer request, a competitive claim, an outage, or a planning exercise?" },
-    { lead: "Business impact analysis:", text: "What's the actual revenue at risk during downtime? What's current availability and what does that cost?" },
-    { lead: "Options considered:", text: "Present at least three tiers with their downtime, lost revenue, infrastructure cost, and net cost. Make the tradeoffs explicit." },
-    { lead: "Dependency constraints:", text: "What's the maximum achievable given external dependencies? This often eliminates options immediately." },
-    { lead: "Decision and rationale:", text: "State the chosen target and _why_. \"99.99% is not achievable given our payment gateway's 99.95% SLA\" is more useful than \"we chose 99.9%.\"" },
-    { lead: "Approvals:", text: "Get sign-off from engineering leadership, product, and ideally finance. Availability targets are business decisions, not just technical ones." },
+    {
+      lead: "Context:",
+      text: "What triggered the discussion? Was it a customer request, a competitive claim, an outage, or a planning exercise?",
+    },
+    {
+      lead: "Business impact analysis:",
+      text: "What's the actual revenue at risk during downtime? What's current availability and what does that cost?",
+    },
+    {
+      lead: "Options considered:",
+      text: "Present at least three tiers with their downtime, lost revenue, infrastructure cost, and net cost. Make the tradeoffs explicit.",
+    },
+    {
+      lead: "Dependency constraints:",
+      text: "What's the maximum achievable given external dependencies? This often eliminates options immediately.",
+    },
+    {
+      lead: "Decision and rationale:",
+      text: "State the chosen target and _why_. \"99.99% is not achievable given our payment gateway's 99.95% SLA\" is more useful than \"we chose 99.9%.\"",
+    },
+    {
+      lead: "Approvals:",
+      text: "Get sign-off from engineering leadership, product, and ideally finance. Availability targets are business decisions, not just technical ones.",
+    },
   ]}
 />
 

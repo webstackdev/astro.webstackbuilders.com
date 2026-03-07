@@ -9,9 +9,6 @@ tags: ["apis-and-gateways", "aws", "prometheus", "python", "grafana"]
 featured: true
 ---
 
-import Callout from '@components/Callout/index.astro'
-
-*[API]: Application Programming Interface
 *[SaaS]: Software as a Service
 *[QPS]: Queries Per Second
 
@@ -34,12 +31,30 @@ The dimensions you capture become your billable units and cost attribution keys.
 <List
   variant="numbered-with-background-list"
   items={[
-    { lead: "Request count", text: "Basic usage tracking, quota enforcement" },
-    { lead: "Endpoint/route", text: "Cost per feature, optimization targets" },
-    { lead: "Compute time", text: "Processing-intensive API pricing" },
-    { lead: "Data transfer", text: "Bandwidth costs, egress pricing" },
-    { lead: "Consumer ID", text: "Per-team/customer attribution" },
-    { lead: "Response status", text: "Error rate tracking, retry detection" },
+    {
+      lead: "Request count",
+      text: "Basic usage tracking, quota enforcement",
+    },
+    {
+      lead: "Endpoint/route",
+      text: "Cost per feature, optimization targets",
+    },
+    {
+      lead: "Compute time",
+      text: "Processing-intensive API pricing",
+    },
+    {
+      lead: "Data transfer",
+      text: "Bandwidth costs, egress pricing",
+    },
+    {
+      lead: "Consumer ID",
+      text: "Per-team/customer attribution",
+    },
+    {
+      lead: "Response status",
+      text: "Error rate tracking, retry detection",
+    },
   ]}
 />
 
@@ -153,8 +168,14 @@ Most teams conflate rate limiting and quota enforcement. They're different tools
     thead: { th: ["Mechanism", "Time Window", "Purpose"] },
     tbody: {
       tr: [
-        { th: "Rate limiting", td: ["Per-second/minute", "Protect infrastructure"] },
-        { th: "Quota enforcement", td: ["Per-day/month", "Control costs"] },
+        {
+          th: "Rate limiting",
+          td: ["Per-second/minute", "Protect infrastructure"],
+        },
+        {
+          th: "Quota enforcement",
+          td: ["Per-day/month", "Control costs"],
+        },
       ],
     },
   }}
@@ -229,7 +250,7 @@ X-Quota-Reset: 2024-03-01T00:00:00Z
 
 Code: Response headers showing both rate limit and quota status.
 
-Note: This example includes both rate limit headers (X-RateLimit-*) for short-term throttling and quota headers (X-Quota-*) for longer-term cost control. You'd implement both systems in production.
+Note: This example includes both rate limit headers (`X-RateLimit-*`) for short-term throttling and quota headers (`X-Quota-*`) for longer-term cost control. You'd implement both systems in production.
 
 This pattern is borrowed from GitHub's API. Every response includes quota headers. Consumers check their status without making a separate API call. The reset timestamp is critical—it tells them when the quota refreshes.
 
@@ -268,9 +289,18 @@ You don't need to implement everything at once. Here's the path that works:
 <List
   variant="numbered-with-background-list"
   items={[
-    { lead: "Week 1", text: "Pick your highest-traffic API. Add request count metering only. Emit events to SQS, write to TimescaleDB. Don't enforce anything yet—just capture data." },
-    { lead: "Week 2-3", text: "Deploy a read-only dashboard showing usage by consumer. Sort by request count descending. You'll immediately see patterns: one team making 10x more requests than others, endpoints with unexpected traffic, retry storms from misconfigured clients." },
-    { lead: "Week 4", text: "Identify the obvious problems. That team making 5 million requests per day when everyone else makes 50,000? Talk to them. That endpoint showing 2 million requests but only 100 unique consumers? Investigate why." },
+    {
+      lead: "Week 1",
+      text: "Pick your highest-traffic API. Add request count metering only. Emit events to SQS, write to TimescaleDB. Don't enforce anything yet—just capture data.",
+    },
+    {
+      lead: "Week 2-3",
+      text: "Deploy a read-only dashboard showing usage by consumer. Sort by request count descending. You'll immediately see patterns: one team making 10x more requests than others, endpoints with unexpected traffic, retry storms from misconfigured clients.",
+    },
+    {
+      lead: "Week 4",
+      text: "Identify the obvious problems. That team making 5 million requests per day when everyone else makes 50,000? Talk to them. That endpoint showing 2 million requests but only 100 unique consumers? Investigate why.",
+    },
   ]}
 />
 

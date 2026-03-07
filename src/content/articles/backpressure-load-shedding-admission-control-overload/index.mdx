@@ -9,15 +9,13 @@ tags: ["reliability-and-testing", "aws", "typescript", "python", "go", "grafana"
 featured: true
 ---
 
-import Callout from '@components/Callout/index.astro'
-
-*[QoS]: Quality of Service
-*[LIFO]: Last In, First Out
-*[FIFO]: First In, First Out
 *[CoDel]: Controlled Delay
+*[FIFO]: First In, First Out
+*[LIFO]: Last In, First Out
 *[P99]: 99th Percentile Latency
-*[SLO]: Service Level Objective
+*[QoS]: Quality of Service
 *[RPS]: Requests Per Second
+*[SLO]: Service Level Objective
 
 I watched an e-commerce platform collapse during a flash sale. Traffic spiked to 10x normal within minutes. The system accepted every request—and that was the problem. Database connections exhausted. Response times climbed from 200ms to 30 seconds. Clients started timing out and retrying, which doubled the load again. What could have been a 15-minute degradation became a 4-hour outage.
 
@@ -35,8 +33,12 @@ A system without backpressure will accept work until it collapses. The goal isn'
 
 Overload doesn't just make systems slow—it makes them _worse_. There's a vicious cycle at work: load increases, latency increases, clients timeout, clients retry, and now you have even more load. A 2x traffic spike becomes a 4x spike from retries alone.
 
+<Diagram
+  title="The cascading failure loop where overload compounds itself through retries and resource exhaustion"
+  description="Flowchart showing the feedback loop that turns overload into a full outage. A Traffic Spike leads to Queue Growth, which leads to Latency Increase. Increased latency causes Client Timeouts, which trigger Client Retries, sending more traffic back into the original spike and reinforcing the cycle. A second branch from Latency Increase leads to Resource Exhaustion, then Thread Pool Saturation, then Connection Pool Exhaustion, and finally Complete Failure. The diagram shows both the retry feedback loop and the internal resource collapse path that make overloaded systems degrade rapidly rather than recover naturally."
+>
 ```mermaid
-graph TD
+flowchart TD
     A[Traffic Spike] --> B[Queue Growth]
     B --> C[Latency Increase]
     C --> D[Client Timeouts]
@@ -48,7 +50,7 @@ graph TD
     G --> H[Connection Pool Exhaustion]
     H --> I[Complete Failure]
 ```
-Figure: The cascading failure loop where overload compounds itself through retries and resource exhaustion.
+</Diagram>
 
 The retry loop is the most insidious—well-intentioned client retry logic turns a temporary overload into a sustained assault. Thread pool saturation means requests that _could_ be processed sit waiting for a worker. Connection pool exhaustion means even those workers can't reach the database. This is why overload tends to get worse rather than self-correcting.
 
@@ -75,9 +77,18 @@ Here's a counterintuitive truth: throughput can _increase_ during overload while
     thead: { th: ["Metric", "Definition", "Normal Load", "Under Overload"] },
     tbody: {
       tr: [
-        { th: "Throughput", td: ["Requests processed", "1000 RPS", "1200 RPS"] },
-        { th: "Goodput", td: ["Successful responses", "1000 RPS", "400 RPS"] },
-        { th: "Badput", td: ["Failed/timed out", "0 RPS", "800 RPS"] },
+        {
+          th: "Throughput",
+          td: ["Requests processed", "1000 RPS", "1200 RPS"],
+        },
+        {
+          th: "Goodput",
+          td: ["Successful responses", "1000 RPS", "400 RPS"],
+        },
+        {
+          th: "Badput",
+          td: ["Failed/timed out", "0 RPS", "800 RPS"],
+        },
       ],
     },
   }}
@@ -97,8 +108,12 @@ Admission control works the same way: decide _upfront_ whether to accept work, r
 
 Here's how that flow looks in practice:
 
+<Diagram
+  title="Admission control rejects work at the door rather than accepting and failing"
+  description="Flowchart showing an admission control decision at the start of request handling. An Incoming Request reaches a decision point labeled Admission Control. If the request is accepted, it moves to Process Request, then to a decision asking Completed. Successful completion returns a 200 Response, while failure returns a 500 Response. If the request is rejected at admission, the system immediately returns 503 plus Retry-After, which leads to Client Backs Off. The diagram emphasizes that rejecting early preserves capacity and guides clients toward backoff instead of letting requests consume resources only to fail later."
+>
 ```mermaid
-graph TD
+flowchart TD
     A[Incoming Request] --> B{Admission Control}
     B -->|Accepted| C[Process Request]
     B -->|Rejected| D[Return 503 + Retry-After]
@@ -109,7 +124,7 @@ graph TD
 
     D --> H[Client Backs Off]
 ```
-Figure: Admission control rejects work at the door rather than accepting and failing.
+</Diagram>
 
 <Callout type="success">
 It's better to reject 20% of requests immediately than to accept 100% and fail 40% after wasting resources. Fast rejection preserves capacity for requests you can actually serve.
@@ -122,10 +137,22 @@ I've found four approaches cover most scenarios:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Rate limiting:", text: "cap throughput at N requests per second regardless of what the system can handle. It's blunt but effective as a safety valve." },
-    { lead: "Concurrency limiting:", text: "smarter because it naturally adapts. Allow N requests in-flight simultaneously. If requests are fast, you serve more per second; if they're slow, you serve fewer but don't overload." },
-    { lead: "Latency-based admission:", text: "the most sophisticated—it directly targets the metric you care about. As P99 latency increases, admission probability decreases. The system automatically finds its sustainable capacity." },
-    { lead: "Queue depth limiting:", text: "rejects when the work queue exceeds a threshold. This bounds worst-case latency since you know how much work is ahead of any new request." },
+    {
+      lead: "Rate limiting:",
+      text: "cap throughput at N requests per second regardless of what the system can handle. It's blunt but effective as a safety valve.",
+    },
+    {
+      lead: "Concurrency limiting:",
+      text: "smarter because it naturally adapts. Allow N requests in-flight simultaneously. If requests are fast, you serve more per second; if they're slow, you serve fewer but don't overload.",
+    },
+    {
+      lead: "Latency-based admission:",
+      text: "the most sophisticated—it directly targets the metric you care about. As P99 latency increases, admission probability decreases. The system automatically finds its sustainable capacity.",
+    },
+    {
+      lead: "Queue depth limiting:",
+      text: "rejects when the work queue exceeds a threshold. This bounds worst-case latency since you know how much work is ahead of any new request.",
+    },
   ]}
 />
 
@@ -235,10 +262,22 @@ Load shedding is the deliberate dropping of work to preserve system stability. I
     thead: { th: ["Strategy", "When to Use", "Tradeoff"] },
     tbody: {
       tr: [
-        { th: "Random", td: ["Simple implementation", "May drop important requests"] },
-        { th: "LIFO (newest first)", td: ["Reduce queuing latency", "Fresh requests rejected fast"] },
-        { th: "Priority-based", td: ["Protect important traffic", "Complexity, starvation risk"] },
-        { th: "CoDel", td: ["Adaptive, self-tuning", "More complex to implement"] },
+        {
+          th: "Random",
+          td: ["Simple implementation", "May drop important requests"],
+        },
+        {
+          th: "LIFO (newest first)",
+          td: ["Reduce queuing latency", "Fresh requests rejected fast"],
+        },
+        {
+          th: "Priority-based",
+          td: ["Protect important traffic", "Complexity, starvation risk"],
+        },
+        {
+          th: "CoDel",
+          td: ["Adaptive, self-tuning", "More complex to implement"],
+        },
       ],
     },
   }}
@@ -332,9 +371,18 @@ Three principles to carry forward:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Fast rejection beats slow failure:", text: "When you can't serve a request, say so immediately. A 503 returned in 5ms is infinitely better than a timeout after 30 seconds. The fast rejection frees resources and gives clients useful information." },
-    { lead: "Not all work is equal—prioritize ruthlessly:", text: "During overload, protect what matters: health checks, payments, authenticated users. Shed the non-essential to preserve the critical." },
-    { lead: "Degrade predictably rather than fail catastrophically:", text: "A system that maintains 50% goodput during a 10x traffic spike is succeeding. A system that accepts everything and serves nothing has failed completely." },
+    {
+      lead: "Fast rejection beats slow failure:",
+      text: "When you can't serve a request, say so immediately. A 503 returned in 5ms is infinitely better than a timeout after 30 seconds. The fast rejection frees resources and gives clients useful information.",
+    },
+    {
+      lead: "Not all work is equal—prioritize ruthlessly:",
+      text: "During overload, protect what matters: health checks, payments, authenticated users. Shed the non-essential to preserve the critical.",
+    },
+    {
+      lead: "Degrade predictably rather than fail catastrophically:",
+      text: "A system that maintains 50% goodput during a 10x traffic spike is succeeding. A system that accepts everything and serves nothing has failed completely.",
+    },
   ]}
 />
 

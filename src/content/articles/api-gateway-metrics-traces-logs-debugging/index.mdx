@@ -9,12 +9,8 @@ tags: ["apis-and-gateways", "prometheus", "aws", "grafana", "terraform"]
 featured: true
 ---
 
-import Callout from '@components/Callout/index.astro'
-
-*[API]: Application Programming Interface
 *[RED]: Rate, Errors, Duration
 *[W3C]: World Wide Web Consortium
-*[HTTP]: Hypertext Transfer Protocol
 *[P99]: 99th Percentile
 
 ## Introduction
@@ -37,38 +33,55 @@ Without this distinction, you're guessing. A request that takes 3 seconds total 
 
 The request lifecycle through a gateway has distinct phases, each consuming time:
 
+<Diagram
+  title="Request lifecycle showing gateway overhead vs. backend latency with typical durations"
+  description={
+  `Flowchart showing a request moving left to right through seven stages. The sequence starts with Request Received, then Authentication taking about 2 milliseconds, Rate Limiting taking about 1 millisecond, Route Matching taking about 0.5 milliseconds, Upstream Call taking about 500 milliseconds, Response Processing taking about 1 millisecond, and finally Response Sent. Two grouped regions highlight where the total time is spent. A group labeled Gateway Time, about 5 milliseconds, contains Authentication, Rate Limiting, Route Matching, and Response Processing, showing that the gateway adds only a small amount of overhead. A separate group labeled Backend Time, about 500 milliseconds, contains only the Upstream Call stage, showing that the backend dominates total latency in this example. The diagram's main point is that most request time is often spent waiting on the upstream service, not inside the gateway.`
+  }
+>
 ```mermaid
 graph LR
-    A[Request Received] --> B[Authentication<br/>~2ms]
-    B --> C[Rate Limiting<br/>~1ms]
-    C --> D[Route Matching<br/>~0.5ms]
-    D --> E[Upstream Call<br/>~500ms]
-    E --> F[Response Processing<br/>~1ms]
-    F --> G[Response Sent]
+  A[Request Received] --> B[Authentication<br/>~2ms]
+  B --> C[Rate Limiting<br/>~1ms]
+  C --> D[Route Matching<br/>~0.5ms]
+  D --> E[Upstream Call<br/>~500ms]
+  E --> F[Response Processing<br/>~1ms]
+  F --> G[Response Sent]
 
-    subgraph "Gateway Time: ~5ms"
-        B
-        C
-        D
-        F
-    end
+  subgraph gatewayTime[Gateway Time about 5ms]
+    B
+    C
+    D
+    F
+  end
 
-    subgraph "Backend Time: ~500ms"
-        E
-    end
+  subgraph backendTime[Backend Time about 500ms]
+    E
+  end
 ```
-
-Figure: Request lifecycle showing gateway overhead vs. backend latency with typical durations.
+</Diagram>
 
 At minimum, instrument these separately:
 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Gateway overhead:", text: "Total request time minus upstream time" },
-    { lead: "Upstream time:", text: "Time from sending the backend request until receiving the complete response" },
-    { lead: "Auth time:", text: "Time spent on authentication and authorization" },
-    { lead: "Rate limit time:", text: "Time spent checking rate limits" },
+    {
+      lead: "Gateway overhead:",
+      text: "Total request time minus upstream time",
+    },
+    {
+      lead: "Upstream time:",
+      text: "Time from sending the backend request until receiving the complete response",
+    },
+    {
+      lead: "Auth time:",
+      text: "Time spent on authentication and authorization",
+    },
+    {
+      lead: "Rate limit time:",
+      text: "Time spent checking rate limits",
+    },
   ]}
 />
 
@@ -118,18 +131,36 @@ When latency increases, this breakdown immediately narrows your investigation:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Total latency is 3.2 seconds:", text: "Is that a problem with the gateway or the backend?" },
-    { lead: "Gateway time is 5ms, backend time is 3.2 seconds:", text: "The backend is slow. Don't investigate the gateway. (Good gateway time is typically under 10ms for simple auth and routing.)" },
-    { lead: "Gateway time is 3 seconds, backend time is 200ms:", text: "The gateway has a problem (slow auth plugin, connection pool exhaustion, rate limiter blocking)." },
+    {
+      lead: "Total latency is 3.2 seconds:",
+      text: "Is that a problem with the gateway or the backend?",
+    },
+    {
+      lead: "Gateway time is 5ms, backend time is 3.2 seconds:",
+      text: "The backend is slow. Don't investigate the gateway. (Good gateway time is typically under 10ms for simple auth and routing.)",
+    },
+    {
+      lead: "Gateway time is 3 seconds, backend time is 200ms:",
+      text: "The gateway has a problem (slow auth plugin, connection pool exhaustion, rate limiter blocking).",
+    },
   ]}
 />
 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Gateway overhead spiked, upstream time flat:", text: "Problem is in the gateway itself—check CPU, memory, connection pools, or auth provider latency." },
-    { lead: "Upstream time spiked, gateway overhead flat:", text: "Problem is in the backend—check backend service metrics, database performance, or downstream API calls." },
-    { lead: "Both spiked:", text: "Problem is systemic—check network issues, load balancer health, or cascading failures." },
+    {
+      lead: "Gateway overhead spiked, upstream time flat:",
+      text: "Problem is in the gateway itself—check CPU, memory, connection pools, or auth provider latency.",
+    },
+    {
+      lead: "Upstream time spiked, gateway overhead flat:",
+      text: "Problem is in the backend—check backend service metrics, database performance, or downstream API calls.",
+    },
+    {
+      lead: "Both spiked:",
+      text: "Problem is systemic—check network issues, load balancer health, or cascading failures.",
+    },
   ]}
 />
 
@@ -179,9 +210,18 @@ Common propagation failures that break traces:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "No propagation:", text: "Gateway doesn't forward `traceparent` to backends. Traces end at the gateway." },
-    { lead: "Mixed formats:", text: "Consumer sends W3C format, gateway converts to B3 format for some backends but not others. Traces fragment." },
-    { lead: "Sampling ignored:", text: "Consumer marks trace as \"don't sample\" but gateway samples anyway, or vice versa." },
+    {
+      lead: "No propagation:",
+      text: "Gateway doesn't forward `traceparent` to backends. Traces end at the gateway.",
+    },
+    {
+      lead: "Mixed formats:",
+      text: "Consumer sends W3C format, gateway converts to B3 format for some backends but not others. Traces fragment.",
+    },
+    {
+      lead: "Sampling ignored:",
+      text: "Consumer marks trace as \"don't sample\" but gateway samples anyway, or vice versa.",
+    },
   ]}
 />
 
@@ -198,14 +238,38 @@ A minimal span that just records "request happened" is useless. A well-designed 
     thead: { th: ["Span Attribute", "Source", "Example Value"] },
     tbody: {
       tr: [
-        { th: "http.method", td: ["Request", "`POST`"] },
-        { th: "http.route", td: ["Route match", "`/users/:id`"] },
-        { th: "http.status_code", td: ["Response", "`200`"] },
-        { th: "gateway.upstream.name", td: ["Routing decision", "`users-service`"] },
-        { th: "gateway.consumer_id", td: ["Auth plugin", "`consumer-abc123` (opaque ID, not PII)"] },
-        { th: "gateway.retry_count", td: ["Retry logic", "`2`"] },
-        { th: "gateway.circuit_breaker.state", td: ["Circuit breaker", "`closed`"] },
-        { th: "auth.method", td: ["Auth plugin", "`jwt`, `api-key`"] },
+        {
+          th: "http.method",
+          td: ["Request", "`POST`"],
+        },
+        {
+          th: "http.route",
+          td: ["Route match", "`/users/:id`"],
+        },
+        {
+          th: "http.status_code",
+          td: ["Response", "`200`"],
+        },
+        {
+          th: "gateway.upstream.name",
+          td: ["Routing decision", "`users-service`"],
+        },
+        {
+          th: "gateway.consumer_id",
+          td: ["Auth plugin", "`consumer-abc123` (opaque ID, not PII)"],
+        },
+        {
+          th: "gateway.retry_count",
+          td: ["Retry logic", "`2`"],
+        },
+        {
+          th: "gateway.circuit_breaker.state",
+          td: ["Circuit breaker", "`closed`"],
+        },
+        {
+          th: "auth.method",
+          td: ["Auth plugin", "`jwt`, `api-key`"],
+        },
       ],
     },
   }}
@@ -278,10 +342,18 @@ Find slow traces for the affected route in your tracing UI (Jaeger, Tempo, AWS X
 <List
   variant="check-icons-list"
   items={[
-    { text: "Long spans indicating slow backend calls" },
-    { text: "Multiple retry attempts" },
-    { text: "Time spent waiting for connections (connection pool exhaustion)" },
-    { text: "Slow auth or rate limiting checks" },
+    {
+      text: "Long spans indicating slow backend calls",
+    },
+    {
+      text: "Multiple retry attempts",
+    },
+    {
+      text: "Time spent waiting for connections (connection pool exhaustion)",
+    },
+    {
+      text: "Slow auth or rate limiting checks",
+    },
   ]}
 />
 
@@ -306,10 +378,18 @@ Search logs for the affected time range and route. Look for:
 <List
   variant="check-icons-list"
   items={[
-    { text: "Error messages from backends" },
-    { text: "Timeout logs" },
-    { text: "Retry attempts" },
-    { text: "Connection errors or exhausted connection pool warnings" },
+    {
+      text: "Error messages from backends",
+    },
+    {
+      text: "Timeout logs",
+    },
+    {
+      text: "Retry attempts",
+    },
+    {
+      text: "Connection errors or exhausted connection pool warnings",
+    },
   ]}
 />
 
@@ -339,9 +419,23 @@ The pattern is always the same: start broad with metrics, zoom in with traces, e
 
 Gateway observability isn't about collecting more data—it's about making the gateway transparent so you can answer three questions in seconds instead of hours:
 
-1. **Is the problem in the gateway or the backend?** Latency breakdown and span timing answer this.
-2. **Is it affecting everyone or one consumer?** Per-consumer metrics and trace attributes answer this.
-3. **Is it getting worse?** Time-series metrics and trace sampling answer this.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: "Is the problem in the gateway or the backend?",
+      text: "Latency breakdown and span timing answer this.",
+    },
+    {
+      lead: "Is it affecting everyone or one consumer?",
+      text: "Per-consumer metrics and trace attributes answer this.",
+    },
+    {
+      lead: "Is it getting worse?",
+      text: "Time-series metrics and trace sampling answer this.",
+    },
+  ]}
+/>
 
 The comprehensive guide (linked below) covers additional topics: structured logging with correlation IDs, dashboard design for debugging instead of monitoring, alerting strategies to reduce noise, handling high-cardinality consumers, and controlling costs in production.
 

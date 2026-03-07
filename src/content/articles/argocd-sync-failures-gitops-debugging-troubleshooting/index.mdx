@@ -9,12 +9,10 @@ tags: ["build-and-deploy", "argo-cd", "kubernetes", "helm"]
 featured: true
 ---
 
-*[GitOps]: Git as single source of truth for declarative infrastructure
 *[ArgoCD]: Declarative GitOps continuous delivery tool for Kubernetes
 *[CRD]: Custom Resource Definition
+*[GitOps]: Git as single source of truth for declarative infrastructure
 *[HPA]: Horizontal Pod Autoscaler
-
-import Callout from '@components/Callout/index.astro'
 
 GitOps sells you on declarative simplicity: define your desired state in Git, and ArgoCD makes it so. The pitch works beautifully in demos. In production, you'll eventually stare at a sync that's been "Progressing" for 20 minutes, wondering what's actually happening inside the black box.
 
@@ -28,15 +26,19 @@ This is the gap between GitOps theory and operational reality. When sync fails, 
 
 Before debugging, you need a mental model of the sync process. When you push a commit or click "Sync," ArgoCD kicks off a multi-phase process:
 
+<Diagram
+  title="ArgoCD sync process from Git commit to healthy application"
+  description="Flowchart showing ArgoCD's high-level sync lifecycle from change detection to a healthy deployment. The sequence moves left to right through six stages: Detect Change, Generate Manifests, Calculate Diff, Order Resources, Apply by Wave, and Wait for Health. The diagram emphasizes that ArgoCD does more than apply YAML. It first notices a source change, renders manifests through tools like Helm or Kustomize, compares desired and live state, determines ordering based on sync waves, applies resources in that order, and then blocks until health checks report success. This explains where failures can occur before, during, or after resource application."
+>
 ```mermaid
-graph LR
+flowchart LR
     A[Detect Change] --> B[Generate Manifests]
     B --> C[Calculate Diff]
     C --> D[Order Resources]
     D --> E[Apply by Wave]
     E --> F[Wait for Health]
 ```
-Figure: ArgoCD sync process from Git commit to healthy application.
+</Diagram>
 
 First, ArgoCD detects the change through polling or webhooks. It generates manifests (running Helm template or Kustomize build if needed), calculates the diff against live cluster state, orders resources by sync wave, applies them wave by wave, and waits for each to become healthy before proceeding.
 
@@ -75,10 +77,22 @@ The wave numbers themselves are arbitrary—what matters is the relative order. 
     thead: { th: ["Wave", "Typical Resources", "Purpose"] },
     tbody: {
       tr: [
-        { th: "-2", td: ["Namespaces, CRDs", "Infrastructure prerequisites"] },
-        { th: "-1", td: ["Secrets, ConfigMaps", "Configuration dependencies"] },
-        { th: "0", td: ["Deployments, Services", "Main application (default)"] },
-        { th: "1", td: ["Jobs, migrations", "Post-deployment tasks"] },
+        {
+          th: "-2",
+          td: ["Namespaces, CRDs", "Infrastructure prerequisites"],
+        },
+        {
+          th: "-1",
+          td: ["Secrets, ConfigMaps", "Configuration dependencies"],
+        },
+        {
+          th: "0",
+          td: ["Deployments, Services", "Main application (default)"],
+        },
+        {
+          th: "1",
+          td: ["Jobs, migrations", "Post-deployment tasks"],
+        },
       ],
     },
   }}
@@ -123,9 +137,18 @@ The output tells you sync status (Synced, OutOfSync, Unknown) and health status 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "OutOfSync + Healthy:", text: "Drift problem—something's modifying the resource after ArgoCD applies it" },
-    { lead: "Degraded:", text: "Something failed to start—check pod events" },
-    { lead: "Progressing for a long time:", text: "Something's stuck—likely a hook or slow rollout" },
+    {
+      lead: "OutOfSync + Healthy:",
+      text: "Drift problem—something's modifying the resource after ArgoCD applies it",
+    },
+    {
+      lead: "Degraded:",
+      text: "Something failed to start—check pod events",
+    },
+    {
+      lead: "Progressing for a long time:",
+      text: "Something's stuck—likely a hook or slow rollout",
+    },
   ]}
 />
 
@@ -199,10 +222,38 @@ Once you've gathered information, match it against these common patterns:
     thead: { th: ["Pattern", "Symptom", "Likely Cause", "Quick Fix"] },
     tbody: {
       tr: [
-        { th: "Stuck on hook", td: ["\"Running PreSync hooks\" forever", "Hook Job not completing", "Check job logs, add `activeDeadlineSeconds`"] },
-        { th: "OutOfSync loop", td: ["Syncs successfully, immediately OutOfSync", "Controller modifying resource", "Add `ignoreDifferences` for that field"] },
-        { th: "Missing resource", td: ["\"secret X not found\"", "Dependency ordering", "Move dependency to earlier sync wave"] },
-        { th: "CRD not found", td: ["\"server doesn't have resource type\"", "CRD applied too late", "Put CRD in wave -5"] },
+        {
+          th: "Stuck on hook",
+          td: [
+            "\"Running PreSync hooks\" forever",
+            "Hook Job not completing",
+            "Check job logs, add `activeDeadlineSeconds`",
+          ],
+        },
+        {
+          th: "OutOfSync loop",
+          td: [
+            "Syncs successfully, immediately OutOfSync",
+            "Controller modifying resource",
+            "Add `ignoreDifferences` for that field",
+          ],
+        },
+        {
+          th: "Missing resource",
+          td: [
+            "\"secret X not found\"",
+            "Dependency ordering",
+            "Move dependency to earlier sync wave",
+          ],
+        },
+        {
+          th: "CRD not found",
+          td: [
+            "\"server doesn't have resource type\"",
+            "CRD applied too late",
+            "Put CRD in wave -5",
+          ],
+        },
       ],
     },
   }}

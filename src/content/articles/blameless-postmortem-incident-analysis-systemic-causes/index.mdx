@@ -30,11 +30,26 @@ But blame produces terrible outcomes. When people fear punishment for mistakes, 
     thead: { th: ["Blame-Based Approach", "Systemic Approach"] },
     tbody: {
       tr: [
-        { th: "Finds a person to hold accountable", td: ["Finds system conditions to improve"] },
-        { th: "Investigation stops at human action", td: ["Investigation continues to context"] },
-        { th: "\"Don't do that again\"", td: ["\"Make that harder to do\""] },
-        { th: "People hide mistakes", td: ["People report near-misses"] },
-        { th: "Same incident recurs with different person", td: ["Incident class becomes less likely"] },
+        {
+          th: "Finds a person to hold accountable",
+          td: ["Finds system conditions to improve"],
+        },
+        {
+          th: "Investigation stops at human action",
+          td: ["Investigation continues to context"],
+        },
+        {
+          th: "\"Don't do that again\"",
+          td: ["\"Make that harder to do\""],
+        },
+        {
+          th: "People hide mistakes",
+          td: ["People report near-misses"],
+        },
+        {
+          th: "Same incident recurs with different person",
+          td: ["Incident class becomes less likely"],
+        },
       ],
     },
   }}
@@ -59,11 +74,26 @@ If you fire the engineer who made today's mistake, someone else will make a simi
     thead: { th: ["What Blameless IS", "What Blameless IS NOT"] },
     tbody: {
       tr: [
-        { th: "Holding systems accountable", td: ["Letting individuals off the hook"] },
-        { th: "Safe to report errors", td: ["Safe to be negligent"] },
-        { th: "Learning from mistakes", td: ["Ignoring mistakes"] },
-        { th: "Improving processes", td: ["Accepting poor processes"] },
-        { th: "Psychological safety", td: ["Lack of standards"] },
+        {
+          th: "Holding systems accountable",
+          td: ["Letting individuals off the hook"],
+        },
+        {
+          th: "Safe to report errors",
+          td: ["Safe to be negligent"],
+        },
+        {
+          th: "Learning from mistakes",
+          td: ["Ignoring mistakes"],
+        },
+        {
+          th: "Improving processes",
+          td: ["Accepting poor processes"],
+        },
+        {
+          th: "Psychological safety",
+          td: ["Lack of standards"],
+        },
       ],
     },
   }}
@@ -79,9 +109,18 @@ The Just Culture framework, developed in healthcare and aviation, helps distingu
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Human error:", text: "is inadvertent—a typo, a misremembered procedure. The response is system improvement." },
-    { lead: "At-risk behavior:", text: "involves conscious shortcuts where the person doesn't fully appreciate the risk—skipping a checklist because \"it's always fine.\" The response is coaching and removing incentives for the shortcut." },
-    { lead: "Reckless behavior:", text: "is conscious disregard of a known substantial risk—genuinely rare in professional settings and the only category where punitive action may be appropriate." },
+    {
+      lead: "Human error:",
+      text: "is inadvertent—a typo, a misremembered procedure. The response is system improvement.",
+    },
+    {
+      lead: "At-risk behavior:",
+      text: "involves conscious shortcuts where the person doesn't fully appreciate the risk—skipping a checklist because \"it's always fine.\" The response is coaching and removing incentives for the shortcut.",
+    },
+    {
+      lead: "Reckless behavior:",
+      text: "is conscious disregard of a known substantial risk—genuinely rare in professional settings and the only category where punitive action may be appropriate.",
+    },
   ]}
 />
 
@@ -95,15 +134,19 @@ You can't mandate blameless culture. If people have seen colleagues punished for
 
 The phrase "root cause" implies there's one cause at the bottom of the causal chain—find it, fix it, and the problem is solved. In complex systems, this is almost never true. Incidents arise from the confluence of multiple factors, none of which is _the_ cause. Remove any one of them, and the incident might not have happened—or might have happened differently.
 
+<Diagram
+  title="Multiple contributing factors, each representing a potential intervention point"
+  description="Flowchart showing several independent contributing factors converging on a single incident. No config validation, No canary deployment, Alert threshold too high, Runbook outdated, and On-call fatigued each point into Incident. The diagram emphasizes that complex failures typically arise from multiple interacting conditions rather than one root cause, and that each contributing factor is a possible place to intervene and reduce future risk."
+>
 ```mermaid
-graph TD
+flowchart TD
     B[No config validation] --> A[Incident]
     C[No canary deployment] --> A
     D[Alert threshold too high] --> A
     E[Runbook outdated] --> A
     F[On-call fatigued] --> A
 ```
-Figure: Multiple contributing factors, each representing a potential intervention point.
+</Diagram>
 
 The Five Whys technique—keep asking "why" until you reach an actionable cause—is popular but easily misused. Here's what going wrong looks like:
 
@@ -162,11 +205,26 @@ Good action items share specific characteristics:
     thead: { th: ["Characteristic", "What It Means", "Example"] },
     tbody: {
       tr: [
-        { th: "Specific", td: ["Describes the exact change, not the general area", "\"Add validation for auth config changes\""] },
-        { th: "Measurable", td: ["Has a clear done/not-done state you can verify", "\"Deploy canary to 1% before full rollout\""] },
-        { th: "Assignable", td: ["Names a team and person, not \"we\" or \"someone\"", "\"Platform team owns, Sarah implements\""] },
-        { th: "Realistic", td: ["Scoped to complete in the committed timeframe", "\"Can be completed in one sprint\""] },
-        { th: "Systemic", td: ["Blocks the failure mode, not just this instance", "\"Blocks all invalid configs, not just this format\""] },
+        {
+          th: "Specific",
+          td: ["Describes the exact change, not the general area", "\"Add validation for auth config changes\""],
+        },
+        {
+          th: "Measurable",
+          td: ["Has a clear done/not-done state you can verify", "\"Deploy canary to 1% before full rollout\""],
+        },
+        {
+          th: "Assignable",
+          td: ["Names a team and person, not \"we\" or \"someone\"", "\"Platform team owns, Sarah implements\""],
+        },
+        {
+          th: "Realistic",
+          td: ["Scoped to complete in the committed timeframe", "\"Can be completed in one sprint\""],
+        },
+        {
+          th: "Systemic",
+          td: ["Blocks the failure mode, not just this instance", "\"Blocks all invalid configs, not just this format\""],
+        },
       ],
     },
   }}
@@ -175,8 +233,14 @@ Good action items share specific characteristics:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Good examples:", text: "\"Add pre-deploy hook that validates config schema.\" \"Implement 1% canary with automatic rollback on error spike.\" \"Add config change review requirement to deploy pipeline.\"" },
-    { lead: "Bad examples:", text: "\"Be more careful with config changes.\" \"Engineer X needs training.\" \"Review all configs.\" \"Improve monitoring.\"" },
+    {
+      lead: "Good examples:",
+      text: "\"Add pre-deploy hook that validates config schema.\" \"Implement 1% canary with automatic rollback on error spike.\" \"Add config change review requirement to deploy pipeline.\"",
+    },
+    {
+      lead: "Bad examples:",
+      text: "\"Be more careful with config changes.\" \"Engineer X needs training.\" \"Review all configs.\" \"Improve monitoring.\"",
+    },
   ]}
 />
 
@@ -217,10 +281,22 @@ The core principles:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Human error is where investigation begins, not where it ends:", text: "The interesting question is always: what made that action likely, possible, and undetected?" },
-    { lead: "Blame produces hiding; systems thinking produces learning:", text: "When people fear punishment, they stop reporting. When they feel safe, they share near-misses that prevent future incidents." },
-    { lead: "Incidents have contributing factors, not root causes:", text: "Complex failures arise from multiple interacting conditions. Identify them all before deciding which to fix." },
-    { lead: "Effective remediation requires specific, systemic action items tracked to completion:", text: "Vague actions don't get done. Person-focused actions don't prevent recurrence." },
+    {
+      lead: "Human error is where investigation begins, not where it ends:",
+      text: "The interesting question is always: what made that action likely, possible, and undetected?",
+    },
+    {
+      lead: "Blame produces hiding; systems thinking produces learning:",
+      text: "When people fear punishment, they stop reporting. When they feel safe, they share near-misses that prevent future incidents.",
+    },
+    {
+      lead: "Incidents have contributing factors, not root causes:",
+      text: "Complex failures arise from multiple interacting conditions. Identify them all before deciding which to fix.",
+    },
+    {
+      lead: "Effective remediation requires specific, systemic action items tracked to completion:",
+      text: "Vague actions don't get done. Person-focused actions don't prevent recurrence.",
+    },
   ]}
 />
 

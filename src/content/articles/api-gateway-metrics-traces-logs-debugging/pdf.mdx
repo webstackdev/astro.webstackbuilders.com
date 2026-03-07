@@ -9,18 +9,14 @@ tags: ["apis-and-gateways", "prometheus", "grafana", "aws", "terraform"]
 featured: true
 ---
 
-import Callout from '@components/Callout/index.astro'
-
-*[API]: Application Programming Interface
+*[gRPC]: Google Remote Procedure Call
+*[OTEL]: OpenTelemetry
+*[P99]: 99th Percentile
 *[RED]: Rate, Errors, Duration
-*[USE]: Utilization, Saturation, Errors
 *[SLI]: Service Level Indicator
 *[SLO]: Service Level Objective
-*[OTEL]: OpenTelemetry
+*[USE]: Utilization, Saturation, Errors
 *[W3C]: World Wide Web Consortium
-*[HTTP]: Hypertext Transfer Protocol
-*[gRPC]: Google Remote Procedure Call
-*[P99]: 99th Percentile
 
 ## Introduction
 
@@ -46,22 +42,27 @@ Gateway observability is not the same as service observability, and treating it 
 
 The fundamental difference is scope: every request passes through the gateway. When a backend service has a problem, its own metrics show the issue clearly—error rate spikes, latency increases, throughput drops. But the gateway sees that same problem diluted across all the traffic it handles. If one of ten backends is failing, the gateway's aggregate error rate increases by 10%, which might not even trigger an alert.
 
+<Diagram
+  title="API gateway as the central observation point for all traffic"
+  description={
+    `Flowchart showing the API gateway positioned between a consumer and multiple downstream components. A Consumer sends requests to the API Gateway. From the gateway, traffic can go to an Auth Service, a Rate Limiter, Backend A, and Backend B. A grouped region labeled Gateway Boundary contains the API Gateway, Auth Service, and Rate Limiter, emphasizing that these components sit at the control point through which all requests pass. The diagram shows why the gateway is a unique observation point: it sees every request before it reaches the backend services and can record both control-plane decisions, such as authentication and rate limiting, and routing decisions to different backends.`
+  }
+>
 ```mermaid
-graph LR
+flowchart LR
     A[Consumer] --> B[API Gateway]
     B --> C[Auth Service]
     B --> D[Rate Limiter]
     B --> E[Backend A]
     B --> F[Backend B]
 
-    subgraph "Gateway Boundary"
+    subgraph gatewayBoundary[Gateway Boundary]
         B
         C
         D
     end
 ```
-
-Figure: API gateway as the central observation point for all traffic.
+</Diagram>
 
 The gateway also adds its own latency that frequently gets blamed on backends. Authentication checks, rate limit lookups, request transformation, response transformation, TLS termination—these all take time. When users complain about slow APIs, the default assumption is that backends are slow, but I have seen gateway overhead account for 200ms+ on requests where the backend responded in 50ms.
 
@@ -96,9 +97,18 @@ Each observability pillar answers different questions, and gateway debugging typ
     thead: { th: ["Pillar", "Answers", "Limitations"] },
     tbody: {
       tr: [
-        { th: "Metrics", td: ["How many? How fast? What percentage?", "Aggregated, loses individual request detail"] },
-        { th: "Traces", td: ["What path did this request take? Where did time go?", "Sampling may miss rare events"] },
-        { th: "Logs", td: ["What exactly happened? What were the values?", "High volume, hard to correlate without IDs"] },
+        {
+          th: "Metrics",
+          td: ["How many? How fast? What percentage?", "Aggregated, loses individual request detail"],
+        },
+        {
+          th: "Traces",
+          td: ["What path did this request take? Where did time go?", "Sampling may miss rare events"],
+        },
+        {
+          th: "Logs",
+          td: ["What exactly happened? What were the values?", "High volume, hard to correlate without IDs"],
+        },
       ],
     },
   }}
@@ -165,35 +175,40 @@ Be thoughtful about histogram buckets (predefined latency ranges like 0-10ms, 10
 
 The single most useful gateway metric is not total request duration—it is the breakdown of where time went. When someone reports "the API is slow," you need to immediately answer: is the gateway slow, or is the backend slow?
 
+<Diagram
+  title="Request lifecycle showing gateway vs. backend latency components"
+  description={
+  `Flowchart showing a request moving left to right through ten stages. The sequence begins with Request Received, then passes through TLS Handshake, Request Parse, Auth Check, Rate Limit Check, Route Match, Upstream Request, Backend Processing, Response Transform, and Response Sent. Two grouped regions separate where time is spent. A Gateway Time group contains TLS Handshake, Request Parse, Auth Check, Rate Limit Check, Route Match, Upstream Request, Response Transform, and Response Sent, representing work performed or coordinated by the gateway. A separate Backend Time group contains only Backend Processing, representing the actual time spent inside the upstream service. The diagram emphasizes that total latency is a combination of gateway-side work and backend execution, and that debugging requires measuring those components separately.`
+  }
+>
 ```mermaid
 graph LR
-    A[Request Received] --> B[TLS Handshake]
-    B --> C[Request Parse]
-    C --> D[Auth Check]
-    D --> E[Rate Limit Check]
-    E --> F[Route Match]
-    F --> G[Upstream Request]
-    G --> H[Backend Processing]
-    H --> I[Response Transform]
-    I --> J[Response Sent]
+  A[Request Received] --> B[TLS Handshake]
+  B --> C[Request Parse]
+  C --> D[Auth Check]
+  D --> E[Rate Limit Check]
+  E --> F[Route Match]
+  F --> G[Upstream Request]
+  G --> H[Backend Processing]
+  H --> I[Response Transform]
+  I --> J[Response Sent]
 
-    subgraph "Gateway Time"
-        B
-        C
-        D
-        E
-        F
-        G
-        I
-        J
-    end
+  subgraph gatewayTime[Gateway Time]
+    B
+    C
+    D
+    E
+    F
+    G
+    I
+    J
+  end
 
-    subgraph "Backend Time"
-        H
-    end
+  subgraph backendTime[Backend Time]
+    H
+  end
 ```
-
-Figure: Request lifecycle showing gateway vs. backend latency components.
+</Diagram>
 
 At minimum, instrument these separately:
 
@@ -258,10 +273,22 @@ Per-consumer metrics answer questions that aggregate metrics cannot: Is this pro
     thead: { th: ["Metric", "Purpose", "Alert Example"] },
     tbody: {
       tr: [
-        { th: "Requests by Consumer", td: ["Usage tracking, abuse detection", "Consumer exceeds 10x normal rate"] },
-        { th: "Errors by Consumer", td: ["Consumer-specific issues", "Single consumer > 50% error rate"] },
-        { th: "Latency by Consumer", td: ["Performance isolation", "Consumer P99 > 2x global P99"] },
-        { th: "Quota Usage", td: ["Rate limit tracking", "Consumer at 90% of quota"] },
+        {
+          th: "Requests by Consumer",
+          td: ["Usage tracking, abuse detection", "Consumer exceeds 10x normal rate"],
+        },
+        {
+          th: "Errors by Consumer",
+          td: ["Consumer-specific issues", "Single consumer > 50% error rate"],
+        },
+        {
+          th: "Latency by Consumer",
+          td: ["Performance isolation", "Consumer P99 > 2x global P99"],
+        },
+        {
+          th: "Quota Usage",
+          td: ["Rate limit tracking", "Consumer at 90% of quota"],
+        },
       ],
     },
   }}
@@ -278,10 +305,18 @@ The cardinality warning is serious. If you have 10,000 consumers and add `consum
 <List
   variant="check-icons-list"
   items={[
-    { text: "Use `consumer_id` only on counters, not histograms" },
-    { text: "Roll up consumer metrics to a separate, lower-resolution store" },
-    { text: "Sample consumer-level histograms (1 in 100 requests)" },
-    { text: "Use recording rules to pre-aggregate consumer metrics" },
+    {
+      text: "Use `consumer_id` only on counters, not histograms",
+    },
+    {
+      text: "Roll up consumer metrics to a separate, lower-resolution store",
+    },
+    {
+      text: "Sample consumer-level histograms (1 in 100 requests)",
+    },
+    {
+      text: "Use recording rules to pre-aggregate consumer metrics",
+    },
   ]}
 />
 
@@ -355,6 +390,12 @@ Code: W3C Trace Context header propagation through API gateway.
 
 The gateway creates its own span as a child of the incoming span, then creates new child spans for each outbound request. The trace ID stays the same throughout—that is what connects all the spans into a single trace. The span IDs change at each hop to distinguish different operations.
 
+<Diagram
+  title="Trace context propagation creating connected spans across gateway boundary"
+  description={
+    `Sequence diagram showing how a single distributed trace continues across a client, gateway, auth service, and backend. The client sends a request to the gateway with a traceparent header containing trace ID abc and span ID 123. The gateway creates its own span as a child of that incoming request. The gateway then calls the auth service with the same trace ID but a new span ID 456, receives the auth response, and forwards the request to the backend with the same trace ID and another new span ID 789. The backend returns a response to the gateway, which then responds to the client. A note across the full diagram states that all spans share the same trace ID abc, emphasizing that the trace remains connected even though each hop creates a new span.`
+  }
+>
 ```mermaid
 sequenceDiagram
     participant Client
@@ -370,20 +411,31 @@ sequenceDiagram
     Backend-->>Gateway: Response
     Gateway-->>Client: Response
 
-    Note over Client,Backend: All spans share trace ID "abc"
+    Note over Client,Backend: All spans share trace ID abc
 ```
-
-Figure: Trace context propagation creating connected spans across gateway boundary.
+</Diagram>
 
 Common propagation failures I have seen:
 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Gateway strips unknown headers:", text: "Some gateways have an allowlist for forwarded headers, and trace headers are not on it by default. Suddenly all your traces end at the gateway." },
-    { lead: "Mixed header formats:", text: "Client sends W3C format, gateway converts to B3 for one backend but not another. Traces fragment." },
-    { lead: "Sampling decision ignored:", text: "Client marks the trace as \"do not sample\" but gateway creates spans anyway, or vice versa." },
-    { lead: "Missing propagation to auth services:", text: "Gateway forwards headers to backends but not to sidecar auth checks, so auth latency is invisible in traces." },
+    {
+      lead: "Gateway strips unknown headers:",
+      text: "Some gateways have an allowlist for forwarded headers, and trace headers are not on it by default. Suddenly all your traces end at the gateway.",
+    },
+    {
+      lead: "Mixed header formats:",
+      text: "Client sends W3C format, gateway converts to B3 for one backend but not another. Traces fragment.",
+    },
+    {
+      lead: "Sampling decision ignored:",
+      text: "Client marks the trace as \"do not sample\" but gateway creates spans anyway, or vice versa.",
+    },
+    {
+      lead: "Missing propagation to auth services:",
+      text: "Gateway forwards headers to backends but not to sidecar auth checks, so auth latency is invisible in traces.",
+    },
   ]}
 />
 
@@ -429,12 +481,30 @@ The resulting spans will include attributes like these:
     thead: { th: ["Attribute", "Source", "Example Value"] },
     tbody: {
       tr: [
-        { th: "`http.method`", td: ["Request", "`POST`"] },
-        { th: "`http.route`", td: ["Matched route", "`/api/v2/users`"] },
-        { th: "`http.status_code`", td: ["Response", "`201`"] },
-        { th: "`gateway.route.name`", td: ["Kong route config", "`users-create`"] },
-        { th: "`gateway.upstream.name`", td: ["Kong service config", "`users-service`"] },
-        { th: "`gateway.auth.consumer_id`", td: ["Auth plugin", "`client-abc123`"] },
+        {
+          th: "`http.method`",
+          td: ["Request", "`POST`"],
+        },
+        {
+          th: "`http.route`",
+          td: ["Matched route", "`/api/v2/users`"],
+        },
+        {
+          th: "`http.status_code`",
+          td: ["Response", "`201`"],
+        },
+        {
+          th: "`gateway.route.name`",
+          td: ["Kong route config", "`users-create`"],
+        },
+        {
+          th: "`gateway.upstream.name`",
+          td: ["Kong service config", "`users-service`"],
+        },
+        {
+          th: "`gateway.auth.consumer_id`",
+          td: ["Auth plugin", "`client-abc123`"],
+        },
       ],
     },
   }}
@@ -457,8 +527,14 @@ At high traffic volumes, you cannot keep every trace—storage costs and query p
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Head-based sampling makes the decision at the start of the trace, typically at the gateway:", text: "The gateway decides \"keep this trace\" or \"drop this trace\" based on a probability (1% sampling means keep 1 in 100 traces). The advantage is simplicity and low overhead. The disadvantage is that you might drop the one trace that showed a rare error." },
-    { lead: "Tail-based sampling makes the decision after the trace is complete, when you know the outcome:", text: "You can keep all error traces and all slow traces while sampling normal traces at 1%. The disadvantage is that you need to buffer complete traces before deciding, which requires more infrastructure (typically an OpenTelemetry Collector with sufficient memory)." },
+    {
+      lead: "Head-based sampling makes the decision at the start of the trace, typically at the gateway:",
+      text: "The gateway decides \"keep this trace\" or \"drop this trace\" based on a probability (1% sampling means keep 1 in 100 traces). The advantage is simplicity and low overhead. The disadvantage is that you might drop the one trace that showed a rare error.",
+    },
+    {
+      lead: "Tail-based sampling makes the decision after the trace is complete, when you know the outcome:",
+      text: "You can keep all error traces and all slow traces while sampling normal traces at 1%. The disadvantage is that you need to buffer complete traces before deciding, which requires more infrastructure (typically an OpenTelemetry Collector with sufficient memory).",
+    },
   ]}
 />
 
@@ -469,10 +545,22 @@ At high traffic volumes, you cannot keep every trace—storage costs and query p
     thead: { th: ["Strategy", "When to Use", "Tradeoff"] },
     tbody: {
       tr: [
-        { th: "Head-based (1%)", td: ["High traffic, cost-sensitive", "Misses rare errors"] },
-        { th: "Tail-based", td: ["Need all errors", "Requires collector buffering"] },
-        { th: "Error sampling (100%)", td: ["Debugging priority", "Higher storage for errors"] },
-        { th: "Consumer-based", td: ["Enterprise customer debugging", "Selective high coverage"] },
+        {
+          th: "Head-based (1%)",
+          td: ["High traffic, cost-sensitive", "Misses rare errors"],
+        },
+        {
+          th: "Tail-based",
+          td: ["Need all errors", "Requires collector buffering"],
+        },
+        {
+          th: "Error sampling (100%)",
+          td: ["Debugging priority", "Higher storage for errors"],
+        },
+        {
+          th: "Consumer-based",
+          td: ["Enterprise customer debugging", "Selective high coverage"],
+        },
       ],
     },
   }}
@@ -671,10 +759,22 @@ Capture different context for different error types:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Authentication failures:", text: "Which auth method was attempted, what the auth service returned, token expiration details" },
-    { lead: "Rate limit rejections:", text: "Current quota usage, limit configuration, when the quota resets" },
-    { lead: "Upstream timeouts:", text: "Configured timeout value, actual elapsed time, connection vs. read timeout" },
-    { lead: "Circuit breaker trips:", text: "Failure threshold, current failure count, time until retry" },
+    {
+      lead: "Authentication failures:",
+      text: "Which auth method was attempted, what the auth service returned, token expiration details",
+    },
+    {
+      lead: "Rate limit rejections:",
+      text: "Current quota usage, limit configuration, when the quota resets",
+    },
+    {
+      lead: "Upstream timeouts:",
+      text: "Configured timeout value, actual elapsed time, connection vs. read timeout",
+    },
+    {
+      lead: "Circuit breaker trips:",
+      text: "Failure threshold, current failure count, time until retry",
+    },
   ]}
 />
 
@@ -693,12 +793,30 @@ The overview dashboard answers three questions that operations teams ask constan
     thead: { th: ["Panel", "Visualization", "Query"] },
     tbody: {
       tr: [
-        { th: "Request Rate", td: ["Time series", "`sum(rate(gateway_requests_total[5m]))`"] },
-        { th: "Error Rate", td: ["Time series", "`sum(rate(gateway_requests_total{status=~\"5..\"}[5m])) / sum(rate(gateway_requests_total[5m]))`"] },
-        { th: "P50/P95/P99 Latency", td: ["Time series", "`histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))`"] },
-        { th: "Upstream Health", td: ["Status map", "Circuit breaker states by upstream"] },
-        { th: "Top Routes", td: ["Bar chart", "Request rate by route, sorted"] },
-        { th: "Error Breakdown", td: ["Pie chart", "Errors by type and upstream"] },
+        {
+          th: "Request Rate",
+          td: ["Time series", "`sum(rate(gateway_requests_total[5m]))`"],
+        },
+        {
+          th: "Error Rate",
+          td: ["Time series", "`sum(rate(gateway_requests_total{status=~\"5..\"}[5m])) / sum(rate(gateway_requests_total[5m]))`"],
+        },
+        {
+          th: "P50/P95/P99 Latency",
+          td: ["Time series", "`histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[5m])) by (le))`"],
+        },
+        {
+          th: "Upstream Health",
+          td: ["Status map", "Circuit breaker states by upstream"],
+        },
+        {
+          th: "Top Routes",
+          td: ["Bar chart", "Request rate by route, sorted"],
+        },
+        {
+          th: "Error Breakdown",
+          td: ["Pie chart", "Errors by type and upstream"],
+        },
       ],
     },
   }}
@@ -706,35 +824,40 @@ The overview dashboard answers three questions that operations teams ask constan
 
 The layout matters. Arrange panels so that related information is grouped and the eye naturally flows from high-level health to specific details:
 
+<Diagram
+  title="Gateway dashboard layout with logical panel grouping"
+  description={
+  `Top-to-bottom flowchart showing a dashboard organized into four rows. The first row, labeled Row 1 Health Overview, contains Request Rate, Error Rate, and P99 Latency panels for immediate high-level status. The second row, labeled Row 2 Upstream Status, contains Upstream Health Map and Circuit Breaker States panels to show backend health. The third row, labeled Row 3 Traffic Breakdown, contains Top Routes, Top Consumers, and Error Distribution panels for traffic analysis. The fourth row, labeled Row 4 Latency Analysis, contains Gateway vs Backend Latency, Latency by Route, and Slow Request Percent panels for performance investigation. Arrows connect row 1 to row 2, row 2 to row 3, and row 3 to row 4, showing an intended reading order from broad health signals to detailed diagnostic panels.`
+  }
+>
 ```mermaid
 graph TB
-    subgraph row1["Row 1: Health Overview"]
-        A[Request Rate]
-        B[Error Rate]
-        C[P99 Latency]
-    end
+  subgraph row1[Row 1 Health Overview]
+    A[Request Rate]
+    B[Error Rate]
+    C[P99 Latency]
+  end
 
-    subgraph row2["Row 2: Upstream Status"]
-        D[Upstream Health Map]
-        E[Circuit Breaker States]
-    end
+  subgraph row2[Row 2 Upstream Status]
+    D[Upstream Health Map]
+    E[Circuit Breaker States]
+  end
 
-    subgraph row3["Row 3: Traffic Breakdown"]
-        F[Top Routes]
-        G[Top Consumers]
-        H[Error Distribution]
-    end
+  subgraph row3[Row 3 Traffic Breakdown]
+    F[Top Routes]
+    G[Top Consumers]
+    H[Error Distribution]
+  end
 
-    subgraph row4["Row 4: Latency Analysis"]
-        I[Gateway vs Backend Latency]
-        J[Latency by Route]
-        K[Slow Request %]
-    end
+  subgraph row4[Row 4 Latency Analysis]
+    I[Gateway vs Backend Latency]
+    J[Latency by Route]
+    K[Slow Request %]
+  end
 
-    row1 --> row2 --> row3 --> row4
+  row1 --> row2 --> row3 --> row4
 ```
-
-Figure: Gateway dashboard layout with logical panel grouping.
+</Diagram>
 
 Row 1 gives you immediate health status—if everything is green, you can stop looking. Row 2 shows backend status, helping you quickly identify if a problem is gateway-side or upstream-side. Rows 3 and 4 provide the detail needed to narrow down issues to specific routes or consumers.
 
@@ -786,11 +909,26 @@ When a consumer reports a problem, you need to answer: Is this consumer-specific
     thead: { th: ["Panel", "Purpose"] },
     tbody: {
       tr: [
-        { th: "Consumer Traffic vs. Global", td: ["Is this consumer's pattern unusual?"] },
-        { th: "Consumer Error Rate vs. Global", td: ["Are errors consumer-specific or systemic?"] },
-        { th: "Consumer Latency Distribution", td: ["Is this consumer hitting slow endpoints?"] },
-        { th: "Consumer Route Usage", td: ["What endpoints is this consumer using?"] },
-        { th: "Consumer Quota Status", td: ["Is rate limiting affecting this consumer?"] },
+        {
+          th: "Consumer Traffic vs. Global",
+          td: ["Is this consumer's pattern unusual?"],
+        },
+        {
+          th: "Consumer Error Rate vs. Global",
+          td: ["Are errors consumer-specific or systemic?"],
+        },
+        {
+          th: "Consumer Latency Distribution",
+          td: ["Is this consumer hitting slow endpoints?"],
+        },
+        {
+          th: "Consumer Route Usage",
+          td: ["What endpoints is this consumer using?"],
+        },
+        {
+          th: "Consumer Quota Status",
+          td: ["Is rate limiting affecting this consumer?"],
+        },
       ],
     },
   }}
@@ -904,10 +1042,22 @@ Consumer-level alerts protect your infrastructure from misbehaving clients. Thes
     thead: { th: ["Alert", "Condition", "Action"] },
     tbody: {
       tr: [
-        { th: "Consumer Rate Spike", td: ["10x normal request rate", "Investigate, possible abuse"] },
-        { th: "Consumer Error Spike", td: ["> 50% error rate for consumer", "Contact consumer, likely misconfiguration"] },
-        { th: "Consumer Quota Exhaustion", td: ["95% of quota used", "Notify consumer, offer quota increase"] },
-        { th: "New Consumer High Volume", td: ["New API key with > 1000 req/min", "Review registration, possible bot"] },
+        {
+          th: "Consumer Rate Spike",
+          td: ["10x normal request rate", "Investigate, possible abuse"],
+        },
+        {
+          th: "Consumer Error Spike",
+          td: ["> 50% error rate for consumer", "Contact consumer, likely misconfiguration"],
+        },
+        {
+          th: "Consumer Quota Exhaustion",
+          td: ["95% of quota used", "Notify consumer, offer quota increase"],
+        },
+        {
+          th: "New Consumer High Volume",
+          td: ["New API key with > 1000 req/min", "Review registration, possible bot"],
+        },
       ],
     },
   }}
@@ -1034,9 +1184,15 @@ Search your tracing system for spans with status code 503 during the error windo
 <List
   variant="check-icons-list"
   items={[
-    { text: "Long wait times before backend connection (connection pool exhaustion)" },
-    { text: "Multiple retries that all fail (backend truly unavailable)" },
-    { text: "Fast failures (circuit breaker tripped, immediately returning error)" },
+    {
+      text: "Long wait times before backend connection (connection pool exhaustion)",
+    },
+    {
+      text: "Multiple retries that all fail (backend truly unavailable)",
+    },
+    {
+      text: "Fast failures (circuit breaker tripped, immediately returning error)",
+    },
   ]}
 />
 
@@ -1104,9 +1260,15 @@ Search traces filtered by `consumer_id="client-abc"` for the last hour. Sort by 
 <List
   variant="check-icons-list"
   items={[
-    { text: "Repeated auth failures followed by retries" },
-    { text: "Requests to endpoints that require expensive joins or aggregations" },
-    { text: "Geographic routing delays if your backend is in a different region" },
+    {
+      text: "Repeated auth failures followed by retries",
+    },
+    {
+      text: "Requests to endpoints that require expensive joins or aggregations",
+    },
+    {
+      text: "Geographic routing delays if your backend is in a different region",
+    },
   ]}
 />
 
@@ -1151,11 +1313,26 @@ This cardinality explosion has real consequences: increased memory usage, slower
     thead: { th: ["Dimension", "Cardinality Risk", "Mitigation"] },
     tbody: {
       tr: [
-        { th: "Consumer ID", td: ["High (thousands)", "Use only on counters, not histograms"] },
-        { th: "Route", td: ["Medium (hundreds)", "Use route pattern, not full path"] },
-        { th: "Upstream Instance", td: ["Medium", "Aggregate to upstream name"] },
-        { th: "Status Code", td: ["Low (tens)", "Safe to use everywhere"] },
-        { th: "Method", td: ["Very Low (<10)", "Safe to use everywhere"] },
+        {
+          th: "Consumer ID",
+          td: ["High (thousands)", "Use only on counters, not histograms"],
+        },
+        {
+          th: "Route",
+          td: ["Medium (hundreds)", "Use route pattern, not full path"],
+        },
+        {
+          th: "Upstream Instance",
+          td: ["Medium", "Aggregate to upstream name"],
+        },
+        {
+          th: "Status Code",
+          td: ["Low (tens)", "Safe to use everywhere"],
+        },
+        {
+          th: "Method",
+          td: ["Very Low (<10)", "Safe to use everywhere"],
+        },
       ],
     },
   }}
@@ -1204,9 +1381,18 @@ Balance observability depth with cost:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Metrics:", text: "Cheapest. Store for months or years. Watch cardinality—high-cardinality labels multiply costs quickly." },
-    { lead: "Traces:", text: "Moderate cost. Store for days or weeks. Use tail sampling to keep what matters, discard the rest." },
-    { lead: "Logs:", text: "Most expensive. Store structured logs (JSON) for days, ship raw logs to cold storage if compliance requires longer retention. Sample verbose success logs at high volumes." },
+    {
+      lead: "Metrics:",
+      text: "Cheapest. Store for months or years. Watch cardinality—high-cardinality labels multiply costs quickly.",
+    },
+    {
+      lead: "Traces:",
+      text: "Moderate cost. Store for days or weeks. Use tail sampling to keep what matters, discard the rest.",
+    },
+    {
+      lead: "Logs:",
+      text: "Most expensive. Store structured logs (JSON) for days, ship raw logs to cold storage if compliance requires longer retention. Sample verbose success logs at high volumes.",
+    },
   ]}
 />
 
@@ -1225,10 +1411,18 @@ Implement redaction at the gateway:
 <List
   variant="check-icons-list"
   items={[
-    { text: "Mask auth headers (Authorization, API-Key, X-Auth-Token)" },
-    { text: "Redact PII fields in request/response bodies" },
-    { text: "Hash or truncate sensitive identifiers (email → sha256 hash, credit card → last 4 digits)" },
-    { text: "Limit access to gateway observability dashboards—not everyone needs to see all consumers' traffic patterns" },
+    {
+      text: "Mask auth headers (Authorization, API-Key, X-Auth-Token)",
+    },
+    {
+      text: "Redact PII fields in request/response bodies",
+    },
+    {
+      text: "Hash or truncate sensitive identifiers (email → sha256 hash, credit card → last 4 digits)",
+    },
+    {
+      text: "Limit access to gateway observability dashboards—not everyone needs to see all consumers' traffic patterns",
+    },
   ]}
 />
 
@@ -1243,10 +1437,18 @@ The worst time to discover your observability is broken is during an incident. T
 <List
   variant="check-icons-list"
   items={[
-    { text: "Trace IDs propagate end-to-end from gateway to all backends" },
-    { text: "Consumer IDs appear correctly in metrics and logs" },
-    { text: "Circuit breakers trip when expected and metrics reflect the state change" },
-    { text: "Error logs contain the context fields you need for debugging" },
+    {
+      text: "Trace IDs propagate end-to-end from gateway to all backends",
+    },
+    {
+      text: "Consumer IDs appear correctly in metrics and logs",
+    },
+    {
+      text: "Circuit breakers trip when expected and metrics reflect the state change",
+    },
+    {
+      text: "Error logs contain the context fields you need for debugging",
+    },
   ]}
 />
 
@@ -1255,9 +1457,15 @@ The worst time to discover your observability is broken is during an incident. T
 <List
   variant="check-icons-list"
   items={[
-    { text: "Does Prometheus keep up with metric ingestion?" },
-    { text: "Does your tracing backend handle the span volume without sampling errors?" },
-    { text: "Do log aggregation systems stay within latency SLAs?" },
+    {
+      text: "Does Prometheus keep up with metric ingestion?",
+    },
+    {
+      text: "Does your tracing backend handle the span volume without sampling errors?",
+    },
+    {
+      text: "Do log aggregation systems stay within latency SLAs?",
+    },
   ]}
 />
 
@@ -1266,10 +1474,18 @@ Test failure scenarios explicitly. Intentionally break a backend and verify that
 <List
   variant="check-icons-list"
   items={[
-    { text: "Circuit breaker metrics show the state change" },
-    { text: "Traces show retry attempts and eventual failure" },
-    { text: "Error logs include upstream error details" },
-    { text: "Dashboards and alerts behave as expected" },
+    {
+      text: "Circuit breaker metrics show the state change",
+    },
+    {
+      text: "Traces show retry attempts and eventual failure",
+    },
+    {
+      text: "Error logs include upstream error details",
+    },
+    {
+      text: "Dashboards and alerts behave as expected",
+    },
   ]}
 />
 
@@ -1322,10 +1538,22 @@ Design your observability for the questions you will ask during incidents:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Is the gateway healthy?", text: "Request rate, error rate, and latency percentiles answer this instantly." },
-    { lead: "Is a specific backend unhealthy?", text: "Per-upstream metrics and circuit breaker state tell you." },
-    { lead: "Is a specific consumer affected?", text: "Consumer-specific labels let you slice the data." },
-    { lead: "What happened to this specific request?", text: "Trace ID and request ID correlation connect all the pieces." },
+    {
+      lead: "Is the gateway healthy?",
+      text: "Request rate, error rate, and latency percentiles answer this instantly.",
+    },
+    {
+      lead: "Is a specific backend unhealthy?",
+      text: "Per-upstream metrics and circuit breaker state tell you.",
+    },
+    {
+      lead: "Is a specific consumer affected?",
+      text: "Consumer-specific labels let you slice the data.",
+    },
+    {
+      lead: "What happened to this specific request?",
+      text: "Trace ID and request ID correlation connect all the pieces.",
+    },
   ]}
 />
 
