@@ -269,7 +269,3 @@ https://mermaid.js.org/config/directives.html
 ### This file was badly mangled during refactoring, need to compare against original:
 
 src/content/articles/internal-developer-portal-platform-self-service-actions/pdf.mdx
-
-## Diagram
-
-Can you add a detailed description to the Diagram on line xxxx for the mermaid diagram right above it? The intention is to provide a detailed description for users with visual impairments so they can understand the diagram.

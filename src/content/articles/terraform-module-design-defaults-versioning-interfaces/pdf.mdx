@@ -35,49 +35,54 @@ Think of a module interface in five layers:
   items={[
     {
       lead: 'Input variables',
-      text: "are the parameters consumers provide. Some are required (the module can't guess your VPC ID), others have sensible defaults (instance type can default to t3.medium). The types, names, and validation rules are all part of the contract.",
+      text: "The parameters consumers provide. Some are required (the module can't guess your VPC ID), others have sensible defaults (instance type can default to t3.medium). The types, names, and validation rules are all part of the contract.",
     },
     {
       lead: 'Output values',
-      text: "are the data consumers reference. When someone writes `module.vpc.private_subnet_ids[0]`, they're depending on that output existing, being a list, and having at least one element. Change the output name or type and their code breaks.",
+      text: "The data consumers reference. When someone writes `module.vpc.private_subnet_ids[0]`, they're depending on that output existing, being a list, and having at least one element. Change the output name or type and their code breaks.",
     },
     {
       lead: 'Resource behavior',
-      text: 'is what actually gets created. If your module creates a security group that allows HTTPS traffic, consumers might depend on that. Adding or removing resources can break downstream assumptions.',
+      text: 'What actually gets created. If your module creates a security group that allows HTTPS traffic, consumers might depend on that. Adding or removing resources can break downstream assumptions.',
     },
     {
       lead: 'Provider requirements',
-      text: 'constrain which provider versions work with your module. If you bump the minimum AWS provider from 4.0 to 5.0, consumers on 4.x can\'t use your module until they upgrade.',
+      text: 'Constrains which provider versions work with your module. If you bump the minimum AWS provider from 4.0 to 5.0, consumers on 4.x can\'t use your module until they upgrade.',
     },
     {
       lead: 'Implicit contracts',
-      text: 'are the undocumented assumptions. Maybe your module names resources with a specific pattern (`{environment}-{name}-{resource_type}`), applies a standard set of tags, or assumes the VPC has DNS hostnames enabled. Perhaps it expects certain IAM permissions to exist, or assumes subnets have internet access through a NAT gateway. These are the trickiest because they\'re easy to break without realizing it — you rename your tagging convention and suddenly a downstream cost allocation dashboard stops working.',
+      text: 'The undocumented assumptions. Maybe your module names resources with a specific pattern (`{environment}-{name}-{resource_type}`), applies a standard set of tags, or assumes the VPC has DNS hostnames enabled. Perhaps it expects certain IAM permissions to exist, or assumes subnets have internet access through a NAT gateway. These are the trickiest because they\'re easy to break without realizing it — you rename your tagging convention and suddenly a downstream cost allocation dashboard stops working.',
     },
   ]}
 />
 
-```mermaid
-flowchart TB
+  <Diagram
+    title="Module interface separates what consumers depend on from implementation details."
+    description={
+    `Top-to-bottom flowchart with three grouped sections: Module Consumer, Interface Contract, and Implementation not part of contract. In Module Consumer, one node shows a sample module block calling the vpc module with source company slash vpc slash aws, version approximately greater than 2.0, cidr_block 10.0.0.0 slash 16, and environment production. A second consumer node shows downstream usage where subnet_id is assigned from module.vpc.private_subnet_ids[0]. The consumer group connects to the Interface Contract group, which contains three contract elements: Inputs cidr_block and environment, Outputs vpc_id and private_subnet_ids, and Behavior creates VPC, subnets, and NAT. The Interface Contract group then connects to the Implementation group, which contains details such as how subnets are calculated, which availability zones are used, and internal resource naming. The diagram shows that consumers should depend on the published contract layer rather than on internal implementation details, allowing the module to evolve safely behind a stable interface.`
+    }
+  >
+  ```mermaid
+  flowchart TB
     subgraph consumer["Module Consumer"]
-        call["module 'vpc' {<br/>source = 'company/vpc/aws'<br/>version = '~> 2.0'<br/>cidr_block = '10.0.0.0/16'<br/>environment = 'production'<br/>}"]
-        usage["subnet_id = module.vpc.private_subnet_ids[0]"]
+      call["module 'vpc' {<br/>source = 'company/vpc/aws'<br/>version = '~> 2.0'<br/>cidr_block = '10.0.0.0/16'<br/>environment = 'production'<br/>}"]
+      usage["subnet_id = module.vpc.private_subnet_ids[0]"]
     end
 
     subgraph contract["Interface Contract"]
-        inputs["Inputs: cidr_block, environment"]
-        outputs["Outputs: vpc_id, private_subnet_ids"]
-        behavior["Behavior: creates VPC, subnets, NAT"]
+      inputs["Inputs: cidr_block, environment"]
+      outputs["Outputs: vpc_id, private_subnet_ids"]
+      behavior["Behavior: creates VPC, subnets, NAT"]
     end
 
     subgraph impl["Implementation (NOT part of contract)"]
-        details["How subnets are calculated<br/>Which AZs are used<br/>Internal resource naming"]
+      details["How subnets are calculated<br/>Which AZs are used<br/>Internal resource naming"]
     end
 
     consumer --> contract
     contract --> impl
-```
-
-Figure: Module interface separates what consumers depend on from implementation details.
+  ```
+  </Diagram>
 
 ### Breaking vs Non-Breaking Changes
 
@@ -93,43 +98,43 @@ Not all changes are equal. Some are safe to make in a minor version; others requ
       tr: [
         {
           th: 'Add optional input with default',
-          td: ['No', '`variable "tags" { default = {} }`', 'None needed'],
+          td: ['No', '<span class="text-mono">variable "tags" { default = {} }</span>', 'None needed'],
         },
         {
           th: 'Remove input variable',
-          td: ['Yes', 'Delete `variable "legacy_flag"`', 'Deprecate first; document in changelog'],
+          td: ['Yes', 'Delete <span class="text-mono">variable "legacy_flag"</span>', 'Deprecate first; document in changelog'],
         },
         {
           th: 'Change input type',
-          td: ['Yes', '`string` → `list(string)`', 'Provide migration example in changelog'],
+          td: ['Yes', '<span class="text-mono">string</span> → <span class="text-mono">list(string)</span>', 'Provide migration example in changelog'],
         },
         {
           th: 'Add new output',
-          td: ['No', '`output "new_arn" { ... }`', 'None needed'],
+          td: ['No', '<span class="text-mono">output "new_arn" { ... }</span>', 'None needed'],
         },
         {
           th: 'Remove output',
-          td: ['Yes', 'Delete `output "old_id"`', 'Deprecate for one major version first'],
+          td: ['Yes', 'Delete <span class="text-mono">output "old_id"</span>', 'Deprecate for one major version first'],
         },
         {
           th: 'Change output type',
-          td: ['Yes', '`string` → `object`', 'Add new output; deprecate old one'],
+          td: ['Yes', '<span class="text-mono">string</span> → <span class="text-mono">object</span>', 'Add new output; deprecate old one'],
         },
         {
           th: 'Add new resource',
-          td: ['Usually no', 'Add `aws_cloudwatch_log_group`', 'None if no side effects'],
+          td: ['Usually no', 'Add <span class="text-mono">aws_cloudwatch_log_group</span>', 'None if no side effects'],
         },
         {
           th: 'Remove resource',
-          td: ['Yes', 'Delete `aws_s3_bucket`', 'Document state rm commands'],
+          td: ['Yes', 'Delete <span class="text-mono">aws_s3_bucket</span>', 'Document state rm commands'],
         },
         {
           th: 'Rename resource',
-          td: ['Yes', '`aws_instance.main` → `aws_instance.primary`', 'Requires `moved` block'],
+          td: ['Yes', '<span class="text-mono">aws_instance.main</span> → <span class="text-mono">aws_instance.primary</span>', 'Requires <span class="text-mono">moved</span> block'],
         },
         {
           th: 'Change provider version',
-          td: ['Maybe', '`>= 4.0` → `>= 5.0`', 'Depends on provider changes'],
+          td: ['Maybe', '<span class="text-mono">>= 4.0</span> → <span class="text-mono">>= 5.0</span>', 'Depends on provider changes'],
         },
       ],
     },
@@ -137,7 +142,7 @@ Not all changes are equal. Some are safe to make in a minor version; others requ
   }}
 />
 
-The key insight: _outputs are promises_. Even if you think nobody uses a particular output, removing it is a breaking change. Someone, somewhere, has probably wired it into their configuration. Deprecate outputs for at least one major version before removal, giving consumers time to migrate.
+The key insight: __outputs are promises__. Even if you think nobody uses a particular output, removing it is a breaking change. Someone, somewhere, has probably wired it into their configuration. Deprecate outputs for at least one major version before removal, giving consumers time to migrate.
 
 <Callout type="warning">
 Resource renames are particularly dangerous because they cause Terraform to destroy and recreate the resource unless you include a `moved` block. A simple rename of `aws_instance.main` to `aws_instance.primary` could destroy a production database if you're not careful.
@@ -153,7 +158,7 @@ The first decision for every variable: should the consumer be forced to provide 
 
 Make a variable required when the module genuinely cannot guess. VPC ID is a classic example — the module has no way to know which VPC you want to deploy into. Environment is another; deploying to production with a default of "development" would be a disaster.
 
-Make a variable optional when there's a reasonable starting point. Instance type can default to t3.medium because it works for most workloads initially and is easy to change later. Backup retention can default to 7 days because _some_ retention is almost always better than none.
+Make a variable optional when there's a reasonable starting point. Instance type can default to t3.medium because it works for most workloads initially and is easy to change later. Backup retention can default to 7 days because __some__ retention is almost always better than none.
 
 Use `null` as a default when a feature is opt-in. Custom KMS keys, custom domains, advanced monitoring configurations — these are things most users don't need, and `null` signals "use the platform default" or "skip this feature."
 
@@ -372,7 +377,7 @@ Outputs are the other half of the interface contract. Every output you expose be
 
 Think about what consumers actually need. A VPC module's consumers need the VPC ID to create resources inside it. They need subnet IDs to place instances. They need ARNs to write IAM policies. They probably don't need the internal route table associations or the NAT gateway attachment details.
 
-Output _identifiers_ that consumers will reference directly:
+Output __identifiers__ that consumers will reference directly:
 
 ```hcl title="modules/vpc/outputs.tf"
 output "vpc_id" {
@@ -388,7 +393,7 @@ output "private_subnet_ids" {
 
 Code: Basic identifier outputs for downstream resource creation.
 
-Output _ARNs_ for IAM policies. Consumers often need to grant permissions to resources your module creates, and ARNs are the currency of IAM:
+Output __ARNs__ for IAM policies. Consumers often need to grant permissions to resources your module creates, and ARNs are the currency of IAM:
 
 ```hcl title="modules/database/outputs.tf"
 output "log_group_arn" {
@@ -404,7 +409,7 @@ output "kms_key_arn" {
 
 Code: ARN outputs for IAM policy construction.
 
-Output _computed values_ that would be hard to derive. NAT gateway public IPs, auto-generated hostnames, calculated CIDR blocks — anything the consumer would need to dig through state to find:
+Output __computed values__ that would be hard to derive. NAT gateway public IPs, auto-generated hostnames, calculated CIDR blocks — anything the consumer would need to dig through state to find:
 
 ```hcl title="modules/database/outputs.tf"
 output "connection_string" {
@@ -492,13 +497,13 @@ The heredoc description appears in `terraform output` and in documentation gener
 
 ## Versioning Strategy
 
-Modules evolve. Requirements change, providers release new features, and you learn better patterns. Semantic versioning provides the framework for managing this evolution, but applying it to infrastructure requires understanding what constitutes a breaking change — and many changes that _feel_ minor are technically breaking.
+Modules evolve. Requirements change, providers release new features, and you learn better patterns. Semantic versioning provides the framework for managing this evolution, but applying it to infrastructure requires understanding what constitutes a breaking change — and many changes that __feel__ minor are technically breaking.
 
 ### Semantic Versioning for Modules
 
 SemVer's core principle applies directly to Terraform modules: major versions for breaking changes, minor for new features, patch for bug fixes. The tricky part is that infrastructure changes often have hidden dependencies — renaming an output feels like a minor cleanup, but it breaks every consumer who referenced that output.
 
-_Major version bumps_ are required when you change the interface contract in ways that could break existing consumers:
+__Major version bumps__ are required when you change the interface contract in ways that could break existing consumers:
 
 <List
   variant="check-icons-list"
@@ -544,7 +549,7 @@ _Minor version bumps_ are for backward-compatible additions:
   ]}
 />
 
-_Patch version bumps_ are for fixes that don't touch the interface:
+__Patch version bumps__ are for fixes that don't touch the interface:
 
 <List
   variant="check-icons-list"

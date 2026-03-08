@@ -19,26 +19,32 @@ featured: true
 *[TCP]: Transmission Control Protocol
 *[TLS]: Transport Layer Security
 
-Every PostgreSQL connection costs memory—roughly 5-10MB per connection—and requires a dedicated backend process. A database configured for 200 max connections isn't "safe at 199." It's already under strain well before hitting that limit. Connection management isn't about avoiding hard limits; it's about understanding the soft degradation that happens as connections accumulate. Connection exhaustion doesn't announce itself with a clean error. It manifests as slow queries, timeouts, and cascading failures across your application tier.
+Every PostgreSQL connection costs memory — roughly 5-10MB per connection — and requires a dedicated backend process. A database configured for 200 max connections isn't "safe at 199." It's already under strain well before hitting that limit. Connection management isn't about avoiding hard limits; it's about understanding the soft degradation that happens as connections accumulate. Connection exhaustion doesn't announce itself with a clean error. It manifests as slow queries, timeouts, and cascading failures across your application tier.
 
-I've seen this pattern repeatedly: a team runs PostgreSQL with `max_connections=200`, comfortable at typical usage of 50. Traffic spikes, instances autoscale from 5 to 20, each with a pool of 20. Four hundred connections hit a 200 limit. Rejections cascade—threads block, health checks fail, more scaling triggers more connection requests.
+I've seen this pattern repeatedly: a team runs PostgreSQL with `max_connections=200`, comfortable at typical usage of 50. Traffic spikes, instances autoscale from 5 to 20, each with a pool of 20. Four hundred connections hit a 200 limit. Rejections cascade — threads block, health checks fail, more scaling triggers more connection requests.
 
-After adding PgBouncer, properly sizing pools, and implementing connection backpressure, the next traffic spike looks different. Database connections stay at 200. The application queues requests appropriately. Latency increases, but nothing fails. The lesson: connection limits aren't about capacity—they're about graceful degradation.
+After adding PgBouncer, properly sizing pools, and implementing connection backpressure, the next traffic spike looks different. Database connections stay at 200. The application queues requests appropriately. Latency increases, but nothing fails. The lesson: connection limits aren't about capacity — they're about graceful degradation.
 
 <Callout type="warning">
-The most common PostgreSQL scaling mistake: configuring max_connections high "just in case." Each connection costs memory and CPU. A database with 1000 max_connections will perform worse than one with 200—even at the same actual connection count—because of reservation overhead.
+The most common PostgreSQL scaling mistake: configuring `max_connections` high "just in case." Each connection costs memory and CPU. A database with 1000 `max_connections` will perform worse than one with 200 — even at the same actual connection count — because of reservation overhead.
 </Callout>
 
 ## Connection Fundamentals
 
 ### How PostgreSQL Handles Connections
 
-PostgreSQL uses a process-per-connection model. When a client connects, the main __postgres process__ (the server daemon) forks a new __backend process__ dedicated to that client. Each backend handles all queries for its __connection__ (the TCP session between client and backend) until termination. In `pg_stat_activity`, these appear as rows with `backend_type = 'client backend'`. The fork-based model provides strong isolation—a crash in one backend doesn't affect others—but it comes with overhead.
+PostgreSQL uses a process-per-connection model. When a client connects, the main __postgres process__ (the server daemon) forks a new __backend process__ dedicated to that client. Each backend handles all queries for its __connection__ (the TCP session between client and backend) until termination. In `pg_stat_activity`, these appear as rows with `backend_type = 'client backend'`. The fork-based model provides strong isolation — a crash in one backend doesn't affect others — but it comes with overhead.
 
 Establishing a new connection involves multiple steps: TCP handshake (1ms locally, 10-100ms over network), process fork (1-5ms), authentication (1-10ms depending on method), and TLS handshake if configured (5-50ms). Total: 10-200ms for a new connection. For web applications making dozens of queries per request, creating a fresh connection each time is prohibitively expensive.
 
-Each backend process consumes resources independent of whether it's actively running queries. The base memory footprint is roughly 5-10MB per connection, plus `work_mem` allocation when executing operations (4MB default, but can be much higher for complex queries). CPU overhead comes from OS scheduler contention—more backend processes means more context switching as the kernel cycles between them, even when most are idle.
+Each backend process consumes resources independent of whether it's actively running queries. The base memory footprint is roughly 5-10MB per connection, plus `work_mem` allocation when executing operations (4MB default, but can be much higher for complex queries). CPU overhead comes from OS scheduler contention — more backend processes means more context switching as the kernel cycles between them, even when most are idle.
 
+<Diagram
+  title="Connection establishment sequence."
+  description={
+    `Sequence diagram with three participants: Application, Postgres Process, and Backend Process. The application starts a TCP handshake by sending TCP SYN to the Postgres process, which responds with TCP SYN-ACK, followed by the application sending TCP ACK. The application then sends a startup message to the Postgres process. The Postgres process forks a backend process and hands the connection off to that backend. The backend requests authentication from the application, the application sends password or credentials, the backend verifies those credentials, and then responds with Authentication OK. A note marks that the connection is now established in roughly 10 to 200 milliseconds. After establishment, the application sends a query to the backend and receives results. Finally, the application sends Terminate, and the backend performs cleanup and exits. The diagram shows the full overhead involved in creating a fresh PostgreSQL connection before useful query work begins.`
+  }
+>
 ```mermaid
 sequenceDiagram
     participant App as Application
@@ -66,8 +72,7 @@ sequenceDiagram
     App->>Backend: Terminate
     Backend->>Backend: Cleanup & exit
 ```
-
-Figure: Connection establishment sequence.
+</Diagram>
 
 The `max_connections` setting determines how many backend processes can exist simultaneously. The conventional wisdom is to set it high "for safety," but this backfires. A database configured for 1000 connections reserves memory for 1000 potential backends even when only 50 are connected. The rule of thumb for bare metal: `max_connections = (CPU cores × 2) + effective_spindle_count`[^spindle]. For SSDs, `CPU cores × 4` works, but staying conservative (50-100) with a connection pooler is usually better.
 
@@ -77,7 +82,7 @@ The `max_connections` setting determines how many backend processes can exist si
   variant="vertical-column-delineation-table"
   content={{
     thead: {
-      th: ['max_connections', 'Use Case', 'Memory Overhead', 'Notes'],
+      th: ['<span class="text-mono">max_connections</span>', 'Use Case', 'Memory Overhead', 'Notes'],
     },
     tbody: {
       tr: [
@@ -95,13 +100,13 @@ The `max_connections` setting determines how many backend processes can exist si
         },
       ],
     },
-    figure: 'max_connections settings and their implications.',
+    figure: '<span class="text-mono">max_connections</span> settings and their implications.',
   }}
 />
 
 ### Connection Costs
 
-Understanding where your connections come from—and what state they're in—is critical for diagnosing saturation. The `pg_stat_activity` view shows all current connections with their state, user, application, and current query.
+Understanding where your connections come from — and what state they're in — is critical for diagnosing saturation. The `pg_stat_activity` view shows all current connections with their state, user, application, and current query.
 
 ```sql title="connection-monitoring.sql"
 -- Current connection count by state
@@ -178,22 +183,22 @@ Connection state tells you what each backend is doing. Most connections in a hea
 
 ### Pooling Architectures
 
-Connection pooling comes in two flavors: application-side pools and external poolers. Both solve the same problem—avoiding the overhead of creating new connections—but they scale differently.
+Connection pooling comes in two flavors: application-side pools and external poolers. Both solve the same problem — avoiding the overhead of creating new connections — but they scale differently.
 
 <List
   variant="check-icons-list"
   items={[
     {
       lead: 'Application-side pools',
-      text: "live within your application process. HikariCP (Java), node-postgres pool, SQLAlchemy (Python), and Go's `database/sql` all provide built-in pooling. The advantage is simplicity: no additional infrastructure, per-application configuration, and full support for prepared statements. The disadvantage is that scaling your application scales your connection count. Five application instances with pools of 20 connections each means 100 database connections. Twenty instances means 400. This couples your horizontal scaling to your database connection limits.",
+      text: 'Live within your application process. HikariCP (Java), node-postgres pool, SQLAlchemy (Python), and Go\'s <span class="text-mono">database/sql</span> all provide built-in pooling. The advantage is simplicity: no additional infrastructure, per-application configuration, and full support for prepared statements. The disadvantage is that scaling your application scales your connection count. Five application instances with pools of 20 connections each means 100 database connections. Twenty instances means 400. This couples your horizontal scaling to your database connection limits.',
     },
     {
       lead: 'External poolers',
-      text: 'sit between applications and the database as dedicated services. PgBouncer, Pgpool-II, and AWS RDS Proxy all work this way. The key benefit is connection multiplexing—many application connections can share fewer database connections. Your application can scale to 100 instances while the database sees a fixed 50 connections. The tradeoff is additional infrastructure and a potential single point of failure (mitigated by running multiple pooler instances).',
+      text: 'Sit between applications and the database as dedicated services. PgBouncer, Pgpool-II, and AWS RDS Proxy all work this way. The key benefit is connection multiplexing — many application connections can share fewer database connections. Your application can scale to 100 instances while the database sees a fixed 50 connections. The tradeoff is additional infrastructure and a potential single point of failure (mitigated by running multiple pooler instances).',
     },
     {
       lead: 'Managed database services',
-      text: "often provide built-in pooling. AWS RDS Proxy, Azure Database for PostgreSQL Flexible Server (with PgBouncer), and Google Cloud SQL don't offer native pooling but work well with Cloud SQL Auth Proxy for connection management. If you're on a managed platform, check whether pooling is available before deploying your own PgBouncer—the managed option is usually simpler to operate.",
+      text: "Often provide built-in pooling. AWS RDS Proxy, Azure Database for PostgreSQL Flexible Server (with PgBouncer), and Google Cloud SQL don't offer native pooling but work well with Cloud SQL Auth Proxy for connection management. If you're on a managed platform, check whether pooling is available before deploying your own PgBouncer — the managed option is usually simpler to operate.",
     },
   ]}
 />
@@ -240,37 +245,42 @@ External poolers support different __pooling modes__ that determine when connect
   ]}
 />
 
+<Diagram
+  title="PgBouncer connection multiplexing — application scaling decoupled from database connections."
+  description={
+  `Top-to-bottom flowchart comparing direct PostgreSQL connections with pooled connections through PgBouncer. In the Application Layer group, App Instance 1, App Instance 2, and App Instance N each have a pool of 20 connections. In the Without PgBouncer group, each application instance connects directly to PostgreSQL, causing the database to accumulate N times 20 connections as application instances scale out. In the With PgBouncer group, the same application instances send their 20 connections each to PgBouncer, which accepts all incoming client connections and multiplexes them onto a fixed pool of 50 PostgreSQL connections. The direct PostgreSQL target is highlighted negatively, while the fixed 50-connection PostgreSQL target behind PgBouncer is highlighted positively. The diagram shows how PgBouncer decouples application scaling from raw database connection counts.`
+  }
+>
 ```mermaid
 flowchart TD
-    subgraph "Application Layer"
-        A1[App Instance 1<br/>Pool: 20]
-        A2[App Instance 2<br/>Pool: 20]
-        A3[App Instance N<br/>Pool: 20]
-    end
+  subgraph applicationLayer[Application Layer]
+    A1[App Instance 1<br/>Pool: 20]
+    A2[App Instance 2<br/>Pool: 20]
+    A3[App Instance N<br/>Pool: 20]
+  end
 
-    subgraph "Without PgBouncer"
-        B[PostgreSQL<br/>N × 20 connections]
-    end
+  subgraph withoutPgBouncer[Without PgBouncer]
+    B[PostgreSQL<br/>N × 20 connections]
+  end
 
-    subgraph "With PgBouncer"
-        P[PgBouncer<br/>Accepts all]
-        C[PostgreSQL<br/>Fixed 50 connections]
-    end
+  subgraph withPgBouncer[With PgBouncer]
+    P[PgBouncer<br/>Accepts all]
+    C[PostgreSQL<br/>Fixed 50 connections]
+  end
 
-    A1 -->|"20 conn"| B
-    A2 -->|"20 conn"| B
-    A3 -->|"20 conn"| B
+  A1 -->|"20 conn"| B
+  A2 -->|"20 conn"| B
+  A3 -->|"20 conn"| B
 
-    A1 -->|"20 conn"| P
-    A2 -->|"20 conn"| P
-    A3 -->|"20 conn"| P
-    P -->|"50 conn"| C
+  A1 -->|"20 conn"| P
+  A2 -->|"20 conn"| P
+  A3 -->|"20 conn"| P
+  P -->|"50 conn"| C
 
-    style B fill:#f99,color:#000
-    style C fill:#9f9,color:#000
+  style B fill:#f99,color:#000
+  style C fill:#9f9,color:#000
 ```
-
-Figure: PgBouncer connection multiplexing—application scaling decoupled from database connections.
+</Diagram>
 
 ### PgBouncer Configuration
 
@@ -313,7 +323,7 @@ Code: PgBouncer configuration for a typical web application.
   items={[
     {
       lead: 'Pool sizing',
-      text: 'follows a simple formula: `default_pool_size = PostgreSQL max_connections / number_of_pools`. If PostgreSQL allows 100 connections and you have 5 user+database combinations (pools), each pool gets 20 connections. The `reserve_pool` handles burst traffic—set it to 10-25% of `default_pool_size`.',
+      text: 'follows a simple formula: `default_pool_size = PostgreSQL max_connections / number_of_pools`. If PostgreSQL allows 100 connections and you have 5 user+database combinations (pools), each pool gets 20 connections. The `reserve_pool` handles burst traffic — set it to 10-25% of `default_pool_size`.',
     },
     {
       lead: 'max_client_conn',
@@ -352,7 +362,7 @@ Code: PgBouncer configuration for a typical web application.
 
 ### Sizing Calculations
 
-Pool sizing isn't guesswork—it's queuing theory. Little's Law provides the foundation: $$L = \lambda \times W$$, where $$L$$ is the average number of connections in use, $$\lambda$$ is the request arrival rate (queries per second), and $$W$$ is the average time per query.
+Pool sizing isn't guesswork — it's queuing theory. Little's Law provides the foundation: $$L = \lambda \times W$$, where $$L$$ is the average number of connections in use, $$\lambda$$ is the request arrival rate (queries per second), and $$W$$ is the average time per query.
 
 If your application handles 100 queries per second with an average query time of 50ms, you need $$100 \times 0.05 = 5$$ connections on average. But Little's Law uses averages, and averages deceive. Query times vary. Traffic spikes. A pool sized for average load will saturate during peaks.
 
@@ -403,7 +413,7 @@ __Common anti-patterns__ undermine even correct calculations:
   items={[
     {
       lead: 'Oversized pools',
-      text: 'Setting `pool_size = 100` "just in case" means 10 instances create 1000 connections. Size based on actual need.',
+      text: 'Setting <span class="font-mono">pool_size = 100</span> "just in case" means 10 instances create 1000 connections. Size based on actual need.',
     },
     {
       lead: 'No max lifetime',
@@ -522,27 +532,27 @@ Regardless of language or pool library, the same principles apply. These setting
     tbody: {
       tr: [
         {
-          th: 'max_pool_size',
+          th: '<span class="font-mono">max_pool_size</span>,
           td: ['10-30 per instance', "Based on Little's Law calculation"],
         },
         {
-          th: 'min_pool_size',
+          th: '<span class="font-mono">min_pool_size</span>',
           td: ['50% of max', 'Keep pool warm, reduce latency'],
         },
         {
-          th: 'connection_timeout',
+          th: '<span class="font-mono">connection_timeout</span>',
           td: ['10s', 'Fail fast if pool exhausted'],
         },
         {
-          th: 'idle_timeout',
+          th: '<span class="font-mono">idle_timeout</span>',
           td: ['10-30 min', 'Reclaim unused connections'],
         },
         {
-          th: 'max_lifetime',
+          th: '<span class="font-mono">max_lifetime</span>',
           td: ['30 min', 'Prevent stale connections'],
         },
         {
-          th: 'leak_detection',
+          th: '<span class="font-mono">leak_detection</span>',
           td: ['1-5 min', 'Catch unreturned connections'],
         },
       ],
@@ -552,23 +562,23 @@ Regardless of language or pool library, the same principles apply. These setting
 />
 
 <Callout type="warning">
-Never set pool max_size to PostgreSQL max_connections. Leave headroom for admin connections, monitoring, migrations, and other applications. A good rule: application pools should use at most 80% of max_connections.
+Never set pool `max_size` to PostgreSQL `max_connections`. Leave headroom for admin connections, monitoring, migrations, and other applications. A good rule: application pools should use at most 80% of `max_connections`.
 </Callout>
 
-With pools configured, the next question is: how do you know if they're working? Proper sizing is only half the battle—you need visibility into whether your pools have headroom or are approaching saturation.
+With pools configured, the next question is: how do you know if they're working? Proper sizing is only half the battle — you need visibility into whether your pools have headroom or are approaching saturation.
 
 ## Saturation Signals
 
 ### Metrics to Monitor
 
-Connection saturation doesn't announce itself with a single metric. It's a constellation of signals that, together, tell you whether your system has headroom or is approaching collapse. The goal is catching saturation early—before "too many connections" errors appear in logs.
+Connection saturation doesn't announce itself with a single metric. It's a constellation of signals that, together, tell you whether your system has headroom or is approaching collapse. The goal is catching saturation early — before "too many connections" errors appear in logs.
 
 <List
   variant="check-icons-list"
   items={[
     {
       lead: 'Connection utilization',
-      text: "is the primary signal. Query `pg_stat_activity` to compare current connections against `max_connections`. Alert at 70% utilization, investigate at 85%. By 95%, you're one slow query away from exhaustion.",
+      text: 'The primary signal. Query <span class="font-mono">pg_stat_activity</span> to compare current connections against <span class="font-mono">max_connections</span>. Alert at 70% utilization, investigate at 85%. By 95%, you're one slow query away from exhaustion.'',
     },
   ]}
 />
@@ -593,11 +603,11 @@ Code: Connection utilization query.
     },
     {
       lead: 'Queue depth',
-      text: "counts requests waiting for connections. In PgBouncer, check `cl_waiting`. In application pools, check `waitingCount` or equivalent. Any sustained queue indicates saturation—the pool can't keep up with demand.",
+      text: "counts requests waiting for connections. In PgBouncer, check `cl_waiting`. In application pools, check `waitingCount` or equivalent. Any sustained queue indicates saturation — the pool can't keep up with demand.",
     },
     {
       lead: 'Idle in transaction',
-      text: 'connections are the silent killers. They hold connections hostage without doing work. Query for sessions stuck in this state for more than a minute—these are usually application bugs (missing commits, unclosed transactions in error paths).',
+      text: 'connections are the silent killers. They hold connections hostage without doing work. Query for sessions stuck in this state for more than a minute — these are usually application bugs (missing commits, unclosed transactions in error paths).',
     },
   ]}
 />
@@ -613,7 +623,7 @@ ORDER BY idle_duration DESC;
 
 Code: Find idle-in-transaction sessions.
 
-Each metric has different thresholds for when to pay attention versus when to wake someone up at 3am. These thresholds are starting points—adjust based on your application's tolerance for latency and your database's capacity:
+Each metric has different thresholds for when to pay attention versus when to wake someone up at 3am. These thresholds are starting points — adjust based on your application's tolerance for latency and your database's capacity:
 
 <Table
   variant="vertical-column-delineation-table"
@@ -649,13 +659,13 @@ Each metric has different thresholds for when to pay attention versus when to wa
   }}
 />
 
-For PgBouncer deployments, the `SHOW POOLS` command exposes additional metrics. Watch `cl_waiting` (clients waiting for server connections), `sv_idle` (available server connections—zero means exhaustion), and `maxwait` (longest current wait time in seconds).
+For PgBouncer deployments, the `SHOW POOLS` command exposes additional metrics. Watch `cl_waiting` (clients waiting for server connections), `sv_idle` (available server connections — zero means exhaustion), and `maxwait` (longest current wait time in seconds).
 
 ### Monitoring Dashboard
 
 During incidents, I need quick answers: Are connections the bottleneck? Are they being recycled? Is something blocking?
 
-The __connection snapshot query__ (see Reference Queries) gives a real-time breakdown of connection states and utilization—run this first during any database performance investigation.
+The __connection snapshot query__ (see Reference Queries) gives a real-time breakdown of connection states and utilization — run this first during any database performance investigation.
 
 __Connection age distribution__ reveals recycling problems. If you see connections older than your `max_lifetime` setting (or hours/days old when you expect minutes), you have a leak or misconfiguration.
 
@@ -663,8 +673,14 @@ __Lock blocking analysis__ identifies chains where one query holds locks that ot
 
 The progression from healthy to critical follows a predictable pattern:
 
+<Diagram
+  title="Connection saturation progression."
+  description={
+    `Top-to-bottom flowchart showing three connection saturation states. The Healthy state shows 50 out of 200 connections in use, no queue, and 15 idle connections. A traffic increase moves the system from Healthy to Warning. The Warning state shows 160 out of 200 connections in use, a queue of 5, and 2 idle connections. From Warning, if no action is taken, the system progresses to Critical. The Critical state shows 198 out of 200 connections in use, a queue of 50, and 0 idle connections. There is also a recovery path from Warning back to Healthy labeled Scale or optimize. The healthy state is highlighted positively, the warning state is highlighted as cautionary, and the critical state is highlighted negatively. The diagram explains how connection exhaustion develops gradually and where intervention can restore normal operation before the database reaches saturation.`
+  }
+>
 ```mermaid
-graph TD
+flowchart TD
     H["Healthy<br/>50/200 connections<br/>No queue, 15 idle"]
     W["Warning<br/>160/200 connections<br/>Queue: 5, Idle: 2"]
     C["Critical<br/>198/200 connections<br/>Queue: 50, Idle: 0"]
@@ -677,8 +693,7 @@ graph TD
     style W fill:#ff9,color:#000
     style C fill:#f99,color:#000
 ```
-
-Figure: Connection saturation progression.
+</Diagram>
 
 ## Failure Patterns
 
@@ -691,23 +706,23 @@ Connection exhaustion rarely happens in isolation. It cascades. Understanding th
   items={[
     {
       lead: 'Stage 1: Saturation',
-      text: "begins with a traffic spike or slow queries. Pool utilization climbs. Connection wait times increase. Query latencies creep up. This stage can last minutes to hours, giving you time to respond if you're watching the right metrics.",
+      text: "Begins with a traffic spike or slow queries. Pool utilization climbs. Connection wait times increase. Query latencies creep up. This stage can last minutes to hours, giving you time to respond if you're watching the right metrics.",
     },
     {
       lead: 'Stage 2: Queueing',
-      text: 'starts when the pool is fully utilized. Requests begin queuing for connections. Request latencies spike. Timeout errors appear sporadically. This stage lasts seconds to minutes—your window for intervention is shrinking.',
+      text: 'Starts when the pool is fully utilized. Requests begin queuing for connections. Request latencies spike. Timeout errors appear sporadically. This stage lasts seconds to minutes — your window for intervention is shrinking.',
     },
     {
       lead: 'Stage 3: Timeouts',
-      text: 'hit when the queue exceeds timeout thresholds. Connection timeout errors multiply. Transactions abort mid-flight. Users see errors. The system is now visibly failing.',
+      text: 'Hit when the queue exceeds timeout thresholds. Connection timeout errors multiply. Transactions abort mid-flight. Users see errors. The system is now visibly failing.',
     },
     {
       lead: 'Stage 4: Cascade',
-      text: 'is where things get worse before they get better. Applications retry failed requests, compounding the problem. Retry storms create more connection demand. Health checks fail. Kubernetes kills and restarts pods, which then all try to establish connections simultaneously. The problem feeds itself.',
+      text: 'Where things get worse before they get better. Applications retry failed requests, compounding the problem. Retry storms create more connection demand. Health checks fail. Kubernetes kills and restarts pods, which then all try to establish connections simultaneously. The problem feeds itself.',
     },
     {
       lead: 'Stage 5: Collapse',
-      text: 'means complete unavailability. The database refuses all new connections. Recovery requires manual intervention:',
+      text: 'Means complete unavailability. The database refuses all new connections. Recovery requires manual intervention:',
     },
   ]}
 />
@@ -725,7 +740,7 @@ Connection exhaustion rarely happens in isolation. It cascades. Understanding th
     },
     {
       lead: 'Restart applications gradually',
-      text: "Bring up one instance, verify it connects and serves traffic, then add more. Don't start all instances simultaneously—they'll all try to fill their pools at once.",
+      text: "Bring up one instance, verify it connects and serves traffic, then add more. Don't start all instances simultaneously — they'll all try to fill their pools at once.",
     },
     {
       lead: 'Monitor during recovery',
@@ -760,7 +775,7 @@ Prevention requires defense at multiple layers:
 
 ### Recovery Strategies
 
-When saturation hits, you need patterns that prevent cascade failures. These aren't theoretical—they're the difference between a slow day and a multi-hour outage.
+When saturation hits, you need patterns that prevent cascade failures. These aren't theoretical — they're the difference between a slow day and a multi-hour outage.
 
 __Circuit breakers__ stop the bleeding. When connection errors exceed a threshold, the circuit "opens" and immediately rejects requests instead of queuing them. This gives the database breathing room to recover. After a timeout, the circuit enters a "half-open" state, allowing a few requests through to test whether the database has recovered.
 
@@ -781,7 +796,7 @@ async function getUser(id: string) {
 
 Code: Circuit breaker usage pattern - [Full implementation](https://gist.github.com/webstackdev/b74864012c98b410435dc0aabf1f5a75).
 
-__Retry budgets__ prevent retry storms. Instead of retrying every failed request, track the ratio of retries to total requests. When retries exceed 20% of traffic, stop retrying—you're making things worse. Wire the retry budget into your circuit breaker:
+__Retry budgets__ prevent retry storms. Instead of retrying every failed request, track the ratio of retries to total requests. When retries exceed 20% of traffic, stop retrying — you're making things worse. Wire the retry budget into your circuit breaker:
 
 ```typescript title="retry-with-budget.ts"
 const budget = new RetryBudget({ windowMs: 60000, maxRetryRatio: 0.2 })
@@ -857,7 +872,7 @@ The key insights from this article:
     },
     {
       lead: 'Monitor saturation, not just errors.',
-      text: "By the time you see \"too many connections\" errors, you're already in a cascade. Set alerts on the utilization thresholds discussed earlier. Watch for idle-in-transaction sessions—they're connection leaks waiting to bite you.",
+      text: "By the time you see \"too many connections\" errors, you're already in a cascade. Set alerts on the utilization thresholds discussed earlier. Watch for idle-in-transaction sessions — they're connection leaks waiting to bite you.",
     },
     {
       lead: 'Design for graceful degradation.',
@@ -866,7 +881,7 @@ The key insights from this article:
   ]}
 />
 
-The goal isn't to handle unlimited connections—it's to handle connection constraints gracefully, so saturation causes slowdowns, not outages.
+The goal isn't to handle unlimited connections — it's to handle connection constraints gracefully, so saturation causes slowdowns, not outages.
 
 <Callout type="info">
 Connection management is about building slack into the system. A database running at 90% connection capacity has no room for variance, spikes, or slow queries. Target 50-70% utilization to leave room for reality to differ from expectations.

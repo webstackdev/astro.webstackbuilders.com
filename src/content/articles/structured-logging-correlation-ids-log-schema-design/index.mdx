@@ -11,7 +11,7 @@ featured: true
 
 It's 3 AM. A payment is stuck somewhere between your API gateway, order service, and payment processor. You start searching logs.
 
-You try `grep 'userId'`. Nothing. Maybe it's `grep 'user_id'`? A few hits, but not from the payment service. `grep 'user.id'`? Different results again. Five queries later, you've pieced together _most_ of the request path, but you're still not sure if you've found everything.
+You try `grep 'userId'`. Nothing. Maybe it's `grep 'user_id'`? A few hits, but not from the payment service. `grep 'user.id'`? Different results again. Five queries later, you've pieced together __most__ of the request path, but you're still not sure if you've found everything.
 
 Now imagine a different scenario: `user.id:12345 AND event.action:payment_initiated`. One query. Every service. Every log. Complete picture in seconds.
 
@@ -19,13 +19,13 @@ The difference isn't better tooling. It's discipline in how you emit logs. Struc
 
 ## Why Schema Matters
 
-One service logs `userId`, another logs `user_id`, a third logs `user.id`. Without standards, every developer who adds logging invents their own conventions. Queries become guesswork, and the worst part is you don't know what you're missing—false negatives are invisible.
+One service logs `userId`, another logs `user_id`, a third logs `user.id`. Without standards, every developer who adds logging invents their own conventions. Queries become guesswork, and the worst part is you don't know what you're missing — false negatives are invisible.
 
 The fix isn't documentation that nobody reads. It's adopting a schema that makes the right choice obvious.
 
 ### Adopt ECS, Don't Invent
 
-The [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/ecs-reference.html) (ECS) provides 800+ pre-defined fields covering users, errors, HTTP requests, network events, and more. It works with any log backend—Elasticsearch, DataDog, Splunk, CloudWatch Logs—because the schema is about field naming, not storage format.
+The [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/ecs-reference.html) (ECS) provides 800+ pre-defined fields covering users, errors, HTTP requests, network events, and more. It works with any log backend — Elasticsearch, DataDog, Splunk, CloudWatch Logs — because the schema is about field naming, not storage format.
 
 Here's what an ECS-compliant log entry looks like:
 
@@ -42,7 +42,7 @@ Here's what an ECS-compliant log entry looks like:
 }
 ```
 
-Code: ECS-compliant log entry. Field names like `user.id` and `error.type` are standardized, making cross-service queries predictable.
+Code: ECS-compliant log entry.
 
 The key field groups to adopt immediately:
 
@@ -108,11 +108,11 @@ Not all correlation IDs serve the same purpose. Here's the hierarchy you need:
         },
       ],
     },
-    figure: 'Correlation ID types and their scopes. Trace ID is the most important—it stays constant across all services.',
+    figure: 'Correlation ID types and scopes.',
   }}
 />
 
-The key insight: _trace ID stays constant_ across every service that handles the request. When you query `trace.id:4bf92f3577b34da6a`, you get logs from the API gateway, order service, payment service, inventory service, and notification service—everything involved in that single user action.
+The key insight: __trace ID stays constant__ across every service that handles the request. When you query `trace.id:4bf92f3577b34da6a`, you get logs from the API gateway, order service, payment service, inventory service, and notification service — everything involved in that single user action.
 
 <Newsletter />
 
@@ -128,7 +128,7 @@ traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
 
 The format is `version-traceId-spanId-flags`. Most APM tools (OpenTelemetry, Jaeger, Zipkin) support this natively.
 
-Async messaging requires a different approach since there are no HTTP headers. Instead, embed correlation context directly in the message envelope. Include a `causationId` to track which message or request triggered this one—essential for debugging event-driven architectures:
+Async messaging requires a different approach since there are no HTTP headers. Instead, embed correlation context directly in the message envelope. Include a `causationId` to track which message or request triggered this one — essential for debugging event-driven architectures:
 
 ```json
 {
@@ -142,7 +142,7 @@ Async messaging requires a different approach since there are no HTTP headers. I
 }
 ```
 
-Code: Message envelope with correlation context. The `causationId` creates an audit trail of what triggered what._
+Code: Message envelope with correlation context.
 
 ### AsyncLocalStorage for Automatic Context
 
@@ -182,9 +182,9 @@ async function fetchWithCorrelation(url: string, options: RequestInit = {}) {
 }
 ```
 
-Code: AsyncLocalStorage pattern for correlation context. Extract in middleware, access anywhere via `getCorrelationContext()`, inject automatically in outbound calls._
+Code: AsyncLocalStorage correlation pattern.
 
-With this pattern, your logger can call `getCorrelationContext()` and automatically include trace IDs in every log—no explicit ID passing required.
+With this pattern, your logger can call `getCorrelationContext()` and automatically include trace IDs in every log — no explicit ID passing required.
 
 <Callout type="warning">
 Every HTTP client in your codebase must propagate correlation headers. A single direct `fetch()` call breaks the trace chain. Wrap your HTTP clients or use OpenTelemetry auto-instrumentation to ensure consistency.
@@ -234,12 +234,12 @@ it('emits valid ECS-compliant logs', () => {
 })
 ```
 
-Code: Schema compliance test. Ajv validates the log structure; the regex assertion ensures trace IDs are present and correctly formatted._
+Code: Schema compliance test.
 
-In production, Prometheus metrics can track correlation coverage. Set a target—99% of logs should have trace IDs—and alert when it drops. Missing correlation usually indicates logging from outside request context: background jobs, startup code, or uninstrumented libraries.
+In production, Prometheus metrics can track correlation coverage. Set a target—99% of logs should have trace IDs — and alert when it drops. Missing correlation usually indicates logging from outside request context: background jobs, startup code, or uninstrumented libraries.
 
 <Callout type="success">
-A 99% correlation target is achievable within weeks. The remaining 1% is typically startup logs and health checks—events that don't need request context anyway.
+A 99% correlation target is achievable within weeks. The remaining 1% is typically startup logs and health checks — events that don't need request context anyway.
 </Callout>
 
 ### Start Small
@@ -286,4 +286,4 @@ Within a month, your most important request paths will be fully correlated. The 
 
 The investment is upfront: schema decisions, correlation middleware, CI tests. But the payoff compounds with every incident. Instead of five queries and an hour of uncertainty, you type one query and see the complete picture in seconds. Every service's logs connect. Debugging takes minutes instead of hours.
 
-The next time it's 3 AM and you're chasing a stuck payment, you won't be guessing at field names. You'll type `user.id:12345 AND event.action:payment_initiated`—one query, every service, complete picture—and know exactly what happened.
+The next time it's 3 AM and you're chasing a stuck payment, you won't be guessing at field names. You'll type `user.id:12345 AND event.action:payment_initiated`—one query, every service, complete picture — and know exactly what happened.

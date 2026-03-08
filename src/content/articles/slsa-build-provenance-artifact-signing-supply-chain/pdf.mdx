@@ -25,12 +25,12 @@ featured: true
 *[TOFU]: Trust On First Use
 *[VCS]: Version Control System
 
-Every software supply chain has weak points. The question isn't whether attackers will try to exploit them—they already are—but whether you've done enough to make your pipeline harder to compromise than the next target.
+Every software supply chain has weak points. The question isn't whether attackers will try to exploit them — they already are — but whether you've done enough to make your pipeline harder to compromise than the next target.
 
 Perfect supply chain security is impossible. But a practical baseline? That's achievable without a dedicated security team or enterprise tooling budgets.
 
 <Callout type="info">
-This article is for DevOps engineers and platform teams who want to implement supply chain security without enterprise tooling budgets. You'll learn to generate SLSA provenance, sign artifacts with Cosign, and enforce verification at deployment time—all using free, open-source tools.
+This article is for DevOps engineers and platform teams who want to implement supply chain security without enterprise tooling budgets. You'll learn to generate SLSA provenance, sign artifacts with Cosign, and enforce verification at deployment time — all using free, open-source tools.
 </Callout>
 
 ## The Supply Chain Attack Surface
@@ -46,31 +46,35 @@ The past few years have given us a painful education in supply chain attacks. Ea
   items={[
     {
       lead: 'Source code compromise',
-      text: 'is the most direct attack vector. In the SolarWinds incident (2020), attackers gained access to the build process and inserted malicious code that shipped to over 18,000 customers, including multiple US government agencies. The code looked legitimate because it came through legitimate channels.',
+      text: 'The most direct attack vector. In the SolarWinds incident (2020), attackers gained access to the build process and inserted malicious code that shipped to over 18,000 customers, including multiple US government agencies. The code looked legitimate because it came through legitimate channels.',
     },
     {
       lead: 'Build system compromise',
-      text: "targets the CI/CD pipeline itself. Codecov's bash uploader script was modified in 2021, causing every CI job that used it to exfiltrate credentials to attacker-controlled servers. Thousands of organizations were affected because they trusted a third-party tool in their build process.",
+      text: "Targets the CI/CD pipeline itself. Codecov's bash uploader script was modified in 2021, causing every CI job that used it to exfiltrate credentials to attacker-controlled servers. Thousands of organizations were affected because they trusted a third-party tool in their build process.",
     },
     {
       lead: 'Dependency confusion',
-      text: 'exploits how package managers resolve names. Alex Birsan\'s 2021 research demonstrated this by publishing packages to public registries that matched internal package names at Apple, Microsoft, and PayPal. When build systems checked public registries first, they pulled the malicious versions and executed arbitrary code inside corporate networks.',
+      text: 'Exploits how package managers resolve names. Alex Birsan\'s 2021 research demonstrated this by publishing packages to public registries that matched internal package names at Apple, Microsoft, and PayPal. When build systems checked public registries first, they pulled the malicious versions and executed arbitrary code inside corporate networks.',
     },
     {
       lead: 'Typosquatting',
-      text: 'relies on human error. Packages like crossenv (malicious) sit next to cross-env (legitimate) hoping developers will mistype. These attacks are low-effort but surprisingly effective, resulting in credential theft, cryptomining, and backdoors.',
+      text: 'Relies on human error. Packages like crossenv (malicious) sit next to cross-env (legitimate) hoping developers will mistype. These attacks are low-effort but surprisingly effective, resulting in credential theft, cryptomining, and backdoors.',
     },
     {
       lead: 'Compromised maintainers',
-      text: 'introduce risk through the humans in the chain. The event-stream incident (2018) showed how a new maintainer-who had earned trust through legitimate contributions-eventually added code to steal Bitcoin from a specific cryptocurrency wallet. The attack targeted one application but affected millions of downstream users.',
+      text: 'Introduce risk through the humans in the chain. The event-stream incident (2018) showed how a new maintainer-who had earned trust through legitimate contributions-eventually added code to steal Bitcoin from a specific cryptocurrency wallet. The attack targeted one application but affected millions of downstream users.',
     },
     {
       lead: 'Artifact tampering',
-      text: 'happens after the build but before deployment. CCleaner (2017) shipped a backdoored executable to 2.3 million users because attackers modified the signed artifact after it was built but before it was distributed. The signature was valid for the tampered file.',
+      text: 'Happens after the build but before deployment. CCleaner (2017) shipped a backdoored executable to 2.3 million users because attackers modified the signed artifact after it was built but before it was distributed. The signature was valid for the tampered file.',
     },
   ]}
 />
 
+<Diagram
+  title="Supply chain attack points."
+  description={`A left-to-right flowchart showing the main stages of a software supply chain: Developer, Source Repository, Build System, Artifact Registry, and Deployment. Solid arrows show the normal progression from development through deployment. Dashed arrows mark five attack opportunities: compromised developer credentials targeting the source repository, malicious commits moving from source into the build, dependency poisoning affecting the build system itself, build tampering between the build and the artifact registry, and artifact modification between the registry and deployment. The diagram emphasizes that every transition in the chain is a trust boundary that can be attacked.`}
+>
 ```mermaid
 flowchart LR
     A[Developer] --> B[Source<br>Repository]
@@ -84,9 +88,9 @@ flowchart LR
     C -.->|"④ Build<br>tampering"| D
     D -.->|"⑤ Artifact<br>modification"| E
 ```
-_Figure: Attack points in a typical software supply chain. Each arrow represents a transition where trust can be violated._
+</Diagram>
 
-Each stage in the pipeline requires different defenses. SLSA focuses on the middle of this chain—from source through build to artifact—but it doesn't cover everything.
+Each stage in the pipeline requires different defenses. SLSA focuses on the middle of this chain — from source through build to artifact — but it doesn't cover everything.
 
 ### What SLSA Actually Protects Against
 
@@ -122,13 +126,13 @@ SLSA (Supply-chain Levels for Software Artifacts) addresses specific threats, no
         },
       ],
     },
-    figure: "SLSA's protection scope. The framework proves provenance and build integrity, not code quality or dependency safety.",
+    figure: "SLSA protection scope.",
   }}
 />
 
-When someone modifies source after review, SLSA's provenance links the artifact to a specific commit—you can verify the artifact came from the code you reviewed. When a build system tries to add malicious code, hermetic builds with a verified builder make that tampering detectable. When someone replaces an artifact in a registry, cryptographic signatures and attestations reveal the substitution.
+When someone modifies source after review, SLSA's provenance links the artifact to a specific commit — you can verify the artifact came from the code you reviewed. When a build system tries to add malicious code, hermetic builds with a verified builder make that tampering detectable. When someone replaces an artifact in a registry, cryptographic signatures and attestations reveal the substitution.
 
-But SLSA doesn't evaluate whether the code itself is any good. A developer can commit vulnerable code, and SLSA will faithfully prove that vulnerability came from exactly where it says it did. A team can intentionally merge a malicious dependency, and SLSA will attest to that decision. The source is assumed to be intentional—SLSA only guarantees the artifact matches that intention.
+But SLSA doesn't evaluate whether the code itself is any good. A developer can commit vulnerable code, and SLSA will faithfully prove that vulnerability came from exactly where it says it did. A team can intentionally merge a malicious dependency, and SLSA will attest to that decision. The source is assumed to be intentional — SLSA only guarantees the artifact matches that intention.
 
 <Callout type="warning">
 SLSA proves that an artifact came from a specific source through a specific build process. It doesn't prove the source or build process are free of vulnerabilities. You still need code review, dependency scanning, and vulnerability management.
@@ -145,19 +149,19 @@ SLSA proves that an artifact came from a specific source through a specific buil
   items={[
     {
       lead: 'Level 1',
-      text: 'is essentially "write it down." Your source code must be version controlled, your builds must be scripted (not manual), and provenance must exist even if it\'s unsigned. Most teams already meet Level 1 without trying. The protection here is minimal-it catches accidental errors in manual builds but does not stop intentional attacks.',
+      text: 'Essentially "write it down." Your source code must be version controlled, your builds must be scripted (not manual), and provenance must exist even if it\'s unsigned. Most teams already meet Level 1 without trying. The protection here is minimal-it catches accidental errors in manual builds but does not stop intentional attacks.',
     },
     {
       lead: 'Level 2',
-      text: "adds authentication. Your builds must run on a hosted build service (GitHub Actions, GitLab CI, etc.), and that service must sign the provenance. This is where you start getting real security value: an attacker who compromises your source repository cannot forge provenance claiming the artifact came from a different commit. The effort is mostly configuration-days, not weeks.",
+      text: "Adds authentication. Your builds must run on a hosted build service (GitHub Actions, GitLab CI, etc.), and that service must sign the provenance. This is where you start getting real security value: an attacker who compromises your source repository cannot forge provenance claiming the artifact came from a different commit. The effort is mostly configuration-days, not weeks.",
     },
     {
       lead: 'Level 3',
-      text: 'introduces hardening. You need two-person review for changes, retained history that cannot be deleted, and a hardened, isolated build environment that generates non-falsifiable provenance. This level protects against insider threats at the build level. The effort is significant because it requires process changes, not just tooling.',
+      text: 'Introduces hardening. You need two-person review for changes, retained history that cannot be deleted, and a hardened, isolated build environment that generates non-falsifiable provenance. This level protects against insider threats at the build level. The effort is significant because it requires process changes, not just tooling.',
     },
     {
       lead: 'Level 4',
-      text: 'demands hermetic, reproducible builds where all dependencies also have provenance. This is the "nation-state adversary" level. Few organizations need it, and achieving it requires months of engineering investment plus ongoing maintenance.',
+      text: 'Demands hermetic, reproducible builds where all dependencies also have provenance. This is the "nation-state adversary" level. Few organizations need it, and achieving it requires months of engineering investment plus ongoing maintenance.',
     },
   ]}
 />
@@ -188,7 +192,7 @@ SLSA proves that an artifact came from a specific source through a specific buil
         },
       ],
     },
-    figure: 'SLSA level requirements and their tradeoffs. Higher levels provide more protection but require more investment.',
+    figure: 'SLSA level requirements and tradeoffs.',
   }}
 />
 
@@ -201,19 +205,19 @@ Not every artifact needs the same protection. Choose your target level based on 
   items={[
     {
       lead: 'Internal tools with low security requirements',
-      text: 'can stay at Level 1. Provenance is still valuable for debugging ("which commit produced this artifact?"), but the threat model does not justify more investment. The exception: if those internal tools access production data, bump to Level 2.',
+      text: 'Can stay at Level 1. Provenance is still valuable for debugging ("which commit produced this artifact?"), but the threat model does not justify more investment. The exception: if those internal tools access production data, bump to Level 2.',
     },
     {
       lead: 'Most production services',
-      text: 'should target Level 2. Authenticated provenance blocks most external attackers while keeping developer velocity high. The configuration overhead is minimal, and you get meaningful protection without changing how developers work.',
+      text: 'Should target Level 2. Authenticated provenance blocks most external attackers while keeping developer velocity high. The configuration overhead is minimal, and you get meaningful protection without changing how developers work.',
     },
     {
       lead: 'Security-critical infrastructure',
-      text: 'authentication systems, secrets management, network edge services-should target Level 3. Hardened builds protect against more sophisticated attackers, and the process requirements (two-person review) are often already in place for these systems anyway.',
+      text: 'Authentication systems, secrets management, network edge services-should target Level 3. Hardened builds protect against more sophisticated attackers, and the process requirements (two-person review) are often already in place for these systems anyway.',
     },
     {
       lead: 'Open source packages consumed by others',
-      text: 'present a special case. Your security posture affects everyone who depends on you. Level 3 is the responsible target; critical infrastructure packages like container runtimes or cryptographic libraries should aim for Level 4.',
+      text: 'Present a special case. Your security posture affects everyone who depends on you. Level 3 is the responsible target; critical infrastructure packages like container runtimes or cryptographic libraries should aim for Level 4.',
     },
   ]}
 />
@@ -228,9 +232,9 @@ Provenance is the core artifact that makes SLSA useful. It's a signed document t
 
 ### Provenance Attestation Structure
 
-A SLSA provenance attestation follows the in-toto attestation format. The structure has three main parts: the _subject_ (what was built), the _predicate type_ (what kind of statement this is), and the _predicate_ (the actual provenance data).
+A SLSA provenance attestation follows the in-toto attestation format. The structure has three main parts: the __subject__ (what was built), the __predicate type__ (what kind of statement this is), and the __predicate__ (the actual provenance data).
 
-The subject identifies the artifact by name and cryptographic digest. This is what you verify against—if someone swaps in a different artifact, the digest won't match.
+The subject identifies the artifact by name and cryptographic digest. This is what you verify against — if someone swaps in a different artifact, the digest won't match.
 
 The predicate contains the build definition (source repository, commit, build type, resolved dependencies) and run details (which builder ran, when it started and finished, a unique invocation ID). Together, these let you trace any artifact back to exactly the code and process that produced it.
 
@@ -268,7 +272,10 @@ The predicate contains the build definition (source repository, commit, build ty
   }
 }
 ```
-_Figure: Simplified SLSA v1.0 provenance attestation for a container image. The builder ID identifies exactly which workflow version generated this provenance._
+
+Code: Example SLSA provenance attestation.
+
+Figure: SLSA provenance attestation example.
 
 ### GitHub Actions SLSA Generator
 
@@ -338,7 +345,9 @@ jobs:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-The critical detail is the `@v1.9.0` pinning on the generator workflow. This ensures you're using a known, audited version of the generator. Never use `@main` or floating tags—that would defeat the security model.
+Code: GitHub Actions SLSA container provenance workflow.
+
+The critical detail is the `@v1.9.0` pinning on the generator workflow. This ensures you're using a known, audited version of the generator. Never use `@main` or floating tags — that would defeat the security model.
 
 To verify the provenance, use `slsa-verifier`. It checks that the attestation was signed by the expected builder and that the source matches your expectations:
 
@@ -348,6 +357,8 @@ slsa-verifier verify-image ghcr.io/myorg/myapp:v1.0.0 \
   --source-uri github.com/myorg/myapp \
   --source-tag v1.0.0
 ```
+
+Code: SLSA provenance verification command.
 
 ### Provenance for Non-Container Artifacts
 
@@ -425,11 +436,13 @@ jobs:
           files: myapp-*
 ```
 
-The hash computation step is important. The generator doesn't have access to your build artifacts directly—it only sees the hashes you provide. Those hashes become the subject of the provenance attestation. Anyone verifying later computes the hash of the artifact they downloaded and compares it to what's in the provenance.
+Code: Generic artifact provenance workflow.
+
+The hash computation step is important. The generator doesn't have access to your build artifacts directly — it only sees the hashes you provide. Those hashes become the subject of the provenance attestation. Anyone verifying later computes the hash of the artifact they downloaded and compares it to what's in the provenance.
 
 ## Artifact Signing Strategies
 
-Provenance tells you where an artifact came from. Signing proves that provenance hasn't been tampered with. You need both—but the signing approach you choose depends on your operational constraints and threat model.
+Provenance tells you where an artifact came from. Signing proves that provenance hasn't been tampered with. You need both — but the signing approach you choose depends on your operational constraints and threat model.
 
 ### Signing Methods Comparison
 
@@ -440,15 +453,15 @@ Three approaches dominate the current landscape, each with distinct tradeoffs.
   items={[
     {
       lead: 'Long-lived keys (GPG/PGP)',
-      text: 'are the traditional approach. You generate a keypair, guard the private key carefully, and distribute the public key for verification. The tooling is mature and works offline, but the operational burden is significant. Key rotation is painful, key compromise is catastrophic (affecting all past signatures), and the Trust On First Use (TOFU) problem means first-time verifiers have no good way to know if they have the right public key. This approach still makes sense for small teams or air-gapped environments where internet connectivity is not available during signing.',
+      text: 'The traditional approach. You generate a keypair, guard the private key carefully, and distribute the public key for verification. The tooling is mature and works offline, but the operational burden is significant. Key rotation is painful, key compromise is catastrophic (affecting all past signatures), and the Trust On First Use (TOFU) problem means first-time verifiers have no good way to know if they have the right public key. This approach still makes sense for small teams or air-gapped environments where internet connectivity is not available during signing.',
     },
     {
       lead: 'Keyless signing (Sigstore/Cosign)',
-      text: 'flips the model. Instead of managing keys, you prove your identity through OIDC (the same system that lets you "Sign in with GitHub"). Sigstore issues a short-lived certificate tied to that identity, you sign with it, and the signature is recorded in a public transparency log (Rekor). Verification checks the log rather than a distributed public key. The result: no keys to manage, no rotation headaches, and signatures that are tied to specific identities at specific times. The tradeoff is a dependency on Sigstore infrastructure and internet connectivity.',
+      text: 'Flips the model. Instead of managing keys, you prove your identity through OIDC (the same system that lets you "Sign in with GitHub"). Sigstore issues a short-lived certificate tied to that identity, you sign with it, and the signature is recorded in a public transparency log (Rekor). Verification checks the log rather than a distributed public key. The result: no keys to manage, no rotation headaches, and signatures that are tied to specific identities at specific times. The tradeoff is a dependency on Sigstore infrastructure and internet connectivity.',
     },
     {
       lead: 'KMS-backed signing',
-      text: 'puts your keys in a cloud provider\'s hardware security module. You never see the private key-it lives in tamper-resistant hardware, and signing operations happen inside the HSM. AWS KMS, Google Cloud KMS, and Azure Key Vault all support this. The keys are protected by hardware, audit logging is automatic, and IAM controls who can sign. The tradeoff is vendor lock-in, per-operation costs at high volume, and cloud connectivity requirements.',
+      text: 'Puts your keys in a cloud provider\'s hardware security module. You never see the private key-it lives in tamper-resistant hardware, and signing operations happen inside the HSM. AWS KMS, Google Cloud KMS, and Azure Key Vault all support this. The keys are protected by hardware, audit logging is automatic, and IAM controls who can sign. The tradeoff is vendor lock-in, per-operation costs at high volume, and cloud connectivity requirements.',
     },
   ]}
 />
@@ -475,15 +488,15 @@ Three approaches dominate the current landscape, each with distinct tradeoffs.
         },
       ],
     },
-    figure: 'Signing method tradeoffs. For most CI/CD pipelines, keyless signing offers the best balance of security and operational simplicity.',
+    figure: 'Signing method tradeoffs.',
   }}
 />
 
 ### Keyless Signing with Cosign
 
-For CI/CD pipelines—especially GitHub Actions—keyless signing with Cosign[^cosign] is the path of least resistance. The `id-token: write` permission lets your workflow request an OIDC token, which Cosign exchanges for a short-lived signing certificate. No secrets to manage, no keys to rotate.
+For CI/CD pipelines — especially GitHub Actions — keyless signing with Cosign[^cosign] is the path of least resistance. The `id-token: write` permission lets your workflow request an OIDC token, which Cosign exchanges for a short-lived signing certificate. No secrets to manage, no keys to rotate.
 
-[^cosign]: Sigstore (which provides Cosign, Fulcio, and Rekor) is a free, open-source, public-good service operated by the Open Source Security Foundation (OpenSSF). There's no vendor lock-in or subscription cost—it exists specifically to make software supply chain security accessible to everyone.
+[^cosign]: Sigstore (which provides Cosign, Fulcio, and Rekor) is a free, open-source, public-good service operated by the Open Source Security Foundation (OpenSSF). There's no vendor lock-in or subscription cost — it exists specifically to make software supply chain security accessible to everyone.
 
 ```yaml
 # .github/workflows/sign-container.yml - Keyless signing with Cosign
@@ -548,7 +561,9 @@ jobs:
             ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
 ```
 
-The `--yes` flag confirms you want keyless signing (it's interactive by default). The signature includes the workflow identity—anyone verifying can see exactly which GitHub Actions workflow signed the image.
+Code: Keyless Cosign signing workflow.
+
+The `--yes` flag confirms you want keyless signing (it's interactive by default). The signature includes the workflow identity — anyone verifying can see exactly which GitHub Actions workflow signed the image.
 
 Verification requires specifying the expected identity and OIDC issuer:
 
@@ -563,6 +578,8 @@ cosign verify ghcr.io/myorg/myapp:v1.0.0 \
   --certificate-identity-regexp "https://github.com/myorg/myapp/.github/workflows/release.yml@refs/tags/v.*" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
+
+Code: Cosign verification commands.
 
 ### KMS-Backed Signing
 
@@ -583,6 +600,8 @@ aws kms create-alias \
   --target-key-id <key-id-from-previous-command>
 ```
 
+Code: AWS KMS key creation commands.
+
 Cosign can sign directly with KMS keys. You'll need to export the public key for consumers who need to verify offline:
 
 ```bash
@@ -594,7 +613,9 @@ cosign sign --key awskms:///alias/container-signing \
 cosign public-key --key awskms:///alias/container-signing > cosign.pub
 ```
 
-In GitHub Actions, use OIDC federation to assume an IAM role with KMS signing permissions. This workflow builds on the keyless signing example from earlier—the main differences are the AWS credential configuration and the `--key` argument pointing to your KMS key:
+Code: KMS-backed Cosign commands.
+
+In GitHub Actions, use OIDC federation to assume an IAM role with KMS signing permissions. This workflow builds on the keyless signing example from earlier — the main differences are the AWS credential configuration and the `--key` argument pointing to your KMS key:
 
 ```yaml
 # .github/workflows/sign-with-kms.yml - AWS KMS signing
@@ -628,8 +649,10 @@ jobs:
             ghcr.io/${{ github.repository }}@${{ env.DIGEST }}
 ```
 
+Code: GitHub Actions KMS signing workflow.
+
 <Callout type="info">
-Use keyless signing for most open source and internal projects—it's simpler and doesn't require key management. Use KMS-backed signing when compliance requires hardware key protection, audit trails, or you need to sign in air-gapped environments where Sigstore infrastructure isn't accessible.
+Use keyless signing for most open source and internal projects — it's simpler and doesn't require key management. Use KMS-backed signing when compliance requires hardware key protection, audit trails, or you need to sign in air-gapped environments where Sigstore infrastructure isn't accessible.
 </Callout>
 
 ## Verification at Deployment Time
@@ -646,6 +669,8 @@ Install the policy controller via Helm:
 helm repo add sigstore https://sigstore.github.io/helm-charts
 helm install policy-controller sigstore/policy-controller -n sigstore-system --create-namespace
 ```
+
+Code: Sigstore Policy Controller install commands.
 
 Then define a `ClusterImagePolicy` that specifies which images require signatures and what identities are allowed to sign them:
 
@@ -669,7 +694,9 @@ spec:
         url: https://rekor.sigstore.dev
 ```
 
-The `subjectRegExp` is the critical field—it controls which workflow identities are trusted. The pattern above allows any workflow in your organization that runs on a version tag. You can tighten this to specific repositories or workflow files.
+Code: ClusterImagePolicy example.
+
+The `subjectRegExp` is the critical field — it controls which workflow identities are trusted. The pattern above allows any workflow in your organization that runs on a version tag. You can tighten this to specific repositories or workflow files.
 
 To enable enforcement on a namespace, add the inclusion label:
 
@@ -683,11 +710,13 @@ metadata:
     policy.sigstore.dev/include: "true"
 ```
 
+Code: Namespace policy enforcement label.
+
 When verification fails, the pod creation is rejected with a clear error message. An unsigned image returns "no matching signatures found." A signature from the wrong identity returns "signature identity does not match policy." Both tell you exactly what went wrong and where to look.
 
 ### CI/CD Pipeline Verification Gates
 
-For deployments that don't go through Kubernetes admission control—or as a defense-in-depth measure—add verification gates to your deployment pipeline. This catches problems before they reach the cluster.
+For deployments that don't go through Kubernetes admission control — or as a defense-in-depth measure — add verification gates to your deployment pipeline. This catches problems before they reach the cluster.
 
 ```yaml
 # .github/workflows/deploy.yml - Verification gate before production deployment
@@ -746,6 +775,8 @@ jobs:
             myapp=ghcr.io/${{ github.repository }}:${{ inputs.image_tag }}
 ```
 
+Code: Deployment verification workflow.
+
 The workflow verifies both the Cosign signature (proving who signed it) and the SLSA provenance (proving how it was built). If either check fails, the deployment stops.
 
 ### Terraform Verification
@@ -782,17 +813,19 @@ resource "null_resource" "verify_signature" {
 }
 ```
 
+Code: Terraform signature verification gate.
+
 The `external` data source runs Cosign verification during the plan phase. If verification fails, the `null_resource` triggers and fails the apply. This isn't as clean as native Terraform support, but it works until providers add built-in verification.
 
 For production use, consider wrapping this pattern in a Terraform module so teams don't have to copy the verification logic. You can also extend the approach to verify SLSA provenance by adding a second `external` data source that calls `slsa-verifier`. The key principle is the same: fail early during `terraform plan` rather than discovering unsigned artifacts after deployment.
 
 ## SBOM Integration
 
-Provenance tells you _how_ an artifact was built. An SBOM tells you _what's inside_. Together, they give you complete visibility into your software supply chain. When a new CVE drops, you can answer "are we affected?" in minutes instead of days.
+Provenance tells you __how__ an artifact was built. An SBOM tells you __what's inside__. Together, they give you complete visibility into your software supply chain. When a new CVE drops, you can answer "are we affected?" in minutes instead of days.
 
 ### Generating SBOMs
 
-An SBOM (Software Bill of Materials) is a comprehensive list of every component in your software—libraries, frameworks, tools, and their versions. Two formats dominate: SPDX (from the Linux Foundation) and CycloneDX (from OWASP). Both work; choose based on what your downstream consumers expect.
+An SBOM (Software Bill of Materials) is a comprehensive list of every component in your software — libraries, frameworks, tools, and their versions. Two formats dominate: SPDX (from the Linux Foundation) and CycloneDX (from OWASP). Both work; choose based on what your downstream consumers expect.
 
 The best time to generate an SBOM is during the build, when you have full visibility into what went into the artifact. Syft (from Anchore) is the most common tool for container SBOMs.
 
@@ -864,6 +897,8 @@ jobs:
           severity-cutoff: critical
 ```
 
+Code: SBOM generation and attestation workflow.
+
 The SBOM attestation is cryptographically bound to the image digest, just like the signature. Anyone can download it later and verify it came from the same build that produced the image.
 
 ### Querying SBOM Attestations
@@ -885,27 +920,33 @@ jq '.packages[] | select(.name | contains("log4j"))' sbom.json
 jq -r '.packages[].externalRefs[] | select(.referenceType == "purl") | .referenceLocator' sbom.json
 ```
 
+Code: SBOM querying commands.
+
 For programmatic querying across many images, tools like Grype can consume SBOMs directly and match them against vulnerability databases. This is faster than re-scanning images because the SBOM is already computed.
 
+<Diagram
+  title="SBOM and provenance relationship."
+  description={`A top-to-bottom flowchart showing how an image, its SBOM, and its provenance are connected. In the first grouped section, Source Code produces a Container Image. That image then leads to an SBOM, labeled as what is inside, and to Provenance, labeled as how it was built. In the second grouped section, the Container Image produces an Image Signature through the image digest, while the SBOM produces an SBOM Attestation and the Provenance produces a Provenance Attestation. All three signed outputs then flow into the Registry. The diagram shows that the image digest ties the image, SBOM, and provenance together so each can be verified independently.`}
+>
 ```mermaid
 flowchart TB
-    subgraph Build["Build Process"]
-        SRC[Source Code] --> IMG[Container Image]
-        IMG --> SBOM[SBOM<br>what's inside]
-        IMG --> PROV[Provenance<br>how it was built]
-    end
+  subgraph Build[Build Process]
+    SRC[Source Code] --> IMG[Container Image]
+    IMG --> SBOM[SBOM<br>what's inside]
+    IMG --> PROV[Provenance<br>how it was built]
+  end
 
-    subgraph Attestations["Signed Attestations"]
-        IMG -->|"digest"| SIG[Image Signature]
-        SBOM -->|"attested"| SBOM_ATT[SBOM Attestation]
-        PROV -->|"attested"| PROV_ATT[Provenance Attestation]
-    end
+  subgraph Attestations[Signed Attestations]
+    IMG -->|"digest"| SIG[Image Signature]
+    SBOM -->|"attested"| SBOM_ATT[SBOM Attestation]
+    PROV -->|"attested"| PROV_ATT[Provenance Attestation]
+  end
 
-    SIG --> REG[Registry]
-    SBOM_ATT --> REG
-    PROV_ATT --> REG
+  SIG --> REG[Registry]
+  SBOM_ATT --> REG
+  PROV_ATT --> REG
 ```
-Figure: SBOM and provenance relationship. All three artifacts—image, SBOM, and provenance—are linked by the image digest and independently verifiable.
+</Diagram>
 
 The image digest is the anchor that ties everything together. The provenance subject contains the digest, the SBOM references the digest, and both attestations are attached to the image by digest. If any piece is tampered with, verification fails.
 
@@ -957,6 +998,8 @@ Add keyless signing to your existing build workflows. This is the highest-value,
       ghcr.io/${{ github.repository }}@${DIGEST}
 ```
 
+Code: Minimal Cosign signing steps.
+
 The self-verification step catches configuration problems immediately rather than at deployment time. If you can't verify your own signature, no one else can either.
 
 ### Phase 3: Verification (Week 5-6)
@@ -987,7 +1030,7 @@ Signing without verification is security theater. This phase makes signatures ma
 
 ### Phase 4: Hardening (Ongoing)
 
-Once you have signing and verification working, expand coverage and increase rigor. The following milestones give you a roadmap—treat the timelines as rough estimates based on a team that's new to these tools.
+Once you have signing and verification working, expand coverage and increase rigor. The following milestones give you a roadmap — treat the timelines as rough estimates based on a team that's new to these tools.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -1011,7 +1054,7 @@ Once you have signing and verification working, expand coverage and increase rig
         },
       ],
     },
-    figure: "Implementation milestones. Each builds on the previous; don't skip ahead.",
+    figure: 'Implementation milestones.',
   }}
 />
 
@@ -1046,6 +1089,8 @@ You'll hit these problems. Here's how to diagnose and fix them.
 ```bash
 cosign verify --output text ghcr.io/myorg/myapp:v1.0.0 2>&1 | head -20
 ```
+
+Code: Inspecting Cosign verification output.
 
 Compare the certificate identity in the output with what your policy expects. Common mismatches:
 
@@ -1096,6 +1141,8 @@ permissions:
   packages: write  # if pushing to GHCR
 ```
 
+Code: GitHub Actions OIDC permissions block.
+
 ### Provenance attestation not found
 
 <List
@@ -1130,7 +1177,7 @@ permissions:
   ]}
 />
 
-_Fix:_ Most often, this is a digest mismatch. The digest output from your build step must exactly match what you pass to the provenance generator.
+__Fix:__ Most often, this is a digest mismatch. The digest output from your build step must exactly match what you pass to the provenance generator.
 
 ### SBOM generation takes too long
 
@@ -1162,10 +1209,10 @@ _Fix:_ Most often, this is a digest mismatch. The digest output from your build 
 
 ## Conclusion
 
-Supply chain security isn't a destination—it's a continuous practice. Perfect security is impossible, but a practical baseline is achievable without a dedicated security team or enterprise tooling budgets.
+Supply chain security isn't a destination — it's a continuous practice. Perfect security is impossible, but a practical baseline is achievable without a dedicated security team or enterprise tooling budgets.
 
 Start with SLSA Level 2 as your target. It provides authenticated provenance that blocks most external attackers without requiring significant process changes. The path is straightforward: inventory your artifacts, add keyless signing to builds, enforce verification in staging, then production, and continuously harden.
 
-Use Cosign for signing—it eliminates key management through identity-based keyless signatures. Add verification at deployment time using Kubernetes admission control or CI/CD gates. Layer in SBOMs for vulnerability visibility once signing is established.
+Use Cosign for signing — it eliminates key management through identity-based keyless signatures. Add verification at deployment time using Kubernetes admission control or CI/CD gates. Layer in SBOMs for vulnerability visibility once signing is established.
 
 Each step provides incremental security improvement. A signed artifact with basic provenance is infinitely more secure than an unsigned one. Don't let perfect be the enemy of good.

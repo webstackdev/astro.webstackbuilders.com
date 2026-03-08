@@ -17,11 +17,11 @@ featured: true
 
 At some point, every monorepo reaches a breaking point. The repository that started with 10 packages and a 5-minute CI pipeline has grown to 150 packages, and now every PR takes 45 minutes to validate. Developers start stacking PRs to avoid waiting, which leads to integration conflicts when those PRs finally land. The CI queue backs up. Engineers context-switch while waiting for feedback. The monorepo that was supposed to simplify collaboration has become a productivity drain.
 
-The instinct is to throw hardware at the problem—faster runners, more parallelism, bigger machines. That helps, but it's treating the symptom. A 200-package monorepo that builds everything on every commit will always be slow, no matter how fast your runners are. The real solution is building less: figure out what actually changed, determine what depends on those changes, and skip everything else.
+The instinct is to throw hardware at the problem — faster runners, more parallelism, bigger machines. That helps, but it's treating the symptom. A 200-package monorepo that builds everything on every commit will always be slow, no matter how fast your runners are. The real solution is building less: figure out what actually changed, determine what depends on those changes, and skip everything else.
 
-Two techniques make this possible. _Affected-based builds_ analyze the dependency graph to identify which packages need to rebuild when specific files change. _Remote caching_ stores build outputs so identical work never runs twice, regardless of which developer or CI runner needs it. Together, they transform CI from a bottleneck into a fast feedback loop.
+Two techniques make this possible. __Affected-based builds__ analyze the dependency graph to identify which packages need to rebuild when specific files change. __Remote caching__ stores build outputs so identical work never runs twice, regardless of which developer or CI runner needs it. Together, they transform CI from a bottleneck into a fast feedback loop.
 
-The impact is dramatic. Cache hit rates reach 85%. Build times drop by an order of magnitude. But the improvement isn't just faster—it changes how developers work. They run CI before grabbing coffee, not before leaving for the day. They iterate in small increments instead of batching changes to minimize CI waits. The monorepo becomes an asset again.
+The impact is dramatic. Cache hit rates reach 85%. Build times drop by an order of magnitude. But the improvement isn't just faster — it changes how developers work. They run CI before grabbing coffee, not before leaving for the day. They iterate in small increments instead of batching changes to minimize CI waits. The monorepo becomes an asset again.
 
 <Callout type="warning">
 The biggest monorepo CI mistake: trying to make full builds faster instead of building less. Parallelization and faster machines provide linear improvements. Affected builds with caching provide order-of-magnitude improvements.
@@ -29,15 +29,15 @@ The biggest monorepo CI mistake: trying to make full builds faster instead of bu
 
 ## Understanding Dependency Graphs
 
-Affected builds work by analyzing the dependency graph—the directed acyclic graph that captures which packages depend on which other packages. When a file changes, the build system maps that file to its package, then walks the graph to find everything that depends on that package, transitively. Understanding this graph is essential for reasoning about what will rebuild and why.
+Affected builds work by analyzing the dependency graph — the directed acyclic graph that captures which packages depend on which other packages. When a file changes, the build system maps that file to its package, then walks the graph to find everything that depends on that package, transitively. Understanding this graph is essential for reasoning about what will rebuild and why.
 
 ### Package Dependencies
 
 A monorepo typically contains two categories of packages: applications (deployable artifacts) and libraries (shared code). The dependency relationships between them form a hierarchy. Applications sit at the top, depending on libraries. Libraries depend on other libraries, forming chains. At the bottom are leaf libraries with no internal dependencies.
 
-Three types of dependencies matter for affected calculation. _Direct dependencies_ are explicit imports—if `app-web` imports from `@libs/ui-components`, that's a direct dependency. _Transitive dependencies_ flow through the graph—if `ui-components` depends on `design-tokens`, then `app-web` transitively depends on `design-tokens` too. _Dev dependencies_ are needed for development and testing but don't affect production builds.
+Three types of dependencies matter for affected calculation. __Direct dependencies__ are explicit imports — if `app-web` imports from `@libs/ui-components`, that's a direct dependency. __Transitive dependencies__ flow through the graph — if `ui-components` depends on `design-tokens`, then `app-web` transitively depends on `design-tokens` too. __Dev dependencies__ are needed for development and testing but don't affect production builds.
 
-The impact of a change depends on where it lands in the graph. Change a leaf library like `@libs/utils` that everything depends on, and the entire monorepo rebuilds. Change a library that only one application uses, and only that application rebuilds. This is why dependency graph design matters—poorly structured dependencies create "rebuild everything" scenarios even for small changes.
+The impact of a change depends on where it lands in the graph. Change a leaf library like `@libs/utils` that everything depends on, and the entire monorepo rebuilds. Change a library that only one application uses, and only that application rebuilds. This is why dependency graph design matters — poorly structured dependencies create "rebuild everything" scenarios even for small changes.
 
 ```yaml title="monorepo-structure.yaml"
 apps:
@@ -66,7 +66,7 @@ Code: Monorepo dependency structure showing rebuild impact by change location.
 
 ### Calculating Affected Packages
 
-The affected calculation algorithm is straightforward: map changed files to packages, then traverse the dependency graph to find all dependents. The key insight is that you need to _reverse_ the dependency graph—instead of asking "what does this package depend on," you ask "what depends on this package."
+The affected calculation algorithm is straightforward: map changed files to packages, then traverse the dependency graph to find all dependents. The key insight is that you need to __reverse__ the dependency graph — instead of asking "what does this package depend on," you ask "what depends on this package."
 
 The algorithm works in three steps. First, map each changed file to its containing package by checking file paths against package boundaries. Second, build a reversed dependency graph (dependents instead of dependencies) and perform a breadth-first search from each changed package, collecting every package reachable through the "is depended on by" relationship. Third, everything not in the affected set is unaffected and can be skipped.
 
@@ -114,11 +114,11 @@ Code: Affected package calculation via reversed dependency graph traversal.
 
 ### Base Reference Selection
 
-Affected calculation compares the current state against a _base reference_—a git commit that represents "what we already built." The choice of base reference dramatically affects what gets marked as affected.
+Affected calculation compares the current state against a __base reference__ — a git commit that represents "what we already built." The choice of base reference dramatically affects what gets marked as affected.
 
 For PR builds, the natural base is the target branch (usually `main`). This captures everything the PR changes relative to where it will merge. For pushes to main, the base is typically the previous commit or the last successful CI run. For release builds, you might compare against the last release tag to rebuild everything that changed since the previous release.
 
-The base reference choice has practical implications. A PR that branched from main two weeks ago will have many more affected packages than one that branched yesterday, simply because main has moved. Long-lived feature branches accumulate affected packages. This is one reason teams prefer short-lived branches and frequent rebasing—it keeps the affected set small.
+The base reference choice has practical implications. A PR that branched from main two weeks ago will have many more affected packages than one that branched yesterday, simply because main has moved. Long-lived feature branches accumulate affected packages. This is one reason teams prefer short-lived branches and frequent rebasing — it keeps the affected set small.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -151,7 +151,7 @@ The base reference choice has practical implications. A PR that branched from ma
 />
 
 <Callout type="info">
-Some teams enforce rebasing before merge to keep affected sets predictable. Others use "last successful CI on main" as the base reference, which naturally handles drift. The tradeoff is consistency versus simplicity—pick based on your team's workflow.
+Some teams enforce rebasing before merge to keep affected sets predictable. Others use "last successful CI on main" as the base reference, which naturally handles drift. The tradeoff is consistency versus simplicity — pick based on your team's workflow.
 </Callout>
 
 ## Affected Build Implementation
@@ -179,7 +179,7 @@ npx nx affected -t build --parallel=5 --base=main
 ```
 Code: Nx affected CLI commands.
 
-The power of Nx's approach is in its configuration. The `nx.json` file defines _inputs_ for each target—which files, when changed, should trigger a rebuild. By defining a "production" input set that excludes test files, you prevent test changes from triggering production builds.
+The power of Nx's approach is in its configuration. The `nx.json` file defines __inputs__ for each target — which files, when changed, should trigger a rebuild. By defining a "production" input set that excludes test files, you prevent test changes from triggering production builds.
 
 ```json title="nx.json"
 {
@@ -223,11 +223,11 @@ Code: Nx configuration with named inputs for precise cache invalidation.
 
 The `dependsOn: ["^build"]` syntax means "build this package's dependencies first." The caret (`^`) indicates upstream dependencies. This ensures the dependency graph is respected during parallel execution.
 
-The "production" named input excludes test files, stories, and test configuration—so changing a test doesn't invalidate the build cache. Tests use the "default" set, which includes everything. The `^production` syntax means "use production inputs for dependencies too," so a dependency's test changes don't invalidate your build either. We'll reference this configuration again when discussing cache optimization.
+The "production" named input excludes test files, stories, and test configuration — so changing a test doesn't invalidate the build cache. Tests use the "default" set, which includes everything. The `^production` syntax means "use production inputs for dependencies too," so a dependency's test changes don't invalidate your build either. We'll reference this configuration again when discussing cache optimization.
 
 ### Turborepo Affected Builds
 
-Turborepo takes a different approach. Instead of explicit git diffing, it hashes the inputs for each task and compares against its cache. If the hash matches, the task is skipped. This means Turborepo doesn't have a separate "affected" command—every `turbo run` is implicitly affected-aware through caching.
+Turborepo takes a different approach. Instead of explicit git diffing, it hashes the inputs for each task and compares against its cache. If the hash matches, the task is skipped. This means Turborepo doesn't have a separate "affected" command — every `turbo run` is implicitly affected-aware through caching.
 
 ```json title="turbo.json"
 {
@@ -270,16 +270,16 @@ npx turbo run build --dry-run
 Code: Turborepo git-based filtering.
 
 <Callout type="success">
-Both tools achieve the same goal—build only what changed—but Nx's explicit affected calculation is more predictable for debugging, while Turborepo's hash-based approach is simpler to configure. Choose based on your team's preferences and existing tooling.
+Both tools achieve the same goal — build only what changed — but Nx's explicit affected calculation is more predictable for debugging, while Turborepo's hash-based approach is simpler to configure. Choose based on your team's preferences and existing tooling.
 </Callout>
 
 ## Remote Caching
 
-Affected builds reduce what needs to run, but remote caching eliminates redundant work entirely. The idea is simple: if someone already built a package with identical inputs, download their output instead of rebuilding. This works across developers, CI runners, and even different branches—anyone who's built the same code contributes to and benefits from the shared cache.
+Affected builds reduce what needs to run, but remote caching eliminates redundant work entirely. The idea is simple: if someone already built a package with identical inputs, download their output instead of rebuilding. This works across developers, CI runners, and even different branches — anyone who's built the same code contributes to and benefits from the shared cache.
 
 ### How Remote Caching Works
 
-A build cache works by hashing all inputs to a task—source files, configuration, dependency outputs, environment variables, runtime versions—into a single cache key. Before executing a task, the build system checks whether outputs for that cache key exist. If they do (a cache hit), it downloads the outputs and skips execution. If not (a cache miss), it runs the task and uploads the outputs for future use.
+A build cache works by hashing all inputs to a task — source files, configuration, dependency outputs, environment variables, runtime versions — into a single cache key. Before executing a task, the build system checks whether outputs for that cache key exist. If they do (a cache hit), it downloads the outputs and skips execution. If not (a cache miss), it runs the task and uploads the outputs for future use.
 
 The cache key composition matters. It must include everything that affects the output:
 
@@ -307,9 +307,9 @@ The cache key composition matters. It must include everything that affects the o
   ]}
 />
 
-Miss any of these, and you risk cache poisoning—returning outputs that don't match what a fresh build would produce. Include too much, and you get unnecessary cache misses.
+Miss any of these, and you risk cache poisoning — returning outputs that don't match what a fresh build would produce. Include too much, and you get unnecessary cache misses.
 
-The flow looks like this: Developer A builds `app-web`, generating a cache key like `build:app-web:a1b2c3d4`. No cache exists, so the build runs and outputs are uploaded. Developer B, working on the same code, runs the same build. The cache key matches, so they download Developer A's outputs in seconds instead of waiting minutes. When CI runs for a PR touching unrelated code, it hits the cache for `app-web` too—the inputs haven't changed.
+The flow looks like this: Developer A builds `app-web`, generating a cache key like `build:app-web:a1b2c3d4`. No cache exists, so the build runs and outputs are uploaded. Developer B, working on the same code, runs the same build. The cache key matches, so they download Developer A's outputs in seconds instead of waiting minutes. When CI runs for a PR touching unrelated code, it hits the cache for `app-web` too — the inputs haven't changed.
 
 ### Nx Cloud Configuration
 
@@ -371,7 +371,7 @@ Turborepo integrates with Vercel's remote cache by default. After authenticating
 ```
 Code: Turborepo remote cache with signature verification.
 
-The `signature: true` option is important—it cryptographically signs cache artifacts to prevent tampering. Without this, anyone with cache access could inject malicious build outputs.
+The `signature: true` option is important — it cryptographically signs cache artifacts to prevent tampering. Without this, anyone with cache access could inject malicious build outputs.
 
 For CI, set the token and team as environment variables:
 
@@ -409,7 +409,7 @@ Point Turborepo at your self-hosted cache via `.turbo/config.json`:
 ```
 Code: Turborepo self-hosted cache configuration.
 
-The choice between managed and self-hosted caching comes down to operational overhead versus control. Managed services (Nx Cloud, Vercel) handle infrastructure, scaling, and availability—you just configure a token. Self-hosted options require maintaining servers and storage, but keep all build artifacts within your infrastructure and avoid per-seat pricing at scale.
+The choice between managed and self-hosted caching comes down to operational overhead versus control. Managed services (Nx Cloud, Vercel) handle infrastructure, scaling, and availability — you just configure a token. Self-hosted options require maintaining servers and storage, but keep all build artifacts within your infrastructure and avoid per-seat pricing at scale.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -447,15 +447,15 @@ Remote cache without authentication is a security risk. Anyone with cache access
 
 ## CI Pipeline Optimization
 
-Affected builds and remote caching are the foundation, but how you structure your CI pipeline determines whether you get the full benefit. A naive pipeline that runs build, test, and lint sequentially—even with affected filtering—leaves performance on the table. The goal is to maximize parallelism while minimizing redundant setup.
+Affected builds and remote caching are the foundation, but how you structure your CI pipeline determines whether you get the full benefit. A naive pipeline that runs build, test, and lint sequentially — even with affected filtering — leaves performance on the table. The goal is to maximize parallelism while minimizing redundant setup.
 
 ### GitHub Actions Configuration
 
-The key insight for GitHub Actions is that build, test, and lint can often run in parallel. They all depend on affected calculation, but they don't depend on each other (assuming tests don't require built artifacts—if they do, adjust accordingly). Split them into separate jobs that run concurrently.
+The key insight for GitHub Actions is that build, test, and lint can often run in parallel. They all depend on affected calculation, but they don't depend on each other (assuming tests don't require built artifacts — if they do, adjust accordingly). Split them into separate jobs that run concurrently.
 
-A common pattern is a first job that calculates affected packages and exports the list as an output. Subsequent jobs conditionally run based on whether there are any affected packages. This avoids spinning up runners when nothing changed—useful for documentation-only PRs or changes to ignored files.
+A common pattern is a first job that calculates affected packages and exports the list as an output. Subsequent jobs conditionally run based on whether there are any affected packages. This avoids spinning up runners when nothing changed — useful for documentation-only PRs or changes to ignored files.
 
-The pattern has three parts. First, an "affected" job calculates whether any packages changed and exports this as an output. Second, parallel jobs for build, test, and lint each depend on the affected job and only run if `has_changes` is true. Third, each job uses `fetch-depth: 0` to get full git history—without this, affected calculation fails because it can't compare against the base branch.
+The pattern has three parts. First, an "affected" job calculates whether any packages changed and exports this as an output. Second, parallel jobs for build, test, and lint each depend on the affected job and only run if `has_changes` is true. Third, each job uses `fetch-depth: 0` to get full git history — without this, affected calculation fails because it can't compare against the base branch.
 
 ```yaml title=".github/workflows/ci.yml"
 jobs:
@@ -499,7 +499,7 @@ jobs:
 ```
 Code: GitHub Actions workflow pattern with parallel jobs.
 
-The build, test, and lint jobs run concurrently—they don't depend on each other, only on the affected check. If your tests require built artifacts, add `needs: [affected, build]` to the test job.
+The build, test, and lint jobs run concurrently — they don't depend on each other, only on the affected check. If your tests require built artifacts, add `needs: [affected, build]` to the test job.
 
 ### Distributed Task Execution
 
@@ -582,34 +582,40 @@ Code: Manual distribution using GitHub Actions matrix strategy.
 
 The optimization levels stack. First, skip unaffected packages entirely. Second, use remote caching to skip packages that are affected but haven't actually changed (cache hit). Third, parallelize the remaining work within each runner. Fourth, distribute across multiple runners. Each level compounds the previous one's gains.
 
+<Diagram
+  title="CI optimization progression from sequential to distributed execution."
+  description={
+  `Flowchart comparing three stages of CI optimization in a monorepo. In the grouped section labeled Traditional CI, a single Runner performs Build pkg1, then Build pkg2, then Build pkg3, then Test all, ending at 60 min total. In the grouped section labeled Affected plus Cache, a Runner first checks a decision node labeled Affected. One branch indicates pkg1 only, leading to Build pkg1 and then Test pkg1, ending at 5 min total. Another branch indicates a Cache hit, leading to Skip pkg2, pkg3. In the grouped section labeled Distributed, a Coordinator dispatches work to Agent 1 for pkg1, Agent 2 for pkg2, and Agent 3 for pkg3, and all three converge on 3 min total. The diagram shows the progression from slow sequential execution, to skipping unaffected or cached work, to coordinating parallel work across multiple agents for the fastest feedback.`
+  }
+>
 ```mermaid
 flowchart TD
-    subgraph "Traditional CI"
-        A1[Runner] --> B1[Build pkg1]
-        B1 --> C1[Build pkg2]
-        C1 --> D1[Build pkg3]
-        D1 --> E1[Test all]
-        E1 --> F1[60 min total]
-    end
+  subgraph traditionalCi[Traditional CI]
+    A1[Runner] --> B1[Build pkg1]
+    B1 --> C1[Build pkg2]
+    C1 --> D1[Build pkg3]
+    D1 --> E1[Test all]
+    E1 --> F1[60 min total]
+  end
 
-    subgraph "Affected + Cache"
-        A2[Runner] --> B2{Affected?}
-        B2 -->|pkg1 only| C2[Build pkg1]
-        B2 -->|Cache hit| D2[Skip pkg2, pkg3]
-        C2 --> E2[Test pkg1]
-        E2 --> F2[5 min total]
-    end
+  subgraph affectedCache[Affected + Cache]
+    A2[Runner] --> B2{Affected?}
+    B2 -->|pkg1 only| C2[Build pkg1]
+    B2 -->|Cache hit| D2[Skip pkg2, pkg3]
+    C2 --> E2[Test pkg1]
+    E2 --> F2[5 min total]
+  end
 
-    subgraph "Distributed"
-        A3[Coordinator] --> B3[Agent 1: pkg1]
-        A3 --> C3[Agent 2: pkg2]
-        A3 --> D3[Agent 3: pkg3]
-        B3 --> E3[3 min total]
-        C3 --> E3
-        D3 --> E3
-    end
+  subgraph distributed[Distributed]
+    A3[Coordinator] --> B3[Agent 1: pkg1]
+    A3 --> C3[Agent 2: pkg2]
+    A3 --> D3[Agent 3: pkg3]
+    B3 --> E3[3 min total]
+    C3 --> E3
+    D3 --> E3
+  end
 ```
-Figure: CI optimization progression from sequential to distributed execution.
+</Diagram>
 
 <Callout type="success">
 The optimization stack: 1) Skip unaffected packages. 2) Cache affected but unchanged. 3) Parallelize what remains. 4) Distribute across agents. Each level provides significant speedup; together they're transformative.
@@ -617,11 +623,11 @@ The optimization stack: 1) Skip unaffected packages. 2) Cache affected but uncha
 
 ## Cache Management
 
-Remote caching is only useful if the cache actually gets hit. A cache that misses constantly provides no benefit—you're paying for storage and network transfer without saving any build time. Understanding what causes cache misses and how to prevent them is essential for getting value from your caching investment.
+Remote caching is only useful if the cache actually gets hit. A cache that misses constantly provides no benefit — you're paying for storage and network transfer without saving any build time. Understanding what causes cache misses and how to prevent them is essential for getting value from your caching investment.
 
 ### Cache Invalidation Strategies
 
-Cache invalidation happens automatically when inputs change—that's the whole point. But understanding the different invalidation triggers helps you configure inputs correctly and debug unexpected misses.
+Cache invalidation happens automatically when inputs change — that's the whole point. But understanding the different invalidation triggers helps you configure inputs correctly and debug unexpected misses.
 
 <List
   variant="check-icons-list"
@@ -636,7 +642,7 @@ Cache invalidation happens automatically when inputs change—that's the whole p
     },
     {
       lead: 'Manual invalidation',
-      text: 'is occasionally necessary when something outside the tracked inputs changes—a CI environment update, a bug in the caching system, or when you need to verify that builds still work without caching. In Nx, `npx nx reset` clears the local cache. Adding `--skip-nx-cache` bypasses caching for a single run. In Turborepo, `--force` achieves the same.',
+      text: 'is occasionally necessary when something outside the tracked inputs changes — a CI environment update, a bug in the caching system, or when you need to verify that builds still work without caching. In Nx, `npx nx reset` clears the local cache. Adding `--skip-nx-cache` bypasses caching for a single run. In Turborepo, `--force` achieves the same.',
     },
     {
       lead: 'Time-based expiration (TTL)',
@@ -682,7 +688,7 @@ Low cache hit rates usually trace back to a few common issues. Fixing them can t
     },
     {
       lead: 'Overly broad input specifications',
-      text: 'cause unnecessary invalidation. If your build target includes `{projectRoot}/**/*` as inputs, then changing a test file invalidates the production build cache—even though tests don\'t affect the build output. Use named input sets (like Nx\'s "production" pattern) that exclude test files, documentation, and other non-production artifacts.',
+      text: 'cause unnecessary invalidation. If your build target includes `{projectRoot}/**/*` as inputs, then changing a test file invalidates the production build cache — even though tests don\'t affect the build output. Use named input sets (like Nx\'s "production" pattern) that exclude test files, documentation, and other non-production artifacts.',
     },
     {
       lead: 'Global dependencies included incorrectly',
@@ -691,7 +697,7 @@ Low cache hit rates usually trace back to a few common issues. Fixing them can t
   ]}
 />
 
-This is where the named inputs configuration from earlier pays off. The "production" input set we defined in `nx.json` excludes test files, stories, and test configuration. When your build target uses `"inputs": ["production", "^production"]`, changing a test file doesn't invalidate the build cache. The `^production` syntax extends this to dependencies—a dependency's test changes don't invalidate your build either.
+This is where the named inputs configuration from earlier pays off. The "production" input set we defined in `nx.json` excludes test files, stories, and test configuration. When your build target uses `"inputs": ["production", "^production"]`, changing a test file doesn't invalidate the build cache. The `^production` syntax extends this to dependencies — a dependency's test changes don't invalidate your build either.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -729,15 +735,15 @@ The key to high cache hit rates is determinism. Same inputs must produce same ou
 
 ## Measuring and Monitoring
 
-You can't improve what you don't measure. CI optimization is iterative—implement a change, measure the impact, identify the next bottleneck, repeat. Without metrics, you're guessing whether that configuration change helped or hurt. With metrics, you catch regressions early and make data-driven decisions about where to invest optimization effort.
+You can't improve what you don't measure. CI optimization is iterative — implement a change, measure the impact, identify the next bottleneck, repeat. Without metrics, you're guessing whether that configuration change helped or hurt. With metrics, you catch regressions early and make data-driven decisions about where to invest optimization effort.
 
 ### CI Metrics Dashboard
 
-The key metrics for monorepo CI fall into three categories: _timing_ (how long builds take), _affected scope_ (how much of the repo rebuilds), and _cache efficiency_ (how much work caching eliminates).
+The key metrics for monorepo CI fall into three categories: __timing__ (how long builds take), __affected scope__ (how much of the repo rebuilds), and __cache efficiency__ (how much work caching eliminates).
 
 For timing, track total duration, queue time (waiting for a runner), and execution time (actual work). The distinction matters: high queue time means you need more runners; high execution time means you need faster builds or better caching.
 
-For affected scope, track total packages, affected packages, and affected percentage. A sudden spike in affected percentage often means someone touched a widely-shared library—expected behavior, but worth noting. A gradual increase over time might indicate growing coupling in your dependency graph.
+For affected scope, track total packages, affected packages, and affected percentage. A sudden spike in affected percentage often means someone touched a widely-shared library — expected behavior, but worth noting. A gradual increase over time might indicate growing coupling in your dependency graph.
 
 For cache efficiency, track cache hits, cache misses, hit rate, and time saved. Hit rate is the headline metric: 85%+ is excellent, 70%+ is good, below 50% means something's wrong. Time saved quantifies the value in concrete terms—"caching saved 47 hours of build time this week" makes the ROI obvious.
 
@@ -797,11 +803,11 @@ Both Nx Cloud and Vercel provide dashboards with these metrics out of the box. I
 
 Establish baselines for different build scenarios. PR builds have different expectations than main branch builds or release builds.
 
-For _PR builds_, target under 10 minutes with a 70%+ cache hit rate. Affected percentage should typically be under 20%—most PRs touch a small portion of the codebase. If you're consistently seeing 50%+ affected, either your PRs are too large or your dependency structure creates excessive coupling.
+For __PR builds__, target under 10 minutes with a 70%+ cache hit rate. Affected percentage should typically be under 20%—most PRs touch a small portion of the codebase. If you're consistently seeing 50%+ affected, either your PRs are too large or your dependency structure creates excessive coupling.
 
-For _main branch builds_, target under 5 minutes with an 85%+ cache hit rate. Main branch builds typically include just one commit's changes, so affected percentage should be minimal. High cache hit rates are expected because the PR already primed the cache.
+For __main branch builds__, target under 5 minutes with an 85%+ cache hit rate. Main branch builds typically include just one commit's changes, so affected percentage should be minimal. High cache hit rates are expected because the PR already primed the cache.
 
-For _release builds_, targets depend on your release strategy. If you're rebuilding from a tag that's far behind main, expect lower cache hit rates and longer durations. For frequent releases close to main, you should still see good caching.
+For __release builds__, targets depend on your release strategy. If you're rebuilding from a tag that's far behind main, expect lower cache hit rates and longer durations. For frequent releases close to main, you should still see good caching.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -832,21 +838,21 @@ For _release builds_, targets depend on your release strategy. If you're rebuild
 Set up alerts for when builds deviate significantly from baselines. A sudden drop in cache hit rate might indicate environment drift between CI and local development, a newly added non-deterministic output, or misconfigured inputs. A spike in build duration might mean someone touched a core library, or caching stopped working. Either way, catch it early before it becomes the new normal.
 
 <Callout type="success">
-Track CI metrics over time. A sudden drop in cache hit rate or spike in duration indicates something changed—new global dependency, environment drift, or misconfigured inputs. Catch these early before they become the new normal.
+Track CI metrics over time. A sudden drop in cache hit rate or spike in duration indicates something changed — new global dependency, environment drift, or misconfigured inputs. Catch these early before they become the new normal.
 </Callout>
 
 ## Conclusion
 
-Monorepo CI optimization isn't a single technique—it's a stack of complementary approaches that compound. Affected builds analyze the dependency graph to skip packages that couldn't possibly be impacted by a change. Remote caching eliminates redundant work by sharing build outputs across developers and CI runners. Parallel execution runs remaining tasks concurrently. Distributed execution spreads work across multiple agents.
+Monorepo CI optimization isn't a single technique — it's a stack of complementary approaches that compound. Affected builds analyze the dependency graph to skip packages that couldn't possibly be impacted by a change. Remote caching eliminates redundant work by sharing build outputs across developers and CI runners. Parallel execution runs remaining tasks concurrently. Distributed execution spreads work across multiple agents.
 
 Each level provides meaningful speedup on its own. Together, they transform CI from a 45-minute bottleneck into a 4-minute feedback loop. The exact numbers depend on your repository structure and change patterns, but order-of-magnitude improvements are typical.
 
-The implementation path is straightforward. Start with affected builds—configure Nx or Turborepo to calculate what changed and skip the rest. Add remote caching to share results across your team. Tune your input specifications to maximize cache hit rates. Then, if CI is still slower than you'd like, introduce parallelization and distribution.
+The implementation path is straightforward. Start with affected builds — configure Nx or Turborepo to calculate what changed and skip the rest. Add remote caching to share results across your team. Tune your input specifications to maximize cache hit rates. Then, if CI is still slower than you'd like, introduce parallelization and distribution.
 
-Monitor your metrics. Track cache hit rates, build durations, and affected percentages over time. When something changes—a new global dependency, environment drift, misconfigured inputs—you'll see it in the data before developers start complaining about slow CI.
+Monitor your metrics. Track cache hit rates, build durations, and affected percentages over time. When something changes — a new global dependency, environment drift, misconfigured inputs — you'll see it in the data before developers start complaining about slow CI.
 
-The best time to implement these optimizations is before your CI becomes a bottleneck. The second best time is now. Start with affected builds, add caching, and iterate from there. Your future self—and your team—will thank you.
+The best time to implement these optimizations is before your CI becomes a bottleneck. The second best time is now. Start with affected builds, add caching, and iterate from there. Your future self — and your team — will thank you.
 
 <Callout type="info">
-The goal isn't the fastest possible full build—it's the fastest possible feedback for typical changes. Optimize for the common case (small, focused changes) while ensuring full builds remain tractable for major changes.
+The goal isn't the fastest possible full build — it's the fastest possible feedback for typical changes. Optimize for the common case (small, focused changes) while ensuring full builds remain tractable for major changes.
 </Callout>

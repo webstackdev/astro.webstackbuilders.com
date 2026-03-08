@@ -21,7 +21,7 @@ featured: true
 *[STS]: Security Token Service
 *[SPIFFE]: Secure Production Identity Framework for Everyone
 
-If you've ever inherited a CI/CD pipeline and found service account keys created by someone who left three years ago, you know the feeling. Nobody knows where the copies are. Nobody's rotated them. You're stuck wondering whether to touch them or leave them alone because _something_ might break.
+If you've ever inherited a CI/CD pipeline and found service account keys created by someone who left three years ago, you know the feeling. Nobody knows where the copies are. Nobody's rotated them. You're stuck wondering whether to touch them or leave them alone because __something__ might break.
 
 Workload identity federation offers a way out: instead of managing secrets that can be stolen, your workloads prove who they are and receive short-lived credentials that expire before anyone could misuse them.
 
@@ -99,6 +99,12 @@ Workload identity federation inverts the security model. Instead of distributing
 
 Here's the conceptual difference. With long-lived keys, your CI runner holds a secret that grants access — and that secret can be copied, leaked, or stolen at any point in its lifetime.
 
+<Diagram
+  title="Long-lived key authentication model."
+  description={
+    `Left-to-right flowchart showing a CI Runner sending a Service Account Key directly to a Cloud API for authentication. Beneath that flow is a grouped section labeled Key Properties listing three risks: the key never expires, it must be stored somewhere, and it is unclear who may have copies of it. The diagram illustrates the core weakness of static key-based authentication: access depends on a reusable secret that can persist indefinitely and spread beyond its intended owner.`
+  }
+>
 ```mermaid
 flowchart LR
     A[CI Runner] -->|Service Account Key| B[Cloud API]
@@ -109,11 +115,16 @@ flowchart LR
         E[Who has copies?]
     end
 ```
-
-Figure: Long-lived key authentication model.
+</Diagram>
 
 With federation, your CI runner requests a token from its platform, then exchanges that token with your cloud provider:
 
+<Diagram
+  title="Workload identity federation authentication flow."
+  description={
+    `Top-to-bottom flowchart showing keyless authentication through workload identity federation. A CI Runner first requests an OIDC token from the CI Platform identity provider. The identity provider then issues a JWT containing claims to the Cloud STS service. Inside the Cloud STS node, three validation steps are shown: verify the JWT signature, check issuer trust, and validate claims against policy. If validation succeeds, Cloud STS issues short-lived credentials valid for one hour. Those credentials are then used to access the Cloud API. The diagram shows the replacement of static secrets with a signed identity assertion followed by temporary credentials.`
+  }
+>
 ```mermaid
 flowchart TD
     A[CI Runner] -->|"(1) Request OIDC token"| B[CI Platform IdP]
@@ -124,8 +135,7 @@ flowchart TD
     C -->|"(3) Issue short-lived credentials"| D["Short-lived credentials (1 hour)"]
     D -->|"(4) Access cloud resources"| E[Cloud API]
 ```
-
-Figure: Workload identity federation authentication flow.
+</Diagram>
 
 The JWT contains claims about the workload — which repository triggered the build, which branch, which user initiated it. Your cloud provider verifies the signature against the identity provider's public keys, checks that the claims match your access policy, and issues credentials that expire in an hour or less.
 
@@ -198,6 +208,12 @@ The token is signed with GitHub's private key. Your cloud provider fetches GitHu
 
 The exchange process involves four parties: your workload, the identity provider (GitHub), the cloud's Security Token Service, and the cloud's IAM system.
 
+<Diagram
+  title="Token exchange sequence from workload to cloud credentials."
+  description={
+    `Sequence diagram with four participants: Workload, Identity Provider, Cloud STS, and Cloud IAM. The Workload requests an OIDC token from the Identity Provider, which returns a JWT signed with the provider's key. The Workload then sends that JWT to Cloud STS to exchange it for credentials. Cloud STS fetches the identity provider's JWKS, typically from cache, and verifies the token's signature, issuer, claims, and expiry. Cloud STS then queries Cloud IAM to look up the service account and retrieve its permissions. Finally, Cloud STS returns a short-lived access token valid for one hour back to the Workload. The diagram shows the full trust chain from workload-issued identity proof to temporary cloud credentials.`
+  }
+>
 ```mermaid
 sequenceDiagram
     participant W as Workload
@@ -214,8 +230,7 @@ sequenceDiagram
     IAM->>STS: Service account permissions
     STS->>W: (7) Short-lived access token (1 hour)
 ```
-
-Figure: Token exchange sequence from workload to cloud credentials.
+</Diagram>
 
 Here's what's happening at each step:
 
@@ -807,21 +822,26 @@ The `azure.workload.identity/client-id` annotation tells the Azure Identity SDK 
 
 The flow inside the cluster looks like this:
 
+<Diagram
+  title="Kubernetes workload identity token exchange flow."
+  description={
+  `Top-to-bottom flowchart showing workload identity inside a Kubernetes cluster. In the Kubernetes Cluster group, a Pod contains a Container that requests credentials from an SDK or client library. The SDK reads a projected token from a token volume mount located at /var/run/secrets/tokens/. That token is then exchanged with Cloud IAM outside the cluster. Within Cloud IAM, the token's signature is verified and the workload binding is checked. If validation succeeds, Cloud IAM returns credentials to the SDK or client library. The diagram shows how a pod uses a projected service account token as the proof of identity, then exchanges it for temporary cloud credentials without storing static keys.`
+  }
+>
 ```mermaid
 flowchart TD
-    subgraph cluster["Kubernetes Cluster"]
-        subgraph pod["Pod"]
-            A[Container] -->|"(1) Request credentials"| B[SDK/Client Library]
-        end
-        B -->|"(2) Read projected token"| C["Token Volume Mount\n/var/run/secrets/tokens/"]
+  subgraph cluster["Kubernetes Cluster"]
+    subgraph pod["Pod"]
+      A[Container] -->|"(1) Request credentials"| B[SDK/Client Library]
     end
-    C -->|"(3) Exchange token"| D["Cloud IAM"]
-    D -->|Verify signature| D
-    D -->|Check binding| D
-    D -->|"(4) Return credentials"| B
+    B -->|"(2) Read projected token"| C["Token Volume Mount\n/var/run/secrets/tokens/"]
+  end
+  C -->|"(3) Exchange token"| D["Cloud IAM"]
+  D -->|Verify signature| D
+  D -->|Check binding| D
+  D -->|"(4) Return credentials"| B
 ```
-
-Figure: Kubernetes workload identity token exchange flow.
+</Diagram>
 
 The SDK reads a projected service account token from a volume mount, exchanges it with the cloud provider's STS, and receives short-lived credentials. The token is automatically rotated by the kubelet, so even if someone exfiltrates it, it's only valid for a short window.
 
@@ -831,7 +851,7 @@ You're not going to migrate everything to workload identity in a weekend. In any
 
 ### Migration Planning
 
-Start by figuring out what you have. Most cloud providers offer ways to list service account keys and their last-used timestamps. AWS has IAM credential reports; GCP has the Policy Analyzer; Azure has sign-in logs. But those only tell you _that_ a key was used, not _where_ it's being used from.
+Start by figuring out what you have. Most cloud providers offer ways to list service account keys and their last-used timestamps. AWS has IAM credential reports; GCP has the Policy Analyzer; Azure has sign-in logs. But those only tell you __that__ a key was used, not __where__ it's being used from.
 
 For each key, you need to answer:
 
@@ -1023,7 +1043,7 @@ Once you can see what's in the token, most federation failures fall into a few c
   items={[
     {
       lead: "Trust policy condition mismatch",
-      text: "is the most common issue. The `sub` claim in your OIDC token doesn't match what your trust policy expects. This happens when:",
+      text: "The most common issue. The `sub` claim in your OIDC token doesn't match what your trust policy expects. This happens when:",
     },
     { text: "You're building from a feature branch but the policy only allows `main`" },
     { text: 'Someone renamed the repository' },
@@ -1031,15 +1051,15 @@ Once you can see what's in the token, most federation failures fall into a few c
     { text: 'The GitHub Environment name has a typo' },
     {
       lead: 'Audience mismatch',
-      text: "means the `aud` claim in your token doesn't match the `client_id_list` in your OIDC provider configuration. This typically means the workflow is requesting a token for a different audience than what you configured. Check that your workflow's audience parameter matches what's in your cloud provider's OIDC provider setup.",
+      text: "Means the <span class="text-mono">aud</span> claim in your token doesn't match the <span class="text-mono">client_id_list</span> in your OIDC provider configuration. This typically means the workflow is requesting a token for a different audience than what you configured. Check that your workflow's audience parameter matches what's in your cloud provider's OIDC provider setup.",
     },
     {
       lead: 'Token expiration or clock skew',
-      text: 'causes intermittent failures. OIDC tokens have short lifetimes (usually 5-10 minutes), and if there\'s clock drift between GitHub\'s servers and your cloud provider, tokens might appear expired. This usually manifests as "works on retry" — the retry gets a fresh token that validates correctly.',
+      text: 'Causes intermittent failures. OIDC tokens have short lifetimes (usually 5-10 minutes), and if there\'s clock drift between GitHub\'s servers and your cloud provider, tokens might appear expired. This usually manifests as "works on retry" — the retry gets a fresh token that validates correctly.',
     },
     {
       lead: 'OIDC provider unavailable',
-      text: "happens during platform outages. If GitHub's OIDC endpoint is down, your workflows can't get tokens. There's not much you can do except wait (or fall back to static keys if you're still in migration).",
+      text: "Happens during platform outages. If GitHub's OIDC endpoint is down, your workflows can't get tokens. There's not much you can do except wait (or fall back to static keys if you're still in migration).",
     },
   ]}
 />

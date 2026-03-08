@@ -18,23 +18,23 @@ featured: true
 *[TCP]: Transmission Control Protocol
 *[TLS]: Transport Layer Security
 
-Here's a scenario I've seen play out more times than I'd like. A team deploys their API behind Nginx with the default configuration. Traffic grows to 5,000 RPS. Intermittent 502 errors start appearing. The backend looks healthy—response times are fine, no errors in application logs. The problem is invisible until someone digs into Nginx's internals.
+Here's a scenario I've seen play out more times than I'd like. A team deploys their API behind Nginx with the default configuration. Traffic grows to 5,000 RPS. Intermittent 502 errors start appearing. The backend looks healthy — response times are fine, no errors in application logs. The problem is invisible until someone digs into Nginx's internals.
 
-It turns out `proxy_read_timeout` defaults to 60 seconds, which sounds generous until you realize a few slow endpoints occasionally take 65 seconds. Database queries, external API calls, report generation—any of these can push response times past that threshold. Meanwhile, the team is chasing ghosts in their application code.
+It turns out `proxy_read_timeout` defaults to 60 seconds, which sounds generous until you realize a few slow endpoints occasionally take 65 seconds. Database queries, external API calls, report generation — any of these can push response times past that threshold. Meanwhile, the team is chasing ghosts in their application code.
 
-Nginx and HAProxy ship with defaults optimized for getting started quickly, not for handling production traffic. Default timeouts assume fast backends. Default buffer sizes assume small requests. When real load arrives—slow clients on mobile networks, large authentication headers, backends that occasionally need extra time—these defaults fail in ways that are hard to diagnose.
+Nginx and HAProxy ship with defaults optimized for getting started quickly, not for handling production traffic. Default timeouts assume fast backends. Default buffer sizes assume small requests. When real load arrives — slow clients on mobile networks, large authentication headers, backends that occasionally need extra time — these defaults fail in ways that are hard to diagnose.
 
 The good news: two configuration areas account for most proxy-related outages. Fix your timeouts and buffers, and you'll eliminate the majority of mysterious 502s and 400s. Let's start with the more common culprit.
 
 ## Timeout Configuration
 
-Timeouts are the most common source of proxy-related outages, and the defaults are almost never right for production. Nginx's defaults will work until they don't—that 60-second `proxy_read_timeout` hides problems until traffic patterns shift. HAProxy is worse: many timeouts have _no default_, meaning connections can hang indefinitely if you don't configure them.
+Timeouts are the most common source of proxy-related outages, and the defaults are almost never right for production. Nginx's defaults will work until they don't — that 60-second `proxy_read_timeout` hides problems until traffic patterns shift. HAProxy is worse: many timeouts have __no default__, meaning connections can hang indefinitely if you don't configure them.
 
 The key insight is that timeouts should match your traffic patterns, not arbitrary round numbers. A health check endpoint should respond in milliseconds; a report generation endpoint might legitimately take 5 minutes. Using the same timeout for both means either your health checks are too slow to detect failures, or your reports timeout prematurely.
 
 ### Nginx Timeout Hierarchy
 
-Nginx organizes timeouts into client-side (receiving requests) and proxy-side (communicating with backends). Most timeouts are _per-operation_, meaning they reset when data flows—a client uploading a large file won't timeout as long as chunks keep arriving.
+Nginx organizes timeouts into client-side (receiving requests) and proxy-side (communicating with backends). Most timeouts are __per-operation__, meaning they reset when data flows — a client uploading a large file won't timeout as long as chunks keep arriving.
 
 ```nginx title="nginx-timeouts.conf"
 # Client-side timeouts
@@ -63,7 +63,7 @@ The per-location overrides are essential. A monolithic timeout configuration for
 
 ### HAProxy's Total-Time Semantics
 
-HAProxy's timeout model differs in one critical way: `timeout client` and `timeout server` cover the _entire_ request or response, not per-read operations. If you set `timeout server 60s` and the backend takes 30 seconds to send the first byte, then another 35 seconds to send the body, the connection times out—even though data was flowing the whole time.
+HAProxy's timeout model differs in one critical way: `timeout client` and `timeout server` cover the __entire__ request or response, not per-read operations. If you set `timeout server 60s` and the backend takes 30 seconds to send the first byte, then another 35 seconds to send the body, the connection times out — even though data was flowing the whole time.
 
 ```haproxy title="haproxy-timeouts.cfg"
 defaults
@@ -80,11 +80,11 @@ backend slow_api
     timeout queue 60s
 ```
 
-The `timeout queue` setting deserves attention. When all backend servers reach their connection limit, HAProxy queues incoming requests rather than rejecting them immediately. This is usually what you want—a brief spike shouldn't return errors if backends will be available in a few seconds. But if the queue timeout is too long, users wait forever for requests that will eventually fail anyway.
+The `timeout queue` setting deserves attention. When all backend servers reach their connection limit, HAProxy queues incoming requests rather than rejecting them immediately. This is usually what you want — a brief spike shouldn't return errors if backends will be available in a few seconds. But if the queue timeout is too long, users wait forever for requests that will eventually fail anyway.
 
 <Newsletter />
 
-When translating configurations between Nginx and HAProxy, the following table maps the key timeout settings. They're not exact equivalents—Nginx's per-read semantics differ from HAProxy's total-time semantics—but this helps when translating configurations.
+When translating configurations between Nginx and HAProxy, the following table maps the key timeout settings. They're not exact equivalents — Nginx's per-read semantics differ from HAProxy's total-time semantics — but this helps when translating configurations.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -155,7 +155,7 @@ location /api/streaming {
 }
 ```
 
-The `proxy_buffering` directive controls whether Nginx buffers the entire backend response before sending to the client. With buffering on, a backend can finish quickly and move on to the next request even if the client is slow—the proxy holds the response. With buffering off, the backend connection stays open until the client receives everything. For typical APIs, keep buffering on. For Server-Sent Events, WebSockets, or streaming responses, turn it off.
+The `proxy_buffering` directive controls whether Nginx buffers the entire backend response before sending to the client. With buffering on, a backend can finish quickly and move on to the next request even if the client is slow — the proxy holds the response. With buffering off, the backend connection stays open until the client receives everything. For typical APIs, keep buffering on. For Server-Sent Events, WebSockets, or streaming responses, turn it off.
 
 ### HAProxy's Simpler Model
 
@@ -171,7 +171,7 @@ frontend main
     http-request deny if { req.body_size gt 104857600 }
 ```
 
-The `http-request deny` rule is worth noting: it rejects oversized requests _before_ buffering them. Without this, HAProxy would accept a 10GB upload attempt before rejecting it—wasting bandwidth and potentially filling disk.
+The `http-request deny` rule is worth noting: it rejects oversized requests __before__ buffering them. Without this, HAProxy would accept a 10GB upload attempt before rejecting it — wasting bandwidth and potentially filling disk.
 
 If you're seeing 400 errors in HAProxy specifically, check whether `tune.bufsize` is large enough for your headers. The default 16KB is usually sufficient, but authentication-heavy requests with multiple OAuth tokens may need 32KB or more.
 
@@ -213,7 +213,7 @@ Quick decision guide: If you're seeing 400 Bad Request errors, increase `client_
 
 ## Beyond Timeouts and Buffers
 
-Timeouts and buffers are where traffic patterns meet system limits—they're the highest-impact tuning you can do. But production proxy configuration goes deeper. Connection pooling dramatically reduces backend latency by reusing TCP connections. SSL/TLS optimization (session caching, OCSP stapling) cuts handshake time. Rate limiting protects backends from abuse. Monitoring with upstream timing metrics makes problems visible before they become outages.
+Timeouts and buffers are where traffic patterns meet system limits — they're the highest-impact tuning you can do. But production proxy configuration goes deeper. Connection pooling dramatically reduces backend latency by reusing TCP connections. SSL/TLS optimization (session caching, OCSP stapling) cuts handshake time. Rate limiting protects backends from abuse. Monitoring with upstream timing metrics makes problems visible before they become outages.
 
 <Download
   resource="nginx-haproxy-reverse-proxy-production-tuning"
@@ -227,4 +227,4 @@ Timeouts and buffers are where traffic patterns meet system limits—they're the
   ]}
 />
 
-The pattern is the same across all these areas: establish baseline metrics, identify bottlenecks, adjust configuration, measure again. Test under failure conditions—simulate slow backends, connection storms, oversized payloads. The problems you find in testing won't page you at 3 AM.
+The pattern is the same across all these areas: establish baseline metrics, identify bottlenecks, adjust configuration, measure again. Test under failure conditions — simulate slow backends, connection storms, oversized payloads. The problems you find in testing won't page you at 3 AM.

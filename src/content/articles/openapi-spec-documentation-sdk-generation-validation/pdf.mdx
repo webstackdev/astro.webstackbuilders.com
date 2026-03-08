@@ -15,9 +15,9 @@ featured: true
 
 ## Introduction
 
-OpenAPI promises a single specification file that generates accurate documentation, type-safe client SDKs, and request validation middleware. Write once, generate everywhere. The reality is more nuanced—specs drift from implementations, generated code can be awkward, validation catches schema errors but misses business logic. The difference between OpenAPI delivering value and becoming another artifact to maintain comes down to one question: is the spec the source of truth, or is it describing code that already exists?
+OpenAPI promises a single specification file that generates accurate documentation, type-safe client SDKs, and request validation middleware. Write once, generate everywhere. The reality is more nuanced — specs drift from implementations, generated code can be awkward, validation catches schema errors but misses business logic. The difference between OpenAPI delivering value and becoming another artifact to maintain comes down to one question: is the spec the source of truth, or is it describing code that already exists?
 
-I've seen teams maintain REST APIs with hand-written documentation in Confluence, manually coded client SDKs in three languages, and validation logic duplicated across services. Documentation is perpetually out of date. SDK bugs emerge when the API changes. Validation differs between the gateway and the backend. When they adopt spec-first OpenAPI—where the spec drives the implementation rather than documenting it after the fact—something changes. Documentation generates automatically. SDKs regenerate on spec change. Validation middleware uses the same spec the docs reference. The three artifacts are guaranteed consistent because they come from the same source. As a side effect, time spent on API maintenance drops significantly—but the real win is confidence that your docs, clients, and validation all agree on what the API actually does.
+I've seen teams maintain REST APIs with hand-written documentation in Confluence, manually coded client SDKs in three languages, and validation logic duplicated across services. Documentation is perpetually out of date. SDK bugs emerge when the API changes. Validation differs between the gateway and the backend. When they adopt spec-first OpenAPI — where the spec drives the implementation rather than documenting it after the fact — something changes. Documentation generates automatically. SDKs regenerate on spec change. Validation middleware uses the same spec the docs reference. The three artifacts are guaranteed consistent because they come from the same source. As a side effect, time spent on API maintenance drops significantly — but the real win is confidence that your docs, clients, and validation all agree on what the API actually does.
 
 <Callout type="warning">
 The biggest OpenAPI mistake: generating a spec from existing code and calling it "documentation." That's archaeology, not specification. The spec should drive the code, not describe it after the fact.
@@ -49,9 +49,9 @@ An OpenAPI spec has four top-level sections that matter:
   ]}
 />
 
-The first two are straightforward—title, version, contact info, and a list of base URLs for production, staging, and local development.
+The first two are straightforward — title, version, contact info, and a list of base URLs for production, staging, and local development.
 
-The `paths` section is where you define what your API does. Each path (like `/orders` or `/orders/{orderId}`) contains operations—GET, POST, PUT, DELETE—with their parameters, request bodies, and responses. Here's where things get interesting: instead of defining the same `Order` schema inline on every endpoint that returns one, you define it once in `components/schemas` and reference it with `$ref: "#/components/schemas/Order"`.
+The `paths` section is where you define what your API does. Each path (like `/orders` or `/orders/{orderId}`) contains operations — GET, POST, PUT, DELETE — with their parameters, request bodies, and responses. Here's where things get interesting: instead of defining the same `Order` schema inline on every endpoint that returns one, you define it once in `components/schemas` and reference it with `$ref: "#/components/schemas/Order"`.
 
 This applies to everything. Parameters that appear on multiple endpoints? Define them in `components/parameters`. Error responses that every endpoint might return? `components/responses`. Security schemes? `components/securitySchemes`. One change propagates everywhere.
 
@@ -87,7 +87,7 @@ paths:
 ```
 Code: Reusable components and $ref patterns.
 
-Notice the `operationId` field in that example. It seems like metadata, but it becomes the method name in generated SDKs. Name your operation `listOrders` and you get `client.listOrders()`. Name it `get_api_v1_orders_list` and your SDK consumers will hate you. Spend the thirty seconds to pick good names—future you will appreciate it.
+Notice the `operationId` field in that example. It seems like metadata, but it becomes the method name in generated SDKs. Name your operation `listOrders` and you get `client.listOrders()`. Name it `get_api_v1_orders_list` and your SDK consumers will hate you. Spend the thirty seconds to pick good names — future you will appreciate it.
 
 ### Schema Design That Doesn't Fight You
 
@@ -148,7 +148,7 @@ components:
 ```
 Code: Separate schemas for create, update, and response operations.
 
-Yes, there's duplication. `customerId` appears in both schemas. That's fine—it's explicit about what each operation accepts and returns. Generated code becomes cleaner, validation becomes tighter, and nobody has to reason about which fields apply in which context.
+Yes, there's duplication. `customerId` appears in both schemas. That's fine — it's explicit about what each operation accepts and returns. Generated code becomes cleaner, validation becomes tighter, and nobody has to reason about which fields apply in which context.
 
 ### Composition Patterns
 
@@ -181,7 +181,7 @@ components:
 ```
 Code: Using allOf to compose shared base properties into entity schemas.
 
-For polymorphic types—where a field can be one of several shapes—use `oneOf` with a discriminator. Payment methods are the classic example: credit cards have `last4` and `expiryMonth`, bank transfers have `routingNumber` and `accountNumber`, PayPal has `email`. The discriminator tells parsers which schema applies based on a `type` field.
+For polymorphic types — where a field can be one of several shapes — use `oneOf` with a discriminator. Payment methods are the classic example: credit cards have `last4` and `expiryMonth`, bank transfers have `routingNumber` and `accountNumber`, PayPal has `email`. The discriminator tells parsers which schema applies based on a `type` field.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -248,13 +248,13 @@ A good rule of thumb: if you're adding `readOnly`, `writeOnly`, or complex `null
 
 ## Spec-First vs Code-First
 
-The spec-first vs code-first debate comes down to one question: what's your source of truth? In spec-first, the OpenAPI document _is_ the contract—you design the API there, then generate server stubs and client SDKs from it. In code-first, your implementation is the contract—you add annotations to your code, then generate the spec from those annotations.
+The spec-first vs code-first debate comes down to one question: what's your source of truth? In spec-first, the OpenAPI document __is__ the contract — you design the API there, then generate server stubs and client SDKs from it. In code-first, your implementation is the contract — you add annotations to your code, then generate the spec from those annotations.
 
 I've worked with both, and my bias is toward spec-first for any API with multiple consumers. Here's why.
 
 ### The Case for Spec-First
 
-When the spec is the source of truth, several good things happen. API design becomes a distinct activity that happens _before_ you start coding. You can share the spec with frontend teams, partner integrators, or product managers and get feedback before you've written a line of implementation code. Breaking changes become visible in the spec diff, not hidden in a code change that looks innocuous.
+When the spec is the source of truth, several good things happen. API design becomes a distinct activity that happens __before__ you start coding. You can share the spec with frontend teams, partner integrators, or product managers and get feedback before you've written a line of implementation code. Breaking changes become visible in the spec diff, not hidden in a code change that looks innocuous.
 
 The workflow looks like this: design the API in your spec editor, review with stakeholders, generate server stubs (which give you the interface to implement), fill in the business logic, then generate client SDKs and documentation from the same spec. Everything stays in sync because everything comes from the same source.
 
@@ -294,13 +294,13 @@ You'll want a decent editor for spec-first work. Here are the main options:
   }}
 />
 
-The downsides are real too. Generated code rarely matches your team's style preferences perfectly. Every change requires editing the spec first, which adds friction when you're iterating quickly. And spec-first requires discipline—it's tempting to make a quick fix in code and "update the spec later," which is how drift starts.
+The downsides are real too. Generated code rarely matches your team's style preferences perfectly. Every change requires editing the spec first, which adds friction when you're iterating quickly. And spec-first requires discipline — it's tempting to make a quick fix in code and "update the spec later," which is how drift starts.
 
 Spec-first works best for public APIs, APIs consumed by multiple teams, and anywhere you need a formal contract that outlives any particular implementation.
 
 ### The Case for Code-First
 
-Code-first feels more natural to most developers. You build the API in your language and framework of choice, sprinkle in some annotations or decorators, and out comes a spec. The code is always accurate because the code _is_ the specification.
+Code-first feels more natural to most developers. You build the API in your language and framework of choice, sprinkle in some annotations or decorators, and out comes a spec. The code is always accurate because the code __is__ the specification.
 
 Frameworks like FastAPI (Python), tsoa (TypeScript), and springdoc (Java) make this almost friction-free. You write type hints or interfaces, add decorators for additional metadata, and the spec generates automatically on build.
 
@@ -326,7 +326,7 @@ async def get_order(order_id: UUID) -> Order:
 ```
 Code: FastAPI automatically generates OpenAPI specs from Python type hints.
 
-The tradeoffs: spec quality depends entirely on how thorough your annotations are. It's easy to ship an endpoint with minimal documentation because "it works." API design happens _during_ coding, which means design decisions get made under time pressure. And breaking changes are easier to introduce accidentally because there's no separate spec review step.
+The tradeoffs: spec quality depends entirely on how thorough your annotations are. It's easy to ship an endpoint with minimal documentation because "it works." API design happens __during__ coding, which means design decisions get made under time pressure. And breaking changes are easier to introduce accidentally because there's no separate spec review step.
 
 Code-first works well for internal APIs, rapid prototypes, and situations where you're the primary consumer of your own API.
 
@@ -349,12 +349,12 @@ Code: The three validation commands to run in CI. (Full workflow example in the 
 The key tools here: Spectral for linting (catches spec-level issues like missing descriptions or inconsistent naming), openapi-diff for detecting breaking changes (removed endpoints, required fields added, type changes), and Dredd or Schemathesis for contract testing (actually hits your running server and validates responses against the spec).
 
 <Callout type="warning">
-If you don't validate in CI, spec and implementation _will_ drift. It's not a matter of discipline—it's that small, well-intentioned changes accumulate into documentation that actively misleads consumers.
+If you don't validate in CI, spec and implementation __will__ drift. It's not a matter of discipline — it's that small, well-intentioned changes accumulate into documentation that actively misleads consumers.
 </Callout>
 
 ## Documentation Generation
 
-Once you have an OpenAPI spec, generating documentation is almost trivially easy. Point a tool at your YAML file, run a command, and out comes a browsable API reference. The hard part isn't generation—it's making documentation that developers actually want to read.
+Once you have an OpenAPI spec, generating documentation is almost trivially easy. Point a tool at your YAML file, run a command, and out comes a browsable API reference. The hard part isn't generation — it's making documentation that developers actually want to read.
 
 ### Choosing a Documentation Tool
 
@@ -365,7 +365,7 @@ The three main options cover different use cases:
   items={[
     {
       lead: 'Redoc',
-      text: 'generates static HTML from your spec. You get a three-panel layout (navigation, content, code samples), search, and nested schema expansion. It\'s a single HTML file you can host anywhere—GitHub Pages, S3, your CDN. No backend required. This is my default choice for most projects because it\'s zero-maintenance once deployed.',
+      text: 'generates static HTML from your spec. You get a three-panel layout (navigation, content, code samples), search, and nested schema expansion. It\'s a single HTML file you can host anywhere — GitHub Pages, S3, your CDN. No backend required. This is my default choice for most projects because it\'s zero-maintenance once deployed.',
     },
     {
       lead: 'Swagger UI',
@@ -394,9 +394,9 @@ Code: Generating docs with Redoc and Swagger UI.
 
 ### Making Documentation Worth Reading
 
-Generated documentation is only as good as your spec. A minimal spec produces minimal docs—endpoint names, parameter lists, response schemas. Functional, but not helpful.
+Generated documentation is only as good as your spec. A minimal spec produces minimal docs — endpoint names, parameter lists, response schemas. Functional, but not helpful.
 
-The difference between documentation that gets ignored and documentation that developers bookmark comes down to three things: descriptions that explain _why_ not just _what_, examples that show realistic data, and error responses that help with debugging.
+The difference between documentation that gets ignored and documentation that developers bookmark comes down to three things: descriptions that explain __why__ not just __what__, examples that show realistic data, and error responses that help with debugging.
 
 Descriptions support Markdown, so use it. Don't just write "Gets an order"—explain what permissions are required, what the caching behavior is, what the rate limits are. This context belongs in the spec itself, not in a separate wiki that gets out of sync.
 
@@ -418,7 +418,7 @@ paths:
 ```
 Code: OpenAPI descriptions with authorization, rate limits, and caching behavior.
 
-Examples matter even more than descriptions. A schema tells you the _shape_ of data; an example shows you what it actually _looks like_. OpenAPI supports multiple named examples per response, so you can show different scenarios—a pending order vs. a shipped order, a successful response vs. an error.
+Examples matter even more than descriptions. A schema tells you the __shape__ of data; an example shows you what it actually __looks like__. OpenAPI supports multiple named examples per response, so you can show different scenarios — a pending order vs. a shipped order, a successful response vs. an error.
 
 ```yaml title="multiple-examples.yaml"
 # Multiple examples show different scenarios
@@ -477,7 +477,7 @@ Code: Named examples for different order states.
 The time you spend on descriptions and examples pays off in reduced support requests. Developers who can self-serve from good docs don't need to ask you questions.
 </Callout>
 
-Good documentation tells developers what your API does. But they still have to write the code to call it—and that's where SDK generation comes in.
+Good documentation tells developers what your API does. But they still have to write the code to call it — and that's where SDK generation comes in.
 
 ## SDK Generation
 
@@ -556,7 +556,7 @@ npx orval --input openapi.yaml --output ./src/api/generated.ts
 ```
 Code: Basic SDK generation commands.
 
-The `additional-properties` flag is where customization happens. Each generator has dozens of options controlling output structure, naming conventions, and feature flags. The `-g typescript-axios` in the command above tells OpenAPI Generator to use its TypeScript-with-Axios template (one of many available templates—there's also `typescript-fetch`, `typescript-node`, `python`, `java`, etc.). For the TypeScript-Axios template specifically, the useful properties are `supportsES6` (modern syntax), `withSeparateModelsAndApi` (splits models and API classes into separate files), and `useSingleRequestParameter` (bundles parameters into a single options object).
+The `additional-properties` flag is where customization happens. Each generator has dozens of options controlling output structure, naming conventions, and feature flags. The `-g typescript-axios` in the command above tells OpenAPI Generator to use its TypeScript-with-Axios template (one of many available templates — there's also `typescript-fetch`, `typescript-node`, `python`, `java`, etc.). For the TypeScript-Axios template specifically, the useful properties are `supportsES6` (modern syntax), `withSeparateModelsAndApi` (splits models and API classes into separate files), and `useSingleRequestParameter` (bundles parameters into a single options object).
 
 ### Making Generated Code Usable
 
@@ -584,7 +584,7 @@ rm -f ./sdk/typescript/.openapi-generator-ignore
 ```
 Code: Post-processing pipeline for generated SDKs.
 
-For deeper customization, generators support template overrides. You can export the default Mustache templates, modify them, and pass your custom template directory during generation. This is useful for adding custom headers, changing error handling patterns, or injecting wrapper code. But I'd recommend exhausting post-processing options first—template maintenance becomes a burden when the generator updates.
+For deeper customization, generators support template overrides. You can export the default Mustache templates, modify them, and pass your custom template directory during generation. This is useful for adding custom headers, changing error handling patterns, or injecting wrapper code. But I'd recommend exhausting post-processing options first — template maintenance becomes a burden when the generator updates.
 
 The pattern I've found works best: generate into a dedicated directory, post-process aggressively, then wrap the generated code with a thin facade that exposes the interface your consumers actually want. The generated code handles serialization, HTTP mechanics, and type definitions. Your wrapper handles configuration, error normalization, and any convenience methods.
 
@@ -594,9 +594,9 @@ Treat generated SDKs as build artifacts, not source code. Regenerate them in CI,
 
 ## Request Validation
 
-Validation is where OpenAPI specs earn their keep. Instead of writing validation logic by hand—checking types, verifying formats, ensuring required fields exist—you can derive it directly from the spec. The same schema that generates your documentation and SDKs also enforces that incoming requests match the contract.
+Validation is where OpenAPI specs earn their keep. Instead of writing validation logic by hand — checking types, verifying formats, ensuring required fields exist — you can derive it directly from the spec. The same schema that generates your documentation and SDKs also enforces that incoming requests match the contract.
 
-The catch: OpenAPI validation handles _schema_ correctness, not _business_ correctness. It'll reject a request where `quantity` is a string instead of an integer, or where `email` doesn't match email format. It won't reject a request where `customerId` is a valid UUID that doesn't exist in your database.
+The catch: OpenAPI validation handles __schema__ correctness, not __business__ correctness. It'll reject a request where `quantity` is a string instead of an integer, or where `email` doesn't match email format. It won't reject a request where `customerId` is a valid UUID that doesn't exist in your database.
 
 ### Adding Validation Middleware
 
@@ -629,9 +629,9 @@ app.post('/orders', async (req, res) => {
 ```
 Code: Express middleware that validates requests against your OpenAPI spec.
 
-The `validateResponses: true` option is worth enabling in development and staging. It catches cases where your implementation returns data that doesn't match your spec—a useful early warning that your spec and code have drifted apart. You might disable it in production for performance reasons, but keeping it on during development catches a lot of bugs.
+The `validateResponses: true` option is worth enabling in development and staging. It catches cases where your implementation returns data that doesn't match your spec — a useful early warning that your spec and code have drifted apart. You might disable it in production for performance reasons, but keeping it on during development catches a lot of bugs.
 
-For Python, FastAPI handles this automatically if you're using Pydantic models. Your type hints _are_ your validation schema, and FastAPI generates the OpenAPI spec from them. If you're using a different Python framework, libraries like `openapi-core` provide similar middleware.
+For Python, FastAPI handles this automatically if you're using Pydantic models. Your type hints __are__ your validation schema, and FastAPI generates the OpenAPI spec from them. If you're using a different Python framework, libraries like `openapi-core` provide similar middleware.
 
 Other ecosystems have their own solutions:
 
@@ -747,7 +747,7 @@ It's important to understand the boundaries of schema validation:
   }}
 />
 
-Schema validation is your first line of defense—it rejects obviously malformed requests before they hit your business logic. But you still need business validation after schema validation passes. A request with `{"customerId": "valid-uuid", "productId": "valid-uuid"}` passes schema validation perfectly, but both IDs might reference entities that don't exist or aren't accessible to the requesting user.
+Schema validation is your first line of defense — it rejects obviously malformed requests before they hit your business logic. But you still need business validation after schema validation passes. A request with `{"customerId": "valid-uuid", "productId": "valid-uuid"}` passes schema validation perfectly, but both IDs might reference entities that don't exist or aren't accessible to the requesting user.
 
 <Callout type="warning">
 Don't confuse schema validation with authorization or business rules. A valid request body doesn't mean an authorized request. Always layer business validation and permission checks on top of schema validation.
@@ -755,7 +755,7 @@ Don't confuse schema validation with authorization or business rules. A valid re
 
 ## CI/CD Integration
 
-Everything we've discussed—documentation generation, SDK generation, validation—becomes reliable only when it's automated. If generating docs requires someone to remember to run a command, docs will fall out of date. If SDK generation is a manual step, it'll be skipped when someone's in a hurry. CI/CD is what turns OpenAPI from "nice to have" into "always accurate."
+Everything we've discussed — documentation generation, SDK generation, validation — becomes reliable only when it's automated. If generating docs requires someone to remember to run a command, docs will fall out of date. If SDK generation is a manual step, it'll be skipped when someone's in a hurry. CI/CD is what turns OpenAPI from "nice to have" into "always accurate."
 
 ### The Core Pipeline
 
@@ -813,7 +813,7 @@ The key insight: the `breaking-changes` job only runs on pull requests and compa
 
 Spectral is the standard linter for OpenAPI specs. It ships with sensible defaults (valid spec structure, required fields, consistent naming) and lets you add custom rules for your organization's standards.
 
-The built-in `spectral:oas` ruleset catches structural issues—invalid syntax, missing required fields, unreferenced schemas. For most teams, that's enough to start:
+The built-in `spectral:oas` ruleset catches structural issues — invalid syntax, missing required fields, unreferenced schemas. For most teams, that's enough to start:
 
 ```yaml title=".spectral-basic.yaml"
 # Start with the built-in ruleset
@@ -821,7 +821,7 @@ extends: ["spectral:oas"]
 ```
 Code: Minimal Spectral config using only the built-in OpenAPI rules.
 
-Once you have that in CI, add custom rules to enforce your organization's conventions—naming patterns, required documentation, security definitions:
+Once you have that in CI, add custom rules to enforce your organization's conventions — naming patterns, required documentation, security definitions:
 
 ```yaml title=".spectral-extended.yaml"
 # Extended config with custom rules
@@ -874,7 +874,7 @@ Breaking changes are the silent killer of API reliability. Someone adds a requir
   ]}
 />
 
-Run it in PR checks with `--fail-on-incompatible` to block merges that would break consumers. When breaking changes are intentional (major version bumps), you can override the check—but at least it's a conscious decision, not an accident.
+Run it in PR checks with `--fail-on-incompatible` to block merges that would break consumers. When breaking changes are intentional (major version bumps), you can override the check — but at least it's a conscious decision, not an accident.
 
 ### Contract Testing
 
@@ -885,7 +885,7 @@ Contract tests verify your implementation actually matches your spec. Dredd and 
   items={[
     {
       lead: 'Dredd',
-      text: 'reads your spec, generates requests for each endpoint, hits your running server, and validates responses against the schema. It\'s deterministic—same spec produces same tests.',
+      text: 'reads your spec, generates requests for each endpoint, hits your running server, and validates responses against the schema. It\'s deterministic — same spec produces same tests.',
     },
     {
       lead: 'Schemathesis',
@@ -904,8 +904,8 @@ The combination of Spectral (spec quality), openapi-diff (breaking change detect
 
 The difference between OpenAPI that delivers value and OpenAPI that becomes shelfware comes down to one thing: is the spec the source of truth, or is it an artifact you generate and forget?
 
-When the spec drives everything—documentation, SDKs, validation, contract tests—you get consistency for free. Change the spec, regenerate artifacts, deploy. Documentation can't drift because it's generated. SDKs can't disagree with the server because they come from the same source. Validation can't miss edge cases the spec covers because it reads the spec directly.
+When the spec drives everything — documentation, SDKs, validation, contract tests — you get consistency for free. Change the spec, regenerate artifacts, deploy. Documentation can't drift because it's generated. SDKs can't disagree with the server because they come from the same source. Validation can't miss edge cases the spec covers because it reads the spec directly.
 
-The setup cost is real. You'll spend time choosing generators, configuring linters, wiring up CI pipelines. But that cost is paid once. The alternative—manually maintaining documentation, hand-coding SDKs, duplicating validation logic—is paid continuously, and it compounds as your API grows and your consumer base expands.
+The setup cost is real. You'll spend time choosing generators, configuring linters, wiring up CI pipelines. But that cost is paid once. The alternative — manually maintaining documentation, hand-coding SDKs, duplicating validation logic — is paid continuously, and it compounds as your API grows and your consumer base expands.
 
-If you take one thing from this article: treat your OpenAPI spec as infrastructure, not documentation. The spec isn't describing your API—it _is_ your API contract, and everything else flows from that.
+If you take one thing from this article: treat your OpenAPI spec as infrastructure, not documentation. The spec isn't describing your API — it __is__ your API contract, and everything else flows from that.

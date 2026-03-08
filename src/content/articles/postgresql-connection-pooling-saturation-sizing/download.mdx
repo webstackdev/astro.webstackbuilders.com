@@ -12,7 +12,7 @@ pages: 25
 fileName: "postgresql-connection-pooling-saturation-sizing.pdf"
 ---
 
-Every PostgreSQL connection costs 5-10MB of memory and requires a dedicated backend process. A database configured for 200 max connections isn't safe at 199—it's already under strain well before the hard limit. Connection exhaustion doesn't announce itself; it manifests as slow queries, timeouts, and cascading failures. A team ran PostgreSQL with 200 max connections, comfortable at 50 typical usage. Traffic spiked, instances autoscaled from 5 to 20, each with a pool of 20. Four hundred connections hit the 200 limit, rejections cascaded, threads blocked, health checks failed. After adding PgBouncer, properly sizing pools, and implementing backpressure, the next traffic spike queued requests appropriately and degraded gracefully instead of failing.
+Every PostgreSQL connection costs 5-10MB of memory and requires a dedicated backend process. A database configured for 200 max connections isn't safe at 199 — it's already under strain well before the hard limit. Connection exhaustion doesn't announce itself; it manifests as slow queries, timeouts, and cascading failures. A team ran PostgreSQL with 200 max connections, comfortable at 50 typical usage. Traffic spiked, instances autoscaled from 5 to 20, each with a pool of 20. Four hundred connections hit the 200 limit, rejections cascaded, threads blocked, health checks failed. After adding PgBouncer, properly sizing pools, and implementing backpressure, the next traffic spike queued requests appropriately and degraded gracefully instead of failing.
 
 Connection limits enable graceful degradation under load, not just avoiding hard limits.
 

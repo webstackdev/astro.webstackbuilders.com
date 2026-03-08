@@ -11,7 +11,7 @@ featured: true
 
 Big-bang migrations fail at alarming rates. Large IT transformation projects routinely exceed budgets and timelines - McKinsey research found that large projects run 45% over budget and 7% over time while delivering 56% less value than predicted. The fundamental problem isn't the new technology or the team's capabilities - it's the validation gap. Teams build entire replacement systems in isolation, then discover on cutover day that their assumptions about the legacy system's behavior were wrong.
 
-The strangler fig pattern offers a different approach: incremental replacement with continuous validation. But the pattern alone isn't enough. The real power comes from treating migration as an observability problem first and a development problem second. When you can prove that your new service behaves identically to the legacy system _before_ any traffic shifts, migration becomes a series of low-risk deployments rather than a high-stakes gamble.
+The strangler fig pattern offers a different approach: incremental replacement with continuous validation. But the pattern alone isn't enough. The real power comes from treating migration as an observability problem first and a development problem second. When you can prove that your new service behaves identically to the legacy system __before__ any traffic shifts, migration becomes a series of low-risk deployments rather than a high-stakes gamble.
 
 ## Why the Strangler Fig Pattern Works
 
@@ -63,6 +63,10 @@ Shadow traffic testing is where the strangler fig pattern transforms from a nice
 
 The legacy system continues handling all real responses while your new service processes the same requests in parallel. A comparison engine analyzes both responses and logs discrepancies without affecting users. This creates a continuous validation loop that catches problems you'd never find in a staging environment.
 
+<Diagram
+  title="Shadow traffic architecture for parallel validation"
+  description={`A left-to-right flowchart showing shadow traffic during migration validation. An incoming request goes to an API Gateway. The gateway sends the primary request to the Legacy System, which returns the response to the user. The gateway also sends a shadow copy of the request to the New Service. The New Service sends its output to a Comparison Engine, and the Legacy System also sends a copy of its response to that same engine. The Comparison Engine then writes any differences to a Discrepancy Log. The diagram shows that users continue receiving responses only from the legacy system while the new service is validated in parallel.`}
+>
 ```mermaid
 flowchart LR
     A[Incoming Request] --> B[API Gateway]
@@ -73,8 +77,7 @@ flowchart LR
     C -.->|Copy Response| F
     F --> G[Discrepancy Log]
 ```
-
-Figure: Shadow traffic architecture for parallel validation
+</Diagram>
 
 The comparison engine is where the real intelligence lives. Naive byte-for-byte comparison fails immediately - timestamps differ, generated IDs change, and floating-point precision varies between platforms. Effective comparison requires semantic normalization.
 
@@ -215,6 +218,6 @@ This approach succeeds because it reframes migration as an observability challen
   ]}
 />
 
-This approach takes longer than a big-bang rewrite would _if the rewrite succeeded_. But the rewrite rarely succeeds on the first attempt. When you account for the discovery of undocumented behavior, the fixes for edge cases that only appear in production, and the inevitable rollbacks, incremental migration with continuous validation is almost always faster.
+This approach takes longer than a big-bang rewrite would __if the rewrite succeeded__. But the rewrite rarely succeeds on the first attempt. When you account for the discovery of undocumented behavior, the fixes for edge cases that only appear in production, and the inevitable rollbacks, incremental migration with continuous validation is almost always faster.
 
 The real win isn't just a successful migration - it's the operational confidence you build along the way. When your next legacy system needs modernization, you'll have the patterns, tooling, and organizational muscle memory to approach it as routine work rather than an existential risk.

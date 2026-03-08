@@ -11,11 +11,11 @@ featured: true
 
 *[OTel]: OpenTelemetry
 
-A team I worked with instrumented a new service with spans for every function call, database query, cache lookup, and external request. Thorough, right? A typical request generated 200+ spans. The trace backend showed a waterfall of solid color—no gaps, no obvious structure. Finding the slow operation meant scrolling through hundreds of spans, mentally filtering out the noise. Storage costs tripled in a month.
+A team I worked with instrumented a new service with spans for every function call, database query, cache lookup, and external request. Thorough, right? A typical request generated 200+ spans. The trace backend showed a waterfall of solid color — no gaps, no obvious structure. Finding the slow operation meant scrolling through hundreds of spans, mentally filtering out the noise. Storage costs tripled in a month.
 
 They refactored to instrument only service boundaries, significant I/O operations, and error paths. Instrumented service boundaries, significant I/O operations, and error paths. Span count dropped to 15-20 per request. Traces became readable. The critical path was obvious at a glance. Storage costs dropped 90%. Debugging time went from minutes to seconds.
 
-The lesson: granularity without readability is noise, not observability. More spans don't mean better visibility—they often mean worse. The goal is _enough_ spans to debug problems, not so many that you create new ones.
+The lesson: granularity without readability is noise, not observability. More spans don't mean better visibility — they often mean worse. The goal is __enough__ spans to debug problems, not so many that you create new ones.
 
 ## What to Instrument
 
@@ -26,7 +26,7 @@ The question "should this operation have a span?" comes up constantly. Here's ho
   items={[
     {
       lead: 'Always instrument service boundaries.',
-      text: 'Incoming HTTP/gRPC requests, outgoing HTTP/gRPC calls, message queue publish/consume—these are the spans that stitch your distributed trace together. Without them, your trace stops at service boundaries and you lose visibility into cross-service latency.',
+      text: 'Incoming HTTP/gRPC requests, outgoing HTTP/gRPC calls, message queue publish/consume — these are the spans that stitch your distributed trace together. Without them, your trace stops at service boundaries and you lose visibility into cross-service latency.',
     },
     {
       lead: 'Always instrument I/O operations.',
@@ -38,19 +38,19 @@ The question "should this operation have a span?" comes up constantly. Here's ho
     },
     {
       lead: 'Instrument significant business operations.',
-      text: 'Order processing, payment validation, user authentication—operations that matter to your business and that you might need to debug. The keyword is "significant." Not every function, just the ones you\'d want to see in a trace when something goes wrong.',
+      text: 'Order processing, payment validation, user authentication — operations that matter to your business and that you might need to debug. The keyword is "significant." Not every function, just the ones you\'d want to see in a trace when something goes wrong.',
     },
   ]}
 />
 
-Some operations need judgment. For loops with external calls, wrap the loop, not each iteration—a batch that processes 100 items should create one span for the batch, not 100 spans. For retry logic, one span per attempt can be useful for debugging retry storms, but link them together so you can see the full retry sequence. And on the other end of the spectrum, there are operations you should actively avoid instrumenting.
+Some operations need judgment. For loops with external calls, wrap the loop, not each iteration — a batch that processes 100 items should create one span for the batch, not 100 spans. For retry logic, one span per attempt can be useful for debugging retry storms, but link them together so you can see the full retry sequence. And on the other end of the spectrum, there are operations you should actively avoid instrumenting.
 
 <List
   variant="check-icons-list"
   items={[
     {
       lead: 'Avoid instrumenting pure computation.',
-      text: 'JSON parsing, field validation, data transformation—these are CPU-bound operations that rarely need their own spans. If you need timing, add it as an attribute on the parent span.',
+      text: 'JSON parsing, field validation, data transformation — these are CPU-bound operations that rarely need their own spans. If you need timing, add it as an attribute on the parent span.',
     },
     {
       lead: 'Avoid instrumenting every function call.',
@@ -114,7 +114,7 @@ Once you've decided something deserves visibility in a trace, you have three opt
     },
     {
       lead: 'Events',
-      text: 'are timestamped points within a span\'s lifetime. They don\'t have duration—they mark moments. Use them for milestones: "validation started," "cache miss," "retry attempted." Cost: moderate (stored with parent span, but no separate context).',
+      text: 'are timestamped points within a span\'s lifetime. They don\'t have duration — they mark moments. Use them for milestones: "validation started," "cache miss," "retry attempted." Cost: moderate (stored with parent span, but no separate context).',
     },
     {
       lead: 'Attributes',
@@ -160,7 +160,7 @@ async function processOrder(order: Order) {
 ```
 Code: Using spans for I/O, events for milestones, attributes for metadata.
 
-Notice that `validateOrder()` doesn't get a span—it's pure computation. The validation timing is captured as events if you need it. The database insert _does_ get a span because it's I/O where latency matters.
+Notice that `validateOrder()` doesn't get a span — it's pure computation. The validation timing is captured as events if you need it. The database insert __does__ get a span because it's I/O where latency matters.
 
 <Callout type="success">
 Rule of thumb: if it involves I/O (network, disk, database), make it a span. If it's a milestone within an operation, make it an event. If it's metadata about the operation, make it an attribute. Spans are expensive; events and attributes are cheap.
@@ -177,7 +177,7 @@ Most readability problems fall into a few common anti-patterns:
   items={[
     {
       lead: 'Wall of spans.',
-      text: 'The waterfall is solid color—no gaps, no white space. You can\'t see the structure because there\'s a span for everything. Every function call, every loop iteration, every trivial operation. The fix is reducing span count and using events for milestones instead of child spans.',
+      text: 'The waterfall is solid color — no gaps, no white space. You can\'t see the structure because there\'s a span for everything. Every function call, every loop iteration, every trivial operation. The fix is reducing span count and using events for milestones instead of child spans.',
     },
     {
       lead: 'Flat hierarchy.',
@@ -185,7 +185,7 @@ Most readability problems fall into a few common anti-patterns:
     },
     {
       lead: 'Missing gaps.',
-      text: 'Spans account for 100% of request time—no uninstrumented periods visible. This sounds good but actually hides information. The gaps in a trace show where time went to uninstrumented code. If there are no gaps, you can\'t distinguish "the database was slow" from "the instrumentation overhead was high."',
+      text: 'Spans account for 100% of request time — no uninstrumented periods visible. This sounds good but actually hides information. The gaps in a trace show where time went to uninstrumented code. If there are no gaps, you can\'t distinguish "the database was slow" from "the instrumentation overhead was high."',
     },
     {
       lead: 'Cryptic names.',
@@ -222,7 +222,7 @@ Naming is particularly important for quick scanning. Span names should answer "w
         },
         {
           th: 'Cache',
-          td: ['`cache.get`', '`redis`', 'Technology not operation—what did you do?'],
+          td: ['`cache.get`', '`redis`', 'Technology not operation — what did you do?'],
         },
         {
           th: 'Business logic',
@@ -240,7 +240,7 @@ Naming is particularly important for quick scanning. Span names should answer "w
 
 ## Conclusion
 
-Span design is an engineering tradeoff: visibility versus overhead, granularity versus readability, detail versus cost. The goal isn't maximum spans—it's enough spans to debug problems efficiently.
+Span design is an engineering tradeoff: visibility versus overhead, granularity versus readability, detail versus cost. The goal isn't maximum spans — it's enough spans to debug problems efficiently.
 
 <Download
   resource="opentelemetry-span-design-granularity-overhead"
@@ -259,5 +259,5 @@ Instrument service boundaries, I/O operations, and significant business logic. U
 Audit your current traces: pick a typical request, count the spans, and ask whether you could identify the slow operation in under 10 seconds. If not, you've found your first refactoring target.
 
 <Callout type="info">
-Start with minimal instrumentation—auto-instrumentation plus key business operations—then add spans only when you can't debug a specific problem. You can always add granularity; removing it requires code changes. Let debugging needs drive instrumentation, not the quest for "complete" visibility.
+Start with minimal instrumentation — auto-instrumentation plus key business operations — then add spans only when you can't debug a specific problem. You can always add granularity; removing it requires code changes. Let debugging needs drive instrumentation, not the quest for "complete" visibility.
 </Callout>

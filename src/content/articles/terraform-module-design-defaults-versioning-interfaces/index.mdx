@@ -32,15 +32,15 @@ I organize variables into three categories based on what consumers need to provi
   items={[
     {
       lead: 'Required variables',
-      text: 'have no default. The module cannot function without them. VPC ID is a classic example-the module has no way to know which VPC you want to deploy into. Environment is another; defaulting to "development" when someone actually wanted production would be a disaster.',
+      text: 'Have no default. The module cannot function without them. VPC ID is a classic example-the module has no way to know which VPC you want to deploy into. Environment is another; defaulting to "development" when someone actually wanted production would be a disaster.',
     },
     {
       lead: 'Optional with sensible default',
-      text: "covers most settings. Instance type defaults to t3.medium because it works for most workloads. Backup retention defaults to 7 days because some retention is almost always better than none. Consumers can override these, but they don't have to think about them on day one.",
+      text: "Covers most settings. Instance type defaults to t3.medium because it works for most workloads. Backup retention defaults to 7 days because some retention is almost always better than none. Consumers can override these, but they don't have to think about them on day one.",
     },
     {
       lead: 'Opt-in with null',
-      text: 'handles features that most consumers do not need. Custom KMS keys, custom domains, advanced monitoring-these use null as the default, signaling "skip this feature" or "use platform defaults."',
+      text: 'Handles features that most consumers do not need. Custom KMS keys, custom domains, advanced monitoring-these use null as the default, signaling "skip this feature" or "use platform defaults."',
     },
   ]}
 />
@@ -115,7 +115,7 @@ variable "storage_encrypted" {
 
 Code: Security-sensitive settings default to the protective option.
 
-Users can opt out for development environments; they shouldn't have to opt _in_ for production safety. The module should make the secure path the easy path.
+Users can opt out for development environments; they shouldn't have to opt __in__ for production safety. The module should make the secure path the easy path.
 
 <Newsletter />
 
@@ -161,7 +161,7 @@ Here's where module maintenance gets tricky. You want to improve your module —
   }}
 />
 
-The key insight: _outputs are promises_. Even if you think nobody uses a particular output, removing it is a breaking change. Someone, somewhere, has wired it into their Terragrunt wrapper or their CI pipeline. Deprecate outputs for at least one major version before removal — add a description that says "DEPRECATED: Use xyz instead. Will be removed in v3.0" and give consumers time to migrate.
+The key insight: __outputs are promises__. Even if you think nobody uses a particular output, removing it is a breaking change. Someone, somewhere, has wired it into their Terragrunt wrapper or their CI pipeline. Deprecate outputs for at least one major version before removal — add a description that says "DEPRECATED: Use xyz instead. Will be removed in v3.0" and give consumers time to migrate.
 
 <Callout type="warning">
 Resource renames are particularly dangerous. If you rename `aws_instance.main` to `aws_instance.primary` without a `moved` block, Terraform will destroy and recreate the resource. For a database, that means data loss. Always include moved blocks when renaming:

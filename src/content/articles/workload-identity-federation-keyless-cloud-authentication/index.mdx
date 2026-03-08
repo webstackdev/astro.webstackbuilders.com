@@ -76,6 +76,12 @@ Here's the core insight: your CI/CD platform already knows which repository trig
 
 The mechanism is OIDC — the same protocol that powers "Sign in with Google" on websites. Your workload requests a token from its platform (GitHub Actions, Azure Pipelines, Kubernetes), then exchanges that token with your cloud provider for short-lived credentials.
 
+<Diagram
+  title="OIDC token exchange flow for workload identity federation."
+  description={
+    `Sequence diagram with three participants: Workload, Platform such as GitHub or Azure DevOps, and Cloud Provider such as Azure. The Workload requests an identity token from the Platform. The Platform returns a signed JWT containing claims. The Workload then sends that JWT to the Cloud Provider to exchange it for credentials. The Cloud Provider performs two internal checks: it verifies the JWT signature and checks the trust policy. If the token and policy checks succeed, the Cloud Provider returns short-lived credentials valid for one hour back to the Workload. The diagram shows how workload identity federation replaces static secrets with a signed identity assertion followed by temporary credentials.`
+  }
+>
 ```mermaid
 sequenceDiagram
     participant W as Workload
@@ -89,8 +95,7 @@ sequenceDiagram
     C->>C: Check trust policy
     C->>W: Short-lived credentials (1 hour)
 ```
-
-Figure: OIDC token exchange flow for workload identity federation.
+</Diagram>
 
 The JWT contains claims about the workload — which repository triggered the build, which branch, which environment. Your cloud provider verifies the signature against the platform's public keys, checks that the claims match your access policy, and issues credentials that expire in an hour or less.
 
@@ -188,7 +193,7 @@ jobs:
 
 Code: GitHub Actions workflow using Azure federated identity.
 
-Notice what's _not_ in this workflow: no `AZURE_CLIENT_SECRET`, no service principal key, no credential that could be extracted and reused elsewhere. The `id-token: write` permission tells GitHub to make OIDC tokens available, and the Azure login action handles the token exchange automatically.
+Notice what's __not__ in this workflow: no `AZURE_CLIENT_SECRET`, no service principal key, no credential that could be extracted and reused elsewhere. The `id-token: write` permission tells GitHub to make OIDC tokens available, and the Azure login action handles the token exchange automatically.
 
 The `client-id`, `tenant-id`, and `subscription-id` aren't secrets in the security sense — they're identifiers that tell Azure which identity to check. An attacker who obtains these values can't authenticate; they'd also need to be running in the correct GitHub repository on the correct branch.
 

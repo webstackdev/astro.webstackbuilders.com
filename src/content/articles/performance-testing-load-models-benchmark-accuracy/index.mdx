@@ -16,19 +16,19 @@ featured: true
 
 The post-mortem was awkward. A team had spent three weeks building a performance test suite for their new API gateway. The benchmark showed 50,000 RPS with 2ms P99 latency. Leadership signed off on the deployment. Production fell over at 5,000 RPS.
 
-The engineers weren't incompetent—they were victims of performance testing's hidden traps. Their benchmark measured _something_, just not anything useful for predicting production behavior. The load generator backed off when the system struggled (coordinated omission). The dashboards showed averages that hid catastrophic tail latency. The test environment bore no resemblance to production.
+The engineers weren't incompetent — they were victims of performance testing's hidden traps. Their benchmark measured __something__, just not anything useful for predicting production behavior. The load generator backed off when the system struggled (coordinated omission). The dashboards showed averages that hid catastrophic tail latency. The test environment bore no resemblance to production.
 
 This pattern repeats constantly. Teams run benchmarks, get impressive numbers, deploy with confidence, and watch production burn. The numbers were accurate; they just didn't answer the right question.
 
-Two mistakes cause most of the damage: _coordinated omission_ and _misusing averages_. Understanding these will save you from benchmarks that create false confidence before production incidents.
+Two mistakes cause most of the damage: __coordinated omission__ and __misusing averages__. Understanding these will save you from benchmarks that create false confidence before production incidents.
 
 ## The Coordinated Omission Trap
 
 Coordinated omission is the most insidious benchmark mistake, and most load testing tools exhibit it by default. The name sounds academic, but the problem is concrete: your load generator lies to you about how bad things really are.
 
-Here's how it works. Say you're targeting 100 RPS with a typical closed-loop test—one request at a time per virtual user. Under normal conditions, requests complete in 10ms, so you hit your target. Then the server starts struggling. P99 latency spikes to 500ms.
+Here's how it works. Say you're targeting 100 RPS with a typical closed-loop test — one request at a time per virtual user. Under normal conditions, requests complete in 10ms, so you hit your target. Then the server starts struggling. P99 latency spikes to 500ms.
 
-In a closed-loop test, that slow request _blocks the next one_. Instead of sending 100 requests that second, you send maybe 20. The benchmark reports "P99 is 500ms at 20 RPS." But real users would experience something far worse—they'd be waiting in a queue of 100 requests, not 20. The actual user experience might be 5,000ms or worse.
+In a closed-loop test, that slow request __blocks the next one__. Instead of sending 100 requests that second, you send maybe 20. The benchmark reports "P99 is 500ms at 20 RPS." But real users would experience something far worse — they'd be waiting in a queue of 100 requests, not 20. The actual user experience might be 5,000ms or worse.
 
 The benchmark backs off precisely when the system struggles, making it look healthier than it is.
 
@@ -81,7 +81,7 @@ An average latency of 100ms might mean all requests completed in roughly 100ms. 
 
 Averages collapse under outliers in both directions. A single 10-second timeout in a thousand requests shifts the average dramatically, even though 99.9% of users were fine. Conversely, if that timeout represents a real failure mode hitting 1% of production users, the average hides it.
 
-_Percentiles_ tell a more honest story:
+__Percentiles__ tell a more honest story:
 
 <Table
   variant="vertical-column-delineation-table"
@@ -113,19 +113,24 @@ _Percentiles_ tell a more honest story:
   }}
 />
 
-Distribution shape matters too. Latency is never normally distributed—it's right-skewed with a long tail. A histogram reveals patterns summary statistics hide: bimodal distributions indicate cache hits vs misses, long tails indicate slow queries or external dependencies.
+Distribution shape matters too. Latency is never normally distributed — it's right-skewed with a long tail. A histogram reveals patterns summary statistics hide: bimodal distributions indicate cache hits vs misses, long tails indicate slow queries or external dependencies.
 
+<Diagram
+  title="Four requests averaging 100ms, but one user waited 11x longer."
+  description={
+    `Left-to-right flowchart inside a grouped section labeled What Average Hides. Three separate requests with latencies of 50 milliseconds each and one request with a latency of 550 milliseconds all feed into a single node labeled 100 milliseconds average. The diagram shows that the same arithmetic mean can represent a very uneven experience, where most requests are fast but one request is dramatically slower. It illustrates why average latency hides tail pain and why percentile metrics are more informative for understanding real user experience.`
+  }
+>
 ```mermaid
-graph LR
-    subgraph "What Average Hides"
+flowchart LR
+    subgraph whatAverageHides[What Average Hides]
         A[50ms] --> M[100ms avg]
         B[50ms] --> M
         C[50ms] --> M
         D[550ms] --> M
     end
 ```
-
-Figure: Four requests averaging 100ms, but one user waited 11x longer.
+</Diagram>
 
 The practical fix: configure your monitoring to show P95 and P99 by default, not average. Set alerts on percentiles. When comparing runs, use statistical tests designed for non-normal distributions (Mann-Whitney U works well). Report confidence intervals, not point estimates.
 
@@ -155,7 +160,7 @@ Coordinated omission and average-worship are the most common problems, but they'
   ]}
 />
 
-Each of these deserves deeper treatment than space allows here. The point is that performance testing has many failure modes, and getting impressive numbers is easy—getting _meaningful_ numbers requires understanding all the ways benchmarks can mislead.
+Each of these deserves deeper treatment than space allows here. The point is that performance testing has many failure modes, and getting impressive numbers is easy — getting __meaningful__ numbers requires understanding all the ways benchmarks can mislead.
 
 <Download
   resource="performance-testing-load-models-benchmark-accuracy"
@@ -177,4 +182,4 @@ The question isn't "how fast is my system?" but "how will it behave under produc
 
 A benchmark that produces smaller numbers but actually predicts production is infinitely more valuable than one that produces impressive numbers and predicts nothing.
 
-If you want to go deeper—load model design, warmup procedures, statistical rigor, CI integration—I've written a comprehensive guide covering everything you need to build a complete performance testing practice.
+If you want to go deeper — load model design, warmup procedures, statistical rigor, CI integration — I've written a comprehensive guide covering everything you need to build a complete performance testing practice.

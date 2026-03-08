@@ -25,13 +25,13 @@ In December 2020, attackers compromised SolarWinds' build process and shipped ma
 
 These weren't exotic zero-days. They exploited a fundamental assumption: that code, builds, and artifacts are what they claim to be. When that assumption breaks down, the blast radius is enormous.
 
-Here's the good news: you can implement practical supply chain protection _today_ without managing keys, standing up infrastructure, or paying for expensive tooling. The barrier has dropped dramatically in the past few years, and the core protection—cryptographic signing with identity-based verification—is now free. If you're already comfortable with GitHub Actions, you can add signing to an existing pipeline in about 15 minutes. If you're newer to these tools, budget an hour to understand the OIDC flow and test your configuration.
+Here's the good news: you can implement practical supply chain protection __today__ without managing keys, standing up infrastructure, or paying for expensive tooling. The barrier has dropped dramatically in the past few years, and the core protection — cryptographic signing with identity-based verification — is now free. If you're already comfortable with GitHub Actions, you can add signing to an existing pipeline in about 15 minutes. If you're newer to these tools, budget an hour to understand the OIDC flow and test your configuration.
 
 ## What You're Actually Protecting Against
 
 Before investing in countermeasures, it helps to understand the attack surface. Supply chain attacks can happen at any transition point: compromised developer credentials pushing malicious commits, dependency confusion pulling poisoned packages, tampered build systems injecting backdoors, or modified artifacts swapped in registries after the build completes.
 
-[SLSA](https://slsa.dev) (Supply-chain Levels for Software Artifacts, pronounced "salsa") is a framework that addresses a specific slice of this problem. It focuses on _provenance_—proving that an artifact came from a specific source through a specific build process. This matters because it lets you verify that what you're deploying matches what you reviewed.
+[SLSA](https://slsa.dev) (Supply-chain Levels for Software Artifacts, pronounced "salsa") is a framework that addresses a specific slice of this problem. It focuses on __provenance_ — proving that an artifact came from a specific source through a specific build process. This matters because it lets you verify that what you're deploying matches what you reviewed.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -63,11 +63,11 @@ Before investing in countermeasures, it helps to understand the attack surface. 
         },
       ],
     },
-    figure: "SLSA's protection scope. The framework proves provenance and build integrity, not code quality or dependency safety.",
+    figure: 'SLSA protection scope.',
   }}
 />
 
-SLSA defines four levels of increasing rigor, but most teams should target Level 2. It provides authenticated provenance—the build service signs an attestation linking your artifact to a specific commit—without requiring significant process changes. An attacker who compromises your source repository can't forge provenance claiming the artifact came from a different commit. That's a meaningful security improvement for a few hours of configuration work.
+SLSA defines four levels of increasing rigor, but most teams should target Level 2. It provides authenticated provenance — the build service signs an attestation linking your artifact to a specific commit — without requiring significant process changes. An attacker who compromises your source repository can't forge provenance claiming the artifact came from a different commit. That's a meaningful security improvement for a few hours of configuration work.
 
 <Callout type="info">
 SLSA proves that an artifact came from a specific source through a specific build process. It doesn't prove the source is free of vulnerabilities. You still need code review, dependency scanning, and vulnerability management.
@@ -77,11 +77,11 @@ SLSA proves that an artifact came from a specific source through a specific buil
 
 Traditional artifact signing with GPG or PGP creates an operational burden that most teams can't sustain. You generate a keypair, guard the private key carefully, distribute the public key somehow, and hope everyone verifies. Key rotation is painful, key compromise is catastrophic (affecting all past signatures), and the Trust On First Use (TOFU) problem means first-time verifiers have no good way to know if they have the right public key.
 
-Keyless signing flips this model entirely. Instead of managing keys, you prove your identity through OIDC—the same system that powers "Sign in with GitHub." Sigstore (which provides the Cosign tool) issues a short-lived certificate tied to that identity, you sign with it, and the signature is recorded in a public transparency log called Rekor. Verification checks the log rather than a distributed public key.
+Keyless signing flips this model entirely. Instead of managing keys, you prove your identity through OIDC — the same system that powers "Sign in with GitHub." Sigstore (which provides the Cosign tool) issues a short-lived certificate tied to that identity, you sign with it, and the signature is recorded in a public transparency log called Rekor. Verification checks the log rather than a distributed public key.
 
 <Newsletter />
 
-The result: no keys to manage, no rotation headaches, and signatures tied to specific identities at specific times. Sigstore is a free, open-source, public-good service operated by the Open Source Security Foundation. There's no vendor lock-in or subscription cost—it exists to make supply chain security accessible to everyone.
+The result: no keys to manage, no rotation headaches, and signatures tied to specific identities at specific times. Sigstore is a free, open-source, public-good service operated by the Open Source Security Foundation. There's no vendor lock-in or subscription cost — it exists to make supply chain security accessible to everyone.
 
 Here's a complete GitHub Actions workflow that builds a container image and signs it with keyless Cosign:
 
@@ -137,9 +137,10 @@ jobs:
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
 ```
-Code: GitHub Actions workflow for building and keyless-signing a container image. The `id-token: write` permission enables OIDC authentication with Sigstore._
 
-That's it—about 15 minutes of configuration for cryptographic signing on every release. The `--yes` flag confirms you want keyless signing. The signature includes the workflow identity—anyone verifying can see exactly which GitHub Actions workflow signed the image, down to the specific workflow file and git ref.
+Code: GitHub Actions keyless signing workflow.
+
+That's it — about 15 minutes of configuration for cryptographic signing on every release. The `--yes` flag confirms you want keyless signing. The signature includes the workflow identity — anyone verifying can see exactly which GitHub Actions workflow signed the image, down to the specific workflow file and git ref.
 
 To verify a signed image, you specify the expected identity and OIDC issuer:
 
@@ -149,13 +150,14 @@ cosign verify ghcr.io/myorg/myapp:v1.0.0 \
   --certificate-identity-regexp "https://github.com/myorg/myapp/.github/workflows/.*@refs/tags/v.*" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
-Code: Verifying a container signature with Cosign. The identity regexp matches any workflow in the repository running on a version tag._
+
+Code: Cosign signature verification command.
 
 If the signature doesn't exist or the identity doesn't match, verification fails with a clear error message.
 
 ## Making It Mandatory
 
-Signing without verification is security theater. The whole point is to make unsigned or tampered artifacts impossible to deploy—and that requires automated enforcement, not human discipline.
+Signing without verification is security theater. The whole point is to make unsigned or tampered artifacts impossible to deploy — and that requires automated enforcement, not human discipline.
 
 For Kubernetes deployments, the Sigstore Policy Controller intercepts pod creation requests and verifies container signatures before allowing the workload to start. If an image doesn't meet your policy, the pod never runs.
 
@@ -170,9 +172,10 @@ For CI/CD pipelines, add a verification gate before any deployment step. The pat
       --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
       ghcr.io/${{ github.repository }}:${{ inputs.image_tag }}
 ```
-Code: Verification gate in a deployment workflow. This blocks promotion if the signature is missing or from an unexpected identity._
 
-The self-verification pattern—verifying your own signature immediately after signing—catches configuration problems early. If your signing workflow can't verify its own output, no one else can either.
+Code: Deployment verification gate.
+
+The self-verification pattern — verifying your own signature immediately after signing — catches configuration problems early. If your signing workflow can't verify its own output, no one else can either.
 
 <Callout type="warning">
 Start enforcement in staging before production. Track verification success rates and fix any signing gaps before making verification mandatory in your production pipeline.
@@ -180,7 +183,7 @@ Start enforcement in staging before production. Track verification success rates
 
 ## Where to Go from Here
 
-What I've covered here—keyless signing with Cosign and basic verification gates—is Phase 2 of a broader supply chain security journey. It blocks most external attackers without changing how developers work.
+What I've covered here — keyless signing with Cosign and basic verification gates — is Phase 2 of a broader supply chain security journey. It blocks most external attackers without changing how developers work.
 
 <Download
   resource="slsa-build-provenance-artifact-signing-supply-chain"

@@ -24,16 +24,16 @@ featured: true
 *[TLS]: Transport Layer Security
 *[TTL]: Time To Live
 
-Nginx and HAProxy ship with defaults optimized for getting started quickly, not for handling production traffic. Default buffer sizes assume small requests. Default timeouts assume fast backends. Default connection limits assume modest traffic. When real load arrives—10,000 concurrent connections, slow clients on mobile networks, backends that occasionally take 30 seconds to respond—these defaults fail in ways that are hard to diagnose.
+Nginx and HAProxy ship with defaults optimized for getting started quickly, not for handling production traffic. Default buffer sizes assume small requests. Default timeouts assume fast backends. Default connection limits assume modest traffic. When real load arrives—10,000 concurrent connections, slow clients on mobile networks, backends that occasionally take 30 seconds to respond — these defaults fail in ways that are hard to diagnose.
 
 A 502 error from Nginx could mean a dozen different things. The backend refused the connection. The backend accepted the connection but didn't respond in time. The backend started responding but the response was too large to buffer. The proxy ran out of file descriptors. Without understanding the proxy's internals, you're guessing.
 
-Here's a scenario I've seen play out. A team deploys their API behind Nginx with the default configuration. Traffic grows to 5,000 RPS. Intermittent 502 errors start appearing. The backend looks healthy—response times are fine, no errors in application logs. The problem is invisible until someone digs into Nginx's internals. It turns out `proxy_read_timeout` defaults to 60 seconds, which sounds generous until you realize a few slow endpoints sometimes take 65 seconds (database queries, external API calls). Meanwhile, `worker_connections` is 1024, and with keep-alives holding connections open, they're running out of connection slots during traffic spikes.
+Here's a scenario I've seen play out. A team deploys their API behind Nginx with the default configuration. Traffic grows to 5,000 RPS. Intermittent 502 errors start appearing. The backend looks healthy — response times are fine, no errors in application logs. The problem is invisible until someone digs into Nginx's internals. It turns out `proxy_read_timeout` defaults to 60 seconds, which sounds generous until you realize a few slow endpoints sometimes take 65 seconds (database queries, external API calls). Meanwhile, `worker_connections` is 1024, and with keep-alives holding connections open, they're running out of connection slots during traffic spikes.
 
-After tuning timeouts, increasing worker connections, and adjusting buffer sizes, the 502s disappear. The lesson: proxy configuration is where traffic patterns meet system limits. Production tuning isn't optional optimization—it's the difference between a proxy that handles traffic gracefully and one that drops connections under load.
+After tuning timeouts, increasing worker connections, and adjusting buffer sizes, the 502s disappear. The lesson: proxy configuration is where traffic patterns meet system limits. Production tuning isn't optional optimization — it's the difference between a proxy that handles traffic gracefully and one that drops connections under load.
 
 <Callout type="warning">
-The most dangerous proxy configuration is one that works perfectly in development. Production traffic patterns—slow clients, large payloads, connection storms—expose every untuned default.
+The most dangerous proxy configuration is one that works perfectly in development. Production traffic patterns — slow clients, large payloads, connection storms — expose every untuned default.
 </Callout>
 
 ## Understanding Proxy Architecture
@@ -42,18 +42,24 @@ The most dangerous proxy configuration is one that works perfectly in developmen
 
 Every HTTP request passing through a reverse proxy goes through distinct phases, each with its own timeout and buffer settings. Understanding this flow is essential for diagnosing where failures occur.
 
-The journey starts with the _client connection phase_: TCP handshake, then TLS handshake if HTTPS. This is where `listen` and `ssl_protocols` in Nginx (or `bind` and `ssl-min-ver` in HAProxy) come into play. A slow TLS handshake here—perhaps due to missing OCSP stapling or expensive cipher negotiation—adds latency before the proxy even sees the HTTP request.
+The journey starts with the __client connection phase__: TCP handshake, then TLS handshake if HTTPS. This is where `listen` and `ssl_protocols` in Nginx (or `bind` and `ssl-min-ver` in HAProxy) come into play. A slow TLS handshake here — perhaps due to missing OCSP stapling or expensive cipher negotiation — adds latency before the proxy even sees the HTTP request.
 
-Next comes _request receipt_: the proxy reads the request line, headers, and body. This is where `client_header_timeout` and `client_body_timeout` apply. A mobile client on a flaky connection might take 10 seconds to send a 5MB upload. If your timeout is 5 seconds, the connection drops.
+Next comes __request receipt__: the proxy reads the request line, headers, and body. This is where `client_header_timeout` and `client_body_timeout` apply. A mobile client on a flaky connection might take 10 seconds to send a 5MB upload. If your timeout is 5 seconds, the connection drops.
 
-The _backend connection phase_ is often the source of 502 errors. The proxy opens a connection to the upstream server (or reuses one from a keep-alive pool). These backend connections can be TCP sockets, Unix domain sockets (for backends on the same host), or TLS-encrypted connections for backends that require encryption in transit.
+The __backend connection phase__ is often the source of 502 errors. The proxy opens a connection to the upstream server (or reuses one from a keep-alive pool). These backend connections can be TCP sockets, Unix domain sockets (for backends on the same host), or TLS-encrypted connections for backends that require encryption in transit.
 
-In cloud deployments, the pattern varies: within a Kubernetes cluster, backends typically run on the same node or within a private network, so plain HTTP over TCP is common—TLS termination happens at the ingress, not between services. For backends in different VPCs or external services, you'll often see TLS to the backend, which adds a TLS handshake to each new connection (another reason keep-alive pools matter). Unix sockets eliminate network overhead entirely but only work when proxy and backend share a filesystem.
+In cloud deployments, the pattern varies: within a Kubernetes cluster, backends typically run on the same node or within a private network, so plain HTTP over TCP is common — TLS termination happens at the ingress, not between services. For backends in different VPCs or external services, you'll often see TLS to the backend, which adds a TLS handshake to each new connection (another reason keep-alive pools matter). Unix sockets eliminate network overhead entirely but only work when proxy and backend share a filesystem.
 
 The configuration parameters `proxy_connect_timeout` in Nginx or `timeout connect` in HAProxy controls how long to wait for the backend connection. If the backend is overloaded and not accepting connections, this timeout fires.
 
-Finally, the proxy _forwards the request_, _receives the response_, and _delivers it to the client_. Each phase has its own timeout. The response delivery phase is particularly important for slow clients—a backend might respond in 50ms, but if the client is on a 2G connection, sending that response takes seconds.
+Finally, the proxy __forwards the request__, __receives the response__, and __delivers it to the client__. Each phase has its own timeout. The response delivery phase is particularly important for slow clients — a backend might respond in 50ms, but if the client is on a 2G connection, sending that response takes seconds.
 
+<Diagram
+  title="Request flow through reverse proxy showing the six phases where timeouts and buffers apply."
+  description={
+    `Sequence diagram with three participants: Client, Proxy, and Backend. Phase 1 is Client Connection, where the client performs a TCP handshake with the proxy and then a TLS handshake. Phase 2 is Request Receipt, where the client sends HTTP request headers followed by the HTTP request body to the proxy. Phase 3 is Backend Connection, where the proxy opens or reuses a TCP connection to the backend. Phase 4 is Request Forward, where the proxy sends the HTTP request to the backend. Phase 5 is Response Receipt, where the backend returns the HTTP response to the proxy. Phase 6 is Response Delivery, where the proxy sends the HTTP response back to the client. A final note indicates that the client connection may remain open for keep-alive reuse. The diagram maps the full path of a proxied request and highlights where connection, timeout, and buffering settings influence behavior.`
+  }
+>
 ```mermaid
 sequenceDiagram
     participant C as Client
@@ -82,42 +88,41 @@ sequenceDiagram
 
     Note over C,P: Connection may stay open (keep-alive)
 ```
-
-Figure: Request flow through reverse proxy showing the six phases where timeouts and buffers apply.
+</Diagram>
 
 ### Connection Multiplexing
 
 Nginx and HAProxy handle connections differently, and understanding these models helps you size connection limits appropriately.
 
-Nginx uses an _event-driven, single-threaded worker_ model. Each worker process handles thousands of connections using non-blocking I/O, but each connection—whether from a client or to a backend—uses one slot from the `worker_connections` pool. Since a proxied request needs both a client connection and a backend connection, each request consumes at least two slots. The formula for maximum concurrent requests is roughly:
+Nginx uses an __event-driven, single-threaded worker__ model. Each worker process handles thousands of connections using non-blocking I/O, but each connection — whether from a client or to a backend — uses one slot from the `worker_connections` pool. Since a proxied request needs both a client connection and a backend connection, each request consumes at least two slots. The formula for maximum concurrent requests is roughly:
 
 ```text
 max concurrent requests = (worker_processes × worker_connections) / 2
 ```
 
-With 4 workers and 4096 connections each, you get approximately 8,192 concurrent requests. Keep-alives complicate this—idle connections still consume slots, so you may hit connection limits before CPU or memory becomes a bottleneck.
+With 4 workers and 4096 connections each, you get approximately 8,192 concurrent requests. Keep-alives complicate this — idle connections still consume slots, so you may hit connection limits before CPU or memory becomes a bottleneck.
 
 The `worker_processes auto` setting tells Nginx to spawn one worker per CPU core, which is usually correct. You might deviate for CPU-bound workloads (fewer workers to reduce context switching) or in containers with CPU limits (set workers explicitly since `auto` reads the host's CPU count, not the container's limit).
 
-HAProxy uses an _event-driven, multi-threaded_ model with more granular controls. You set a global `maxconn` limit, but you can also set per-frontend and per-backend limits. When a backend reaches its `maxconn`, HAProxy queues requests rather than rejecting them immediately—the `timeout queue` setting controls how long requests wait for an available slot.
+HAProxy uses an __event-driven, multi-threaded__ model with more granular controls. You set a global `maxconn` limit, but you can also set per-frontend and per-backend limits. When a backend reaches its `maxconn`, HAProxy queues requests rather than rejecting them immediately — the `timeout queue` setting controls how long requests wait for an available slot.
 
 HTTP/2 changes the equation significantly. A single HTTP/2 connection can multiplex hundreds of concurrent streams (requests). In Nginx, `http2_max_concurrent_streams` defaults to 128; in HAProxy, `tune.h2.max_concurrent_streams` defaults to 100. This means one connection slot serves many requests, dramatically improving efficiency for clients that support HTTP/2.
 
-HTTP/3 (QUIC) takes this further by eliminating head-of-line blocking entirely—since it runs over UDP, a lost packet doesn't stall unrelated streams. Both Nginx and HAProxy have experimental HTTP/3 support, but production adoption is still early. If you're starting fresh, it's worth evaluating; for existing deployments, HTTP/2 remains the practical choice.
+HTTP/3 (QUIC) takes this further by eliminating head-of-line blocking entirely — since it runs over UDP, a lost packet doesn't stall unrelated streams. Both Nginx and HAProxy have experimental HTTP/3 support, but production adoption is still early. If you're starting fresh, it's worth evaluating; for existing deployments, HTTP/2 remains the practical choice.
 
 <Callout type="info">
-If you're proxying gRPC traffic, HTTP/2 is mandatory—gRPC requires it. Make sure both your frontend (client-facing) and backend connections are configured for HTTP/2, or gRPC calls will fail with cryptic errors.
+If you're proxying gRPC traffic, HTTP/2 is mandatory — gRPC requires it. Make sure both your frontend (client-facing) and backend connections are configured for HTTP/2, or gRPC calls will fail with cryptic errors.
 </Callout>
 
 ## Timeout Configuration
 
-Timeouts are the most common source of proxy-related outages, and the defaults are almost never right for production. Nginx defaults most timeouts to 60 seconds—generous enough to hide problems during development, short enough to cause 502s when a backend occasionally takes 65 seconds. HAProxy is worse: many timeouts have _no default_, meaning connections can hang indefinitely if you don't configure them.
+Timeouts are the most common source of proxy-related outages, and the defaults are almost never right for production. Nginx defaults most timeouts to 60 seconds — generous enough to hide problems during development, short enough to cause 502s when a backend occasionally takes 65 seconds. HAProxy is worse: many timeouts have __no default__, meaning connections can hang indefinitely if you don't configure them.
 
 The key insight is that timeouts should match your traffic patterns, not arbitrary round numbers. A health check endpoint should respond in milliseconds; a report generation endpoint might legitimately take 5 minutes. Using the same timeout for both means either your health checks are too slow to detect failures, or your reports timeout prematurely.
 
 ### Nginx Timeout Hierarchy
 
-Nginx organizes timeouts into client-side (receiving requests) and proxy-side (communicating with backends). Most timeouts are _per-operation_, meaning they reset when data flows—a client uploading a large file won't timeout as long as chunks keep arriving.
+Nginx organizes timeouts into client-side (receiving requests) and proxy-side (communicating with backends). Most timeouts are __per-operation__, meaning they reset when data flows — a client uploading a large file won't timeout as long as chunks keep arriving.
 
 ```nginx title="nginx-timeouts.conf"
 # Nginx timeout configuration - production values
@@ -183,7 +188,7 @@ The per-location overrides are essential. A monolithic timeout configuration for
 
 ### HAProxy Timeout Hierarchy
 
-HAProxy's timeout model differs from Nginx in one critical way: `timeout client` and `timeout server` cover the _entire_ request or response, not per-read operations. If you set `timeout server 60s` and the backend takes 30 seconds to send the first byte, then another 35 seconds to send the body, the connection times out—even though data was flowing the whole time.
+HAProxy's timeout model differs from Nginx in one critical way: `timeout client` and `timeout server` cover the __entire__ request or response, not per-read operations. If you set `timeout server 60s` and the backend takes 30 seconds to send the first byte, then another 35 seconds to send the body, the connection times out — even though data was flowing the whole time.
 
 ```haproxy title="haproxy-timeouts.cfg"
 # HAProxy timeout configuration - production values
@@ -246,29 +251,35 @@ backend health_checks
     timeout server 5s
 ```
 
-The `timeout queue` setting deserves special attention. When all backend servers reach their `maxconn` limit, HAProxy queues incoming requests rather than rejecting them immediately. This is usually what you want—a brief spike shouldn't return errors if backends will be available in a few seconds. But if the queue timeout is too long, users wait forever for requests that will eventually fail anyway. 30 seconds is a reasonable default; adjust based on how long users are willing to wait.
+The `timeout queue` setting deserves special attention. When all backend servers reach their `maxconn` limit, HAProxy queues incoming requests rather than rejecting them immediately. This is usually what you want — a brief spike shouldn't return errors if backends will be available in a few seconds. But if the queue timeout is too long, users wait forever for requests that will eventually fail anyway. 30 seconds is a reasonable default; adjust based on how long users are willing to wait.
 
+<Diagram
+  title="Nginx timeout chain showing where each timeout applies in the request lifecycle."
+  description={
+  `Left-to-right flowchart divided into three grouped sections. The first group, Nginx Client Side, starts with client_header_timeout set to 10 seconds and flows to client_body_timeout set to 30 seconds. The second group, Nginx Proxy Processing, continues from there to proxy_connect_timeout at 5 seconds, then to proxy_send_timeout at 30 seconds, and then to proxy_read_timeout at 60 seconds. The third group, Nginx Response, ends with send_timeout at 30 seconds. The proxy_connect_timeout node is visually highlighted to show its importance in failing fast when a backend cannot be reached. The diagram shows the order in which Nginx timeout settings apply as a request moves from initial client reads through backend communication and back to the client response path.`
+  }
+>
 ```mermaid
-graph LR
-    subgraph "Nginx Client Side"
-        A[client_header_timeout<br/>10s] --> B[client_body_timeout<br/>30s]
-    end
+flowchart LR
+  subgraph nginxClientSide[Nginx Client Side]
+    A[client_header_timeout<br/>10s] --> B[client_body_timeout<br/>30s]
+  end
 
-    subgraph "Nginx Proxy Processing"
-        B --> C[proxy_connect_timeout<br/>5s]
-        C --> D[proxy_send_timeout<br/>30s]
-        D --> E[proxy_read_timeout<br/>60s]
-    end
+  subgraph nginxProxyProcessing[Nginx Proxy Processing]
+    B --> C[proxy_connect_timeout<br/>5s]
+    C --> D[proxy_send_timeout<br/>30s]
+    D --> E[proxy_read_timeout<br/>60s]
+  end
 
-    subgraph "Nginx Response"
-        E --> F[send_timeout<br/>30s]
-    end
+  subgraph nginxResponse[Nginx Response]
+    E --> F[send_timeout<br/>30s]
+  end
 
-    style C fill:#f96,color:#000
+  style C fill:#f96,color:#000
 ```
-Figure: Nginx timeout chain showing where each timeout applies in the request lifecycle.
+</Diagram>
 
-The following table maps Nginx and HAProxy timeout settings to each other. They're not exact equivalents—Nginx's per-read semantics differ from HAProxy's total-time semantics—but this helps when translating configurations between the two.
+The following table maps Nginx and HAProxy timeout settings to each other. They're not exact equivalents — Nginx's per-read semantics differ from HAProxy's total-time semantics — but this helps when translating configurations between the two.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -390,11 +401,11 @@ location /api/streaming {
 }
 ```
 
-The `proxy_buffering` directive controls whether Nginx buffers the entire backend response before sending to the client. With buffering on, a backend can finish quickly and move on to the next request even if the client is slow—the proxy holds the response. With buffering off, the backend connection stays open until the client receives everything. For typical APIs, buffering on. For Server-Sent Events, WebSockets, or streaming responses, buffering off.
+The `proxy_buffering` directive controls whether Nginx buffers the entire backend response before sending to the client. With buffering on, a backend can finish quickly and move on to the next request even if the client is slow — the proxy holds the response. With buffering off, the backend connection stays open until the client receives everything. For typical APIs, buffering on. For Server-Sent Events, WebSockets, or streaming responses, buffering off.
 
 ### HAProxy Buffer Configuration
 
-HAProxy uses a simpler buffer model: `tune.bufsize` controls the buffer size for both requests and responses. Unlike Nginx's array of buffers, HAProxy uses a single buffer per direction. This makes tuning simpler but less flexible—you can't have small request buffers and large response buffers.
+HAProxy uses a simpler buffer model: `tune.bufsize` controls the buffer size for both requests and responses. Unlike Nginx's array of buffers, HAProxy uses a single buffer per direction. This makes tuning simpler but less flexible — you can't have small request buffers and large response buffers.
 
 ```haproxy title="haproxy-buffers.cfg"
 global
@@ -443,7 +454,7 @@ backend api
     http-reuse aggressive
 ```
 
-The `http-request deny if { req.body_size gt 104857600 }` line is worth noting: it rejects oversized requests _before_ buffering them. Without this, HAProxy would accept a 10GB upload attempt before rejecting it—wasting bandwidth and potentially filling disk.
+The `http-request deny if { req.body_size gt 104857600 }` line is worth noting: it rejects oversized requests __before__ buffering them. Without this, HAProxy would accept a 10GB upload attempt before rejecting it — wasting bandwidth and potentially filling disk.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -475,12 +486,12 @@ The `http-request deny if { req.body_size gt 104857600 }` line is worth noting: 
         },
       ],
     },
-    figure: 'Buffer sizing recommendations by scenario. These are starting points—profile your actual traffic to refine.',
+    figure: 'Buffer sizing recommendations by scenario. These are starting points — profile your actual traffic to refine.',
   }}
 />
 
 <Callout type="info">
-**Quick decision**: If you're seeing 400 Bad Request errors, increase `client_header_buffer_size`. If backends complain about slow clients, turn `proxy_buffering` on. If you're proxying Server-Sent Events or WebSockets, turn `proxy_buffering` off.
+__Quick decision__: If you're seeing 400 Bad Request errors, increase `client_header_buffer_size`. If backends complain about slow clients, turn `proxy_buffering` on. If you're proxying Server-Sent Events or WebSockets, turn `proxy_buffering` off.
 </Callout>
 
 ## Connection Management
@@ -491,7 +502,7 @@ The solution is connection pooling: the proxy maintains a pool of open connectio
 
 ### Keep-Alive Tuning
 
-Nginx's upstream keepalive has a critical gotcha: it requires specific HTTP headers to work. By default, Nginx sends `Connection: close` to backends, defeating keepalive entirely. You _must_ set `proxy_http_version 1.1` and `proxy_set_header Connection ""` in every location block that uses the upstream.
+Nginx's upstream keepalive has a critical gotcha: it requires specific HTTP headers to work. By default, Nginx sends `Connection: close` to backends, defeating keepalive entirely. You __must__ set `proxy_http_version 1.1` and `proxy_set_header Connection ""` in every location block that uses the upstream.
 
 ```nginx title="nginx-keepalive.conf"
 # === Client-side keep-alive ===
@@ -546,13 +557,13 @@ server {
 worker_shutdown_timeout 30s;
 ```
 
-The `keepalive 32` directive is _per worker process_, not total. With 4 workers, you'll have up to 128 idle backend connections (32 × 4). Size this based on your request rate and backend count—too few connections means constant churn, too many wastes backend resources holding idle connections.
+The `keepalive 32` directive is __per worker process__, not total. With 4 workers, you'll have up to 128 idle backend connections (32 × 4). Size this based on your request rate and backend count — too few connections means constant churn, too many wastes backend resources holding idle connections.
 
 ### HAProxy Connection Pooling
 
 HAProxy's `http-reuse` directive controls connection pooling behavior. The `aggressive` setting reuses connections for all HTTP methods, which is safe for stateless backends. The `safe` setting only reuses for idempotent methods (GET, HEAD, OPTIONS)—use this if your backends have connection-affinity issues.
 
-The `maxconn` limits deserve careful thought. The global `maxconn` caps total proxy connections. Frontend `maxconn` caps client connections. Backend server `maxconn` caps connections _per backend server_. When a server hits its limit, HAProxy queues requests (controlled by `timeout queue`) rather than overloading the backend.
+The `maxconn` limits deserve careful thought. The global `maxconn` caps total proxy connections. Frontend `maxconn` caps client connections. Backend server `maxconn` caps connections __per backend server__. When a server hits its limit, HAProxy queues requests (controlled by `timeout queue`) rather than overloading the backend.
 
 ```haproxy title="haproxy-connections.cfg"
 global
@@ -612,37 +623,43 @@ backend api
     server srv3 backend3:8080 maxconn 500 slowstart 30s check
 ```
 
-The `slowstart` option is valuable when bringing new servers online. Without it, a fresh server immediately receives its full share of traffic—which can overwhelm cold caches and unwarmed JVMs. With `slowstart 30s`, HAProxy gradually increases traffic to the new server over 30 seconds, giving it time to warm up.
+The `slowstart` option is valuable when bringing new servers online. Without it, a fresh server immediately receives its full share of traffic — which can overwhelm cold caches and unwarmed JVMs. With `slowstart 30s`, HAProxy gradually increases traffic to the new server over 30 seconds, giving it time to warm up.
 
+<Diagram
+  title="Connection pooling to backends. Multiple clients share a smaller pool of backend connections, reducing handshake overhead."
+  description={
+  `Top-down flowchart with three grouped sections. The first section, Client Connections, contains three separate clients labeled Client 1, Client 2, and Client 3. All three connect to a central proxy component labeled HAProxy or Nginx in the second section, Proxy keepalive pool. That proxy feeds into a highlighted Keep-alive Pool node labeled 32 connections. The keep-alive pool then connects to two backend servers in the third section, Backend Servers, labeled Backend 1 and Backend 2, each with maxconn 500. The diagram shows that many client connections can be funneled through a smaller reusable pool of backend connections, which reduces repeated TCP or TLS handshake overhead and lowers backend connection churn.`
+  }
+>
 ```mermaid
-graph TD
-    subgraph "Client Connections"
-        C1[Client 1]
-        C2[Client 2]
-        C3[Client 3]
-    end
+flowchart TD
+  subgraph clientConnections[Client Connections]
+    C1[Client 1]
+    C2[Client 2]
+    C3[Client 3]
+  end
 
-    subgraph "Proxy (keepalive pool)"
-        P[HAProxy/Nginx]
-        KA[Keep-alive Pool<br/>32 connections]
-    end
+  subgraph proxyKeepalivePool[Proxy (keepalive pool)]
+    P[HAProxy/Nginx]
+    KA[Keep-alive Pool<br/>32 connections]
+  end
 
-    subgraph "Backend Servers"
-        B1[Backend 1<br/>maxconn: 500]
-        B2[Backend 2<br/>maxconn: 500]
-    end
+  subgraph backendServers[Backend Servers]
+    B1[Backend 1<br/>maxconn: 500]
+    B2[Backend 2<br/>maxconn: 500]
+  end
 
-    C1 --> P
-    C2 --> P
-    C3 --> P
+  C1 --> P
+  C2 --> P
+  C3 --> P
 
-    P --> KA
-    KA --> B1
-    KA --> B2
+  P --> KA
+  KA --> B1
+  KA --> B2
 
-    style KA fill:#9cf,color:#000
+  style KA fill:#9cf,color:#000
 ```
-Figure: Connection pooling to backends. Multiple clients share a smaller pool of backend connections, reducing handshake overhead.
+</Diagram>
 
 <Callout type="success">
 Backend keep-alive is often more important than client keep-alive. Each new backend connection requires a TCP handshake (and potentially TLS). A keep-alive pool dramatically reduces backend latency and load.
@@ -650,11 +667,11 @@ Backend keep-alive is often more important than client keep-alive. Each new back
 
 ## Load Balancing Configuration
 
-Load balancing distributes traffic across backend servers. The choice of algorithm matters less than people think—round-robin works fine for most stateless services—but getting it wrong causes real problems. Session affinity ("sticky sessions") on a stateless service wastes capacity; no affinity on a stateful service causes session corruption.
+Load balancing distributes traffic across backend servers. The choice of algorithm matters less than people think — round-robin works fine for most stateless services — but getting it wrong causes real problems. Session affinity ("sticky sessions") on a stateless service wastes capacity; no affinity on a stateful service causes session corruption.
 
 ### Algorithm Selection
 
-Round-robin is the default and usually correct for stateless microservices. It distributes traffic evenly regardless of what backends are doing. Least-connections works better when request durations vary significantly—a reporting endpoint that takes 30 seconds shouldn't receive new requests at the same rate as a health check endpoint.
+Round-robin is the default and usually correct for stateless microservices. It distributes traffic evenly regardless of what backends are doing. Least-connections works better when request durations vary significantly — a reporting endpoint that takes 30 seconds shouldn't receive new requests at the same rate as a health check endpoint.
 
 IP hash provides basic session affinity without cookies, but it's fragile: clients behind NAT share an IP, mobile clients change IPs frequently, and CDNs mask the original IP. Cookie-based affinity (HAProxy's `cookie` directive or Nginx Plus's sticky cookies) is more reliable when you actually need sessions.
 
@@ -711,7 +728,7 @@ upstream backend_hash {
 }
 ```
 
-The `consistent` modifier on hash-based balancing is important for caching use cases. Without it, adding or removing a server rehashes _all_ requests to new backends, invalidating caches. With consistent hashing, only requests that were going to the added/removed server get redistributed.
+The `consistent` modifier on hash-based balancing is important for caching use cases. Without it, adding or removing a server rehashes __all__ requests to new backends, invalidating caches. With consistent hashing, only requests that were going to the added/removed server get redistributed.
 
 ### HAProxy Advanced Load Balancing
 
@@ -812,7 +829,7 @@ For stateless services, `least_conn` often outperforms `round_robin` when reques
 
 ## SSL/TLS Optimization
 
-TLS termination at the proxy is almost always correct. Backends can run plain HTTP (simpler, faster, easier to debug), while clients get proper encryption. The proxy handles certificate management, cipher negotiation, and session caching—concerns you don't want duplicated across dozens of backend services.
+TLS termination at the proxy is almost always correct. Backends can run plain HTTP (simpler, faster, easier to debug), while clients get proper encryption. The proxy handles certificate management, cipher negotiation, and session caching — concerns you don't want duplicated across dozens of backend services.
 
 The performance cost of TLS is often overstated. Modern CPUs have AES-NI[^aes-ni] instructions that make symmetric encryption nearly free. The real cost is in handshakes: each new connection requires asymmetric cryptography and certificate verification. Session caching and TLS 1.3's faster handshake mitigate this.
 
@@ -881,7 +898,7 @@ server {
 }
 ```
 
-The `ssl_early_data` directive enables TLS 1.3's 0-RTT feature, allowing clients to send data on the first packet of a resumed connection. This is genuinely faster but introduces replay attack risk—a captured request could be replayed by an attacker. Only enable this for idempotent endpoints, and have backends check the `Early-Data` header.
+The `ssl_early_data` directive enables TLS 1.3's 0-RTT feature, allowing clients to send data on the first packet of a resumed connection. This is genuinely faster but introduces replay attack risk — a captured request could be replayed by an attacker. Only enable this for idempotent endpoints, and have backends check the `Early-Data` header.
 
 ### HAProxy SSL Configuration
 
@@ -889,7 +906,7 @@ HAProxy can handle multiple certificates from a directory (`crt /etc/haproxy/cer
 
 The `ssl verify required ca-file` option for backend connections is important for zero-trust architectures[^zero-trust] where even internal traffic should be encrypted and authenticated.
 
-[^zero-trust]: Zero-trust architecture is a security model that assumes no implicit trust for any user, device, or network—even within the corporate perimeter. Every request must be authenticated, authorized, and encrypted regardless of where it originates. In practice, this means TLS everywhere (not just at the edge), mutual TLS between services, and continuous verification rather than one-time authentication at the network boundary.
+[^zero-trust]: Zero-trust architecture is a security model that assumes no implicit trust for any user, device, or network — even within the corporate perimeter. Every request must be authenticated, authorized, and encrypted regardless of where it originates. In practice, this means TLS everywhere (not just at the edge), mutual TLS between services, and continuous verification rather than one-time authentication at the network boundary.
 
 ```haproxy title="haproxy-ssl.cfg"
 global
@@ -986,7 +1003,7 @@ Both Nginx and HAProxy expose metrics, but their approaches differ. Nginx's `stu
 
 ### Nginx Metrics and Logging
 
-The most valuable Nginx metrics for production debugging are the upstream timing variables. `$upstream_connect_time` tells you how long it took to establish a connection to the backend—high values here indicate backend TCP backlog issues or network problems. `$upstream_response_time` is the total time from connection to last byte received. Comparing this to `$request_time` (total request duration including client delivery) reveals where latency actually occurs.
+The most valuable Nginx metrics for production debugging are the upstream timing variables. `$upstream_connect_time` tells you how long it took to establish a connection to the backend — high values here indicate backend TCP backlog issues or network problems. `$upstream_response_time` is the total time from connection to last byte received. Comparing this to `$request_time` (total request duration including client delivery) reveals where latency actually occurs.
 
 ```nginx title="nginx-monitoring.conf"
 # === Status module (basic metrics) ===
@@ -1051,7 +1068,7 @@ Neither Nginx nor HAProxy natively supports binary log formats. Both write text-
 
 ### HAProxy Statistics
 
-HAProxy's stats page is surprisingly powerful. It shows real-time connection counts, queue depths, server health, and response time distributions per backend. The Prometheus exporter endpoint (`/metrics`) makes integrating with modern observability stacks trivial—just point Prometheus at it.
+HAProxy's stats page is surprisingly powerful. It shows real-time connection counts, queue depths, server health, and response time distributions per backend. The Prometheus exporter endpoint (`/metrics`) makes integrating with modern observability stacks trivial — just point Prometheus at it.
 
 ```haproxy title="haproxy-monitoring.cfg"
 frontend stats
@@ -1088,7 +1105,7 @@ backend api
     server srv1 backend1:8080 check
 ```
 
-The `%TR/%Tw/%Tc/%Tr/%Ta` timing fields in HAProxy's log format break down request processing: TR is request receive time, Tw is queue wait time, Tc is backend connect time, Tr is backend response time, Ta is total active time. When debugging slow requests, these distinctions matter—a high Tw means your backends are overloaded, while a high Tc means backend TCP accept queues are full.
+The `%TR/%Tw/%Tc/%Tr/%Ta` timing fields in HAProxy's log format break down request processing: TR is request receive time, Tw is queue wait time, Tc is backend connect time, Tr is backend response time, Ta is total active time. When debugging slow requests, these distinctions matter — a high Tw means your backends are overloaded, while a high Tc means backend TCP accept queues are full.
 
 ### Alerting on Proxy Metrics
 
@@ -1145,10 +1162,10 @@ groups:
 ```
 Code: Prometheus alerting rules for proxy health monitoring.
 
-The queue depth alert (`haproxy_backend_current_queue > 100`) is particularly valuable. A growing queue means backends can't keep up with incoming traffic—you're either under-provisioned or experiencing a backend problem. This often precedes user-visible errors by minutes, giving you time to react.
+The queue depth alert (`haproxy_backend_current_queue > 100`) is particularly valuable. A growing queue means backends can't keep up with incoming traffic — you're either under-provisioned or experiencing a backend problem. This often precedes user-visible errors by minutes, giving you time to react.
 
 <Callout type="success">
-Log upstream timing (`$upstream_response_time`) separately from total request time (`$request_time`). The difference reveals how much time is spent in the proxy itself—useful for debugging proxy overhead vs. backend slowness.
+Log upstream timing (`$upstream_response_time`) separately from total request time (`$request_time`). The difference reveals how much time is spent in the proxy itself — useful for debugging proxy overhead vs. backend slowness.
 </Callout>
 
 ## Production Hardening Checklist
@@ -1157,7 +1174,7 @@ Beyond performance tuning, production proxies need security hardening. A misconf
 
 ### Security Configuration
 
-Start with the basics: hide version information (`server_tokens off`), add security headers, and implement rate limiting. Rate limiting at the proxy layer is your first line of defense against abuse—it protects backends from being overwhelmed by a single misbehaving client.
+Start with the basics: hide version information (`server_tokens off`), add security headers, and implement rate limiting. Rate limiting at the proxy layer is your first line of defense against abuse — it protects backends from being overwhelmed by a single misbehaving client.
 
 ```nginx title="nginx-security.conf"
 # === Hide version ===
@@ -1206,13 +1223,13 @@ client_max_body_size 10m;
 # Handled by large_client_header_buffers
 ```
 
-The security headers serve distinct purposes. `X-Frame-Options: SAMEORIGIN` prevents clickjacking by blocking your pages from being embedded in iframes on other domains. `X-Content-Type-Options: nosniff` stops browsers from MIME-sniffing responses away from their declared content type—a common vector for XSS attacks. `Strict-Transport-Security` (HSTS) tells browsers to only connect via HTTPS for the specified duration; once set, even typing `http://` will redirect to HTTPS before the request leaves the browser.
+The security headers serve distinct purposes. `X-Frame-Options: SAMEORIGIN` prevents clickjacking by blocking your pages from being embedded in iframes on other domains. `X-Content-Type-Options: nosniff` stops browsers from MIME-sniffing responses away from their declared content type — a common vector for XSS attacks. `Strict-Transport-Security` (HSTS) tells browsers to only connect via HTTPS for the specified duration; once set, even typing `http://` will redirect to HTTPS before the request leaves the browser.
 
 The `limit_req` directive with `burst` and `nodelay` is the most useful rate limiting pattern. The base rate (10r/s in this example) controls sustained throughput, while the burst (20) allows brief spikes without rejecting requests. The `nodelay` option serves burst requests immediately rather than spacing them out.
 
 ### Complete Production Config Example
 
-Here's a complete Nginx configuration incorporating everything discussed. This isn't copy-paste ready—your values will differ based on traffic patterns, backend capabilities, and compliance requirements—but it demonstrates how the pieces fit together.
+Here's a complete Nginx configuration incorporating everything discussed. This isn't copy-paste ready — your values will differ based on traffic patterns, backend capabilities, and compliance requirements — but it demonstrates how the pieces fit together.
 
 Start with the main context and events block. The `worker_rlimit_nofile` setting increases the file descriptor limit per worker, essential when handling many concurrent connections:
 
@@ -1342,7 +1359,7 @@ http {
 }
 ```
 
-Note the `buffer=16k flush=2m` on the access log—this buffers log writes to reduce disk I/O, flushing every 2 minutes or when the buffer fills. At high request rates, unbuffered logging becomes a bottleneck.
+Note the `buffer=16k flush=2m` on the access log — this buffers log writes to reduce disk I/O, flushing every 2 minutes or when the buffer fills. At high request rates, unbuffered logging becomes a bottleneck.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -1374,7 +1391,7 @@ Note the `buffer=16k flush=2m` on the access log—this buffers log writes to re
         },
       ],
     },
-    figure: 'Default vs. production values. These are starting points—profile your actual traffic to determine optimal values.',
+    figure: 'Default vs. production values. These are starting points — profile your actual traffic to determine optimal values.',
   }}
 />
 
@@ -1386,12 +1403,12 @@ Before deploying configuration changes to production, test under realistic load.
 
 Both Nginx and HAProxy support graceful reloads that apply new configurations without dropping active connections. For Nginx, `nginx -s reload` spawns new workers with the new config while existing workers finish their current requests. HAProxy's `systemctl reload haproxy` (or `-sf` flag for seamless reload) does the same. In Kubernetes, the ingress controller handles this automatically when ConfigMaps change.
 
-The key is testing configuration syntax _before_ reloading. A syntax error during reload can leave you with no running workers. Always run `nginx -t` or `haproxy -c -f /etc/haproxy/haproxy.cfg` first.
+The key is testing configuration syntax __before__ reloading. A syntax error during reload can leave you with no running workers. Always run `nginx -t` or `haproxy -c -f /etc/haproxy/haproxy.cfg` first.
 
 ## Conclusion
 
-Proxy defaults are starting points, not production configurations. Nginx's 60-second timeouts and HAProxy's unlimited defaults exist to avoid breaking things during development—they're the wrong choices for production.
+Proxy defaults are starting points, not production configurations. Nginx's 60-second timeouts and HAProxy's unlimited defaults exist to avoid breaking things during development — they're the wrong choices for production.
 
-The tuning process follows a pattern: establish baseline metrics, identify bottlenecks, adjust configuration, measure again. Timeouts should match your traffic patterns—slow report endpoints need longer read timeouts, health checks need aggressive timeouts that fail fast. Buffers should accommodate your payloads without wasting memory. Connection pools should be sized for your request rate and backend count.
+The tuning process follows a pattern: establish baseline metrics, identify bottlenecks, adjust configuration, measure again. Timeouts should match your traffic patterns — slow report endpoints need longer read timeouts, health checks need aggressive timeouts that fail fast. Buffers should accommodate your payloads without wasting memory. Connection pools should be sized for your request rate and backend count.
 
-The goal isn't a perfectly optimized configuration—it's a _resilient_ one. Your proxy should handle normal traffic with good performance, absorb traffic spikes without dropping connections, and shed load gracefully when backends struggle. Test under failure conditions: simulate slow backends, connection storms, and oversized payloads. The problems you find in staging won't page you at 3 AM.
+The goal isn't a perfectly optimized configuration — it's a __resilient__ one. Your proxy should handle normal traffic with good performance, absorb traffic spikes without dropping connections, and shed load gracefully when backends struggle. Test under failure conditions: simulate slow backends, connection storms, and oversized payloads. The problems you find in staging won't page you at 3 AM.
