@@ -16,14 +16,14 @@ Here's the scenario I've seen play out too many times: a platform team mandates 
 
 Then reality hits. The ML team needs GPU nodes that the standard pipeline doesn't support. The compliance team requires deployment isolation that breaks the shared runner model. The trading platform can't tolerate the standard rollout strategy's latency during canary deployments.
 
-These teams face impossible choices. They can fight for exceptions—a slow, political process that rarely succeeds. They can shoe-horn their use case into an ill-fitting solution, creating technical debt and operational risk. Or they can work around the mandate entirely, building shadow infrastructure that the platform team doesn't know about.
+These teams face impossible choices. They can fight for exceptions — a slow, political process that rarely succeeds. They can shoe-horn their use case into an ill-fitting solution, creating technical debt and operational risk. Or they can work around the mandate entirely, building shadow infrastructure that the platform team doesn't know about.
 
 Morale drops. Shadow platforms proliferate. The "standard" becomes optional in practice because enough teams have found workarounds that enforcement is impossible.
 
-The mandate failed not because standardization is wrong, but because _mandatory_ standardization is wrong. The platform team built golden handcuffs, not a golden path.
+The mandate failed not because standardization is wrong, but because __mandatory__ standardization is wrong. The platform team built golden handcuffs, not a golden path.
 
 <Callout type="warning">
-Mandates breed workarounds. When developers can't use the standard path for legitimate reasons and have no sanctioned escape hatch, they'll build shadow infrastructure. You end up with _less_ standardization than if you'd designed for autonomy from the start.
+Mandates breed workarounds. When developers can't use the standard path for legitimate reasons and have no sanctioned escape hatch, they'll build shadow infrastructure. You end up with __less__ standardization than if you'd designed for autonomy from the start.
 </Callout>
 
 There's a better way. Golden paths offer curated, supported ways to accomplish common tasks where the platform makes the "right" thing easy, but doesn't forbid alternatives. Paved roads, not walled gardens.
@@ -35,11 +35,26 @@ A golden path is a supported, well-documented way to accomplish a common task th
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Opinionated but not mandatory", text: "The path has strong defaults, but usage is optional. Your default CI template uses standard runners, but teams can bring their own if they have a reason." },
-    { lead: "Optimized for the common case", text: "The 80/20 rule applies. Your REST API template covers 80% of services; gRPC teams use an escape hatch. You're not trying to solve every problem—you're making the common case trivial." },
-    { lead: "Actively maintained", text: "The platform team owns updates, security patches, and improvements. Teams on the path get those updates automatically. This is the value proposition: stay on the path and maintenance is someone else's problem." },
-    { lead: "Well documented", text: "Clear docs, tutorials, examples, and troubleshooting guides. A getting-started guide that works, and a decision tree for when to use (and not use) the path." },
-    { lead: "Measurably better", text: "The path has demonstrable advantages over alternatives—50% faster deployments, 3x fewer security incidents, whatever the metrics are for your context. If you can't show the path is better, why should teams use it?" },
+    {
+      lead: "Opinionated but not mandatory",
+      text: "The path has strong defaults, but usage is optional. Your default CI template uses standard runners, but teams can bring their own if they have a reason.",
+    },
+    {
+      lead: "Optimized for the common case",
+      text: "The 80/20 rule applies. Your REST API template covers 80% of services; gRPC teams use an escape hatch. You're not trying to solve every problem — you're making the common case trivial.",
+    },
+    {
+      lead: "Actively maintained",
+      text: "The platform team owns updates, security patches, and improvements. Teams on the path get those updates automatically. This is the value proposition: stay on the path and maintenance is someone else's problem.",
+    },
+    {
+      lead: "Well documented",
+      text: "Clear docs, tutorials, examples, and troubleshooting guides. A getting-started guide that works, and a decision tree for when to use (and not use) the path.",
+    },
+    {
+      lead: "Measurably better",
+      text: "The path has demonstrable advantages over alternatives—50% faster deployments, 3x fewer security incidents, whatever the metrics are for your context. If you can't show the path is better, why should teams use it?",
+    },
   ]}
 />
 
@@ -86,10 +101,22 @@ Escape hatches are how teams leave the golden path when they have a legitimate r
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Escape hatches should be documented, not hidden", text: "They're part of the platform, not loopholes. The alternative deployment guide lives in the main docs, not on a hidden wiki page. If teams have to discover escape hatches through word of mouth, you've created a two-tier system where connected teams have options and everyone else doesn't." },
-    { lead: "Friction should be proportional to risk", text: "Not all deviations are equal. A custom Dockerfile might need only a self-review and a note in the README—that's a minor override. Custom network configuration needs a security review—that's a significant exception. An entirely separate infrastructure stack needs VP approval and a convergence plan—that's off-platform. The process should match the risk, not be uniformly heavy or uniformly light." },
-    { lead: "A path back should exist", text: "Teams should be able to return to the golden path later. If taking an escape hatch is a one-way door, teams will be reluctant to use it even when appropriate, and you'll accumulate permanent exceptions. Provide migration guides from custom to standard." },
-    { lead: "Support levels should be clear", text: "Teams know what support they'll get (or won't). Escape hatch means best-effort support, not SLA. This isn't punitive—it's honest about where the platform team's expertise and tooling apply." },
+    {
+      lead: "Escape hatches should be documented, not hidden",
+      text: "They're part of the platform, not loopholes. The alternative deployment guide lives in the main docs, not on a hidden wiki page. If teams have to discover escape hatches through word of mouth, you've created a two-tier system where connected teams have options and everyone else doesn't.",
+    },
+    {
+      lead: "Friction should be proportional to risk",
+      text: "Not all deviations are equal. A custom Dockerfile might need only a self-review and a note in the README — that's a minor override. Custom network configuration needs a security review — that's a significant exception. An entirely separate infrastructure stack needs VP approval and a convergence plan — that's off-platform. The process should match the risk, not be uniformly heavy or uniformly light.",
+    },
+    {
+      lead: "A path back should exist",
+      text: "Teams should be able to return to the golden path later. If taking an escape hatch is a one-way door, teams will be reluctant to use it even when appropriate, and you'll accumulate permanent exceptions. Provide migration guides from custom to standard.",
+    },
+    {
+      lead: "Support levels should be clear",
+      text: "Teams know what support they'll get (or won't). Escape hatch means best-effort support, not SLA. This isn't punitive — it's honest about where the platform team's expertise and tooling apply.",
+    },
   ]}
 />
 
@@ -97,11 +124,11 @@ Escape hatches are how teams leave the golden path when they have a legitimate r
 Escape hatches without tracking become invisible technical debt. If you don't know who's using alternatives and why, you can't plan path improvements, estimate migration costs, or sunset deprecated options. Every escape hatch usage should be registered.
 </Callout>
 
-The escape hatch mechanism is what distinguishes a golden path from a mandate. Without it, you're not offering a better way—you're demanding compliance. And compliance without capability creates the shadow systems you were trying to prevent.
+The escape hatch mechanism is what distinguishes a golden path from a mandate. Without it, you're not offering a better way — you're demanding compliance. And compliance without capability creates the shadow systems you were trying to prevent.
 
 ## Getting Started: A Prioritized Approach
 
-If you're building your first golden path—or trying to fix one that isn't working—here's where to focus. These five priorities are ordered: start at the top and don't skip ahead.
+If you're building your first golden path — or trying to fix one that isn't working — here's where to focus. These five priorities are ordered: start at the top and don't skip ahead.
 
 ### Start with One High-Value Path
 
@@ -123,13 +150,13 @@ This approach prevents over-engineering. Early paths often have too many configu
 
 ### Build Feedback Loops Early
 
-Weekly office hours, a dedicated Slack channel, and quarterly surveys should exist from day one. The platform team needs to hear friction points before they become workarounds. A developer who complains in Slack is giving you a gift—they're telling you how to improve. A developer who silently builds a shadow system is a failure you won't discover until it's too late.
+Weekly office hours, a dedicated Slack channel, and quarterly surveys should exist from day one. The platform team needs to hear friction points before they become workarounds. A developer who complains in Slack is giving you a gift — they're telling you how to improve. A developer who silently builds a shadow system is a failure you won't discover until it's too late.
 
 ### Treat Adoption as a Product Problem
 
 You're not deploying infrastructure; you're launching a product to internal customers. That means user research (what do developers actually need?), competitive analysis (what's the alternative to your path?), marketing (how do developers discover the path?), and customer success (how do you help struggling adopters?).
 
-Platform teams with a product mindset build paths that developers love. Platform teams with an infrastructure mindset build paths that developers tolerate—until something better comes along.
+Platform teams with a product mindset build paths that developers love. Platform teams with an infrastructure mindset build paths that developers tolerate — until something better comes along.
 
 <Download
   resource="golden-paths-developer-experience-standardization-autonomy"

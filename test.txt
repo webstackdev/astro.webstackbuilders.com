@@ -10,3 +10,64 @@
     figure: "mb-6",
     table: "[&_tbody_th]:font-mono [&_tbody_td:first-of-type]:font-mono",
   }}
+
+
+\s{1}_([a-zA-Z].*)_?
+__$1__
+
+"(.*)_([a-zA-Z\s].*)_?
+"$1 $2
+
+\*\*([a-zA-Z].*)\*\*
+__$1__
+
+([a-zA-Z])—([a-zA-Z])
+$1 — $2
+
+kubernetes-dns-debugging-ndots-coredns-troubleshooting
+
+I'd like to make three changes in our articles files. The first is that for every mermaid diagram, I want to wrap it in our Diagram component. Move the "Figure: " title below it into the "title" prop of the Diagram component, removing the "Figure: " prefix. Add a detailed description to the Diagram for the mermaid diagram. The intention is to provide a detailed description for users with visual impairments so they can understand the diagram.
+
+The second is to expand props for List and Table components so they're easier to read. For example, this:
+
+<List
+  variant="check-icons-list"
+  items={[
+    { lead: "Gateway strips unknown headers:", text: "Some gateways have an allowlist for forwarded headers, and trace headers are not on it by default. Suddenly all your traces end at the gateway." },
+
+Should be rewritten to:
+
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: "Gateway strips unknown headers:",
+      text: "Some gateways have an allowlist for forwarded headers, and trace headers are not on it by default. Suddenly all your traces end at the gateway.",
+    },
+
+The same with tables, this:
+
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Gateway overview dashboard panels with purpose and queries.",
+    thead: { th: ["Panel", "Visualization", "Query"] },
+    tbody: {
+      tr: [
+        { th: "Request Rate", td: ["Time series", "`sum(rate(gateway_requests_total[5m]))`"] },
+
+Should be rewritten to:
+
+<Table
+  variant="vertical-column-delineation-table"
+  content={{
+    figure: "Gateway overview dashboard panels with purpose and queries.",
+    thead: { th: ["Panel", "Visualization", "Query"] },
+    tbody: {
+      tr: [
+        {
+          th: "Request Rate",
+          td: ["Time series", "`sum(rate(gateway_requests_total[5m]))`"],
+        },
+
+Do not change content. We should change graph mermaid diagrams to flowchart type, graph is deprecated. It's okay to refactor mermaid to modern syntax - just don't change the content, including punctuation. I'll give you the file names to do this refactoring to, one at a time. The first file is:

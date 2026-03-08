@@ -27,7 +27,7 @@ Here's the scenario that makes this concrete: your payment service receives a ch
 This article walks through the patterns that make handlers survive retries: understanding delivery guarantees, designing idempotency keys, implementing deduplication stores, and building handlers that produce the same result regardless of how many times they receive the same message.
 
 <Callout type="warning">
-"At-least-once" means "probably more than once." Design every handler assuming the message has already been processed. The question isn't _if_ duplicates arrive - it's when and how often.
+"At-least-once" means "probably more than once." Design every handler assuming the message has already been processed. The question isn't __if__ duplicates arrive - it's when and how often.
 </Callout>
 
 ## Delivery Guarantees
@@ -54,28 +54,32 @@ Before diving into implementation, it's worth understanding why duplicates are i
   ]}
 />
 
-```mermaid
-graph LR
-    subgraph "At-Most-Once"
+  <Diagram
+    title="Message delivery semantics - at-most-once risks loss, at-least-once risks duplicates, exactly-once requires idempotent handlers."
+    description="Flowchart comparing three message delivery semantics. The first subgraph, At-Most-Once, shows a producer sending to a queue, the queue delivering once to a consumer, and a dotted path indicating the message may be lost. The second subgraph, At-Least-Once, shows a producer sending to a queue, the queue delivering to a consumer, the consumer acknowledging back to the queue, and the queue redelivering if no acknowledgment arrives. The third subgraph, Exactly-Once, shows a producer sending to a queue, the queue delivering to a consumer, and the consumer processing plus acknowledging atomically to produce a result."
+  >
+    ```mermaid
+    flowchart LR
+      subgraph atMostOnce[At-Most-Once]
         A1[Producer] -->|Send| B1[Queue]
         B1 -->|Deliver once| C1[Consumer]
         B1 -.->|May lose| X1[Lost]
-    end
+      end
 
-    subgraph "At-Least-Once"
+      subgraph atLeastOnce[At-Least-Once]
         A2[Producer] -->|Send| B2[Queue]
         B2 -->|Deliver| C2[Consumer]
         C2 -->|ACK| B2
         B2 -->|Redeliver if no ACK| C2
-    end
+      end
 
-    subgraph "Exactly-Once"
+      subgraph exactlyOnce[Exactly-Once]
         A3[Producer] -->|Send| B3[Queue]
         B3 -->|Deliver| C3[Consumer]
         C3 -->|Process + ACK atomically| D3[Result]
-    end
-```
-Figure: Message delivery semantics - at-most-once risks loss, at-least-once risks duplicates, exactly-once requires idempotent handlers.
+      end
+    ```
+  </Diagram>
 
 The table below summarizes when to use each guarantee:
 
@@ -124,7 +128,7 @@ There are four common strategies, each with distinct tradeoffs:
     },
     {
       lead: "Content hash",
-      text: "works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content _should_ be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
+      text: "works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content should be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
     },
     {
       lead: "Business key composite",
@@ -282,32 +286,36 @@ Code: Database-level deduplication using unique constraints in PostgreSQL.
 
 The sequence diagram below shows the full flow. Notice that on the second delivery, the handler skips all business logic and immediately acknowledges - the idempotency store has already recorded success.
 
-```mermaid
-sequenceDiagram
-    participant Q as Queue
-    participant H as Handler
-    participant S as Idempotency Store
-    participant DB as Database
+<Diagram
+  title="Idempotency flow - second delivery skips processing entirely."
+  description="Sequence diagram showing idempotent message handling across two deliveries. A queue delivers a message to the handler for the first time. The handler checks the idempotency store using key order:123:pay, the store replies that the key is not found and the lock is acquired, the handler processes the payment through the database, the database returns success, the handler marks the key as completed with a cached result, and then acknowledges the message to the queue. A note indicates the consumer crashes and the message is redelivered. On the second delivery, the handler checks the same key again, the idempotency store reports the key is already completed with a cached result, and the handler immediately acknowledges the message without processing the payment again."
+>
+  ```mermaid
+  sequenceDiagram
+      participant Q as Queue
+      participant H as Handler
+      participant S as Idempotency Store
+      participant DB as Database
 
-    Q->>H: Deliver message (1st time)
-    H->>S: Check key "order:123:pay"
-    S-->>H: Not found, lock acquired
+      Q->>H: Deliver message (1st time)
+      H->>S: Check key "order:123:pay"
+      S-->>H: Not found, lock acquired
 
-    H->>DB: Process payment
-    DB-->>H: Success
+      H->>DB: Process payment
+      DB-->>H: Success
 
-    H->>S: Mark completed + cache result
-    H->>Q: ACK message
+      H->>S: Mark completed + cache result
+      H->>Q: ACK message
 
-    Note over Q,H: Consumer crashes, message redelivered
+      Note over Q,H: Consumer crashes, message redelivered
 
-    Q->>H: Deliver message (2nd time)
-    H->>S: Check key "order:123:pay"
-    S-->>H: Found: completed, result cached
+      Q->>H: Deliver message (2nd time)
+      H->>S: Check key "order:123:pay"
+      S-->>H: Found: completed, result cached
 
-    H->>Q: ACK message (skip processing)
-```
-Figure: Idempotency flow - second delivery skips processing entirely.
+      H->>Q: ACK message (skip processing)
+  ```
+</Diagram>
 
 Which storage should you use? It depends on your consistency requirements and latency budget:
 
@@ -427,7 +435,7 @@ Not every operation needs explicit deduplication. Some operations are _naturally
 
 ### Operations That Require Deduplication
 
-The operations that _aren't_ naturally idempotent are the ones that accumulate:
+The operations that __aren't__ naturally idempotent are the ones that accumulate:
 
 <List
   variant="check-icons-list"
@@ -461,22 +469,26 @@ The transactional outbox pattern solves the dual-write problem by writing the ou
 
 This guarantees that if the state change commits, the event will eventually be published. If the transaction rolls back, no event exists to publish. The outbox publisher is itself idempotent - publishing the same event twice is harmless because downstream handlers are idempotent too.
 
-```mermaid
-graph LR
-    subgraph "Single Transaction"
-        A[Handler] --> B[Update Business State]
-        A --> C[Insert Outbox Record]
-    end
+<Diagram
+  title="Transactional outbox - state change and event written atomically, publisher polls outbox."
+  description="Flowchart showing the transactional outbox pattern. Inside a Single Transaction subgraph, a handler writes both an Update Business State action and an Insert Outbox Record action. Both outputs point to the same database, indicating they are committed together. Separately, an Outbox Publisher reads from the database and sends messages to a Message Queue. A Downstream Consumer receives messages from that queue. The diagram shows that business state and outbox event are written atomically first, and event publication happens afterward by polling the outbox."
+>
+  ```mermaid
+  flowchart LR
+      subgraph singleTransaction[Single Transaction]
+          A[Handler] --> B[Update Business State]
+          A --> C[Insert Outbox Record]
+      end
 
-    B --> D[(Database)]
-    C --> D
+      B --> D[(Database)]
+      C --> D
 
-    E[Outbox Publisher] --> D
-    E --> F[Message Queue]
+      E[Outbox Publisher] --> D
+      E --> F[Message Queue]
 
-    G[Downstream Consumer] --> F
-```
-Figure: Transactional outbox - state change and event written atomically, publisher polls outbox.
+      G[Downstream Consumer] --> F
+  ```
+</Diagram>
 
 The implementation has two parts. First, the outbox table schema:
 
@@ -702,9 +714,9 @@ Code: SQS FIFO deduplication - producer-side and consumer-side patterns.
 
 ### Kafka Consumer Idempotency
 
-Kafka's "exactly-once semantics" marketing is misleading for consumers. Kafka provides an _idempotent producer_ that prevents duplicate message sends within a producer session, and _transactional writes_ that atomically commit offsets with state changes. But consumer-side idempotency is still your responsibility.
+Kafka's "exactly-once semantics" marketing is misleading for consumers. Kafka provides an __idempotent producer__ that prevents duplicate message sends within a producer session, and __transactional writes__ that atomically commit offsets with state changes. But consumer-side idempotency is still your responsibility.
 
-The reason is consumer group rebalances. When a consumer dies and partitions get reassigned, the new consumer starts from the last committed offset. If the original consumer processed a message but crashed before committing the offset, the new consumer will reprocess it. The Kafka offset is unique per partition, so you _can_ use `topic:partition:offset` as an idempotency key - but an application-level key from the message payload is more reliable across rebalances and topic migrations.
+The reason is consumer group rebalances. When a consumer dies and partitions get reassigned, the new consumer starts from the last committed offset. If the original consumer processed a message but crashed before committing the offset, the new consumer will reprocess it. The Kafka offset is unique per partition, so you __can__ use `topic:partition:offset` as an idempotency key - but an application-level key from the message payload is more reliable across rebalances and topic migrations.
 
 The pattern that works: store processed message keys in the same database transaction as your business logic, then let Kafka auto-commit offsets after successful processing. If the transaction fails, the offset isn't committed and the message gets redelivered - which your idempotency check will catch.
 
@@ -816,7 +828,7 @@ Queue-level deduplication is a bonus, not a replacement for handler idempotency.
 
 Idempotency bugs are insidious. The handler works perfectly in development where messages arrive once, then double-charges customers in production when a network blip causes a retry. The only way to catch these bugs before they cost you money (and customer trust) is to test for idempotency explicitly.
 
-The test suite below covers the essential scenarios: repeated delivery of the same message, failure-then-retry, concurrent duplicate delivery, and the negative case (different messages should _not_ be deduplicated). The chaos test at the end simulates real-world conditions where both the idempotency store and the external service fail randomly - even under these conditions, the external effect should happen exactly once.
+The test suite below covers the essential scenarios: repeated delivery of the same message, failure-then-retry, concurrent duplicate delivery, and the negative case (different messages should __not__ be deduplicated). The chaos test at the end simulates real-world conditions where both the idempotency store and the external service fail randomly - even under these conditions, the external effect should happen exactly once.
 
 ```typescript title="idempotency-tests.ts"
 describe('PaymentHandler idempotency', () => {
@@ -931,7 +943,7 @@ Test idempotency explicitly. Send the same message multiple times and verify the
 
 ## Conclusion
 
-Idempotent message handling isn't a feature you bolt on later - it's a design discipline that shapes how you structure handlers from the start. The patterns in this article form a coherent approach: understand that at-least-once delivery means duplicates _will_ arrive; design idempotency keys from message content, not queue metadata; choose deduplication storage that matches your consistency requirements; prefer naturally idempotent operations where possible; and use transactional patterns like the outbox and saga state machines when you need atomicity across multiple writes.
+Idempotent message handling isn't a feature you bolt on later - it's a design discipline that shapes how you structure handlers from the start. The patterns in this article form a coherent approach: understand that at-least-once delivery means duplicates __will__ arrive; design idempotency keys from message content, not queue metadata; choose deduplication storage that matches your consistency requirements; prefer naturally idempotent operations where possible; and use transactional patterns like the outbox and saga state machines when you need atomicity across multiple writes.
 
 The most common mistake I see is relying on queue-level deduplication. SQS FIFO's five-minute window, Kafka's producer idempotency, Azure Service Bus's session deduplication - these are useful supplements, but they don't eliminate the need for handler-side idempotency. Network partitions, visibility timeouts, consumer crashes, and rebalances all create scenarios where messages get redelivered outside those protection windows.
 

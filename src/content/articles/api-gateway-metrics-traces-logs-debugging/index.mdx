@@ -1,6 +1,6 @@
 ---
 title: "The Gateway Latency Problem You Can't See"
-description: "Your gateway dashboards show healthy 200ms latency, but users report 5-second delays. The problem isn't the gateway—it's what you're measuring."
+description: "Your gateway dashboards show healthy 200ms latency, but users report 5-second delays. The problem isn't the gateway — it's what you're measuring."
 cover: "./cover.jpg"
 coverAlt: "API gateway shown as transparent structure with illuminated request path revealing internal components like auth, rate limiting, and routing"
 author: "kevin-brown"
@@ -17,7 +17,7 @@ featured: true
 
 Last month I spent four hours debugging what turned out to be a 30-second problem. Users reported 5-second delays on uploads. The gateway dashboard showed P99 latency at 200ms. Every backend claimed sub-100ms response times.
 
-The problem: we measured the wrong interval. Our gateway tracked time from "request received" to "response sent," but spent 4 seconds waiting for slow consumers to upload request bodies _before the timer started_. The gateway wasn't slow—we were measuring the wrong thing.
+The problem: we measured the wrong interval. Our gateway tracked time from "request received" to "response sent," but spent 4 seconds waiting for slow consumers to upload request bodies _before the timer started_. The gateway wasn't slow — we were measuring the wrong thing.
 
 Gateway observability is useless if it doesn't connect upstream and downstream. You see total latency when you need to know whether the gateway or the backend is slow. You see disconnected traces that stop at the gateway boundary when the problem is downstream.
 
@@ -124,7 +124,7 @@ gateway_overhead_seconds =
 backend_time_seconds = gateway_upstream_duration_seconds
 ```
 
-For AWS API Gateway, use CloudWatch metrics (`Latency` and `IntegrationLatency`) to achieve the same breakdown—the concepts are identical.
+For AWS API Gateway, use CloudWatch metrics (`Latency` and `IntegrationLatency`) to achieve the same breakdown — the concepts are identical.
 
 When latency increases, this breakdown immediately narrows your investigation:
 
@@ -151,15 +151,15 @@ When latency increases, this breakdown immediately narrows your investigation:
   items={[
     {
       lead: "Gateway overhead spiked, upstream time flat:",
-      text: "Problem is in the gateway itself—check CPU, memory, connection pools, or auth provider latency.",
+      text: "Problem is in the gateway itself — check CPU, memory, connection pools, or auth provider latency.",
     },
     {
       lead: "Upstream time spiked, gateway overhead flat:",
-      text: "Problem is in the backend—check backend service metrics, database performance, or downstream API calls.",
+      text: "Problem is in the backend — check backend service metrics, database performance, or downstream API calls.",
     },
     {
       lead: "Both spiked:",
-      text: "Problem is systemic—check network issues, load balancer health, or cascading failures.",
+      text: "Problem is systemic — check network issues, load balancer health, or cascading failures.",
     },
   ]}
 />
@@ -174,7 +174,7 @@ Most "gateway latency" complaints are backend latency. Instrument each phase sep
 
 Metrics show aggregate health, but when something goes wrong, you need to see what happened to _specific requests_. Distributed tracing provides that request-level visibility by tracking individual requests across services.
 
-The gateway is the most critical point for trace context propagation. If the gateway doesn't forward trace headers to backends, your traces stop at the gateway boundary—you see the consumer-to-gateway span, but not the gateway-to-backend spans. The request flow becomes invisible exactly where you need it most.
+The gateway is the most critical point for trace context propagation. If the gateway doesn't forward trace headers to backends, your traces stop at the gateway boundary — you see the consumer-to-gateway span, but not the gateway-to-backend spans. The request flow becomes invisible exactly where you need it most.
 
 ### Trace Context Propagation
 
@@ -199,10 +199,10 @@ Code: W3C Trace Context propagation from consumer through gateway to backend.
 
 The trace ID (`0af765...`) stays the same across all spans, connecting the entire request flow. The span ID changes for each service to identify individual operations. The sampling flag (`01`) tells all services that this trace should be included in sampling (vs `00` for "don't sample").
 
-These tracing systems are interoperable via W3C Trace Context—you can trace from AWS X-Ray through a Kong gateway to a backend using Jaeger, all using the same trace ID.
+These tracing systems are interoperable via W3C Trace Context — you can trace from AWS X-Ray through a Kong gateway to a backend using Jaeger, all using the same trace ID.
 
 <Callout type="tip">
-**Tool Compatibility**: Kong Gateway, NGINX, and Envoy support W3C Trace Context out of the box. AWS API Gateway doesn't propagate `traceparent` automatically—you must forward it manually using mapping templates or Lambda authorizers.
+**Tool Compatibility**: Kong Gateway, NGINX, and Envoy support W3C Trace Context out of the box. AWS API Gateway doesn't propagate `traceparent` automatically — you must forward it manually using mapping templates or Lambda authorizers.
 </Callout>
 
 Common propagation failures that break traces:
@@ -303,7 +303,7 @@ processors:
 
 Code: Tail sampling configuration to keep all errors and slow requests.
 
-This captures the traces you actually need for debugging—failures and performance problems—without storing millions of routine successful requests.
+This captures the traces you actually need for debugging — failures and performance problems — without storing millions of routine successful requests.
 
 <Newsletter />
 
@@ -417,7 +417,7 @@ The pattern is always the same: start broad with metrics, zoom in with traces, e
 
 ## Conclusion
 
-Gateway observability isn't about collecting more data—it's about making the gateway transparent so you can answer three questions in seconds instead of hours:
+Gateway observability isn't about collecting more data — it's about making the gateway transparent so you can answer three questions in seconds instead of hours:
 
 <List
   variant="numbered-with-background-list"

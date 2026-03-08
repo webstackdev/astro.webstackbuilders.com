@@ -15,7 +15,7 @@ I once inherited an API version marked "deprecated" two years prior that still h
 
 The deprecation announcement had been sent. The documentation had been updated. The sunset date had long passed. And nothing had actually changed.
 
-This is the dirty secret of API deprecation: the technical implementation is trivial—add some headers, update some docs, eventually return 410 Gone. The hard part is getting hundreds of consumers, each with their own priorities and constraints, to take action.
+This is the dirty secret of API deprecation: the technical implementation is trivial — add some headers, update some docs, eventually return 410 Gone. The hard part is getting hundreds of consumers, each with their own priorities and constraints, to take action.
 
 <Callout type="warning">
 Deprecation without enforcement is just wishful thinking. If there is no consequence for ignoring sunset headers, consumers will ignore them indefinitely.
@@ -25,7 +25,7 @@ Deprecation without enforcement is just wishful thinking. If there is no consequ
 
 Your consumers have no inherent motivation to migrate. They have working code. Migration is work, and work has costs. From their perspective, "deprecated" just means "works fine but someone at the API company wants me to do extra work for no benefit."
 
-The common approach—send an announcement email, add deprecation headers, hope for the best—fails because it treats deprecation as an information problem. If consumers just _knew_ the API was deprecated, surely they would migrate. But they do know. They are ignoring you.
+The common approach — send an announcement email, add deprecation headers, hope for the best — fails because it treats deprecation as an information problem. If consumers just _knew_ the API was deprecated, surely they would migrate. But they do know. They are ignoring you.
 
 What actually works is treating deprecation as a _coordination_ problem. You need three things:
 
@@ -51,7 +51,7 @@ The rest of this article covers how to implement each of these.
 
 ## Track Who You Are Trying to Move
 
-You cannot deprecate what you cannot measure. Before announcing a deprecation—ideally before even deciding to deprecate—you need to know exactly who is using the API, how much traffic they send, and which endpoints they hit.
+You cannot deprecate what you cannot measure. Before announcing a deprecation — ideally before even deciding to deprecate — you need to know exactly who is using the API, how much traffic they send, and which endpoints they hit.
 
 The minimum data to capture for each consumer:
 
@@ -77,9 +77,9 @@ The minimum data to capture for each consumer:
   ]}
 />
 
-Run this analysis weekly throughout the deprecation period. The output becomes your migration tracking list. Sort by request count to prioritize outreach—in my experience, the top 10 consumers by volume typically represent 80% or more of deprecated traffic.
+Run this analysis weekly throughout the deprecation period. The output becomes your migration tracking list. Sort by request count to prioritize outreach — in my experience, the top 10 consumers by volume typically represent 80% or more of deprecated traffic.
 
-This data also creates organizational accountability. Build a simple dashboard showing migration progress. When leadership can see that 30% of traffic is still on the deprecated API with 45 days until sunset, they understand why the deprecation might need executive escalation—or why it is on track for success.
+This data also creates organizational accountability. Build a simple dashboard showing migration progress. When leadership can see that 30% of traffic is still on the deprecated API with 45 days until sunset, they understand why the deprecation might need executive escalation — or why it is on track for success.
 
 <Table
   variant="grid-and-accent-header-table"
@@ -119,7 +119,7 @@ One critical point: the moment you announce a deprecation, stop allowing new con
 
 ## Graduated Enforcement: The Secret Weapon
 
-This is where most deprecation strategies fail. They announce, they communicate, they provide migration guides—and then they do nothing when consumers ignore all of it. The sunset date arrives, someone important is still using the deprecated API, and the date gets pushed back. Repeat indefinitely.
+This is where most deprecation strategies fail. They announce, they communicate, they provide migration guides — and then they do nothing when consumers ignore all of it. The sunset date arrives, someone important is still using the deprecated API, and the date gets pushed back. Repeat indefinitely.
 
 Graduated enforcement breaks this cycle by applying increasing pressure over time. Each step is uncomfortable enough to motivate action but not so severe that it causes outages. Consumers who ignore soft warnings eventually hit hard consequences, but they have multiple opportunities to respond before that happens.
 
@@ -240,9 +240,9 @@ Document every escalation attempt. When a consumer claims they were not warned, 
 
 Remember those three enterprise customers who had not migrated after two years? We eventually got all of them to zero traffic on the deprecated API.
 
-One required executive escalation—their engineering team wanted to migrate but could not get prioritization until our executive called their executive. Another needed dedicated migration support, essentially pair programming sessions to help them through the transition. The third required contract renegotiation, trading extended support on the new API for an accelerated migration timeline.
+One required executive escalation — their engineering team wanted to migrate but could not get prioritization until our executive called their executive. Another needed dedicated migration support, essentially pair programming sessions to help them through the transition. The third required contract renegotiation, trading extended support on the new API for an accelerated migration timeline.
 
-The sunset date slipped by four months. But we removed it—actually removed it, not just declared it deprecated and hoped for the best.
+The sunset date slipped by four months. But we removed it — actually removed it, not just declared it deprecated and hoped for the best.
 
 The principles are straightforward:
 
@@ -275,4 +275,4 @@ The principles are straightforward:
   ]}
 />
 
-Deprecation is not a single announcement—it is a sustained campaign that requires attention for months. Staff it accordingly.
+Deprecation is not a single announcement — it is a sustained campaign that requires attention for months. Staff it accordingly.

@@ -20,7 +20,7 @@ Last month I watched a developer spend three days getting a PostgreSQL database.
 
 The portal worked perfectly. The developer knew exactly where to go and what to do. And yet the outcome was identical to not having a portal at all - the same tickets, the same meetings, the same waiting.
 
-That's the portal-versus-platform distinction that trips up most organizations. A portal _indexes_ things: it aggregates links, surfaces documentation, shows who owns what. A platform _does_ things: it provisions infrastructure, creates repositories, grants access. The portal tells you how to request a database. The platform gives you a database.
+That's the portal-versus-platform distinction that trips up most organizations. A portal __indexes__ things: it aggregates links, surfaces documentation, shows who owns what. A platform __does__ things: it provisions infrastructure, creates repositories, grants access. The portal tells you how to request a database. The platform gives you a database.
 
 The difference matters because it determines whether your internal developer platform actually reduces toil or just makes toil easier to find. Self-service actions are what transform a directory into a platform. Without them, you've built a prettier wiki.
 
@@ -59,25 +59,41 @@ Most internal developer portals evolve through predictable stages. Understanding
   content={{
     figure: "Portal maturity levels.",
     thead: {
-      th: ["Level", "What Developers Can Do", "What They Still Can't Do"],
+      th: [
+        "Level",
+        "What Developers Can Do",
+        "What They Still Can't Do",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Directory",
-          td: ["Find documentation", "Execute workflows"],
+          td: [
+            "Find documentation",
+            "Execute workflows",
+          ],
         },
         {
           th: "Search",
-          td: ["Quickly find services and APIs", "Provision or modify resources"],
+          td: [
+            "Quickly find services and APIs",
+            "Provision or modify resources",
+          ],
         },
         {
           th: "Insights",
-          td: ["See health and ownership", "Fix issues without tickets"],
+          td: [
+            "See health and ownership",
+            "Fix issues without tickets",
+          ],
         },
         {
           th: "Platform",
-          td: ["Self-service common tasks", "Only edge cases need tickets"],
+          td: [
+            "Self-service common tasks",
+            "Only edge cases need tickets",
+          ],
         },
       ],
     },
@@ -200,8 +216,12 @@ This is workflow orchestration - coordinating multi-step processes with proper e
 
 Consider what happens when a developer requests a new service. The portal validates their inputs and permissions, creates a repository from a template, generates a Terraform PR for the service's infrastructure, waits for approval (or auto-approves for non-production), applies the Terraform changes, stores the resulting credentials, and notifies the developer. That's seven steps with dependencies between them.
 
-```mermaid
-sequenceDiagram
+<Diagram
+  title="Multi-step service creation workflow."
+  description="Sequence diagram showing a Developer submitting a \"Create Service\" action to the Platform, the Platform validating inputs + permissions, creating a repository and infrastructure PR through Git, receiving plan output from CI/CD, either auto-approving or waiting for approval before merging, then triggering apply, provisioning Infrastructure, storing credentials in Vault, and notifying the Developer when the service is ready."
+>
+  ```mermaid
+  sequenceDiagram
     participant D as Developer
     participant Plt as Platform
     participant G as Git
@@ -220,12 +240,12 @@ sequenceDiagram
     CI-->>Plt: Plan output
 
     alt Auto-approve (dev/staging)
-        Plt->>G: Merge PR
+      Plt->>G: Merge PR
     else Requires approval (production)
-        Plt->>Plt: Create approval request
-        Plt-->>D: Notify: approval needed
-        Note over Plt: Wait for approval
-        Plt->>G: Merge PR after approval
+      Plt->>Plt: Create approval request
+      Plt-->>D: Notify: approval needed
+      Note over Plt: Wait for approval
+      Plt->>G: Merge PR after approval
     end
 
     G->>CI: Trigger apply
@@ -237,8 +257,8 @@ sequenceDiagram
 
     CI-->>Plt: Workflow complete
     Plt-->>D: Notify: service ready
-```
-Figure: Multi-step service creation workflow.
+  ```
+</Diagram>
 
 The sequence diagram shows the happy path, but real workflows need to handle failures at every step. What if the repository creation succeeds but the Terraform PR fails? What if the apply times out? What if credential storage fails after infrastructure is already provisioned?
 
@@ -246,11 +266,11 @@ The sequence diagram shows the happy path, but real workflows need to handle fai
 
 Each workflow step needs three things: a clear action, defined failure behavior, and (where appropriate) a rollback action.
 
-_Failure behaviors_ fall into a few categories. Some failures should abort the entire workflow - if validation fails, there's no point continuing. Some should retry - transient API errors often resolve on the second attempt. Some should skip - failing to send a notification shouldn't block an otherwise successful provisioning. And some should trigger manual intervention - edge cases that automation can't handle.
+__Failure behaviors__ fall into a few categories. Some failures should abort the entire workflow - if validation fails, there's no point continuing. Some should retry - transient API errors often resolve on the second attempt. Some should skip - failing to send a notification shouldn't block an otherwise successful provisioning. And some should trigger manual intervention - edge cases that automation can't handle.
 
-_Rollback steps_ clean up resources created by earlier steps when a later step fails. If you create a repository in step 2 but the infrastructure PR fails in step 3, the rollback should delete that repository. Without rollback, failed workflows leave orphaned resources that accumulate over time - repositories nobody uses, partial infrastructure deployments, dangling secrets.
+__Rollback steps__ clean up resources created by earlier steps when a later step fails. If you create a repository in step 2 but the infrastructure PR fails in step 3, the rollback should delete that repository. Without rollback, failed workflows leave orphaned resources that accumulate over time - repositories nobody uses, partial infrastructure deployments, dangling secrets.
 
-The key insight is that _non-critical steps should fail gracefully_. Registering a service in the catalog is nice to have, but if it fails, the service still exists and works. Mark these steps as "skip on failure" so they don't block the overall workflow.
+The key insight is that __non-critical steps should fail gracefully__. Registering a service in the catalog is nice to have, but if it fails, the service still exists and works. Mark these steps as "skip on failure" so they don't block the overall workflow.
 
 <Callout type="warning">
 Every workflow needs a rollback plan. If step 4 fails, what happens to resources created in steps 1-3? Orphaned repositories, half-provisioned infrastructure, and dangling credentials erode trust in self-service. Design for failure from the start.
@@ -260,7 +280,7 @@ Every workflow needs a rollback plan. If step 4 fails, what happens to resources
 
 Approvals are where self-service platforms often regress into ticket systems. The instinct is understandable - production changes are risky, expensive resources need oversight, compliance requires audit trails. But if every request routes through a manual approval queue, you've just built Jira with a different skin.
 
-The solution is _policy-based approval routing_: define rules that auto-approve low-risk requests while routing high-risk ones to the right approvers. Most requests should flow through automatically. Approvals become the exception, not the rule.
+The solution is __policy-based approval routing__: define rules that auto-approve low-risk requests while routing high-risk ones to the right approvers. Most requests should flow through automatically. Approvals become the exception, not the rule.
 
 ### Approval Policy Dimensions
 
@@ -292,7 +312,7 @@ Different situations warrant different approval requirements. Here are the dimen
   ]}
 />
 
-These dimensions combine. A production database deletion during change freeze might require team lead approval _and_ security review _and_ change freeze exception - three separate approvers. A dev environment S3 bucket during business hours? Instant auto-approval.
+These dimensions combine. A production database deletion during change freeze might require team lead approval __and__ security review __and__ change freeze exception - three separate approvers. A dev environment S3 bucket during business hours? Instant auto-approval.
 
 In Backstage, you'd implement these rules through a custom approval plugin or integrate with Open Policy Agent (OPA) for policy-as-code. The scaffolder evaluates the policy before executing steps, routing to the appropriate approval workflow or proceeding automatically based on the policy decision.
 
@@ -301,21 +321,38 @@ In Backstage, you'd implement these rules through a custom approval plugin or in
   content={{
     figure: "Approval types and SLAs.",
     thead: {
-      th: ["Approval Type", "Use Case", "SLA", "Auto-Escalation"],
+      th: [
+        "Approval Type",
+        "Use Case",
+        "SLA",
+        "Auto-Escalation",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Auto-approve",
-          td: ["Dev/staging, low cost", "Instant", "N/A"],
+          td: [
+            "Dev/staging, low cost",
+            "Instant",
+            "N/A",
+          ],
         },
         {
           th: "Multiple approvers",
-          td: ["High risk, multi-team", "8 hours", "After 4 hours"],
+          td: [
+            "High risk, multi-team",
+            "8 hours",
+            "After 4 hours",
+          ],
         },
         {
           th: "Sequential approval",
-          td: ["Compliance-critical", "24 hours", "After 8 hours"],
+          td: [
+            "Compliance-critical",
+            "24 hours",
+            "After 8 hours",
+          ],
         },
       ],
     },
@@ -424,25 +461,46 @@ This abstraction pays off when you need to swap providers. Moving from GitHub to
   content={{
     figure: "Common integration patterns.",
     thead: {
-      th: ["Integration Type", "Common Providers", "Authentication", "Key Capabilities"],
+      th: [
+        "Integration Type",
+        "Common Providers",
+        "Authentication",
+        "Key Capabilities",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Git provider",
-          td: ["GitHub, GitLab", "GitHub App, Access Token", "Repos, PRs, permissions"],
+          td: [
+            "GitHub, GitLab",
+            "GitHub App, Access Token",
+            "Repos, PRs, permissions",
+          ],
         },
         {
           th: "Infrastructure",
-          td: ["Terraform Cloud, AWS", "API Token, IAM Role", "Provision, state, outputs"],
+          td: [
+            "Terraform Cloud, AWS",
+            "API Token, IAM Role",
+            "Provision, state, outputs",
+          ],
         },
         {
           th: "Secrets",
-          td: ["Vault, AWS Secrets Manager", "AppRole, IAM Role", "Create, rotate, policies"],
+          td: [
+            "Vault, AWS Secrets Manager",
+            "AppRole, IAM Role",
+            "Create, rotate, policies",
+          ],
         },
         {
           th: "Observability",
-          td: ["Datadog, Prometheus", "API Key", "Dashboards, monitors, SLOs"],
+          td: [
+            "Datadog, Prometheus",
+            "API Key",
+            "Dashboards, monitors, SLOs",
+          ],
         },
       ],
     },
@@ -514,25 +572,46 @@ If you can only track a few things, focus on these:
   content={{
     figure: "Portal vs platform value comparison.",
     thead: {
-      th: ["Metric", "Baseline (Portal)", "Target (Platform)", "Value"],
+      th: [
+        "Metric",
+        "Baseline (Portal)",
+        "Target (Platform)",
+        "Value",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Time to new database",
-          td: ["3-5 days", "15 minutes", "99% reduction"],
+          td: [
+            "3-5 days",
+            "15 minutes",
+            "99% reduction",
+          ],
         },
         {
           th: "Time to new service",
-          td: ["1-2 weeks", "1 hour", "95% reduction"],
+          td: [
+            "1-2 weeks",
+            "1 hour",
+            "95% reduction",
+          ],
         },
         {
           th: "Platform tickets/week",
-          td: ["50", "15", "70% reduction"],
+          td: [
+            "50",
+            "15",
+            "70% reduction",
+          ],
         },
         {
           th: "Manual approvals needed",
-          td: ["90%", "25%", "72% reduction"],
+          td: [
+            "90%",
+            "25%",
+            "72% reduction",
+          ],
         },
       ],
     },

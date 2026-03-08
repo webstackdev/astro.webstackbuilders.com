@@ -9,10 +9,10 @@ tags: ["apis-and-gateways", "kubernetes", "prometheus", "typescript", "go", "pyt
 featured: true
 ---
 
-*[SRE]: Site Reliability Engineering
 *[P99]: 99th Percentile
-*[RPS]: Requests Per Second
 *[QPS]: Queries Per Second
+*[RPS]: Requests Per Second
+*[SRE]: Site Reliability Engineering
 
 When a downstream service fails in a distributed system, the natural instinct is to retry.
 
@@ -34,7 +34,7 @@ Understanding the mechanics of cascade failures requires tracing the path from i
 
 Consider a typical service chain: an API gateway calls a checkout service, which calls an inventory service, which queries a database. Each layer has timeouts and retry logic configured independently. Nobody coordinated these settings because each team was responsible for their own service.
 
-The failure starts at the bottom. A database experiences momentary slowness—maybe a long-running query, maybe garbage collection, maybe a network hiccup. What happens next follows a predictable sequence:
+The failure starts at the bottom. A database experiences momentary slowness — maybe a long-running query, maybe garbage collection, maybe a network hiccup. What happens next follows a predictable sequence:
 
 ```text
 Timeline of a cascade failure:
@@ -44,7 +44,7 @@ T+10s:  Service C queues grow, some requests timeout
 T+20s:  Service B sees C timeouts, starts retrying
 T+30s:  Service A sees B timeouts, starts retrying
 T+45s:  All services at maximum queue depth
-T+60s:  Database recovers, but services cannot—queues too deep
+T+60s:  Database recovers, but services cannot — queues too deep
 T+2min: Manual intervention required
 T+5min: Services restarted, queues cleared
 T+10min: Full recovery
@@ -55,7 +55,7 @@ Amplification factor: 20x
 ```
 Figure: Timeline showing how a brief database slowdown cascades into a 10-minute outage.
 
-The database recovered at T+60s, but the cascade continued for another 9 minutes. By the time the database was healthy, each upstream service had thousands of requests queued. Those queued requests kept hammering downstream services, preventing recovery. The system needed manual intervention—draining queues, restarting services—to return to normal operation.
+The database recovered at T+60s, but the cascade continued for another 9 minutes. By the time the database was healthy, each upstream service had thousands of requests queued. Those queued requests kept hammering downstream services, preventing recovery. The system needed manual intervention — draining queues, restarting services — to return to normal operation.
 
 ### Retry Amplification
 
@@ -67,14 +67,31 @@ The formula is simple: $$(r + 1)^n$$ where $$r$$ is retries per service and $$n$
   variant="vertical-column-delineation-table"
   content={{
     figure: "Load amplification from retries across service chains.",
-    thead: { th: ["Services in Chain", "Retries Each", "Load Amplification"] },
+    thead: {
+      th: ["Services in Chain", "Retries Each", "Load Amplification"],
+    },
     tbody: {
       tr: [
-        { th: "2", td: ["3", "16x"] },
-        { th: "3", td: ["3", "64x"] },
-        { th: "4", td: ["3", "256x"] },
-        { th: "3", td: ["5", "216x"] },
-        { th: "4", td: ["5", "1,296x"] },
+        {
+          th: "2",
+          td: ["3", "16x"],
+        },
+        {
+          th: "3",
+          td: ["3", "64x"],
+        },
+        {
+          th: "4",
+          td: ["3", "256x"],
+        },
+        {
+          th: "3",
+          td: ["5", "216x"],
+        },
+        {
+          th: "4",
+          td: ["5", "1,296x"],
+        },
       ],
     },
   }}
@@ -86,32 +103,36 @@ A database that can handle 10,000 QPS under normal operation suddenly receives 6
 
 The circuit breaker pattern borrows its name from electrical engineering. When current exceeds safe levels, a breaker trips to protect the wiring. In software, when a downstream service starts failing, the circuit breaker "opens" to protect both the downstream service and your own application.
 
-A circuit breaker has three states. In the _closed_ state, requests flow normally while the breaker monitors failure rates. When failures exceed a threshold, the breaker transitions to _open_. In the open state, all requests fail immediately without attempting to reach the downstream service—this is the "fail fast" behavior that prevents cascade failures. After a timeout, the breaker moves to _half-open_, where it allows a limited number of probe requests through. If those probes succeed, the circuit closes and normal operation resumes. If they fail, the circuit reopens.
+A circuit breaker has three states. In the __closed__ state, requests flow normally while the breaker monitors failure rates. When failures exceed a threshold, the breaker transitions to __open__. In the open state, all requests fail immediately without attempting to reach the downstream service — this is the "fail fast" behavior that prevents cascade failures. After a timeout, the breaker moves to __half-open__, where it allows a limited number of probe requests through. If those probes succeed, the circuit closes and normal operation resumes. If they fail, the circuit reopens.
 
+<Diagram
+  title="Circuit breaker state machine with three states"
+  description="State diagram showing a circuit breaker starting closed, opening when the failure threshold is exceeded, moving to half-open after the reset timeout, closing again when a probe request succeeds, or reopening when a probe request fails. Notes explain that closed tracks failure rate, open fails fast to protect the downstream service, and half-open allows limited recovery probes."
+>
 ```mermaid
 stateDiagram-v2
-    [*] --> Closed
-    Closed --> Open: Failure threshold exceeded
-    Open --> HalfOpen: Reset timeout expires
-    HalfOpen --> Closed: Probe request succeeds
-    HalfOpen --> Open: Probe request fails
+  [*] --> Closed
+  Closed --> Open: Failure threshold exceeded
+  Open --> HalfOpen: Reset timeout expires
+  HalfOpen --> Closed: Probe request succeeds
+  HalfOpen --> Open: Probe request fails
 
-    note right of Closed
-        Normal operation
-        Track failure rate
-    end note
+  note right of Closed
+    Normal operation
+    Track failure rate
+  end note
 
-    note right of Open
-        Fail fast
-        Protect downstream
-    end note
+  note right of Open
+    Fail fast
+    Protect downstream
+  end note
 
-    note right of HalfOpen
-        Test recovery
-        Allow limited probes
-    end note
+  note right of HalfOpen
+    Test recovery
+    Allow limited probes
+  end note
 ```
-Figure: Circuit breaker state machine with three states.
+</Diagram>
 
 <Callout type="info">
 The terminology is counterintuitive at first. "Closed" means requests flow through (the circuit is complete). "Open" means requests are blocked (the circuit is broken). This matches electrical terminology but feels backwards to most developers on first encounter.
@@ -119,7 +140,7 @@ The terminology is counterintuitive at first. "Closed" means requests flow throu
 
 ## Implementation
 
-There are three popular options for implementing circuit breakers, each with different tradeoffs. _Service meshes_ like Istio handle circuit breaking at the infrastructure layer—your application code stays simple while Envoy sidecars handle failure detection, but you lose per-endpoint granularity. _Application libraries_ like opossum (Node.js), resilience4j (Java), or gobreaker (Go) give you fine-grained control per endpoint, though you'll need to instrument each call site. _API gateways_ can implement basic circuit breaking at the edge, which works well for external traffic but doesn't help with service-to-service calls.
+There are three popular options for implementing circuit breakers, each with different tradeoffs. __Service meshes__ like Istio handle circuit breaking at the infrastructure layer — your application code stays simple while Envoy sidecars handle failure detection, but you lose per-endpoint granularity. __Application libraries__ like opossum (Node.js), resilience4j (Java), or gobreaker (Go) give you fine-grained control per endpoint, though you'll need to instrument each call site. __API gateways__ can implement basic circuit breaking at the edge, which works well for external traffic but doesn't help with service-to-service calls.
 
 For most teams, I recommend starting with an application library for critical service calls. Here's a practical example using opossum:
 
@@ -154,13 +175,13 @@ Code: Circuit breaker implementation using opossum with fallback and observabili
 
 The `volumeThreshold` parameter prevents the circuit from opening on the first few failures. Without it, a service restart that fails its first request would immediately open the circuit.
 
-An open circuit needs a fallback strategy. For read operations, serving cached data maintains a functional user experience. For optional features like recommendations, returning an empty response is better than breaking the entire page. For operations where hiding the failure would cause worse problems—like payment processing—fail fast and let the user know.
+An open circuit needs a fallback strategy. For read operations, serving cached data maintains a functional user experience. For optional features like recommendations, returning an empty response is better than breaking the entire page. For operations where hiding the failure would cause worse problems — like payment processing — fail fast and let the user know.
 
 <Newsletter />
 
 ## Retry Budgets
 
-Circuit breakers protect against sustained failures, but they don't address the retry amplification problem directly. A service can still overwhelm a downstream dependency with retries _before_ the circuit opens. Retry budgets solve this by limiting the total number of retries across all requests, not just per-request.
+Circuit breakers protect against sustained failures, but they don't address the retry amplification problem directly. A service can still overwhelm a downstream dependency with retries __before__ the circuit opens. Retry budgets solve this by limiting the total number of retries across all requests, not just per-request.
 
 The concept is simple: instead of allowing every request to retry N times, you allow retries only up to a percentage of your recent successful requests. If you've had 1,000 successful requests and your budget is 10%, you can retry up to 100 times total. Once that budget is exhausted, new retries are rejected until more successes replenish the pool.
 
@@ -205,7 +226,7 @@ Code: Retry budget implementation tracking successes and limiting retries to a p
 
 ## Combining Circuit Breakers and Retry Budgets
 
-Circuit breakers and retry budgets complement each other. The circuit breaker detects when a service is unhealthy and stops calling it entirely. The retry budget prevents overwhelming a service _before_ the circuit opens. Together, they provide layered protection.
+Circuit breakers and retry budgets complement each other. The circuit breaker detects when a service is unhealthy and stops calling it entirely. The retry budget prevents overwhelming a service __before__ the circuit opens. Together, they provide layered protection.
 
 <Download
   resource="circuit-breaker-retry-budget-cascade-failure-prevention"
@@ -235,6 +256,6 @@ Start with conservative settings: a 50% error threshold for circuit breakers and
 
 ## What's Next
 
-How do you tune circuit breaker thresholds without disrupting production? What observability do you need to debug circuit breaker behavior during an incident? How do service meshes like Istio and Linkerd handle these patterns differently? And what about the anti-patterns that can make your resilience mechanisms backfire—like retrying through an open circuit or setting identical timeouts across your service chain?
+How do you tune circuit breaker thresholds without disrupting production? What observability do you need to debug circuit breaker behavior during an incident? How do service meshes like Istio and Linkerd handle these patterns differently? And what about the anti-patterns that can make your resilience mechanisms backfire — like retrying through an open circuit or setting identical timeouts across your service chain?
 
 The real complexity isn't in understanding the patterns. It's in operating them at scale, coordinating settings across teams, and building the muscle memory to interpret circuit breaker telemetry during a 3 AM page.

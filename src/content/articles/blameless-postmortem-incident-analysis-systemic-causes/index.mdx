@@ -13,7 +13,7 @@ An engineer fat-fingers a production config change. The payment service goes dow
 
 The instinctive investigation goes like this: Who made the change? Why weren't they more careful? They need more training. Maybe a written warning. Case closed.
 
-This feels satisfying—we found the problem and addressed it. But three months later, a _different_ engineer makes a _different_ config mistake, and we're back here again. The "solution" didn't prevent anything—it just rotated the blame to someone new.
+This feels satisfying — we found the problem and addressed it. But three months later, a _different_ engineer makes a _different_ config mistake, and we're back here again. The "solution" didn't prevent anything — it just rotated the blame to someone new.
 
 There's a better way. Instead of asking "who screwed up?" blameless postmortems ask: Why could a single engineer make that change without review? Why was there no canary deployment? Why didn't monitoring catch the error before customers did? That investigation finds five systemic improvements instead of one scapegoat.
 
@@ -59,13 +59,13 @@ The divergence compounds over time. Blame-focused organizations accumulate hidde
 
 Beyond information hiding, blame-based thinking leads to another trap: the search for a scapegoat. There's a comforting belief that most engineers are careful and competent, and incidents happen because a few "bad apples" are careless. If we could just identify and remove these people, incidents would stop.
 
-This theory has been tested extensively in aviation, healthcare, and nuclear power. It doesn't hold up. "Careless" people aren't a distinct population you can screen out—everyone makes errors under the right conditions. Fatigue, time pressure, confusing interfaces, incomplete information, and conflicting priorities create errors in even the most skilled practitioners.
+This theory has been tested extensively in aviation, healthcare, and nuclear power. It doesn't hold up. "Careless" people aren't a distinct population you can screen out — everyone makes errors under the right conditions. Fatigue, time pressure, confusing interfaces, incomplete information, and conflicting priorities create errors in even the most skilled practitioners.
 
-If you fire the engineer who made today's mistake, someone else will make a similar mistake next month—because the conditions that enabled the error remain unchanged.
+If you fire the engineer who made today's mistake, someone else will make a similar mistake next month — because the conditions that enabled the error remain unchanged.
 
 ## What "Blameless" Actually Means
 
-"Blameless" is frequently misunderstood. It doesn't mean no one is accountable. It doesn't mean we ignore mistakes or lower our standards. It means we hold the _right things_ accountable—and in complex systems, that's almost never an individual human making a one-off error.
+"Blameless" is frequently misunderstood. It doesn't mean no one is accountable. It doesn't mean we ignore mistakes or lower our standards. It means we hold the _right things_ accountable — and in complex systems, that's almost never an individual human making a one-off error.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -100,7 +100,7 @@ If you fire the engineer who made today's mistake, someone else will make a simi
 />
 
 
-The distinction matters because different types of accountability call for different responses. An engineer who made an honest mistake while following normal practices needs system improvements. A manager who created deadline pressure that encouraged skipping safety checks needs to change their leadership approach. These are both accountability—just not the "find someone to blame" kind.
+The distinction matters because different types of accountability call for different responses. An engineer who made an honest mistake while following normal practices needs system improvements. A manager who created deadline pressure that encouraged skipping safety checks needs to change their leadership approach. These are both accountability — just not the "find someone to blame" kind.
 
 <Newsletter />
 
@@ -111,15 +111,15 @@ The Just Culture framework, developed in healthcare and aviation, helps distingu
   items={[
     {
       lead: "Human error:",
-      text: "is inadvertent—a typo, a misremembered procedure. The response is system improvement.",
+      text: "is inadvertent — a typo, a misremembered procedure. The response is system improvement.",
     },
     {
       lead: "At-risk behavior:",
-      text: "involves conscious shortcuts where the person doesn't fully appreciate the risk—skipping a checklist because \"it's always fine.\" The response is coaching and removing incentives for the shortcut.",
+      text: "involves conscious shortcuts where the person doesn't fully appreciate the risk — skipping a checklist because \"it's always fine.\" The response is coaching and removing incentives for the shortcut.",
     },
     {
       lead: "Reckless behavior:",
-      text: "is conscious disregard of a known substantial risk—genuinely rare in professional settings and the only category where punitive action may be appropriate.",
+      text: "is conscious disregard of a known substantial risk — genuinely rare in professional settings and the only category where punitive action may be appropriate.",
     },
   ]}
 />
@@ -132,7 +132,7 @@ You can't mandate blameless culture. If people have seen colleagues punished for
 
 ## Finding Contributing Factors, Not "Root Causes"
 
-The phrase "root cause" implies there's one cause at the bottom of the causal chain—find it, fix it, and the problem is solved. In complex systems, this is almost never true. Incidents arise from the confluence of multiple factors, none of which is _the_ cause. Remove any one of them, and the incident might not have happened—or might have happened differently.
+The phrase "root cause" implies there's one cause at the bottom of the causal chain — find it, fix it, and the problem is solved. In complex systems, this is almost never true. Incidents arise from the confluence of multiple factors, none of which is _the_ cause. Remove any one of them, and the incident might not have happened — or might have happened differently.
 
 <Diagram
   title="Multiple contributing factors, each representing a potential intervention point"
@@ -148,7 +148,7 @@ flowchart TD
 ```
 </Diagram>
 
-The Five Whys technique—keep asking "why" until you reach an actionable cause—is popular but easily misused. Here's what going wrong looks like:
+The Five Whys technique — keep asking "why" until you reach an actionable cause — is popular but easily misused. Here's what going wrong looks like:
 
 ```text title="five-whys-antipattern.txt"
 Q: Why did the system go down?
@@ -160,7 +160,7 @@ A: Because the engineer made a mistake.
 Q: Why did the engineer make a mistake?
 A: Because they were careless.
 
-[Investigation stops at blame—nothing actionable learned]
+[Investigation stops at blame — nothing actionable learned]
 ```
 Code: Five Whys antipattern that terminates at human blame.
 
@@ -186,7 +186,7 @@ A: Because documentation was outdated and there was no config inventory.
 ```
 Code: Five Whys done well, leading to systemic improvements.
 
-The difference is where you choose to stop. If you reach a human attribute—careless, rushed, didn't know—that's a signal you've taken a wrong turn. Human attributes aren't fixable. But every human attribute has a system context: Why was carelessness possible? What created the rush? Why wasn't the knowledge available?
+The difference is where you choose to stop. If you reach a human attribute — careless, rushed, didn't know — that's a signal you've taken a wrong turn. Human attributes aren't fixable. But every human attribute has a system context: Why was carelessness possible? What created the rush? Why wasn't the knowledge available?
 
 <Callout type="info">
 Five Whys works when each "why" leads to a system condition. It fails when it leads to human attributes. If you reach "they were careless," ask instead: "what about the system allowed carelessness to cause an incident?"
@@ -194,7 +194,7 @@ Five Whys works when each "why" leads to a system condition. It fails when it le
 
 ## Action Items That Actually Prevent Recurrence
 
-The analysis is only as valuable as the actions it produces. I've seen beautifully written postmortems with insightful contributing factor analysis—followed by vague action items like "improve monitoring" that never get done and wouldn't help much if they did.
+The analysis is only as valuable as the actions it produces. I've seen beautifully written postmortems with insightful contributing factor analysis — followed by vague action items like "improve monitoring" that never get done and wouldn't help much if they did.
 
 Good action items share specific characteristics:
 
@@ -244,7 +244,7 @@ Good action items share specific characteristics:
   ]}
 />
 
-The "bad" examples are common because they're easy to write. But "be more careful" changes nothing structural and relies on human vigilance—exactly what failed. "Engineer X needs training" is blame dressed up as remediation. "Review all configs" and "improve monitoring" lack the specificity needed to actually get done.
+The "bad" examples are common because they're easy to write. But "be more careful" changes nothing structural and relies on human vigilance — exactly what failed. "Engineer X needs training" is blame dressed up as remediation. "Review all configs" and "improve monitoring" lack the specificity needed to actually get done.
 
 Here's a useful test: if someone else picked up the action item, would they know exactly what to build or change? If the answer is no, refine it until they would.
 
@@ -254,7 +254,7 @@ An incident without completed action items is an incident that will recur. Track
 
 ## The Path Forward
 
-Blameless postmortems aren't soft—they're more rigorous than blame culture. They demand that we find _all_ the contributing factors, not just the most obvious one. They demand _real_ fixes, not just "be more careful." They demand measurement to verify fixes actually work.
+Blameless postmortems aren't soft — they're more rigorous than blame culture. They demand that we find _all_ the contributing factors, not just the most obvious one. They demand _real_ fixes, not just "be more careful." They demand measurement to verify fixes actually work.
 
 <Download
   resource="blameless-postmortem-incident-analysis-systemic-causes"

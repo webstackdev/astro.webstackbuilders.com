@@ -13,13 +13,13 @@ featured: true
 
 ## Introduction
 
-CI caching is one of those optimizations that looks straightforward until it isn't. The pitch is simple: cache dependencies and build artifacts so you don't re-download and re-compile the same code on every build. Teams routinely cut 45-minute builds down to 8 minutes. That's real productivity—more deploys per day, faster feedback loops, happier engineers.
+CI caching is one of those optimizations that looks straightforward until it isn't. The pitch is simple: cache dependencies and build artifacts so you don't re-download and re-compile the same code on every build. Teams routinely cut 45-minute builds down to 8 minutes. That's real productivity — more deploys per day, faster feedback loops, happier engineers.
 
 But here's what nobody mentions in the "speed up your CI" blog posts: incorrect caching produces builds that pass CI and fail in production.
 
 I've seen this pattern more than once. A team aggressively caches everything, build times plummet, everyone celebrates. Three weeks later, a security patch lands in a transitive dependency. The team runs `npm audit fix`, but they're caching `node_modules` with a key that only hashes `package-lock.json`. The lockfile didn't change (the patch was already in the allowed semver range), so the cache hits and the old, vulnerable version keeps getting restored. The vulnerability makes it to production. The rollback takes longer than all the time they saved.
 
-The core tension is this: caching is an optimization that trades correctness guarantees for speed. Every cache hit assumes that the cached artifact is _identical_ to what a fresh build would produce. When that assumption is wrong—and it's surprisingly easy to get wrong—you're shipping artifacts that don't match your source code.
+The core tension is this: caching is an optimization that trades correctness guarantees for speed. Every cache hit assumes that the cached artifact is __identical__ to what a fresh build would produce. When that assumption is wrong — and it's surprisingly easy to get wrong — you're shipping artifacts that don't match your source code.
 
 This article covers the fundamentals of CI caching (cache keys, restore keys, and correctness principles), dependency caching across language ecosystems, Docker layer caching and BuildKit features, the pitfalls that turn caching into a footgun, and how to measure whether your caching is actually working.
 
@@ -37,21 +37,41 @@ Before optimizing, it helps to know where the time actually goes. Here's a break
   variant="vertical-column-delineation-table"
   content={{
     figure: "CI pipeline phases with caching potential.",
-    thead: { th: ["Phase", "Typical Time", "Why It's Slow", "Caching Opportunity"] },
+    thead: {
+      th: ["Phase", "Typical Time", "Why It's Slow", "Caching Opportunity"],
+    },
     tbody: {
       tr: [
-        { th: "Checkout", td: ["1-5 min", "Large repos, shallow clone helps", "Git LFS cache"] },
-        { th: "Dependency install", td: ["2-15 min", "Network latency, extraction", "High"] },
-        { th: "Docker build", td: ["5-30 min", "Layer rebuilds, no cache", "Very high"] },
-        { th: "Compile", td: ["2-20 min", "Full rebuild every time", "High"] },
-        { th: "Test", td: ["5-60 min", "Sequential, no parallelization", "Medium (test splitting)"] },
-        { th: "Artifact upload", td: ["1-5 min", "Large files, slow storage", "Low"] },
+        {
+          th: "Checkout",
+          td: ["1-5 min", "Large repos, shallow clone helps", "Git LFS cache"],
+        },
+        {
+          th: "Dependency install",
+          td: ["2-15 min", "Network latency, extraction", "High"],
+        },
+        {
+          th: "Docker build",
+          td: ["5-30 min", "Layer rebuilds, no cache", "Very high"],
+        },
+        {
+          th: "Compile",
+          td: ["2-20 min", "Full rebuild every time", "High"],
+        },
+        {
+          th: "Test",
+          td: ["5-60 min", "Sequential, no parallelization", "Medium (test splitting)"],
+        },
+        {
+          th: "Artifact upload",
+          td: ["1-5 min", "Large files, slow storage", "Low"],
+        },
       ],
     },
   }}
 />
 
-The biggest wins come from dependency installation and Docker builds—these are both slow _and_ highly cacheable. A 45-minute build can realistically drop to 12 minutes with proper caching of just these two phases.
+The biggest wins come from dependency installation and Docker builds — these are both slow __and__ highly cacheable. A 45-minute build can realistically drop to 12 minutes with proper caching of just these two phases.
 
 ### Cache Keys: The Foundation
 
@@ -62,9 +82,18 @@ The art is in designing keys that change when (and only when) the cached content
 <List
   variant="check-icons-list"
   items={[
-    { lead: "A _static prefix_", text: "for namespacing and manual invalidation (e.g., `v1-deps-`)" },
-    { lead: "_Dynamic components_", text: "that capture everything affecting the cached content (e.g., lockfile hash)" },
-    { lead: "Optionally, a _version or OS component_", text: "for environment-specific caches (e.g., `runner.os`)" },
+    {
+      lead: "A static prefix",
+      text: "for namespacing and manual invalidation (e.g., `v1-deps-`)",
+    },
+    {
+      lead: "Dynamic components",
+      text: "that capture everything affecting the cached content (e.g., lockfile hash)",
+    },
+    {
+      lead: "Optionally, a version or OS component",
+      text: "for environment-specific caches (e.g., `runner.os`)",
+    },
   ]}
 />
 
@@ -72,7 +101,7 @@ Here's how GitHub Actions cache keys work in practice:
 
 ```yaml title=".github/workflows/build.yml"
 # GitHub Actions cache key example
-# The "v1-" prefix enables manual cache invalidation—bump to "v2-" to force
+# The "v1-" prefix enables manual cache invalidation  —  bump to "v2-" to force
 # all builds to miss, useful when cache contents become corrupted or stale.
 - uses: actions/cache@v4
   with:
@@ -84,10 +113,10 @@ Here's how GitHub Actions cache keys work in practice:
 ```
 Code: GitHub Actions cache key with lockfile hash and restore key fallbacks.
 
-The `hashFiles()` function computes a hash of the specified files—when `package-lock.json` changes, the hash changes, and you get a new cache key. The `restore-keys` provide fallbacks: if the exact key doesn't match, the CI system looks for keys starting with those prefixes (in order). For each prefix, it finds all cache entries that start with that string and returns the most recently created one. This means `v1-deps-Linux-` might match `v1-deps-Linux-abc123` from yesterday's build.
+The `hashFiles()` function computes a hash of the specified files — when `package-lock.json` changes, the hash changes, and you get a new cache key. The `restore-keys` provide fallbacks: if the exact key doesn't match, the CI system looks for keys starting with those prefixes (in order). For each prefix, it finds all cache entries that start with that string and returns the most recently created one. This means `v1-deps-Linux-` might match `v1-deps-Linux-abc123` from yesterday's build.
 
 <Callout type="info">
-Restore keys provide fallback options when the exact cache key doesn't match. They enable partial cache hits—using a slightly stale cache is usually faster than rebuilding from scratch.
+Restore keys provide fallback options when the exact cache key doesn't match. They enable partial cache hits — using a slightly stale cache is usually faster than rebuilding from scratch.
 </Callout>
 
 ### Cache Correctness Principles
@@ -97,9 +126,18 @@ Three principles determine whether a cache is safe to use:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "_Completeness_ means the cache key includes everything that affects the output.", text: "If your compiled artifact depends on the compiler version, the compiler version must be in the cache key. If it depends on source files, those file hashes must be in the key. Miss something, and you'll serve stale artifacts." },
-    { lead: "_Determinism_ means the same inputs always produce the same outputs.", text: "If your build embeds timestamps, downloads \"latest\" versions of tools, or has race conditions in parallel jobs, caching becomes unsafe—the cached artifact won't match what a fresh build would produce." },
-    { lead: "_Isolation_ means caches don't leak between unrelated builds.", text: "PR builds shouldn't pollute the main branch cache. Different workflows should have separate cache namespaces. Without isolation, one build's experimental changes can corrupt another build's cache." },
+    {
+      lead: "Completeness means the cache key includes everything that affects the output.",
+      text: "If your compiled artifact depends on the compiler version, the compiler version must be in the cache key. If it depends on source files, those file hashes must be in the key. Miss something, and you'll serve stale artifacts.",
+    },
+    {
+      lead: "Determinism means the same inputs always produce the same outputs.",
+      text: "If your build embeds timestamps, downloads \"latest\" versions of tools, or has race conditions in parallel jobs, caching becomes unsafe — the cached artifact won't match what a fresh build would produce.",
+    },
+    {
+      lead: "Isolation means caches don't leak between unrelated builds.",
+      text: "PR builds shouldn't pollute the main branch cache. Different workflows should have separate cache namespaces. Without isolation, one build's experimental changes can corrupt another build's cache.",
+    },
   ]}
 />
 
@@ -107,12 +145,23 @@ Three principles determine whether a cache is safe to use:
   variant="vertical-column-delineation-table"
   content={{
     figure: "Cache correctness principles and common violations.",
-    thead: { th: ["Principle", "Rule", "Common Violation"] },
+    thead: {
+      th: ["Principle", "Rule", "Common Violation"],
+    },
     tbody: {
       tr: [
-        { th: "Completeness", td: ["Key includes all inputs", "Forgetting compiler version in key"] },
-        { th: "Determinism", td: ["Same inputs → same outputs", "Build embeds current timestamp"] },
-        { th: "Isolation", td: ["Caches don't leak across builds", "PR pollutes main branch cache"] },
+        {
+          th: "Completeness",
+          td: ["Key includes all inputs", "Forgetting compiler version in key"],
+        },
+        {
+          th: "Determinism",
+          td: ["Same inputs → same outputs", "Build embeds current timestamp"],
+        },
+        {
+          th: "Isolation",
+          td: ["Caches don't leak across builds", "PR pollutes main branch cache"],
+        },
       ],
     },
   }}
@@ -120,13 +169,13 @@ Three principles determine whether a cache is safe to use:
 
 ## Dependency Caching
 
-Dependency caching is usually the first optimization teams implement, and for good reason—it's high impact and relatively low risk. The pattern is the same across ecosystems: cache the package manager's download cache or installed packages, keyed on the lockfile hash.
+Dependency caching is usually the first optimization teams implement, and for good reason — it's high impact and relatively low risk. The pattern is the same across ecosystems: cache the package manager's download cache or installed packages, keyed on the lockfile hash.
 
 ### Node.js / npm / yarn / pnpm
 
 The JavaScript ecosystem offers several caching strategies. The simplest is using the built-in caching in `actions/setup-node`.
 
-_Note: The following YAML snippets are step excerpts—they belong inside a `jobs.<job_id>.steps:` block in a complete workflow file._
+__Note: The following YAML snippets are step excerpts — they belong inside a `jobs.<job_id>.steps:` block in a complete workflow file.__
 
 ```yaml title=".github/workflows/build.yml"
 # GitHub Actions - npm with built-in caching
@@ -143,7 +192,7 @@ Code: GitHub Actions npm caching using built-in setup-node cache.
 
 This caches npm's download cache (`~/.npm`), not `node_modules`. On a cache hit, `npm ci` still runs but skips network requests for packages already in the cache. For most projects, this is sufficient and requires minimal configuration.
 
-For more control—or if you want to skip `npm ci` entirely on cache hits—you can cache `node_modules` directly:
+For more control — or if you want to skip `npm ci` entirely on cache hits — you can cache `node_modules` directly:
 
 ```yaml title=".github/workflows/build.yml"
 # GitHub Actions - cache node_modules directly
@@ -192,7 +241,7 @@ For pnpm, cache the content-addressable store rather than `node_modules`. pnpm h
 Code: pnpm store caching for near-instant installs.
 
 <Callout type="success">
-pnpm's content-addressable store makes it particularly cache-friendly. Cache the store directory, not node_modules—pnpm will hardlink from the store instantly.
+pnpm's content-addressable store makes it particularly cache-friendly. Cache the store directory, not `node_modules` — pnpm will hardlink from the store instantly.
 </Callout>
 
 ### Python / pip / Poetry
@@ -249,7 +298,7 @@ Ruby's Bundler has a straightforward caching pattern. The `setup-ruby` action in
 ```
 Code: Ruby setup with automatic Bundler caching.
 
-The `bundler-cache: true` option handles everything—it caches the gem installation directory and keys on `Gemfile.lock`. For most Ruby projects, this single option is sufficient.
+The `bundler-cache: true` option handles everything — it caches the gem installation directory and keys on `Gemfile.lock`. For most Ruby projects, this single option is sufficient.
 
 If you need more control (for example, to cache additional directories or use a custom key), you can configure caching manually:
 
@@ -309,13 +358,13 @@ Rust's `target/` directory can grow very large. Consider using `sccache` for dis
 
 ## Docker Layer Caching
 
-Docker layer caching is both the biggest opportunity and the most common source of confusion in CI caching. Understanding how it works—and how it breaks—is essential for fast, correct builds.
+Docker layer caching is both the biggest opportunity and the most common source of confusion in CI caching. Understanding how it works — and how it breaks — is essential for fast, correct builds.
 
 ### How Docker Layer Caching Works
 
-Docker builds images as a stack of layers. Build instructions like FROM, COPY, and RUN each create a new layer. (Metadata instructions like ENV and LABEL modify the image configuration but don't create layers in the same way.) When you rebuild, Docker checks each layer in order: if the instruction and all its inputs are identical to a previous build, Docker reuses the cached layer. If anything differs, Docker rebuilds that layer _and every layer after it_.
+Docker builds images as a stack of layers. Build instructions like FROM, COPY, and RUN each create a new layer. (Metadata instructions like ENV and LABEL modify the image configuration but don't create layers in the same way.) When you rebuild, Docker checks each layer in order: if the instruction and all its inputs are identical to a previous build, Docker reuses the cached layer. If anything differs, Docker rebuilds that layer __and every layer after it__.
 
-That last part is critical. Layer caching is sequential—once a layer is invalidated, everything downstream rebuilds. This creates a domino effect that determines whether your build takes 30 seconds or 10 minutes.
+That last part is critical. Layer caching is sequential — once a layer is invalidated, everything downstream rebuilds. This creates a domino effect that determines whether your build takes 30 seconds or 10 minutes.
 
 Here's a common mistake:
 
@@ -329,7 +378,7 @@ RUN npm run build
 ```
 Code: Inefficient Dockerfile that invalidates dependency cache on any source change.
 
-The problem is `COPY . .` before `npm ci`. Every time any file changes—even a README edit—the COPY layer is invalidated, which invalidates npm ci, which means re-downloading all dependencies. On a project with hundreds of dependencies, that's 5+ minutes wasted.
+The problem is `COPY . .` before `npm ci`. Every time any file changes — even a README edit — the COPY layer is invalidated, which invalidates npm ci, which means re-downloading all dependencies. On a project with hundreds of dependencies, that's 5+ minutes wasted.
 
 The fix is layer ordering: copy dependency files first, install dependencies, then copy source:
 
@@ -383,7 +432,7 @@ CMD ["node", "dist/index.js"]
 ```
 Code: Multi-stage Dockerfile optimized for layer caching.
 
-The `deps` stage is highly cacheable—it only changes when dependencies change. The `builder` stage rebuilds on source changes but starts from cached dependencies. The `runner` stage produces a minimal production image without build tools or dev dependencies.
+The `deps` stage is highly cacheable — it only changes when dependencies change. The `builder` stage rebuilds on source changes but starts from cached dependencies. The `runner` stage produces a minimal production image without build tools or dev dependencies.
 
 <Callout type="info">
 BuildKit is Docker's modern build engine, which became the default builder in Docker Engine 23.0 (February 2023). CI environments typically use Docker Engine rather than Docker Desktop, so that's the relevant version for most readers. BuildKit replaced the legacy "classic" builder and offers significant improvements: parallel build stages, better caching, cache mounts, and secret handling. If you're running Docker 23.0 or later, you're already using BuildKit.
@@ -417,7 +466,7 @@ RUN --mount=type=cache,target=/app/.next/cache \
 ```
 Code: BuildKit cache mounts for persistent caching across builds.
 
-The `--mount=type=cache` directive creates a cache directory that persists across builds. Even when the layer is invalidated (because package-lock.json changed), the npm download cache is still there—npm only downloads packages that aren't already cached.
+The `--mount=type=cache` directive creates a cache directory that persists across builds. Even when the layer is invalidated (because package-lock.json changed), the npm download cache is still there — npm only downloads packages that aren't already cached.
 
 This is particularly valuable for large dependency trees or slow package registries. The cache mount pattern works for any package manager: pip, cargo, go mod, and others.
 
@@ -468,7 +517,7 @@ Registry caching works anywhere (not just GitHub Actions) but adds network laten
 
 ## Common Caching Pitfalls
 
-Caching bugs are particularly nasty because they're often invisible — builds pass, tests pass, but the artifacts are wrong. Here are the four patterns I see most often.
+Caching bugs are particularly nasty because they're often invisible  —  builds pass, tests pass, but the artifacts are wrong. Here are the four patterns I see most often.
 
 ### Pitfall 1: Over-Caching (Key Too Broad)
 
@@ -511,7 +560,7 @@ Code: Under-caching where the key changes on every build.
 
 Every build is a cache miss. You've added caching overhead (checking for cache, uploading cache) without any benefit.
 
-The key insight: cache keys should change when the _cached content_ should change, not when the _build_ changes. For dependencies, that's the lockfile. For compiled artifacts, that's the source files.
+The key insight: cache keys should change when the __cached content__ should change, not when the __build__ changes. For dependencies, that's the lockfile. For compiled artifacts, that's the source files.
 
 ### Pitfall 3: Cache Pollution
 
@@ -526,7 +575,7 @@ Cache pollution happens when one build writes incorrect content to a cache that 
 ```
 Code: Shared cache that allows branch pollution.
 
-Here's the scenario: a PR modifies a postinstall script that changes what ends up in `node_modules`, but the lockfile hash stays the same. The build runs and writes the modified `node_modules` to the cache. Now every build with that lockfile hash—including main branch builds—restores the PR's experimental changes. Alternatively, a PR uses a restore key fallback that matches a stale cache from an abandoned branch, pulling in outdated or broken dependencies.
+Here's the scenario: a PR modifies a postinstall script that changes what ends up in `node_modules`, but the lockfile hash stays the same. The build runs and writes the modified `node_modules` to the cache. Now every build with that lockfile hash — including main branch builds — restores the PR's experimental changes. Alternatively, a PR uses a restore key fallback that matches a stale cache from an abandoned branch, pulling in outdated or broken dependencies.
 
 The fix is branch isolation with restore key fallbacks:
 
@@ -545,7 +594,7 @@ Code: Branch-isolated cache with restore keys for efficiency.
 Now each branch writes to its own cache namespace, but PRs can still restore from the main branch cache for efficiency. Main branch builds never read from PR caches.
 
 <Callout type="danger">
-Cache pollution is insidious—builds pass but artifacts are incorrect. Always consider whether PR/branch caches should be isolated from the main branch cache.
+Cache pollution is insidious — builds pass but artifacts are incorrect. Always consider whether PR/branch caches should be isolated from the main branch cache.
 </Callout>
 
 ### Pitfall 4: Non-Deterministic Builds
@@ -557,13 +606,24 @@ Common sources of non-determinism:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "_Floating versions_", text: "Using `npm install` instead of `npm ci` allows the package manager to resolve different versions on different runs, even with the same lockfile." },
-    { lead: "_Timestamps_", text: "If your build embeds the current timestamp in artifacts, a cached artifact won't match a fresh build. Use `SOURCE_DATE_EPOCH` for reproducible builds." },
-    { lead: "_Parallel race conditions_", text: "If multiple jobs write to the same cache simultaneously, you get undefined behavior. Use job-specific keys or configure jobs to only read from the cache." },
-    { lead: "_Network fetches_", text: "If your build downloads \"latest\" versions of tools or resources, different builds get different versions. Pin versions and cache the downloads." },
+    {
+      lead: "Floating versions",
+      text: "Using `npm install` instead of `npm ci` allows the package manager to resolve different versions on different runs, even with the same lockfile.",
+    },
+    {
+      lead: "Timestamps",
+      text: "If your build embeds the current timestamp in artifacts, a cached artifact won't match a fresh build. Use `SOURCE_DATE_EPOCH` for reproducible builds.",
+    },
+    {
+      lead: "Parallel race conditions",
+      text: "If multiple jobs write to the same cache simultaneously, you get undefined behavior. Use job-specific keys or configure jobs to only read from the cache.",
+    },
+    {
+      lead: "Network fetches",
+      text: "If your build downloads \"latest\" versions of tools or resources, different builds get different versions. Pin versions and cache the downloads.",
+    },
   ]}
 />
-
 
 The test for non-determinism: run the same build twice with a clean cache. If the outputs differ (beyond timestamps you can't control), you have a non-determinism bug that will eventually cause caching problems.
 
@@ -573,7 +633,7 @@ Once you have basic caching working, these patterns can push build times even lo
 
 ### Cache Warming
 
-The first build of the day is always slow—caches have often expired or been evicted overnight. Cache warming runs a scheduled job that pre-populates caches before engineers start working.
+The first build of the day is always slow — caches have often expired or been evicted overnight. Cache warming runs a scheduled job that pre-populates caches before engineers start working.
 
 ```yaml title=".github/workflows/cache-warming.yml"
 name: Cache Warming
@@ -672,7 +732,7 @@ Next.js, Webpack, and TypeScript all support incremental builds. Caching their i
 
 ## Measuring Cache Effectiveness
 
-You can't improve what you don't measure. Caching without metrics is guesswork—you won't know if your caches are actually helping or if they've silently broken.
+You can't improve what you don't measure. Caching without metrics is guesswork — you won't know if your caches are actually helping or if they've silently broken.
 
 ### Key Metrics
 
@@ -685,19 +745,30 @@ Four metrics tell you whether caching is working:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Cache hit ratio", text: "Is the percentage of builds that found a usable cache. Calculate it as `cache_hits / (cache_hits + cache_misses)`. A healthy ratio is above 80%. Below 50% for more than a day means something is wrong with your cache key design." },
-    { lead: "Time saved", text: "Is the cumulative time you didn't spend rebuilding. Track this per workflow and per job to identify which caches are most valuable. If a cache saves 30 seconds but adds 45 seconds of overhead (downloading, extracting, uploading), it's not worth it." },
-    { lead: "Cache size", text: "Matters because storage isn't free, and most platforms have limits. GitHub Actions has a 10GB limit per repository, shared across all workflows. Track current size and growth rate, and alert before you hit limits." },
-    { lead: "Build time percentiles", text: "(p50, p95) tell you what engineers actually experience. Compare cached builds to uncached builds to quantify the improvement. If your p95 build time is still 20 minutes, caching isn't solving the right problem." },
+    {
+      lead: "Cache hit ratio",
+      text: "Is the percentage of builds that found a usable cache. Calculate it as `cache_hits / (cache_hits + cache_misses)`. A healthy ratio is above 80%. Below 50% for more than a day means something is wrong with your cache key design.",
+    },
+    {
+      lead: "Time saved",
+      text: "Is the cumulative time you didn't spend rebuilding. Track this per workflow and per job to identify which caches are most valuable. If a cache saves 30 seconds but adds 45 seconds of overhead (downloading, extracting, uploading), it's not worth it.",
+    },
+    {
+      lead: "Cache size",
+      text: "Matters because storage isn't free, and most platforms have limits. GitHub Actions has a 10GB limit per repository, shared across all workflows. Track current size and growth rate, and alert before you hit limits.",
+    },
+    {
+      lead: "Build time percentiles",
+      text: "(p50, p95) tell you what engineers actually experience. Compare cached builds to uncached builds to quantify the improvement. If your p95 build time is still 20 minutes, caching isn't solving the right problem.",
+    },
   ]}
 />
-
 
 ### Debugging Cache Misses
 
 When cache hit ratio drops, you need to diagnose why. Here's the debugging workflow:
 
-**Step 1: Check the cache key.** Add a step to print the computed cache key:
+__Step 1: Check the cache key.__ Add a step to print the computed cache key:
 
 ```yaml title=".github/workflows/build.yml"
 - name: Debug cache key
@@ -707,7 +778,7 @@ When cache hit ratio drops, you need to diagnose why. Here's the debugging workf
 ```
 Code: Debug step to inspect computed cache keys.
 
-**Step 2: Check cache-hit output.** The `actions/cache` action outputs whether the cache was found:
+__Step 2: Check cache-hit output.__ The `actions/cache` action outputs whether the cache was found:
 
 ```yaml title=".github/workflows/build.yml"
 - uses: actions/cache@v4
@@ -721,7 +792,7 @@ Code: Debug step to inspect computed cache keys.
 ```
 Code: Checking cache hit status in workflow logs.
 
-**Step 3: Inspect cache storage.** Use the GitHub CLI to see what caches exist and when they were last used:
+__Step 3: Inspect cache storage.__ Use the GitHub CLI to see what caches exist and when they were last used:
 
 ```bash title="cache-analysis.sh"
 #!/bin/bash
@@ -736,14 +807,23 @@ Common causes of unexpected misses:
 <List
   variant="check-icons-list"
   items={[
-    { text: "Lockfile changed (intended behavior, but verify the change was intentional)" },
-    { text: "Cache key includes something volatile (like a timestamp or random value)" },
-    { text: "Cache was evicted due to size limits or inactivity" },
-    { text: "Restore keys aren't matching due to prefix mismatch" },
-    { text: "Different runner OS or architecture than the cached build" },
+    {
+      text: "Lockfile changed (intended behavior, but verify the change was intentional)",
+    },
+    {
+      text: "Cache key includes something volatile (like a timestamp or random value)",
+    },
+    {
+      text: "Cache was evicted due to size limits or inactivity",
+    },
+    {
+      text: "Restore keys aren't matching due to prefix mismatch",
+    },
+    {
+      text: "Different runner OS or architecture than the cached build",
+    },
   ]}
 />
-
 
 ## Platform-Specific Guides
 
@@ -819,7 +899,7 @@ The `type=gha` cache backend stores layer cache in the same storage as `actions/
 
 GitLab CI uses a different caching model. Caches are stored either on the runner (for shell and Docker executors) or in object storage (for Kubernetes executors). Cache scope defaults to project and branch, but you can configure it.
 
-The key difference from GitHub Actions: GitLab separates _caches_ (for reuse across pipelines) from _artifacts_ (for passing data between jobs in the same pipeline). Understanding this distinction is critical.
+The key difference from GitHub Actions: GitLab separates __caches__ (for reuse across pipelines) from __artifacts__ (for passing data between jobs in the same pipeline). Understanding this distinction is critical.
 
 ```yaml title=".gitlab-ci.yml"
 stages:
@@ -845,7 +925,7 @@ GitLab supports YAML anchors for cache configuration reuse:
   policy: pull
 ```
 
-The leading dot in `.node_cache` makes this a "hidden job" in GitLab—it won't execute on its own but serves as a reusable template. The `&node_cache` creates a YAML anchor that other jobs can reference with `<<: *node_cache`. The `files` key syntax hashes the specified files automatically. The `policy: pull` means this job only reads the cache; it doesn't write. This prevents cache corruption from parallel jobs.
+The leading dot in `.node_cache` makes this a "hidden job" in GitLab — it won't execute on its own but serves as a reusable template. The `&node_cache` creates a YAML anchor that other jobs can reference with `<<: *node_cache`. The `files` key syntax hashes the specified files automatically. The `policy: pull` means this job only reads the cache; it doesn't write. This prevents cache corruption from parallel jobs.
 
 ```yaml title=".gitlab-ci.yml"
 install:
@@ -890,7 +970,7 @@ test:
 The `dependencies` key tells GitLab to download artifacts from the install job. Combined with the npm cache, downstream jobs have everything they need without re-running `npm ci`.
 
 <Callout type="info">
-**GitLab cache gotcha**: If you're using Kubernetes executors with distributed runners, cache uploads and downloads add latency. For small caches, the transfer time can exceed the time saved. Profile your specific workload to find the break-even point; for npm caches under 50MB, local `npm ci` is often faster than cache restore.
+__GitLab cache gotcha__: If you're using Kubernetes executors with distributed runners, cache uploads and downloads add latency. For small caches, the transfer time can exceed the time saved. Profile your specific workload to find the break-even point; for npm caches under 50MB, local `npm ci` is often faster than cache restore.
 </Callout>
 
 ## Conclusion
@@ -900,14 +980,25 @@ CI caching is deceptively simple on the surface: save files, restore files, skip
 <List
   variant="check-icons-list"
   items={[
-    { lead: "_Cache keys must capture everything that affects build output._", text: "If your key doesn't include all the inputs, you'll restore stale artifacts. If your key includes too much, you'll never hit the cache. The sweet spot is a key that changes exactly when the cached content should change." },
-    { lead: "_Correctness comes before speed._", text: "A cache that serves wrong artifacts is worse than no cache. When debugging mysterious failures, always test with a clean cache first. If the problem disappears, your cache key is incomplete." },
-    { lead: "_Measure continuously._", text: "Cache hit ratio tells you whether caching is working. A 50% hit ratio means half your builds are paying full price. Investigate misses systematically: is the key too specific? Is something non-deterministic? Are caches being evicted?" },
-    { lead: "_Layer ordering matters for Docker._", text: "Put stable content early in your Dockerfile, volatile content late. A single misplaced `COPY . .` can invalidate the entire layer cache on every commit." },
+    {
+      lead: "Cache keys must capture everything that affects build output.",
+      text: "If your key doesn't include all the inputs, you'll restore stale artifacts. If your key includes too much, you'll never hit the cache. The sweet spot is a key that changes exactly when the cached content should change.",
+    },
+    {
+      lead: "Correctness comes before speed.",
+      text: "A cache that serves wrong artifacts is worse than no cache. When debugging mysterious failures, always test with a clean cache first. If the problem disappears, your cache key is incomplete.",
+    },
+    {
+      lead: "Measure continuously.",
+      text: "Cache hit ratio tells you whether caching is working. A 50% hit ratio means half your builds are paying full price. Investigate misses systematically: is the key too specific? Is something non-deterministic? Are caches being evicted?",
+    },
+    {
+      lead: "Layer ordering matters for Docker.",
+      text: "Put stable content early in your Dockerfile, volatile content late. A single misplaced `COPY . .` can invalidate the entire layer cache on every commit.",
+    },
   ]}
 />
 
-
 The patterns in this article can reduce build times by 70-90%. But the improvement isn't automatic. You need to design your cache keys deliberately, monitor hit ratios continuously, and debug misses when they occur. Fast builds that produce correct artifacts are the goal. Get there systematically.
 
-Once you've optimized caching, the next bottlenecks are usually test execution time (addressed through parallelization and test splitting) and monorepo builds (which benefit from affected-file detection and incremental builds). Caching is the foundation—get it right first, then layer on these more advanced optimizations.
+Once you've optimized caching, the next bottlenecks are usually test execution time (addressed through parallelization and test splitting) and monorepo builds (which benefit from affected-file detection and incremental builds). Caching is the foundation — get it right first, then layer on these more advanced optimizations.

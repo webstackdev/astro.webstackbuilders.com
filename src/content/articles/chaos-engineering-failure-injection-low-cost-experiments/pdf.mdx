@@ -9,59 +9,80 @@ tags: ["reliability-and-testing", "kubernetes", "python", "go"]
 featured: true
 ---
 
-*[SRE]: Site Reliability Engineering
-*[MTTR]: Mean Time To Recovery
-*[RTO]: Recovery Time Objective
-*[RPO]: Recovery Point Objective
 *[AZ]: Availability Zone
-*[SLO]: Service Level Objective
+*[MTTR]: Mean Time To Recovery
 *[PDU]: Power Distribution Unit
+*[RPO]: Recovery Point Objective
+*[RTO]: Recovery Time Objective
+*[SLO]: Service Level Objective
+*[SRE]: Site Reliability Engineering
 
 ## Introduction
 
-I once watched a team spend four months evaluating enterprise chaos platforms. They built elaborate ROI presentations, negotiated enterprise licenses, and planned a sophisticated experiment program. Two weeks before their first scheduled experiment, a routine power test at the data center knocked out a PDU—and revealed that three services had hard dependencies on a fourth service that failed to restart automatically. The outage lasted six hours.
+I once watched a team spend four months evaluating enterprise chaos platforms. They built elaborate ROI presentations, negotiated enterprise licenses, and planned a sophisticated experiment program. Two weeks before their first scheduled experiment, a routine power test at the data center knocked out a PDU — and revealed that three services had hard dependencies on a fourth service that failed to restart automatically. The outage lasted six hours.
 
 A fifteen-minute experiment killing a single pod would have found that bug.
 
 Chaos engineering doesn't require expensive platforms or dedicated teams. The core practice is simply "break things on purpose to learn how they fail." That's it. You can run meaningful experiments today with nothing more than `kubectl delete pod` and a hypothesis about what should happen when you press enter.
 
-What separates chaos engineering from just breaking things is the _learning_. You form a hypothesis, run a controlled experiment, observe what actually happens, and then—critically—you fix what you find. The value comes from the insights and the fixes, not from sophisticated tooling. A team running monthly experiments with kubectl will learn more than a team that spends a year evaluating platforms.
+What separates chaos engineering from just breaking things is the __learning__. You form a hypothesis, run a controlled experiment, observe what actually happens, and then — critically — you fix what you find. The value comes from the insights and the fixes, not from sophisticated tooling. A team running monthly experiments with kubectl will learn more than a team that spends a year evaluating platforms.
 
 This guide covers the full spectrum: from your first pod-kill experiment to building a sustainable chaos practice with game days and automation. I'll walk through four concrete experiments you can run this week, compare the free tools available (tc, toxiproxy, Chaos Toolkit, and LitmusChaos), and give you templates for safe experiment execution. By the end, you'll have everything you need to build a chaos engineering program without enterprise platform costs.
 
 <Callout type="info">
-Chaos engineering is not about expensive tools—it's about deliberately introducing failures to discover weaknesses before they cause outages. You can start today with nothing more than `kubectl delete pod`.
+Chaos engineering is not about expensive tools — it's about deliberately introducing failures to discover weaknesses before they cause outages. You can start today with nothing more than `kubectl delete pod`.
 </Callout>
 
 ## The Principles of Chaos Engineering
 
 ### What Chaos Engineering Is (and Is Not)
 
-The term "chaos engineering" sounds destructive, which leads to a common misconception: that it's about randomly breaking things to see what happens. That's not chaos engineering—that's just chaos.
+The term "chaos engineering" sounds destructive, which leads to a common misconception: that it's about randomly breaking things to see what happens. That's not chaos engineering — that's just chaos.
 
-Real chaos engineering follows the scientific method. You form a hypothesis about how your system should behave under specific failure conditions, design a controlled experiment to test that hypothesis, and observe whether reality matches your expectations. The goal isn't to cause outages; it's to build confidence that your system handles failures gracefully—or to learn exactly how it doesn't.
+Real chaos engineering follows the scientific method. You form a hypothesis about how your system should behave under specific failure conditions, design a controlled experiment to test that hypothesis, and observe whether reality matches your expectations. The goal isn't to cause outages; it's to build confidence that your system handles failures gracefully — or to learn exactly how it doesn't.
 
 <Table
   variant="vertical-column-delineation-table"
   content={{
     figure: "The distinction that separates real chaos engineering from breaking things randomly.",
-    thead: { th: ["Chaos Engineering IS", "Chaos Engineering IS NOT"] },
+    thead: {
+      th: ["Chaos Engineering IS", "Chaos Engineering IS NOT"],
+    },
     tbody: {
       tr: [
-        { th: "Hypothesis-driven experimentation", td: ["Random destruction"] },
-        { th: "Controlled failure injection", td: ["Breaking things for fun"] },
-        { th: "Learning about system behavior", td: ["Proving you can cause outages"] },
-        { th: "Building confidence", td: ["Testing in production blindly"] },
-        { th: "Proactive resilience work", td: ["Reactive incident response"] },
+        {
+          th: "Hypothesis-driven experimentation",
+          td: ["Random destruction"],
+        },
+        {
+          th: "Controlled failure injection",
+          td: ["Breaking things for fun"],
+        },
+        {
+          th: "Learning about system behavior",
+          td: ["Proving you can cause outages"],
+        },
+        {
+          th: "Building confidence",
+          td: ["Testing in production blindly"],
+        },
+        {
+          th: "Proactive resilience work",
+          td: ["Reactive incident response"],
+        },
       ],
     },
   }}
 />
 
-The scientific cycle looks like this: form a hypothesis about expected behavior, define what "steady state" looks like in your metrics, plan the experiment with clear scope and abort conditions, contain the blast radius so you don't turn an experiment into an incident, run the experiment, observe what actually happens, and then learn and improve based on the results. That last step—actually fixing what you find—is where most teams fall short.
+The scientific cycle looks like this: form a hypothesis about expected behavior, define what "steady state" looks like in your metrics, plan the experiment with clear scope and abort conditions, contain the blast radius so you don't turn an experiment into an incident, run the experiment, observe what actually happens, and then learn and improve based on the results. That last step — actually fixing what you find — is where most teams fall short.
 
+<Diagram
+  title="The scientific cycle of chaos engineering"
+  description="Flowchart showing the chaos engineering loop: form a hypothesis, define steady state, plan the experiment, contain blast radius, run the experiment, observe behavior, and learn and improve before repeating the cycle."
+>
 ```mermaid
-graph TD
+flowchart TD
     A[Chaos Engineering Cycle] --> B[1. Form Hypothesis]
     B --> C[2. Define Steady State]
     C --> D[3. Plan Experiment]
@@ -71,12 +92,11 @@ graph TD
     G --> H[7. Learn & Improve]
     H --> B
 ```
-
-Figure: The scientific cycle of chaos engineering._
+</Diagram>
 
 ### The Hypothesis-First Approach
 
-Without a hypothesis, you're just breaking things. If you kill a pod and the service degrades, what did you learn? Was that expected? Was it acceptable? Without a clear statement of what _should_ happen, you can't answer those questions. You can't distinguish expected behavior from bugs, and you won't know if your system got better or worse.
+Without a hypothesis, you're just breaking things. If you kill a pod and the service degrades, what did you learn? Was that expected? Was it acceptable? Without a clear statement of what __should__ happen, you can't answer those questions. You can't distinguish expected behavior from bugs, and you won't know if your system got better or worse.
 
 A good hypothesis has three components: a specific action you'll take, the expected system response, and measurable success criteria. "Let's see what happens when we kill the database" is not a hypothesis. "When the primary database becomes unavailable during normal load, the application will failover to the replica within 30 seconds and users will experience at most 5 seconds of errors" is a hypothesis.
 
@@ -120,14 +140,18 @@ Without a hypothesis, you're just breaking things. The hypothesis transforms des
 
 Chaos engineering is a practice you grow into, not a switch you flip. Teams that try to start with sophisticated automated chaos in production usually end up causing incidents that set back their chaos program by months. The better path is progressive maturity.
 
-Start in non-production environments. Your first experiments should be in staging or a dedicated chaos environment where the blast radius is contained by design. Kill pods, inject latency, block network traffic—but do it where customer impact is impossible. The goal at this stage is learning the tooling and building confidence in your experiment design.
+Start in non-production environments. Your first experiments should be in staging or a dedicated chaos environment where the blast radius is contained by design. Kill pods, inject latency, block network traffic — but do it where customer impact is impossible. The goal at this stage is learning the tooling and building confidence in your experiment design.
 
-Once you're comfortable with the mechanics, move to production during low-risk windows. Run your pod-kill experiments at 3 AM on a Sunday when traffic is minimal. This validates that your resilience mechanisms work in the real environment without risking peak traffic. You'll often find that production behaves differently than staging—different traffic patterns, different data volumes, different failure modes.
+Once you're comfortable with the mechanics, move to production during low-risk windows. Run your pod-kill experiments at 3 AM on a Sunday when traffic is minimal. This validates that your resilience mechanisms work in the real environment without risking peak traffic. You'll often find that production behaves differently than staging — different traffic patterns, different data volumes, different failure modes.
 
 From there, you can progress to experiments during business hours with real traffic, and eventually to automated chaos that runs continuously. But that progression takes months or years, not weeks. Each level builds on the confidence earned at the previous level.
 
+<Diagram
+  title="Progressive chaos engineering maturity levels"
+  description="Flowchart showing four maturity levels progressing from non-production experiments to low-risk production experiments, production experiments with live traffic, and finally automated chaos, with each level annotated by the kind of learning it enables."
+>
 ```mermaid
-graph LR
+flowchart LR
     A[Level 1<br/>Non-production] --> B[Level 2<br/>Production low-risk]
     B --> C[Level 3<br/>Production with traffic]
     C --> D[Level 4<br/>Automated chaos]
@@ -137,8 +161,7 @@ graph LR
     C -.->|Inject latency during business hours| C1[Real-world learning]
     D -.->|Continuous chaos| D1[Sustained resilience]
 ```
-
-Figure: Progressive chaos engineering maturity levels._
+</Diagram>
 
 ## Low-Cost Chaos Tools
 
@@ -165,9 +188,9 @@ kubectl drain node-1 --ignore-daemonsets --delete-emptydir-data
 kubectl cordon node-1
 ```
 
-Code: Basic kubectl commands for chaos experiments._
+Code: Basic kubectl commands for chaos experiments.
 
-For network chaos, Kubernetes NetworkPolicies let you simulate partitions without any additional tooling. You can block egress to specific services, simulating what happens when your cache or database becomes unreachable. The key is remembering to delete the policy when you're done—I recommend setting a timer.
+For network chaos, Kubernetes NetworkPolicies let you simulate partitions without any additional tooling. You can block egress to specific services, simulating what happens when your cache or database becomes unreachable. The key is remembering to delete the policy when you're done — I recommend setting a timer.
 
 ```bash title="kubectl-network-partition.sh"
 #!/bin/bash
@@ -194,13 +217,13 @@ sleep 60
 kubectl delete networkpolicy chaos-block-egress
 ```
 
-Code: Network partition using Kubernetes NetworkPolicies._
+Code: Network partition using Kubernetes NetworkPolicies.
 
 The limitation of kubectl-based chaos is that it's manual and unstructured. There's no built-in hypothesis validation, no automatic abort conditions, and no experiment history. That's fine for getting started, but as your practice matures, you'll want more structure.
 
 ### tc and toxiproxy for Latency Injection
 
-Killing pods tests crash recovery, but most production incidents aren't clean crashes—they're slowdowns. A database that responds in 30 seconds instead of 30 milliseconds is technically "up," but it might as well be down. Latency injection reveals whether your timeouts, circuit breakers, and connection pools are configured correctly.
+Killing pods tests crash recovery, but most production incidents aren't clean crashes — they're slowdowns. A database that responds in 30 seconds instead of 30 milliseconds is technically "up," but it might as well be down. Latency injection reveals whether your timeouts, circuit breakers, and connection pools are configured correctly.
 
 The `tc` (traffic control) command is built into Linux and can add latency, packet loss, and bandwidth constraints to any network interface. The catch is that it operates at the node or container level, so you need to exec into the container or run it on the node itself.
 
@@ -218,7 +241,7 @@ tc qdisc add dev eth0 root netem loss 5%
 tc qdisc del dev eth0 root
 ```
 
-Code: Traffic control commands for latency and packet loss injection._
+Code: Traffic control commands for latency and packet loss injection.
 
 For more surgical latency injection, toxiproxy is the better choice. It's a programmable proxy that sits between your application and its dependencies, letting you inject failures via API calls. You deploy toxiproxy as a sidecar or separate service, point your application at it instead of the real dependency, and then control failures through the toxiproxy API.
 
@@ -243,7 +266,7 @@ For more surgical latency injection, toxiproxy is the better choice. It's a prog
 }
 ```
 
-Code: Toxiproxy configuration for database and cache proxying._
+Code: Toxiproxy configuration for database and cache proxying.
 
 Once toxiproxy is running, you inject failures by adding "toxics" via the API. This can be scripted into your experiment runbooks.
 
@@ -260,15 +283,15 @@ sleep 300
 curl -X DELETE http://toxiproxy:8474/proxies/database/toxics/latency
 ```
 
-Code: Injecting and removing latency via toxiproxy API._
+Code: Injecting and removing latency via toxiproxy API.
 
 ### Chaos Toolkit (Open Source)
 
 When you're ready to move beyond ad-hoc experiments, Chaos Toolkit provides structure without cost. It's an open-source framework that formalizes the scientific method: you define a hypothesis with steady-state conditions, specify the experimental actions, and Chaos Toolkit validates the hypothesis before, during, and after the experiment.
 
-The key benefit is repeatability. Instead of a bash script that might work differently each time someone runs it, you get a declarative experiment definition that anyone on the team can execute consistently. Chaos Toolkit also handles the steady-state verification automatically—it checks your hypothesis before injecting chaos and again after recovery.
+The key benefit is repeatability. Instead of a bash script that might work differently each time someone runs it, you get a declarative experiment definition that anyone on the team can execute consistently. Chaos Toolkit also handles the steady-state verification automatically — it checks your hypothesis before injecting chaos and again after recovery.
 
-The `pauses.after` value in the experiment below deserves attention. Thirty seconds gives Kubernetes time to detect the pod failure, schedule a replacement, pull the container image (if not cached), run startup probes, and pass readiness checks. If your service takes longer to become ready—JVM warmup, cache priming, database connection pooling—increase this value accordingly. Too short a pause and you'll get false negatives; too long and you're wasting time.
+The `pauses.after` value in the experiment below deserves attention. Thirty seconds gives Kubernetes time to detect the pod failure, schedule a replacement, pull the container image (if not cached), run startup probes, and pass readiness checks. If your service takes longer to become ready — JVM warmup, cache priming, database connection pooling — increase this value accordingly. Too short a pause and you'll get false negatives; too long and you're wasting time.
 
 ```yaml title="chaos-toolkit-pod-kill.yaml"
 # Chaos Toolkit experiment definition
@@ -315,7 +338,7 @@ rollbacks:
         ns: "default"
 ```
 
-Code: Chaos Toolkit experiment definition with hypothesis, action, and rollback._
+Code: Chaos Toolkit experiment definition with hypothesis, action, and rollback.
 
 Running an experiment is straightforward once you've installed the toolkit and the Kubernetes extension:
 
@@ -332,17 +355,17 @@ chaos run experiment.yaml --journal-path results.json
 chaos run experiment.yaml --dry-run
 ```
 
-Code: Running Chaos Toolkit experiments._
+Code: Running Chaos Toolkit experiments.
 
 <Callout type="success">
-Chaos Toolkit is free, open source, and extensible. It provides structure without cost—experiment definitions, steady state verification, and automatic rollbacks.
+Chaos Toolkit is free, open source, and extensible. It provides structure without cost — experiment definitions, steady state verification, and automatic rollbacks.
 </Callout>
 
 ### LitmusChaos for Kubernetes
 
 LitmusChaos is a CNCF project that takes a Kubernetes-native approach to chaos engineering. Instead of running experiments from the command line, you define ChaosEngine resources that Kubernetes operators execute. This makes LitmusChaos a good fit if you want chaos experiments to live alongside your other Kubernetes manifests and be managed through GitOps workflows.
 
-LitmusChaos comes with a library of pre-built experiments—pod deletion, network latency, CPU stress, disk fill, and dozens more. You don't have to write the chaos injection logic yourself; you just configure which experiment to run against which workload.
+LitmusChaos comes with a library of pre-built experiments — pod deletion, network latency, CPU stress, disk fill, and dozens more. You don't have to write the chaos injection logic yourself; you just configure which experiment to run against which workload.
 
 ```yaml title="litmus-pod-delete.yaml"
 # LitmusChaos ChaosEngine for pod deletion
@@ -372,7 +395,7 @@ spec:
               value: '50'
 ```
 
-Code: LitmusChaos experiment for pod deletion._
+Code: LitmusChaos experiment for pod deletion.
 
 Network experiments are similarly declarative. This example injects 300ms of latency on the target pods' network interface:
 
@@ -404,7 +427,7 @@ spec:
               value: 'containerd'
 ```
 
-Code: LitmusChaos network latency experiment._
+Code: LitmusChaos network latency experiment.
 
 The tradeoff with LitmusChaos is complexity. You need to install the LitmusChaos operator, set up service accounts with appropriate permissions, and understand the CRD-based workflow. For teams already deep in Kubernetes and GitOps, this feels natural. For teams just starting with chaos engineering, Chaos Toolkit's simpler CLI-based approach might be easier to adopt.
 
@@ -412,14 +435,31 @@ The tradeoff with LitmusChaos is complexity. You need to install the LitmusChaos
   variant="vertical-column-delineation-table"
   content={{
     figure: "Comparison of free chaos engineering tools.",
-    thead: { th: ["Tool", "Best For", "Complexity", "Kubernetes Required"] },
+    thead: {
+      th: ["Tool", "Best For", "Complexity", "Kubernetes Required"],
+    },
     tbody: {
       tr: [
-        { th: "kubectl", td: ["First experiments, simple pod/node chaos", "Low", "Yes"] },
-        { th: "tc/iptables", td: ["Network latency and packet loss", "Medium", "No (Linux only)"] },
-        { th: "toxiproxy", td: ["Surgical dependency failure injection", "Medium", "No"] },
-        { th: "Chaos Toolkit", td: ["Structured experiments with hypothesis validation", "Medium", "No (has K8s extension)"] },
-        { th: "LitmusChaos", td: ["GitOps-managed, Kubernetes-native chaos", "High", "Yes"] },
+        {
+          th: "kubectl",
+          td: ["First experiments, simple pod/node chaos", "Low", "Yes"],
+        },
+        {
+          th: "tc/iptables",
+          td: ["Network latency and packet loss", "Medium", "No (Linux only)"],
+        },
+        {
+          th: "toxiproxy",
+          td: ["Surgical dependency failure injection", "Medium", "No"],
+        },
+        {
+          th: "Chaos Toolkit",
+          td: ["Structured experiments with hypothesis validation", "Medium", "No (has K8s extension)"],
+        },
+        {
+          th: "LitmusChaos",
+          td: ["GitOps-managed, Kubernetes-native chaos", "High", "Yes"],
+        },
       ],
     },
   }}
@@ -427,7 +467,7 @@ The tradeoff with LitmusChaos is complexity. You need to install the LitmusChaos
 
 ## Designing Safe Experiments
 
-The difference between a chaos experiment and an outage is control. Every experiment needs clearly defined boundaries: what you're affecting, for how long, and what conditions will make you stop immediately. Without these controls, you're not running experiments—you're just causing incidents.
+The difference between a chaos experiment and an outage is control. Every experiment needs clearly defined boundaries: what you're affecting, for how long, and what conditions will make you stop immediately. Without these controls, you're not running experiments — you're just causing incidents.
 
 ### Blast Radius Control
 
@@ -435,12 +475,16 @@ Blast radius is the maximum possible impact of your experiment. Controlling it m
 
 For scope, start narrow and expand only when you've built confidence. Your first experiments should target a single pod, not an entire deployment. A single availability zone, not a region. A small percentage of traffic, not all of it. As you learn how your systems respond and build confidence in your abort mechanisms, you can gradually increase scope.
 
-Time limits provide a safety net when other controls fail. Set a maximum duration for every experiment—even if you plan to run it for only 5 minutes, have an automatic cutoff at 10. This prevents runaway experiments when someone forgets to clean up or when the abort mechanism doesn't trigger as expected.
+Time limits provide a safety net when other controls fail. Set a maximum duration for every experiment — even if you plan to run it for only 5 minutes, have an automatic cutoff at 10. This prevents runaway experiments when someone forgets to clean up or when the abort mechanism doesn't trigger as expected.
 
 Impact limits define what customer-facing consequences you're willing to accept. For early experiments, that might be "zero customer-visible errors." As you mature, you might accept brief degradation ("P99 latency can spike to 2s for up to 30 seconds"). The key is deciding _before_ you start, not while you're watching dashboards and trying to decide if things are bad enough to stop.
 
+<Diagram
+  title="Three dimensions of blast radius control"
+  description="Flowchart showing blast radius control divided into scope limiting, time limiting, and impact limiting, with examples such as targeting a single pod, setting maximum duration and automatic aborts, and starting with low-traffic non-critical paths."
+>
 ```mermaid
-graph TD
+flowchart TD
     A[Blast Radius Control] --> B[Scope Limiting]
     A --> C[Time Limiting]
     A --> D[Impact Limiting]
@@ -457,10 +501,9 @@ graph TD
     D --> D2[Internal before external]
     D --> D3[Low traffic before high]
 ```
+</Diagram>
 
-Figure: Three dimensions of blast radius control._
-
-Abort conditions are the most critical control. These are the thresholds that, when breached, trigger immediate experiment termination—ideally automatically, but at minimum manually with a pre-defined trigger. "Error rate exceeds 5%" or "P99 latency exceeds 5 seconds" or "any customer complaint received" are all reasonable abort conditions depending on your risk tolerance.
+Abort conditions are the most critical control. These are the thresholds that, when breached, trigger immediate experiment termination — ideally automatically, but at minimum manually with a pre-defined trigger. "Error rate exceeds 5%" or "P99 latency exceeds 5 seconds" or "any customer complaint received" are all reasonable abort conditions depending on your risk tolerance.
 
 The configuration below shows what comprehensive blast radius controls look like. You won't implement all of this for your first experiment, but it illustrates the thinking:
 
@@ -498,7 +541,7 @@ experiment:
       action: "immediate_rollback"
 ```
 
-Code: Comprehensive blast radius control configuration._
+Code: Comprehensive blast radius control configuration.
 
 <Callout type="danger">
 Never run chaos experiments without abort conditions. Define the thresholds that trigger automatic rollback before you start, not after things go wrong.
@@ -506,7 +549,7 @@ Never run chaos experiments without abort conditions. Define the thresholds that
 
 ### The Experiment Runbook
 
-Every experiment should have a runbook—a document that captures the hypothesis, prerequisites, execution steps, and rollback procedure. This isn't bureaucracy; it's how you ensure experiments are repeatable, that anyone on the team can run them safely, and that you have documentation for post-experiment analysis.
+Every experiment should have a runbook — a document that captures the hypothesis, prerequisites, execution steps, and rollback procedure. This isn't bureaucracy; it's how you ensure experiments are repeatable, that anyone on the team can run them safely, and that you have documentation for post-experiment analysis.
 
 The runbook also forces you to think through the experiment before running it. Writing down "rollback procedure: delete the network policy" makes you realize you need to test that the deletion actually restores connectivity. Writing down "on-call aware experiment is happening" reminds you to actually notify them.
 
@@ -565,7 +608,7 @@ The runbook also forces you to think through the experiment before running it. W
 - **Action items:** [What we learned to fix]
 ```
 
-Code: Experiment runbook template ensuring safe, repeatable execution._
+Code: Experiment runbook template ensuring safe, repeatable execution.
 
 ### Communicating with Stakeholders
 
@@ -573,7 +616,7 @@ Chaos experiments can look alarming to people who don't know they're happening. 
 
 The solution is proactive communication. Before every experiment, announce what you're doing, when you're doing it, and what impact to expect. During the experiment, provide brief status updates. After the experiment, share what you learned.
 
-This communication serves multiple purposes. It prevents false alarms and wasted incident response effort. It builds organizational awareness of chaos engineering as a practice. And it creates accountability—if you have to announce that you're going to break something on purpose, you're more likely to think carefully about whether you should.
+This communication serves multiple purposes. It prevents false alarms and wasted incident response effort. It builds organizational awareness of chaos engineering as a practice. And it creates accountability — if you have to announce that you're going to break something on purpose, you're more likely to think carefully about whether you should.
 
 ```yaml title="stakeholder-communication.yaml"
 # Communication plan template for chaos experiments
@@ -611,7 +654,7 @@ after_experiment:
       - link_to_full_report
 ```
 
-Code: Stakeholder communication plan for chaos experiments._
+Code: Stakeholder communication plan for chaos experiments.
 
 ## Starter Experiments
 
@@ -619,11 +662,11 @@ Now let's put theory into practice. These four experiments form a progression fr
 
 ### Experiment 1: Pod Termination
 
-This is the simplest and most valuable first experiment. If you've never run a chaos experiment before, start here—you can do it this week with tools you already have.
+This is the simplest and most valuable first experiment. If you've never run a chaos experiment before, start here — you can do it this week with tools you already have.
 
 The hypothesis is straightforward: when a single pod is terminated, Kubernetes will automatically restart it and the service will continue handling requests with minimal degradation. You'd think this would "just work," but you'd be surprised how often it doesn't.
 
-Before you start, verify three prerequisites. First, your deployment has replicas greater than 1—if you're running a single pod, killing it _will_ cause an outage (and that's useful to know, but probably not how you want to learn it). Second, health checks are configured—liveness and readiness probes tell Kubernetes when the pod is ready to receive traffic. Third, you have monitoring in place to observe the experiment.
+Before you start, verify three prerequisites. First, your deployment has replicas greater than 1 — if you're running a single pod, killing it __will__ cause an outage (and that's useful to know, but probably not how you want to learn it). Second, health checks are configured — liveness and readiness probes tell Kubernetes when the pod is ready to receive traffic. Third, you have monitoring in place to observe the experiment.
 
 ```bash title="pod-kill-experiment.sh"
 #!/bin/bash
@@ -639,7 +682,7 @@ echo "Recording baseline metrics..."
 kubectl delete pod $POD && kubectl get pods -l app=myservice -w
 ```
 
-Code: Simple pod termination experiment with recovery observation._
+Code: Simple pod termination experiment with recovery observation.
 
 Watch for the new pod scheduling, the health check passing, and traffic resuming to the recovered pod. Your success criteria: new pod running within 60 seconds, no 5xx errors during recovery, and latency returned to baseline within 2 minutes.
 
@@ -648,16 +691,25 @@ What teams commonly discover from this experiment:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "_Slow container startup delays recovery._", text: "If your container takes 45 seconds to start, that's 45 seconds of degraded capacity. Consider optimizing image size, adding startup probes, or adjusting replica counts." },
-    { lead: "_Missing readiness probes cause traffic to unhealthy pods._", text: "Without a readiness probe, Kubernetes sends traffic to pods that aren't ready, causing errors during startup." },
-    { lead: "_No alerts fired despite degradation._", text: "This is the \"aha\" moment—your monitoring gap was invisible until you tested it." },
+    {
+      lead: "_Slow container startup delays recovery._",
+      text: "If your container takes 45 seconds to start, that's 45 seconds of degraded capacity. Consider optimizing image size, adding startup probes, or adjusting replica counts.",
+    },
+    {
+      lead: "_Missing readiness probes cause traffic to unhealthy pods._",
+      text: "Without a readiness probe, Kubernetes sends traffic to pods that aren't ready, causing errors during startup.",
+    },
+    {
+      lead: "_No alerts fired despite degradation._",
+      text: "This is the \"aha\" moment — your monitoring gap was invisible until you tested it.",
+    },
   ]}
 />
 
 
 ### Experiment 2: Dependency Latency
 
-Most production incidents aren't clean crashes—they're slowdowns. A database that responds in 500ms instead of 10ms is technically "up," but your service might as well be down if it can't handle the latency gracefully. This experiment reveals whether your timeouts, circuit breakers, and connection pools are configured correctly.
+Most production incidents aren't clean crashes — they're slowdowns. A database that responds in 500ms instead of 10ms is technically "up," but your service might as well be down if it can't handle the latency gracefully. This experiment reveals whether your timeouts, circuit breakers, and connection pools are configured correctly.
 
 The hypothesis: when the database responds with 500ms latency instead of 10ms, the service will maintain response times under 2 seconds by using timeouts and not queuing unlimited requests.
 
@@ -684,7 +736,7 @@ curl -X POST http://toxiproxy:8474/proxies/database/toxics \
 curl -X DELETE http://toxiproxy:8474/proxies/database/toxics/latency
 ```
 
-Code: Latency injection experiment using toxiproxy._
+Code: Latency injection experiment using toxiproxy.
 
 Success looks like: service remains responsive (P99 under 3 seconds), no cascading failures to other services, and graceful degradation where partial responses are acceptable.
 
@@ -693,12 +745,20 @@ What teams commonly discover:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "_Missing timeouts cause request pileup._", text: "Without timeouts, requests queue indefinitely waiting for the slow database, exhausting threads and memory." },
-    { lead: "_Connection pool exhaustion._", text: "Under latency, connections are held longer, and the pool runs dry before requests complete." },
-    { lead: "_No circuit breaker means failures cascade._", text: "Without a circuit breaker, every request tries the slow path, and the latency spreads to callers of your service." },
+    {
+      lead: "Missing timeouts cause request pileup.",
+      text: "Without timeouts, requests queue indefinitely waiting for the slow database, exhausting threads and memory.",
+    },
+    {
+      lead: "Connection pool exhaustion.",
+      text: "Under latency, connections are held longer, and the pool runs dry before requests complete.",
+    },
+    {
+      lead: "No circuit breaker means failures cascade.",
+      text: "Without a circuit breaker, every request tries the slow path, and the latency spreads to callers of your service.",
+    },
   ]}
 />
-
 
 ### Experiment 3: Network Partition
 
@@ -706,7 +766,7 @@ Network partitions are trickier than latency because they test your fallback log
 
 The hypothesis: when the service cannot reach the cache, it will fall back to the database and continue serving requests with degraded performance but no errors.
 
-You can simulate network partitions using Kubernetes NetworkPolicies without any additional tooling. The policy below blocks egress traffic from your service to Redis by allowing traffic to everything _except_ pods labeled `app=redis`. The `NotIn` operator with a single value effectively creates an exclusion rule—the policy permits egress to any pod whose `app` label is not `redis`, which means Redis becomes unreachable while everything else remains accessible.
+You can simulate network partitions using Kubernetes NetworkPolicies without any additional tooling. The policy below blocks egress traffic from your service to Redis by allowing traffic to everything __except__ pods labeled `app=redis`. The `NotIn` operator with a single value effectively creates an exclusion rule — the policy permits egress to any pod whose `app` label is not `redis`, which means Redis becomes unreachable while everything else remains accessible.
 
 ```yaml title="network-partition-experiment.yaml"
 # Kubernetes NetworkPolicy to simulate cache partition
@@ -730,7 +790,7 @@ spec:
           values: ["redis"]  # Allow all egress EXCEPT to redis
 ```
 
-Code: NetworkPolicy to block cache access for partition experiment._
+Code: NetworkPolicy to block cache access for partition experiment.
 
 Apply the policy, observe for 5 minutes watching cache miss rate, database load, response times, and error rates. Then delete the policy and verify recovery.
 
@@ -741,15 +801,23 @@ What teams commonly discover:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "_Hard dependency on cache, no fallback._", text: "The code assumes cache is always available and throws exceptions on connection failure instead of falling back." },
-    { lead: "_Timeouts too long, requests queue._", text: "Connection timeouts of 30 seconds mean requests pile up waiting for a cache that will never respond." },
-    { lead: "_Cache reconnection logic is buggy._", text: "After the partition heals, the service doesn't reconnect properly and continues failing." },
+    {
+      lead: "_Hard dependency on cache, no fallback._",
+      text: "The code assumes cache is always available and throws exceptions on connection failure instead of falling back.",
+    },
+    {
+      lead: "_Timeouts too long, requests queue._",
+      text: "Connection timeouts of 30 seconds mean requests pile up waiting for a cache that will never respond.",
+    },
+    {
+      lead: "_Cache reconnection logic is buggy._",
+      text: "After the partition heals, the service doesn't reconnect properly and continues failing.",
+    },
   ]}
 />
 
-
 <Callout type="info">
-These three experiments—pod kill, latency injection, and network partition—cover the vast majority of real-world failures. Master them before moving to more exotic scenarios.
+These three experiments — pod kill, latency injection, and network partition — cover the vast majority of real-world failures. Master them before moving to more exotic scenarios.
 </Callout>
 
 ### Experiment 4: Resource Exhaustion
@@ -758,7 +826,7 @@ This is an advanced experiment that tests what happens when your application run
 
 The hypothesis: when memory usage approaches the pod limit, the application will shed load gracefully rather than being OOM-killed, and will recover without intervention when pressure reduces.
 
-Resource exhaustion is harder to simulate safely because you're directly stressing the application rather than its dependencies. The blast radius is harder to control—memory pressure on one pod can affect others through noisy neighbor effects if limits aren't set correctly.
+Resource exhaustion is harder to simulate safely because you're directly stressing the application rather than its dependencies. The blast radius is harder to control — memory pressure on one pod can affect others through noisy neighbor effects if limits aren't set correctly.
 
 ```bash title="resource-exhaustion-experiment.sh"
 #!/bin/bash
@@ -781,7 +849,7 @@ kubectl exec -it myservice-pod -- \
 # stress-ng exits after timeout, observe recovery for 5 minutes
 ```
 
-Code: Memory pressure experiment using stress-ng._
+Code: Memory pressure experiment using stress-ng.
 
 Success looks like: no OOM kills, graceful degradation where the service sheds excess load, and recovery without manual intervention when pressure reduces.
 
@@ -790,12 +858,20 @@ What teams commonly discover:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "_No memory limits set._", text: "Without limits, one pod's memory pressure affects the entire node—the classic noisy neighbor problem." },
-    { lead: "_OOM kill with no graceful handling._", text: "The application gets killed abruptly with no opportunity to drain connections or save state." },
-    { lead: "_Memory leaks exposed under pressure._", text: "Baseline memory usage creeps up over time, and the stress test just accelerates the inevitable OOM." },
+    {
+      lead: "_No memory limits set._",
+      text: "Without limits, one pod's memory pressure affects the entire node — the classic noisy neighbor problem.",
+    },
+    {
+      lead: "_OOM kill with no graceful handling._",
+      text: "The application gets killed abruptly with no opportunity to drain connections or save state.",
+    },
+    {
+      lead: "_Memory leaks exposed under pressure._",
+      text: "Baseline memory usage creeps up over time, and the stress test just accelerates the inevitable OOM.",
+    },
   ]}
 />
-
 
 ## Building a Chaos Practice
 
@@ -803,12 +879,16 @@ Running a few experiments is useful. Building a sustainable chaos engineering pr
 
 ### From Experiments to Program
 
-Most teams start with ad-hoc experiments—someone reads about chaos engineering, runs a pod-kill experiment, finds an interesting bug, and then... nothing. The experiment was valuable, but there's no follow-through, no cadence, no progression. Six months later, someone else reads about chaos engineering and repeats the cycle.
+Most teams start with ad-hoc experiments — someone reads about chaos engineering, runs a pod-kill experiment, finds an interesting bug, and then... nothing. The experiment was valuable, but there's no follow-through, no cadence, no progression. Six months later, someone else reads about chaos engineering and repeats the cycle.
 
-A mature chaos practice looks different. Experiments run on a regular cadence—weekly or monthly depending on team capacity. Findings get tracked and fixed. The scope expands progressively from simple pod kills to complex multi-service scenarios. Eventually, chaos runs automatically as part of CI/CD or on a schedule.
+A mature chaos practice looks different. Experiments run on a regular cadence — weekly or monthly depending on team capacity. Findings get tracked and fixed. The scope expands progressively from simple pod kills to complex multi-service scenarios. Eventually, chaos runs automatically as part of CI/CD or on a schedule.
 
+<Diagram
+  title="Evolution from ad-hoc experiments to mature chaos practice"
+  description="Flowchart showing a progression from ad-hoc experiments to regular experiments, then game days, and finally automated chaos, with each stage annotated by the learning or organizational capability it adds."
+>
 ```mermaid
-graph TD
+flowchart TD
     A[Ad-hoc Experiments] --> B[Regular Experiments]
     B --> C[Game Days]
     C --> D[Automated Chaos]
@@ -818,10 +898,9 @@ graph TD
     C -.->|Team-wide| C1[Quarterly game days]
     D -.->|Continuous| D1[Chaos in CI/CD]
 ```
+</Diagram>
 
-Figure: Evolution from ad-hoc experiments to mature chaos practice._
-
-The progression takes time—typically a year or more to go from first experiment to automated chaos. Trying to skip stages usually backfires. Teams that jump straight to automated chaos without building the foundational skills end up causing incidents that set back the entire practice.
+The progression takes time — typically a year or more to go from first experiment to automated chaos. Trying to skip stages usually backfires. Teams that jump straight to automated chaos without building the foundational skills end up causing incidents that set back the entire practice.
 
 Here's a realistic four-quarter roadmap for building a chaos engineering practice from scratch:
 
@@ -829,13 +908,43 @@ Here's a realistic four-quarter roadmap for building a chaos engineering practic
   variant="vertical-column-delineation-table"
   content={{
     figure: "Four-quarter roadmap for building a chaos engineering practice.",
-    thead: { th: ["Quarter", "Focus", "Activities", "Success Criteria"] },
+    thead: {
+      th: ["Quarter", "Focus", "Activities", "Success Criteria"],
+    },
     tbody: {
       tr: [
-        { th: "Q1", td: ["Establish basics", "Run first pod-kill experiments, document and fix findings, train team on experiment design (hypothesis, abort conditions, stakeholder communication)", "3+ experiments completed, 5+ bugs fixed"] },
-        { th: "Q2", td: ["Expand coverage", "Move to latency injection and network partitions, create reusable experiment library, test all critical services", "Comprehensive critical path coverage, updated runbooks"] },
-        { th: "Q3", td: ["Build team capability", "Host first game day, enable multiple teams to run experiments independently, share learnings org-wide", "Successful game day, 3+ teams practicing chaos"] },
-        { th: "Q4", td: ["Automate foundations", "Integrate chaos into CI/CD for staging deployments, automate steady-state verification, schedule recurring experiments", "Weekly automated experiments without manual intervention"] },
+        {
+          th: "Q1",
+          td: [
+            "Establish basics",
+            "Run first pod-kill experiments, document and fix findings, train team on experiment design (hypothesis, abort conditions, stakeholder communication)",
+            "3+ experiments completed, 5+ bugs fixed",
+          ],
+        },
+        {
+          th: "Q2",
+          td: [
+            "Expand coverage",
+            "Move to latency injection and network partitions, create reusable experiment library, test all critical services",
+            "Comprehensive critical path coverage, updated runbooks",
+          ],
+        },
+        {
+          th: "Q3",
+          td: [
+            "Build team capability",
+            "Host first game day, enable multiple teams to run experiments independently, share learnings org-wide",
+            "Successful game day, 3+ teams practicing chaos",
+          ],
+        },
+        {
+          th: "Q4",
+          td: [
+            "Automate foundations",
+            "Integrate chaos into CI/CD for staging deployments, automate steady-state verification, schedule recurring experiments",
+            "Weekly automated experiments without manual intervention",
+          ],
+        },
       ],
     },
   }}
@@ -845,7 +954,7 @@ Here's a realistic four-quarter roadmap for building a chaos engineering practic
 
 Game days are scheduled events where the team intentionally causes failures and practices incident response in a controlled environment. They're different from regular experiments in two important ways: they're team-wide events rather than individual activities, and the primary goal is practicing response rather than finding bugs.
 
-Think of a game day like a fire drill. You might discover that the emergency exit is blocked—that's a valuable finding. But the main value is practicing the evacuation itself: everyone learns the routes, the assembly points, the communication protocols. When a real fire happens, the team responds from muscle memory rather than scrambling to figure out what to do.
+Think of a game day like a fire drill. You might discover that the emergency exit is blocked — that's a valuable finding. But the main value is practicing the evacuation itself: everyone learns the routes, the assembly points, the communication protocols. When a real fire happens, the team responds from muscle memory rather than scrambling to figure out what to do.
 
 A game day requires preparation. One to two weeks before, define the scenarios you'll test, brief all participants on their roles, prepare monitoring dashboards, test rollback procedures, and notify stakeholders. During the event, you need clear roles: a game master who controls experiment execution, observers who watch systems and document behavior, responders who practice incident response as if it were real, and a facilitator who keeps the event on track.
 
@@ -886,7 +995,7 @@ A game day requires preparation. One to two weeks before, define the scenarios y
 - Plan next game day
 ```
 
-Code: Game day planning and execution playbook._
+Code: Game day planning and execution playbook.
 
 <Callout type="success">
 Game days build team muscle memory for incident response. The goal isn't to find bugs (though you will)—it's to practice responding to failures as a team.
@@ -900,22 +1009,39 @@ How do you know if your chaos practice is working? You need metrics that measure
   variant="vertical-column-delineation-table"
   content={{
     figure: "Metrics for measuring chaos engineering practice effectiveness.",
-    thead: { th: ["Metric", "What It Measures", "Target"] },
+    thead: {
+      th: ["Metric", "What It Measures", "Target"],
+    },
     tbody: {
       tr: [
-        { th: "Experiments/month", td: ["Practice frequency", "4+"] },
-        { th: "Findings/experiment", td: ["Learning rate", "2+ actionable"] },
-        { th: "Fix completion rate", td: ["Follow-through", ">80% in 30 days"] },
-        { th: "MTTR improvement", td: ["Business impact", "Decreasing trend"] },
-        { th: "Incident prevention", td: ["Proactive value", "Findings before prod incidents"] },
+        {
+          th: "Experiments/month",
+          td: ["Practice frequency", "4+"],
+        },
+        {
+          th: "Findings/experiment",
+          td: ["Learning rate", "2+ actionable"],
+        },
+        {
+          th: "Fix completion rate",
+          td: ["Follow-through", ">80% in 30 days"],
+        },
+        {
+          th: "MTTR improvement",
+          td: ["Business impact", "Decreasing trend"],
+        },
+        {
+          th: "Incident prevention",
+          td: ["Proactive value", "Findings before prod incidents"],
+        },
       ],
     },
   }}
 />
 
-The most important metric is fix completion rate. Finding bugs is useless if you don't fix them. Track how many findings get resolved within 30 days, and treat low fix rates as a practice problem—you're generating work faster than you can complete it, which means you should slow down the experiment cadence until you catch up.
+The most important metric is fix completion rate. Finding bugs is useless if you don't fix them. Track how many findings get resolved within 30 days, and treat low fix rates as a practice problem — you're generating work faster than you can complete it, which means you should slow down the experiment cadence until you catch up.
 
-The hardest metric to measure is incident prevention—bugs you found through chaos that would have caused production incidents. You can approximate this by tracking bugs that match patterns from past incidents, or by noting when chaos findings would have prevented a real incident that happened elsewhere in the organization.
+The hardest metric to measure is incident prevention — bugs you found through chaos that would have caused production incidents. You can approximate this by tracking bugs that match patterns from past incidents, or by noting when chaos findings would have prevented a real incident that happened elsewhere in the organization.
 
 ## Common Pitfalls
 
@@ -923,7 +1049,7 @@ I've seen teams adopt chaos engineering successfully and unsuccessfully. The sam
 
 ### Pitfall 1: No Hypothesis
 
-The most common mistake: "Let's see what happens when we kill the database." That's not an experiment—without a hypothesis, you don't know what to measure or what success looks like.
+The most common mistake: "Let's see what happens when we kill the database." That's not an experiment — without a hypothesis, you don't know what to measure or what success looks like.
 
 The fix is simple: write down your expectation before you start. "When the primary database fails, the application will failover to the replica within 30 seconds with no more than 5 seconds of errors visible to users." Now you have measurable criteria and can determine whether reality matched expectations.
 
@@ -940,7 +1066,7 @@ The worst pattern I've seen: find bugs, document them, move on. Six months later
 Chaos without fixes is just expensive documentation. The workflow must be: find bugs → document → create tickets → fix → re-run experiment to verify the fix. If you're finding bugs faster than you can fix them, slow down the experiments until you catch up. Track fix completion rate as a key metric.
 
 <Callout type="warning">
-The value of chaos engineering is not in finding problems—it's in fixing them. An experiment without follow-through is worse than no experiment because it creates false confidence.
+The value of chaos engineering is not in finding problems — it's in fixing them. An experiment without follow-through is worse than no experiment because it creates false confidence.
 </Callout>
 
 ## Conclusion
@@ -949,7 +1075,7 @@ Chaos engineering doesn't require expensive platforms or dedicated teams. You ca
 
 The principles are simple: form a hypothesis before you break anything, define abort conditions so experiments don't become incidents, control the blast radius so you're learning rather than causing outages, and follow through on findings by actually fixing them.
 
-Once you've mastered the four experiments in this guide, the path forward opens up. You can explore zone and region failures to test geographic redundancy. You can inject clock skew to find time-sensitive bugs. You can simulate certificate expiration, DNS failures, or cloud provider API throttling. Each new experiment type reveals a different class of bugs—and each one can be done with free tools.
+Once you've mastered the four experiments in this guide, the path forward opens up. You can explore zone and region failures to test geographic redundancy. You can inject clock skew to find time-sensitive bugs. You can simulate certificate expiration, DNS failures, or cloud provider API throttling. Each new experiment type reveals a different class of bugs — and each one can be done with free tools.
 
 The barrier to starting isn't tooling or budget. It's deciding to run that first experiment. Pick a service. Form a hypothesis. Open your monitoring dashboard. Kill a pod. Watch what happens.
 

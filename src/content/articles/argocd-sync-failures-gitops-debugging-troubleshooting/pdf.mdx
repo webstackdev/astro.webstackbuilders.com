@@ -20,9 +20,9 @@ featured: true
 
 GitOps sells you on declarative simplicity: define your desired state in Git, and ArgoCD makes it so. The pitch works beautifully in demos. In production, you'll eventually stare at a sync that's been "Progressing" for 20 minutes, wondering what's actually happening inside the black box.
 
-I hit this wall during a production deployment that had worked flawlessly in staging for months. The sync started normally, applied the first few resources, then stopped. No error. No timeout. Just... stuck. The ArgoCD UI showed "Syncing" with a spinner. Kubernetes showed pods running. Logs showed nothing useful. Manual `kubectl apply` worked fine—it only hung when deployed through ArgoCD.
+I hit this wall during a production deployment that had worked flawlessly in staging for months. The sync started normally, applied the first few resources, then stopped. No error. No timeout. Just... stuck. The ArgoCD UI showed "Syncing" with a spinner. Kubernetes showed pods running. Logs showed nothing useful. Manual `kubectl apply` worked fine — it only hung when deployed through ArgoCD.
 
-The root cause turned out to be a sync wave ordering issue. A PreSync hook was waiting for a service that wouldn't exist until wave 0, but the hook was in wave -1. In staging, the service happened to exist from a previous deployment. In production, we'd just created the namespace. The dependency was always broken—we just never noticed because we never deployed to a clean environment.
+The root cause turned out to be a sync wave ordering issue. A PreSync hook was waiting for a service that wouldn't exist until wave 0, but the hook was in wave -1. In staging, the service happened to exist from a previous deployment. In production, we'd just created the namespace. The dependency was always broken — we just never noticed because we never deployed to a clean environment.
 
 This is the gap between GitOps theory and operational reality. The declarative model abstracts away the _how_ of deployment, which is great until something goes wrong. Then you need to understand exactly what ArgoCD is doing: how it orders resources, when hooks execute, how it determines health, and why it might decide your perfectly valid manifests can't be applied.
 
@@ -30,7 +30,7 @@ This is the gap between GitOps theory and operational reality. The declarative m
 GitOps hides complexity until sync fails. When ArgoCD gets stuck, you need to understand what's happening underneath the declarative abstraction to debug it.
 </Callout>
 
-This article breaks down the sync process, catalogs the failure modes I've encountered (and how to recognize them), and provides a systematic debugging workflow. The goal isn't to memorize every edge case—it's to build a mental model of what ArgoCD is actually doing so you can reason about failures when they happen.
+This article breaks down the sync process, catalogs the failure modes I've encountered (and how to recognize them), and provides a systematic debugging workflow. The goal isn't to memorize every edge case — it's to build a mental model of what ArgoCD is actually doing so you can reason about failures when they happen.
 
 ## Understanding ArgoCD Sync Mechanics
 
@@ -40,9 +40,9 @@ Before debugging failures, you need a clear picture of what ArgoCD is actually d
 
 When you push a commit or click "Sync" in the UI, ArgoCD kicks off a multi-phase process. Understanding these phases tells you where to look when something goes wrong.
 
-First, ArgoCD detects the change—either through polling the Git repository or receiving a webhook. It then generates the manifests, which might involve running Helm template, Kustomize build, or just reading raw YAML files. This is where Helm value resolution and Kustomize overlays get applied.
+First, ArgoCD detects the change — either through polling the Git repository or receiving a webhook. It then generates the manifests, which might involve running Helm template, Kustomize build, or just reading raw YAML files. This is where Helm value resolution and Kustomize overlays get applied.
 
-Next comes diff calculation. ArgoCD compares the generated manifests against the live cluster state. If there's no difference, you're already synced—nothing to do. If there is a difference, ArgoCD needs to figure out _how_ to apply the changes.
+Next comes diff calculation. ArgoCD compares the generated manifests against the live cluster state. If there's no difference, you're already synced — nothing to do. If there is a difference, ArgoCD needs to figure out _how_ to apply the changes.
 
 Resource ordering happens next. ArgoCD sorts resources by sync wave, then by kind (namespaces before deployments, for example), then by name. This ordering determines which resources get applied first.
 
@@ -71,7 +71,7 @@ flowchart TD
 
 ### Sync Waves and Resource Ordering
 
-Kubernetes doesn't guarantee the order in which resources are created. If you `kubectl apply -f` a directory, resources might be created in any order. Usually that's fine—Kubernetes' reconciliation loops eventually sort things out. But "eventually" can mean failed pods, restarts, and transient errors that confuse monitoring.
+Kubernetes doesn't guarantee the order in which resources are created. If you `kubectl apply -f` a directory, resources might be created in any order. Usually that's fine — Kubernetes' reconciliation loops eventually sort things out. But "eventually" can mean failed pods, restarts, and transient errors that confuse monitoring.
 
 Sync waves give you explicit control over ordering. Each resource can have an `argocd.argoproj.io/sync-wave` annotation with an integer value. Lower numbers go first. Resources without the annotation default to wave 0.
 
@@ -107,7 +107,7 @@ metadata:
 ```
 Code: Sync wave annotations controlling resource application order.
 
-The wave number itself is arbitrary—what matters is the relative ordering. I've seen teams use -10 to 10, and others use -2 to 2. Pick a convention and stick with it. Here's a pattern that works for most applications:
+The wave number itself is arbitrary — what matters is the relative ordering. I've seen teams use -10 to 10, and others use -2 to 2. Pick a convention and stick with it. Here's a pattern that works for most applications:
 
 <Table
   variant="vertical-column-delineation-table"
@@ -149,7 +149,7 @@ The "wait for healthy" behavior is critical. If wave -1 has a Secret and a Confi
 
 ### Sync Hooks Explained
 
-Sync waves control ordering _within_ the normal apply process. Hooks let you run resources _outside_ that process entirely—before sync starts, after it completes, or when it fails.
+Sync waves control ordering _within_ the normal apply process. Hooks let you run resources _outside_ that process entirely — before sync starts, after it completes, or when it fails.
 
 The most common use case is database migrations. You want to run migrations after the new code is deployed but before traffic shifts to it. Or you want to take a backup before any changes are applied. Hooks give you those insertion points.
 
@@ -239,7 +239,7 @@ spec:
 ```
 Code: PreSync hook for database migration with cleanup policy.
 
-The `hook-delete-policy` annotation controls what happens to the hook resource after it runs. `HookSucceeded` deletes the Job after it completes successfully, keeping your namespace clean. `BeforeHookCreation` deletes the old hook before creating a new one—useful when you want to see the previous hook's logs until the next sync. Without a delete policy, hook resources accumulate, and old hooks can block new syncs if they're still present.
+The `hook-delete-policy` annotation controls what happens to the hook resource after it runs. `HookSucceeded` deletes the Job after it completes successfully, keeping your namespace clean. `BeforeHookCreation` deletes the old hook before creating a new one — useful when you want to see the previous hook's logs until the next sync. Without a delete policy, hook resources accumulate, and old hooks can block new syncs if they're still present.
 
 Hooks and sync waves can be combined. In the example above, the migration hook has both `hook: PreSync` and `sync-wave: "-1"`. This means it runs before the normal sync _and_ before any other PreSync hooks in higher waves. If you have multiple PreSync hooks that depend on each other, use sync waves to order them.
 
@@ -313,9 +313,9 @@ ArgoCD's default sync does not guarantee ordering between resources in the same 
 
 ### Hook Failures
 
-Hooks fail differently than normal resources because they're Jobs, not long-running workloads. A Deployment that can't start will keep retrying—you have time to notice and fix it. A hook Job that fails blocks the entire sync immediately.
+Hooks fail differently than normal resources because they're Jobs, not long-running workloads. A Deployment that can't start will keep retrying — you have time to notice and fix it. A hook Job that fails blocks the entire sync immediately.
 
-The trickiest hook failures are timeouts. ArgoCD waits for hooks to complete before proceeding, and "complete" means the Job reached a terminal state (Succeeded or Failed). If your hook runs longer than expected, the sync just hangs. There's no timeout by default—ArgoCD will wait forever.
+The trickiest hook failures are timeouts. ArgoCD waits for hooks to complete before proceeding, and "complete" means the Job reached a terminal state (Succeeded or Failed). If your hook runs longer than expected, the sync just hangs. There's no timeout by default — ArgoCD will wait forever.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -346,7 +346,7 @@ The trickiest hook failures are timeouts. ArgoCD waits for hooks to complete bef
 />
 Table: Common hook failure modes with symptoms and causes.
 
-For long-running hooks like database migrations, always set `activeDeadlineSeconds` on the Job. This gives ArgoCD a timeout—if the migration takes longer than expected, the sync fails instead of hanging forever:
+For long-running hooks like database migrations, always set `activeDeadlineSeconds` on the Job. This gives ArgoCD a timeout — if the migration takes longer than expected, the sync fails instead of hanging forever:
 
 ```yaml title="manifests/app/migrations/slow-migration-job.yaml" {14}
 # Long-running migration hook with explicit timeout.
@@ -376,9 +376,9 @@ The "hook not deleted" failure deserves special mention. If your previous sync l
 
 ### Health Check Failures
 
-ArgoCD doesn't just apply resources—it waits for them to become healthy. "Healthy" means something different for each resource type. Deployments are healthy when their replicas are ready. Services are healthy when they have endpoints. Jobs are healthy when they complete successfully.
+ArgoCD doesn't just apply resources — it waits for them to become healthy. "Healthy" means something different for each resource type. Deployments are healthy when their replicas are ready. Services are healthy when they have endpoints. Jobs are healthy when they complete successfully.
 
-For [built-in Kubernetes types](https://kubernetes.io/docs/concepts/workloads/), ArgoCD has hardcoded health checks that usually do the right thing. The problems start when you use Custom Resources. ArgoCD doesn't know how to assess the health of your custom CRD, so it just marks it "Healthy" immediately after creation—even if the controller hasn't reconciled it yet.
+For [built-in Kubernetes types](https://kubernetes.io/docs/concepts/workloads/), ArgoCD has hardcoded health checks that usually do the right thing. The problems start when you use Custom Resources. ArgoCD doesn't know how to assess the health of your custom CRD, so it just marks it "Healthy" immediately after creation — even if the controller hasn't reconciled it yet.
 
 <Diagram
   title="ArgoCD health assessment flow for different resource types"
@@ -579,7 +579,7 @@ Code: ArgoCD component logs for different failure types.
   }}
 />
 
-Most sync failures show up in the application-controller logs. If your issue is "manifest generation failed" or you're seeing Helm/Kustomize errors, check the repo-server logs instead. The server pod logs are rarely useful for sync issues—they're more for API and authentication problems.
+Most sync failures show up in the application-controller logs. If your issue is "manifest generation failed" or you're seeing Helm/Kustomize errors, check the repo-server logs instead. The server pod logs are rarely useful for sync issues — they're more for API and authentication problems.
 
 ### Step 3: Inspect Kubernetes State
 
@@ -606,7 +606,7 @@ kubectl describe resourcequota -n myapp
 ```
 Code: Kubernetes commands for inspecting actual cluster state during sync failures.
 
-The `kubectl describe` output for pods is often the most useful. Look at the Events section at the bottom—it shows why pods failed to schedule, failed to pull images, or failed to start containers. Common culprits: image pull failures (wrong tag, missing pull secret), resource quota exceeded, node selector constraints not satisfied.
+The `kubectl describe` output for pods is often the most useful. Look at the Events section at the bottom — it shows why pods failed to schedule, failed to pull images, or failed to start containers. Common culprits: image pull failures (wrong tag, missing pull secret), resource quota exceeded, node selector constraints not satisfied.
 
 ### Step 4: Reproduce and Fix
 
@@ -646,7 +646,7 @@ The debugging workflow above applies to any failure, but some scenarios come up 
 
 ### Scenario: Sync Stuck on Hook
 
-You triggered a sync, and it's been sitting at "Running PreSync hooks" for 10 minutes. The ArgoCD UI shows a spinner. Nothing seems to be happening. This is one of the most frustrating failure modes because there's no error message—just silence.
+You triggered a sync, and it's been sitting at "Running PreSync hooks" for 10 minutes. The ArgoCD UI shows a spinner. Nothing seems to be happening. This is one of the most frustrating failure modes because there's no error message — just silence.
 
 The root cause is almost always a hook Job that isn't completing. Either it's still running (legitimately slow), it's stuck waiting for something (resource contention, external dependency), or it crashed and Kubernetes is respecting the backoff retry delay.
 
@@ -751,7 +751,7 @@ argocd app sync myapp --prune --force
 ````
 Code: Runbook for debugging sync stuck on hook execution.
 
-The key insight is that ArgoCD can't tell you why the hook is stuck—it only knows the Job hasn't reached a terminal state. You have to dig into Kubernetes to find the actual cause.
+The key insight is that ArgoCD can't tell you why the hook is stuck — it only knows the Job hasn't reached a terminal state. You have to dig into Kubernetes to find the actual cause.
 
 ### Scenario: OutOfSync Loop
 
@@ -939,13 +939,13 @@ For applications with automated sync enabled, I recommend `PruneLast=true` at th
 
 ## Prevention Strategies
 
-Debugging sync failures is valuable, but preventing them is better. The most effective teams I've worked with treat sync failures as signals to improve their deployment process, not just problems to fix. After enough incidents, patterns emerge—and those patterns point to prevention strategies.
+Debugging sync failures is valuable, but preventing them is better. The most effective teams I've worked with treat sync failures as signals to improve their deployment process, not just problems to fix. After enough incidents, patterns emerge — and those patterns point to prevention strategies.
 
 The goal isn't to eliminate all sync failures (that's impossible), but to catch the preventable ones early and make the inevitable ones easier to diagnose.
 
 ### Manifest Validation
 
-Most sync failures I've seen could have been caught before the manifests ever reached ArgoCD. A typo in a resource name, an invalid API version, a missing required field—these are CI problems, not deployment problems. Shift validation left and you'll dramatically reduce sync failures.
+Most sync failures I've seen could have been caught before the manifests ever reached ArgoCD. A typo in a resource name, an invalid API version, a missing required field — these are CI problems, not deployment problems. Shift validation left and you'll dramatically reduce sync failures.
 
 The key is layering validation: syntax checking catches malformed YAML, schema validation catches invalid Kubernetes resources, and dry-run testing catches issues with your actual cluster state.
 
@@ -979,10 +979,10 @@ jobs:
 ```
 Code: CI pipeline for manifest validation before merge.
 
-The `argocd app diff --local` step is particularly valuable—it compares what ArgoCD _would_ generate against what's currently deployed. This catches not just invalid manifests but manifests that would cause unexpected changes. I've seen this single check prevent dozens of incidents where someone accidentally reverted a hotfix or overwrote a manual configuration.
+The `argocd app diff --local` step is particularly valuable — it compares what ArgoCD _would_ generate against what's currently deployed. This catches not just invalid manifests but manifests that would cause unexpected changes. I've seen this single check prevent dozens of incidents where someone accidentally reverted a hotfix or overwrote a manual configuration.
 
 <Callout type="tip">
-Run `kubeval` with `--strict` mode to catch unknown fields. Kubernetes accepts unknown fields silently, which means typos in field names (like `replcia` instead of `replica`) won't cause errors—they'll just be ignored. Strict mode catches these.
+Run `kubeval` with `--strict` mode to catch unknown fields. Kubernetes accepts unknown fields silently, which means typos in field names (like `replcia` instead of `replica`) won't cause errors — they'll just be ignored. Strict mode catches these.
 </Callout>
 
 ### Sync Windows
@@ -1018,7 +1018,7 @@ spec:
 ```
 Code: Sync window configuration restricting automated deployments to safe periods.
 
-The `manualSync: true` window is important—it lets you override the restrictions for emergency deployments. Without this escape hatch, sync windows can become a liability during incidents when you _need_ to deploy a fix immediately.
+The `manualSync: true` window is important — it lets you override the restrictions for emergency deployments. Without this escape hatch, sync windows can become a liability during incidents when you _need_ to deploy a fix immediately.
 
 I typically set up three types of windows: an allow window during business hours when the team is available to respond to issues, a deny window during peak traffic when failed deployments have maximum impact, and an always-on manual window for emergencies. The specific times depend on your traffic patterns and team distribution.
 
@@ -1061,9 +1061,9 @@ groups:
 ```
 Code: Prometheus alerting rules for ArgoCD sync failures.
 
-The three alerts above cover the most common failure modes: sync failures (OutOfSync + unhealthy), stuck syncs (syncing for too long), and degraded applications (healthy but degraded status). The `for` clause prevents alert noise from transient states—a brief OutOfSync during a normal deployment shouldn't page anyone.
+The three alerts above cover the most common failure modes: sync failures (OutOfSync + unhealthy), stuck syncs (syncing for too long), and degraded applications (healthy but degraded status). The `for` clause prevents alert noise from transient states — a brief OutOfSync during a normal deployment shouldn't page anyone.
 
-The runbook link in the annotations is critical. When an engineer gets paged at 3 AM, they shouldn't have to remember the debugging workflow—they should be able to follow a documented procedure. Link each alert to a runbook that walks through the investigation steps.
+The runbook link in the annotations is critical. When an engineer gets paged at 3 AM, they shouldn't have to remember the debugging workflow — they should be able to follow a documented procedure. Link each alert to a runbook that walks through the investigation steps.
 
 <Callout type="success">
 Alert on sync failures early. A 10-minute OutOfSync alert gives you time to investigate before users notice. A 30-minute stuck sync is almost always a real problem requiring intervention.
@@ -1075,7 +1075,7 @@ When the standard debugging workflow doesn't reveal the problem, you need to dig
 
 ### Resource Tracking Methods
 
-ArgoCD needs to know which resources belong to which application. It tracks this ownership through labels or annotations on the resources themselves. Most of the time, the default label-based tracking works fine—but it can cause problems when those labels interfere with other systems.
+ArgoCD needs to know which resources belong to which application. It tracks this ownership through labels or annotations on the resources themselves. Most of the time, the default label-based tracking works fine — but it can cause problems when those labels interfere with other systems.
 
 The most common issue I've seen is with label selectors. If your application uses label selectors that happen to match ArgoCD's tracking labels, you can get unexpected behavior. Switching to annotation-based tracking resolves this, since annotations aren't used in selectors.
 
@@ -1127,7 +1127,7 @@ Server-side apply (`ServerSideApply=true`) is worth calling out here. It delegat
 
 ### Debugging Manifest Generation
 
-ArgoCD doesn't deploy your YAML files directly—it renders them through Helm, Kustomize, or plain directory processing first. When sync fails with manifest-related errors, you need to see what ArgoCD actually generated, which might differ from what you expect.
+ArgoCD doesn't deploy your YAML files directly — it renders them through Helm, Kustomize, or plain directory processing first. When sync fails with manifest-related errors, you need to see what ArgoCD actually generated, which might differ from what you expect.
 
 The most common surprise is values resolution in Helm. ArgoCD might be using different values files than you're testing locally, or environment-specific overrides might not be applied in the order you expect.
 
@@ -1155,11 +1155,11 @@ kubectl exec -n argocd deploy/argocd-repo-server -- \
 ```
 Code: Commands for debugging manifest generation from Helm and Kustomize.
 
-The `argocd app manifests` command is your friend here—it shows you exactly what ArgoCD will apply, after all the templating. Compare this output to what you generate locally, and discrepancies will jump out. The repo-server access check at the end catches a common issue where ArgoCD can't clone or access your repository due to network or authentication problems.
+The `argocd app manifests` command is your friend here — it shows you exactly what ArgoCD will apply, after all the templating. Compare this output to what you generate locally, and discrepancies will jump out. The repo-server access check at the end catches a common issue where ArgoCD can't clone or access your repository due to network or authentication problems.
 
 ### Recovering from Corrupt State
 
-Sometimes ArgoCD's internal state becomes inconsistent with reality. This can happen after failed upgrades, network partitions, or manual resource modifications that confuse the controller. The symptoms vary—perpetual OutOfSync, missing resources in the UI, or sync operations that silently do nothing.
+Sometimes ArgoCD's internal state becomes inconsistent with reality. This can happen after failed upgrades, network partitions, or manual resource modifications that confuse the controller. The symptoms vary — perpetual OutOfSync, missing resources in the UI, or sync operations that silently do nothing.
 
 ```bash title="recovery-commands.sh"
 #!/bin/bash
@@ -1179,7 +1179,7 @@ kubectl rollout restart deployment -n argocd argocd-application-controller
 ```
 Code: Recovery commands for ArgoCD state corruption scenarios.
 
-Start with `--hard-refresh`, which forces ArgoCD to re-read the Git repository and recalculate the desired state. This resolves most caching issues. If that doesn't work, the nuclear option is deleting and recreating the Application resource—but _only_ with `--cascade=false`, which preserves the actual Kubernetes resources while resetting ArgoCD's tracking state.
+Start with `--hard-refresh`, which forces ArgoCD to re-read the Git repository and recalculate the desired state. This resolves most caching issues. If that doesn't work, the nuclear option is deleting and recreating the Application resource — but _only_ with `--cascade=false`, which preserves the actual Kubernetes resources while resetting ArgoCD's tracking state.
 
 <Callout type="danger">
 The `--cascade=false` flag is critical when deleting an application for recovery. Without it, ArgoCD will delete all the Kubernetes resources the application manages.
@@ -1196,5 +1196,5 @@ Most sync failures fall into a few categories: resource dependency issues (usual
 The prevention strategies matter as much as the debugging skills. CI validation catches manifest errors before they reach ArgoCD. Sync windows prevent deployments during high-risk periods. Alerting ensures you know about failures before users do. And runbooks mean that when things fail at 3 AM, you have a documented path to resolution.
 
 <Callout type="success">
-GitOps is not magic—it is automation. When the automation fails, you need to understand what it was trying to do. Master the sync process, and debugging becomes systematic rather than frustrating.
+GitOps is not magic — it is automation. When the automation fails, you need to understand what it was trying to do. Master the sync process, and debugging becomes systematic rather than frustrating.
 </Callout>

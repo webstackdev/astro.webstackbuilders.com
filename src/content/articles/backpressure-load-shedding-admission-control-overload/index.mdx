@@ -17,21 +17,21 @@ featured: true
 *[RPS]: Requests Per Second
 *[SLO]: Service Level Objective
 
-I watched an e-commerce platform collapse during a flash sale. Traffic spiked to 10x normal within minutes. The system accepted every request—and that was the problem. Database connections exhausted. Response times climbed from 200ms to 30 seconds. Clients started timing out and retrying, which doubled the load again. What could have been a 15-minute degradation became a 4-hour outage.
+I watched an e-commerce platform collapse during a flash sale. Traffic spiked to 10x normal within minutes. The system accepted every request — and that was the problem. Database connections exhausted. Response times climbed from 200ms to 30 seconds. Clients started timing out and retrying, which doubled the load again. What could have been a 15-minute degradation became a 4-hour outage.
 
 The fix wasn't more capacity. It was teaching the system to say "no."
 
 Most systems don't fail because they can't handle load. They fail because they try to handle _all_ the load. Without explicit overload handling, a system accepts work it cannot complete, queues grow unbounded, and what starts as a traffic spike becomes a prolonged outage.
 
 <Callout type="warning">
-A system without backpressure will accept work until it collapses. The goal isn't handling unlimited load—it's handling your design capacity reliably and degrading gracefully beyond it.
+A system without backpressure will accept work until it collapses. The goal isn't handling unlimited load — it's handling your design capacity reliably and degrading gracefully beyond it.
 </Callout>
 
 ## Understanding Overload
 
 ### The Cascading Failure Loop
 
-Overload doesn't just make systems slow—it makes them _worse_. There's a vicious cycle at work: load increases, latency increases, clients timeout, clients retry, and now you have even more load. A 2x traffic spike becomes a 4x spike from retries alone.
+Overload doesn't just make systems slow — it makes them _worse_. There's a vicious cycle at work: load increases, latency increases, clients timeout, clients retry, and now you have even more load. A 2x traffic spike becomes a 4x spike from retries alone.
 
 <Diagram
   title="The cascading failure loop where overload compounds itself through retries and resource exhaustion"
@@ -52,7 +52,7 @@ flowchart TD
 ```
 </Diagram>
 
-The retry loop is the most insidious—well-intentioned client retry logic turns a temporary overload into a sustained assault. Thread pool saturation means requests that _could_ be processed sit waiting for a worker. Connection pool exhaustion means even those workers can't reach the database. This is why overload tends to get worse rather than self-correcting.
+The retry loop is the most insidious — well-intentioned client retry logic turns a temporary overload into a sustained assault. Thread pool saturation means requests that _could_ be processed sit waiting for a worker. Connection pool exhaustion means even those workers can't reach the database. This is why overload tends to get worse rather than self-correcting.
 
 ### Why Latency Explodes Under Load
 
@@ -64,7 +64,7 @@ $$
 
 Where L is the average queue depth, λ is the arrival rate (requests per second), and W is the average time in system (latency). When arrival rate exceeds processing rate, the queue grows without bound. And here's the cruel part: every request in the queue adds to _everyone's_ wait time.
 
-Consider a system processing 100 RPS with 200ms latency—that's 20 requests in flight at any moment. Now hit it with 500 RPS while it can still only process 100. After one minute, you've got 24,000 requests queued, and latency exceeds 4 minutes. By the time requests are served, clients have long since given up.
+Consider a system processing 100 RPS with 200ms latency — that's 20 requests in flight at any moment. Now hit it with 500 RPS while it can still only process 100. After one minute, you've got 24,000 requests queued, and latency exceeds 4 minutes. By the time requests are served, clients have long since given up.
 
 ### Goodput vs. Throughput
 
@@ -94,7 +94,7 @@ Here's a counterintuitive truth: throughput can _increase_ during overload while
   }}
 />
 
-Under overload, your system might process more requests than ever—but most of that work is wasted. Requests timeout after consuming resources. Database queries complete but the client already gave up.
+Under overload, your system might process more requests than ever — but most of that work is wasted. Requests timeout after consuming resources. Database queries complete but the client already gave up.
 
 This is the key insight: if you'd simply rejected 1,000 of those 2,000 requests immediately, you could have successfully served the other 1,000. Instead, by accepting all of them, you served only 400. _Fast rejection is better than slow failure._
 
@@ -102,9 +102,9 @@ This is the key insight: if you'd simply rejected 1,000 of those 2,000 requests 
 
 ### The Bouncer Pattern
 
-Think of admission control like a nightclub bouncer. The bouncer's job isn't to throw people out after they're inside causing trouble—it's to decide at the door who gets in. If the club is at capacity, new arrivals wait outside. The people inside have a good experience.
+Think of admission control like a nightclub bouncer. The bouncer's job isn't to throw people out after they're inside causing trouble — it's to decide at the door who gets in. If the club is at capacity, new arrivals wait outside. The people inside have a good experience.
 
-Admission control works the same way: decide _upfront_ whether to accept work, rather than accepting everything and failing later. A request rejected at the door costs almost nothing. A request that gets halfway through your system before timing out has consumed database connections, CPU cycles, and memory—resources that could have served requests you _could_ complete.
+Admission control works the same way: decide _upfront_ whether to accept work, rather than accepting everything and failing later. A request rejected at the door costs almost nothing. A request that gets halfway through your system before timing out has consumed database connections, CPU cycles, and memory — resources that could have served requests you _could_ complete.
 
 Here's how that flow looks in practice:
 
@@ -147,7 +147,7 @@ I've found four approaches cover most scenarios:
     },
     {
       lead: "Latency-based admission:",
-      text: "the most sophisticated—it directly targets the metric you care about. As P99 latency increases, admission probability decreases. The system automatically finds its sustainable capacity.",
+      text: "the most sophisticated — it directly targets the metric you care about. As P99 latency increases, admission probability decreases. The system automatically finds its sustainable capacity.",
     },
     {
       lead: "Queue depth limiting:",
@@ -212,7 +212,7 @@ Code: Express middleware for latency-based admission control.
 
 ### Priority-Based Admission
 
-Not all requests are equal. During overload, you want to protect critical traffic—health checks, payment processing, authenticated users—while shedding less important work.
+Not all requests are equal. During overload, you want to protect critical traffic — health checks, payment processing, authenticated users — while shedding less important work.
 
 ```yaml title="aws-alb-priority-rules.yaml"
 # AWS ALB listener rules - higher priority numbers = lower precedence
@@ -285,13 +285,13 @@ Load shedding is the deliberate dropping of work to preserve system stability. I
 
 Table: Load shedding strategies and their tradeoffs.
 
-LIFO shedding sounds counterintuitive—drop the _newest_ requests?—but in my experience it often produces better outcomes. A request that just arrived and gets rejected immediately can be retried right away. A request that waited 30 seconds in a queue and finally gets served? That client probably gave up long ago. You did all that work for nothing.
+LIFO shedding sounds counterintuitive — drop the _newest_ requests?—but in my experience it often produces better outcomes. A request that just arrived and gets rejected immediately can be retried right away. A request that waited 30 seconds in a queue and finally gets served? That client probably gave up long ago. You did all that work for nothing.
 
-CoDel (Controlled Delay) is even smarter. It tracks how long each request has been queued. If wait times stay below a target, the queue is healthy. If they stay above the target for an interval, CoDel starts dropping—but only enough to bring the queue back under control. It's self-tuning and responds to actual conditions rather than static thresholds.
+CoDel (Controlled Delay) is even smarter. It tracks how long each request has been queued. If wait times stay below a target, the queue is healthy. If they stay above the target for an interval, CoDel starts dropping — but only enough to bring the queue back under control. It's self-tuning and responds to actual conditions rather than static thresholds.
 
 ### Graceful Degradation Tiers
 
-Load shedding doesn't have to be all-or-nothing. Think of it like a submarine diving deeper—at each depth threshold, you seal off another compartment. The ship loses functionality but gains survivability.
+Load shedding doesn't have to be all-or-nothing. Think of it like a submarine diving deeper — at each depth threshold, you seal off another compartment. The ship loses functionality but gains survivability.
 
 ```yaml title="feature-flags-degradation.yaml"
 # Feature flag configuration for graceful degradation
@@ -344,7 +344,7 @@ Graceful degradation requires knowing which features are expendable. Work with p
 
 ## Conclusion
 
-Every system has limits. The question isn't whether yours will face overload—it's whether it will handle overload gracefully or collapse catastrophically.
+Every system has limits. The question isn't whether yours will face overload — it's whether it will handle overload gracefully or collapse catastrophically.
 
 <Download
   resource="backpressure-load-shedding-admission-control-overload"
@@ -376,7 +376,7 @@ Three principles to carry forward:
       text: "When you can't serve a request, say so immediately. A 503 returned in 5ms is infinitely better than a timeout after 30 seconds. The fast rejection frees resources and gives clients useful information.",
     },
     {
-      lead: "Not all work is equal—prioritize ruthlessly:",
+      lead: "Not all work is equal — prioritize ruthlessly:",
       text: "During overload, protect what matters: health checks, payments, authenticated users. Shed the non-essential to preserve the critical.",
     },
     {

@@ -41,15 +41,15 @@ Four versioning approaches dominate API design, each with tradeoffs that matter 
   items={[
     {
       lead: "URL path versioning",
-      text: "(`/api/v1/deployments`, `/api/v2/deployments`) is explicit and visible - every request clearly shows which version it's using. Load balancers can route traffic easily, and deprecating old versions is straightforward. For internal platform APIs, this is usually the right choice because visibility trumps elegance. When debugging a failed pipeline at 2 AM, you want to immediately know which API version the client is calling.",
+      text: "(<span class="text-mono">/api/v1/deployments</span>, <span class="text-mono">/api/v2/deployments</span>) is explicit and visible - every request clearly shows which version it's using. Load balancers can route traffic easily, and deprecating old versions is straightforward. For internal platform APIs, this is usually the right choice because visibility trumps elegance. When debugging a failed pipeline at 2 AM, you want to immediately know which API version the client is calling.",
     },
     {
       lead: "Header versioning",
-      text: "(`Accept: application/vnd.platform.v2+json`) and _query parameter versioning_ (`/api/services?version=2`) both hide version information where developers forget to set it and debugging tools don't show it. Skip these unless you have specific requirements for URL stability.",
+      text: "(<span class="text-mono">Accept: application/vnd.platform.v2+json</span>) and _query parameter versioning_ (<span class="text-mono">/api/services?version=2</span>) both hide version information where developers forget to set it and debugging tools don't show it. Skip these unless you have specific requirements for URL stability.",
     },
     {
       lead: "Date-based versioning",
-      text: "(`/api/2024-01-15/services`) works well for APIs with frequent, incremental changes - Stripe and AWS use this successfully. The downside is version accumulation: after a few years, you have dozens of dated endpoints. This works best when you have the tooling to manage many concurrent versions.",
+      text: "(<span class="text-mono">/api/2024-01-15/services</span>) works well for APIs with frequent, incremental changes - Stripe and AWS use this successfully. The downside is version accumulation: after a few years, you have dozens of dated endpoints. This works best when you have the tooling to manage many concurrent versions.",
     },
   ]}
 />
@@ -83,33 +83,62 @@ Semantic versioning gives version numbers meaning. For APIs, the interpretation 
   content={{
     figure: "Version bump decision guide.",
     thead: {
-      th: ["Change Type", "Version Bump", "Consumer Action", "Notice Required"],
+      th: [
+        "Change Type",
+        "Version Bump",
+        "Consumer Action",
+        "Notice Required",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Remove endpoint",
-          td: ["Major", "Update code", "90 days"],
+          td: [
+            "Major",
+            "Update code",
+            "90 days",
+          ],
         },
         {
           th: "Remove field",
-          td: ["Major", "Update code", "90 days"],
+          td: [
+            "Major",
+            "Update code",
+            "90 days",
+          ],
         },
         {
           th: "Add required field",
-          td: ["Major", "Update code", "90 days"],
+          td: [
+            "Major",
+            "Update code",
+            "90 days",
+          ],
         },
         {
           th: "Add optional endpoint",
-          td: ["Minor", "None", "Release notes"],
+          td: [
+            "Minor",
+            "None",
+            "Release notes",
+          ],
         },
         {
           th: "Add response field",
-          td: ["Minor", "None", "Release notes"],
+          td: [
+            "Minor",
+            "None",
+            "Release notes",
+          ],
         },
         {
           th: "Bug fix",
-          td: ["Patch", "None", "Changelog"],
+          td: [
+            "Patch",
+            "None",
+            "Changelog",
+          ],
         },
       ],
     },
@@ -137,37 +166,54 @@ The tricky cases fall in between. Changing error codes from 400 to 422 is techni
   content={{
     figure: "Changes that require full deprecation process.",
     thead: {
-      th: ["Breaking Change", "Why It Breaks"],
+      th: [
+        "Breaking Change",
+        "Why It Breaks",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Remove endpoint",
-          td: ["Returns 404 to existing callers"],
+          td: [
+            "Returns 404 to existing callers",
+          ],
         },
         {
           th: "Change HTTP method",
-          td: ["Returns 405 to existing callers"],
+          td: [
+            "Returns 405 to existing callers",
+          ],
         },
         {
           th: "Rename URL parameter",
-          td: ["Existing URLs become invalid"],
+          td: [
+            "Existing URLs become invalid",
+          ],
         },
         {
           th: "Add required request field",
-          td: ["Existing requests fail validation"],
+          td: [
+            "Existing requests fail validation",
+          ],
         },
         {
           th: "Change field type",
-          td: ["Deserialization fails"],
+          td: [
+            "Deserialization fails",
+          ],
         },
         {
           th: "Change error codes",
-          td: ["Error handling logic breaks"],
+          td: [
+            "Error handling logic breaks",
+          ],
         },
         {
           th: "Change field meaning",
-          td: ["Logic depending on value breaks"],
+          td: [
+            "Logic depending on value breaks",
+          ],
         },
       ],
     },
@@ -179,29 +225,42 @@ The tricky cases fall in between. Changing error codes from 400 to 422 is techni
   content={{
     figure: "Changes that can ship without deprecation.",
     thead: {
-      th: ["Safe Change", "Why It's Safe"],
+      th: [
+        "Safe Change",
+        "Why It's Safe",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Add optional request field",
-          td: ["Existing requests still valid"],
+          td: [
+            "Existing requests still valid",
+          ],
         },
         {
           th: "Add response field",
-          td: ["Clients should ignore unknown fields"],
+          td: [
+            "Clients should ignore unknown fields",
+          ],
         },
         {
           th: "Add new endpoint",
-          td: ["Existing endpoints unchanged"],
+          td: [
+            "Existing endpoints unchanged",
+          ],
         },
         {
           th: "Loosen validation",
-          td: ["Previously valid requests still work"],
+          td: [
+            "Previously valid requests still work",
+          ],
         },
         {
           th: "Performance improvement",
-          td: ["Same results, faster"],
+          td: [
+            "Same results, faster",
+          ],
         },
       ],
     },
@@ -279,29 +338,54 @@ The key insight is that urgency should escalate as the deadline approaches. Earl
   content={{
     figure: "Deprecation communication timeline.",
     thead: {
-      th: ["Timeline", "Communication", "Audience", "Action Required"],
+      th: [
+        "Timeline",
+        "Communication",
+        "Audience",
+        "Action Required",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Announcement",
-          td: ["Changelog, Slack, email", "All engineers", "Awareness"],
+          td: [
+            "Changelog, Slack, email",
+            "All engineers",
+            "Awareness",
+          ],
         },
         {
           th: "90 days",
-          td: ["Slack reminder, dashboard", "Affected teams", "Plan migration"],
+          td: [
+            "Slack reminder, dashboard",
+            "Affected teams",
+            "Plan migration",
+          ],
         },
         {
           th: "30 days",
-          td: ["Direct email, Slack DM", "Remaining consumers", "Urgent migration"],
+          td: [
+            "Direct email, Slack DM",
+            "Remaining consumers",
+            "Urgent migration",
+          ],
         },
         {
           th: "7 days",
-          td: ["Personal outreach", "Critical consumers", "Emergency"],
+          td: [
+            "Personal outreach",
+            "Critical consumers",
+            "Emergency",
+          ],
         },
         {
           th: "Sunset day",
-          td: ["Final notice", "All", "Complete"],
+          td: [
+            "Final notice",
+            "All",
+            "Complete",
+          ],
         },
       ],
     },
@@ -372,21 +456,34 @@ The faster consumers migrate, the sooner you can sunset the old version. Every f
   content={{
     figure: "Migration support tiers.",
     thead: {
-      th: ["Support Tier", "Platform Team Effort", "When to Use"],
+      th: [
+        "Support Tier",
+        "Platform Team Effort",
+        "When to Use",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Self-service",
-          td: ["Minimal (docs, tools)", "Most consumers"],
+          td: [
+            "Minimal (docs, tools)",
+            "Most consumers",
+          ],
         },
         {
           th: "Assisted",
-          td: ["Moderate (office hours, reviews)", "Stuck consumers"],
+          td: [
+            "Moderate (office hours, reviews)",
+            "Stuck consumers",
+          ],
         },
         {
           th: "Hands-on",
-          td: ["High (PRs, pairing)", "Critical consumers, complex cases"],
+          td: [
+            "High (PRs, pairing)",
+            "Critical consumers, complex cases",
+          ],
         },
       ],
     },
@@ -436,7 +533,7 @@ Code: Example migration guide structure.
 
 Manual migration doesn't scale. When you have 50 consuming services, even a "simple" migration consumes hundreds of developer-hours. Automation tools reduce that dramatically.
 
-_Codemods_ automatically transform code from old API patterns to new ones. They parse source files, identify API calls matching v1 patterns, and rewrite them to v2. Good codemods flag changes that need manual review rather than silently transforming ambiguous cases.
+__Codemods__ automatically transform code from old API patterns to new ones. They parse source files, identify API calls matching v1 patterns, and rewrite them to v2. Good codemods flag changes that need manual review rather than silently transforming ambiguous cases.
 
 For internal APIs, developing custom codemods is often worth the investment. You know exactly what patterns consumers use because you can grep the monorepo or scan consuming services. A codemod that handles 80% of cases automatically and flags the remaining 20% for manual review dramatically reduces migration friction. Facebook's jscodeshift makes this tractable for JavaScript/TypeScript:
 
@@ -513,7 +610,7 @@ You can't manage what you can't measure. Deprecation metrics tell you whether mi
   ]}
 />
 
-_Timeline metrics_ keep the deprecation on schedule. Compare actual milestone dates to planned ones. The ultimate measure: did you successfully sunset the old version on the announced date?
+__Timeline metrics__ keep the deprecation on schedule. Compare actual milestone dates to planned ones. The ultimate measure: did you successfully sunset the old version on the announced date?
 
 ### The Migration Funnel
 
@@ -568,25 +665,46 @@ When consumers are stuck at a particular stage, investigate why. Often it's a mi
   content={{
     figure: "Migration milestone targets.",
     thead: {
-      th: ["Metric", "90 Days Out", "30 Days Out", "Sunset Day"],
+      th: [
+        "Metric",
+        "90 Days Out",
+        "30 Days Out",
+        "Sunset Day",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "v2 Adoption",
-          td: ["> 30%", "> 80%", "100%"],
+          td: [
+            "> 30%",
+            "> 80%",
+            "100%",
+          ],
         },
         {
           th: "Consumers Migrated",
-          td: ["> 50%", "> 95%", "100%"],
+          td: [
+            "> 50%",
+            "> 95%",
+            "100%",
+          ],
         },
         {
           th: "Migration Errors",
-          td: ["Baseline", "Baseline", "N/A"],
+          td: [
+            "Baseline",
+            "Baseline",
+            "N/A",
+          ],
         },
         {
           th: "Holdouts Identified",
-          td: ["All known", "Action plans", "Resolved"],
+          td: [
+            "All known",
+            "Action plans",
+            "Resolved",
+          ],
         },
       ],
     },
@@ -618,41 +736,60 @@ The payoff is substantial. Trust with internal teams that makes future changes e
   content={{
     figure: "Key deprecation timeline thresholds.",
     thead: {
-      th: ["Parameter", "Value"],
+      th: [
+        "Parameter",
+        "Value",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Major version sunset notice",
-          td: ["12 months"],
+          td: [
+            "12 months",
+          ],
         },
         {
           th: "Minor feature deprecation",
-          td: ["6 months"],
+          td: [
+            "6 months",
+          ],
         },
         {
           th: "Security emergency minimum",
-          td: ["30 days"],
+          td: [
+            "30 days",
+          ],
         },
         {
           th: "Breaking change advance notice",
-          td: ["90 days"],
+          td: [
+            "90 days",
+          ],
         },
         {
           th: "Feedback period for proposals",
-          td: ["30 days"],
+          td: [
+            "30 days",
+          ],
         },
         {
           th: "Target v2 adoption at 90 days",
-          td: ["> 30%"],
+          td: [
+            "> 30%",
+          ],
         },
         {
           th: "Target v2 adoption at 30 days",
-          td: ["> 80%"],
+          td: [
+            "> 80%",
+          ],
         },
         {
           th: "Target v2 adoption at sunset",
-          td: ["100%"],
+          td: [
+            "100%",
+          ],
         },
       ],
     },

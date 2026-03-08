@@ -30,14 +30,14 @@ The worst part? Their users couldn't tell the difference. The app was a B2B tool
 This is the trap: availability targeting becomes a badge of engineering honor rather than an economic decision. Every additional nine costs roughly 10x more than the previous one. Before committing to a target, you need to know exactly what you're buying and whether the business value justifies the investment.
 
 <Callout type="warning">
-This article argues that 99.9% is the right target for most services. If you're in financial trading, healthcare, or life safety systems—keep reading anyway. The cost-benefit framework still applies; your crossover point is just higher than most.
+This article argues that 99.9% is the right target for most services. If you're in financial trading, healthcare, or life safety systems — keep reading anyway. The cost-benefit framework still applies; your crossover point is just higher than most.
 </Callout>
 
 ## The Math of Nines
 
 ### What the Numbers Actually Mean
 
-Before diving into cost analysis, let's ground the discussion in concrete numbers. Availability percentages are abstract—stakeholders need to understand what they actually mean in terms of downtime.
+Before diving into cost analysis, let's ground the discussion in concrete numbers. Availability percentages are abstract — stakeholders need to understand what they actually mean in terms of downtime.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -71,11 +71,11 @@ Before diving into cost analysis, let's ground the discussion in concrete number
   }}
 />
 
-The jump from 99.9% to 99.99% looks small—just 0.09 percentage points. But in downtime terms, you're going from nearly 9 hours per year to under an hour. And getting that last nine from 99.99% to 99.999%? You're reducing downtime from 52 minutes to 5 minutes annually. The marginal improvement shrinks while the cost explodes.
+The jump from 99.9% to 99.99% looks small — just 0.09 percentage points. But in downtime terms, you're going from nearly 9 hours per year to under an hour. And getting that last nine from 99.99% to 99.999%? You're reducing downtime from 52 minutes to 5 minutes annually. The marginal improvement shrinks while the cost explodes.
 
 ### Calculating Composite Availability
 
-Here's where the math gets uncomfortable. Your system's availability isn't determined by your best component—it's determined by multiplying all your components together. Every dependency in the critical path drags your overall availability down.
+Here's where the math gets uncomfortable. Your system's availability isn't determined by your best component — it's determined by multiplying all your components together. Every dependency in the critical path drags your overall availability down.
 
 $$
 A_{system} = A_1 \times A_2 \times A_3 \times ... \times A_n
@@ -99,7 +99,7 @@ Your system availability cannot exceed your least available dependency. If your 
 
 ### Parallel vs. Serial Dependencies
 
-The composite availability formula assumes serial dependencies—requests must pass through each component in sequence. But redundancy works in the opposite direction. When you have multiple components that can handle the same request, failures have to occur _simultaneously_ to cause an outage.
+The composite availability formula assumes serial dependencies — requests must pass through each component in sequence. But redundancy works in the opposite direction. When you have multiple components that can handle the same request, failures have to occur _simultaneously_ to cause an outage.
 
 <Diagram
   title="Serial dependencies multiply failure probability; parallel redundancy reduces it"
@@ -122,7 +122,7 @@ flowchart TD
 ```
 </Diagram>
 
-The formula for parallel availability inverts the logic—you multiply the _failure_ probabilities:
+The formula for parallel availability inverts the logic — you multiply the _failure_ probabilities:
 
 $$
 A_{parallel} = 1 - (1 - A_1) \times (1 - A_2) \times ... \times (1 - A_n)
@@ -178,11 +178,11 @@ The "10x per nine" rule of thumb is surprisingly accurate when you look at real 
 />
 Table: Infrastructure cost multipliers by availability tier.
 
-Here's what each tier actually looks like in practice. At **99%**, you're running single-region, single-zone infrastructure with a single database instance, manual failover, and basic uptime checks—roughly $500/month in infrastructure. At **99.9%**, you need multi-AZ deployment within a region, database replication with automated failover, and comprehensive APM—around $2,000/month.
+Here's what each tier actually looks like in practice. At **99%**, you're running single-region, single-zone infrastructure with a single database instance, manual failover, and basic uptime checks — roughly $500/month in infrastructure. At **99.9%**, you need multi-AZ deployment within a region, database replication with automated failover, and comprehensive APM — around $2,000/month.
 
 The jump to **99.99%** is where things change fundamentally. You're no longer just adding redundancy within a region; you need multi-region deployment with global replication, automated cross-region failover, and a full observability stack. Infrastructure alone runs $15,000/month or more. And **99.999%** requires active-active global databases, instant automated failover, and predictive monitoring with continuous chaos engineering—$100,000+/month before you've hired anyone.
 
-Notice the jump from three nines to four nines—you go from regional redundancy to global redundancy. That's not just more servers; it's fundamentally different complexity. You're now dealing with cross-region latency, data consistency across continents, and failure modes that don't exist in single-region deployments.
+Notice the jump from three nines to four nines — you go from regional redundancy to global redundancy. That's not just more servers; it's fundamentally different complexity. You're now dealing with cross-region latency, data consistency across continents, and failure modes that don't exist in single-region deployments.
 
 ### Hidden Costs Beyond Infrastructure
 
@@ -222,7 +222,7 @@ Infrastructure is the visible cost. The hidden costs are often larger.
 
 Table: Hidden costs that increase with availability targets.
 
-The on-call math alone can be decisive. To maintain a sustainable 24/7 on-call rotation with reasonable response times, you need at minimum 4-5 engineers. At $150k fully loaded cost per engineer, that's $600k-$750k annually just for the humans—before you've bought a single server. For a startup, that's often more than the entire infrastructure budget at the 99.9% tier.
+The on-call math alone can be decisive. To maintain a sustainable 24/7 on-call rotation with reasonable response times, you need at minimum 4-5 engineers. At $150k fully loaded cost per engineer, that's $600k-$750k annually just for the humans — before you've bought a single server. For a startup, that's often more than the entire infrastructure budget at the 99.9% tier.
 
 <Callout type="danger">
 The biggest hidden cost is opportunity cost. Engineering hours spent achieving 99.99% are hours not spent building features that might grow revenue faster than the avoided downtime costs.
@@ -295,15 +295,15 @@ analysis = calculate_roi(AvailabilityAnalysis(
 ```
 Code: ROI calculator for availability investments showing when improvements are not justified.
 
-This example is illuminating. Even at $10,000 per hour of lost revenue—which is substantial for most companies—the jump from 99.9% to 99.99% doesn't pay off. You'd spend $150k to save $78k. You'd need revenue at risk of roughly $19,000 per hour before that investment makes sense.
+This example is illuminating. Even at $10,000 per hour of lost revenue — which is substantial for most companies — the jump from 99.9% to 99.99% doesn't pay off. You'd spend $150k to save $78k. You'd need revenue at risk of roughly $19,000 per hour before that investment makes sense.
 
-Most businesses don't have that math. E-commerce sites doing $50 million annually work out to about $5,700 per hour _on average_, and downtime rarely loses you 100% of that—customers often just come back later. The crossover point for four nines is higher than most teams realize.
+Most businesses don't have that math. E-commerce sites doing $50 million annually work out to about $5,700 per hour _on average_, and downtime rarely loses you 100% of that — customers often just come back later. The crossover point for four nines is higher than most teams realize.
 
 ## User Impact Analysis
 
 ### Not All Downtime Is Equal
 
-The dirty secret of availability metrics is that they treat all minutes equally. A minute of downtime at 3am on a Sunday counts the same as a minute during Black Friday checkout rush. Your availability number doesn't distinguish between them—but your users absolutely do.
+The dirty secret of availability metrics is that they treat all minutes equally. A minute of downtime at 3am on a Sunday counts the same as a minute during Black Friday checkout rush. Your availability number doesn't distinguish between them — but your users absolutely do.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -335,7 +335,7 @@ The dirty secret of availability metrics is that they treat all minutes equally.
 
 Table: Same availability number can mean very different user experiences.
 
-This is why scheduled maintenance windows still make sense. If you can concentrate your allowed downtime into periods when users aren't around, your effective availability—what users actually experience—is much higher than your measured availability.
+This is why scheduled maintenance windows still make sense. If you can concentrate your allowed downtime into periods when users aren't around, your effective availability — what users actually experience — is much higher than your measured availability.
 
 <Callout type="info">
 A 99.9% availability measured 24/7 might mean all downtime happens during off-peak hours when nobody notices, or all during peak hours when everyone suffers. The number alone does not tell you.
@@ -389,9 +389,9 @@ slis:
 ```
 Code: User-centric SLIs that measure actual experience, not just uptime.[^openslo]
 
-[^openslo]: In practice, SLI/SLO definitions are often expressed in [OpenSLO](https://openslo.com/), a vendor-neutral specification for defining SLOs as code. OpenSLO lets you define reliability targets in a portable format that tools like Sloth, Nobl9, and others can consume—avoiding lock-in to any particular observability vendor.
+[^openslo]: In practice, SLI/SLO definitions are often expressed in [OpenSLO](https://openslo.com/), a vendor-neutral specification for defining SLOs as code. OpenSLO lets you define reliability targets in a portable format that tools like Sloth, Nobl9, and others can consume — avoiding lock-in to any particular observability vendor.
 
-Notice that the user-centric targets are often _lower_ than infrastructure targets. That's not a mistake. A 99.5% checkout success rate is harder to achieve than 99.99% server uptime, because it requires the entire stack—frontend, API, payment processor, inventory system—to work together successfully.
+Notice that the user-centric targets are often _lower_ than infrastructure targets. That's not a mistake. A 99.5% checkout success rate is harder to achieve than 99.99% server uptime, because it requires the entire stack — frontend, API, payment processor, inventory system — to work together successfully.
 
 ### User Tolerance Thresholds
 
@@ -436,15 +436,15 @@ Consumer applications sit firmly in the 99.9% tier. Your users have phones that 
 
 ### The SLO Setting Process
 
-Setting availability targets is an iterative negotiation between what the business wants, what users need, what dependencies allow, and what you can afford. It's not a one-time decision—it's a process that surfaces hidden assumptions and forces alignment across engineering and business stakeholders.
+Setting availability targets is an iterative negotiation between what the business wants, what users need, what dependencies allow, and what you can afford. It's not a one-time decision — it's a process that surfaces hidden assumptions and forces alignment across engineering and business stakeholders.
 
-The typical flow starts with business requirements, moves through user impact analysis and dependency constraints, then hits cost analysis. If the cost is affordable, you set the SLO and document it. If not—and this is where the real work happens—you negotiate a lower target and loop back through user impact analysis. Most teams start with aspirational targets, run the numbers, and realize they need to have uncomfortable conversations with stakeholders about what's actually achievable and affordable.
+The typical flow starts with business requirements, moves through user impact analysis and dependency constraints, then hits cost analysis. If the cost is affordable, you set the SLO and document it. If not — and this is where the real work happens — you negotiate a lower target and loop back through user impact analysis. Most teams start with aspirational targets, run the numbers, and realize they need to have uncomfortable conversations with stakeholders about what's actually achievable and affordable.
 
 Those conversations are easier when you come prepared with specific questions.
 
 ### Questions to Ask Before Setting Targets
 
-Before committing to an availability target, you need answers to questions that span business, technical, and organizational domains. This isn't bureaucracy—it's due diligence that prevents you from making promises you can't keep.
+Before committing to an availability target, you need answers to questions that span business, technical, and organizational domains. This isn't bureaucracy — it's due diligence that prevents you from making promises you can't keep.
 
 1. **Business Questions**
    - [ ] What is the revenue impact of one hour of downtime?
@@ -476,7 +476,7 @@ The "Reality Check" section is where most targets get revised downward. It's bet
 
 ### Dependency-Constrained Targets
 
-Your availability ceiling isn't set by your ambition—it's set by your weakest critical dependency. If your payment processor guarantees 99.95% and your checkout flow requires payment processing, you physically cannot offer better than 99.95% on checkout, no matter how perfect your own systems are.
+Your availability ceiling isn't set by your ambition — it's set by your weakest critical dependency. If your payment processor guarantees 99.95% and your checkout flow requires payment processing, you physically cannot offer better than 99.95% on checkout, no matter how perfect your own systems are.
 
 Consider a checkout service with four dependencies:
 
@@ -485,24 +485,24 @@ Consider a checkout service with four dependencies:
   items={[
     {
       lead: "Payment gateway (external):",
-      text: "99.95% SLA, blocking—checkout fails without it",
+      text: "99.95% SLA, blocking — checkout fails without it",
     },
     {
       lead: "Inventory service (internal):",
-      text: "99.9% SLO, blocking—can't sell what you can't verify",
+      text: "99.9% SLO, blocking — can't sell what you can't verify",
     },
     {
       lead: "Email service (internal):",
-      text: "99.5% SLO, non-blocking—can queue and retry confirmations later",
+      text: "99.5% SLO, non-blocking — can queue and retry confirmations later",
     },
     {
       lead: "Analytics (internal):",
-      text: "99% SLO, non-blocking—fire and forget",
+      text: "99% SLO, non-blocking — fire and forget",
     },
   ]}
 />
 
-The distinction between blocking and non-blocking dependencies is crucial. Email confirmation can fail without breaking checkout—you queue it and retry later. But if the payment gateway is down, checkout is down, period. Only blocking dependencies factor into your availability ceiling.
+The distinction between blocking and non-blocking dependencies is crucial. Email confirmation can fail without breaking checkout — you queue it and retry later. But if the payment gateway is down, checkout is down, period. Only blocking dependencies factor into your availability ceiling.
 
 For the blocking dependencies, the math is multiplicative:
 
@@ -518,7 +518,7 @@ Do not set availability targets higher than your dependencies allow. A 99.99% SL
 
 ## Architecture Patterns by Tier
 
-Each availability tier requires a fundamentally different architecture—not just more of the same. Understanding what each tier actually looks like helps you make informed decisions about where to invest.
+Each availability tier requires a fundamentally different architecture — not just more of the same. Understanding what each tier actually looks like helps you make informed decisions about where to invest.
 
 ### Two Nines (99%): Keep It Simple
 
@@ -561,7 +561,7 @@ flowchart TD
   ]}
 />
 
-This is where most early-stage startups should be. You're not building for scale yet—you're building to learn what customers want. Every hour spent on redundancy is an hour not spent on product discovery.
+This is where most early-stage startups should be. You're not building for scale yet — you're building to learn what customers want. Every hour spent on redundancy is an hour not spent on product discovery.
 
 ### Three Nines (99.9%): Professional Grade
 
@@ -611,7 +611,7 @@ This is the sweet spot for most SaaS products. It's achievable with standard clo
 
 ### Four Nines (99.99%): Serious Business
 
-At 99.99%, you're allowed only 52 minutes of downtime per year. That's less than one incident. Any regional outage—and cloud providers have them—could blow your entire annual budget in a single event.
+At 99.99%, you're allowed only 52 minutes of downtime per year. That's less than one incident. Any regional outage — and cloud providers have them — could blow your entire annual budget in a single event.
 
 <Diagram
   title="Four-nines architecture with multi-region deployment"
@@ -667,11 +667,11 @@ flowchart TD
   ]}
 />
 
-The jump from three nines to four nines is where costs explode. You're not just adding more servers—you're fundamentally changing how you operate. Cross-region data replication alone introduces complexity that many teams underestimate: latency, consistency tradeoffs, split-brain scenarios.
+The jump from three nines to four nines is where costs explode. You're not just adding more servers — you're fundamentally changing how you operate. Cross-region data replication alone introduces complexity that many teams underestimate: latency, consistency tradeoffs, split-brain scenarios.
 
 ### Five Nines (99.999%): Exotic Territory
 
-At 99.999%, you're allowed 5.26 minutes of downtime per year. That's not per incident—that's _total_. A single page load timeout could consume a meaningful portion of your annual budget.
+At 99.999%, you're allowed 5.26 minutes of downtime per year. That's not per incident — that's _total_. A single page load timeout could consume a meaningful portion of your annual budget.
 
 <Callout type="danger">
 Five nines (5.26 minutes/year of downtime) means you cannot have a single failure that takes more than a few seconds to recover from. This requires exotic architectures, massive redundancy, and organizational commitment that most companies cannot justify.
@@ -709,7 +709,7 @@ Most companies claiming five nines are either lying, measuring incorrectly, or s
 
 ### When Five Nines Is Actually Justified
 
-There are domains where five nines isn't overkill—it's table stakes. Financial trading systems measure downtime in dollars per millisecond; a one-second outage during market hours can cost more than a year of infrastructure. Healthcare systems controlling medication dispensing or patient monitoring can't afford "we'll retry in a few minutes." Air traffic control, nuclear plant monitoring, emergency services dispatch—these systems have regulatory and safety requirements that make the ROI calculation irrelevant.
+There are domains where five nines isn't overkill — it's table stakes. Financial trading systems measure downtime in dollars per millisecond; a one-second outage during market hours can cost more than a year of infrastructure. Healthcare systems controlling medication dispensing or patient monitoring can't afford "we'll retry in a few minutes." Air traffic control, nuclear plant monitoring, emergency services dispatch — these systems have regulatory and safety requirements that make the ROI calculation irrelevant.
 
 The pattern in these cases: the cost of failure isn't measured in lost revenue, it's measured in lives, regulatory penalties, or market position that can never be recovered. If your system falls into this category, you already know it. If you're not sure, it probably doesn't.
 
@@ -753,7 +753,7 @@ Frame it as investment decisions, not technical requirements. "Option B costs $7
 
 ### When to Push Back
 
-Not every availability request deserves a "yes." Part of engineering leadership is knowing when to push back—and how to do it constructively.
+Not every availability request deserves a "yes." Part of engineering leadership is knowing when to push back — and how to do it constructively.
 
 **When to push back on five nines:**
 
@@ -825,14 +825,14 @@ The most important part is the rationale. When someone asks "why aren't we five 
 
 The next time someone says "we need five nines," you now have the tools to have a real conversation instead of nodding along.
 
-Start with the math: each additional nine costs roughly 10x more than the previous one. Then calculate your composite availability—your system can't exceed its weakest critical dependency, and most payment processors, identity providers, and cloud services sit around 99.9-99.95%. Factor in the hidden costs: the 24/7 on-call rotation, the senior SREs, the observability tooling, the opportunity cost of features not built.
+Start with the math: each additional nine costs roughly 10x more than the previous one. Then calculate your composite availability — your system can't exceed its weakest critical dependency, and most payment processors, identity providers, and cloud services sit around 99.9-99.95%. Factor in the hidden costs: the 24/7 on-call rotation, the senior SREs, the observability tooling, the opportunity cost of features not built.
 
-Then ask the hard question: what's the actual business value of that additional availability? For most SaaS products, the answer is less than the cost. The crossover point where four nines pays off is higher than most teams realize—often requiring $19,000 per hour of revenue at risk before the math works.
+Then ask the hard question: what's the actual business value of that additional availability? For most SaaS products, the answer is less than the cost. The crossover point where four nines pays off is higher than most teams realize — often requiring $19,000 per hour of revenue at risk before the math works.
 
-Measure what matters to users, not what's easy to measure. Server uptime is a vanity metric; successful user journeys are the real SLI. And remember that users have tolerance thresholds—nobody churns over 5 minutes of monthly downtime, but they absolutely churn over slow pages and missing features.
+Measure what matters to users, not what's easy to measure. Server uptime is a vanity metric; successful user journeys are the real SLI. And remember that users have tolerance thresholds — nobody churns over 5 minutes of monthly downtime, but they absolutely churn over slow pages and missing features.
 
 For most services, 99.9% is the right answer. It's achievable with standard cloud tools, sustainable for normal-sized teams, and provides reliability that users perceive as "always works." Going beyond requires deliberate justification, not engineering ego.
 
 <Callout type="success">
-The goal is not maximum availability—it's appropriate availability. Spend your reliability budget where it creates the most value, and accept that some downtime is not just acceptable but economically rational.
+The goal is not maximum availability — it's appropriate availability. Spend your reliability budget where it creates the most value, and accept that some downtime is not just acceptable but economically rational.
 </Callout>

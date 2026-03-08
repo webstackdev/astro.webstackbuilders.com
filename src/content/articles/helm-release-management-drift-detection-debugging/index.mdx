@@ -9,7 +9,7 @@ tags: ["cloud-platforms", "helm", "kubernetes", "python", "argo-cd", "prometheus
 featured: true
 ---
 
-It's 3 AM. Your pager goes off. A critical service is down, and you need to roll back to the previous version. You run `helm rollback myapp 42` with confidence - Helm keeps track of every release, so this should be straightforward. But instead of a clean rollback, you get cryptic errors about resources that don't match, conflicts with existing objects, and a rollback that makes things _worse_.
+It's 3 AM. Your pager goes off. A critical service is down, and you need to roll back to the previous version. You run `helm rollback myapp 42` with confidence - Helm keeps track of every release, so this should be straightforward. But instead of a clean rollback, you get cryptic errors about resources that don't match, conflicts with existing objects, and a rollback that makes things __worse__.
 
 I've been in this situation more times than I'd like to admit. What I learned is that the rollback wasn't the problem - the problem started days or weeks earlier when the cluster state quietly drifted away from what Helm thought it was managing.
 
@@ -38,7 +38,7 @@ data:
   release: <base64-encoded-gzipped-release-data>
 ```
 
-The problem is that Helm only knows about changes made _through Helm_. Any modification made directly to the cluster - whether through `kubectl`, another operator, or even a well-meaning colleague fixing something urgently - creates a gap between what Helm thinks exists and what actually exists.
+The problem is that Helm only knows about changes made __through Helm__. Any modification made directly to the cluster - whether through `kubectl`, another operator, or even a well-meaning colleague fixing something urgently - creates a gap between what Helm thinks exists and what actually exists.
 
 ### Common Drift Patterns
 
@@ -47,10 +47,22 @@ Drift doesn't usually happen through malice. It happens through the normal opera
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Manual patches", text: "are the most common source. Someone runs `kubectl edit deployment` to bump memory limits during a traffic spike, or patches a ConfigMap to fix a typo. The fix works, everyone forgets about it, and the next Helm upgrade either reverts the change or fails because of conflicts." },
-    { lead: "Partial failures", text: "occur when Helm upgrades don't complete cleanly. A deployment might succeed while a service account creation fails. Helm records the release as failed, but some resources now exist in a state that doesn't match any revision." },
-    { lead: "Hook failures", text: "are particularly tricky. Helm hooks run Jobs for tasks like database migrations. If a hook fails, Helm may mark the release as failed while leaving hook-created resources behind, creating orphaned objects that confuse future releases." },
-    { lead: "Three-way merge conflicts", text: "happen when Helm's three-way strategic merge encounters resources that have been modified outside of Helm. Helm compares the previous manifest, the new manifest, and the live state - and when all three differ, the merge behavior can be unpredictable." },
+    {
+      lead: "Manual patches",
+      text: "are the most common source. Someone runs `kubectl edit deployment` to bump memory limits during a traffic spike, or patches a ConfigMap to fix a typo. The fix works, everyone forgets about it, and the next Helm upgrade either reverts the change or fails because of conflicts.",
+    },
+    {
+      lead: "Partial failures",
+      text: "occur when Helm upgrades don't complete cleanly. A deployment might succeed while a service account creation fails. Helm records the release as failed, but some resources now exist in a state that doesn't match any revision.",
+    },
+    {
+      lead: "Hook failures",
+      text: "are particularly tricky. Helm hooks run Jobs for tasks like database migrations. If a hook fails, Helm may mark the release as failed while leaving hook-created resources behind, creating orphaned objects that confuse future releases.",
+    },
+    {
+      lead: "Three-way merge conflicts",
+      text: "happen when Helm's three-way strategic merge encounters resources that have been modified outside of Helm. Helm compares the previous manifest, the new manifest, and the live state - and when all three differ, the merge behavior can be unpredictable.",
+    },
   ]}
 />
 
@@ -167,9 +179,18 @@ This command retrieves what Helm thinks it deployed and compares it against the 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Resource conflicts", text: "Happen when you see errors like \"resource already exists\" or \"cannot patch resource.\" This usually means something created the resource outside of Helm, or a previous partial failure left orphaned resources. The fix is usually to either import the existing resource into Helm's management or delete it and let Helm recreate it." },
-    { lead: "Schema validation failures", text: "Occur when CRDs have been updated and your chart's resources no longer match the expected schema. Check if CRD versions have changed and update your chart accordingly." },
-    { lead: "Hook timeouts", text: "Are common with database migration hooks. The Job runs longer than Helm's timeout, Helm marks the release as failed, but the migration is still running. Check the Job's pod logs before taking any action - you might just need to wait." },
+    {
+      lead: "Resource conflicts",
+      text: "Happen when you see errors like \"resource already exists\" or \"cannot patch resource.\" This usually means something created the resource outside of Helm, or a previous partial failure left orphaned resources. The fix is usually to either import the existing resource into Helm's management or delete it and let Helm recreate it.",
+    },
+    {
+      lead: "Schema validation failures",
+      text: "Occur when CRDs have been updated and your chart's resources no longer match the expected schema. Check if CRD versions have changed and update your chart accordingly.",
+    },
+    {
+      lead: "Hook timeouts",
+      text: "Are common with database migration hooks. The Job runs longer than Helm's timeout, Helm marks the release as failed, but the migration is still running. Check the Job's pod logs before taking any action - you might just need to wait.",
+    },
   ]}
 />
 

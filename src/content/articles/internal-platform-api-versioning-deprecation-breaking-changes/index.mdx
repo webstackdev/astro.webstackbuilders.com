@@ -13,7 +13,7 @@ Last week, a platform team I know shipped what they called a "small cleanup" to 
 
 Monday morning, 40 CI pipelines failed. Three teams scrambled to update their deployment scripts. A critical security hotfix got blocked because the team couldn't deploy. The platform team spent the entire week doing emergency migrations instead of planned work. And the trust they'd built over the previous year? Gone.
 
-This happens constantly with internal APIs. There's a temptation to treat them differently than external ones: "we can just tell people to update," "everyone's in the same building," "we'll coordinate in Slack." But internal APIs deserve _more_ versioning discipline than external ones, not less.
+This happens constantly with internal APIs. There's a temptation to treat them differently than external ones: "we can just tell people to update," "everyone's in the same building," "we'll coordinate in Slack." But internal APIs deserve __more__ versioning discipline than external ones, not less.
 
 Internal customers are captive customers. They can't switch to a competitor's platform. This makes breaking their workflows worse, not better - they have no recourse except escalating to leadership or building workarounds that create tech debt.
 
@@ -21,7 +21,7 @@ The same practices that make external APIs predictable - semantic versioning, de
 
 ## What Actually Breaks
 
-_Will existing client code still work?_ That's the question that determines whether a change is breaking. If no, it's breaking. If yes, you need to dig deeper: is the behavior meaningfully different? Will consumers notice or care?
+__Will existing client code still work?__ That's the question that determines whether a change is breaking. If no, it's breaking. If yes, you need to dig deeper: is the behavior meaningfully different? Will consumers notice or care?
 
 Some changes are obviously breaking - removing endpoints, changing HTTP methods, adding required fields. These require full deprecation process, no exceptions. Other changes are obviously safe - adding optional fields, new endpoints, loosening validation. The table below draws the line.
 
@@ -30,41 +30,69 @@ Some changes are obviously breaking - removing endpoints, changing HTTP methods,
   content={{
     figure: "Breaking vs safe changes.",
     thead: {
-      th: ["Change", "Breaking?", "Why"],
+      th: [
+        "Change",
+        "Breaking?",
+        "Why",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Remove endpoint",
-          td: ["Yes", "Returns 404 to existing callers"],
+          td: [
+            "Yes",
+            "Returns 404 to existing callers",
+          ],
         },
         {
           th: "Change HTTP method",
-          td: ["Yes", "Returns 405 to existing callers"],
+          td: [
+            "Yes",
+            "Returns 405 to existing callers",
+          ],
         },
         {
           th: "Add required request field",
-          td: ["Yes", "Existing requests fail validation"],
+          td: [
+            "Yes",
+            "Existing requests fail validation",
+          ],
         },
         {
           th: "Change field type",
-          td: ["Yes", "Deserialization fails"],
+          td: [
+            "Yes",
+            "Deserialization fails",
+          ],
         },
         {
           th: "Add optional request field",
-          td: ["No", "Existing requests still valid"],
+          td: [
+            "No",
+            "Existing requests still valid",
+          ],
         },
         {
           th: "Add response field",
-          td: ["No", "Clients should ignore unknown fields"],
+          td: [
+            "No",
+            "Clients should ignore unknown fields",
+          ],
         },
         {
           th: "Add new endpoint",
-          td: ["No", "Existing endpoints unchanged"],
+          td: [
+            "No",
+            "Existing endpoints unchanged",
+          ],
         },
         {
           th: "Loosen validation",
-          td: ["No", "Previously valid requests still work"],
+          td: [
+            "No",
+            "Previously valid requests still work",
+          ],
         },
       ],
     },
@@ -134,29 +162,48 @@ The key insight is that urgency should escalate as the deadline approaches. Earl
   content={{
     figure: "Deprecation communication timeline.",
     thead: {
-      th: ["Timeline", "Channel", "Consumer Response"],
+      th: [
+        "Timeline",
+        "Channel",
+        "Consumer Response",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Announcement",
-          td: ["Changelog, Slack, email", "Read and acknowledge"],
+          td: [
+            "Changelog, Slack, email",
+            "Read and acknowledge",
+          ],
         },
         {
           th: "90 days out",
-          td: ["Slack reminder, dashboard", "Create migration ticket"],
+          td: [
+            "Slack reminder, dashboard",
+            "Create migration ticket",
+          ],
         },
         {
           th: "30 days out",
-          td: ["Direct email, Slack DM", "Begin migration work"],
+          td: [
+            "Direct email, Slack DM",
+            "Begin migration work",
+          ],
         },
         {
           th: "7 days out",
-          td: ["Personal outreach", "Emergency completion"],
+          td: [
+            "Personal outreach",
+            "Emergency completion",
+          ],
         },
         {
           th: "Sunset day",
-          td: ["Final notice", "Migration complete"],
+          td: [
+            "Final notice",
+            "Migration complete",
+          ],
         },
       ],
     },
