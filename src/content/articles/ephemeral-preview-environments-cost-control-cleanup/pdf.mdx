@@ -201,22 +201,22 @@ The most impactful cost optimization is using shared infrastructure with logical
 >
 ```mermaid
 flowchart TD
-  subgraph dedicated[Dedicated (Expensive)]
-    A1[PR-123 DB]
-    A2[PR-124 DB]
-    A3[PR-125 DB]
+  subgraph dedicated["Dedicated (Expensive)"]
+    A1["PR-123 DB"]
+    A2["PR-124 DB"]
+    A3["PR-125 DB"]
   end
 
-  subgraph shared[Shared (Cost-Effective)]
-    B1[Shared DB]
-    B1 --> B2[schema_pr_123]
-    B1 --> B3[schema_pr_124]
-    B1 --> B4[schema_pr_125]
+  subgraph shared["Shared (Cost-Effective)"]
+    B1["Shared DB"]
+    B1 --> B2["schema_pr_123"]
+    B1 --> B3["schema_pr_124"]
+    B1 --> B4["schema_pr_125"]
   end
 
-  subgraph cost[Cost Comparison (db.t3.small)]
-    C1[3 x $30/mo = $90/mo]
-    C2[1 x $30/mo = $30/mo]
+  subgraph cost["Cost Comparison (db.t3.small)"]
+    C1["3 x $30/mo = $90/mo"]
+    C2["1 x $30/mo = $30/mo"]
   end
 
   A1 -.-> C1
@@ -371,14 +371,14 @@ Set thresholds that trigger notifications when environments get expensive. A tie
 flowchart TD
     A[Cost Monitoring] --> B{Environment Cost}
 
-    B -->|< $15| C[Normal]
-    B -->|$15-$30| D[Notify Author]
-    B -->|> $30| E[Notify Author + Manager]
+  B -->|under $15| C[Normal]
+  B -->|$15 to $30| D[Notify Author]
+  B -->|over $30| E[Notify Author + Manager]
 
     A --> F{Team Budget}
-    F -->|< 80%| G[Normal]
-    F -->|80-100%| H[Warning to Lead]
-    F -->|> 100%| I[Pause New Envs]
+  F -->|under 80%| G[Normal]
+  F -->|80% to 100%| H[Warning to Lead]
+  F -->|over 100%| I[Pause New Envs]
 ```
 </Diagram>
 

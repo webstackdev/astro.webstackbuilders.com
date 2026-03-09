@@ -97,22 +97,22 @@ The most impactful cost optimization is using shared infrastructure with logical
 >
 ```mermaid
 flowchart TD
-  subgraph dedicated[Dedicated (Expensive)]
-    A1[PR-123 DB]
-    A2[PR-124 DB]
-    A3[PR-125 DB]
+  subgraph dedicated["Dedicated (Expensive)"]
+    A1["PR-123 DB"]
+    A2["PR-124 DB"]
+    A3["PR-125 DB"]
   end
 
-  subgraph shared[Shared (Cost-Effective)]
-    B1[Shared DB]
-    B1 --> B2[schema_pr_123]
-    B1 --> B3[schema_pr_124]
-    B1 --> B4[schema_pr_125]
+  subgraph shared["Shared (Cost-Effective)"]
+    B1["Shared DB"]
+    B1 --> B2["schema_pr_123"]
+    B1 --> B3["schema_pr_124"]
+    B1 --> B4["schema_pr_125"]
   end
 
-  subgraph cost[Cost Comparison (db.t3.small)]
-    C1[3 x $30/mo = $90/mo]
-    C2[1 x $30/mo = $30/mo]
+  subgraph cost["Cost Comparison (db.t3.small)"]
+    C1["3 x $30/mo = $90/mo"]
+    C2["1 x $30/mo = $30/mo"]
   end
 
   A1 -.-> C1

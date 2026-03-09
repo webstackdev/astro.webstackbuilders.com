@@ -11,72 +11,78 @@
     table: "[&_tbody_th]:font-mono [&_tbody_td:first-of-type]:font-mono",
   }}
 
-<Diagram
-  title=""
-  description=""
->
 
-</Diagram>
-
-xychart-beta
-
-
-\s{1}_([a-zA-Z].*)_?
-__$1__
-
-"(.*)_([a-zA-Z\s].*)_?
-"$1 $2
-
-\*\*([a-zA-Z].*)\*\*
-__$1__
-
-([a-zA-Z])—([a-zA-Z])
-$1 — $2
-
-- Make sure the footnote on line 448 of src/content/articles/synthetic-test-data-pii-anonymization-fixtures/pdf.mdx passes through to the Callout rendering
-
-I'd like to make three changes in our articles files. The first is that for every mermaid diagram, I want to wrap it in our Diagram component. Move the "Figure: " title below it into the "title" prop of the Diagram component, removing the "Figure: " prefix. Add a detailed description to the Diagram for the mermaid diagram. The intention is to provide a detailed description for users with visual impairments so they can understand the diagram.
-
-The second is to expand props for List and Table components so they're easier to read. For example, this:
-
-<List
-  variant="check-icons-list"
-  items={[
-    { lead: "Gateway strips unknown headers:", text: "Some gateways have an allowlist for forwarded headers, and trace headers are not on it by default. Suddenly all your traces end at the gateway." },
-
-Should be rewritten to:
-
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: "Gateway strips unknown headers:",
-      text: "Some gateways have an allowlist for forwarded headers, and trace headers are not on it by default. Suddenly all your traces end at the gateway.",
-    },
-
-The same with tables, this:
-
-<Table
-  variant="vertical-column-delineation-table"
-  content={{
-    figure: "Gateway overview dashboard panels with purpose and queries.",
-    thead: { th: ["Panel", "Visualization", "Query"] },
-    tbody: {
-      tr: [
-        { th: "Request Rate", td: ["Time series", "`sum(rate(gateway_requests_total[5m]))`"] },
-
-Should be rewritten to:
-
-<Table
-  variant="vertical-column-delineation-table"
-  content={{
-    figure: "Gateway overview dashboard panels with purpose and queries.",
-    thead: { th: ["Panel", "Visualization", "Query"] },
-    tbody: {
-      tr: [
-        {
-          th: "Request Rate",
-          td: ["Time series", "`sum(rate(gateway_requests_total[5m]))`"],
-        },
-
-Do not change content, including punctuation. Do not convert "%" to "percent", remove commas, remove "(" and ")" from content, remove question marks, or change content in any other way. We should change graph mermaid diagrams to flowchart type, graph is deprecated. It's okay to refactor mermaid to modern syntax. I'll give you the file names to do this refactoring to, one at a time. The first file is:
+api-deprecation-sunset-headers-consumer-migration/pdf.mdx
+api-gateway-metrics-traces-logs-debugging/index.mdx
+api-gateway-metrics-traces-logs-debugging/pdf.mdx
+api-usage-metering-quotas-cost-attribution/pdf.mdx
+argocd-sync-failures-gitops-debugging-troubleshooting/index.mdx
+argocd-sync-failures-gitops-debugging-troubleshooting/pdf.mdx
+availability-targets-five-nines-cost-benefit-analysis/pdf.mdx
+backpressure-load-shedding-admission-control-overload/index.mdx
+backpressure-load-shedding-admission-control-overload/pdf.mdx
+blameless-postmortem-incident-analysis-systemic-causes/index.mdx
+blameless-postmortem-incident-analysis-systemic-causes/pdf.mdx
+blue-green-canary-deployment-strategy-comparison/pdf.mdx
+cdn-edge-caching-cache-keys-vary-headers/pdf.mdx
+chaos-engineering-failure-injection-low-cost-experiments/pdf.mdx
+circuit-breaker-retry-budget-cascade-failure-prevention/index.mdx
+circuit-breaker-retry-budget-cascade-failure-prevention/pdf.mdx
+consumer-driven-contract-testing-pact-internal-apis/index.mdx
+consumer-driven-contract-testing-pact-internal-apis/pdf.mdx
+container-vulnerability-scanning-ci-shift-left-security/index.mdx
+container-vulnerability-scanning-ci-shift-left-security/pdf.mdx
+database-schema-migrations-continuous-deployment-zero-downtime/index.mdx
+database-schema-migrations-continuous-deployment-zero-downtime/pdf.mdx
+dead-letter-queue-design-replay-debugging/pdf.mdx
+demo/index.mdx
+distributed-tracing-sampling-strategies-head-tail/pdf.mdx
+eol-runtime-upgrade-dependency-hell-migration/pdf.mdx
+ephemeral-preview-environments-cost-control-cleanup/index.mdx
+ephemeral-preview-environments-cost-control-cleanup/pdf.mdx
+flaky-test-diagnosis-race-conditions-e2e-stabilization/pdf.mdx
+helm-release-management-drift-detection-debugging/pdf.mdx
+idempotent-message-handlers-deduplication-retries/index.mdx
+idempotent-message-handlers-deduplication-retries/pdf.mdx
+internal-developer-portal-platform-self-service-actions/pdf.mdx
+kubernetes-decision-framework-when-not-to-use/pdf.mdx
+kubernetes-dns-debugging-ndots-coredns-troubleshooting/index.mdx
+kubernetes-dns-debugging-ndots-coredns-troubleshooting/pdf.mdx
+kubernetes-hpa-autoscaling-metrics-tuning-latency/pdf.mdx
+kubernetes-ingress-gateway-api-comparison-migration/pdf.mdx
+kubernetes-multi-cluster-fleet-management-configuration/pdf.mdx
+kubernetes-pod-disruption-budget-autoscaler-node-rotation/index.mdx
+kubernetes-pod-resource-requests-limits-qos-classes/pdf.mdx
+kubernetes-secrets-external-secrets-operator-csi-vault/index.mdx
+kubernetes-secrets-external-secrets-operator-csi-vault/pdf.mdx
+legacy-code-testing-characterization-tests-seams/pdf.mdx
+monorepo-affected-builds-remote-caching-ci-optimization/pdf.mdx
+mtls-certificate-rotation-service-mesh-authentication/index.mdx
+mtls-certificate-rotation-service-mesh-authentication/pdf.mdx
+nginx-haproxy-reverse-proxy-production-tuning/pdf.mdx
+on-call-rotation-small-teams-sustainable-coverage/pdf.mdx
+opa-conftest-policy-as-code-infrastructure-guardrails/pdf.mdx
+opentelemetry-span-design-granularity-overhead/pdf.mdx
+performance-testing-load-models-benchmark-accuracy/index.mdx
+performance-testing-load-models-benchmark-accuracy/pdf.mdx
+platform-architecture-control-plane-data-plane-separation/index.mdx
+platform-architecture-control-plane-data-plane-separation/pdf.mdx
+platform-engineering-metrics-lead-time-developer-friction/pdf.mdx
+postgresql-connection-pooling-saturation-sizing/pdf.mdx
+private-networking-dns-routing-tls-debugging/pdf.mdx
+prometheus-high-cardinality-metrics-label-design/pdf.mdx
+rate-limiting-token-bucket-leaky-bucket-implementation/pdf.mdx
+release-quality-gates-automated-deployment-validation/pdf.mdx
+reverse-engineering-documentation-legacy-systems/pdf.mdx
+slo-error-budget-practical-guide/index.mdx
+slo-error-budget-practical-guide/pdf.mdx
+slsa-build-provenance-artifact-signing-supply-chain/pdf.mdx
+strangler-fig-migration-complete-guide/index.mdx
+strangler-fig-migration-complete-guide/pdf.mdx
+structured-logging-correlation-ids-log-schema-design/pdf.mdx
+symptom-based-alerting-runbooks-alert-design/index.mdx
+symptom-based-alerting-runbooks-alert-design/pdf.mdx
+terraform-module-design-defaults-versioning-interfaces/pdf.mdx
+terraform-state-locking-corruption-recovery-backend/pdf.mdx
+workload-identity-federation-keyless-cloud-authentication/index.mdx
+workload-identity-federation-keyless-cloud-authentication/pdf.mdx

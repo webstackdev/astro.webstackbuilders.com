@@ -596,9 +596,9 @@ A good trace has 10-30 spans per request, 3-5 levels of nesting, clear names tha
 Compare this over-instrumented trace to the readable one shown earlier:
 
 <Diagram
-  title="Over-instrumented trace — wall of spans obscures the critical path."
+  title="Over-instrumented trace - wall of spans obscures the critical path."
   description={
-    `Gantt chart titled Trace Waterfall over-instrumented, measured in milliseconds. The Request section shows the root span HTTP GET /orders/123 from 0 to 150 milliseconds. Validation contains three tiny spans: validate.request from 2 to 5 milliseconds, parse.json from 5 to 8 milliseconds, and validate.orderId from 8 to 10 milliseconds. Cache contains four very small spans: cache.get from 10 to 12, serialize.key from 10 to 11, redis.get from 11 to 12, and deserialize.result from 12 to 13. Database contains db.getConnection from 15 to 18, db.query orders from 18 to 75, db.releaseConnection from 75 to 77, and map.toEntity from 77 to 79. Response contains serialize.json from 140 to 145, set.headers from 145 to 147, and send.response from 147 to 150. The chart demonstrates a noisy waterfall with many short spans packed closely together, making the important database query harder to spot and obscuring the request’s true critical path.`
+    `Gantt chart titled Trace Waterfall over-instrumented, measured in milliseconds. The Request section shows the root span HTTP GET /orders/123 from 0 to 150 milliseconds. Validation contains three tiny spans: validate.request from 2 to 5 milliseconds, parse.json from 5 to 8 milliseconds, and validate.orderId from 8 to 10 milliseconds. Cache contains four very small spans: cache.get from 10 to 12, serialize.key from 10 to 11, redis.get from 11 to 12, and deserialize.result from 12 to 13. Database contains db.getConnection from 15 to 18, db.query orders from 18 to 75, db.releaseConnection from 75 to 77, and map.toEntity from 77 to 79. Response contains serialize.json from 140 to 145, set.headers from 145 to 147, and send.response from 147 to 150. The chart demonstrates a noisy waterfall with many short spans packed closely together, making the important database query harder to spot and obscuring the request's true critical path.`
   }
 >
 ```mermaid
@@ -653,7 +653,7 @@ Span names should answer "what operation on what resource?" without requiring yo
     },
     {
       lead: 'For databases:',
-      text: 'Use `db.{operation} {table}`: `db.query orders`, `db.insert users`. Don't include the full SQL query in the name — that goes in an attribute if needed.',
+      text: 'Use `db.{operation} {table}`: `db.query orders`, `db.insert users`. Don\'t include the full SQL query in the name — that goes in an attribute if needed.',
     },
     {
       lead: 'For caches:',

@@ -261,21 +261,19 @@ The `timeout queue` setting deserves special attention. When all backend servers
 >
 ```mermaid
 flowchart LR
-  subgraph nginxClientSide[Nginx Client Side]
-    A[client_header_timeout<br/>10s] --> B[client_body_timeout<br/>30s]
+  subgraph nginxClientSide["Nginx Client Side"]
+    A["client_header_timeout\n10s"] --> B["client_body_timeout\n30s"]
   end
 
-  subgraph nginxProxyProcessing[Nginx Proxy Processing]
-    B --> C[proxy_connect_timeout<br/>5s]
-    C --> D[proxy_send_timeout<br/>30s]
-    D --> E[proxy_read_timeout<br/>60s]
+  subgraph nginxProxyProcessing["Nginx Proxy Processing"]
+    B --> C["proxy_connect_timeout\n5s"]
+    C --> D["proxy_send_timeout\n30s"]
+    D --> E["proxy_read_timeout\n60s"]
   end
 
-  subgraph nginxResponse[Nginx Response]
-    E --> F[send_timeout<br/>30s]
+  subgraph nginxResponse["Nginx Response"]
+    E --> F["send_timeout\n30s"]
   end
-
-  style C fill:#f96,color:#000
 ```
 </Diagram>
 
@@ -633,20 +631,20 @@ The `slowstart` option is valuable when bringing new servers online. Without it,
 >
 ```mermaid
 flowchart TD
-  subgraph clientConnections[Client Connections]
-    C1[Client 1]
-    C2[Client 2]
-    C3[Client 3]
+  subgraph clientConnections["Client Connections"]
+    C1["Client 1"]
+    C2["Client 2"]
+    C3["Client 3"]
   end
 
-  subgraph proxyKeepalivePool[Proxy (keepalive pool)]
-    P[HAProxy/Nginx]
-    KA[Keep-alive Pool<br/>32 connections]
+  subgraph proxyKeepalivePool["Proxy (keepalive pool)"]
+    P["HAProxy/Nginx"]
+    KA["Keep-alive Pool\n32 connections"]
   end
 
-  subgraph backendServers[Backend Servers]
-    B1[Backend 1<br/>maxconn: 500]
-    B2[Backend 2<br/>maxconn: 500]
+  subgraph backendServers["Backend Servers"]
+    B1["Backend 1\nmaxconn: 500"]
+    B2["Backend 2\nmaxconn: 500"]
   end
 
   C1 --> P
@@ -656,8 +654,6 @@ flowchart TD
   P --> KA
   KA --> B1
   KA --> B2
-
-  style KA fill:#9cf,color:#000
 ```
 </Diagram>
 

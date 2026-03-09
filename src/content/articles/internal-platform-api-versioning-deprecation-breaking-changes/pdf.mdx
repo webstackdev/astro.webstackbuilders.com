@@ -41,15 +41,15 @@ Four versioning approaches dominate API design, each with tradeoffs that matter 
   items={[
     {
       lead: "URL path versioning",
-      text: "(<span class="text-mono">/api/v1/deployments</span>, <span class="text-mono">/api/v2/deployments</span>) is explicit and visible - every request clearly shows which version it's using. Load balancers can route traffic easily, and deprecating old versions is straightforward. For internal platform APIs, this is usually the right choice because visibility trumps elegance. When debugging a failed pipeline at 2 AM, you want to immediately know which API version the client is calling.",
+      text: '(<span class="text-mono">/api/v1/deployments</span>, <span class="text-mono">/api/v2/deployments</span>) is explicit and visible - every request clearly shows which version it\'s using. Load balancers can route traffic easily, and deprecating old versions is straightforward. For internal platform APIs, this is usually the right choice because visibility trumps elegance. When debugging a failed pipeline at 2 AM, you want to immediately know which API version the client is calling.',
     },
     {
       lead: "Header versioning",
-      text: "(<span class="text-mono">Accept: application/vnd.platform.v2+json</span>) and _query parameter versioning_ (<span class="text-mono">/api/services?version=2</span>) both hide version information where developers forget to set it and debugging tools don't show it. Skip these unless you have specific requirements for URL stability.",
+      text: '(<span class="text-mono">Accept: application/vnd.platform.v2+json</span>) and _query parameter versioning_ (<span class="text-mono">/api/services?version=2</span>) both hide version information where developers forget to set it and debugging tools don\'t show it. Skip these unless you have specific requirements for URL stability.',
     },
     {
       lead: "Date-based versioning",
-      text: "(<span class="text-mono">/api/2024-01-15/services</span>) works well for APIs with frequent, incremental changes - Stripe and AWS use this successfully. The downside is version accumulation: after a few years, you have dozens of dated endpoints. This works best when you have the tooling to manage many concurrent versions.",
+      text: '(<span class="text-mono">/api/2024-01-15/services</span>) works well for APIs with frequent, incremental changes - Stripe and AWS use this successfully. The downside is version accumulation: after a few years, you have dozens of dated endpoints. This works best when you have the tooling to manage many concurrent versions.',
     },
   ]}
 />

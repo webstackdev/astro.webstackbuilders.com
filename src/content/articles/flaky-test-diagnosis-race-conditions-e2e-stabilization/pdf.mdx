@@ -261,11 +261,11 @@ Race conditions are the most common cause of flakiness, and they're also the tri
   items={[
     {
       lead: "Step 1: Confirm it's actually flaky.",
-      text: "Run the test many times in a loop. With Playwright, use <span class="text-mono">npx playwright test specific.spec.ts --repeat-each=50</span>. If it passes all 50 times, you may have fixed it accidentally, or the flake rate is very low. If it fails even once, you've confirmed the flakiness and can proceed.",
+      text: 'Run the test many times in a loop. With Playwright, use <span class="text-mono">npx playwright test specific.spec.ts --repeat-each=50</span>. If it passes all 50 times, you may have fixed it accidentally, or the flake rate is very low. If it fails even once, you\'ve confirmed the flakiness and can proceed.',
     },
     {
       lead: "Step 2: Narrow down the race.",
-      text: "Two complementary techniques help here. First, _slow things down</span> — run with <span class="text-mono">PWTEST_SLOW_MO=1000</span> to add delays between actions. If the test becomes stable when slowed, you've confirmed a timing issue. Second, _speed things up_—run under CPU pressure (with something like <span class="text-mono">stress-ng --cpu 4 &</span>) to make the race more likely to trigger. Add timestamps to key events: test step start/end, network requests, DOM mutations.",
+      text: 'Two complementary techniques help here. First, <em>slow things down</em> — run with <span class="text-mono">PWTEST_SLOW_MO=1000</span> to add delays between actions. If the test becomes stable when slowed, you\'ve confirmed a timing issue. Second, <em>speed things up</em> — run under CPU pressure (with something like <span class="text-mono">stress-ng --cpu 4 &amp;</span>) to make the race more likely to trigger. Add timestamps to key events: test step start/end, network requests, DOM mutations.',
     },
     {
       lead: "Step 3: Identify the competitors.",
@@ -599,19 +599,19 @@ I use a weighted scoring system based on four factors:
   variant="check-icons-list"
   items={[
     {
-      lead: "Flake rate_ (30% weight):",
+      lead: 'Flake rate (30% weight):',
       text: "How often does it fail? Higher rates mean more disruption.",
     },
     {
-      lead: "Test importance_ (25% weight):",
+      lead: 'Test importance (25% weight):',
       text: "Is this a critical path like checkout or authentication? Or an edge case?",
     },
     {
-      lead: "Fix complexity_ (20% weight):",
+      lead: 'Fix complexity (20% weight):',
       text: "Quick fixes get higher priority — they're easy wins.",
     },
     {
-      lead: "CI impact_ (25% weight):",
+      lead: 'CI impact (25% weight):',
       text: "How many people does this flake block when it triggers?",
     },
   ]}
@@ -930,13 +930,13 @@ If you can't reproduce a flake locally, try matching the CI environment more clo
       text: "Use Docker with the same base image as your CI runners",
     },
     {
-      text: "Limit CPU and memory to match CI constraints: <span class="font-mono">docker run --cpus=2 --memory=4g</span>",
+      text: 'Limit CPU and memory to match CI constraints: <span class="font-mono">docker run --cpus=2 --memory=4g</span>',
     },
     {
       text: "Run tests in parallel with the same worker count as CI",
     },
     {
-      text: "Add artificial load with <span class="font-mono">stress-ng</span> to simulate resource contention",
+      text: 'Add artificial load with <span class="font-mono">stress-ng</span> to simulate resource contention',
     },
   ]}
 />
