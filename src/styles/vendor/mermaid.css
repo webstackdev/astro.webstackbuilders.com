@@ -8,11 +8,11 @@
  */
 
 :root {
-  --mermaid-primary-text: #fff;
-  --mermaid-primary-border: #7C0000;
-  --mermaid-line: #F8B229;
-  --mermaid-secondary: #006100;
-  --mermaid-tertiary: #fff;
+  --mermaid-primary-text: var(--color-primary-inverse, #fff);
+  --mermaid-primary-border: var(--color-primary, #001a39);
+  --mermaid-line: var(--color-secondary, #006dca);
+  --mermaid-secondary: var(--color-page-offset, #e5e7eb);
+  --mermaid-tertiary: var(--color-page-base, #f3f4f6);
 }
 
 /**
@@ -54,39 +54,47 @@ svg.flowchart * {
 /** Specialized shapes like cylinders (databases) or banners */
 .flowchart .node path {
   /** Main background color for primary nodes */
-  fill: #fef9c3 !important;
+  fill: var(--color-primary-offset, #003d86) !important;
 
   /** Border color around primary nodes */
-  stroke: #14532d !important;
+  stroke: var(--mermaid-primary-border) !important;
 }
 
  /** Edge label background and outline */
 .flowchart .edgeLabel p {
   /** Main background color for primary nodes, and text color */
-  background-color: #fef9c3 !important;
+  background-color: var(--color-page-base, #f3f4f6) !important;
 
   /** Border color around primary nodes */
-  border-color: #14532d !important;
+  border-color: var(--color-trim, #4b5563) !important;
   border-width: 1px;
-  color: #ef4444 !important;
+  color: var(--color-content-active, #001a39) !important;
   padding: 0 4px !important;
 }
 
 /** Connection lines between nodes. */
 .flowchart .flowchart-link {
-  stroke: #14532d !important;
+  stroke: var(--mermaid-line) !important;
 }
 
 /** Arrowheads */
 .flowchart .marker {
-  fill: #14532d !important;
-  stroke: #ea580c !important;
+  fill: var(--mermaid-line) !important;
+  stroke: var(--mermaid-line) !important;
 }
 
 /** Node label text color */
 .flowchart .nodeLabel p {
-  color: #a16207 !important;
+  color: var(--mermaid-primary-text) !important;
   padding-right: 4px !important;
+}
+
+/** Cluster headings need dark text on the lighter subgraph background. */
+.flowchart .cluster-label .nodeLabel p,
+.flowchart .cluster text,
+.flowchart .cluster span {
+  color: var(--color-primary, #001a39) !important;
+  fill: var(--color-primary, #001a39) !important;
 }
 
  /** Subgraph background  and outline color */
@@ -415,4 +423,27 @@ svg.flowchart * {
 .gantt .section {
   fill: var(--mermaid-tertiary) !important;
   stroke: var(--mermaid-line) !important;
+}
+
+ /**
+ * ====================================================================
+ *
+ * XY CHART
+ *
+ * ====================================================================
+ */
+
+/** Line plots need a darker stroke than Mermaid's base xychart palette. */
+svg[aria-roledescription='xychart'] .plot .line-plot-0 path {
+  stroke: var(--color-primary-offset) !important;
+  stroke-width: 3px !important;
+}
+
+/** Future-proof point markers if Mermaid emits explicit point elements. */
+svg[aria-roledescription='xychart'] .plot .line-plot-0 circle,
+svg[aria-roledescription='xychart'] .plot .line-plot-0 ellipse,
+svg[aria-roledescription='xychart'] .plot .line-plot-0 rect,
+svg[aria-roledescription='xychart'] .plot [class*='point'] {
+  fill: var(--color-primary-offset) !important;
+  stroke: var(--color-primary-offset) !important;
 }

@@ -359,6 +359,15 @@ The navigation example shows a subtle race: clicking a link doesn't guarantee th
 
 This sequence diagram shows why the flaky version fails. The test asserts success before the network response has arrived — the assertion races ahead of the actual state change.
 
+<Diagram
+  title="Timeline showing race condition."
+  description="Sequence diagram with four participants: Test, Browser, App, and Network. The test clicks submit,
+  the browser delivers the click event to the app, and the test immediately checks for a success state before
+  the application has finished its asynchronous work. After that early assertion, the app sends an API request
+  to the network, the network returns a response, and only then does the app update the browser DOM. The key
+  point is that the assertion happens before the response and DOM update, which is the race condition that makes
+  the test flaky."
+>
 ```mermaid
 sequenceDiagram
     participant T as Test
@@ -375,7 +384,7 @@ sequenceDiagram
     A->>B: Update DOM
     Note right of B: DOM updates after assertion
 ```
-Figure: Timeline showing race condition — the test asserts before the app finishes.
+</Diagram>
 
 The fix is to insert a `waitForResponse` between the click and the assertion, so the test waits for the actual event (API response) before checking the result.
 
@@ -419,16 +428,16 @@ Database pollution is one of the most common sources of order-dependent flakes. 
   variant="check-icons-list"
   items={[
     {
-      lead: "Wrap each test in a database transaction and roll back after. Fast and clean, but doesn't work if your test needs to verify committed data, test triggers, or observe behavior across transaction boundaries. Best for: unit-style integration tests where you're testing application logic, not database behavior.",
-      text: "_Transaction rollback_",
+      lead: "Transaction rollback",
+      text: "Wrap each test in a database transaction and roll back after. Fast and clean, but doesn't work if your test needs to verify committed data, test triggers, or observe behavior across transaction boundaries. Best for: unit-style integration tests where you're testing application logic, not database behavior.",
     },
     {
-      lead: "Create an isolated database for each test with a unique name. Slower but provides complete isolation. Works well with containerized databases (spin up a fresh Postgres container per test run). Best for: tests that need to verify committed data or test database-level features.",
-      text: "_Database per test_",
+      lead: "Database per test",
+      text: "Create an isolated database for each test with a unique name. Slower but provides complete isolation. Works well with containerized databases (spin up a fresh Postgres container per test run). Best for: tests that need to verify committed data or test database-level features.",
     },
     {
-      lead: "Reset to a known state before each test using database snapshots or seed scripts. Good balance of isolation and speed. Best for: E2E tests where you need realistic data but can't afford the overhead of creating fresh databases.",
-      text: "_Seeded snapshots_",
+      lead: "Seeded snapshots",
+      text: "Reset to a known state before each test using database snapshots or seed scripts. Good balance of isolation and speed. Best for: E2E tests where you need realistic data but can't afford the overhead of creating fresh databases.",
     },
   ]}
 />
@@ -528,8 +537,19 @@ When you have flaky tests blocking CI, you need a system to manage them without 
 
 The workflow starts when a test fails. If it's already a known flake, log the occurrence and continue. If it's new, retry it. If the retry passes, mark it as a potential flake and monitor it. If it fails again within 24 hours, auto-quarantine it: create a tracking issue, assign an owner, and move it out of the main suite.
 
+<Diagram
+  title="Flaky test quarantine workflow."
+  description="Flowchart showing the decision process after a test failure. It begins with Test Fails and asks
+  whether the failure is a known flake. If yes, the team logs the occurrence, then checks whether the flake
+  rate is greater than 10 percent. A high flake rate leads to Escalate priority, while a lower rate goes to
+  Normal backlog. If the failure is not a known flake, the next decision asks whether a retry passes. If the
+  retry does not pass, the test is treated as a real failure and the merge is blocked. If the retry does pass,
+  the test is marked as a potential flake and monitored. Monitoring then asks whether the test fails two or
+  more times within 24 hours. If not, it stays in Monitor. If yes, the test is auto-quarantined, a tracking
+  issue is created, the test is added to the quarantine list, and it is run separately from the main suite."
+>
 ```mermaid
-graph TD
+graph LR
     A[Test Fails] --> B{Known Flake?}
     B -->|Yes| C[Log occurrence]
     B -->|No| D{Retry Pass?}
@@ -549,7 +569,7 @@ graph TD
     M -->|Yes| N[Escalate priority]
     M -->|No| O[Normal backlog]
 ```
-Figure: Flaky test quarantine workflow.
+</Diagram>
 
 The quarantine list itself is just configuration — a list of test IDs with metadata about why they're quarantined, who owns them, and when they were added.
 

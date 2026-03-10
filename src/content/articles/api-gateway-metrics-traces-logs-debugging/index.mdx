@@ -9,6 +9,8 @@ tags: ["apis-and-gateways", "prometheus", "aws", "grafana", "terraform"]
 featured: true
 ---
 
+import requestLifecycleDiagram from './diagrams/request-lifecycle-showing-gateway-overhead-vs-backend-latency-with-typical-durations_article.jpg'
+
 *[RED]: Rate, Errors, Duration
 *[W3C]: World Wide Web Consortium
 *[P99]: 99th Percentile
@@ -34,32 +36,10 @@ Without this distinction, you're guessing. A request that takes 3 seconds total 
 The request lifecycle through a gateway has distinct phases, each consuming time:
 
 <Diagram
+  src={requestLifecycleDiagram}
   title="Request lifecycle showing gateway overhead vs. backend latency with typical durations"
-  description={
-  `Flowchart showing a request moving left to right through seven stages. The sequence starts with Request Received, then Authentication taking about 2 milliseconds, Rate Limiting taking about 1 millisecond, Route Matching taking about 0.5 milliseconds, Upstream Call taking about 500 milliseconds, Response Processing taking about 1 millisecond, and finally Response Sent. Two grouped regions highlight where the total time is spent. A group labeled Gateway Time, about 5 milliseconds, contains Authentication, Rate Limiting, Route Matching, and Response Processing, showing that the gateway adds only a small amount of overhead. A separate group labeled Backend Time, about 500 milliseconds, contains only the Upstream Call stage, showing that the backend dominates total latency in this example. The diagram's main point is that most request time is often spent waiting on the upstream service, not inside the gateway.`
-  }
->
-```mermaid
-graph LR
-  A[Request Received] --> B[Authentication<br/>~2ms]
-  B --> C[Rate Limiting<br/>~1ms]
-  C --> D[Route Matching<br/>~0.5ms]
-  D --> E[Upstream Call<br/>~500ms]
-  E --> F[Response Processing<br/>~1ms]
-  F --> G[Response Sent]
-
-  subgraph gatewayTime[Gateway Time about 5ms]
-    B
-    C
-    D
-    F
-  end
-
-  subgraph backendTime[Backend Time about 500ms]
-    E
-  end
-```
-</Diagram>
+  description="Flowchart showing a request moving left to right through seven stages. The sequence starts with Request Received, then Authentication taking about 2 milliseconds, Rate Limiting taking about 1 millisecond, Route Matching taking about 0.5 milliseconds, Upstream Call taking about 500 milliseconds, Response Processing taking about 1 millisecond, and finally Response Sent. Two grouped regions highlight where the total time is spent. A group labeled Gateway Time, about 5 milliseconds, contains Authentication, Rate Limiting, Route Matching, and Response Processing, showing that the gateway adds only a small amount of overhead. A separate group labeled Backend Time, about 500 milliseconds, contains only the Upstream Call stage, showing that the backend dominates total latency in this example. The diagram's main point is that most request time is often spent waiting on the upstream service, not inside the gateway."
+/>
 
 At minimum, instrument these separately:
 

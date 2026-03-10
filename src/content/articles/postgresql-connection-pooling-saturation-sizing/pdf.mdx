@@ -246,13 +246,13 @@ External poolers support different __pooling modes__ that determine when connect
 />
 
 <Diagram
-  title="PgBouncer connection multiplexing — application scaling decoupled from database connections."
+  title="PgBouncer connection multiplexing."
   description={
   `Top-to-bottom flowchart comparing direct PostgreSQL connections with pooled connections through PgBouncer. In the Application Layer group, App Instance 1, App Instance 2, and App Instance N each have a pool of 20 connections. In the Without PgBouncer group, each application instance connects directly to PostgreSQL, causing the database to accumulate N times 20 connections as application instances scale out. In the With PgBouncer group, the same application instances send their 20 connections each to PgBouncer, which accepts all incoming client connections and multiplexes them onto a fixed pool of 50 PostgreSQL connections. The direct PostgreSQL target is highlighted negatively, while the fixed 50-connection PostgreSQL target behind PgBouncer is highlighted positively. The diagram shows how PgBouncer decouples application scaling from raw database connection counts.`
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph applicationLayer[Application Layer]
     A1[App Instance 1<br/>Pool: 20]
     A2[App Instance 2<br/>Pool: 20]
@@ -680,7 +680,7 @@ The progression from healthy to critical follows a predictable pattern:
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
     H["Healthy<br/>50/200 connections<br/>No queue, 15 idle"]
     W["Warning<br/>160/200 connections<br/>Queue: 5, Idle: 2"]
     C["Critical<br/>198/200 connections<br/>Queue: 50, Idle: 0"]

@@ -103,7 +103,7 @@ The questions that actually matter:
   description="Flowchart that starts by asking whether 30 seconds of downtime is tolerable. If yes, recreate may be fine. If no, the path asks whether the workload is stateless, whether instant rollback is needed, whether production validation is needed, and whether traffic splitting exists, leading to rolling update, blue-green, or canary recommendations. All viable paths then converge on a final database backward-compatibility question. If database changes are not backward-compatible, the chart ends with a warning to fix that first because no deployment strategy will compensate for schema incompatibility."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Start] --> B{Can you tolerate<br/>30s downtime?}
     B -->|Yes| C[Recreate might be fine]
     B -->|No| D{Is workload stateless?}
@@ -141,7 +141,7 @@ The mental model is simple: you're always one configuration change away from eit
   description="Flowchart divided into three stages. Before deploy, the load balancer routes traffic to the blue environment running version 1.0 while green is idle. During deploy, blue stays active while green is deploying version 1.1. After cutover, the load balancer routes traffic to green running version 1.1 and blue becomes the standby environment. The diagram emphasizes that both environments exist simultaneously and traffic moves by switching which one is active."
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph beforeDeploy[Before Deploy]
     LB1[Load Balancer] --> Blue1[Blue Environment<br/>v1.0 - ACTIVE]
     Green1[Green Environment<br/>idle]
@@ -268,7 +268,7 @@ Blue/green isn't free. The tradeoffs are real, and ignoring them leads to surpri
   description="Flowchart with Blue-Green Challenges at the center branching to Resource Cost, Database State, Long-Running Connections, and Warmup Time. Each branch points to a concrete issue: two times infrastructure during deployment, both versions must work with the same schema, WebSockets and gRPC streams can break on cutover, and cold caches or JIT compilation can hurt performance after switching. The diagram summarizes the major operational costs that come with blue-green deployments."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Blue/Green Challenges] --> B[Resource Cost]
     A --> C[Database State]
     A --> D[Long-Running Connections]
@@ -358,7 +358,7 @@ The name comes from coal mining, where canaries detected toxic gases before mine
   description="Flowchart showing four rollout stages. Initial State sends 100 percent of traffic from the load balancer to version 1.0 pods. Canary 1 percent sends 99 percent to version 1.0 and 1 percent to the version 1.1 canary. Canary 10 percent sends 90 percent to version 1.0 and 10 percent to version 1.1. Full Rollout sends 100 percent of traffic to version 1.1 pods. The diagram illustrates gradual exposure to a new version before committing fully."
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph initialState[Initial State]
     LB1[Load Balancer] -->|100%| V1A[v1.0 Pods]
   end
@@ -727,7 +727,7 @@ Schema changes fall into three categories with very different risk profiles:
   description="Flowchart starting with Schema Change Types and branching to Additive Only, Modify Existing, and Remove or Rename. Additive changes lead to Add column or add table and then to Both versions work. Modify Existing leads to Change column type and then to Old version may break. Remove or Rename leads to Remove column or rename and then to Old version will break. The diagram shows why additive changes are safest and destructive changes are risky for any deployment strategy."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Schema Change Types] --> B[Additive Only]
     A --> C[Modify Existing]
     A --> D[Remove/Rename]
@@ -817,7 +817,7 @@ This hybrid gives you canary's production validation _and_ blue/green's instant 
   description="Flowchart showing a hybrid rollout path. The process starts by deploying to green with zero percent traffic, then sending five percent of traffic to green as a canary. A canary analysis decision follows. If the analysis passes, traffic fully cuts over to green and blue remains on standby. If the analysis fails, traffic stays 100 percent on blue and the team fixes the issue before retrying. The chart combines small-scale validation with clean environment cutover."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Start] --> B[Deploy to Green<br/>0% traffic]
     B --> C[Canary to Green<br/>5% traffic]
     C --> D{Canary Analysis}
@@ -987,7 +987,7 @@ Here's the problem nobody wants to talk about: rollback isn't truly instant for 
   description="Flowchart showing a rollback scenario for stateful data. Version 1.1 is deployed, users create data, a bug is discovered, and traffic rolls back to version 1.0. That leads to a data problem decision node with three causes: version 1.1 wrote a new format, version 1.1 used new columns, and version 1.1 created new records. These outcomes lead to specific failures where version 1.0 cannot read the data, ignores or overwrites it, or does not know about the records. The diagram highlights that rollback of code does not automatically roll back data shape changes."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[v1.1 Deployed] --> B[Users Create Data]
     B --> C[Bug Discovered]
     C --> D[Rollback to v1.0]

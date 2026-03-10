@@ -42,7 +42,7 @@ Overload doesn't just make systems slow — it makes them _worse_. There's a vic
   description="Flowchart showing how overload amplifies itself into a full outage. A Traffic Spike leads to Queue Growth, which causes Latency Increase. Increased latency causes Client Timeouts, which trigger Client Retries, feeding additional traffic back into the original spike. From Latency Increase, a second branch leads to Resource Exhaustion, then Thread Pool Saturation, then Connection Pool Exhaustion, and finally Complete Failure. A third branch from Queue Growth leads to Memory Pressure, then GC Thrashing, which feeds back into Latency Increase. The diagram shows that retries, exhausted worker resources, and memory pressure can all reinforce each other and make overload worsen instead of stabilizing."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Traffic Spike] --> B[Queue Growth]
     B --> C[Latency Increase]
     C --> D[Client Timeouts]
@@ -242,7 +242,7 @@ Admission control works the same way: decide _upfront_ whether to accept work, r
   description="Flowchart showing the admission control decision at request entry. An Incoming Request reaches a decision point labeled Admission Control. If accepted, it moves to Process Request and then to a Completed decision. A successful completion returns 200 Response, while an unsuccessful one returns 500 Response. If rejected at admission, the request immediately returns 429 or 503 and leads to Client Retries Later. The diagram highlights the benefit of deciding early whether the system can accept more work instead of letting requests consume scarce resources before failing."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Incoming Request] --> B{Admission Control}
     B -->|Accepted| C[Process Request]
     B -->|Rejected| D[Return 429/503]
@@ -1465,7 +1465,7 @@ The sizing reflects priority. Critical APIs get 50 threads and fast timeouts —
   description="Flowchart showing workload isolation through separate execution pools. Incoming Requests first reach a decision point labeled Route by Type. Critical traffic is routed to a Critical Pool with 50 threads, Search traffic goes to a Search Pool with 20 threads, and Analytics traffic goes to an Analytics Pool with 10 threads. The Critical Pool uses a Primary DB with 100 connections, the Search Pool uses a Read Replica with 50 connections, and the Analytics Pool uses an Analytics DB with 20 connections. Both Critical and Search traffic also use a shared Cache with 200 connections. The diagram shows how separating thread pools and backing resources limits blast radius so that one workload cannot fully starve another."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Incoming Requests] --> B{Route by Type}
 
     B -->|Critical| C[Critical Pool<br/>50 threads]

@@ -73,7 +73,7 @@ config:
     nodeSpacing: 35
     rankSpacing: 35
 ---
-flowchart TB
+flowchart LR
   subgraph inconsistent[Unstructured: 5 Queries, Uncertain Coverage]
     A1["grep 'User 12345'"]
     A2["grep 'user_id=12345'"]
@@ -416,7 +416,7 @@ When a user places an order, the request flows through multiple services. Each s
   description={`A top-to-bottom flowchart showing how correlation identifiers move through an order placement request. The first subgraph, "User Request," shows a browser sending POST /orders to an API Gateway. The next subgraph, "API Gateway," shows the gateway generating request.id req_abc123, extracting session.id sess_xyz789, and starting trace.id 4bf92f... . The gateway then forwards the request to the "Order Service" subgraph, where span.id 00f067... creates transaction.id order-12345 and publishes an OrderCreated Event. That event fans out to two downstream services: Payment Service and Inventory Service. Each downstream service creates a new span.id while keeping the same trace.id and the same transaction.id, and each records a causation_id pointing back to the event. The diagram emphasizes that trace.id is the stable identifier across the full request tree, span.id changes at each hop, and transaction.id follows the business workflow across services.`}
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph userRequest[User Request]
     A[Browser] -->|POST /orders| B[API Gateway]
   end
@@ -894,7 +894,7 @@ Modern log architectures have three tiers: shippers that collect logs from appli
   description={`A top-to-bottom flowchart describing a three-layer log pipeline. The first subgraph, "Applications," contains Service A, Service B, and Service C, all sending logs into a shared shipper. The second subgraph, "Log Shipper Layer," contains Vector, Fluentd, or Filebeat, which first parses JSON and then validates the schema before adding infrastructure metadata such as pod, node, and region. The output flows into the third processing stage, "Log Processor Layer," where Vector or Logstash enriches records with Geo-IP lookup data, redacts sensitive fields, and filters or samples noisy events. The final subgraph, "Storage Layer," contains three destinations: Elasticsearch hot storage for high-priority logs, S3 cold archive for all logs, and Splunk for security events. Arrows show the same processed stream being routed to different destinations based on access pattern and log purpose.`}
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph apps[Applications]
     A1[Service A]
     A2[Service B]

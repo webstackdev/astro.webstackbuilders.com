@@ -55,7 +55,7 @@ The configuration parameters `proxy_connect_timeout` in Nginx or `timeout connec
 Finally, the proxy __forwards the request__, __receives the response__, and __delivers it to the client__. Each phase has its own timeout. The response delivery phase is particularly important for slow clients — a backend might respond in 50ms, but if the client is on a 2G connection, sending that response takes seconds.
 
 <Diagram
-  title="Request flow through reverse proxy showing the six phases where timeouts and buffers apply."
+  title="Request flow through reverse proxy."
   description={
     `Sequence diagram with three participants: Client, Proxy, and Backend. Phase 1 is Client Connection, where the client performs a TCP handshake with the proxy and then a TLS handshake. Phase 2 is Request Receipt, where the client sends HTTP request headers followed by the HTTP request body to the proxy. Phase 3 is Backend Connection, where the proxy opens or reuses a TCP connection to the backend. Phase 4 is Request Forward, where the proxy sends the HTTP request to the backend. Phase 5 is Response Receipt, where the backend returns the HTTP response to the proxy. Phase 6 is Response Delivery, where the proxy sends the HTTP response back to the client. A final note indicates that the client connection may remain open for keep-alive reuse. The diagram maps the full path of a proxied request and highlights where connection, timeout, and buffering settings influence behavior.`
   }
@@ -254,7 +254,7 @@ backend health_checks
 The `timeout queue` setting deserves special attention. When all backend servers reach their `maxconn` limit, HAProxy queues incoming requests rather than rejecting them immediately. This is usually what you want — a brief spike shouldn't return errors if backends will be available in a few seconds. But if the queue timeout is too long, users wait forever for requests that will eventually fail anyway. 30 seconds is a reasonable default; adjust based on how long users are willing to wait.
 
 <Diagram
-  title="Nginx timeout chain showing where each timeout applies in the request lifecycle."
+  title="Nginx timeout chain."
   description={
   `Left-to-right flowchart divided into three grouped sections. The first group, Nginx Client Side, starts with client_header_timeout set to 10 seconds and flows to client_body_timeout set to 30 seconds. The second group, Nginx Proxy Processing, continues from there to proxy_connect_timeout at 5 seconds, then to proxy_send_timeout at 30 seconds, and then to proxy_read_timeout at 60 seconds. The third group, Nginx Response, ends with send_timeout at 30 seconds. The proxy_connect_timeout node is visually highlighted to show its importance in failing fast when a backend cannot be reached. The diagram shows the order in which Nginx timeout settings apply as a request moves from initial client reads through backend communication and back to the client response path.`
   }
@@ -624,13 +624,13 @@ backend api
 The `slowstart` option is valuable when bringing new servers online. Without it, a fresh server immediately receives its full share of traffic — which can overwhelm cold caches and unwarmed JVMs. With `slowstart 30s`, HAProxy gradually increases traffic to the new server over 30 seconds, giving it time to warm up.
 
 <Diagram
-  title="Connection pooling to backends. Multiple clients share a smaller pool of backend connections, reducing handshake overhead."
+  title="Connection pooling to backends."
   description={
   `Top-down flowchart with three grouped sections. The first section, Client Connections, contains three separate clients labeled Client 1, Client 2, and Client 3. All three connect to a central proxy component labeled HAProxy or Nginx in the second section, Proxy keepalive pool. That proxy feeds into a highlighted Keep-alive Pool node labeled 32 connections. The keep-alive pool then connects to two backend servers in the third section, Backend Servers, labeled Backend 1 and Backend 2, each with maxconn 500. The diagram shows that many client connections can be funneled through a smaller reusable pool of backend connections, which reduces repeated TCP or TLS handshake overhead and lowers backend connection churn.`
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph clientConnections["Client Connections"]
     C1["Client 1"]
     C2["Client 2"]

@@ -526,13 +526,13 @@ Code: Tail sampling in the OpenTelemetry Collector.
 The typical pattern: use head sampling for high-throughput services where overhead matters, use tail sampling when you can afford the overhead but want comprehensive error capture. The following diagram shows how these two approaches interact in a typical pipeline:
 
 <Diagram
-  title="Head sampling reduces overhead; tail sampling preserves interesting traces."
+  title="Head sampling reduces overhead - tail sampling preserves interesting traces."
   description={
     `Top-to-bottom flowchart of a tracing pipeline. An Incoming Request reaches a decision node labeled Head Sampling. If the answer is Yes, spans are created; if No, no spans are created and the request disappears from tracing early. Created spans are exported to a collector, which then applies a second decision node labeled Tail Sampling. The tail sampling stage keeps traces if they contain an error, are slow, are high-value, or match a random 5 percent baseline sample. Otherwise the trace is dropped. Kept traces are sent to a Storage Backend. The diagram shows that head sampling controls application-side overhead by deciding whether spans exist at all, while tail sampling operates later to preserve complete traces that are most useful for debugging and analysis.`
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Incoming Request] --> B{Head Sampling?}
 
     B -->|Yes| C[Create Spans]

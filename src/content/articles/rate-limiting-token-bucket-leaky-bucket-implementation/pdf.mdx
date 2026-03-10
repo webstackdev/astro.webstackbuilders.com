@@ -131,13 +131,13 @@ Four algorithms dominate production rate limiting, each with different tradeoffs
 />
 
 <Diagram
-  title="Same burst traffic, different outcomes — fixed window allows 2x limit while token bucket enforces capacity."
+  title="Same burst traffic, different outcomes."
   description={
   `Top-to-bottom flowchart comparing how the same burst pattern behaves under two rate limiting algorithms. A shared input group at the top states that a client sends 95 requests at second 59 and another 95 requests at second 00, for 190 requests in 2 seconds. One branch leads to the Fixed Window Result group, where all 190 requests are allowed and the outcome notes that the client bypassed the intended limit by 2 times. The other branch leads to the Token Bucket Result group, where only the first 10 requests are allowed immediately and the remaining 180 are rejected or queued at 1 request per second. The fixed-window failure outcome is highlighted as bad, while the token bucket enforcement outcome is highlighted as controlled. The diagram demonstrates how boundary timing can exploit fixed windows while token bucket preserves burst capacity limits.`
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph sameBurst[Same 190 Requests in 2 Seconds]
     INPUT[Client sends 95 at :59<br/>then 95 at :00]
   end
@@ -484,7 +484,7 @@ At the 30-second mark of a 60-second window, you count 50% of the previous windo
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph slidingWindowWeightedCalculation[Sliding Window Weighted Calculation]
         T[Current time: 12:00:30]
         PW[Previous window 11:00-12:00<br/>95 requests]

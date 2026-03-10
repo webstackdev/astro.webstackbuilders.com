@@ -100,7 +100,7 @@ The safe order for CA rotation:
 This sequence diagram shows the rotation flow:
 
 <Diagram
-  title="CA rotation sequence showing the safe order of operations"
+  title="CA rotation sequence showing the safe order of operations."
   description={
     `Sequence diagram with three participants: Workload, Certificate Authority, and Trust Store. The first phase is Step 1, Add New CA to Trust. The Certificate Authority sends a new CA certificate to the Trust Store, and the Trust Store updates the Workload with a trust bundle that includes both the old and new CA. The second phase is Step 2, Verify Distribution, where the Workload confirms it has received the new trust bundle. The third phase is Step 3, Issue New Certs, where the Workload sends a CSR for a new certificate to the Certificate Authority, and the Certificate Authority returns a certificate signed by the new CA. The fourth phase is Step 4, Verify Full Rotation, where the Workload asks the Certificate Authority whether any certificates signed by the old CA remain, and the response is that none remain. The fifth phase is Step 5, Remove Old CA, where the Trust Store removes the old CA and the Workload receives an updated trust bundle containing only the new CA. The diagram emphasizes that trust must be updated before new certificates are issued, and the old CA must only be removed after all workloads have rotated.`
   }

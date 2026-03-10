@@ -238,6 +238,10 @@ https://mermaid.js.org/config/directives.html
 
 - Service worker isn't caching favicon
 
+- Image component with zoom + and -, and magnify glass. Modal to expand full size.
+
+- Don't lazy load hero image
+
 ## List Component
 
 - Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
@@ -266,6 +270,17 @@ https://mermaid.js.org/config/directives.html
 
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
 
+- deep-dive/kubernetes-pod-resource-requests-limits-qos-classes is showing the Download hero image
+
+- Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
+
 ### This file was badly mangled during refactoring, need to compare against original:
 
 src/content/articles/internal-developer-portal-platform-self-service-actions/pdf.mdx
+
+## Prompt for Mermaid Images
+
+Should keep arrowheads, not make lines too thin, keep subgraph blocks, square edges not curves, use database cylinders
+
+├──
+└──

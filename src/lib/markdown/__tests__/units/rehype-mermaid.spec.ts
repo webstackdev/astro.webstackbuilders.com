@@ -11,6 +11,13 @@ describe('rehype-mermaid (Layer 1: Isolated)', () => {
     expect(String(rehypeMermaidConfig.css)).toContain('data:text/css')
   })
 
+  it('should reserve space below subgraph titles in flowcharts', () => {
+    expect(rehypeMermaidConfig.mermaidConfig.flowchart.subGraphTitleMargin).toEqual({
+      top: 4,
+      bottom: 16,
+    })
+  })
+
   it('should throw BuildError from errorFallback', () => {
     const element = { type: 'element', tagName: 'code', properties: {}, children: [] }
     const diagram = 'graph TD\n  A --> B\n'

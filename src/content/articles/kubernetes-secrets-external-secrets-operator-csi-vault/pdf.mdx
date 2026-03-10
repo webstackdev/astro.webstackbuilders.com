@@ -83,7 +83,7 @@ ESO's pods keep running with their last-synced secrets, and new pods start succe
   }
 >
 ```mermaid
-flowchart TB
+flowchart LR
   subgraph External["External Secret Manager"]
     V[Vault / AWS SM / etc]
   end
@@ -825,24 +825,6 @@ With three patterns to choose from, the decision comes down to two questions: ho
   ]}
 />
 
-```mermaid
-flowchart TD
-    A[Choose Secret Pattern] --> B{Tolerate minutes<br/>of staleness?}
-
-    B -->|Yes| C[ESO]
-    B -->|No| D{Accept pod failures<br/>if manager down?}
-
-    D -->|Yes| E[CSI Driver]
-    D -->|No| F{Need custom<br/>fallback logic?}
-
-    F -->|Yes| G[Init Container]
-    F -->|No| H[ESO + short interval]
-
-    style C fill:#6f6,color:#000
-    style E fill:#69f,color:#000
-    style G fill:#f96,color:#000
-    style H fill:#6f6,color:#000
-```
 <Diagram
   title="Pattern decision tree."
   description={
@@ -850,7 +832,7 @@ flowchart TD
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Choose Secret Pattern] --> B{Tolerate minutes<br/>of staleness?}
 
     B -->|Yes| C[ESO]

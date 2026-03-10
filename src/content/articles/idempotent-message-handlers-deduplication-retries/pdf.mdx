@@ -55,7 +55,7 @@ Before diving into implementation, it's worth understanding why duplicates are i
 />
 
   <Diagram
-    title="Message delivery semantics - at-most-once risks loss, at-least-once risks duplicates, exactly-once requires idempotent handlers."
+    title="Message delivery semantics."
     description="Flowchart comparing three message delivery semantics. The first subgraph, At-Most-Once, shows a producer sending to a queue, the queue delivering once to a consumer, and a dotted path indicating the message may be lost. The second subgraph, At-Least-Once, shows a producer sending to a queue, the queue delivering to a consumer, the consumer acknowledging back to the queue, and the queue redelivering if no acknowledgment arrives. The third subgraph, Exactly-Once, shows a producer sending to a queue, the queue delivering to a consumer, and the consumer processing plus acknowledging atomically to produce a result."
   >
     ```mermaid
@@ -470,7 +470,7 @@ The transactional outbox pattern solves the dual-write problem by writing the ou
 This guarantees that if the state change commits, the event will eventually be published. If the transaction rolls back, no event exists to publish. The outbox publisher is itself idempotent - publishing the same event twice is harmless because downstream handlers are idempotent too.
 
 <Diagram
-  title="Transactional outbox - state change and event written atomically, publisher polls outbox."
+  title="Transactional outbox."
   description="Flowchart showing the transactional outbox pattern. Inside a Single Transaction subgraph, a handler writes both an Update Business State action and an Insert Outbox Record action. Both outputs point to the same database, indicating they are committed together. Separately, an Outbox Publisher reads from the database and sends messages to a Message Queue. A Downstream Consumer receives messages from that queue. The diagram shows that business state and outbox event are written atomically first, and event publication happens afterward by polling the outbox."
 >
   ```mermaid

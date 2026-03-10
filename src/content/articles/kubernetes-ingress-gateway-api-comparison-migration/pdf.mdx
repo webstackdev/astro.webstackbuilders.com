@@ -157,13 +157,13 @@ Code: Gateway API's layered model separates infrastructure, platform, and applic
 Notice how the HTTPRoute in the `production` namespace can reference a Gateway in the `gateway-infra` namespace. This cross-namespace capability is fundamental to Gateway API's multi-team model — application teams don't need access to the Gateway namespace to define their routes.
 
 <Diagram
-  title="Ingress uses flat resources in each namespace; Gateway API uses a shared Gateway with multiple routes from different teams."
+  title="Ingress uses flat resources - Gateway API uses a shared Gateway."
   description={
   `Flowchart comparing the structural models of Ingress and Gateway API. On the left, a grouped section labeled Ingress Model: Single Resource shows three separate Ingress resources, each pointing to a single Controller, and that Controller pointing to a Service. This illustrates that Ingress resources are flat and controller behavior is centralized behind one implementation. On the right, a grouped section labeled Gateway API: Layered Resources shows GatewayClass pointing to Gateway, then Gateway pointing to three route resources: HTTPRoute Team A, HTTPRoute Team B, and GRPCRoute Team C. Each route then points to its own backend service: Service A, Service B, and Service C. The diagram emphasizes that Gateway API splits responsibilities into layers and allows multiple teams and route types to share a common Gateway while still routing to separate services.`
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph ingressModel[Ingress Model: Single Resource]
     A1[Ingress] --> B1[Controller]
     A2[Ingress] --> B1
@@ -527,7 +527,7 @@ This separation is enforced at the Kubernetes API level, not just by convention.
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph infrastructureTeam[Infrastructure Team]
     A[GatewayClass] -->|controllerName| B[Gateway Controller]
   end

@@ -38,7 +38,7 @@ Overload doesn't just make systems slow — it makes them _worse_. There's a vic
   description="Flowchart showing the feedback loop that turns overload into a full outage. A Traffic Spike leads to Queue Growth, which leads to Latency Increase. Increased latency causes Client Timeouts, which trigger Client Retries, sending more traffic back into the original spike and reinforcing the cycle. A second branch from Latency Increase leads to Resource Exhaustion, then Thread Pool Saturation, then Connection Pool Exhaustion, and finally Complete Failure. The diagram shows both the retry feedback loop and the internal resource collapse path that make overloaded systems degrade rapidly rather than recover naturally."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Traffic Spike] --> B[Queue Growth]
     B --> C[Latency Increase]
     C --> D[Client Timeouts]
@@ -113,7 +113,7 @@ Here's how that flow looks in practice:
   description="Flowchart showing an admission control decision at the start of request handling. An Incoming Request reaches a decision point labeled Admission Control. If the request is accepted, it moves to Process Request, then to a decision asking Completed. Successful completion returns a 200 Response, while failure returns a 500 Response. If the request is rejected at admission, the system immediately returns 503 plus Retry-After, which leads to Client Backs Off. The diagram emphasizes that rejecting early preserves capacity and guides clients toward backoff instead of letting requests consume resources only to fail later."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Incoming Request] --> B{Admission Control}
     B -->|Accepted| C[Process Request]
     B -->|Rejected| D[Return 503 + Retry-After]

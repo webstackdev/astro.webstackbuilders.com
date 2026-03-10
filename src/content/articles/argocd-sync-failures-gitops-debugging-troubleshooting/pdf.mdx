@@ -53,7 +53,7 @@ Finally, ArgoCD applies resources wave by wave, runs any hooks at the appropriat
   description="Flowchart showing ArgoCD's end-to-end sync lifecycle. A Git Commit leads to ArgoCD Detects Change, then Generate Manifests, then Calculate Diff. A decision point asks Diff Exists. If no diff exists, the process ends at Synced. If a diff exists, ArgoCD proceeds to Order Resources, then Apply Sync Waves, then Run Hooks, then Wait for Health. A final decision asks Healthy. If resources become healthy, the process ends at Synced. If they do not, the result is Sync Failed or Degraded. The diagram shows that sync can fail before apply, during ordered application, in hook execution, or while waiting for health checks."
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Git Commit] --> B[ArgoCD Detects Change]
     B --> C[Generate Manifests]
     C --> D[Calculate Diff]

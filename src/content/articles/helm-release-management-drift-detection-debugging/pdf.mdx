@@ -43,7 +43,7 @@ When you run `helm upgrade`, Helm doesn't just push resources to the cluster and
   description="Flowchart showing Helm upgrade processing and where drift appears. The flow starts with helm upgrade, then renders templates, computes a diff against the cluster, and applies changes. A success decision stores either a successful or failed release in Kubernetes Secrets, which then form Helm release history with revisions v1, v2, and current v3. Separately, the cluster contains actual live resources. A dotted relationship indicates the current stored release should match the live cluster state. A manual kubectl edit points directly to the live cluster state to show how out-of-band changes introduce drift between Helm's stored revision history and the actual resources."
 >
   ```mermaid
-  flowchart TD
+  flowchart LR
     A[helm upgrade] --> B[Render templates]
     B --> C[Compute diff against cluster]
     C --> D[Apply changes to cluster]
@@ -467,7 +467,7 @@ Start with `helm status` to see the current release state, then `helm history` t
   description="Flowchart for troubleshooting a failed Helm upgrade. The process begins with an upgrade failure, then checks helm status, helm history, and failed revision details before branching on the failure type. Hook failures lead to hook job/pod logs and then a decision on whether the hook is recoverable, resulting in either a fix-and-retry path or deletion of hook resources before retrying. Resource failures branch to checking resource events and whether the resource exists, followed by either kubectl describe for wrong state or admission webhook investigation for creation failures. Timeouts branch to pod status and then to image/registry checks, container log review, or node resource review depending on whether pods are in ImagePullBackOff, CrashLoopBackOff, or Pending. Validation errors go to rendering templates and running a server-side `--dry-run`."
 >
   ```mermaid
-  flowchart TD
+  flowchart LR
       A[Upgrade Failed] --> B{Check helm status}
 
       B -->|Status: failed| C[Check helm history]

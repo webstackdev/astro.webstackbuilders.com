@@ -70,7 +70,7 @@ Organizations arrive at multi-cluster architectures for different reasons, and t
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph environmentBased[Environment-Based]
     A[Git Repository] --> B[dev-cluster]
     A --> C[staging-cluster]
@@ -400,13 +400,13 @@ platform-config/
 Figure: Repository structure for Flux multi-cluster configuration.
 
 <Diagram
-  title="ArgoCD generates Applications centrally; Flux controllers pull independently from the same Git repo."
+  title="ArgoCD generates Applications centrally - Flux controllers pull independently."
   description={
   `Flowchart comparing the ArgoCD and Flux multi-cluster operating models. In the grouped section labeled ArgoCD Model, ApplicationSet points to Generator, which then fans out to Cluster 1 App, Cluster 2 App, and Cluster 3 App. Each of those generated applications points to a corresponding cluster: Cluster 1, Cluster 2, and Cluster 3. In the grouped section labeled Flux Model, a shared Git Repository points directly to Cluster 1 Flux, Cluster 2 Flux, and Cluster 3 Flux. Each cluster-specific Flux controller then points to its own layered configuration composed of base plus overlay plus cluster-specific settings. The diagram highlights that ArgoCD centralizes application generation before deployment, while Flux distributes reconciliation to controllers running inside each cluster, all pulling from the same repository.`
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
   subgraph argoCdModel[ArgoCD Model]
     A[ApplicationSet] --> B[Generator]
     B --> C[Cluster 1 App]
@@ -451,7 +451,7 @@ The two dominant approaches are Kustomize (patch-based) and Helm (template-based
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph configurationLayering[Configuration Layering]
         A[Base Config] --> B[Security policies]
         A --> C[Monitoring stack]

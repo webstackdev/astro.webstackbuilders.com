@@ -9,11 +9,13 @@ import {
 } from '@shikijs/transformers'
 import celGrammar from '../markdown/textmateLanguageFiles/cel.tmLanguage.json'
 import haproxyGrammar from '../markdown/textmateLanguageFiles/haproxy.tmLanguage.json'
+import regoGrammar from '../markdown/textmateLanguageFiles/Rego.tmLanguage.json'
 
 export const langAlias = {
   js: 'javascript',
   ts: 'typescript',
   md: 'markdown',
+  opa: 'rego',
   promql: 'go',
 }
 
@@ -136,6 +138,11 @@ export const shikiConfigOptions = {
       ...haproxyGrammar,
       name: 'haproxy',
       scopeName: 'source.haproxy',
+    },
+    {
+      ...regoGrammar,
+      name: 'rego',
+      scopeName: 'source.rego',
     },
   ],
   /** MathJax handles math code block rendering, MermaidJS handles mermaid code block rendering */

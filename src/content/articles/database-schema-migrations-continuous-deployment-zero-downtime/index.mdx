@@ -36,13 +36,13 @@ Modern PostgreSQL (11+) made some operations instant — adding a nullable colum
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
     A[Migration Starts] --> B[Acquire Table Lock]
     B --> C[Rewrite Table Data]
     C --> D[Rebuild Indexes]
     D --> E[Release Lock]
 
-    subgraph blocked[Blocked Application Threads]
+    subgraph blocked[Blocked App Threads]
         F[Thread 1: Waiting...]
         G[Thread 2: Waiting...]
         H[Thread 3: Timeout]

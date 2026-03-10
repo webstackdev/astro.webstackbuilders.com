@@ -39,6 +39,13 @@ export const rehypeMermaidConfig = {
   mermaidConfig: {
     securityLevel: 'loose',
     theme: 'base', /** Required to use custom themeVariables */
+    flowchart: {
+      // Reserve vertical space below wrapped subgraph titles so nodes do not overlap them.
+      subGraphTitleMargin: {
+        top: 4,
+        bottom: 16,
+      },
+    },
     'themeVariables': {
       /** Pie chart outer stroke width */
       pieOuterStrokeWidth: "1px",

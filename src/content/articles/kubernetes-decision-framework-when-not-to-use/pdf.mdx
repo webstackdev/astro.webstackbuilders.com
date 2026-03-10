@@ -127,7 +127,7 @@ The first question isn't "Should we use Kubernetes?" It's "What problems are we 
   description="Flowchart that starts with Considering Kubernetes? and asks how many services do you have. For 1-3 services, it asks whether they are tightly coupled and whether auto-scaling is needed, leading toward Monolith on VMs or Serverless or PaaS. For 4-10 services, it asks about complex networking requirements, team K8s experience, and whether the team can invest in learning, leading toward Kubernetes may fit or VMs with simple orchestration. For 10+ services, it asks about multiple teams deploying independently and whether microservices are actually needed, leading toward Kubernetes likely fits or Modular monolith first. A final decision asks whether managed K8s is used, ending at Proceed with caution or Reconsider: Self-managed rarely makes sense."
 >
   ```mermaid
-  flowchart TD
+  flowchart LR
       A[Considering Kubernetes?] --> B{How many services<br/>do you have?}
 
       B -->|1-3 services| C{Are they tightly<br/>coupled?}
@@ -343,7 +343,7 @@ Two factors dominate the infrastructure decision: traffic patterns and team size
   description="Flowchart divided into two subgraphs. The first, Traffic Pattern Decision, starts with What's your traffic pattern? and asks whether load is constant, whether it scales to zero, and whether spikes occur with an existing baseline, leading to VMs or K8s, Serverless, or K8s with HPA or Serverless + baseline. The second, Team Size Decision, starts with Team size? and asks whether there are less than 5 engineers or less than 15 engineers, leading to Serverless or PaaS, Managed K8s or Platform team, or Can justify dedicated platform team."
 >
   ```mermaid
-  flowchart TD
+  flowchart LR
     subgraph trafficPatternDecision[Traffic Pattern Decision]
       A[What's your traffic<br/>pattern?] --> B{Constant load?}
 

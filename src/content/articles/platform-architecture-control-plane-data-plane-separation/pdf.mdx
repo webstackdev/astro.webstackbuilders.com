@@ -90,13 +90,13 @@ The characteristics differ in ways that matter for architecture:
 The failure impact row is the critical insight. When the control plane goes down — during an upgrade, due to an etcd issue, whatever — running workloads continue. You can't deploy new versions or scale, but users aren't immediately impacted. When the data plane fails, users notice immediately.
 
 <Diagram
-  title="Control plane pushes desired state to data plane; data plane reports actual state back."
+  title="Control plane pushes desired state to data plane - data plane reports actual state back."
   description={
   `Top-to-bottom flowchart with two grouped sections: Control Plane and Data Plane. In the Control Plane, API Server connects to State Store and Controllers. Controllers connect to Policy Engine and Scheduler, showing that orchestration logic sits in the control layer. In the Data Plane, three worker nodes represent execution targets. Controllers send Desired State to Worker Node 1, Worker Node 2, and Worker Node 3. Each worker node sends Actual State back to Controllers. The diagram illustrates the core control loop: the control plane stores intent and policies, pushes desired state outward, and continuously receives observed state from the data plane to reconcile differences.`
   }
 >
 ```mermaid
-flowchart TB
+flowchart LR
   subgraph controlPlane[Control Plane]
     A[API Server] --> B[State Store]
     A --> C[Controllers]
@@ -425,7 +425,7 @@ At medium scale, the data plane stays in a single cluster but segments into mult
   }
 >
 ```mermaid
-flowchart TB
+flowchart LR
   subgraph smallScale[Small Scale]
     S1[Shared Control Plane]
     S2[Shared Data Plane]

@@ -48,7 +48,7 @@ Mutual TLS adds a second handshake step: after the client validates the server's
 This is what makes mTLS attractive for service-to-service communication — identity verification happens at the network layer, not the application layer.
 
 <Diagram
-  title="mTLS handshake between client and server services"
+  title="mTLS handshake between client and server services."
   description={
     `Sequence diagram with two participants: Client Service and Server Service. A note marks the beginning of the mTLS handshake. The client sends ClientHello to the server. The server responds with ServerHello plus its server certificate. The client validates the server certificate against its trust store. The server then sends a CertificateRequest asking for the client certificate. The client sends its certificate to the server, and the server validates the client certificate against its trust store. After mutual identity validation, the client sends ClientKeyExchange plus Finished, and the server replies with Finished. A second note marks that the encrypted channel is established. Finally, both sides exchange encrypted application data in both directions. The diagram shows that mTLS adds client certificate validation on top of the standard TLS handshake before application traffic is allowed.`
   }
@@ -158,13 +158,13 @@ The downside is blast radius. If the issuing CA is compromised, every certificat
 A __three-tier hierarchy__ adds an intermediate layer between root and issuing CAs. The root (20-year validity, offline) signs intermediate CAs (5-10 years), which sign issuing CAs (1-2 years), which sign workload certificates (24 hours to 7 days). This creates natural isolation boundaries — you can have separate intermediates for production and staging, or for different regions, or for different teams.
 
 <Diagram
-  title="Three-tier certificate authority hierarchy for mTLS"
+  title="Three-tier certificate authority hierarchy for mTLS."
   description={
     `Flowchart showing a three-tier certificate authority hierarchy inside a grouped section labeled Three-Tier Hierarchy. At the top is Root CA with labels for 20-year validity and offline or HSM storage. The root signs two intermediate certificate authorities: one for Production and one for Staging, each labeled with 5-year validity. The production intermediate signs two issuing certificate authorities for Cluster-1 and Cluster-2, each labeled with 1-year validity. The staging intermediate signs one issuing certificate authority for Staging, also labeled with 1-year validity. Each issuing certificate authority then signs a set of workload certificates labeled 24-hour TTL. The diagram shows how a single root anchors trust, intermediates create isolation boundaries between environments, issuing CAs handle cluster-level signing, and short-lived workload certificates sit at the bottom of the chain.`
   }
 >
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph threeTierHierarchy[Three-Tier Hierarchy]
         R[Root CA<br/>Validity: 20 years<br/>Offline/HSM]
 
@@ -338,7 +338,7 @@ The safe order for CA rotation:
 />
 
 <Diagram
-  title="CA rotation sequence showing the safe order of operations"
+  title="CA rotation sequence showing the safe order of operations."
   description={
     `Sequence diagram with three participants: Workload, Certificate Authority, and Trust Store. In Step 1, Add New CA to Trust, the Certificate Authority adds the new CA certificate to the Trust Store, and the Trust Store updates the Workload with a bundle that trusts both the old and new CA. In Step 2, Verify Distribution, the Workload confirms it has received the updated trust bundle. In Step 3, Issue New Certs, the Workload sends a CSR for a new certificate to the Certificate Authority, which returns a certificate signed by the new CA. In Step 4, Wait for Full Rotation, the Workload indicates that all workloads are now using new certificates. In Step 5, Remove Old CA, the Trust Store removes the old CA and sends the Workload an updated bundle containing only the new CA. The diagram emphasizes the required order: distribute trust first, rotate certificates second, and remove the old trust anchor last.`
   }
