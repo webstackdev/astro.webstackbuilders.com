@@ -9,6 +9,11 @@ tags: ["apis-and-gateways", "prometheus", "grafana", "aws", "terraform"]
 featured: true
 ---
 
+import apiGatewayDiagram from "./diagrams/api-gateway-as-the-central-observation-point-for-all-traffic.png"
+import gatewayDashboardDiagram from "./diagrams/gateway-dashboard-layout-with-logical-panel-grouping.jpg"
+import requestLifecycleDiagram from "./diagrams/request-lifecycle-showing-gateway-overhead-vs-backend-latency-with-typical-durations_deep-dive.png"
+import traceContextDiagram from "./diagrams/trace-context-propagation-creating-connected-spans-across-gateway-boundary.jpg"
+
 *[gRPC]: Google Remote Procedure Call
 *[OTEL]: OpenTelemetry
 *[P99]: 99th Percentile
@@ -43,26 +48,12 @@ Gateway observability is not the same as service observability, and treating it 
 The fundamental difference is scope: every request passes through the gateway. When a backend service has a problem, its own metrics show the issue clearly — error rate spikes, latency increases, throughput drops. But the gateway sees that same problem diluted across all the traffic it handles. If one of ten backends is failing, the gateway's aggregate error rate increases by 10%, which might not even trigger an alert.
 
 <Diagram
+  src={apiGatewayDiagram}
   title="API gateway as the central observation point for all traffic"
   description={
     `Flowchart showing the API gateway positioned between a consumer and multiple downstream components. A Consumer sends requests to the API Gateway. From the gateway, traffic can go to an Auth Service, a Rate Limiter, Backend A, and Backend B. A grouped region labeled Gateway Boundary contains the API Gateway, Auth Service, and Rate Limiter, emphasizing that these components sit at the control point through which all requests pass. The diagram shows why the gateway is a unique observation point: it sees every request before it reaches the backend services and can record both control-plane decisions, such as authentication and rate limiting, and routing decisions to different backends.`
   }
->
-```mermaid
-flowchart LR
-    A[Consumer] --> B[API Gateway]
-    B --> C[Auth Service]
-    B --> D[Rate Limiter]
-    B --> E[Backend A]
-    B --> F[Backend B]
-
-    subgraph gatewayBoundary[Gateway Boundary]
-        B
-        C
-        D
-    end
-```
-</Diagram>
+/>
 
 The gateway also adds its own latency that frequently gets blamed on backends. Authentication checks, rate limit lookups, request transformation, response transformation, TLS termination — these all take time. When users complain about slow APIs, the default assumption is that backends are slow, but I have seen gateway overhead account for 200ms+ on requests where the backend responded in 50ms.
 
@@ -176,39 +167,12 @@ Be thoughtful about histogram buckets (predefined latency ranges like 0-10ms, 10
 The single most useful gateway metric is not total request duration — it is the breakdown of where time went. When someone reports "the API is slow," you need to immediately answer: is the gateway slow, or is the backend slow?
 
 <Diagram
+  src={requestLifecycleDiagram}
   title="Request lifecycle showing gateway vs. backend latency components"
   description={
   `Flowchart showing a request moving left to right through ten stages. The sequence begins with Request Received, then passes through TLS Handshake, Request Parse, Auth Check, Rate Limit Check, Route Match, Upstream Request, Backend Processing, Response Transform, and Response Sent. Two grouped regions separate where time is spent. A Gateway Time group contains TLS Handshake, Request Parse, Auth Check, Rate Limit Check, Route Match, Upstream Request, Response Transform, and Response Sent, representing work performed or coordinated by the gateway. A separate Backend Time group contains only Backend Processing, representing the actual time spent inside the upstream service. The diagram emphasizes that total latency is a combination of gateway-side work and backend execution, and that debugging requires measuring those components separately.`
   }
->
-```mermaid
-graph LR
-  A[Request Received] --> B[TLS Handshake]
-  B --> C[Request Parse]
-  C --> D[Auth Check]
-  D --> E[Rate Limit Check]
-  E --> F[Route Match]
-  F --> G[Upstream Request]
-  G --> H[Backend Processing]
-  H --> I[Response Transform]
-  I --> J[Response Sent]
-
-  subgraph gatewayTime[Gateway Time]
-    B
-    C
-    D
-    E
-    F
-    G
-    I
-    J
-  end
-
-  subgraph backendTime[Backend Time]
-    H
-  end
-```
-</Diagram>
+/>
 
 At minimum, instrument these separately:
 
@@ -391,29 +355,12 @@ Code: W3C Trace Context header propagation through API gateway.
 The gateway creates its own span as a child of the incoming span, then creates new child spans for each outbound request. The trace ID stays the same throughout — that is what connects all the spans into a single trace. The span IDs change at each hop to distinguish different operations.
 
 <Diagram
+  src={traceContextDiagram}
   title="Trace context propagation creating connected spans across gateway boundary"
   description={
     `Sequence diagram showing how a single distributed trace continues across a client, gateway, auth service, and backend. The client sends a request to the gateway with a traceparent header containing trace ID abc and span ID 123. The gateway creates its own span as a child of that incoming request. The gateway then calls the auth service with the same trace ID but a new span ID 456, receives the auth response, and forwards the request to the backend with the same trace ID and another new span ID 789. The backend returns a response to the gateway, which then responds to the client. A note across the full diagram states that all spans share the same trace ID abc, emphasizing that the trace remains connected even though each hop creates a new span.`
   }
->
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Gateway
-    participant Auth
-    participant Backend
-
-    Client->>Gateway: Request (traceparent: abc-123)
-    Gateway->>Gateway: Create span (parent: 123)
-    Gateway->>Auth: Auth check (traceparent: abc-456)
-    Auth-->>Gateway: Auth response
-    Gateway->>Backend: Forward (traceparent: abc-789)
-    Backend-->>Gateway: Response
-    Gateway-->>Client: Response
-
-    Note over Client,Backend: All spans share trace ID abc
-```
-</Diagram>
+/>
 
 Common propagation failures I have seen:
 
@@ -825,39 +772,12 @@ The overview dashboard answers three questions that operations teams ask constan
 The layout matters. Arrange panels so that related information is grouped and the eye naturally flows from high-level health to specific details:
 
 <Diagram
+  src={gatewayDashboardDiagram}
   title="Gateway dashboard layout with logical panel grouping"
   description={
   `Top-to-bottom flowchart showing a dashboard organized into four rows. The first row, labeled Row 1 Health Overview, contains Request Rate, Error Rate, and P99 Latency panels for immediate high-level status. The second row, labeled Row 2 Upstream Status, contains Upstream Health Map and Circuit Breaker States panels to show backend health. The third row, labeled Row 3 Traffic Breakdown, contains Top Routes, Top Consumers, and Error Distribution panels for traffic analysis. The fourth row, labeled Row 4 Latency Analysis, contains Gateway vs Backend Latency, Latency by Route, and Slow Request Percent panels for performance investigation. Arrows connect row 1 to row 2, row 2 to row 3, and row 3 to row 4, showing an intended reading order from broad health signals to detailed diagnostic panels.`
   }
->
-```mermaid
-graph TB
-  subgraph row1[Row 1 Health Overview]
-    A[Request Rate]
-    B[Error Rate]
-    C[P99 Latency]
-  end
-
-  subgraph row2[Row 2 Upstream Status]
-    D[Upstream Health Map]
-    E[Circuit Breaker States]
-  end
-
-  subgraph row3[Row 3 Traffic Breakdown]
-    F[Top Routes]
-    G[Top Consumers]
-    H[Error Distribution]
-  end
-
-  subgraph row4[Row 4 Latency Analysis]
-    I[Gateway vs Backend Latency]
-    J[Latency by Route]
-    K[Slow Request %]
-  end
-
-  row1 --> row2 --> row3 --> row4
-```
-</Diagram>
+/>
 
 Row 1 gives you immediate health status — if everything is green, you can stop looking. Row 2 shows backend status, helping you quickly identify if a problem is gateway-side or upstream-side. Rows 3 and 4 provide the detail needed to narrow down issues to specific routes or consumers.
 

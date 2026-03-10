@@ -9,6 +9,13 @@ tags: ["apis-and-gateways", "aws", "prometheus", "grafana", "python"]
 featured: true
 ---
 
+import consumerUsageDiagram from "./diagrams/consumer-usage-dashboard-layout-with-logical-panel-grouping.jpg"
+import costAttributionDiagram from "./diagrams/cost-attribution-flow-from-infrastructure-costs-to-consumer-invoices.jpg"
+import endToEndBillingDiagram from "./diagrams/end-to-end-billing-flow-from-API-usage-to-payment-processing.png"
+import meteringDataDiagram from "./diagrams/metering-data-flow-from-API-request-to-billing-and-enforcement-systems.png"
+import pricingModelDiagram from "./diagrams/pricing-model-evolution-from-flat-rate-to-usage-based.png"
+import quotaEnforcementDiagram from "./diagrams/quota-enforcement-decision-flow-with-soft-limits-and-burst-allowance.png"
+
 *[ARR]: Annual Recurring Revenue
 *[COGS]: Cost of Goods Sold
 *[MAU]: Monthly Active Users
@@ -78,32 +85,12 @@ Request count is universal — every API tracks it. But it's often a poor proxy 
 For storage-backed APIs (document processing, media transcoding, backup systems), track storage deltas. For APIs with expensive features (PDF generation, video encoding, ML inference), track feature-specific usage separately. The billing model can come later, but you can't retroactively meter usage you never captured.
 
 <Diagram
+  src={meteringDataDiagram}
   title="Metering data flow from API request to billing and enforcement systems"
   description={
     `Flowchart showing how an API request becomes billing and quota data. An API Request enters a decision point labeled Metering Points. From there, the request is measured across five dimensions: Request Count, Request Size, Response Size, Compute Duration, and Storage Delta. All five measurements feed into a single Usage Record. That usage record then flows into an Aggregation Pipeline, which distributes the aggregated data to three downstream systems: Billing System, Analytics, and Quota Enforcement. The diagram emphasizes that the same metering event supports cost reporting, product analysis, and quota control.`
   }
->
-```mermaid
-flowchart TD
-    A[API Request] --> B{Metering Points}
-    B --> C[Request Count]
-    B --> D[Request Size]
-    B --> E[Response Size]
-    B --> F[Compute Duration]
-    B --> G[Storage Delta]
-
-    C --> H[Usage Record]
-    D --> H
-    E --> H
-    F --> H
-    G --> H
-
-    H --> I[Aggregation Pipeline]
-    I --> J[Billing System]
-    I --> K[Analytics]
-    I --> L[Quota Enforcement]
-```
-</Diagram>
+/>
 
 ### Metering Architecture Patterns
 
@@ -305,25 +292,12 @@ Hard limits are common for free tiers and trial accounts — once you hit the ca
 Token buckets are elegant for smoothing usage. Instead of "1 million requests per month," you get tokens at a steady rate (about 385 requests per hour for a 1M monthly quota). If you don't use them, they accumulate up to a cap. This prevents someone from using their entire monthly quota in the first day, then being throttled for the remaining 29 days.
 
 <Diagram
+  src={quotaEnforcementDiagram}
   title="Quota enforcement decision flow with soft limits and burst allowance"
   description={
     `Flowchart showing how each request is checked against quota rules. A Request enters a decision point labeled Check Quota. If the request is under the limit, it is allowed and the main counter is decremented. If it reaches the soft limit, it is still allowed but also triggers an alert before the main counter is decremented. If it reaches the hard limit, a second decision checks whether burst capacity is available. If burst capacity exists, the request is allowed from the burst pool and the burst counter is decremented. If no burst capacity remains, the request is rejected with HTTP 429. The diagram shows how soft limits provide warning, hard limits enforce plan boundaries, and burst allowances absorb short traffic spikes.`
   }
->
-```mermaid
-flowchart LR
-    A[Request] --> B{Check Quota}
-    B -->|Under Limit| C[Allow]
-    B -->|At Soft Limit| D[Allow + Alert]
-    B -->|At Hard Limit| E{Burst Available?}
-    E -->|Yes| F[Allow from Burst]
-    E -->|No| G[Reject 429]
-
-    C --> H[Decrement Counter]
-    D --> H
-    F --> I[Decrement Burst]
-```
-</Diagram>
+/>
 
 ### Rate Limiting vs. Quota Enforcement
 
@@ -538,29 +512,12 @@ Three common approaches:
 />
 
 <Diagram
+  src={costAttributionDiagram}
   title="Cost attribution flow from infrastructure costs to consumer invoices"
   description={
     `Flowchart showing how infrastructure spending becomes charges for consumers. Infrastructure Costs feed into a Cost Pool. That pool enters a decision point labeled Allocation Method, which branches into three pricing strategies: Direct Attribution, Proportional Allocation, and Tiered Pricing. Direct Attribution leads to Per-Request Cost, Proportional Allocation leads to Percent of Total Usage, and Tiered Pricing leads to Volume Discounts. All three calculated paths feed into a final Consumer Invoice. The diagram highlights that the same underlying operating cost can be turned into invoices through different allocation strategies depending on pricing goals, fairness, and customer behavior.`
   }
->
-```mermaid
-flowchart TD
-    A[Infrastructure Costs] --> B[Cost Pool]
-
-    B --> C{Allocation Method}
-    C --> D[Direct Attribution]
-    C --> E[Proportional Allocation]
-    C --> F[Tiered Pricing]
-
-    D --> G[Per-Request Cost]
-    E --> H[% of Total Usage]
-    F --> I[Volume Discounts]
-
-    G --> J[Consumer Invoice]
-    H --> J
-    I --> J
-```
-</Diagram>
+/>
 
 Most internal APIs start with direct attribution (simple to explain) then move to proportional allocation once they realize different usage patterns have different costs. External APIs almost always use tiered pricing because it creates better business incentives.
 
@@ -745,34 +702,12 @@ Once you have usage data and cost models, you need to connect it to an invoicing
 The flow is consistent regardless of the destination:
 
 <Diagram
+  src={endToEndBillingDiagram}
   title="End-to-end billing flow from API usage to payment processing"
   description={
     `Sequence diagram showing how API usage becomes a bill and then updates quota state. The API sends a Usage Event to Metering. Metering deduplicates the event and forwards Buffered Events to Aggregation. A note marks Aggregation as an hourly rollup job. Aggregation calculates costs and sends a Period Summary to Billing. Another note marks Billing as operating at the end of the billing period. Billing generates an invoice, charges the customer through Payment, receives a confirmation, and then updates quota limits back in the API system. The diagram emphasizes that usage collection, aggregation, invoicing, payment processing, and quota management form one connected lifecycle.`
   }
->
-```mermaid
-sequenceDiagram
-    participant API
-    participant Metering
-    participant Aggregation
-    participant Billing
-    participant Payment
-
-    API->>Metering: Usage Event
-    Metering->>Metering: Deduplicate
-    Metering->>Aggregation: Buffered Events
-
-    Note over Aggregation: Hourly rollup job
-    Aggregation->>Aggregation: Calculate costs
-    Aggregation->>Billing: Period summary
-
-    Note over Billing: End of billing period
-    Billing->>Billing: Generate invoice
-    Billing->>Payment: Charge customer
-    Payment-->>Billing: Confirmation
-    Billing->>API: Update quota limits
-```
-</Diagram>
+/>
 
 The key decision point is timing. Do you report usage continuously (every hour, every day) or only at the end of the billing period? Continuous reporting gives consumers real-time visibility into costs but requires more API calls to the billing platform. End-of-period reporting is simpler but consumers don't see costs until the bill arrives.
 
@@ -936,36 +871,12 @@ The essential panels:
 The layout matters. Put the most important information at the top — current usage and projected costs. Trends and breakdowns go below. Alerts go at the bottom unless they're critical (approaching quota), then promote them to the top.
 
 <Diagram
+  src={consumerUsageDiagram}
   title="Consumer usage dashboard layout with logical panel grouping"
   description={
   `Left-to-right dashboard layout organized into four grouped sections. Row 1 Overview contains Monthly Usage Gauge showing 4.5 million of 10 million requests, Projected Cost showing a 450 dollar estimate, and Days Remaining showing 15 days left. Row 2 Trends contains Daily Usage Time Series for the last 30 days and Usage versus Previous Month showing a 15 percent increase. Row 3 Breakdown contains Usage by Endpoint for the top 10 routes, Usage by Region for geographic split, and Cost by Dimension for requests, compute, and egress. Row 4 Alerts contains Quota Alerts showing no alerts and Anomaly Detection showing a usage spike detected. The layout moves from current status to trends, then breakdowns, then alerting.`
   }
->
-```mermaid
-flowchart LR
-  subgraph row1[Row 1 Overview]
-    A[Monthly Usage Gauge<br/>4.5M / 10M requests]
-    B[Projected Cost<br/>$450 estimate]
-    C[Days Remaining<br/>15 days left]
-  end
-
-  subgraph row2[Row 2 Trends]
-    D[Daily Usage Time Series<br/>Last 30 days]
-    E[Usage versus Previous Month<br/>15% increase]
-  end
-
-  subgraph row3[Row 3 Breakdown]
-    F[Usage by Endpoint<br/>Top 10 routes]
-    G[Usage by Region<br/>Geographic split]
-    H[Cost by Dimension<br/>Requests, compute, egress]
-  end
-
-  subgraph row4[Row 4 Alerts]
-    I[Quota Alerts<br/>No alerts]
-    J[Anomaly Detection<br/>Usage spike detected]
-  end
-```
-</Diagram>
+/>
 
 Projected month-end usage is critical. If a consumer is at 50% of their quota with 25% of the month remaining, they're on track to use 200% of their quota. Show them this projection so they can optimize before hitting limits.
 
@@ -1268,22 +1179,10 @@ The mistake you should avoid: skip phases 2 and 3, jump straight from instrument
 Your pricing model will evolve as you learn more about usage patterns. The first model is always wrong — you don't know enough about cost drivers yet. Plan for iteration.
 
 <Diagram
+  src={pricingModelDiagram}
   title="Pricing model evolution from flat rate to usage-based billing with typical timelines"
   description="Flowchart showing a left-to-right pricing maturity path across roughly one year. The sequence begins with Launch Flat Rate at month zero, moves to Learn Usage Patterns during months one to three, then Add Metering during months four to five, Introduce Showback during months six to eight, Pilot Usage Based Tier during months nine to eleven, and finally Scale Full Usage Based from month twelve onward. Three dotted insight branches capture what the organization learns at each stage. After learning usage patterns, it discovers that heavy users are subsidized and that the top 20 percent of consumers generate 80 percent of usage. After showback, it confirms the 80 20 pattern and sees usage stabilize once visibility exists. During the usage-based pilot, it learns that customer segments have different price sensitivity, with 10 percent optimizing and 5 percent churning. The diagram emphasizes that usage-based pricing usually evolves through staged learning rather than a single launch."
->
-```mermaid
-flowchart LR
-    A["Launch: Flat Rate<br/>(Month 0)"] --> B["Learn: Usage Patterns<br/>(Month 1-3)"]
-    B --> C["Add: Metering<br/>(Month 4-5)"]
-    C --> D["Introduce: Showback<br/>(Month 6-8)"]
-    D --> E["Pilot: Usage-Based Tier<br/>(Month 9-11)"]
-    E --> F["Scale: Full Usage-Based<br/>(Month 12+)"]
-
-    B -.-> G["Insight: Heavy users subsidized<br/>Top 20% = 80% usage"]
-    D -.-> H["Insight: 80/20 confirmed<br/>Usage stabilizes after visibility"]
-    E -.-> I["Insight: Price sensitivity by segment<br/>10% optimize, 5% churn"]
-```
-</Diagram>
+/>
 
 Readiness indicators: move to the next phase when (1) data quality is stable (< 1% discrepancies), (2) you've stopped hearing "why is my usage so high" questions, and (3) you've documented edge cases that caused confusion in the current phase.
 

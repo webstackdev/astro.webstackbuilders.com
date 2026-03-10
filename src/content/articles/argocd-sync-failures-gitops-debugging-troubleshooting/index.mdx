@@ -9,6 +9,8 @@ tags: ["build-and-deploy", "argo-cd", "kubernetes", "helm"]
 featured: true
 ---
 
+import argocdSyncDiagram from "./diagrams/argocd-sync-process-from-git-commit-to-healthy-application_article.jpg"
+
 *[ArgoCD]: Declarative GitOps continuous delivery tool for Kubernetes
 *[CRD]: Custom Resource Definition
 *[GitOps]: Git as single source of truth for declarative infrastructure
@@ -27,7 +29,7 @@ This is the gap between GitOps theory and operational reality. When sync fails, 
 Before debugging, you need a mental model of the sync process. When you push a commit or click "Sync," ArgoCD kicks off a multi-phase process:
 
 <Diagram
-  title="ArgoCD sync process from Git commit to healthy application"
+  title={argocdSyncDiagram}
   description="Flowchart showing ArgoCD's high-level sync lifecycle from change detection to a healthy deployment. The sequence moves left to right through six stages: Detect Change, Generate Manifests, Calculate Diff, Order Resources, Apply by Wave, and Wait for Health. The diagram emphasizes that ArgoCD does more than apply YAML. It first notices a source change, renders manifests through tools like Helm or Kustomize, compares desired and live state, determines ordering based on sync waves, applies resources in that order, and then blocks until health checks report success. This explains where failures can occur before, during, or after resource application."
 >
 ```mermaid
