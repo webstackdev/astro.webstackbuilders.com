@@ -9,6 +9,8 @@ tags: ["systems-and-development", "python", "aws", "typescript"]
 featured: true
 ---
 
+import idempotencyFlowDiagram from "./diagrams/idempotency-flow-second-delivery-skips-processing-entirely.png"
+
 *[ACK]: Acknowledgment
 *[UUID]: Universally Unique Identifier
 *[ULID]: Universally Unique Lexicographically Sortable Identifier
@@ -109,35 +111,10 @@ The `ON CONFLICT` clause makes the insert atomic. If the key already exists, the
 The sequence diagram below shows the full flow. Notice that on the second delivery, the handler skips all business logic and immediately acknowledges - the idempotency store has already recorded success.
 
 <Diagram
+  src={idempotencyFlowDiagram}
   title="Idempotency flow - second delivery skips processing entirely."
   description="Sequence diagram showing how an idempotent message handler processes a first delivery and short-circuits a duplicate. A queue delivers a message to the handler, which checks the idempotency store for key order:123:pay. The store reports the key is not found and grants the lock. The handler processes the payment through the database, receives success, marks the idempotency key as completed with a cached result, and acknowledges the message back to the queue. Later, after a note indicating the consumer crashed and the message was redelivered, the queue sends the same message again. The handler checks the same idempotency key, the store reports it is already completed with a cached result, and the handler immediately acknowledges the message without processing the payment again."
->
-  ```mermaid
-  sequenceDiagram
-      participant Q as Queue
-      participant H as Handler
-      participant S as Idempotency Store
-      participant DB as Database
-
-      Q->>H: Deliver message (1st time)
-      H->>S: Check key "order:123:pay"
-      S-->>H: Not found, lock acquired
-
-      H->>DB: Process payment
-      DB-->>H: Success
-
-      H->>S: Mark completed + cache result
-      H->>Q: ACK message
-
-      Note over Q,H: Consumer crashes, message redelivered
-
-      Q->>H: Deliver message (2nd time)
-      H->>S: Check key "order:123:pay"
-      S-->>H: Found: completed, result cached
-
-      H->>Q: ACK message (skip processing)
-  ```
-</Diagram>
+/>
 
 Which storage should you use? It depends on your consistency requirements and latency budget:
 

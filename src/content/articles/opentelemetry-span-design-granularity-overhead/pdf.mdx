@@ -9,6 +9,12 @@ tags: ["observability-and-telemetry", "typescript"]
 featured: true
 ---
 
+import batchInstrumentationDiagram from "./diagrams/batch-instrumentation-approaches-events-vs-spans.png"
+import headSamplingDiagram from "./diagrams/head-sampling-reduces-overhead-tail-sampling-preserves-interesting-traces.png"
+import overInstrumentedDiagram from "./diagrams/over-instrumented-trace-wall-of-spans-obscures-the-critical-path.png"
+import readableTraceDiagram from "./diagrams/readable-trace-waterfall-with-clear-hierarchy.png"
+import requestDiagram from "./diagrams/request-instrumentation-sequence.png"
+
 *[DB]: Database
 *[gRPC]: gRPC Remote Procedure Calls
 *[OTel]: OpenTelemetry
@@ -178,32 +184,10 @@ Code: Span hierarchy with parent-child relationships.
 This produces a readable waterfall — you can see at a glance that the request spent time in cache lookup, then database, then enrichment. The gaps between spans show where time went to uninstrumented code (JSON parsing, business logic).
 
 <Diagram
+  src={readableTraceDiagram}
   title="Readable trace waterfall with clear hierarchy."
-  description={
-    `Gantt chart titled Trace Waterfall readable, measured in milliseconds. The Request section contains a root span for HTTP GET /orders/123 running from 0 to 150 milliseconds. The Cache section shows cache.get from 5 to 15 milliseconds near the beginning of the request. The Database section shows db.query orders from 20 to 80 milliseconds. The Enrichment section shows enrichOrder running from 85 to 140 milliseconds, and within that interval two external HTTP calls run in parallel: http.get /customers/456 from 90 to 120 milliseconds and http.get /products/789 from 90 to 110 milliseconds. The chart illustrates a clean span hierarchy where the main request contains a few meaningful child operations, making the critical path and parallel work easy to identify.`
-  }
->
-```mermaid
-gantt
-    title Trace Waterfall (readable)
-    dateFormat X
-    axisFormat %L ms
-
-    section Request
-    HTTP GET /orders/123           :a1, 0, 150
-
-    section Cache
-    cache.get                      :a2, 5, 15
-
-    section Database
-    db.query orders                :a3, 20, 80
-
-    section Enrichment
-    enrichOrder                    :a4, 85, 140
-    http.get /customers/456        :a5, 90, 120
-    http.get /products/789         :a6, 90, 110
-```
-</Diagram>
+  description="Gantt chart titled Trace Waterfall readable, measured in milliseconds. The Request section contains a root span for HTTP GET /orders/123 running from 0 to 150 milliseconds. The Cache section shows cache.get from 5 to 15 milliseconds near the beginning of the request. The Database section shows db.query orders from 20 to 80 milliseconds. The Enrichment section shows enrichOrder running from 85 to 140 milliseconds, and within that interval two external HTTP calls run in parallel: http.get /customers/456 from 90 to 120 milliseconds and http.get /products/789 from 90 to 110 milliseconds. The chart illustrates a clean span hierarchy where the main request contains a few meaningful child operations, making the critical path and parallel work easy to identify."
+/>
 
 <Callout type="info">
 Span hierarchy creates the waterfall visualization. Parent-child relationships show which operations are nested within others. The trace's critical path becomes visible when you can see which child spans are sequential vs parallel.
@@ -526,34 +510,10 @@ Code: Tail sampling in the OpenTelemetry Collector.
 The typical pattern: use head sampling for high-throughput services where overhead matters, use tail sampling when you can afford the overhead but want comprehensive error capture. The following diagram shows how these two approaches interact in a typical pipeline:
 
 <Diagram
+  src={headSamplingDiagram}
   title="Head sampling reduces overhead - tail sampling preserves interesting traces."
-  description={
-    `Top-to-bottom flowchart of a tracing pipeline. An Incoming Request reaches a decision node labeled Head Sampling. If the answer is Yes, spans are created; if No, no spans are created and the request disappears from tracing early. Created spans are exported to a collector, which then applies a second decision node labeled Tail Sampling. The tail sampling stage keeps traces if they contain an error, are slow, are high-value, or match a random 5 percent baseline sample. Otherwise the trace is dropped. Kept traces are sent to a Storage Backend. The diagram shows that head sampling controls application-side overhead by deciding whether spans exist at all, while tail sampling operates later to preserve complete traces that are most useful for debugging and analysis.`
-  }
->
-```mermaid
-flowchart LR
-    A[Incoming Request] --> B{Head Sampling?}
-
-    B -->|Yes| C[Create Spans]
-    B -->|No| D[No Spans Created]
-
-    C --> E[Export to Collector]
-    E --> F{Tail Sampling?}
-
-    F -->|Error?| G[Keep]
-    F -->|Slow?| G
-    F -->|High-value?| G
-    F -->|Random 5%| G
-    F -->|Otherwise| H[Drop]
-
-    G --> I[Storage Backend]
-
-    style D fill:#f96,color:#000
-    style H fill:#f96,color:#000
-    style G fill:#9f9,color:#000
-```
-</Diagram>
+  description="Top-to-bottom flowchart of a tracing pipeline. An Incoming Request reaches a decision node labeled Head Sampling. If the answer is Yes, spans are created; if No, no spans are created and the request disappears from tracing early. Created spans are exported to a collector, which then applies a second decision node labeled Tail Sampling. The tail sampling stage keeps traces if they contain an error, are slow, are high-value, or match a random 5 percent baseline sample. Otherwise the trace is dropped. Kept traces are sent to a Storage Backend. The diagram shows that head sampling controls application-side overhead by deciding whether spans exist at all, while tail sampling operates later to preserve complete traces that are most useful for debugging and analysis."
+/>
 
 <Callout type="warning">
 Head sampling reduces instrumentation overhead but might drop interesting traces. Tail sampling sees complete traces but requires buffering and doesn't reduce application overhead. Use head sampling for high-throughput services, tail sampling for comprehensive error capture.
@@ -596,43 +556,10 @@ A good trace has 10-30 spans per request, 3-5 levels of nesting, clear names tha
 Compare this over-instrumented trace to the readable one shown earlier:
 
 <Diagram
+  src={overInstrumentedDiagram}
   title="Over-instrumented trace - wall of spans obscures the critical path."
-  description={
-    `Gantt chart titled Trace Waterfall over-instrumented, measured in milliseconds. The Request section shows the root span HTTP GET /orders/123 from 0 to 150 milliseconds. Validation contains three tiny spans: validate.request from 2 to 5 milliseconds, parse.json from 5 to 8 milliseconds, and validate.orderId from 8 to 10 milliseconds. Cache contains four very small spans: cache.get from 10 to 12, serialize.key from 10 to 11, redis.get from 11 to 12, and deserialize.result from 12 to 13. Database contains db.getConnection from 15 to 18, db.query orders from 18 to 75, db.releaseConnection from 75 to 77, and map.toEntity from 77 to 79. Response contains serialize.json from 140 to 145, set.headers from 145 to 147, and send.response from 147 to 150. The chart demonstrates a noisy waterfall with many short spans packed closely together, making the important database query harder to spot and obscuring the request's true critical path.`
-  }
->
-```mermaid
-gantt
-    title Trace Waterfall (over-instrumented)
-    dateFormat X
-    axisFormat %L ms
-
-    section Request
-    HTTP GET /orders/123           :a1, 0, 150
-
-    section Validation
-    validate.request               :a2, 2, 5
-    parse.json                     :a3, 5, 8
-    validate.orderId               :a4, 8, 10
-
-    section Cache
-    cache.get                      :a5, 10, 12
-    serialize.key                  :a6, 10, 11
-    redis.get                      :a7, 11, 12
-    deserialize.result             :a8, 12, 13
-
-    section Database
-    db.getConnection               :a9, 15, 18
-    db.query orders                :a10, 18, 75
-    db.releaseConnection           :a11, 75, 77
-    map.toEntity                   :a12, 77, 79
-
-    section Response
-    serialize.json                 :a13, 140, 145
-    set.headers                    :a14, 145, 147
-    send.response                  :a15, 147, 150
-```
-</Diagram>
+  description="Gantt chart titled Trace Waterfall over-instrumented, measured in milliseconds. The Request section shows the root span HTTP GET /orders/123 from 0 to 150 milliseconds. Validation contains three tiny spans: validate.request from 2 to 5 milliseconds, parse.json from 5 to 8 milliseconds, and validate.orderId from 8 to 10 milliseconds. Cache contains four very small spans: cache.get from 10 to 12, serialize.key from 10 to 11, redis.get from 11 to 12, and deserialize.result from 12 to 13. Database contains db.getConnection from 15 to 18, db.query orders from 18 to 75, db.releaseConnection from 75 to 77, and map.toEntity from 77 to 79. Response contains serialize.json from 140 to 145, set.headers from 145 to 147, and send.response from 147 to 150. The chart demonstrates a noisy waterfall with many short spans packed closely together, making the important database query harder to spot and obscuring the request's true critical path."
+/>
 
 The over-instrumented trace has 15 spans where 4 would suffice. You can't see at a glance that the database query (`db.query orders`) took 57ms and dominated the request. The signal is buried in noise.
 
@@ -925,39 +852,10 @@ Code: Context propagation on external calls.
 The sequence diagram shows how these pieces fit together. The root span encompasses the entire request, child spans capture individual I/O operations, and context propagation links the trace across service boundaries.
 
 <Diagram
+  src={requestDiagram}
   title="Request instrumentation sequence."
-  description={
-    `Sequence diagram with five participants: Client, API Service, Cache, Database, and Customers Service. The Client sends GET /orders/123 to the API Service, where a note marks the root span as HTTP GET /orders/{id}. The API Service requests Get order:123 from Cache, with a note identifying the child span cache.get, and Cache returns a miss. The API Service then sends SELECT star FROM orders to the Database, with a note identifying the child span db.query orders, and the Database returns order data. Next, the API Service sends GET /customers/456 to Customers Service, with a note identifying the child span HTTP GET customers-service, and a note over Customers Service indicating that the distributed trace continues there. Customers Service returns customer data. Finally, the API Service returns an enriched order to the Client, and a note marks the end of the root span. The diagram shows how a single request generates a root span plus child spans for cache, database, and downstream service work, all linked by context propagation.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant Client
-    participant API as API Service
-    participant Cache
-    participant DB as Database
-    participant Customers as Customers Service
-
-    Client->>API: GET /orders/123
-    Note over API: Root span: HTTP GET /orders/{id}
-
-    API->>Cache: Get order:123
-    Note over API: Child span: cache.get
-    Cache-->>API: Miss
-
-    API->>DB: SELECT * FROM orders
-    Note over API: Child span: db.query orders
-    DB-->>API: Order data
-
-    API->>Customers: GET /customers/456
-    Note over API: Child span: HTTP GET customers-service
-    Note over Customers: Continues trace
-    Customers-->>API: Customer data
-
-    API-->>Client: Enriched order
-    Note over API: Root span ends
-```
-</Diagram>
+  description="Sequence diagram with five participants: Client, API Service, Cache, Database, and Customers Service. The Client sends GET /orders/123 to the API Service, where a note marks the root span as HTTP GET /orders/{id}. The API Service requests Get order:123 from Cache, with a note identifying the child span cache.get, and Cache returns a miss. The API Service then sends SELECT star FROM orders to the Database, with a note identifying the child span db.query orders, and the Database returns order data. Next, the API Service sends GET /customers/456 to Customers Service, with a note identifying the child span HTTP GET customers-service, and a note over Customers Service indicating that the distributed trace continues there. Customers Service returns customer data. Finally, the API Service returns an enriched order to the Client, and a note marks the end of the root span. The diagram shows how a single request generates a root span plus child spans for cache, database, and downstream service work, all linked by context propagation."
+/>
 
 ### Batch Processing Instrumentation
 
@@ -1075,29 +973,10 @@ Code: Anti-pattern — span per item.
 The difference in trace output is stark:
 
 <Diagram
+  src={batchInstrumentationDiagram}
   title="Batch instrumentation approaches — events vs spans."
-  description={
-  `Left-to-right flowchart comparing two batch instrumentation strategies. In the Correct group, labeled 1 to 100 spans, a single batch.process span fans out to item.failed event markers and a summary node showing batch.successful: 9998. This group is highlighted positively to show a compact, scalable trace. In the Wrong group, labeled 10,000 spans, process.item leads to another process.item, then another, then a node representing 9,997 more spans, illustrating a long chain of individual item spans. This group is highlighted negatively. The diagram communicates that batch work should usually be represented by one parent span plus events or aggregated summaries, not by creating a separate span for every item in a large batch.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph correct[Correct: 1-100 spans]
-    B1[batch.process] --> E1[item.failed event]
-    B1 --> E2[item.failed event]
-    B1 --> A1[batch.successful: 9998]
-  end
-
-  subgraph wrong[Wrong: 10,000 spans]
-    I1[process.item] --> I2[process.item]
-    I2 --> I3[process.item]
-    I3 --> I4[...9,997 more...]
-  end
-
-  style correct fill:#9f9,color:#000
-  style wrong fill:#f96,color:#000
-```
-</Diagram>
+  description="Left-to-right flowchart comparing two batch instrumentation strategies. In the Correct group, labeled 1 to 100 spans, a single batch.process span fans out to item.failed event markers and a summary node showing batch.successful: 9998. This group is highlighted positively to show a compact, scalable trace. In the Wrong group, labeled 10,000 spans, process.item leads to another process.item, then another, then a node representing 9,997 more spans, illustrating a long chain of individual item spans. This group is highlighted negatively. The diagram communicates that batch work should usually be represented by one parent span plus events or aggregated summaries, not by creating a separate span for every item in a large batch."
+/>
 
 <Callout type="success">
 For batch processing: one span for the batch, events for individual failures, attributes for summary statistics. If you need finer granularity, use spans for chunks (10-100 items), not individual items. A 10,000-item batch should create 1-100 spans, not 10,000.

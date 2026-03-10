@@ -9,6 +9,9 @@ tags: ["cloud-platforms","kubernetes","prometheus","aws"]
 featured: true
 ---
 
+import pdbConfigDiagram from "./diagrams/pdb-configuration-decision-tree.png"
+import pdbEvictionDiagram from "./diagrams/pdb-eviction-decision-flow.png"
+
 *[API]: Application Programming Interface
 *[CA]: Cluster Autoscaler
 *[HPA]: Horizontal Pod Autoscaler
@@ -64,35 +67,10 @@ Figure: PDB status showing 3 disruptions allowed (5 healthy pods minus 2 minimum
 The eviction flow works like this: when a drain or autoscaler attempts to evict a pod, it creates an Eviction object through the API server. The API server checks the relevant PDB. If `disruptionsAllowed` is greater than zero, the eviction proceeds. If it's zero, the API returns a 429 (Too Many Requests) and the eviction is blocked.
 
 <Diagram
+  src={pdbEvictionDiagram}
   title="PDB eviction decision flow."
-  description={
-  `Sequence diagram showing how a PodDisruptionBudget affects a node drain eviction. The participants are Cluster Operator, Node Drain, API Server, PDB Controller, and Target Pod. The flow starts when the Cluster Operator runs kubectl drain node-1. Node Drain then sends a request to the API Server to create an Eviction for pod-1. The API Server checks the disruption budget with the PDB Controller. In the allowed path, the PDB Controller responds that disruptionsAllowed is greater than 0, the API Server evicts pod-1, the Target Pod terminates, and the drain process continues to the next pod. In the blocked path, the PDB Controller responds that disruptionsAllowed equals 0, the API Server returns a 429 Too Many Requests response to Node Drain, and the drain process retries or times out. The diagram emphasizes that voluntary pod evictions succeed or fail based on the current PDB budget at the moment the eviction request reaches the API server.`
-  }
->
-```mermaid
-sequenceDiagram
-  participant Operator as Cluster Operator
-  participant Drain as Node Drain
-  participant API as API Server
-  participant PDB as PDB Controller
-  participant Pod as Target Pod
-
-  Operator->>Drain: kubectl drain node-1
-  Drain->>API: Create Eviction for pod-1
-  API->>PDB: Check disruption budget
-
-  alt Disruption Allowed
-    PDB-->>API: Allow (disruptionsAllowed > 0)
-    API->>Pod: Evict pod-1
-    Pod-->>API: Pod terminated
-    Drain-->>Operator: Continue to next pod
-  else Disruption Blocked
-    PDB-->>API: Deny (disruptionsAllowed = 0)
-    API-->>Drain: 429 Too Many Requests
-    Drain-->>Operator: Retry or timeout
-  end
-```
-</Diagram>
+  description="Sequence diagram showing how a PodDisruptionBudget affects a node drain eviction. The participants are Cluster Operator, Node Drain, API Server, PDB Controller, and Target Pod. The flow starts when the Cluster Operator runs kubectl drain node-1. Node Drain then sends a request to the API Server to create an Eviction for pod-1. The API Server checks the disruption budget with the PDB Controller. In the allowed path, the PDB Controller responds that disruptionsAllowed is greater than 0, the API Server evicts pod-1, the Target Pod terminates, and the drain process continues to the next pod. In the blocked path, the PDB Controller responds that disruptionsAllowed equals 0, the API Server returns a 429 Too Many Requests response to Node Drain, and the drain process retries or times out. The diagram emphasizes that voluntary pod evictions succeed or fail based on the current PDB budget at the moment the eviction request reaches the API server."
+/>
 
 ### minAvailable vs maxUnavailable
 
@@ -432,37 +410,10 @@ Several PDB configurations look reasonable but cause problems:
 />
 
 <Diagram
+  src={pdbConfigDiagram}
   title="PDB configuration decision tree."
-  description={
-    `Flowchart guiding the reader through common PodDisruptionBudget choices and validation checks. The chart starts at Define PDB and asks for the replica count. If there is 1 replica, it asks whether a PDB is needed. If yes, for awareness, it leads to maxUnavailable: 1. If no, it leads to Skip PDB. If there are 2 to 3 replicas, the chart recommends Use absolute numbers and then maxUnavailable: 1. If there are 4 or more replicas, it asks whether the workload is quorum-based. If yes, it recommends minAvailable: quorum size. If no, it recommends maxUnavailable: 25%. Separately, a validation path starts at Validate and asks whether disruptionsAllowed is greater than 0. If no, the result is PDB too strict. If yes, it asks whether the allowed disruptions are at least as large as pods per node. If no, the result is May block autoscaler. If yes, the result is Good configuration. The diagram highlights that PDB choices should be based on replica count, quorum needs, and whether the resulting disruption budget still leaves enough room for node drains and autoscaler operations.`
-  }
->
-```mermaid
-flowchart LR
-    A[Define PDB] --> B{Replicas count?}
-
-    B -->|1 replica| C[Consider: Do you need PDB?]
-    C -->|Yes, for awareness| D[maxUnavailable: 1]
-    C -->|No| E[Skip PDB]
-
-    B -->|2-3 replicas| F[Use absolute numbers]
-    F --> G[maxUnavailable: 1]
-
-    B -->|4+ replicas| H{Quorum-based?}
-    H -->|Yes| I[minAvailable: quorum size]
-    H -->|No| J[maxUnavailable: 25%]
-
-    K[Validate] --> L{disruptionsAllowed > 0?}
-    L -->|No| M[PDB too strict!]
-    L -->|Yes| N{>= pods per node?}
-    N -->|No| O[May block autoscaler]
-    N -->|Yes| P[Good configuration]
-
-    style M fill:#f66,color:#000
-    style O fill:#ff9,color:#000
-    style P fill:#6f6,color:#000
-```
-</Diagram>
+  description="Flowchart guiding the reader through common PodDisruptionBudget choices and validation checks. The chart starts at Define PDB and asks for the replica count. If there is 1 replica, it asks whether a PDB is needed. If yes, for awareness, it leads to maxUnavailable: 1. If no, it leads to Skip PDB. If there are 2 to 3 replicas, the chart recommends Use absolute numbers and then maxUnavailable: 1. If there are 4 or more replicas, it asks whether the workload is quorum-based. If yes, it recommends minAvailable: quorum size. If no, it recommends maxUnavailable: 25%. Separately, a validation path starts at Validate and asks whether disruptionsAllowed is greater than 0. If no, the result is PDB too strict. If yes, it asks whether the allowed disruptions are at least as large as pods per node. If no, the result is May block autoscaler. If yes, the result is Good configuration. The diagram highlights that PDB choices should be based on replica count, quorum needs, and whether the resulting disruption budget still leaves enough room for node drains and autoscaler operations."
+/>
 
 <Callout type="success">
 The golden rule: always have at least 1 more replica than your minAvailable requires, AND ensure maxUnavailable is at least as large as your maximum pods-per-node. This prevents both availability violations and autoscaler deadlocks.

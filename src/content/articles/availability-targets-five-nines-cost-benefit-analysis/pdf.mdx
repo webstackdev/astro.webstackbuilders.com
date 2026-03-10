@@ -9,6 +9,13 @@ tags: ["reliability-and-testing", "python"]
 featured: true
 ---
 
+import basicCostBenefitDiagram from "./diagrams/basic-cost-benefit-decision-for-availability-investment.jpg"
+import fourNinesArchitectureDiagram from "./diagrams/four-nines-architecture-with-multi-region-deployment.png"
+import infraAvailabilityDiagram from "./diagrams/infrastructure-availability-vs-user-experience-availability.png"
+import serialDependenciesDiagram from "./diagrams/serial-dependencies-multiply-failure-probability.jpg"
+import simpleTwoNinesDiagram from "./diagrams/simple-two-nines-architecture-with-basic-redundancy.png"
+import threeNinesDiagram from "./diagrams/three-nines-architecture-with-multi-AZ-deployment.png"
+
 *[DR]: Disaster Recovery
 *[HA]: High Availability
 *[MTBF]: Mean Time Between Failures
@@ -102,25 +109,10 @@ Your system availability cannot exceed your least available dependency. If your 
 The composite availability formula assumes serial dependencies — requests must pass through each component in sequence. But redundancy works in the opposite direction. When you have multiple components that can handle the same request, failures have to occur _simultaneously_ to cause an outage.
 
 <Diagram
+  src={serialDependenciesDiagram}
   title="Serial dependencies multiply failure probability; parallel redundancy reduces it"
   description="Flowchart with two grouped examples comparing dependency patterns. The first group, labeled Serial Reduces Availability, shows a request path moving through Web Server, then App Server, then Database, then Payment API. This illustrates a chain where every additional dependency lowers end-to-end availability because all components must work. The second group, labeled Parallel Improves Availability, shows a Load Balancer distributing traffic to three servers: Server 1, Server 2, and Server 3. This illustrates redundancy, where availability improves because the system can continue serving traffic as long as at least one parallel server remains available. The diagram contrasts serial dependency drag with parallel redundancy benefits."
->
-```mermaid
-flowchart TD
-  subgraph serial["Serial (Reduces Availability)"]
-    A[Web Server] --> B[App Server]
-    B --> C[Database]
-    C --> D[Payment API]
-  end
-
-  subgraph parallel["Parallel (Improves Availability)"]
-    E[Load Balancer]
-    E --> F[Server 1]
-    E --> G[Server 2]
-    E --> H[Server 3]
-  end
-```
-</Diagram>
+/>
 
 The formula for parallel availability inverts the logic — you multiply the _failure_ probabilities:
 
@@ -233,18 +225,10 @@ The biggest hidden cost is opportunity cost. Engineering hours spent achieving 9
 At some point, investing more in availability stops making economic sense. Finding that crossover point is the key decision.
 
 <Diagram
+  src={basicCostBenefitDiagram}
   title="Basic cost-benefit decision for availability investment"
   description="Left-to-right flowchart showing a simple economic decision process. Cost of Downtime and Cost of Prevention both feed into a Compare decision point. That leads to a second decision asking whether Prevention is less than Downtime. If yes, the outcome is Invest in Availability. If no, the outcome is Accept Current Level. The diagram reduces the availability target debate to an economic comparison between avoided loss and the cost of achieving the improvement."
->
-```mermaid
-flowchart LR
-    A[Cost of Downtime] --> B{Compare}
-    C[Cost of Prevention] --> B
-    B --> D{Prevention < Downtime?}
-    D -->|Yes| E[Invest in Availability]
-    D -->|No| F[Accept Current Level]
-```
-</Diagram>
+/>
 
 The formula is straightforward:
 
@@ -346,21 +330,10 @@ A 99.9% availability measured 24/7 might mean all downtime happens during off-pe
 Infrastructure metrics lie. Your servers can report 99.99% uptime while users experience a broken checkout flow because one downstream service times out intermittently. The server is "up"—it's just not _useful_.
 
 <Diagram
+  src={infraAvailabilityDiagram}
   title="Infrastructure availability vs. user experience availability"
   description="Flowchart comparing two ways to measure reliability. Traditional Availability points to Server Up or Down, which then points to 99.99 percent server uptime and finally to a note saying Misleading: Server up but slow. User-Centric Availability points to Successful User Journeys, which then points to 98 percent checkout success and finally to a note saying Accurate: Users can buy. The diagram shows that infrastructure uptime can look excellent while the actual customer journey still fails, making user-centered measures more meaningful for business decisions."
->
-```mermaid
-flowchart TD
-    A[Traditional Availability] --> B[Server Up/Down]
-    C[User-Centric Availability] --> D[Successful User Journeys]
-
-    B --> E[99.99% server uptime]
-    D --> F[98% checkout success]
-
-    E --> G[Misleading: Server up but slow]
-    F --> H[Accurate: Users can buy]
-```
-</Diagram>
+/>
 
 User-centric SLIs measure what actually matters: can users complete the actions they came to perform?
 
@@ -525,18 +498,10 @@ Each availability tier requires a fundamentally different architecture — not j
 At 99%, you're allowed about 87 hours of downtime per year. That's generous enough that you can handle most failures manually, take scheduled maintenance windows, and still have budget left over for the occasional unexpected outage.
 
 <Diagram
+  src={simpleTwoNinesDiagram}
   title="Simple two-nines architecture with basic redundancy"
   description="Flowchart showing a simple architecture for roughly 99 percent availability. Users send traffic to a Load Balancer, which distributes requests to App Server 1 and App Server 2. Both application servers connect to a single Primary DB. The diagram shows modest redundancy at the application layer but a single database dependency, reflecting a practical low-complexity architecture that improves resilience without full high-availability investment."
->
-```mermaid
-flowchart TD
-    A[Users] --> B[Load Balancer]
-    B --> C[App Server 1]
-    B --> D[App Server 2]
-    C --> E[(Primary DB)]
-    D --> E
-```
-</Diagram>
+/>
 
 **Characteristics:**
 
@@ -568,21 +533,10 @@ This is where most early-stage startups should be. You're not building for scale
 At 99.9%, you're down to 8.77 hours of allowed downtime per year. That's still a meaningful budget, but it means you can no longer rely on manual intervention for common failures. Automation becomes necessary.
 
 <Diagram
+  src={threeNinesDiagram}
   title="Three-nines architecture with multi-AZ deployment"
   description="Flowchart showing a multi-availability-zone design for roughly 99.9 percent availability. Users connect to a Load Balancer that distributes traffic across App Server 1 in AZ1, App Server 2 in AZ2, and App Server 3 in AZ3. All application servers connect to a Primary DB in AZ1, which replicates to a Replica DB in AZ2. The diagram illustrates added resilience through zonal distribution, automated failover potential, and database replication within a single region."
->
-```mermaid
-flowchart TD
-    A[Users] --> B[Load Balancer]
-    B --> C[App Server 1 - AZ1]
-    B --> D[App Server 2 - AZ2]
-    B --> E[App Server 3 - AZ3]
-    C --> F[(Primary DB - AZ1)]
-    D --> F
-    E --> F
-    F --> G[(Replica DB - AZ2)]
-```
-</Diagram>
+/>
 
 **Additions from 99%:**
 
@@ -614,32 +568,10 @@ This is the sweet spot for most SaaS products. It's achievable with standard clo
 At 99.99%, you're allowed only 52 minutes of downtime per year. That's less than one incident. Any regional outage — and cloud providers have them — could blow your entire annual budget in a single event.
 
 <Diagram
+  src={fourNinesArchitectureDiagram}
   title="Four-nines architecture with multi-region deployment"
   description="Flowchart showing a multi-region architecture for roughly 99.99 percent availability. Users connect to a Global Load Balancer that routes traffic to Region 1 and Region 2. Inside Region 1, traffic is distributed across AZ1 Servers and AZ2 Servers, both connected to a DB Primary. Inside Region 2, traffic is distributed across AZ1 Servers and AZ2 Servers connected to a DB Replica. The primary and replica databases synchronize bidirectionally across regions. The diagram emphasizes that achieving four nines typically requires regional redundancy, global traffic routing, and cross-region data replication rather than only intra-region failover."
->
-```mermaid
-flowchart TD
-  A[Users] --> B[Global Load Balancer]
-  B --> C[Region 1]
-  B --> D[Region 2]
-
-  subgraph region1[Region 1]
-    C --> E[AZ1 Servers]
-    C --> F[AZ2 Servers]
-    E --> G[(DB Primary)]
-    F --> G
-  end
-
-  subgraph region2[Region 2]
-    D --> H[AZ1 Servers]
-    D --> I[AZ2 Servers]
-    H --> J[(DB Replica)]
-    I --> J
-  end
-
-  G <--> J
-```
-</Diagram>
+/>
 
 **Additions from 99.9%:**
 

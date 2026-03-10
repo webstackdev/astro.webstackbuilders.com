@@ -9,6 +9,9 @@ tags: ["observability-and-telemetry","prometheus","grafana"]
 featured: true
 ---
 
+import theAlertingPyramidDiagram from "./diagrams/the-alerting-pyramid.png"
+import theAlertFatigueCycleDiagram from "./diagrams/the-alert-fatigue-cycle.png"
+
 *[MTTA]: Mean Time to Acknowledge
       text: 'The <span class="text-mono">runbook_url</span> annotation must exist.',
 *[MTTR]: Mean Time to Resolve
@@ -32,22 +35,10 @@ I've seen the same pattern at every company with a mature monitoring stack: star
 At first, you have two or three alerts per day, and 90% require real action. Engineers investigate every one thoroughly. Then alert creep sets in — seven or eight alerts per day, 50% actionable. Response time increases as people start triaging instead of investigating. By the time you hit 30+ alerts per day with only 20% requiring action, teams batch-acknowledge and selectively respond. Real incidents get missed in the noise. Eventually, engineers mute channels and ignore pages entirely. The alerting system is effectively abandoned.
 
 <Diagram
+  src={theAlertFatigueCycleDiagram}
   title="The alert fatigue cycle."
-  description={
-    `Top-to-bottom flowchart showing a reinforcing loop of alert fatigue. The sequence begins with Incident occurs, which leads to Add an alert for that. That causes Alert volume increases, which leads to More false positives. More false positives lead to Team starts ignoring alerts, which then leads to Real incident missed. Missing the real incident triggers the response We need more alerts, which loops back to Add an alert for that. The diagram illustrates how adding alerts after every incident without removing low-value alerts creates a self-reinforcing spiral of noise, distrust, and missed real problems.`
-  }
->
-```mermaid
-flowchart LR
-    A["Incident occurs"] --> B["'Add an alert for that'"]
-    B --> C["Alert volume increases"]
-    C --> D["More false positives"]
-    D --> E["Team starts ignoring alerts"]
-    E --> F["Real incident missed"]
-    F --> G["'We need more alerts'"]
-    G --> B
-```
-</Diagram>
+  description="Top-to-bottom flowchart showing a reinforcing loop of alert fatigue. The sequence begins with Incident occurs, which leads to Add an alert for that. That causes Alert volume increases, which leads to More false positives. More false positives lead to Team starts ignoring alerts, which then leads to Real incident missed. Missing the real incident triggers the response We need more alerts, which loops back to Add an alert for that. The diagram illustrates how adding alerts after every incident without removing low-value alerts creates a self-reinforcing spiral of noise, distrust, and missed real problems."
+/>
 
 Breaking this cycle requires three changes. First, alert on __symptoms__ that affect users rather than __causes__ that might affect them — this dramatically reduces false positives. Second, require runbooks for every alert so responders can act quickly and confidently. Third, conduct regular alert hygiene reviews to prune noise and retire alerts that no longer earn their keep. These aren't optional practices for mature teams; they're prerequisites for an alerting system that actually works.
 
@@ -130,38 +121,12 @@ Consider three classic cause-based alerts and their symptom-based alternatives:
 />
 
 The pattern: causes are __potential__ problems; symptoms are __actual__ problems. Page on symptoms, ticket on causes.
-      text: 'The <span class="text-mono">runbook_url</span> annotation must exist',
+
 <Diagram
+  src={theAlertingPyramidDiagram}
   title="The alerting pyramid."
-  description={
-  `Top-to-bottom flowchart organized into three grouped tiers. The first tier, Page Alerts User Impact, contains Error rate greater than SLO burn rate, Latency greater than SLO target, and Availability below threshold. This tier points to User impact NOW with the label Wake someone up. The second tier, Ticket Alerts Degradation, contains CPU sustained high, Disk filling toward capacity, and Connection pool trending hot. This tier points to Potential future impact with the label Fix during business hours. The third tier, Dashboards Awareness, contains All metrics visible, Trends and rates, and Capacity projections. This tier points to No action required with the label Context for investigation. The diagram shows a prioritization model where urgent symptom-based alerts page responders, cause-based degradation alerts become tickets, and the remaining metrics stay visible on dashboards for context.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph pages["PAGE ALERTS (User Impact)"]
-    P1["Error rate > SLO burn rate"]
-    P2["Latency > SLO target"]
-    P3["Availability below threshold"]
-  end
-
-  subgraph tickets["TICKET ALERTS (Degradation)"]
-    T1["CPU sustained high"]
-    T2["Disk filling toward capacity"]
-    T3["Connection pool trending hot"]
-  end
-
-  subgraph dashboards["DASHBOARDS (Awareness)"]
-    D1["All metrics visible"]
-    D2["Trends and rates"]
-    D3["Capacity projections"]
-  end
-
-  pages -->|"Wake someone up"| U["User impact NOW"]
-  tickets -->|"Fix during business hours"| F["Potential future impact"]
-  dashboards -->|"Context for investigation"| C["No action required"]
-```
-</Diagram>
+  description="Top-to-bottom flowchart organized into three grouped tiers. The first tier, Page Alerts User Impact, contains Error rate greater than SLO burn rate, Latency greater than SLO target, and Availability below threshold. This tier points to User impact NOW with the label Wake someone up. The second tier, Ticket Alerts Degradation, contains CPU sustained high, Disk filling toward capacity, and Connection pool trending hot. This tier points to Potential future impact with the label Fix during business hours. The third tier, Dashboards Awareness, contains All metrics visible, Trends and rates, and Capacity projections. This tier points to No action required with the label Context for investigation. The diagram shows a prioritization model where urgent symptom-based alerts page responders, cause-based degradation alerts become tickets, and the remaining metrics stay visible on dashboards for context."
+/>
 
 ## Deriving Alerts from SLOs
 

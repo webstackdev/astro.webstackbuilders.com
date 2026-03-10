@@ -87,9 +87,7 @@ For storage-backed APIs (document processing, media transcoding, backup systems)
 <Diagram
   src={meteringDataDiagram}
   title="Metering data flow from API request to billing and enforcement systems"
-  description={
-    `Flowchart showing how an API request becomes billing and quota data. An API Request enters a decision point labeled Metering Points. From there, the request is measured across five dimensions: Request Count, Request Size, Response Size, Compute Duration, and Storage Delta. All five measurements feed into a single Usage Record. That usage record then flows into an Aggregation Pipeline, which distributes the aggregated data to three downstream systems: Billing System, Analytics, and Quota Enforcement. The diagram emphasizes that the same metering event supports cost reporting, product analysis, and quota control.`
-  }
+  description="Flowchart showing how an API request becomes billing and quota data. An API Request enters a decision point labeled Metering Points. From there, the request is measured across five dimensions: Request Count, Request Size, Response Size, Compute Duration, and Storage Delta. All five measurements feed into a single Usage Record. That usage record then flows into an Aggregation Pipeline, which distributes the aggregated data to three downstream systems: Billing System, Analytics, and Quota Enforcement. The diagram emphasizes that the same metering event supports cost reporting, product analysis, and quota control."
 />
 
 ### Metering Architecture Patterns
@@ -294,9 +292,7 @@ Token buckets are elegant for smoothing usage. Instead of "1 million requests pe
 <Diagram
   src={quotaEnforcementDiagram}
   title="Quota enforcement decision flow with soft limits and burst allowance"
-  description={
-    `Flowchart showing how each request is checked against quota rules. A Request enters a decision point labeled Check Quota. If the request is under the limit, it is allowed and the main counter is decremented. If it reaches the soft limit, it is still allowed but also triggers an alert before the main counter is decremented. If it reaches the hard limit, a second decision checks whether burst capacity is available. If burst capacity exists, the request is allowed from the burst pool and the burst counter is decremented. If no burst capacity remains, the request is rejected with HTTP 429. The diagram shows how soft limits provide warning, hard limits enforce plan boundaries, and burst allowances absorb short traffic spikes.`
-  }
+  description="Flowchart showing how each request is checked against quota rules. A Request enters a decision point labeled Check Quota. If the request is under the limit, it is allowed and the main counter is decremented. If it reaches the soft limit, it is still allowed but also triggers an alert before the main counter is decremented. If it reaches the hard limit, a second decision checks whether burst capacity is available. If burst capacity exists, the request is allowed from the burst pool and the burst counter is decremented. If no burst capacity remains, the request is rejected with HTTP 429. The diagram shows how soft limits provide warning, hard limits enforce plan boundaries, and burst allowances absorb short traffic spikes."
 />
 
 ### Rate Limiting vs. Quota Enforcement
@@ -514,9 +510,7 @@ Three common approaches:
 <Diagram
   src={costAttributionDiagram}
   title="Cost attribution flow from infrastructure costs to consumer invoices"
-  description={
-    `Flowchart showing how infrastructure spending becomes charges for consumers. Infrastructure Costs feed into a Cost Pool. That pool enters a decision point labeled Allocation Method, which branches into three pricing strategies: Direct Attribution, Proportional Allocation, and Tiered Pricing. Direct Attribution leads to Per-Request Cost, Proportional Allocation leads to Percent of Total Usage, and Tiered Pricing leads to Volume Discounts. All three calculated paths feed into a final Consumer Invoice. The diagram highlights that the same underlying operating cost can be turned into invoices through different allocation strategies depending on pricing goals, fairness, and customer behavior.`
-  }
+  description="Flowchart showing how infrastructure spending becomes charges for consumers. Infrastructure Costs feed into a Cost Pool. That pool enters a decision point labeled Allocation Method, which branches into three pricing strategies: Direct Attribution, Proportional Allocation, and Tiered Pricing. Direct Attribution leads to Per-Request Cost, Proportional Allocation leads to Percent of Total Usage, and Tiered Pricing leads to Volume Discounts. All three calculated paths feed into a final Consumer Invoice. The diagram highlights that the same underlying operating cost can be turned into invoices through different allocation strategies depending on pricing goals, fairness, and customer behavior."
 />
 
 Most internal APIs start with direct attribution (simple to explain) then move to proportional allocation once they realize different usage patterns have different costs. External APIs almost always use tiered pricing because it creates better business incentives.
@@ -704,9 +698,7 @@ The flow is consistent regardless of the destination:
 <Diagram
   src={endToEndBillingDiagram}
   title="End-to-end billing flow from API usage to payment processing"
-  description={
-    `Sequence diagram showing how API usage becomes a bill and then updates quota state. The API sends a Usage Event to Metering. Metering deduplicates the event and forwards Buffered Events to Aggregation. A note marks Aggregation as an hourly rollup job. Aggregation calculates costs and sends a Period Summary to Billing. Another note marks Billing as operating at the end of the billing period. Billing generates an invoice, charges the customer through Payment, receives a confirmation, and then updates quota limits back in the API system. The diagram emphasizes that usage collection, aggregation, invoicing, payment processing, and quota management form one connected lifecycle.`
-  }
+  description="Sequence diagram showing how API usage becomes a bill and then updates quota state. The API sends a Usage Event to Metering. Metering deduplicates the event and forwards Buffered Events to Aggregation. A note marks Aggregation as an hourly rollup job. Aggregation calculates costs and sends a Period Summary to Billing. Another note marks Billing as operating at the end of the billing period. Billing generates an invoice, charges the customer through Payment, receives a confirmation, and then updates quota limits back in the API system. The diagram emphasizes that usage collection, aggregation, invoicing, payment processing, and quota management form one connected lifecycle."
 />
 
 The key decision point is timing. Do you report usage continuously (every hour, every day) or only at the end of the billing period? Continuous reporting gives consumers real-time visibility into costs but requires more API calls to the billing platform. End-of-period reporting is simpler but consumers don't see costs until the bill arrives.
@@ -873,9 +865,7 @@ The layout matters. Put the most important information at the top — current us
 <Diagram
   src={consumerUsageDiagram}
   title="Consumer usage dashboard layout with logical panel grouping"
-  description={
-  `Left-to-right dashboard layout organized into four grouped sections. Row 1 Overview contains Monthly Usage Gauge showing 4.5 million of 10 million requests, Projected Cost showing a 450 dollar estimate, and Days Remaining showing 15 days left. Row 2 Trends contains Daily Usage Time Series for the last 30 days and Usage versus Previous Month showing a 15 percent increase. Row 3 Breakdown contains Usage by Endpoint for the top 10 routes, Usage by Region for geographic split, and Cost by Dimension for requests, compute, and egress. Row 4 Alerts contains Quota Alerts showing no alerts and Anomaly Detection showing a usage spike detected. The layout moves from current status to trends, then breakdowns, then alerting.`
-  }
+  description="Left-to-right dashboard layout organized into four grouped sections. Row 1 Overview contains Monthly Usage Gauge showing 4.5 million of 10 million requests, Projected Cost showing a 450 dollar estimate, and Days Remaining showing 15 days left. Row 2 Trends contains Daily Usage Time Series for the last 30 days and Usage versus Previous Month showing a 15 percent increase. Row 3 Breakdown contains Usage by Endpoint for the top 10 routes, Usage by Region for geographic split, and Cost by Dimension for requests, compute, and egress. Row 4 Alerts contains Quota Alerts showing no alerts and Anomaly Detection showing a usage spike detected. The layout moves from current status to trends, then breakdowns, then alerting."
 />
 
 Projected month-end usage is critical. If a consumer is at 50% of their quota with 25% of the month remaining, they're on track to use 200% of their quota. Show them this projection so they can optimize before hitting limits.

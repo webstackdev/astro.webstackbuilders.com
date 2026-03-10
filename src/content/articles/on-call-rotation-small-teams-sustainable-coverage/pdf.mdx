@@ -9,6 +9,8 @@ tags: ["reliability-and-testing"]
 featured: true
 ---
 
+import continuousImprovementDiagram from "./diagrams/continuous-improvement-cycle.png"
+
 *[MTTA]: Mean Time To Acknowledge
 *[MTTR]: Mean Time To Recovery
 *[SLA]: Service Level Agreement
@@ -710,6 +712,7 @@ Also review the dashboard metrics briefly. Look for trends in page volume, respo
 The __quarterly review__ takes longer — about two hours — and looks at bigger patterns. Review quarter-over-quarter trends. Evaluate whether the rotation pattern is still working. Run an anonymous burnout assessment. Discuss tooling needs and set goals for the next quarter.
 
 <Diagram
+  src={continuousImprovementDiagram}
   title="Continuous improvement cycle."
   description="Left-to-right flowchart showing a repeating on-call improvement loop. It starts with Alert Fires,
   then moves to Incident Handled, then Weekly Review. The review asks a decision question: Was alert good?
@@ -718,30 +721,7 @@ The __quarterly review__ takes longer — about two hours — and looks at bigge
   Delete alert, or Update runbook. All four branches lead to Implement, which then leads to Measure Impact,
   and then to Next Week's Review. The overall meaning is that each handled incident feeds a weekly review,
   poor alerts trigger concrete improvements, and those changes are measured and reviewed again in the next cycle."
->
-```mermaid
-graph LR
-    A[Alert Fires] --> B[Incident Handled]
-    B --> C[Weekly Review]
-    C --> D{Was alert good?}
-
-    D -->|Yes| E[No change]
-    D -->|No| F[Improvement Action]
-
-    F --> G{Tune threshold?}
-    F --> H{Add automation?}
-    F --> I{Delete alert?}
-    F --> J{Update runbook?}
-
-    G --> K[Implement]
-    H --> K
-    I --> K
-    J --> K
-
-    K --> L[Measure Impact]
-    L --> M[Next Week's Review]
-```
-</Diagram>
+/>
 
 <Callout type="info">
 The goal isn't zero alerts — it's zero unnecessary alerts. A small team can sustainably handle 3-5 high-quality pages per week. The problem is when low-quality alerts consume that budget.

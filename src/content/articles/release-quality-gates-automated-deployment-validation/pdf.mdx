@@ -9,6 +9,8 @@ tags: ["build-and-deploy","aws","azure","grafana","typescript"]
 featured: true
 ---
 
+import postDeploymentDiagram from "./diagrams/post-deployment-validation-flow.png"
+
 *[APM]: Application Performance Monitoring
 *[DORA]: DevOps Research and Assessment
 *[MTTR]: Mean Time To Recovery
@@ -400,39 +402,10 @@ If all gates pass for the required duration, promote automatically to the next s
 Post-deployment gates need to query your metrics system, compare values against thresholds, and make pass/fail decisions. The pattern is straightforward: define a query for the current value, optionally define a baseline query for comparison, specify thresholds (absolute, relative, or both), and evaluate over an observation window.
 
 <Diagram
+  src={postDeploymentDiagram}
   title="Post-deployment validation flow."
-  description={
-  `Sequence diagram with four participants: Deployment, Gate Orchestrator, Prometheus, and Alerting. Deployment begins by sending Start validation with canary deployed to the Gate Orchestrator. A loop then repeats every 30 seconds for 5 minutes. During each iteration, the Gate Orchestrator queries Prometheus for error rate, latency, and availability, and Prometheus returns metric values. The Gate Orchestrator then compares those values to configured thresholds. Inside an alternate failure branch, if any blocking gate fails, the Gate Orchestrator sends FAIL and Rollback to Deployment, sends a Notify on-call message to Alerting, and the Deployment rolls back to the previous version. If the loop completes without triggering a blocking failure, the Gate Orchestrator sends PASS and Promote to Deployment, and the Deployment increases the canary percentage. The diagram shows the observe, evaluate, rollback, or promote cycle used for automated post-deployment quality gates.`
-  }
->
-```mermaid
-sequenceDiagram
-  participant Deploy as Deployment
-  participant Gate as Gate Orchestrator
-  participant Prom as Prometheus
-  participant Alert as Alerting
-
-  Deploy->>Gate: Start validation (canary deployed)
-
-  loop Every 30 seconds for 5 minutes
-    Gate->>Prom: Query error rate
-    Gate->>Prom: Query latency
-    Gate->>Prom: Query availability
-    Prom-->>Gate: Metric values
-
-    Gate->>Gate: Compare to thresholds
-
-    alt Any blocking gate fails
-      Gate->>Deploy: FAIL - Rollback
-      Gate->>Alert: Notify on-call
-      Deploy->>Deploy: Rollback to previous
-    end
-  end
-
-  Gate->>Deploy: PASS - Promote
-  Deploy->>Deploy: Increase canary %
-```
-</Diagram>
+  description="Sequence diagram with four participants: Deployment, Gate Orchestrator, Prometheus, and Alerting. Deployment begins by sending Start validation with canary deployed to the Gate Orchestrator. A loop then repeats every 30 seconds for 5 minutes. During each iteration, the Gate Orchestrator queries Prometheus for error rate, latency, and availability, and Prometheus returns metric values. The Gate Orchestrator then compares those values to configured thresholds. Inside an alternate failure branch, if any blocking gate fails, the Gate Orchestrator sends FAIL and Rollback to Deployment, sends a Notify on-call message to Alerting, and the Deployment rolls back to the previous version. If the loop completes without triggering a blocking failure, the Gate Orchestrator sends PASS and Promote to Deployment, and the Deployment increases the canary percentage. The diagram shows the observe, evaluate, rollback, or promote cycle used for automated post-deployment quality gates."
+/>
 
 The key insight for threshold configuration: combine absolute and relative thresholds. Absolute thresholds catch catastrophic failures — error rate above 10% is bad regardless of baseline. Relative thresholds catch regressions — error rate doubled from baseline is concerning even if it's still "low" in absolute terms. Together they handle both new failures and gradual degradation.
 

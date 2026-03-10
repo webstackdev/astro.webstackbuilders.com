@@ -9,6 +9,11 @@ tags: ["cloud-platforms","azure","terraform","aws","kubernetes"]
 featured: true
 ---
 
+import kubernetesDiagram from "./diagrams/kubernetes-workload-identity-token-exchange-flow.png"
+import longLivedKeyDiagram from "./diagrams/long-lived-key-authentication-model.png"
+import tokenExchangeDiagram from "./diagrams/token-exchange-sequence-from-workload-to-cloud-credentials.png"
+import workloadIdentityDiagram from "./diagrams/workload-identity-federation-authentication-flow.png"
+
 *[CEL]: Common Expression Language
 *[EKS]: Elastic Kubernetes Service
 *[GCP]: Google Cloud Platform
@@ -100,42 +105,18 @@ Workload identity federation inverts the security model. Instead of distributing
 Here's the conceptual difference. With long-lived keys, your CI runner holds a secret that grants access — and that secret can be copied, leaked, or stolen at any point in its lifetime.
 
 <Diagram
+  src={longLivedKeyDiagram}
   title="Long-lived key authentication model."
-  description={
-    `Left-to-right flowchart showing a CI Runner sending a Service Account Key directly to a Cloud API for authentication. Beneath that flow is a grouped section labeled Key Properties listing three risks: the key never expires, it must be stored somewhere, and it is unclear who may have copies of it. The diagram illustrates the core weakness of static key-based authentication: access depends on a reusable secret that can persist indefinitely and spread beyond its intended owner.`
-  }
->
-```mermaid
-flowchart LR
-    A[CI Runner] -->|Service Account Key| B[Cloud API]
-
-    subgraph key["Key Properties"]
-        C[Never expires]
-        D[Stored somewhere]
-        E[Who has copies?]
-    end
-```
-</Diagram>
+  description="Left-to-right flowchart showing a CI Runner sending a Service Account Key directly to a Cloud API for authentication. Beneath that flow is a grouped section labeled Key Properties listing three risks: the key never expires, it must be stored somewhere, and it is unclear who may have copies of it. The diagram illustrates the core weakness of static key-based authentication: access depends on a reusable secret that can persist indefinitely and spread beyond its intended owner."
+/>
 
 With federation, your CI runner requests a token from its platform, then exchanges that token with your cloud provider:
 
 <Diagram
+  src={workloadIdentityDiagram}
   title="Workload identity federation authentication flow."
-  description={
-    `Top-to-bottom flowchart showing keyless authentication through workload identity federation. A CI Runner first requests an OIDC token from the CI Platform identity provider. The identity provider then issues a JWT containing claims to the Cloud STS service. Inside the Cloud STS node, three validation steps are shown: verify the JWT signature, check issuer trust, and validate claims against policy. If validation succeeds, Cloud STS issues short-lived credentials valid for one hour. Those credentials are then used to access the Cloud API. The diagram shows the replacement of static secrets with a signed identity assertion followed by temporary credentials.`
-  }
->
-```mermaid
-flowchart LR
-    A[CI Runner] -->|"(1) Request OIDC token"| B[CI Platform IdP]
-    B -->|"(2) Issue JWT with claims"| C[Cloud STS]
-    C -->|Verify signature| C
-    C -->|Check issuer trust| C
-    C -->|Validate claims against policy| C
-    C -->|"(3) Issue short-lived credentials"| D["Short-lived credentials (1 hour)"]
-    D -->|"(4) Access cloud resources"| E[Cloud API]
-```
-</Diagram>
+  description="Top-to-bottom flowchart showing keyless authentication through workload identity federation. A CI Runner first requests an OIDC token from the CI Platform identity provider. The identity provider then issues a JWT containing claims to the Cloud STS service. Inside the Cloud STS node, three validation steps are shown: verify the JWT signature, check issuer trust, and validate claims against policy. If validation succeeds, Cloud STS issues short-lived credentials valid for one hour. Those credentials are then used to access the Cloud API. The diagram shows the replacement of static secrets with a signed identity assertion followed by temporary credentials."
+/>
 
 The JWT contains claims about the workload — which repository triggered the build, which branch, which user initiated it. Your cloud provider verifies the signature against the identity provider's public keys, checks that the claims match your access policy, and issues credentials that expire in an hour or less.
 
@@ -209,28 +190,10 @@ The token is signed with GitHub's private key. Your cloud provider fetches GitHu
 The exchange process involves four parties: your workload, the identity provider (GitHub), the cloud's Security Token Service, and the cloud's IAM system.
 
 <Diagram
+  src={tokenExchangeDiagram}
   title="Token exchange sequence from workload to cloud credentials."
-  description={
-    `Sequence diagram with four participants: Workload, Identity Provider, Cloud STS, and Cloud IAM. The Workload requests an OIDC token from the Identity Provider, which returns a JWT signed with the provider's key. The Workload then sends that JWT to Cloud STS to exchange it for credentials. Cloud STS fetches the identity provider's JWKS, typically from cache, and verifies the token's signature, issuer, claims, and expiry. Cloud STS then queries Cloud IAM to look up the service account and retrieve its permissions. Finally, Cloud STS returns a short-lived access token valid for one hour back to the Workload. The diagram shows the full trust chain from workload-issued identity proof to temporary cloud credentials.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant W as Workload
-    participant IdP as Identity Provider
-    participant STS as Cloud STS
-    participant IAM as Cloud IAM
-
-    W->>IdP: (1) Request OIDC token
-    IdP->>W: (2) JWT signed with IdP key
-    W->>STS: (3) Exchange JWT for credentials
-    STS->>IdP: (4) Fetch JWKS (cached)
-    Note over STS: (5) Verify signature,<br/>issuer, claims, expiry
-    STS->>IAM: (6) Lookup service account
-    IAM->>STS: Service account permissions
-    STS->>W: (7) Short-lived access token (1 hour)
-```
-</Diagram>
+  description="Sequence diagram with four participants: Workload, Identity Provider, Cloud STS, and Cloud IAM. The Workload requests an OIDC token from the Identity Provider, which returns a JWT signed with the provider's key. The Workload then sends that JWT to Cloud STS to exchange it for credentials. Cloud STS fetches the identity provider's JWKS, typically from cache, and verifies the token's signature, issuer, claims, and expiry. Cloud STS then queries Cloud IAM to look up the service account and retrieve its permissions. Finally, Cloud STS returns a short-lived access token valid for one hour back to the Workload. The diagram shows the full trust chain from workload-issued identity proof to temporary cloud credentials."
+/>
 
 Here's what's happening at each step:
 
@@ -823,25 +786,10 @@ The `azure.workload.identity/client-id` annotation tells the Azure Identity SDK 
 The flow inside the cluster looks like this:
 
 <Diagram
+  src={kubernetesDiagram}
   title="Kubernetes workload identity token exchange flow."
-  description={
-  `Top-to-bottom flowchart showing workload identity inside a Kubernetes cluster. In the Kubernetes Cluster group, a Pod contains a Container that requests credentials from an SDK or client library. The SDK reads a projected token from a token volume mount located at /var/run/secrets/tokens/. That token is then exchanged with Cloud IAM outside the cluster. Within Cloud IAM, the token's signature is verified and the workload binding is checked. If validation succeeds, Cloud IAM returns credentials to the SDK or client library. The diagram shows how a pod uses a projected service account token as the proof of identity, then exchanges it for temporary cloud credentials without storing static keys.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph cluster["Kubernetes Cluster"]
-    subgraph pod["Pod"]
-      A[Container] -->|"(1) Request credentials"| B[SDK/Client Library]
-    end
-    B -->|"(2) Read projected token"| C["Token Volume Mount\n/var/run/secrets/tokens/"]
-  end
-  C -->|"(3) Exchange token"| D["Cloud IAM"]
-  D -->|Verify signature| D
-  D -->|Check binding| D
-  D -->|"(4) Return credentials"| B
-```
-</Diagram>
+  description="Top-to-bottom flowchart showing workload identity inside a Kubernetes cluster. In the Kubernetes Cluster group, a Pod contains a Container that requests credentials from an SDK or client library. The SDK reads a projected token from a token volume mount located at /var/run/secrets/tokens/. That token is then exchanged with Cloud IAM outside the cluster. Within Cloud IAM, the token's signature is verified and the workload binding is checked. If validation succeeds, Cloud IAM returns credentials to the SDK or client library. The diagram shows how a pod uses a projected service account token as the proof of identity, then exchanges it for temporary cloud credentials without storing static keys."
+/>
 
 The SDK reads a projected service account token from a volume mount, exchanges it with the cloud provider's STS, and receives short-lived credentials. The token is automatically rotated by the kubelet, so even if someone exfiltrates it, it's only valid for a short window.
 

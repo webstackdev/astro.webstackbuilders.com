@@ -9,6 +9,8 @@ tags: ["system-modernization","azure","python"]
 featured: true
 ---
 
+import shadowTrafficDiagram from "./diagrams/shadow-traffic-architecture-with-async-mirroring.png"
+
 *[CDN]: Content Delivery Network
 *[CQRS]: Command Query Responsibility Segregation
 *[CSRF]: Cross-Site Request Forgery
@@ -297,19 +299,10 @@ This is where your baseline investment pays off. You already know what the legac
 The basic architecture routes production requests to the legacy system as normal, while asynchronously copying them to the new system. A comparison service receives both responses and logs any differences.
 
 <Diagram
+  src={shadowTrafficDiagram}
   title="Shadow traffic architecture with async mirroring"
-  description={`A left-to-right flowchart showing how shadow traffic is mirrored during migration. A client request goes to a load balancer, which sends the primary request to the legacy system. The legacy system returns the response to the client. At the same time, the load balancer sends an asynchronous copy of the request to the new system. Both the new system and the legacy system send their results to a comparison and logging component. The diagram shows that users continue receiving responses only from the legacy system while the new system is evaluated in parallel.`}
->
-```mermaid
-flowchart LR
-    Client[Client Request] --> LB[Load Balancer]
-    LB --> Legacy[Legacy System]
-    Legacy --> Response[Response to Client]
-    LB -.-> |async copy| New[New System]
-    New -.-> Compare[Compare & Log]
-    Legacy -.-> Compare
-```
-</Diagram>
+  description="A left-to-right flowchart showing how shadow traffic is mirrored during migration. A client request goes to a load balancer, which sends the primary request to the legacy system. The legacy system returns the response to the client. At the same time, the load balancer sends an asynchronous copy of the request to the new system. Both the new system and the legacy system send their results to a comparison and logging component. The diagram shows that users continue receiving responses only from the legacy system while the new system is evaluated in parallel."
+/>
 
 You can implement this at different layers depending on your infrastructure. If you're using AWS, Application Load Balancer doesn't support native traffic mirroring, but you can achieve it with a Lambda@Edge function or by deploying an Envoy sidecar. For on-premises deployments, NGINX Plus has built-in mirroring, or you can implement it in application code.
 

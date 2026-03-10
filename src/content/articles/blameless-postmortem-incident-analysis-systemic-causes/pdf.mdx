@@ -9,6 +9,10 @@ tags: ["reliability-and-testing"]
 featured: true
 ---
 
+import multipleContributingChainDiagram from "./diagrams/multiple-contributing-factors-each-with-their-own-chain-of-causation.png"
+import remediationPrioritizationDiagram from "./diagrams/remediation-prioritization-quadrants.png"
+import stampModelDiagram from "./diagrams/stamp-model-showing-the-control-hierarchy-and-feedback-loops.png"
+
 *[CAST]: Causal Analysis based on STAMP
 *[HRO]: High Reliability Organization
 *[MTTD]: Mean Time To Detection
@@ -434,24 +438,10 @@ This isn't just semantics. Language shapes thought. When you ask "why didn't the
 The phrase "root cause" implies there's one cause at the bottom of the causal chain — find it, fix it, and the problem is solved. In complex systems, this is almost never true. Incidents arise from the confluence of multiple factors, none of which is _the_ cause. Remove any one of them, and the incident might not have happened — or might have happened differently.
 
 <Diagram
+  src={multipleContributingChainDiagram}
   title="Multiple contributing factors, each with their own chain of causation"
   description="Flowchart showing an incident branching into five contributing factors, each followed by its own explanatory why-chain. Incident points to No config validation, No canary deployment, Alert threshold too high, Runbook outdated, and On-call fatigued. Each factor then points to a specific deeper condition such as Validation not implemented, Perceived as slowing deploys, Alert fatigue led to raised threshold, No runbook review process, or Short-staffed and heavy incident load. The diagram illustrates that failures come from multiple interacting contributors rather than a single root cause."
->
-```mermaid
-flowchart TD
-    A[Incident] --> B[Contributing Factor 1:<br/>No config validation]
-    A --> C[Contributing Factor 2:<br/>No canary deployment]
-    A --> D[Contributing Factor 3:<br/>Alert threshold too high]
-    A --> E[Contributing Factor 4:<br/>Runbook outdated]
-    A --> F[Contributing Factor 5:<br/>On-call fatigued]
-
-    B --> G[Why?<br/>Validation not implemented]
-    C --> H[Why?<br/>Perceived as slowing deploys]
-    D --> I[Why?<br/>Alert fatigue led to raised threshold]
-    E --> J[Why?<br/>No runbook review process]
-    F --> K[Why?<br/>Short-staffed, heavy incident load]
-```
-</Diagram>
+/>
 
 ### The Five Whys and Its Limitations
 
@@ -539,25 +529,10 @@ In plain terms: STAMP asks "who was supposed to prevent this, and why didn't tha
 STAMP treats safety as a control problem. Systems fail not because of component failures (though those happen), but because the _control structure_ that's supposed to prevent accidents has gaps. Every organization has a hierarchy of controllers: executives set policies, managers allocate resources, platform teams create tools, those tools constrain what engineers can do. Accidents happen when this control structure has inadequate constraints or missing feedback loops.
 
 <Diagram
+  src={stampModelDiagram}
   title="STAMP model showing the control hierarchy and feedback loops that govern system behavior"
   description="Flowchart with two grouped sections. The Control Structure group shows Company Leadership setting priorities for Engineering Management, which allocates resources to the Platform Team, which creates tools for the Deploy Pipeline, which enables Engineer Actions. The Feedback Loops group shows Engineer Actions sending incident reports to the Platform Team, the Platform Team sending metrics to Engineering Management, and Engineering Management sending performance data back to Company Leadership. The diagram emphasizes how safety and failure are shaped by organizational control layers and by whether feedback reaches the right level."
->
-```mermaid
-flowchart TD
-  subgraph control[Control Structure]
-    A[Company Leadership] -->|Sets priorities| B[Engineering Management]
-    B -->|Allocates resources| C[Platform Team]
-    C -->|Creates tools| D[Deploy Pipeline]
-    D -->|Enables| E[Engineer Actions]
-  end
-
-  subgraph feedback[Feedback Loops]
-    E -->|Incident reports| C
-    C -->|Metrics| B
-    B -->|Performance data| A
-  end
-```
-</Diagram>
+/>
 
 The insight is that the engineer making a config change is just the _lowest level_ of control. If you only investigate at that level, you're ignoring all the levels above that enabled, permitted, or encouraged the action. CAST asks questions at every level:
 
@@ -779,29 +754,10 @@ Prioritization requires honest assessment of two dimensions: impact (how much do
 P0 items are your quick wins — high impact, low effort. These should be done immediately, often before the postmortem document is even finalized. There's no reason to let easy risk reduction sit in a queue.
 
 <Diagram
+  src={remediationPrioritizationDiagram}
   title="Remediation prioritization quadrants"
   description="Flowchart grouping remediation examples by priority. The P0 Do Now group contains Config validation. The P1 Plan group contains Canary deploys. The P2 Quick Wins group contains Update runbook and Better errors. The P3 and P4 Defer group contains Redesign config. The diagram summarizes how actions are sorted by a combination of impact and effort, with immediate low-effort high-impact work separated from planned, quick-win, and deferred work."
->
-```mermaid
-flowchart TD
-  subgraph doNow[P0: Do Now]
-    A[Config validation]
-  end
-
-  subgraph plan[P1: Plan]
-    B[Canary deploys]
-  end
-
-  subgraph quickWins[P2: Quick Wins]
-    C[Update runbook]
-    D[Better errors]
-  end
-
-  subgraph defer[P3/P4: Defer]
-    E[Redesign config]
-  end
-```
-</Diagram>
+/>
 
 P1 items are high-impact but require significant work. These need to be scheduled, resourced, and tracked — they won't happen by themselves. If your postmortem keeps generating P1 items that never get staffed, that's a feedback loop problem worth escalating.
 

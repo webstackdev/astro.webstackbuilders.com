@@ -9,6 +9,8 @@ tags: ["reliability-and-testing", "typescript", "python"]
 featured: true
 ---
 
+import fourRequestsDiagram from "./diagrams/four-requests-averaging-100ms-but-one-user-waited-11x-longer.png"
+
 *[P50]: 50th Percentile (Median)
 *[P95]: 95th Percentile
 *[P99]: 99th Percentile
@@ -116,21 +118,10 @@ __Percentiles__ tell a more honest story:
 Distribution shape matters too. Latency is never normally distributed — it's right-skewed with a long tail. A histogram reveals patterns summary statistics hide: bimodal distributions indicate cache hits vs misses, long tails indicate slow queries or external dependencies.
 
 <Diagram
+  src={fourRequestsDiagram}
   title="Four requests averaging 100ms, but one user waited 11x longer."
-  description={
-    `Left-to-right flowchart inside a grouped section labeled What Average Hides. Three separate requests with latencies of 50 milliseconds each and one request with a latency of 550 milliseconds all feed into a single node labeled 100 milliseconds average. The diagram shows that the same arithmetic mean can represent a very uneven experience, where most requests are fast but one request is dramatically slower. It illustrates why average latency hides tail pain and why percentile metrics are more informative for understanding real user experience.`
-  }
->
-```mermaid
-flowchart LR
-    subgraph whatAverageHides[What Average Hides]
-        A[50ms] --> M[100ms avg]
-        B[50ms] --> M
-        C[50ms] --> M
-        D[550ms] --> M
-    end
-```
-</Diagram>
+  description="Left-to-right flowchart inside a grouped section labeled What Average Hides. Three separate requests with latencies of 50 milliseconds each and one request with a latency of 550 milliseconds all feed into a single node labeled 100 milliseconds average. The diagram shows that the same arithmetic mean can represent a very uneven experience, where most requests are fast but one request is dramatically slower. It illustrates why average latency hides tail pain and why percentile metrics are more informative for understanding real user experience."
+/>
 
 The practical fix: configure your monitoring to show P95 and P99 by default, not average. Set alerts on percentiles. When comparing runs, use statistical tests designed for non-normal distributions (Mann-Whitney U works well). Report confidence intervals, not point estimates.
 

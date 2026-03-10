@@ -9,6 +9,10 @@ tags: ["cloud-platforms","kubernetes","argo-cd","helm"]
 featured: true
 ---
 
+import argocdDiagram from "./diagrams/argocd-generates-applications-centrally-flux-controllers-pull-independently.png"
+import configurationLayeringDiagram from "./diagrams/configuration-layering-from-fleet-wide-to-cluster-specific.png"
+import multiClusterDiagram from "./diagrams/multi-cluster-topology-patterns.png"
+
 *[K8s]: Kubernetes
 *[GitOps]: Git Operations
 *[CRD]: Custom Resource Definition
@@ -45,53 +49,29 @@ Organizations arrive at multi-cluster architectures for different reasons, and t
   variant="check-icons-list"
   items={[
     {
-      lead: 'Environment-based',
-      text: 'clusters are the most common pattern: dev, staging, and production running as separate clusters. The configuration model here is straightforward — core add-ons, security policies, and RBAC structure should be identical, while resource quotas, replica counts, and feature flags differ by environment. You want staging to behave like production, just smaller.',
+      lead: "Environment-based",
+      text: "clusters are the most common pattern: dev, staging, and production running as separate clusters. The configuration model here is straightforward — core add-ons, security policies, and RBAC structure should be identical, while resource quotas, replica counts, and feature flags differ by environment. You want staging to behave like production, just smaller.",
     },
     {
-      lead: 'Regional',
-      text: 'clusters serve global applications or data sovereignty requirements. US-East, US-West, EU-West, and AP-Southeast might all run the same application versions and security policies, but with region-specific endpoints, compliance settings, and capacity. The challenge here is keeping application deployments synchronized while allowing regional customization.',
+      lead: "Regional",
+      text: "clusters serve global applications or data sovereignty requirements. US-East, US-West, EU-West, and AP-Southeast might all run the same application versions and security policies, but with region-specific endpoints, compliance settings, and capacity. The challenge here is keeping application deployments synchronized while allowing regional customization.",
     },
     {
-      lead: 'Workload isolation',
-      text: 'clusters separate concerns by team or workload type: frontend, backend, data platform, ML training. Each cluster shares network policies and security baselines, but node types, add-ons, and resource profiles differ dramatically. An ML training cluster needs GPUs and tolerates batch job failures; a frontend cluster needs fast scaling and zero-downtime deployments.',
+      lead: "Workload isolation",
+      text: "clusters separate concerns by team or workload type: frontend, backend, data platform, ML training. Each cluster shares network policies and security baselines, but node types, add-ons, and resource profiles differ dramatically. An ML training cluster needs GPUs and tolerates batch job failures; a frontend cluster needs fast scaling and zero-downtime deployments.",
     },
     {
-      lead: 'Hybrid cloud',
-      text: 'clusters span providers: AWS primary, GCP disaster recovery, Azure edge, on-premises for sensitive workloads. Application manifests and security policies stay consistent, but cloud-specific integrations (load balancers, storage classes, IAM bindings) differ by necessity.',
+      lead: "Hybrid cloud",
+      text: "clusters span providers: AWS primary, GCP disaster recovery, Azure edge, on-premises for sensitive workloads. Application manifests and security policies stay consistent, but cloud-specific integrations (load balancers, storage classes, IAM bindings) differ by necessity.",
     },
   ]}
 />
 
 <Diagram
+  src={multiClusterDiagram}
   title="Multi-cluster topology patterns."
-  description={
-  `Flowchart showing three common multi-cluster topology patterns. In the first grouped section, labeled Environment-Based, a Git Repository points to three clusters: dev-cluster, staging-cluster, and prod-cluster. In the second grouped section, labeled Regional, a Git Repository points to four regional clusters: us-east, us-west, eu-west, and ap-southeast. In the third grouped section, labeled Hybrid, a Git Repository points to four infrastructure targets: AWS, GCP, Azure, and On-Prem. The diagram emphasizes that the same GitOps source model can support different organizational reasons for multi-cluster deployment: separate environments, geographic regions, or mixed cloud and on-premises platforms.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph environmentBased[Environment-Based]
-    A[Git Repository] --> B[dev-cluster]
-    A --> C[staging-cluster]
-    A --> D[prod-cluster]
-  end
-
-  subgraph regional[Regional]
-    E[Git Repository] --> F[us-east]
-    E --> G[us-west]
-    E --> H[eu-west]
-    E --> I[ap-southeast]
-  end
-
-  subgraph hybrid[Hybrid]
-    J[Git Repository] --> K[AWS]
-    J --> L[GCP]
-    J --> M[Azure]
-    J --> N[On-Prem]
-  end
-```
-</Diagram>
+  description="Flowchart showing three common multi-cluster topology patterns. In the first grouped section, labeled Environment-Based, a Git Repository points to three clusters: dev-cluster, staging-cluster, and prod-cluster. In the second grouped section, labeled Regional, a Git Repository points to four regional clusters: us-east, us-west, eu-west, and ap-southeast. In the third grouped section, labeled Hybrid, a Git Repository points to four infrastructure targets: AWS, GCP, Azure, and On-Prem. The diagram emphasizes that the same GitOps source model can support different organizational reasons for multi-cluster deployment: separate environments, geographic regions, or mixed cloud and on-premises platforms."
+/>
 
 ### Consistency vs Flexibility Spectrum
 
@@ -101,20 +81,20 @@ Every multi-cluster strategy sits somewhere on a spectrum from "all clusters are
   variant="check-icons-list"
   items={[
     {
-      lead: 'Fully consistent',
-      text: 'means all clusters get exactly the same configuration. This is simple to reason about and guarantees reproducibility, but it\'s inflexible. You end up over-provisioning dev and staging to match production, or you can\'t tune production for its actual load patterns. This approach only works for small fleets with simple applications.',
+      lead: "Fully consistent",
+      text: "means all clusters get exactly the same configuration. This is simple to reason about and guarantees reproducibility, but it's inflexible. You end up over-provisioning dev and staging to match production, or you can't tune production for its actual load patterns. This approach only works for small fleets with simple applications.",
     },
     {
-      lead: 'Layered configuration',
-      text: 'uses a base configuration with environment-specific overrides. This is the sweet spot for most organizations. You define what\'s shared (security policies, monitoring stack, core add-ons) and what varies (replica counts, resource limits, feature flags). Kustomize overlays and Helm values files are the typical implementation. The risk is "override explosion"—so many layers of patches that nobody can trace what a cluster actually runs.',
+      lead: "Layered configuration",
+      text: `uses a base configuration with environment-specific overrides. This is the sweet spot for most organizations. You define what's shared (security policies, monitoring stack, core add-ons) and what varies (replica counts, resource limits, feature flags). Kustomize overlays and Helm values files are the typical implementation. The risk is "override explosion"—so many layers of patches that nobody can trace what a cluster actually runs.`,
     },
     {
-      lead: 'Policy-governed',
-      text: 'configuration sets guardrails rather than identical configs. Teams can customize their clusters within bounds enforced by OPA/Gatekeeper[^opa-gatekeeper] or Kyverno[^kyverno]. This enables innovation and team autonomy, but drift happens within the policy bounds. Debugging becomes harder because clusters are intentionally different.',
+      lead: "Policy-governed",
+      text: "configuration sets guardrails rather than identical configs. Teams can customize their clusters within bounds enforced by OPA/Gatekeeper[^opa-gatekeeper] or Kyverno[^kyverno]. This enables innovation and team autonomy, but drift happens within the policy bounds. Debugging becomes harder because clusters are intentionally different.",
     },
     {
-      lead: 'Fully flexible',
-      text: 'means each cluster is independent, with its own GitOps repo and configuration. Maximum autonomy, maximum chaos. Security risks emerge when teams deviate from baselines. This only works with truly autonomous teams who don\'t need cross-cluster consistency.',
+      lead: "Fully flexible",
+      text: "means each cluster is independent, with its own GitOps repo and configuration. Maximum autonomy, maximum chaos. Security risks emerge when teams deviate from baselines. This only works with truly autonomous teams who don't need cross-cluster consistency.",
     },
   ]}
 />
@@ -127,29 +107,29 @@ Every multi-cluster strategy sits somewhere on a spectrum from "all clusters are
   variant="vertical-column-delineation-table"
   content={{
     thead: {
-      th: ['Approach', 'Consistency', 'Flexibility', 'Operational Overhead', 'Best For'],
+      th: ["Approach", "Consistency", "Flexibility", "Operational Overhead", "Best For"],
     },
     tbody: {
       tr: [
         {
-          th: 'Fully Consistent',
-          td: ['Very High', 'Very Low', 'Low', 'Small fleet, simple apps'],
+          th: "Fully Consistent",
+          td: ["Very High", "Very Low", "Low", "Small fleet, simple apps"],
         },
         {
-          th: 'Layered Config',
-          td: ['High', 'Medium', 'Medium', 'Typical enterprise'],
+          th: "Layered Config",
+          td: ["High", "Medium", "Medium", "Typical enterprise"],
         },
         {
-          th: 'Policy Governed',
-          td: ['Medium', 'High', 'High', 'Platform teams, multi-tenant'],
+          th: "Policy Governed",
+          td: ["Medium", "High", "High", "Platform teams, multi-tenant"],
         },
         {
-          th: 'Fully Flexible',
-          td: ['Low', 'Very High', 'Variable', 'Autonomous teams'],
+          th: "Fully Flexible",
+          td: ["Low", "Very High", "Variable", "Autonomous teams"],
         },
       ],
     },
-    figure: 'Consistency vs flexibility tradeoffs.',
+    figure: "Consistency vs flexibility tradeoffs.",
   }}
 />
 
@@ -167,24 +147,24 @@ The fleet management landscape has matured around a few dominant approaches. All
   variant="check-icons-list"
   items={[
     {
-      lead: 'ArgoCD ApplicationSets',
-      text: 'extend ArgoCD\'s Application concept with generators that create Applications dynamically based on clusters, Git directories, or custom lists. If you\'re already running ArgoCD, ApplicationSets are the natural choice. The generator patterns (cluster, list, git, matrix, merge) handle most multi-cluster scenarios elegantly. The limitation is scale: beyond 500 clusters, the ApplicationSet controller can struggle, and you\'ll need sharding or multiple ArgoCD instances.',
+      lead: "ArgoCD ApplicationSets",
+      text: "extend ArgoCD's Application concept with generators that create Applications dynamically based on clusters, Git directories, or custom lists. If you're already running ArgoCD, ApplicationSets are the natural choice. The generator patterns (cluster, list, git, matrix, merge) handle most multi-cluster scenarios elegantly. The limitation is scale: beyond 500 clusters, the ApplicationSet controller can struggle, and you'll need sharding or multiple ArgoCD instances.",
     },
     {
-      lead: 'Flux',
-      text: 'takes a different approach, building multi-cluster support into its Kustomization hierarchy. Each cluster runs its own Flux controllers pulling from Git, with dependencies between Kustomizations enabling layered configuration. Flux excels at lightweight, distributed deployments where each cluster is fairly autonomous. The trade-off is less centralized visibility — there\'s no built-in UI showing fleet-wide status.',
+      lead: "Flux",
+      text: "takes a different approach, building multi-cluster support into its Kustomization hierarchy. Each cluster runs its own Flux controllers pulling from Git, with dependencies between Kustomizations enabling layered configuration. Flux excels at lightweight, distributed deployments where each cluster is fairly autonomous. The trade-off is less centralized visibility — there's no built-in UI showing fleet-wide status.",
     },
     {
-      lead: 'Rancher Fleet',
-      text: 'provides centralized multi-cluster GitOps with a strong UI for fleet visibility. The "bundle" concept groups related resources for deployment across cluster groups. It\'s pull-based (clusters pull their configs), but the Rancher UI gives operators a single pane of glass. The downside is ecosystem lock-in — Fleet integrates deeply with Rancher\'s cluster management.',
+      lead: "Rancher Fleet",
+      text: `provides centralized multi-cluster GitOps with a strong UI for fleet visibility. The "bundle" concept groups related resources for deployment across cluster groups. It's pull-based (clusters pull their configs), but the Rancher UI gives operators a single pane of glass. The downside is ecosystem lock-in — Fleet integrates deeply with Rancher's cluster management.`,
     },
     {
-      lead: 'Google Config Sync',
-      text: '(part of Anthos) offers deep GKE integration with built-in policy controller and namespace hierarchy management. If your fleet is GKE-centric, Config Sync provides tight integration with Google Cloud\'s IAM and audit logging. For multi-cloud or on-prem clusters, it\'s less flexible.',
+      lead: "Google Config Sync",
+      text: "(part of Anthos) offers deep GKE integration with built-in policy controller and namespace hierarchy management. If your fleet is GKE-centric, Config Sync provides tight integration with Google Cloud's IAM and audit logging. For multi-cloud or on-prem clusters, it's less flexible.",
     },
     {
-      lead: 'Crossplane',
-      text: 'approaches fleet management differently — as a Kubernetes-native control plane extension for both infrastructure and configuration. You define Compositions that abstract cluster provisioning and configuration together. This is powerful for platform teams building internal developer platforms, but the learning curve is steep.',
+      lead: "Crossplane",
+      text: "approaches fleet management differently — as a Kubernetes-native control plane extension for both infrastructure and configuration. You define Compositions that abstract cluster provisioning and configuration together. This is powerful for platform teams building internal developer platforms, but the learning curve is steep.",
     },
   ]}
 />
@@ -193,29 +173,29 @@ The fleet management landscape has matured around a few dominant approaches. All
   variant="vertical-column-delineation-table"
   content={{
     thead: {
-      th: ['Tool', 'Model', 'Best For', 'Scale Ceiling', 'Learning Curve'],
+      th: ["Tool", "Model", "Best For", "Scale Ceiling", "Learning Curve"],
     },
     tbody: {
       tr: [
         {
-          th: 'ArgoCD ApplicationSets',
-          td: ['Pull-based, centralized', 'Teams already using ArgoCD', '~500 clusters', 'Medium'],
+          th: "ArgoCD ApplicationSets",
+          td: ["Pull-based, centralized", "Teams already using ArgoCD", "~500 clusters", "Medium"],
         },
         {
-          th: 'Flux',
-          td: ['Pull-based, distributed', 'CLI-first, GitOps-native teams', '1000+ clusters', 'Medium-High'],
+          th: "Flux",
+          td: ["Pull-based, distributed", "CLI-first, GitOps-native teams", "1000+ clusters", "Medium-High"],
         },
         {
-          th: 'Rancher Fleet',
-          td: ['Pull-based, central UI', 'Rancher ecosystem users', '~500 clusters', 'Low-Medium'],
+          th: "Rancher Fleet",
+          td: ["Pull-based, central UI", "Rancher ecosystem users", "~500 clusters", "Low-Medium"],
         },
         {
-          th: 'Config Sync',
-          td: ['Pull-based, GKE-native', 'GKE-centric organizations', 'GKE limits', 'Low'],
+          th: "Config Sync",
+          td: ["Pull-based, GKE-native", "GKE-centric organizations", "GKE limits", "Low"],
         },
       ],
     },
-    figure: 'Fleet management tool comparison.',
+    figure: "Fleet management tool comparison.",
   }}
 />
 
@@ -400,35 +380,10 @@ platform-config/
 Figure: Repository structure for Flux multi-cluster configuration.
 
 <Diagram
+  src={argocdDiagram}
   title="ArgoCD generates Applications centrally - Flux controllers pull independently."
-  description={
-  `Flowchart comparing the ArgoCD and Flux multi-cluster operating models. In the grouped section labeled ArgoCD Model, ApplicationSet points to Generator, which then fans out to Cluster 1 App, Cluster 2 App, and Cluster 3 App. Each of those generated applications points to a corresponding cluster: Cluster 1, Cluster 2, and Cluster 3. In the grouped section labeled Flux Model, a shared Git Repository points directly to Cluster 1 Flux, Cluster 2 Flux, and Cluster 3 Flux. Each cluster-specific Flux controller then points to its own layered configuration composed of base plus overlay plus cluster-specific settings. The diagram highlights that ArgoCD centralizes application generation before deployment, while Flux distributes reconciliation to controllers running inside each cluster, all pulling from the same repository.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph argoCdModel[ArgoCD Model]
-    A[ApplicationSet] --> B[Generator]
-    B --> C[Cluster 1 App]
-    B --> D[Cluster 2 App]
-    B --> E[Cluster 3 App]
-
-    C --> F[Cluster 1]
-    D --> G[Cluster 2]
-    E --> H[Cluster 3]
-  end
-
-  subgraph fluxModel[Flux Model]
-    I[Git Repository] --> J[Cluster 1 Flux]
-    I --> K[Cluster 2 Flux]
-    I --> L[Cluster 3 Flux]
-
-    J --> M[base + overlay + cluster-specific]
-    K --> N[base + overlay + cluster-specific]
-    L --> O[base + overlay + cluster-specific]
-  end
-```
-</Diagram>
+  description="Flowchart comparing the ArgoCD and Flux multi-cluster operating models. In the grouped section labeled ArgoCD Model, ApplicationSet points to Generator, which then fans out to Cluster 1 App, Cluster 2 App, and Cluster 3 App. Each of those generated applications points to a corresponding cluster: Cluster 1, Cluster 2, and Cluster 3. In the grouped section labeled Flux Model, a shared Git Repository points directly to Cluster 1 Flux, Cluster 2 Flux, and Cluster 3 Flux. Each cluster-specific Flux controller then points to its own layered configuration composed of base plus overlay plus cluster-specific settings. The diagram highlights that ArgoCD centralizes application generation before deployment, while Flux distributes reconciliation to controllers running inside each cluster, all pulling from the same repository."
+/>
 
 <Callout type="success">
 ArgoCD ApplicationSets excel at generating many similar applications with cluster-specific values. Flux's Kustomization hierarchy excels at layered configuration with clear inheritance. Choose based on your team's mental model.
@@ -445,31 +400,10 @@ The two dominant approaches are Kustomize (patch-based) and Helm (template-based
 [^cue]: CUE (Configure, Unify, Execute) is an open-source data constraint language designed for defining schemas and validating data. It's a superset of JSON — any valid JSON is also valid CUE — but adds type constraints, default values, and logical unification. CUE isn't part of Kubernetes or the CNCF, but it's widely used in the Kubernetes ecosystem for configuration validation and generation.
 
 <Diagram
+  src={configurationLayeringDiagram}
   title="Configuration layering from fleet-wide to cluster-specific."
-  description={
-    `Flowchart showing a three-layer configuration model for multi-cluster fleets. Inside a grouped section labeled Configuration Layering, Base Config points to Security policies, Monitoring stack, and Core add-ons. Environment Overlay points to Replica counts, Resource limits, and Feature flags. Cluster-Specific points to Regional endpoints, Cloud integrations, and Compliance settings. Outside those branch relationships, Base Config points to Environment Overlay, and Environment Overlay points to Cluster-Specific, showing that the layers build on one another from shared fleet-wide defaults to environment-level overrides and finally to per-cluster customization. The diagram illustrates how organizations can preserve consistency while still allowing necessary differences between environments and individual clusters.`
-  }
->
-```mermaid
-flowchart LR
-    subgraph configurationLayering[Configuration Layering]
-        A[Base Config] --> B[Security policies]
-        A --> C[Monitoring stack]
-        A --> D[Core add-ons]
-
-        E[Environment Overlay] --> F[Replica counts]
-        E --> G[Resource limits]
-        E --> H[Feature flags]
-
-        I[Cluster-Specific] --> J[Regional endpoints]
-        I --> K[Cloud integrations]
-        I --> L[Compliance settings]
-    end
-
-    A --> E
-    E --> I
-```
-</Diagram>
+  description="Flowchart showing a three-layer configuration model for multi-cluster fleets. Inside a grouped section labeled Configuration Layering, Base Config points to Security policies, Monitoring stack, and Core add-ons. Environment Overlay points to Replica counts, Resource limits, and Feature flags. Cluster-Specific points to Regional endpoints, Cloud integrations, and Compliance settings. Outside those branch relationships, Base Config points to Environment Overlay, and Environment Overlay points to Cluster-Specific, showing that the layers build on one another from shared fleet-wide defaults to environment-level overrides and finally to per-cluster customization. The diagram illustrates how organizations can preserve consistency while still allowing necessary differences between environments and individual clusters."
+/>
 
 ### Kustomize for Multi-Cluster
 

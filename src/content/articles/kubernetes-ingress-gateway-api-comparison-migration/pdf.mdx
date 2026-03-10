@@ -9,6 +9,9 @@ tags: ["cloud-platforms","kubernetes"]
 featured: true
 ---
 
+import ingressDiagram from "./diagrams/ingress-uses-flat-resources-gateway-api-uses-shared-gateway.png"
+import roleBasedDiagram from "./diagrams/role-based-ownership-with-gateway-api.png"
+
 *[GA]: General Availability
 *[TLS]: Transport Layer Security
 *[TCP]: Transmission Control Protocol
@@ -157,31 +160,10 @@ Code: Gateway API's layered model separates infrastructure, platform, and applic
 Notice how the HTTPRoute in the `production` namespace can reference a Gateway in the `gateway-infra` namespace. This cross-namespace capability is fundamental to Gateway API's multi-team model — application teams don't need access to the Gateway namespace to define their routes.
 
 <Diagram
+  src={ingressDiagram}
   title="Ingress uses flat resources - Gateway API uses a shared Gateway."
-  description={
-  `Flowchart comparing the structural models of Ingress and Gateway API. On the left, a grouped section labeled Ingress Model: Single Resource shows three separate Ingress resources, each pointing to a single Controller, and that Controller pointing to a Service. This illustrates that Ingress resources are flat and controller behavior is centralized behind one implementation. On the right, a grouped section labeled Gateway API: Layered Resources shows GatewayClass pointing to Gateway, then Gateway pointing to three route resources: HTTPRoute Team A, HTTPRoute Team B, and GRPCRoute Team C. Each route then points to its own backend service: Service A, Service B, and Service C. The diagram emphasizes that Gateway API splits responsibilities into layers and allows multiple teams and route types to share a common Gateway while still routing to separate services.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph ingressModel[Ingress Model: Single Resource]
-    A1[Ingress] --> B1[Controller]
-    A2[Ingress] --> B1
-    A3[Ingress] --> B1
-    B1 --> C1[Service]
-  end
-
-  subgraph gatewayApiModel[Gateway API: Layered Resources]
-    D1[GatewayClass] --> D2[Gateway]
-    D2 --> E1[HTTPRoute Team A]
-    D2 --> E2[HTTPRoute Team B]
-    D2 --> E3[GRPCRoute Team C]
-    E1 --> F1[Service A]
-    E2 --> F2[Service B]
-    E3 --> F3[Service C]
-  end
-```
-</Diagram>
+  description="Flowchart comparing the structural models of Ingress and Gateway API. On the left, a grouped section labeled Ingress Model: Single Resource shows three separate Ingress resources, each pointing to a single Controller, and that Controller pointing to a Service. This illustrates that Ingress resources are flat and controller behavior is centralized behind one implementation. On the right, a grouped section labeled Gateway API: Layered Resources shows GatewayClass pointing to Gateway, then Gateway pointing to three route resources: HTTPRoute Team A, HTTPRoute Team B, and GRPCRoute Team C. Each route then points to its own backend service: Service A, Service B, and Service C. The diagram emphasizes that Gateway API splits responsibilities into layers and allows multiple teams and route types to share a common Gateway while still routing to separate services."
+/>
 
 The table below summarizes the key differences. If you're scanning for a quick answer: Ingress is simpler when you don't need the advanced features, Gateway API is more capable when you do.
 
@@ -521,36 +503,10 @@ The `allowedRoutes.namespaces.selector` is the key mechanism. Only namespaces wi
 This separation is enforced at the Kubernetes API level, not just by convention. If an application team tries to create an HTTPRoute referencing a Gateway that doesn't allow their namespace, the route won't attach — it will show an error in its status conditions.
 
 <Diagram
+  src={roleBasedDiagram}
   title="Role-based ownership with Gateway API."
-  description={
-  `Flowchart showing how Gateway API maps routing resources to different team responsibilities. A grouped section labeled Infrastructure Team contains GatewayClass pointing to Gateway Controller through a controllerName relationship. A grouped section labeled Platform Team contains Gateway pointing back to GatewayClass through gatewayClassName and also pointing to a Namespace Selector through allowedRoutes. A grouped section labeled App Team A contains HTTPRoute A pointing to Gateway through parentRef and also pointing to Service A. A grouped section labeled App Team B contains HTTPRoute B pointing to Gateway through parentRef and also pointing to Service B. The Namespace Selector points to HTTPRoute A and HTTPRoute B through label match relationships. The diagram shows that infrastructure teams choose the controller, platform teams manage the shared Gateway and define which namespaces may attach, and application teams manage their own routes and services only when their namespaces satisfy the selector rules.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph infrastructureTeam[Infrastructure Team]
-    A[GatewayClass] -->|controllerName| B[Gateway Controller]
-  end
-
-  subgraph platformTeam[Platform Team]
-    C[Gateway] -->|gatewayClassName| A
-    C -->|allowedRoutes| D{Namespace Selector}
-  end
-
-  subgraph appTeamA[App Team A]
-    E[HTTPRoute A] -->|parentRef| C
-    E --> F[Service A]
-  end
-
-  subgraph appTeamB[App Team B]
-    G[HTTPRoute B] -->|parentRef| C
-    G --> H[Service B]
-  end
-
-  D -->|label match| E
-  D -->|label match| G
-```
-</Diagram>
+  description="Flowchart showing how Gateway API maps routing resources to different team responsibilities. A grouped section labeled Infrastructure Team contains GatewayClass pointing to Gateway Controller through a controllerName relationship. A grouped section labeled Platform Team contains Gateway pointing back to GatewayClass through gatewayClassName and also pointing to a Namespace Selector through allowedRoutes. A grouped section labeled App Team A contains HTTPRoute A pointing to Gateway through parentRef and also pointing to Service A. A grouped section labeled App Team B contains HTTPRoute B pointing to Gateway through parentRef and also pointing to Service B. The Namespace Selector points to HTTPRoute A and HTTPRoute B through label match relationships. The diagram shows that infrastructure teams choose the controller, platform teams manage the shared Gateway and define which namespaces may attach, and application teams manage their own routes and services only when their namespaces satisfy the selector rules."
+/>
 
 You'll want to back this up with Kubernetes RBAC. Give the infrastructure team permissions on GatewayClass resources, the platform team permissions on Gateway resources in the gateway-system namespace, and application teams permissions only on HTTPRoute resources in their own namespaces. The Gateway API resources and RBAC work together to create a self-service model with appropriate guardrails.
 

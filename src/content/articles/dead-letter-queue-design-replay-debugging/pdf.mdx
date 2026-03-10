@@ -9,6 +9,8 @@ tags: ["systems-and-development", "aws", "go", "dotnet", "python"]
 featured: true
 ---
 
+import messageProcessingDiagram from "./diagrams/message-processing-flow-with-dlq-routing-by-failure-type.png"
+
 *[DLQ]: Dead Letter Queue
 *[DLQs]: Dead Letter Queue
 *[DLX]: Dead Letter Exchange
@@ -59,28 +61,10 @@ Messages fail for different reasons, and those reasons determine how you should 
 />
 
 <Diagram
+  src={messageProcessingDiagram}
   title="Message processing flow with DLQ routing by failure type."
-  description={
-    `Flowchart showing how message processing routes successes and failures. A message starts at Message Received and moves to a Processing Attempt decision. Success leads to Acknowledge. Failure goes to a Retry Policy decision. If retries remain, the message is sent to Requeue with Backoff and then returns to Processing Attempt. If maximum retries are exceeded, the message moves to DLQ. From there, a Failure Type decision routes the message by classification: Transient goes to Auto-Replay Queue, Permanent goes to Manual Review Queue, and Poison goes to Quarantine Queue. The diagram shows that the DLQ is not a single sink for every failure, but a routing point where failure type determines the next operational action.`
-  }
->
-```mermaid
-flowchart LR
-    A[Message Received] --> B{Processing Attempt}
-    B -->|Success| C[Acknowledge]
-    B -->|Failure| D{Retry Policy}
-
-    D -->|Retries Remaining| E[Requeue with Backoff]
-    E --> B
-
-    D -->|Max Retries Exceeded| F[Move to DLQ]
-
-    F --> G{Failure Type?}
-    G -->|Transient| H[Auto-Replay Queue]
-    G -->|Permanent| I[Manual Review Queue]
-    G -->|Poison| J[Quarantine Queue]
-```
-</Diagram>
+  description="Flowchart showing how message processing routes successes and failures. A message starts at Message Received and moves to a Processing Attempt decision. Success leads to Acknowledge. Failure goes to a Retry Policy decision. If retries remain, the message is sent to Requeue with Backoff and then returns to Processing Attempt. If maximum retries are exceeded, the message moves to DLQ. From there, a Failure Type decision routes the message by classification: Transient goes to Auto-Replay Queue, Permanent goes to Manual Review Queue, and Poison goes to Quarantine Queue. The diagram shows that the DLQ is not a single sink for every failure, but a routing point where failure type determines the next operational action."
+/>
 
 ### The Information Loss Problem
 

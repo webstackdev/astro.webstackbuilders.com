@@ -9,6 +9,9 @@ tags: ["cloud-platforms","kubernetes","helm","aws","azure"]
 featured: true
 ---
 
+import decisionFactorsDiagram from "./diagrams/decision-factors-for-infrastructure-choice.png"
+import kubernetesFitDiagram from "./diagrams/kubernetes-fit-decision-tree.png"
+
 *[FaaS]: Function as a Service
 *[IaaS]: Infrastructure as a Service
 *[K8s]: Kubernetes
@@ -123,39 +126,10 @@ The largest hidden cost is opportunity cost. Every hour spent debugging why pods
 The first question isn't "Should we use Kubernetes?" It's "What problems are we trying to solve?" Kubernetes fits well when you have genuine complexity that justifies the operational overhead. It fits poorly when you're adding complexity to solve problems you don't actually have.
 
 <Diagram
+  src={kubernetesFitDiagram}
   title="Kubernetes fit decision tree."
   description="Flowchart that starts with Considering Kubernetes? and asks how many services do you have. For 1-3 services, it asks whether they are tightly coupled and whether auto-scaling is needed, leading toward Monolith on VMs or Serverless or PaaS. For 4-10 services, it asks about complex networking requirements, team K8s experience, and whether the team can invest in learning, leading toward Kubernetes may fit or VMs with simple orchestration. For 10+ services, it asks about multiple teams deploying independently and whether microservices are actually needed, leading toward Kubernetes likely fits or Modular monolith first. A final decision asks whether managed K8s is used, ending at Proceed with caution or Reconsider: Self-managed rarely makes sense."
->
-  ```mermaid
-  flowchart LR
-      A[Considering Kubernetes?] --> B{How many services<br/>do you have?}
-
-      B -->|1-3 services| C{Are they tightly<br/>coupled?}
-      C -->|Yes| D[Consider: Monolith on VMs]
-      C -->|No| E{Need auto-scaling?}
-      E -->|Yes| F[Consider: Serverless or PaaS]
-      E -->|No| D
-
-      B -->|4-10 services| G{Complex networking<br/>requirements?}
-      G -->|Yes| H{Team has K8s<br/>experience?}
-      G -->|No| I[Consider: VMs with<br/>simple orchestration]
-
-      H -->|Yes| J[Kubernetes may fit]
-      H -->|No| K{Can invest in<br/>learning?}
-      K -->|Yes - 6+ months| J
-      K -->|No| I
-
-      B -->|10+ services| L{Multiple teams<br/>deploying independently?}
-      L -->|Yes| M[Kubernetes likely fits]
-      L -->|No| N{Microservices actually<br/>needed?}
-      N -->|Yes| M
-      N -->|No| O[Consider: Modular<br/>monolith first]
-
-      J --> P{Using managed K8s?}
-      P -->|Yes| Q[Proceed with caution]
-      P -->|No| R[Reconsider: Self-managed<br/>rarely makes sense]
-  ```
-</Diagram>
+/>
 
 The service count matters because Kubernetes overhead amortizes across workloads. Running one service on Kubernetes means you're paying the full complexity tax for a single application. Running fifty services means the overhead is spread thin.
 
@@ -339,33 +313,10 @@ The limitations are real. Cold starts add 100ms-2s latency on first requests; pr
 Two factors dominate the infrastructure decision: traffic patterns and team size. This diagram captures the core logic.
 
 <Diagram
+  src={decisionFactorsDiagram}
   title="Decision factors for infrastructure choice."
   description="Flowchart divided into two subgraphs. The first, Traffic Pattern Decision, starts with What's your traffic pattern? and asks whether load is constant, whether it scales to zero, and whether spikes occur with an existing baseline, leading to VMs or K8s, Serverless, or K8s with HPA or Serverless + baseline. The second, Team Size Decision, starts with Team size? and asks whether there are less than 5 engineers or less than 15 engineers, leading to Serverless or PaaS, Managed K8s or Platform team, or Can justify dedicated platform team."
->
-  ```mermaid
-  flowchart LR
-    subgraph trafficPatternDecision[Traffic Pattern Decision]
-      A[What's your traffic<br/>pattern?] --> B{Constant load?}
-
-      B -->|Yes, predictable| C[VMs or K8s]
-      B -->|No, variable| D{Scales to zero?}
-
-      D -->|Yes, significant idle| E[Serverless]
-      D -->|No, always some load| F{Spiky but<br/>baseline exists?}
-
-      F -->|Yes| G[K8s with HPA or<br/>Serverless + baseline]
-      F -->|No| E
-    end
-
-    subgraph teamSizeDecision[Team Size Decision]
-      H[Team size?] --> I{< 5 engineers?}
-      I -->|Yes| J[Serverless or PaaS]
-      I -->|No| K{< 15 engineers?}
-      K -->|Yes| L[Managed K8s or<br/>Platform team]
-      K -->|No| M[Can justify<br/>dedicated platform team]
-    end
-  ```
-</Diagram>
+/>
 
 ### When PaaS Wins
 

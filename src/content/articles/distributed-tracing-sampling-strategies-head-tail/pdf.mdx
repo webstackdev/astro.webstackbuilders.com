@@ -9,6 +9,11 @@ tags: ["observability-and-telemetry", "typescript", "python", "go", "dotnet", "r
 featured: true
 ---
 
+import headBasedDiagram from "./diagrams/head-based-sampling-decision-flow.png"
+import samplingStrategyDiagram from "./diagrams/sampling-strategy-decision-tree.png"
+import tailBasedDiagram from "./diagrams/tail-based-sampling-decision-flow.png"
+import tradeOffsDiagram from "./diagrams/trade-offs-between-full-and-sampled-tracing.png"
+
 *[APM]: Application Performance Monitoring
 *[OTel]: OpenTelemetry
 *[SDK]: Software Development Kit
@@ -86,40 +91,10 @@ Cardinality explosion happens when you add high-cardinality attributes to spans 
 When I say "sampling" from here on, I mean keeping less than 100% of traces - making a deliberate decision about which traces to record and which to discard. This is the fundamental trade-off: you're exchanging complete data for manageable data. Understanding what you give up is essential for designing around those limitations, and for choosing sampling strategies that minimize the impact of what you lose.
 
 <Diagram
+  src={tradeOffsDiagram}
   title="Trade-offs between full and sampled tracing."
-  description={
-  `Flowchart comparing three grouped states: 100% Sampling, Sampled Tracing, and What You Lose. In the 100% Sampling group are Every trace captured, Complete latency distribution, and All error traces. These map respectively to Representative traces, Statistical latency estimates, and Most error traces in the Sampled Tracing group. Dotted arrows from the sampled group then point to three losses: Specific trace lookup by ID, Exact percentile calculations, and Rare edge cases. The diagram shows that sampling preserves broad representativeness and most important outcomes, but gives up exact lookup, exact tail-percentile math, and visibility into very rare events.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph full[100% Sampling]
-    A1[Every trace captured]
-    A2[Complete latency distribution]
-    A3[All error traces]
-  end
-
-  subgraph sampled[Sampled Tracing]
-    B1[Representative traces]
-    B2[Statistical latency estimates]
-    B3[Most error traces]
-  end
-
-  subgraph loss[What You Lose]
-    C1[Specific trace lookup by ID]
-    C2[Exact percentile calculations]
-    C3[Rare edge cases]
-  end
-
-  A1 --> B1
-  A2 --> B2
-  A3 --> B3
-
-  B1 -.-> C1
-  B2 -.-> C2
-  B3 -.-> C3
-```
-</Diagram>
+  description="Flowchart comparing three grouped states: 100% Sampling, Sampled Tracing, and What You Lose. In the 100% Sampling group are Every trace captured, Complete latency distribution, and All error traces. These map respectively to Representative traces, Statistical latency estimates, and Most error traces in the Sampled Tracing group. Dotted arrows from the sampled group then point to three losses: Specific trace lookup by ID, Exact percentile calculations, and Rare edge cases. The diagram shows that sampling preserves broad representativeness and most important outcomes, but gives up exact lookup, exact tail-percentile math, and visibility into very rare events."
+/>
 
 <List
   variant="check-icons-list"
@@ -196,33 +171,10 @@ This means you deploy sampling logic in your application code, not in a separate
 The sequence is straightforward. A request arrives at your entry point - let's say an API gateway. The gateway's OTel SDK generates a new trace ID and immediately asks the sampler: should we sample this trace? The sampler looks at whatever information is available (the trace ID, request attributes, current rate limits) and returns yes or no. If yes, the gateway creates spans and includes `sampled=true` in the trace context headers it forwards. If no, it can either skip span creation entirely or create spans but mark them as not-for-export.
 
 <Diagram
+  src={headBasedDiagram}
   title="Head-based sampling decision flow."
-  description={
-    `Sequence diagram showing how a head-sampling decision made at the start of a request propagates across services. A Client sends a Request to an API Gateway. At the gateway, a note indicates a sample decision of YES with a 10% chance. The gateway generates a trace ID, sets sampled=true, and forwards the request plus trace context to Service A. Service A creates spans that will be exported, forwards the request plus the same sampled=true trace context to Service B, and Service B also creates exportable spans. Service B, Service A, and the Gateway each export spans to the Collector. A final note emphasizes that all services respect the original head decision. The diagram shows that head sampling makes one early decision and then keeps the whole trace consistent across downstream services.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Gateway as API Gateway
-    participant ServiceA as Service A
-    participant ServiceB as Service B
-    participant Collector
-
-    Client->>Gateway: Request
-    Note over Gateway: Sample decision: YES (10% chance)
-    Gateway->>Gateway: Generate trace ID, set sampled=true
-    Gateway->>ServiceA: Request + trace context (sampled=true)
-    ServiceA->>ServiceA: Create spans (will be exported)
-    ServiceA->>ServiceB: Request + trace context (sampled=true)
-    ServiceB->>ServiceB: Create spans (will be exported)
-    ServiceB->>Collector: Export spans
-    ServiceA->>Collector: Export spans
-    Gateway->>Collector: Export spans
-
-    Note over Client,Collector: All services respect the head decision
-```
-</Diagram>
+  description="Sequence diagram showing how a head-sampling decision made at the start of a request propagates across services. A Client sends a Request to an API Gateway. At the gateway, a note indicates a sample decision of YES with a 10% chance. The gateway generates a trace ID, sets sampled=true, and forwards the request plus trace context to Service A. Service A creates spans that will be exported, forwards the request plus the same sampled=true trace context to Service B, and Service B also creates exportable spans. Service B, Service A, and the Gateway each export spans to the Collector. A final note emphasizes that all services respect the original head decision. The diagram shows that head sampling makes one early decision and then keeps the whole trace consistent across downstream services."
+/>
 
 When downstream services receive a request with trace context, they check the sampling flag. If `sampled=true`, they create spans normally. If `sampled=false`, they skip span creation (or create non-exported spans for local debugging). The key insight is that every service respects the head decision - no service overrides it. This keeps traces complete: you never end up with half a trace because some services sampled and others didn't.
 
@@ -485,32 +437,10 @@ The trade-off is architectural complexity. Head sampling happens in your applica
 The flow looks different from head sampling. Your applications don't make any sampling decisions - they create spans for every request and export them all to a collector. The collector groups incoming spans by trace ID, buffers them in memory, and waits for the trace to complete. Once a trace is complete (or a timeout expires), the collector evaluates it against your policies: does it contain errors? Is it slow? Does it touch certain services? If any policy matches, the entire trace is forwarded to your backend. If nothing matches, the trace is discarded.
 
 <Diagram
+  src={tailBasedDiagram}
   title="Tail-based sampling decision flow."
-  description={
-    `Sequence diagram showing how tail sampling buffers complete traces before deciding what to keep. Application Services send all spans, representing 100% of traffic, to an OTel Collector. The collector forwards buffered spans grouped by trace ID to a Tail Sampler. A note indicates that the tail sampler waits for the trace to complete. The tail sampler then evaluates the complete trace. If the trace is interesting, such as containing an error or slowness, the full trace is exported to the Trace Backend. If the trace is routine, it is discarded by the tail sampler. The diagram highlights that tail sampling makes decisions with full outcome information rather than guessing at trace start.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant Services as Application Services
-    participant Collector as OTel Collector
-    participant TailSampler as Tail Sampler
-    participant Backend as Trace Backend
-
-    Services->>Collector: All spans (100%)
-    Collector->>TailSampler: Buffer spans by trace ID
-
-    Note over TailSampler: Wait for trace to complete
-
-    TailSampler->>TailSampler: Evaluate complete trace
-
-    alt Interesting trace (error, slow, etc.)
-        TailSampler->>Backend: Export full trace
-    else Routine trace
-        TailSampler->>TailSampler: Discard
-    end
-```
-  </Diagram>
+  description="Sequence diagram showing how tail sampling buffers complete traces before deciding what to keep. Application Services send all spans, representing 100% of traffic, to an OTel Collector. The collector forwards buffered spans grouped by trace ID to a Tail Sampler. A note indicates that the tail sampler waits for the trace to complete. The tail sampler then evaluates the complete trace. If the trace is interesting, such as containing an error or slowness, the full trace is exported to the Trace Backend. If the trace is routine, it is discarded by the tail sampler. The diagram highlights that tail sampling makes decisions with full outcome information rather than guessing at trace start."
+/>
 
 The critical insight is that the collector sees the complete trace before deciding. It knows whether the request errored. It knows the total latency. It knows which services were involved and what happened in each one. This is information that head sampling simply doesn't have.
 
@@ -667,32 +597,10 @@ The choice between head and tail sampling isn't binary - it's about matching you
 Start with your traffic volume. At low scale (under 1,000 RPS), the economics of sampling don't matter much - you can afford 100% sampling or use simple head sampling without overthinking it. At moderate scale (1,000-10,000 RPS), the question becomes whether you need deterministic error capture or can live with statistical sampling. At high scale (over 10,000 RPS), the question is whether you can afford the infrastructure for tail sampling.
 
 <Diagram
+  src={samplingStrategyDiagram}
   title="Sampling strategy decision tree."
-  description={
-    `Flowchart showing how to choose a sampling approach based on traffic volume and operational constraints. The process starts at Choose Sampling Strategy and asks about Traffic Volume. For less than 1,000 RPS, the recommendation is 100% or Simple Head, which leads to Simple Implementation. For 1,000 to 10,000 RPS, the next question is Need Error Capture? If yes, the result is Tail Sampling; if statistical error rate is acceptable, the result is Head Sampling. For more than 10,000 RPS, the next question is Budget for Tail Infrastructure? If yes, choose Tail Sampling; if no, choose Aggressive Head Sampling. Tail Sampling leads to OTel Collector + Tail Processor, while Head Sampling and Aggressive Head Sampling lead to SDK-level Sampler. The diagram emphasizes that the right choice depends on both scale and the team’s ability to operate sampling infrastructure.`
-  }
->
-```mermaid
-flowchart LR
-    A[Choose Sampling Strategy] --> B{Traffic Volume?}
-
-    B -->|< 1000 RPS| C[100% or Simple Head]
-    B -->|1000-10000 RPS| D{Need Error Capture?}
-    B -->|> 10000 RPS| E{Budget for Tail Infrastructure?}
-
-    D -->|Must capture all errors| F[Tail Sampling]
-    D -->|Statistical error rate OK| G[Head Sampling]
-
-    E -->|Yes| H[Tail Sampling]
-    E -->|No| I[Aggressive Head Sampling]
-
-    C --> J[Simple Implementation]
-    F --> K[OTel Collector + Tail Processor]
-    G --> L[SDK-level Sampler]
-    H --> K
-    I --> L
-```
-</Diagram>
+  description="Flowchart showing how to choose a sampling approach based on traffic volume and operational constraints. The process starts at Choose Sampling Strategy and asks about Traffic Volume. For less than 1,000 RPS, the recommendation is 100% or Simple Head, which leads to Simple Implementation. For 1,000 to 10,000 RPS, the next question is Need Error Capture? If yes, the result is Tail Sampling; if statistical error rate is acceptable, the result is Head Sampling. For more than 10,000 RPS, the next question is Budget for Tail Infrastructure? If yes, choose Tail Sampling; if no, choose Aggressive Head Sampling. Tail Sampling leads to OTel Collector + Tail Processor, while Head Sampling and Aggressive Head Sampling lead to SDK-level Sampler. The diagram emphasizes that the right choice depends on both scale and the team's ability to operate sampling infrastructure."
+/>
 
 The decision isn't just about what you want - it's about what you can operate. Tail sampling requires stateful infrastructure that needs monitoring, scaling, and maintenance. If your team is small or your ops capacity is limited, the operational overhead of tail sampling may outweigh its benefits.
 

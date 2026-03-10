@@ -9,6 +9,8 @@ tags: ["system-modernization", "platform-engineering", "dotnet", "python", "dock
 featured: true
 ---
 
+import directDependenciesDiagram from "./diagrams/direct-dependencies-hide-a-much-larger-transitive-graph.png"
+
 *[EOL]: End of Life
 *[LTS]: Long Term Support
 *[CVE]: Common Vulnerabilities and Exposures
@@ -45,56 +47,10 @@ Most teams dramatically underestimate their dependency surface. They look at the
 This matters for EOL upgrades because a single incompatible package anywhere in that tree blocks the entire upgrade. You can have perfect Node 20 compatibility in your code and in every package you directly reference. But if one of those packages depends on something that depends on something else that ships a native binary compiled against Node 16 headers, you are stuck.
 
 <Diagram
+  src={directDependenciesDiagram}
   title="Direct dependencies hide a much larger transitive graph."
-  description={
-    `Flowchart showing how a small set of direct dependencies expands into a much larger transitive graph. Your Application depends directly on express 4.18, prisma 5.0, and winston 3.8. Those direct dependencies branch into body-parser 1.20, cookie-parser 1.4, prisma-client 5.0, prisma-engines 5.0, and logform 2.4. The graph continues downward to raw-body 2.5, cookie 0.5, a Native Binary - Node 16+, iconv-lite 0.4, and safer-buffer 2.1. A grouped region labeled Direct 3 contains the three direct packages, and another labeled Transitive 10 plus contains the deeper dependency set. The native binary node is visually emphasized as the blocker. The diagram illustrates how a seemingly small application dependency list can conceal a much larger transitive tree where a single deep dependency can block a runtime upgrade.`
-  }
->
-```mermaid
-flowchart TD
-  A[Your Application] --> B[express 4.18]
-  A --> C[prisma 5.0]
-  A --> D[winston 3.8]
-
-  B --> E[body-parser 1.20]
-  B --> F[cookie-parser 1.4]
-  C --> G[prisma-client 5.0]
-  C --> H[prisma-engines 5.0]
-  D --> I[logform 2.4]
-
-  E --> J[raw-body 2.5]
-  F --> K[cookie 0.5]
-  H --> L[Native Binary - Node 16+]
-  J --> M[iconv-lite 0.4]
-
-  M --> N[safer-buffer 2.1]
-
-  style A fill:#4CAF50
-  style B fill:#81C784
-  style C fill:#81C784
-  style D fill:#81C784
-  style L fill:#FF5722
-
-  subgraph direct[Direct 3]
-      B
-      C
-      D
-  end
-
-  subgraph transitive[Transitive 10 plus]
-      E
-      F
-      G
-      H
-      I
-      J
-      K
-      L
-      M
-      N
-  end
-```
-</Diagram>
+  description="Flowchart showing how a small set of direct dependencies expands into a much larger transitive graph. Your Application depends directly on express 4.18, prisma 5.0, and winston 3.8. Those direct dependencies branch into body-parser 1.20, cookie-parser 1.4, prisma-client 5.0, prisma-engines 5.0, and logform 2.4. The graph continues downward to raw-body 2.5, cookie 0.5, a Native Binary - Node 16+, iconv-lite 0.4, and safer-buffer 2.1. A grouped region labeled Direct 3 contains the three direct packages, and another labeled Transitive 10 plus contains the deeper dependency set. The native binary node is visually emphasized as the blocker. The diagram illustrates how a seemingly small application dependency list can conceal a much larger transitive tree where a single deep dependency can block a runtime upgrade."
+/>
 
 The diagram shows a typical pattern: three direct dependencies fan out to ten transitive dependencies, and one of those transitives — the native binary in prisma-engines — has a hard runtime version constraint. That single node, four levels deep, determines whether your upgrade succeeds.
 

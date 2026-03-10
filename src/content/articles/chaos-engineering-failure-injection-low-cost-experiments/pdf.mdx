@@ -9,6 +9,11 @@ tags: ["reliability-and-testing", "kubernetes", "python", "go"]
 featured: true
 ---
 
+import evolutionDiagram from "./diagrams/evolution-from-ad-hoc-experiments-to-mature-chaos-practice.png"
+import progressiveChaosDiagram from "./diagrams/progressive-chaos-engineering-maturity-levels.png"
+import theScientificCycleDiagram from "./diagrams/the-scientific-cycle-of-chaos-engineering.png"
+import threeDimensionsDiagram from "./diagrams/three-dimensions-of-blast-radius-control.png"
+
 *[AZ]: Availability Zone
 *[MTTR]: Mean Time To Recovery
 *[PDU]: Power Distribution Unit
@@ -78,21 +83,10 @@ Real chaos engineering follows the scientific method. You form a hypothesis abou
 The scientific cycle looks like this: form a hypothesis about expected behavior, define what "steady state" looks like in your metrics, plan the experiment with clear scope and abort conditions, contain the blast radius so you don't turn an experiment into an incident, run the experiment, observe what actually happens, and then learn and improve based on the results. That last step — actually fixing what you find — is where most teams fall short.
 
 <Diagram
+  src={theScientificCycleDiagram}
   title="The scientific cycle of chaos engineering"
   description="Flowchart showing the chaos engineering loop: form a hypothesis, define steady state, plan the experiment, contain blast radius, run the experiment, observe behavior, and learn and improve before repeating the cycle."
->
-```mermaid
-flowchart LR
-    A[Chaos Engineering Cycle] --> B[1. Form Hypothesis]
-    B --> C[2. Define Steady State]
-    C --> D[3. Plan Experiment]
-    D --> E[4. Contain Blast Radius]
-    E --> F[5. Run Experiment]
-    F --> G[6. Observe Behavior]
-    G --> H[7. Learn & Improve]
-    H --> B
-```
-</Diagram>
+/>
 
 ### The Hypothesis-First Approach
 
@@ -147,21 +141,10 @@ Once you're comfortable with the mechanics, move to production during low-risk w
 From there, you can progress to experiments during business hours with real traffic, and eventually to automated chaos that runs continuously. But that progression takes months or years, not weeks. Each level builds on the confidence earned at the previous level.
 
 <Diagram
+  src={progressiveChaosDiagram}
   title="Progressive chaos engineering maturity levels"
   description="Flowchart showing four maturity levels progressing from non-production experiments to low-risk production experiments, production experiments with live traffic, and finally automated chaos, with each level annotated by the kind of learning it enables."
->
-```mermaid
-flowchart LR
-    A[Level 1<br/>Non-production] --> B[Level 2<br/>Production low-risk]
-    B --> C[Level 3<br/>Production with traffic]
-    C --> D[Level 4<br/>Automated chaos]
-
-    A -.->|Kill pods in staging| A1[Learn tooling]
-    B -.->|Kill pods during off-hours| B1[Validate basics]
-    C -.->|Inject latency during business hours| C1[Real-world learning]
-    D -.->|Continuous chaos| D1[Sustained resilience]
-```
-</Diagram>
+/>
 
 ## Low-Cost Chaos Tools
 
@@ -480,28 +463,10 @@ Time limits provide a safety net when other controls fail. Set a maximum duratio
 Impact limits define what customer-facing consequences you're willing to accept. For early experiments, that might be "zero customer-visible errors." As you mature, you might accept brief degradation ("P99 latency can spike to 2s for up to 30 seconds"). The key is deciding _before_ you start, not while you're watching dashboards and trying to decide if things are bad enough to stop.
 
 <Diagram
+  src={threeDimensionsDiagram}
   title="Three dimensions of blast radius control"
   description="Flowchart showing blast radius control divided into scope limiting, time limiting, and impact limiting, with examples such as targeting a single pod, setting maximum duration and automatic aborts, and starting with low-traffic non-critical paths."
->
-```mermaid
-flowchart LR
-    A[Blast Radius Control] --> B[Scope Limiting]
-    A --> C[Time Limiting]
-    A --> D[Impact Limiting]
-
-    B --> B1[Single pod, not deployment]
-    B --> B2[Single AZ, not region]
-    B --> B3[Percentage of traffic]
-
-    C --> C1[Maximum duration]
-    C --> C2[Automatic abort]
-    C --> C3[Business hours only]
-
-    D --> D1[Non-critical paths first]
-    D --> D2[Internal before external]
-    D --> D3[Low traffic before high]
-```
-</Diagram>
+/>
 
 Abort conditions are the most critical control. These are the thresholds that, when breached, trigger immediate experiment termination — ideally automatically, but at minimum manually with a pre-defined trigger. "Error rate exceeds 5%" or "P99 latency exceeds 5 seconds" or "any customer complaint received" are all reasonable abort conditions depending on your risk tolerance.
 
@@ -884,21 +849,10 @@ Most teams start with ad-hoc experiments — someone reads about chaos engineeri
 A mature chaos practice looks different. Experiments run on a regular cadence — weekly or monthly depending on team capacity. Findings get tracked and fixed. The scope expands progressively from simple pod kills to complex multi-service scenarios. Eventually, chaos runs automatically as part of CI/CD or on a schedule.
 
 <Diagram
+  src={evolutionDiagram}
   title="Evolution from ad-hoc experiments to mature chaos practice"
   description="Flowchart showing a progression from ad-hoc experiments to regular experiments, then game days, and finally automated chaos, with each stage annotated by the learning or organizational capability it adds."
->
-```mermaid
-flowchart LR
-    A[Ad-hoc Experiments] --> B[Regular Experiments]
-    B --> C[Game Days]
-    C --> D[Automated Chaos]
-
-    A -.->|Learning| A1[Document findings]
-    B -.->|Cadence| B1[Monthly experiments]
-    C -.->|Team-wide| C1[Quarterly game days]
-    D -.->|Continuous| D1[Chaos in CI/CD]
-```
-</Diagram>
+/>
 
 The progression takes time — typically a year or more to go from first experiment to automated chaos. Trying to skip stages usually backfires. Teams that jump straight to automated chaos without building the foundational skills end up causing incidents that set back the entire practice.
 

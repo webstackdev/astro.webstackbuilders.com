@@ -9,6 +9,9 @@ tags: ["cloud-platforms","kubernetes","prometheus"]
 featured: true
 ---
 
+import qosClassDiagram from "./diagrams/qos-class-determination-flow.png"
+import resourceSizingDiagram from "./diagrams/resource-sizing-decision-tree.png"
+
 *[cgroup]: Control Group
 *[K8s]: Kubernetes
 *[OOM]: Out of Memory
@@ -204,33 +207,10 @@ spec:
 Code: BestEffort QoS configuration (no resource specifications).
 
 <Diagram
+  src={qosClassDiagram}
   title="QoS class determination flow."
-  description={
-    `Flowchart showing how Kubernetes derives a pod's Quality of Service class from its resource specification. The process starts at Pod Resource Spec and asks whether all containers have both requests and limits. If no, the chart asks whether any container has either a request or a limit. If that answer is no, the pod is classified as BestEffort and then labeled Evicted First. If that answer is yes, the pod is classified as Burstable and then labeled Evicted Second. If all containers do have both requests and limits, the chart asks whether requests equal limits for all containers. If no, the pod is classified as Burstable and then labeled Evicted Second. If yes, the pod is classified as Guaranteed and then labeled Evicted Last. The diagram visually emphasizes that BestEffort is the lowest-priority class, Burstable is the middle class, and Guaranteed is the highest-priority class for eviction order.`
-  }
->
-```mermaid
-flowchart LR
-    A[Pod Resource Spec] --> B{All containers have<br/>requests AND limits?}
-
-    B -->|No| C{Any container has<br/>request OR limit?}
-    B -->|Yes| D{requests == limits<br/>for ALL containers?}
-
-    C -->|No| E[BestEffort]
-    C -->|Yes| F[Burstable]
-
-    D -->|No| F
-    D -->|Yes| G[Guaranteed]
-
-    E --> H[Evicted First]
-    F --> I[Evicted Second]
-    G --> J[Evicted Last]
-
-    style E fill:#f66,color:#000
-    style F fill:#ff9,color:#000
-    style G fill:#6f6,color:#000
-```
-</Diagram>
+  description="Flowchart showing how Kubernetes derives a pod's Quality of Service class from its resource specification. The process starts at Pod Resource Spec and asks whether all containers have both requests and limits. If no, the chart asks whether any container has either a request or a limit. If that answer is no, the pod is classified as BestEffort and then labeled Evicted First. If that answer is yes, the pod is classified as Burstable and then labeled Evicted Second. If all containers do have both requests and limits, the chart asks whether requests equal limits for all containers. If no, the pod is classified as Burstable and then labeled Evicted Second. If yes, the pod is classified as Guaranteed and then labeled Evicted Last. The diagram visually emphasizes that BestEffort is the lowest-priority class, Burstable is the middle class, and Guaranteed is the highest-priority class for eviction order."
+/>
 
 You can check a pod's QoS class with `kubectl get pod <name> -o yaml | grep qosClass`. If you're surprised by the result, remember that __all__ containers in the pod must meet the Guaranteed criteria — one container without limits drops the whole pod to Burstable.
 
@@ -425,38 +405,10 @@ spec:
 Code: Sidecar containers need explicit resource specs.
 
 <Diagram
+  src={resourceSizingDiagram}
   title="Resource sizing decision tree."
-  description={
-    `Flowchart guiding the reader through pod resource sizing choices. The process starts at Size Resources and asks for the workload type. If the workload is Critical or Latency-sensitive, the chart recommends Guaranteed QoS, then requests = limits, then proceeds to Validate Config. If the workload is Variable or Web, the chart recommends Burstable QoS, then limits = 2-4x requests, then proceeds to Validate Config. If the workload is Batch or Dev, the chart recommends BestEffort or Burstable, then Minimal or no resources, then Lowest priority, cheap. From Validate Config, the chart asks whether memory limit is greater than peak usage. If no, the result is Risk: OOMKilled. If yes, it asks whether CPU limit is greater than burst need. If no, the result is Risk: Throttling. If yes, the result is Good Config. The diagram shows that workload type drives the initial sizing strategy, but every path still needs validation against observed memory peaks and CPU burst behavior to avoid runtime failures.`
-  }
->
-```mermaid
-flowchart LR
-    A[Size Resources] --> B{Workload Type?}
-
-    B -->|Critical/Latency-sensitive| C[Guaranteed QoS]
-    C --> D[requests = limits]
-    D --> L
-
-    B -->|Variable/Web| F[Burstable QoS]
-    F --> G[limits = 2-4x requests]
-    G --> L
-
-    B -->|Batch/Dev| I[BestEffort or Burstable]
-    I --> J[Minimal or no resources]
-    J --> K[Lowest priority, cheap]
-
-    L[Validate Config] --> M{Memory limit > peak?}
-    M -->|No| N[Risk: OOMKilled]
-    M -->|Yes| O{CPU limit > burst need?}
-    O -->|No| P[Risk: Throttling]
-    O -->|Yes| Q[Good Config]
-
-    style N fill:#f66,color:#000
-    style P fill:#ff9,color:#000
-    style Q fill:#6f6,color:#000
-```
-</Diagram>
+  description="Flowchart guiding the reader through pod resource sizing choices. The process starts at Size Resources and asks for the workload type. If the workload is Critical or Latency-sensitive, the chart recommends Guaranteed QoS, then requests = limits, then proceeds to Validate Config. If the workload is Variable or Web, the chart recommends Burstable QoS, then limits = 2-4x requests, then proceeds to Validate Config. If the workload is Batch or Dev, the chart recommends BestEffort or Burstable, then Minimal or no resources, then Lowest priority, cheap. From Validate Config, the chart asks whether memory limit is greater than peak usage. If no, the result is Risk: OOMKilled. If yes, it asks whether CPU limit is greater than burst need. If no, the result is Risk: Throttling. If yes, the result is Good Config. The diagram shows that workload type drives the initial sizing strategy, but every path still needs validation against observed memory peaks and CPU burst behavior to avoid runtime failures."
+/>
 
 <Callout type="success">
 The rule of thumb: set CPU limits 2-4x requests (allow bursting), set memory limits 1.5-2x requests (headroom without waste). Monitor actual usage for two weeks, then right-size based on P95 metrics.

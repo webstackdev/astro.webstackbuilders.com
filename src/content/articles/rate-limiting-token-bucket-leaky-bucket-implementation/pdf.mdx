@@ -9,6 +9,9 @@ tags: ["apis-and-gateways","aws","azure","terraform","typescript","python"]
 featured: true
 ---
 
+import sameBurstDiagram from "./diagrams/same-burst-traffic-different-outcomes.png"
+import slidingWindowDiagram from "./diagrams/sliding-window-weighted-calculation-prevents-boundary-exploitation.png"
+
 *[DDoS]: Distributed Denial of Service
 *[JWT]: JSON Web Token
 *[LRU]: Least Recently Used
@@ -108,58 +111,33 @@ Four algorithms dominate production rate limiting, each with different tradeoffs
   variant="check-icons-list"
   items={[
     {
-      lead: 'The fixed window approach',
+      lead: "The fixed window approach",
       text: 'is simple: count requests in minute-long (or hour-long) windows, reject when the count exceeds the limit, reset at the boundary. The problem is boundary bursts. A client can make 95 requests at 11:59:59 and 95 more at 12:00:01 - 190 requests in two seconds while staying under a "100 per minute" limit.',
     },
     {
-      lead: 'Sliding window counter',
+      lead: "Sliding window counter",
       text: "fixes this by weighting the previous window's count. At 30 seconds into the current window, you count 50% of the previous window plus 100% of the current window. This smooths the boundary problem with minimal additional state.",
     },
     {
-      lead: 'Sliding window log',
+      lead: "Sliding window log",
       text: "takes accuracy further by storing the timestamp of every request and counting only those within the rolling window. It's perfectly accurate but memory-intensive — you're storing potentially thousands of timestamps per client. Use it only when accuracy is critical and request volume is low, like authentication rate limiting where you absolutely need exactly N attempts per hour.",
     },
     {
-      lead: 'Token bucket',
+      lead: "Token bucket",
       text: "is the workhorse of API rate limiting. Imagine a bucket that holds N tokens (your burst capacity). Tokens are added at rate R (your sustained RPS). Each request consumes a token if available; otherwise it's rejected. This naturally allows bursts — a client can use their full bucket immediately — while maintaining a sustained rate over time.",
     },
     {
-      lead: 'Leaky bucket',
+      lead: "Leaky bucket",
       text: "inverts the model: requests enter a queue (the bucket), and they're processed (leaked) at a constant rate. If the queue fills, new requests overflow and are rejected. This produces perfectly smooth output but adds latency — requests wait in the queue. Use it when you need constant output rate to a downstream service that can't handle bursts.",
     },
   ]}
 />
 
 <Diagram
+  src={sameBurstDiagram}
   title="Same burst traffic, different outcomes."
-  description={
-  `Top-to-bottom flowchart comparing how the same burst pattern behaves under two rate limiting algorithms. A shared input group at the top states that a client sends 95 requests at second 59 and another 95 requests at second 00, for 190 requests in 2 seconds. One branch leads to the Fixed Window Result group, where all 190 requests are allowed and the outcome notes that the client bypassed the intended limit by 2 times. The other branch leads to the Token Bucket Result group, where only the first 10 requests are allowed immediately and the remaining 180 are rejected or queued at 1 request per second. The fixed-window failure outcome is highlighted as bad, while the token bucket enforcement outcome is highlighted as controlled. The diagram demonstrates how boundary timing can exploit fixed windows while token bucket preserves burst capacity limits.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph sameBurst[Same 190 Requests in 2 Seconds]
-    INPUT[Client sends 95 at :59<br/>then 95 at :00]
-  end
-
-  subgraph fixedWindowResult[Fixed Window Result]
-    FW[All 190 allowed]
-    FWB[2x limit bypassed]
-    INPUT --> FW
-    FW --> FWB
-  end
-
-  subgraph tokenBucketResult[Token Bucket Result]
-    TB[First 10 allowed instantly]
-    TBW[Remaining 180 rejected<br/>or queued at 1 RPS]
-    INPUT --> TB
-    TB --> TBW
-  end
-
-  style FWB fill:#f99,color:#000
-  style TBW fill:#9f9,color:#000
-```
-</Diagram>
+  description="Top-to-bottom flowchart comparing how the same burst pattern behaves under two rate limiting algorithms. A shared input group at the top states that a client sends 95 requests at second 59 and another 95 requests at second 00, for 190 requests in 2 seconds. One branch leads to the Fixed Window Result group, where all 190 requests are allowed and the outcome notes that the client bypassed the intended limit by 2 times. The other branch leads to the Token Bucket Result group, where only the first 10 requests are allowed immediately and the remaining 180 are rejected or queued at 1 request per second. The fixed-window failure outcome is highlighted as bad, while the token bucket enforcement outcome is highlighted as controlled. The diagram demonstrates how boundary timing can exploit fixed windows while token bucket preserves burst capacity limits."
+/>
 
 <Callout type="info">
 Token bucket is the most versatile algorithm for API rate limiting. It allows bursts (good for user experience) while maintaining a sustained rate (protects backend). Most production rate limiters — including AWS API Gateway, Kong, and nginx — use token bucket or sliding window.
@@ -478,30 +456,10 @@ Code: Sliding window counter core logic.
 At the 30-second mark of a 60-second window, you count 50% of the previous window plus 100% of the current window. This prevents the boundary problem where clients can make 2x the limit by timing requests around window boundaries.
 
 <Diagram
+  src={slidingWindowDiagram}
   title="Sliding window weighted calculation prevents boundary exploitation."
-  description={
-    `Top-to-bottom flowchart showing how a sliding window counter computes an effective request count. Inside a grouped section labeled Sliding Window Weighted Calculation, the current time is 12:00:30. The previous window from 11:00 to 12:00 contains 95 requests. The current window from 12:00 to 13:00 has 5 requests so far. A separate node calculates the weight as 30 seconds divided by 60 seconds, or 0.5. The previous window count, current window count, and weight all feed into a calculation node showing Effective equals 95 times 0.5 plus 5, resulting in 52.5. That result then flows to a final node stating Under 100 limit, Request allowed, which is highlighted positively. The diagram explains how sliding window counters smooth boundary effects by partially counting the previous window instead of resetting abruptly at the time boundary.`
-  }
->
-```mermaid
-flowchart LR
-    subgraph slidingWindowWeightedCalculation[Sliding Window Weighted Calculation]
-        T[Current time: 12:00:30]
-        PW[Previous window 11:00-12:00<br/>95 requests]
-        CW[Current window 12:00-13:00<br/>5 requests so far]
-        W[Weight = 30s / 60s = 0.5]
-        CALC["Effective = (95 × 0.5) + 5 = 52.5"]
-        RESULT[Under 100 limit<br/>Request allowed]
-        T --> W
-        PW --> CALC
-        CW --> CALC
-        W --> CALC
-        CALC --> RESULT
-    end
-
-    style RESULT fill:#9f9,color:#000
-```
-</Diagram>
+  description="Top-to-bottom flowchart showing how a sliding window counter computes an effective request count. Inside a grouped section labeled Sliding Window Weighted Calculation, the current time is 12:00:30. The previous window from 11:00 to 12:00 contains 95 requests. The current window from 12:00 to 13:00 has 5 requests so far. A separate node calculates the weight as 30 seconds divided by 60 seconds, or 0.5. The previous window count, current window count, and weight all feed into a calculation node showing Effective equals 95 times 0.5 plus 5, resulting in 52.5. That result then flows to a final node stating Under 100 limit, Request allowed, which is highlighted positively. The diagram explains how sliding window counters smooth boundary effects by partially counting the previous window instead of resetting abruptly at the time boundary."
+/>
 
 <Callout type="success">
 For a complete TypeScript implementation with Redis support, see the [sliding window gist](https://gist.github.com/webstackdev/2ad5ce11b38b097a261ec3b8e60639c0).

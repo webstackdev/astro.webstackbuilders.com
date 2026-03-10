@@ -9,6 +9,8 @@ tags: ["cloud-platforms", "kubernetes", "aws", "azure"]
 featured: true
 ---
 
+import patternDecisionDiagram from "./diagrams/pattern-decision-tree.png"
+
 *[CSI]: Container Storage Interface
 *[ESO]: External Secrets Operator
 *[K8s]: Kubernetes
@@ -105,30 +107,10 @@ CSI's failure mode can cascade quickly during incidents. A Vault outage combined
 The decision between ESO and CSI comes down to two questions: Can your application tolerate minutes of staleness? And can your operations tolerate blocked deployments during secret manager outages?
 
 <Diagram
+  src={patternDecisionDiagram}
   title="Pattern decision tree."
-  description={
-    `Flowchart guiding the choice between Kubernetes secret injection patterns based on failure tolerance. The process starts at Choose Secret Pattern and asks whether the application can tolerate minutes of staleness. If yes, the recommendation is ESO. If no, the chart asks whether the team accepts pod failures when the secret manager is down. If yes, the recommendation is CSI Driver. If no, the chart asks whether custom fallback logic is needed. If yes, the recommendation is Init Container. If no, the recommendation is ESO plus a short refresh interval. The diagram highlights that the main decision criteria are tolerance for stale secrets, tolerance for blocked pod startup during secret-manager outages, and whether the team is willing to build custom fallback behavior.`
-  }
->
-```mermaid
-flowchart LR
-    A[Choose Secret Pattern] --> B{Tolerate minutes<br/>of staleness?}
-
-    B -->|Yes| C[ESO]
-    B -->|No| D{Accept pod failures<br/>if manager down?}
-
-    D -->|Yes| E[CSI Driver]
-    D -->|No| F{Need custom<br/>fallback logic?}
-
-    F -->|Yes| G[Init Container]
-    F -->|No| H[ESO + short interval]
-
-    style C fill:#6f6,color:#000
-    style E fill:#69f,color:#000
-    style G fill:#f96,color:#000
-    style H fill:#6f6,color:#000
-```
-</Diagram>
+  description="Flowchart guiding the choice between Kubernetes secret injection patterns based on failure tolerance. The process starts at Choose Secret Pattern and asks whether the application can tolerate minutes of staleness. If yes, the recommendation is ESO. If no, the chart asks whether the team accepts pod failures when the secret manager is down. If yes, the recommendation is CSI Driver. If no, the chart asks whether custom fallback logic is needed. If yes, the recommendation is Init Container. If no, the recommendation is ESO plus a short refresh interval. The diagram highlights that the main decision criteria are tolerance for stale secrets, tolerance for blocked pod startup during secret-manager outages, and whether the team is willing to build custom fallback behavior."
+/>
 
 The diagram includes init containers as an option for custom fallback logic — useful when you need behavior that ESO and CSI don't provide out of the box. Our full guide covers implementation patterns including multi-source fallbacks and sidecar refresh.
 

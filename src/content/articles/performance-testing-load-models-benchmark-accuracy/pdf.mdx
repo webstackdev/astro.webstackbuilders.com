@@ -9,6 +9,9 @@ tags: ["reliability-and-testing", "typescript", "python"]
 featured: true
 ---
 
+import environmentParityDiagram from "./diagrams/environment-parity-strategies-ordered-by-increasing-realism-and-cost.png"
+import theFourComponentsDiagram from "./diagrams/the-four-components-of-a-complete-load-model.png"
+
 *[GC]: Garbage Collection
 *[JIT]: Just-In-Time Compilation
 *[JVM]: Java Virtual Machine
@@ -52,39 +55,29 @@ A complete load model has four components: throughput (how much load), distribut
   variant="check-icons-list"
   items={[
     {
-      lead: 'Throughput',
-      text: 'is the simplest dimension — how many requests per second. But even this has nuance. Constant RPS is useful for baseline capacity testing but unrealistic. Ramping load helps find breaking points. Stepped increases identify specific thresholds. Variable patterns that follow time-of-day curves match production reality.',
+      lead: "Throughput",
+      text: "is the simplest dimension — how many requests per second. But even this has nuance. Constant RPS is useful for baseline capacity testing but unrealistic. Ramping load helps find breaking points. Stepped increases identify specific thresholds. Variable patterns that follow time-of-day curves match production reality.",
     },
     {
-      lead: 'Distribution',
-      text: 'determines how requests arrive within each second. Uniform distribution spaces requests evenly — one request every 10ms at 100 RPS. Real traffic doesn\'t work that way. Production traffic follows Poisson distributions with random arrivals, or bursty patterns where requests cluster together. A system that handles 1,000 evenly-spaced RPS might fall over when those same 1,000 requests arrive in bursts of 50.',
+      lead: "Distribution",
+      text: "determines how requests arrive within each second. Uniform distribution spaces requests evenly — one request every 10ms at 100 RPS. Real traffic doesn't work that way. Production traffic follows Poisson distributions with random arrivals, or bursty patterns where requests cluster together. A system that handles 1,000 evenly-spaced RPS might fall over when those same 1,000 requests arrive in bursts of 50.",
     },
     {
-      lead: 'Workload mix',
-      text: 'specifies what operations you\'re testing. Most APIs have a power-law distribution: a few endpoints handle most traffic. E-commerce sites see 80% of requests on product browsing, 15% on cart operations, and 5% on checkout. If your benchmark hits the checkout endpoint at 100% weight, you\'re testing a scenario that never happens.',
+      lead: "Workload mix",
+      text: "specifies what operations you're testing. Most APIs have a power-law distribution: a few endpoints handle most traffic. E-commerce sites see 80% of requests on product browsing, 15% on cart operations, and 5% on checkout. If your benchmark hits the checkout endpoint at 100% weight, you're testing a scenario that never happens.",
     },
     {
-      lead: 'User behavior',
-      text: 'is often overlooked but critical. Real users have think time — they read content, fill out forms, compare options. A benchmark that fires requests as fast as possible tests maximum theoretical throughput, not realistic capacity. Think time also affects connection pooling, session state, and resource contention.',
+      lead: "User behavior",
+      text: "is often overlooked but critical. Real users have think time — they read content, fill out forms, compare options. A benchmark that fires requests as fast as possible tests maximum theoretical throughput, not realistic capacity. Think time also affects connection pooling, session state, and resource contention.",
     },
   ]}
 />
 
 <Diagram
+  src={theFourComponentsDiagram}
   title="The four components of a complete load model."
-  description={
-    `Left-to-right flowchart showing four inputs that combine into a realistic load model. Throughput, Distribution, Workload Mix, and User Behavior each feed into a central node labeled Realistic Load. That central node then flows into Accurate Predictions. The diagram communicates that no single metric defines a useful benchmark: accurate performance predictions come only when request rate, arrival distribution, workload composition, and human interaction patterns are modeled together.`
-  }
->
-```mermaid
-flowchart LR
-    A[Throughput] --> E[Realistic Load]
-    B[Distribution] --> E
-    C[Workload Mix] --> E
-    D[User Behavior] --> E
-    E --> F[Accurate Predictions]
-```
-</Diagram>
+  description="Left-to-right flowchart showing four inputs that combine into a realistic load model. Throughput, Distribution, Workload Mix, and User Behavior each feed into a central node labeled Realistic Load. That central node then flows into Accurate Predictions. The diagram communicates that no single metric defines a useful benchmark: accurate performance predictions come only when request rate, arrival distribution, workload composition, and human interaction patterns are modeled together."
+/>
 
 ### Traffic Patterns
 
@@ -541,51 +534,40 @@ If you don't have traffic capture set up, you can derive endpoint distributions 
   variant="check-icons-list"
   items={[
     {
-      lead: 'Shadow traffic',
-      text: 'Takes replay further by mirroring production requests in real-time. A load balancer or service mesh duplicates each request to both production and the test environment. You see exactly how the test environment handles real traffic. The limitation is write operations — you can\'t replay a purchase or account creation without side effects. Shadow traffic works best for read-heavy workloads.',
+      lead: "Shadow traffic",
+      text: "Takes replay further by mirroring production requests in real-time. A load balancer or service mesh duplicates each request to both production and the test environment. You see exactly how the test environment handles real traffic. The limitation is write operations — you can't replay a purchase or account creation without side effects. Shadow traffic works best for read-heavy workloads.",
     },
   ]}
 />
 
 <Diagram
+  src={environmentParityDiagram}
   title="Environment parity strategies ordered by increasing realism and cost."
-  description={
-    `Top-to-bottom flowchart inside a grouped section labeled Choose Based on Workload. Four strategy nodes feed into a single decision node labeled Cost vs Accuracy. Infrastructure as Code connects with the note Identical configs. Scaled-Down Production connects with the note Proportional load. Production Traffic Replay connects with the note Real patterns. Shadow Traffic connects with the note Live mirroring. The diagram shows that different environment parity strategies trade off realism against cost, and the appropriate choice depends on the workload characteristics and how much accuracy is required.`
-  }
->
-```mermaid
-flowchart LR
-    subgraph chooseBasedOnWorkload[Choose Based on Workload]
-        A[Infrastructure as Code] -->|"Identical configs"| E{Cost vs Accuracy}
-        B[Scaled-Down Production] -->|"Proportional load"| E
-        C[Production Traffic Replay] -->|"Real patterns"| E
-        D[Shadow Traffic] -->|"Live mirroring"| E
-    end
-```
-</Diagram>
+  description="Top-to-bottom flowchart inside a grouped section labeled Choose Based on Workload. Four strategy nodes feed into a single decision node labeled Cost vs Accuracy. Infrastructure as Code connects with the note Identical configs. Scaled-Down Production connects with the note Proportional load. Production Traffic Replay connects with the note Real patterns. Shadow Traffic connects with the note Live mirroring. The diagram shows that different environment parity strategies trade off realism against cost, and the appropriate choice depends on the workload characteristics and how much accuracy is required."
+/>
 
 ### Database Parity
 
-Databases deserve special attention because they're often the primary bottleneck — and the hardest to replicate accurately.
+Databases deserve special attention because they"re often the primary bottleneck — and the hardest to replicate accurately.
 
 <List
   variant="check-icons-list"
   items={[
     {
-      lead: 'Data volume',
-      text: 'Should be the same order of magnitude as production. A 100GB test database won\'t reveal the problems you\'ll hit with 10TB in production. Query planners make different decisions, indexes have different depths, and data that fits in memory in test requires disk I/O in production.',
+      lead: "Data volume",
+      text: "Should be the same order of magnitude as production. A 100GB test database won't reveal the problems you'll hit with 10TB in production. Query planners make different decisions, indexes have different depths, and data that fits in memory in test requires disk I/O in production.",
     },
     {
-      lead: 'Data distribution',
-      text: 'Matters as much as volume. If production has 80% of orders from 5% of customers, your test data should have similar skew. Uniform test data produces uniform query plans that don\'t match production behavior.',
+      lead: "Data distribution",
+      text: "Matters as much as volume. If production has 80% of orders from 5% of customers, your test data should have similar skew. Uniform test data produces uniform query plans that don't match production behavior.",
     },
     {
-      lead: 'Index statistics',
-      text: 'Must be current. After loading test data, run `ANALYZE` (PostgreSQL) or equivalent to update statistics. Without this, the query planner works from stale information and may choose suboptimal plans.',
+      lead: "Index statistics",
+      text: "Must be current. After loading test data, run `ANALYZE` (PostgreSQL) or equivalent to update statistics. Without this, the query planner works from stale information and may choose suboptimal plans.",
     },
     {
-      lead: 'Buffer pool warmth',
-      text: 'Affects every query. A cold database hits disk; a warm one serves from memory. Pre-warm the buffer pool by running representative queries before starting measurement. Some databases have explicit warmup features (`pg_prewarm` in PostgreSQL).',
+      lead: "Buffer pool warmth",
+      text: "Affects every query. A cold database hits disk; a warm one serves from memory. Pre-warm the buffer pool by running representative queries before starting measurement. Some databases have explicit warmup features (`pg_prewarm` in PostgreSQL).",
     },
   ]}
 />

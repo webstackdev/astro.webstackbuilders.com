@@ -9,6 +9,11 @@ tags: ["build-and-deploy", "kubernetes", "typescript"]
 featured: true
 ---
 
+import compatibilityWindowDiagram from "./diagrams/compatibility-window-during-rolling-deployment.png"
+import expandContractDiagram from "./diagrams/expand-contract-pattern-phases.png"
+import migrationAwareDiagram from "./diagrams/migration-aware-deployment-pipeline.png"
+import tableLockDiagram from "./diagrams/table-lock-during-migration-blocks-all-application-threads.png"
+
 *[DDL]: Data Definition Language
 *[FK]: Foreign Key
 *[ORM]: Object-Relational Mapping
@@ -58,59 +63,20 @@ During steps 1-3, every application thread trying to touch that table blocks. Co
 Modern PostgreSQL (11+) made some operations instant — adding a nullable column or a column with a default no longer rewrites the table. But plenty of operations still require rewrites: changing column types, adding NOT NULL constraints to existing columns, certain index operations. MySQL has similar behavior without online schema change tools.
 
 <Diagram
+  src={tableLockDiagram}
   title="Table lock during migration blocks all application threads."
-  description={
-    `Flowchart showing the progression of a blocking migration and its impact on the application. The main path runs from Migration Starts to Acquire Table Lock, then to Rewrite Table Data, Rebuild Indexes, and Release Lock. A separate grouped region labeled Blocked Application Threads contains four representative threads: Thread 1: Waiting..., Thread 2: Waiting..., Thread 3: Timeout, and Thread 4: Timeout. A dotted arrow labeled blocks points from Acquire Table Lock to that blocked-thread group. The diagram shows that once the table lock is acquired, normal application work stalls behind the migration, some requests remain queued, and others eventually fail before the lock is released.`
-  }
->
-```mermaid
-flowchart LR
-    A[Migration Starts] --> B[Acquire Table Lock]
-    B --> C[Rewrite Table Data]
-    C --> D[Rebuild Indexes]
-    D --> E[Release Lock]
-
-    subgraph blocked[Blocked Application Threads]
-        F[Thread 1: Waiting...]
-        G[Thread 2: Waiting...]
-        H[Thread 3: Timeout]
-        I[Thread 4: Timeout]
-    end
-
-    B -.->|blocks| blocked
-```
-</Diagram>
+  description="Flowchart showing the progression of a blocking migration and its impact on the application. The main path runs from Migration Starts to Acquire Table Lock, then to Rewrite Table Data, Rebuild Indexes, and Release Lock. A separate grouped region labeled Blocked Application Threads contains four representative threads: Thread 1: Waiting..., Thread 2: Waiting..., Thread 3: Timeout, and Thread 4: Timeout. A dotted arrow labeled blocks points from Acquire Table Lock to that blocked-thread group. The diagram shows that once the table lock is acquired, normal application work stalls behind the migration, some requests remain queued, and others eventually fail before the lock is released."
+/>
 
 ### The Compatibility Window Problem
 
 Rolling deployments mean old and new code run simultaneously. During a typical Kubernetes deployment, you might have 15 minutes where half your pods run v1 and half run v2. Your schema needs to work with both versions throughout that window.
 
 <Diagram
+  src={compatibilityWindowDiagram}
   title="Compatibility window during rolling deployment."
-  description={
-    `Sequence diagram showing how old and new application versions interact with the same database during a rolling deployment. The participants are Database, Old Code (v1), and New Code (v2). A note indicates that the rolling deployment starts while both versions are running. Old Code queries the database for email, while New Code queries for both email and phone. Another note explains that if the phone column does not exist yet, the new code fails with an error stating that the phone column does not exist. A later note shows the opposite compatibility problem: if the phone column has been added while old code is still running, old code inserts only email, leaving phone as NULL and raising the question of whether that state is acceptable. The diagram illustrates why schema changes must remain compatible with both versions during the deployment overlap.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant DB as Database
-    participant Old as Old Code (v1)
-    participant New as New Code (v2)
-
-    Note over Old,New: Rolling deployment starts
-
-    Old->>DB: SELECT email FROM users
-    Note right of DB: Both versions running
-    New->>DB: SELECT email, phone FROM users
-
-    Note over Old,New: If phone column doesn't exist yet...
-    New--xDB: ERROR: column "phone" does not exist
-
-    Note over Old,New: If phone column added but old code still running...
-    Old->>DB: INSERT INTO users (email) VALUES (...)
-    Note right of DB: phone is NULL - is that OK?
-```
-  </Diagram>
+  description="Sequence diagram showing how old and new application versions interact with the same database during a rolling deployment. The participants are Database, Old Code (v1), and New Code (v2). A note indicates that the rolling deployment starts while both versions are running. Old Code queries the database for email, while New Code queries for both email and phone. Another note explains that if the phone column does not exist yet, the new code fails with an error stating that the phone column does not exist. A later note shows the opposite compatibility problem: if the phone column has been added while old code is still running, old code inserts only email, leaving phone as NULL and raising the question of whether that state is acceptable. The diagram illustrates why schema changes must remain compatible with both versions during the deployment overlap."
+/>
 
 The timing creates a catch-22:
 
@@ -228,31 +194,10 @@ The pattern has three phases:
 />
 
 <Diagram
+  src={expandContractDiagram}
   title="Expand-contract pattern phases."
-  description={
-    `Flowchart showing the three phases of a safe schema migration. In Phase 1: Expand, Add new column leads to Deploy code that writes to both, then to Backfill existing data. The flow then continues into Phase 2: Migrate, where All data in new column leads to Deploy code that reads from new, then to Stop writing to old column. From there the process moves into Phase 3: Contract, where Old column unused leads to Remove old column. Connecting arrows between the phases show that each stage must complete before the next begins. The diagram communicates that a breaking schema change is decomposed into compatible steps rather than performed as one immediate rename or drop.`
-  }
->
-```mermaid
-flowchart LR
-    subgraph phase1[Phase 1: Expand]
-        A[Add new column] --> B[Deploy code that writes to both]
-        B --> C[Backfill existing data]
-    end
-
-    subgraph phase2[Phase 2: Migrate]
-        D[All data in new column] --> E[Deploy code that reads from new]
-        E --> F[Stop writing to old column]
-    end
-
-    subgraph phase3[Phase 3: Contract]
-        G[Old column unused] --> H[Remove old column]
-    end
-
-    C --> D
-    F --> G
-```
-</Diagram>
+  description="Flowchart showing the three phases of a safe schema migration. In Phase 1: Expand, Add new column leads to Deploy code that writes to both, then to Backfill existing data. The flow then continues into Phase 2: Migrate, where All data in new column leads to Deploy code that reads from new, then to Stop writing to old column. From there the process moves into Phase 3: Contract, where Old column unused leads to Remove old column. Connecting arrows between the phases show that each stage must complete before the next begins. The diagram communicates that a breaking schema change is decomposed into compatible steps rather than performed as one immediate rename or drop."
+/>
 
 Let's trace through a concrete example: renaming a column from `email` to `email_address`. A direct `ALTER TABLE RENAME COLUMN` would break every query referencing the old name instantly. Here's the expand-contract approach:
 
@@ -687,32 +632,10 @@ The patterns we've discussed work manually, but the real value comes from encodi
 The key insight is that migrations and application deploys are __different operations__ with different risk profiles and rollback characteristics. Your pipeline should treat them that way.
 
 <Diagram
+  src={migrationAwareDiagram}
   title="Migration-aware deployment pipeline."
-  description={
-    `Flowchart showing how a CI/CD pipeline treats database migrations differently from normal code deployments. The flow starts at Code Push and asks whether the change has migrations. If no, it goes to Normal Deploy Pipeline. If yes, it goes to Migration Safety Check, then asks whether the migration is safe. Safe migrations go to Run Migration, while unsafe ones go to Human Review Required, then Manual Approval, and back to Run Migration. After migration execution, the pipeline asks whether the migration succeeded. Success leads to Deploy Application and then Health Check. Failure leads to Rollback Migration and then Alert Team. The diagram emphasizes that migrations introduce separate review, execution, and rollback paths before application deployment continues.`
-  }
->
-```mermaid
-flowchart LR
-    A[Code Push] --> B{Has Migrations?}
-    B -->|No| C[Normal Deploy Pipeline]
-    B -->|Yes| D[Migration Safety Check]
-
-    D --> E{Safe Migration?}
-    E -->|Yes| F[Run Migration]
-    E -->|No| G[Human Review Required]
-
-    F --> H{Migration Success?}
-    H -->|Yes| I[Deploy Application]
-    H -->|No| J[Rollback Migration]
-
-    G --> K[Manual Approval]
-    K --> F
-
-    J --> L[Alert Team]
-    I --> M[Health Check]
-```
-</Diagram>
+  description="Flowchart showing how a CI/CD pipeline treats database migrations differently from normal code deployments. The flow starts at Code Push and asks whether the change has migrations. If no, it goes to Normal Deploy Pipeline. If yes, it goes to Migration Safety Check, then asks whether the migration is safe. Safe migrations go to Run Migration, while unsafe ones go to Human Review Required, then Manual Approval, and back to Run Migration. After migration execution, the pipeline asks whether the migration succeeded. Success leads to Deploy Application and then Health Check. Failure leads to Rollback Migration and then Alert Team. The diagram emphasizes that migrations introduce separate review, execution, and rollback paths before application deployment continues."
+/>
 
 The flow handles three scenarios: code-only changes skip migration steps entirely, safe migrations run automatically before application deployment, and potentially dangerous migrations pause for human review. This balances velocity (most deploys are code-only) with safety (risky changes get scrutiny).
 

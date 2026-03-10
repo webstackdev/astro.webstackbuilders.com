@@ -9,6 +9,13 @@ tags: ["reliability-and-testing", "aws", "typescript", "python", "go", "grafana"
 featured: true
 ---
 
+import admissionControlDiagram from "./diagrams/admission-control-rejects-work-at-the-door.png"
+import backpressurePropagatesDiagram from "./diagrams/backpressure-propagates-from-the-constrained-resource-back-to-the-client.png"
+import bulkheadArchitectureDiagram from "./diagrams/bulkhead-architecture-isolating-different-workloads-into-separate-resource-pools.png"
+import circuitBreakerDiagram from "./diagrams/circuit-breaker-state-machine-for-downstream-protection.jpg"
+import degradationTiersDiagram from "./diagrams/degradation-tiers-with-hysteresis-to-prevent-oscillation.png"
+import cascadingFailureDiagram from "./diagrams/the-cascading-failure-loop_deep-dive.png"
+
 *[AIMD]: Additive Increase Multiplicative Decrease
 *[CoDel]: Controlled Delay
 *[FIFO]: First In, First Out
@@ -38,27 +45,10 @@ A system without backpressure will accept work until it collapses. The goal is n
 Overload doesn't just make systems slow — it makes them _worse_. There's a vicious cycle at work: load increases, latency increases, clients timeout, clients retry, and now you have even more load. What started as a 2x traffic spike becomes a 4x spike from retries alone.
 
 <Diagram
+  src={cascadingFailureDiagram}
   title="The cascading failure loop where overload compounds itself through retries and resource exhaustion"
   description="Flowchart showing how overload amplifies itself into a full outage. A Traffic Spike leads to Queue Growth, which causes Latency Increase. Increased latency causes Client Timeouts, which trigger Client Retries, feeding additional traffic back into the original spike. From Latency Increase, a second branch leads to Resource Exhaustion, then Thread Pool Saturation, then Connection Pool Exhaustion, and finally Complete Failure. A third branch from Queue Growth leads to Memory Pressure, then GC Thrashing, which feeds back into Latency Increase. The diagram shows that retries, exhausted worker resources, and memory pressure can all reinforce each other and make overload worsen instead of stabilizing."
->
-```mermaid
-flowchart LR
-    A[Traffic Spike] --> B[Queue Growth]
-    B --> C[Latency Increase]
-    C --> D[Client Timeouts]
-    D --> E[Client Retries]
-    E --> A
-
-    C --> F[Resource Exhaustion]
-    F --> G[Thread Pool Saturation]
-    G --> H[Connection Pool Exhaustion]
-    H --> I[Complete Failure]
-
-    B --> J[Memory Pressure]
-    J --> K[GC Thrashing]
-    K --> C
-```
-</Diagram>
+/>
 
 The diagram shows three paths to failure, and they often happen simultaneously. The retry loop is the most insidious — well-intentioned client retry logic turns a temporary overload into a sustained assault. Thread pool saturation means requests that _could_ be processed sit waiting for a worker. And memory pressure from growing queues triggers garbage collection pauses that reduce your effective capacity right when you need it most.
 
@@ -134,28 +124,10 @@ This is the key insight: if you'd simply rejected 1,000 of those 2,000 requests 
 Backpressure is the propagation of flow control signals from consumers back to producers. When a downstream component is overwhelmed, it signals upstream to slow down. The signal travels backward through the system until it reaches something that can actually reduce the load — usually the client.
 
 <Diagram
+  src={backpressurePropagatesDiagram}
   title="Backpressure propagates from the constrained resource back to the client"
   description="Sequence diagram showing overload signals moving backward through a request path. The participants are Client, Gateway, Service, and Database. While the Database is under pressure, it responds slowly to the Service. The Service returns 503 with Retry-After to the Gateway, which returns 429 Too Many Requests to the Client. The Client then backs off and retries later. After pressure is relieved, the Database returns normal responses to the Service, the Service returns 200 OK to the Gateway, and the Gateway returns 200 OK to the Client. The diagram illustrates that effective backpressure starts where capacity is constrained and propagates upstream until the client reduces demand."
->
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Gateway
-    participant Service
-    participant Database
-
-    Note over Database: Under pressure
-    Database->>Service: Slow responses
-    Service->>Gateway: 503 / Retry-After
-    Gateway->>Client: 429 Too Many Requests
-    Client->>Client: Backs off, retries later
-
-    Note over Database: Pressure relieved
-    Database->>Service: Normal responses
-    Service->>Gateway: 200 OK
-    Gateway->>Client: 200 OK
-```
-</Diagram>
+/>
 
 The key principle I keep coming back to: you can't process your way out of overload. The only thing that actually reduces load is getting clients to send fewer requests. Backpressure is the mechanism that makes that happen.
 
@@ -238,22 +210,10 @@ Think of admission control like a nightclub bouncer. The bouncer's job isn't to 
 Admission control works the same way: decide _upfront_ whether to accept work, rather than accepting everything and failing later. A request rejected at the door costs almost nothing. A request that gets halfway through your system before timing out has consumed database connections, CPU cycles, and memory — resources that could have served requests you _could_ complete.
 
 <Diagram
+  src={admissionControlDiagram}
   title="Admission control rejects work at the door rather than accepting and failing"
   description="Flowchart showing the admission control decision at request entry. An Incoming Request reaches a decision point labeled Admission Control. If accepted, it moves to Process Request and then to a Completed decision. A successful completion returns 200 Response, while an unsuccessful one returns 500 Response. If rejected at admission, the request immediately returns 429 or 503 and leads to Client Retries Later. The diagram highlights the benefit of deciding early whether the system can accept more work instead of letting requests consume scarce resources before failing."
->
-```mermaid
-flowchart LR
-    A[Incoming Request] --> B{Admission Control}
-    B -->|Accepted| C[Process Request]
-    B -->|Rejected| D[Return 429/503]
-
-    C --> E{Completed?}
-    E -->|Success| F[200 Response]
-    E -->|Failure| G[500 Response]
-
-    D --> H[Client Retries Later]
-```
-</Diagram>
+/>
 
 <Callout type="success">
 It's better to reject 20% of requests immediately than to accept 100% and fail 40% after wasting resources on them. Fast rejection preserves capacity for requests you can actually serve.
@@ -847,25 +807,10 @@ Code: Multi-tier graceful degradation configuration.
 Notice the _hysteresis_ in the diagram below — the thresholds to recover are lower than the thresholds to degrade. You enter "elevated" at 80% but don't return to "normal" until you're below 70%. This prevents oscillation. Without hysteresis, a system hovering around 80% would constantly flip between normal and elevated, which is worse than staying in one state.
 
 <Diagram
+  src={degradationTiersDiagram}
   title="Degradation tiers with hysteresis to prevent oscillation"
   description="Flowchart showing four operating states with different entry and recovery thresholds. Normal transitions to Elevated at 80 percent load, Elevated transitions to Critical at 90 percent, and Critical transitions to Emergency at 95 percent. Recovery uses lower thresholds: Emergency returns to Critical below 90 percent, Critical returns to Elevated below 80 percent, and Elevated returns to Normal below 70 percent. Dotted annotations show the user-facing behavior of each state: Normal provides full service, Elevated removes personalization, Critical disables search and keeps only core behavior, and Emergency serves authenticated users only. The diagram illustrates hysteresis by making recovery thresholds lower than degradation thresholds to avoid rapid oscillation between states."
->
-```mermaid
-flowchart LR
-    A[Normal] -->|80%| B[Elevated]
-    B -->|90%| C[Critical]
-    C -->|95%| D[Emergency]
-
-    D -->|<90%| C
-    C -->|<80%| B
-    B -->|<70%| A
-
-    A -.->|All features| A1[Full service]
-    B -.->|Reduced features| B1[No personalization]
-    C -.->|Core only| C1[No search]
-    D -.->|Survival mode| D1[Auth users only]
-```
-</Diagram>
+/>
 
 <Callout type="success">
 Graceful degradation requires knowing which features are expendable. Work with product owners to classify features into tiers _before_ an incident. During an outage is the wrong time to debate whether search is more important than recommendations.
@@ -1144,36 +1089,10 @@ Circuit breakers prevent a failing downstream dependency from taking down your e
 In software, the "current" is requests to a downstream service. When that service starts failing, you don't want to keep hammering it — that wastes your resources waiting for timeouts and makes the downstream service's recovery harder. Instead, you "trip" the circuit: stop calling the failing service entirely, fail fast, and return a fallback or cached response.
 
 <Diagram
+  src={circuitBreakerDiagram}
   title="Circuit breaker state machine for downstream protection"
   description="State diagram showing the three standard circuit breaker states. The initial state enters Closed, where normal operation allows requests through and tracks failure rate. If failures exceed the threshold, the breaker moves from Closed to Open. In Open, requests fail fast without calling the downstream dependency and typically return cached or fallback responses. After a timeout expires, the breaker moves from Open to HalfOpen, where a limited number of probe requests are allowed through to test recovery. If a probe succeeds, the breaker returns to Closed. If a probe fails, it goes back to Open. The diagram shows how circuit breakers stop repeated downstream calls during failure and only cautiously resume traffic after recovery signals."
->
-```mermaid
-stateDiagram-v2
-  [*] --> Closed
-  Closed --> Open: Failures exceed threshold
-  Open --> HalfOpen: Timeout expires
-  HalfOpen --> Closed: Probe succeeds
-  HalfOpen --> Open: Probe fails
-
-  note right of Closed
-    Normal operation
-    Requests flow through
-    Track failure rate
-  end note
-
-  note right of Open
-    Fail fast
-    Don't call downstream
-    Return cached/fallback
-  end note
-
-  note right of HalfOpen
-    Test recovery
-    Allow limited probes
-    Monitor success
-  end note
-```
-</Diagram>
+/>
 
 I think of the three states as a conversation between your service and its dependencies. **Closed** is normal operation where requests flow through and you track failure rates. When failures exceed a threshold, the breaker trips to **Open**—all requests fail immediately without calling downstream. After a timeout, it transitions to **Half-Open**, allowing a few probe requests through. If probes succeed, back to Closed; if they fail, back to Open.
 
@@ -1461,25 +1380,10 @@ Code: Bulkhead configuration isolating different workloads.
 The sizing reflects priority. Critical APIs get 50 threads and fast timeouts — they need to respond quickly or not at all. Analytics gets only 10 threads and longer timeouts — it's acceptable for reports to take 30 seconds, but it's _not_ acceptable for analytics to consume resources needed elsewhere.
 
 <Diagram
+  src={bulkheadArchitectureDiagram}
   title="Bulkhead architecture isolating different workloads into separate resource pools"
   description="Flowchart showing workload isolation through separate execution pools. Incoming Requests first reach a decision point labeled Route by Type. Critical traffic is routed to a Critical Pool with 50 threads, Search traffic goes to a Search Pool with 20 threads, and Analytics traffic goes to an Analytics Pool with 10 threads. The Critical Pool uses a Primary DB with 100 connections, the Search Pool uses a Read Replica with 50 connections, and the Analytics Pool uses an Analytics DB with 20 connections. Both Critical and Search traffic also use a shared Cache with 200 connections. The diagram shows how separating thread pools and backing resources limits blast radius so that one workload cannot fully starve another."
->
-```mermaid
-flowchart LR
-    A[Incoming Requests] --> B{Route by Type}
-
-    B -->|Critical| C[Critical Pool<br/>50 threads]
-    B -->|Search| D[Search Pool<br/>20 threads]
-    B -->|Analytics| E[Analytics Pool<br/>10 threads]
-
-    C --> F[(Primary DB<br/>100 conns)]
-    D --> G[(Read Replica<br/>50 conns)]
-    E --> H[(Analytics DB<br/>20 conns)]
-
-    C --> I[(Cache<br/>200 conns)]
-    D --> I
-```
-</Diagram>
+/>
 
 <Callout type="success">
 Bulkheads ensure that a slow analytics query cannot exhaust the connection pool needed for critical payment processing. Isolation prevents cascading failures across unrelated functionality.

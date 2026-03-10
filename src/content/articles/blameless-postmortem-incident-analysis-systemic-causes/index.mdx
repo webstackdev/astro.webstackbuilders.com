@@ -9,6 +9,8 @@ tags: ["reliability-and-testing"]
 featured: true
 ---
 
+import multipleContributingInterventionDiagram from "./diagrams/multiple-contributing-factors-each-representing-a-potential-intervention-point.png"
+
 An engineer fat-fingers a production config change. The payment service goes down for two hours. Customers are angry, revenue is lost, and everyone wants to know what happened.
 
 The instinctive investigation goes like this: Who made the change? Why weren't they more careful? They need more training. Maybe a written warning. Case closed.
@@ -135,18 +137,10 @@ You can't mandate blameless culture. If people have seen colleagues punished for
 The phrase "root cause" implies there's one cause at the bottom of the causal chain — find it, fix it, and the problem is solved. In complex systems, this is almost never true. Incidents arise from the confluence of multiple factors, none of which is _the_ cause. Remove any one of them, and the incident might not have happened — or might have happened differently.
 
 <Diagram
+  src={multipleContributingInterventionDiagram}
   title="Multiple contributing factors, each representing a potential intervention point"
   description="Flowchart showing several independent contributing factors converging on a single incident. No config validation, No canary deployment, Alert threshold too high, Runbook outdated, and On-call fatigued each point into Incident. The diagram emphasizes that complex failures typically arise from multiple interacting conditions rather than one root cause, and that each contributing factor is a possible place to intervene and reduce future risk."
->
-```mermaid
-flowchart TD
-    B[No config validation] --> A[Incident]
-    C[No canary deployment] --> A
-    D[Alert threshold too high] --> A
-    E[Runbook outdated] --> A
-    F[On-call fatigued] --> A
-```
-</Diagram>
+/>
 
 The Five Whys technique — keep asking "why" until you reach an actionable cause — is popular but easily misused. Here's what going wrong looks like:
 

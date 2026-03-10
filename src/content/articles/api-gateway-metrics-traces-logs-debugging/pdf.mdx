@@ -50,9 +50,7 @@ The fundamental difference is scope: every request passes through the gateway. W
 <Diagram
   src={apiGatewayDiagram}
   title="API gateway as the central observation point for all traffic"
-  description={
-    `Flowchart showing the API gateway positioned between a consumer and multiple downstream components. A Consumer sends requests to the API Gateway. From the gateway, traffic can go to an Auth Service, a Rate Limiter, Backend A, and Backend B. A grouped region labeled Gateway Boundary contains the API Gateway, Auth Service, and Rate Limiter, emphasizing that these components sit at the control point through which all requests pass. The diagram shows why the gateway is a unique observation point: it sees every request before it reaches the backend services and can record both control-plane decisions, such as authentication and rate limiting, and routing decisions to different backends.`
-  }
+  description="Flowchart showing the API gateway positioned between a consumer and multiple downstream components. A Consumer sends requests to the API Gateway. From the gateway, traffic can go to an Auth Service, a Rate Limiter, Backend A, and Backend B. A grouped region labeled Gateway Boundary contains the API Gateway, Auth Service, and Rate Limiter, emphasizing that these components sit at the control point through which all requests pass. The diagram shows why the gateway is a unique observation point: it sees every request before it reaches the backend services and can record both control-plane decisions, such as authentication and rate limiting, and routing decisions to different backends."
 />
 
 The gateway also adds its own latency that frequently gets blamed on backends. Authentication checks, rate limit lookups, request transformation, response transformation, TLS termination — these all take time. When users complain about slow APIs, the default assumption is that backends are slow, but I have seen gateway overhead account for 200ms+ on requests where the backend responded in 50ms.
@@ -169,9 +167,7 @@ The single most useful gateway metric is not total request duration — it is th
 <Diagram
   src={requestLifecycleDiagram}
   title="Request lifecycle showing gateway vs. backend latency components"
-  description={
-  `Flowchart showing a request moving left to right through ten stages. The sequence begins with Request Received, then passes through TLS Handshake, Request Parse, Auth Check, Rate Limit Check, Route Match, Upstream Request, Backend Processing, Response Transform, and Response Sent. Two grouped regions separate where time is spent. A Gateway Time group contains TLS Handshake, Request Parse, Auth Check, Rate Limit Check, Route Match, Upstream Request, Response Transform, and Response Sent, representing work performed or coordinated by the gateway. A separate Backend Time group contains only Backend Processing, representing the actual time spent inside the upstream service. The diagram emphasizes that total latency is a combination of gateway-side work and backend execution, and that debugging requires measuring those components separately.`
-  }
+  description="Flowchart showing a request moving left to right through ten stages. The sequence begins with Request Received, then passes through TLS Handshake, Request Parse, Auth Check, Rate Limit Check, Route Match, Upstream Request, Backend Processing, Response Transform, and Response Sent. Two grouped regions separate where time is spent. A Gateway Time group contains TLS Handshake, Request Parse, Auth Check, Rate Limit Check, Route Match, Upstream Request, Response Transform, and Response Sent, representing work performed or coordinated by the gateway. A separate Backend Time group contains only Backend Processing, representing the actual time spent inside the upstream service. The diagram emphasizes that total latency is a combination of gateway-side work and backend execution, and that debugging requires measuring those components separately."
 />
 
 At minimum, instrument these separately:
@@ -357,9 +353,7 @@ The gateway creates its own span as a child of the incoming span, then creates n
 <Diagram
   src={traceContextDiagram}
   title="Trace context propagation creating connected spans across gateway boundary"
-  description={
-    `Sequence diagram showing how a single distributed trace continues across a client, gateway, auth service, and backend. The client sends a request to the gateway with a traceparent header containing trace ID abc and span ID 123. The gateway creates its own span as a child of that incoming request. The gateway then calls the auth service with the same trace ID but a new span ID 456, receives the auth response, and forwards the request to the backend with the same trace ID and another new span ID 789. The backend returns a response to the gateway, which then responds to the client. A note across the full diagram states that all spans share the same trace ID abc, emphasizing that the trace remains connected even though each hop creates a new span.`
-  }
+  description="Sequence diagram showing how a single distributed trace continues across a client, gateway, auth service, and backend. The client sends a request to the gateway with a traceparent header containing trace ID abc and span ID 123. The gateway creates its own span as a child of that incoming request. The gateway then calls the auth service with the same trace ID but a new span ID 456, receives the auth response, and forwards the request to the backend with the same trace ID and another new span ID 789. The backend returns a response to the gateway, which then responds to the client. A note across the full diagram states that all spans share the same trace ID abc, emphasizing that the trace remains connected even though each hop creates a new span."
 />
 
 Common propagation failures I have seen:
@@ -774,9 +768,7 @@ The layout matters. Arrange panels so that related information is grouped and th
 <Diagram
   src={gatewayDashboardDiagram}
   title="Gateway dashboard layout with logical panel grouping"
-  description={
-  `Top-to-bottom flowchart showing a dashboard organized into four rows. The first row, labeled Row 1 Health Overview, contains Request Rate, Error Rate, and P99 Latency panels for immediate high-level status. The second row, labeled Row 2 Upstream Status, contains Upstream Health Map and Circuit Breaker States panels to show backend health. The third row, labeled Row 3 Traffic Breakdown, contains Top Routes, Top Consumers, and Error Distribution panels for traffic analysis. The fourth row, labeled Row 4 Latency Analysis, contains Gateway vs Backend Latency, Latency by Route, and Slow Request Percent panels for performance investigation. Arrows connect row 1 to row 2, row 2 to row 3, and row 3 to row 4, showing an intended reading order from broad health signals to detailed diagnostic panels.`
-  }
+  description="Top-to-bottom flowchart showing a dashboard organized into four rows. The first row, labeled Row 1 Health Overview, contains Request Rate, Error Rate, and P99 Latency panels for immediate high-level status. The second row, labeled Row 2 Upstream Status, contains Upstream Health Map and Circuit Breaker States panels to show backend health. The third row, labeled Row 3 Traffic Breakdown, contains Top Routes, Top Consumers, and Error Distribution panels for traffic analysis. The fourth row, labeled Row 4 Latency Analysis, contains Gateway vs Backend Latency, Latency by Route, and Slow Request Percent panels for performance investigation. Arrows connect row 1 to row 2, row 2 to row 3, and row 3 to row 4, showing an intended reading order from broad health signals to detailed diagnostic panels."
 />
 
 Row 1 gives you immediate health status — if everything is green, you can stop looking. Row 2 shows backend status, helping you quickly identify if a problem is gateway-side or upstream-side. Rows 3 and 4 provide the detail needed to narrow down issues to specific routes or consumers.

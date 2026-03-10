@@ -9,6 +9,9 @@ tags: ["cloud-platforms", "helm", "kubernetes", "python", "argo-cd", "prometheus
 featured: true
 ---
 
+import helmReleaseFailureDiagram from "./diagrams/helm-release-failure-diagnosis-workflow.png"
+import helmReleaseStateDiagram from "./diagrams/helm-release-state-and-drift-flow.png"
+
 *[YAML]: YAML Ain't Markup Language
 *[K8s]: Kubernetes
 *[CRD]: Custom Resource Definition
@@ -39,36 +42,10 @@ Before you can fix drift, you need to understand how Helm tracks what it's deplo
 When you run `helm upgrade`, Helm doesn't just push resources to the cluster and forget about them. It maintains a history of every release revision, storing the rendered manifests, values, and metadata. By default, this state lives in Kubernetes Secrets (though ConfigMaps are an option).
 
 <Diagram
+  src={helmReleaseStateDiagram}
   title="Helm release state and drift flow"
   description="Flowchart showing Helm upgrade processing and where drift appears. The flow starts with helm upgrade, then renders templates, computes a diff against the cluster, and applies changes. A success decision stores either a successful or failed release in Kubernetes Secrets, which then form Helm release history with revisions v1, v2, and current v3. Separately, the cluster contains actual live resources. A dotted relationship indicates the current stored release should match the live cluster state. A manual kubectl edit points directly to the live cluster state to show how out-of-band changes introduce drift between Helm's stored revision history and the actual resources."
->
-  ```mermaid
-  flowchart LR
-    A[helm upgrade] --> B[Render templates]
-    B --> C[Compute diff against cluster]
-    C --> D[Apply changes to cluster]
-    D --> E{Success?}
-
-    E -->|Yes| F[Store release in Secret]
-    E -->|No| G[Store failed release]
-
-    F --> H[Release History]
-    G --> H
-
-    subgraph helmState[Helm State Secrets]
-      H --> I[Release v1]
-      H --> J[Release v2]
-      H --> K[Release v3 current]
-    end
-
-    subgraph clusterState[Cluster State]
-      L[Actual Resources]
-    end
-
-    K -.->|Should match| L
-    M[kubectl edit] -->|Causes drift| L
-  ```
-</Diagram>
+/>
 
 The release secrets follow a naming convention: `sh.helm.release.v1.<release-name>.v<revision>`. Each secret contains the complete state for that revision — chart metadata, the values used, and the fully-rendered manifests. This is what enables rollbacks: Helm can reconstruct exactly what was deployed at any point in history.
 
@@ -463,38 +440,10 @@ When an upgrade fails, you need a systematic approach to figure out why. The err
 Start with `helm status` to see the current release state, then `helm history` to see recent revisions. If the last revision shows "failed," you need to determine what failed: a hook, a resource, a timeout, or a validation error.
 
 <Diagram
+  src={helmReleaseFailureDiagram}
   title="Helm release failure diagnosis workflow"
   description="Flowchart for troubleshooting a failed Helm upgrade. The process begins with an upgrade failure, then checks helm status, helm history, and failed revision details before branching on the failure type. Hook failures lead to hook job/pod logs and then a decision on whether the hook is recoverable, resulting in either a fix-and-retry path or deletion of hook resources before retrying. Resource failures branch to checking resource events and whether the resource exists, followed by either kubectl describe for wrong state or admission webhook investigation for creation failures. Timeouts branch to pod status and then to image/registry checks, container log review, or node resource review depending on whether pods are in ImagePullBackOff, CrashLoopBackOff, or Pending. Validation errors go to rendering templates and running a server-side `--dry-run`."
->
-  ```mermaid
-  flowchart LR
-      A[Upgrade Failed] --> B{Check helm status}
-
-      B -->|Status: failed| C[Check helm history]
-      C --> D[Get failed revision details]
-      D --> E{What failed?}
-
-      E -->|Hook failure| F[Check hook job/pod logs]
-      E -->|Resource failure| G[Check resource events]
-      E -->|Timeout| H[Check pod status]
-      E -->|Validation error| I[Check rendered manifest]
-
-      F --> J{Hook recoverable?}
-      J -->|Yes| K[Fix hook, retry]
-      J -->|No| L[Delete hook resources, retry]
-
-      G --> M{Resource exists?}
-      M -->|Yes, wrong state| N[Check kubectl describe]
-      M -->|No, creation failed| O[Check admission webhooks]
-
-      H --> P{Pods starting?}
-      P -->|ImagePullBackOff| Q[Check image/registry]
-      P -->|CrashLoopBackOff| R[Check container logs]
-      P -->|Pending| S[Check node resources]
-
-      I --> T[helm template + kubectl apply --dry-run]
-  ```
-</Diagram>
+/>
 
 The key commands you'll use repeatedly:
 

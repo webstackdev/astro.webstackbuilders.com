@@ -9,6 +9,8 @@ tags: ["apis-and-gateways", "kubernetes", "prometheus", "typescript", "go", "pyt
 featured: true
 ---
 
+import circuitBreakerDiagram from "./diagrams/circuit-breaker-retry-budget-cascade-failure-prevention.png"
+
 *[MTTR]: Mean Time To Recovery
 *[P99]: 99th Percentile
 *[QPS]: Queries Per Second
@@ -118,36 +120,10 @@ The circuit breaker pattern borrows its name from electrical engineering. When c
 A circuit breaker has three states. In the __closed__ state, requests flow normally while the breaker monitors failure rates. When failures exceed a threshold, the breaker transitions to __open__. In the open state, all requests fail immediately without attempting to reach the downstream service — this is the "fail fast" behavior that prevents cascade failures. After a timeout, the breaker moves to __half-open__, where it allows a limited number of probe requests through. If those probes succeed, the circuit closes and normal operation resumes. If they fail, the circuit reopens.
 
 <Diagram
+  src={circuitBreakerDiagram}
   title="Circuit breaker state machine with three states"
   description="State diagram showing a circuit breaker starting closed, opening when the failure threshold is exceeded, moving to half-open after the reset timeout, closing when a probe request succeeds, or reopening when a probe request fails. Notes explain that closed allows all requests while tracking failures, open fails fast without calling the downstream service, and half-open allows limited probes to test recovery."
->
-```mermaid
-stateDiagram-v2
-  [*] --> Closed
-  Closed --> Open: Failure threshold exceeded
-  Open --> HalfOpen: Reset timeout expires
-  HalfOpen --> Closed: Probe request succeeds
-  HalfOpen --> Open: Probe request fails
-
-  note right of Closed
-    Normal operation
-    Track failure rate
-    Allow all requests
-  end note
-
-  note right of Open
-    Fail fast
-    Don't call downstream
-    Protect downstream service
-  end note
-
-  note right of HalfOpen
-    Test recovery
-    Allow limited probes
-    Decide: recover or stay open
-  end note
-```
-</Diagram>
+/>
 
 The terminology is counterintuitive at first. "Closed" means requests flow through (the circuit is complete). "Open" means requests are blocked (the circuit is broken). This matches electrical terminology but feels backwards to most developers on first encounter.
 

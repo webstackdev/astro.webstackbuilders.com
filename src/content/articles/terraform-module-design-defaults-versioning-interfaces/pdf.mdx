@@ -9,6 +9,8 @@ tags: ["cloud-platforms","terraform","aws"]
 featured: true
 ---
 
+import moduleInterfaceDiagram from "./diagrams/module-interface-separates-what-consumers-depend-on-from-implementation-details.png"
+
 *[HCL]: HashiCorp Configuration Language
 *[IaC]: Infrastructure as Code
 *[IAM]: Identity and Access Management
@@ -56,33 +58,11 @@ Think of a module interface in five layers:
   ]}
 />
 
-  <Diagram
-    title="Module interface separates what consumers depend on from implementation details."
-    description={
-    `Top-to-bottom flowchart with three grouped sections: Module Consumer, Interface Contract, and Implementation not part of contract. In Module Consumer, one node shows a sample module block calling the vpc module with source company slash vpc slash aws, version approximately greater than 2.0, cidr_block 10.0.0.0 slash 16, and environment production. A second consumer node shows downstream usage where subnet_id is assigned from module.vpc.private_subnet_ids[0]. The consumer group connects to the Interface Contract group, which contains three contract elements: Inputs cidr_block and environment, Outputs vpc_id and private_subnet_ids, and Behavior creates VPC, subnets, and NAT. The Interface Contract group then connects to the Implementation group, which contains details such as how subnets are calculated, which availability zones are used, and internal resource naming. The diagram shows that consumers should depend on the published contract layer rather than on internal implementation details, allowing the module to evolve safely behind a stable interface.`
-    }
-  >
-  ```mermaid
-  flowchart LR
-    subgraph consumer["Module Consumer"]
-      call["module 'vpc' {<br/>source = 'company/vpc/aws'<br/>version = '~> 2.0'<br/>cidr_block = '10.0.0.0/16'<br/>environment = 'production'<br/>}"]
-      usage["subnet_id = module.vpc.private_subnet_ids[0]"]
-    end
-
-    subgraph contract["Interface Contract"]
-      inputs["Inputs: cidr_block, environment"]
-      outputs["Outputs: vpc_id, private_subnet_ids"]
-      behavior["Behavior: creates VPC, subnets, NAT"]
-    end
-
-    subgraph impl["Implementation (NOT part of contract)"]
-      details["How subnets are calculated<br/>Which AZs are used<br/>Internal resource naming"]
-    end
-
-    consumer --> contract
-    contract --> impl
-  ```
-  </Diagram>
+<Diagram
+  src={moduleInterfaceDiagram}
+  title="Module interface separates what consumers depend on from implementation details."
+  description="Top-to-bottom flowchart with three grouped sections: Module Consumer, Interface Contract, and Implementation not part of contract. In Module Consumer, one node shows a sample module block calling the vpc module with source company slash vpc slash aws, version approximately greater than 2.0, cidr_block 10.0.0.0 slash 16, and environment production. A second consumer node shows downstream usage where subnet_id is assigned from module.vpc.private_subnet_ids[0]. The consumer group connects to the Interface Contract group, which contains three contract elements: Inputs cidr_block and environment, Outputs vpc_id and private_subnet_ids, and Behavior creates VPC, subnets, and NAT. The Interface Contract group then connects to the Implementation group, which contains details such as how subnets are calculated, which availability zones are used, and internal resource naming. The diagram shows that consumers should depend on the published contract layer rather than on internal implementation details, allowing the module to evolve safely behind a stable interface."
+/>
 
 ### Breaking vs Non-Breaking Changes
 

@@ -9,6 +9,9 @@ tags: ["build-and-deploy","docker","kubernetes"]
 featured: true
 ---
 
+import sbomDiagram from "./diagrams/sbom-and-provenance-relationship.png"
+import supplyChainDiagram from "./diagrams/supply-chain-attack-points.png"
+
 *[CA]: Certificate Authority
 *[CVE]: Common Vulnerabilities and Exposures
 *[DSSE]: Dead Simple Signing Envelope
@@ -45,50 +48,37 @@ The past few years have given us a painful education in supply chain attacks. Ea
   variant="check-icons-list"
   items={[
     {
-      lead: 'Source code compromise',
-      text: 'The most direct attack vector. In the SolarWinds incident (2020), attackers gained access to the build process and inserted malicious code that shipped to over 18,000 customers, including multiple US government agencies. The code looked legitimate because it came through legitimate channels.',
+      lead: "Source code compromise",
+      text: "The most direct attack vector. In the SolarWinds incident (2020), attackers gained access to the build process and inserted malicious code that shipped to over 18,000 customers, including multiple US government agencies. The code looked legitimate because it came through legitimate channels.",
     },
     {
-      lead: 'Build system compromise',
+      lead: "Build system compromise",
       text: "Targets the CI/CD pipeline itself. Codecov's bash uploader script was modified in 2021, causing every CI job that used it to exfiltrate credentials to attacker-controlled servers. Thousands of organizations were affected because they trusted a third-party tool in their build process.",
     },
     {
-      lead: 'Dependency confusion',
-      text: 'Exploits how package managers resolve names. Alex Birsan\'s 2021 research demonstrated this by publishing packages to public registries that matched internal package names at Apple, Microsoft, and PayPal. When build systems checked public registries first, they pulled the malicious versions and executed arbitrary code inside corporate networks.',
+      lead: "Dependency confusion",
+      text: "Exploits how package managers resolve names. Alex Birsan's 2021 research demonstrated this by publishing packages to public registries that matched internal package names at Apple, Microsoft, and PayPal. When build systems checked public registries first, they pulled the malicious versions and executed arbitrary code inside corporate networks.",
     },
     {
-      lead: 'Typosquatting',
-      text: 'Relies on human error. Packages like crossenv (malicious) sit next to cross-env (legitimate) hoping developers will mistype. These attacks are low-effort but surprisingly effective, resulting in credential theft, cryptomining, and backdoors.',
+      lead: "Typosquatting",
+      text: "Relies on human error. Packages like crossenv (malicious) sit next to cross-env (legitimate) hoping developers will mistype. These attacks are low-effort but surprisingly effective, resulting in credential theft, cryptomining, and backdoors.",
     },
     {
-      lead: 'Compromised maintainers',
-      text: 'Introduce risk through the humans in the chain. The event-stream incident (2018) showed how a new maintainer-who had earned trust through legitimate contributions-eventually added code to steal Bitcoin from a specific cryptocurrency wallet. The attack targeted one application but affected millions of downstream users.',
+      lead: "Compromised maintainers",
+      text: "Introduce risk through the humans in the chain. The event-stream incident (2018) showed how a new maintainer-who had earned trust through legitimate contributions-eventually added code to steal Bitcoin from a specific cryptocurrency wallet. The attack targeted one application but affected millions of downstream users.",
     },
     {
-      lead: 'Artifact tampering',
-      text: 'Happens after the build but before deployment. CCleaner (2017) shipped a backdoored executable to 2.3 million users because attackers modified the signed artifact after it was built but before it was distributed. The signature was valid for the tampered file.',
+      lead: "Artifact tampering",
+      text: "Happens after the build but before deployment. CCleaner (2017) shipped a backdoored executable to 2.3 million users because attackers modified the signed artifact after it was built but before it was distributed. The signature was valid for the tampered file.",
     },
   ]}
 />
 
 <Diagram
+  src={supplyChainDiagram}
   title="Supply chain attack points."
-  description={`A left-to-right flowchart showing the main stages of a software supply chain: Developer, Source Repository, Build System, Artifact Registry, and Deployment. Solid arrows show the normal progression from development through deployment. Dashed arrows mark five attack opportunities: compromised developer credentials targeting the source repository, malicious commits moving from source into the build, dependency poisoning affecting the build system itself, build tampering between the build and the artifact registry, and artifact modification between the registry and deployment. The diagram emphasizes that every transition in the chain is a trust boundary that can be attacked.`}
->
-```mermaid
-flowchart LR
-    A[Developer] --> B[Source<br>Repository]
-    B --> C[Build<br>System]
-    C --> D[Artifact<br>Registry]
-    D --> E[Deployment]
-
-    A -.->|"① Compromised<br>credentials"| B
-    B -.->|"② Malicious<br>commits"| C
-    C -.->|"③ Dependency<br>poisoning"| C
-    C -.->|"④ Build<br>tampering"| D
-    D -.->|"⑤ Artifact<br>modification"| E
-```
-</Diagram>
+  description="A left-to-right flowchart showing the main stages of a software supply chain: Developer, Source Repository, Build System, Artifact Registry, and Deployment. Solid arrows show the normal progression from development through deployment. Dashed arrows mark five attack opportunities: compromised developer credentials targeting the source repository, malicious commits moving from source into the build, dependency poisoning affecting the build system itself, build tampering between the build and the artifact registry, and artifact modification between the registry and deployment. The diagram emphasizes that every transition in the chain is a trust boundary that can be attacked."
+/>
 
 Each stage in the pipeline requires different defenses. SLSA focuses on the middle of this chain — from source through build to artifact — but it doesn't cover everything.
 
@@ -925,28 +915,10 @@ Code: SBOM querying commands.
 For programmatic querying across many images, tools like Grype can consume SBOMs directly and match them against vulnerability databases. This is faster than re-scanning images because the SBOM is already computed.
 
 <Diagram
+  src={sbomDiagram}
   title="SBOM and provenance relationship."
-  description={`A top-to-bottom flowchart showing how an image, its SBOM, and its provenance are connected. In the first grouped section, Source Code produces a Container Image. That image then leads to an SBOM, labeled as what is inside, and to Provenance, labeled as how it was built. In the second grouped section, the Container Image produces an Image Signature through the image digest, while the SBOM produces an SBOM Attestation and the Provenance produces a Provenance Attestation. All three signed outputs then flow into the Registry. The diagram shows that the image digest ties the image, SBOM, and provenance together so each can be verified independently.`}
->
-```mermaid
-flowchart LR
-  subgraph Build[Build Process]
-    SRC[Source Code] --> IMG[Container Image]
-    IMG --> SBOM[SBOM<br>what's inside]
-    IMG --> PROV[Provenance<br>how it was built]
-  end
-
-  subgraph Attestations[Signed Attestations]
-    IMG -->|"digest"| SIG[Image Signature]
-    SBOM -->|"attested"| SBOM_ATT[SBOM Attestation]
-    PROV -->|"attested"| PROV_ATT[Provenance Attestation]
-  end
-
-  SIG --> REG[Registry]
-  SBOM_ATT --> REG
-  PROV_ATT --> REG
-```
-</Diagram>
+  description="A top-to-bottom flowchart showing how an image, its SBOM, and its provenance are connected. In the first grouped section, Source Code produces a Container Image. That image then leads to an SBOM, labeled as what is inside, and to Provenance, labeled as how it was built. In the second grouped section, the Container Image produces an Image Signature through the image digest, while the SBOM produces an SBOM Attestation and the Provenance produces a Provenance Attestation. All three signed outputs then flow into the Registry. The diagram shows that the image digest ties the image, SBOM, and provenance together so each can be verified independently."
+/>
 
 The image digest is the anchor that ties everything together. The provenance subject contains the digest, the SBOM references the digest, and both attestations are attached to the image by digest. If any piece is tampered with, verification fails.
 

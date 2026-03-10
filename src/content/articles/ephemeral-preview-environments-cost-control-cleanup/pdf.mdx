@@ -9,6 +9,10 @@ tags: ["cloud-platforms", "kubernetes", "aws"]
 featured: true
 ---
 
+import costMonitoringDiagram from "./diagrams/cost-monitoring-and-escalation-flow.png"
+import ephemeralEnvironmentDiagram from "./diagrams/ephemeral-environment-lifecycle-states.png"
+import sharedVsDedicatedDiagram from "./diagrams/shared-vs-dedicated-resource-cost-comparison.png"
+
 *[PR]: Pull Request
 *[TTL]: Time To Live
 *[CI]: Continuous Integration
@@ -40,31 +44,10 @@ An ephemeral environment moves through a predictable set of states, and understa
 ### Environment Lifecycle States
 
 <Diagram
+  src={ephemeralEnvironmentDiagram}
   title="Ephemeral environment lifecycle states."
-  description={
-    `State diagram showing the lifecycle of a preview environment from creation through cleanup. The process starts when a PR is opened, moving to Requested, then Provisioning when CI is triggered, then Ready once resources are created. From Ready the environment becomes Active while the developer is testing. Active can transition to Idle when there is no activity, and Idle can return to Active when new activity occurs. Idle can also transition to Expiring once the TTL is exceeded, followed by Destroyed when the cleanup job runs. Active and Ready can both transition directly to Destroyed when the PR is merged or closed. A note attached to the Idle state highlights that cost accumulates there without delivering value. The diagram emphasizes that the main waste comes from environments that linger idle between active testing and final destruction.`
-  }
->
-```mermaid
-stateDiagram-v2
-    [*] --> Requested: PR opened
-    Requested --> Provisioning: CI triggered
-    Provisioning --> Ready: Resources created
-    Ready --> Active: Developer testing
-    Active --> Idle: No activity
-    Idle --> Active: New activity
-    Idle --> Expiring: TTL exceeded
-    Expiring --> Destroyed: Cleanup job
-    Active --> Destroyed: PR merged/closed
-    Ready --> Destroyed: PR merged/closed
-    Destroyed --> [*]
-
-    note right of Idle
-        Cost accumulates here
-        without value delivery
-    end note
-```
-</Diagram>
+  description="State diagram showing the lifecycle of a preview environment from creation through cleanup. The process starts when a PR is opened, moving to Requested, then Provisioning when CI is triggered, then Ready once resources are created. From Ready the environment becomes Active while the developer is testing. Active can transition to Idle when there is no activity, and Idle can return to Active when new activity occurs. Idle can also transition to Expiring once the TTL is exceeded, followed by Destroyed when the cleanup job runs. Active and Ready can both transition directly to Destroyed when the PR is merged or closed. A note attached to the Idle state highlights that cost accumulates there without delivering value. The diagram emphasizes that the main waste comes from environments that linger idle between active testing and final destruction."
+/>
 
 Most environments spend the majority of their existence in the idle state. A developer opens a PR, the environment provisions, they test for an hour, then context-switch to something else. The environment sits idle for days until the PR is finally merged or someone remembers to close it. Every hour in that idle state is cost without value.
 
@@ -194,37 +177,10 @@ The key decisions embedded in this template: small container resource limits (yo
 The most impactful cost optimization is using shared infrastructure with logical isolation instead of dedicated instances per environment. The math is stark: three dedicated database instances cost three times as much as one shared instance with three schemas.
 
 <Diagram
+  src={sharedVsDedicatedDiagram}
   title="Shared vs dedicated resource cost comparison."
-  description={
-  `Flowchart comparing dedicated preview databases with a shared database model. In the Dedicated (Expensive) group are three separate databases labeled PR-123 DB, PR-124 DB, and PR-125 DB. In the Shared (Cost-Effective) group, one Shared DB branches into three isolated schemas: schema_pr_123, schema_pr_124, and schema_pr_125. A third group labeled Cost Comparison (db.t3.small) shows that three dedicated databases cost 3 x $30/mo = $90/mo, while one shared database costs 1 x $30/mo = $30/mo. Dotted arrows connect the dedicated databases to the higher cost and the shared database to the lower cost. The diagram shows how logical isolation in one shared service can preserve separation while reducing monthly infrastructure spend.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph dedicated["Dedicated (Expensive)"]
-    A1["PR-123 DB"]
-    A2["PR-124 DB"]
-    A3["PR-125 DB"]
-  end
-
-  subgraph shared["Shared (Cost-Effective)"]
-    B1["Shared DB"]
-    B1 --> B2["schema_pr_123"]
-    B1 --> B3["schema_pr_124"]
-    B1 --> B4["schema_pr_125"]
-  end
-
-  subgraph cost["Cost Comparison (db.t3.small)"]
-    C1["3 x $30/mo = $90/mo"]
-    C2["1 x $30/mo = $30/mo"]
-  end
-
-  A1 -.-> C1
-  A2 -.-> C1
-  A3 -.-> C1
-  B1 -.-> C2
-```
-</Diagram>
+  description="Flowchart comparing dedicated preview databases with a shared database model. In the Dedicated (Expensive) group are three separate databases labeled PR-123 DB, PR-124 DB, and PR-125 DB. In the Shared (Cost-Effective) group, one Shared DB branches into three isolated schemas: schema_pr_123, schema_pr_124, and schema_pr_125. A third group labeled Cost Comparison (db.t3.small) shows that three dedicated databases cost 3 x $30/mo = $90/mo, while one shared database costs 1 x $30/mo = $30/mo. Dotted arrows connect the dedicated databases to the higher cost and the shared database to the lower cost. The diagram shows how logical isolation in one shared service can preserve separation while reducing monthly infrastructure spend."
+/>
 
 For PostgreSQL, schema isolation provides strong separation. Each preview environment gets its own schema with a dedicated role that can only access that schema. Provisioning is fast (no instance startup time), and cleanup is a single `DROP SCHEMA CASCADE` command.
 
@@ -362,25 +318,10 @@ Post the cost information directly in the PR. A comment that says "Your preview 
 Set thresholds that trigger notifications when environments get expensive. A tiered approach works well: notify the author when an environment exceeds $15, notify the author and their manager at $30, and force a review at $50.
 
 <Diagram
+  src={costMonitoringDiagram}
   title="Cost monitoring and escalation flow."
-  description={
-    `Flowchart showing two parallel escalation paths driven by cost monitoring. The first path evaluates Environment Cost: if cost is under $15 the environment remains in a Normal state, from $15 to $30 it triggers Notify Author, and above $30 it triggers Notify Author + Manager. The second path evaluates Team Budget: under 80 percent remains Normal, from 80 to 100 percent sends a Warning to Lead, and above 100 percent pauses the creation of new environments. The diagram communicates that both individual environment cost and total team budget should drive escalating notifications and enforcement decisions.`
-  }
->
-```mermaid
-flowchart LR
-    A[Cost Monitoring] --> B{Environment Cost}
-
-  B -->|under $15| C[Normal]
-  B -->|$15 to $30| D[Notify Author]
-  B -->|over $30| E[Notify Author + Manager]
-
-    A --> F{Team Budget}
-  F -->|under 80%| G[Normal]
-  F -->|80% to 100%| H[Warning to Lead]
-  F -->|over 100%| I[Pause New Envs]
-```
-</Diagram>
+  description="Flowchart showing two parallel escalation paths driven by cost monitoring. The first path evaluates Environment Cost: if cost is under $15 the environment remains in a Normal state, from $15 to $30 it triggers Notify Author, and above $30 it triggers Notify Author + Manager. The second path evaluates Team Budget: under 80 percent remains Normal, from 80 to 100 percent sends a Warning to Lead, and above 100 percent pauses the creation of new environments. The diagram communicates that both individual environment cost and total team budget should drive escalating notifications and enforcement decisions."
+/>
 
 Team-level budgets add another layer. If a team's total preview environment cost exceeds their budget, you can pause the creation of new environments until they clean up existing ones. This creates peer pressure — no one wants to be the person whose forgotten PR is blocking the team from deploying previews.
 

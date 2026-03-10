@@ -9,6 +9,9 @@ tags: ["system-modernization", "ruby", "typescript", "dotnet"]
 featured: true
 ---
 
+import legacyTestingDiagram from "./diagrams/legacy-testing-strategy.png"
+import seamTypeDiagram from "./diagrams/seam-type-decision.png"
+
 *[DI]: Dependency Injection
 *[IoC]: Inversion of Control
 *[OOP]: Object-Oriented Programming
@@ -400,33 +403,10 @@ The sensing variable pattern deserves special attention. Sometimes you can't eas
 When choosing which seam type to use, prefer object seams for long-term maintainability. They make dependencies explicit and support proper dependency injection. But when you need tests __now__ and can't change constructor signatures (maybe there are 50 call sites), link seams or subclass seams get you there faster. You can always refactor later — once you have tests.
 
 <Diagram
+  src={seamTypeDiagram}
   title="Seam type decision."
-  description={
-  `Flowchart showing three seam categories and how to choose between them for legacy code testing. In the grouped section labeled Seam Types, Object Seam branches to Inject via constructor, Inject via setter, and Inject via method parameter. Link Seam branches to Module mocking and Import substitution. Subclass Seam branches to Extract to protected method and Override in test class. In a separate grouped section labeled Decision, a decision node asks Which seam to use. The Cleanest path points to Object Seam, the Quick fix path points to Link Seam, and the No constructor access path points to Subclass Seam. The diagram summarizes both the available seam types and the practical decision logic for choosing the most suitable one based on constraints in the legacy codebase.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph seamTypes[Seam Types]
-    A[Object Seam] --> A1[Inject via constructor]
-    A --> A2[Inject via setter]
-    A --> A3[Inject via method parameter]
-
-    B[Link Seam] --> B1[Module mocking]
-    B --> B2[Import substitution]
-
-    C[Subclass Seam] --> C1[Extract to protected method]
-    C --> C2[Override in test class]
-  end
-
-  subgraph decision[Decision]
-    D{Which seam<br/>to use?}
-    D -->|Cleanest| A
-    D -->|Quick fix| B
-    D -->|No constructor access| C
-  end
-```
-</Diagram>
+  description="Flowchart showing three seam categories and how to choose between them for legacy code testing. In the grouped section labeled Seam Types, Object Seam branches to Inject via constructor, Inject via setter, and Inject via method parameter. Link Seam branches to Module mocking and Import substitution. Subclass Seam branches to Extract to protected method and Override in test class. In a separate grouped section labeled Decision, a decision node asks Which seam to use. The Cleanest path points to Object Seam, the Quick fix path points to Link Seam, and the No constructor access path points to Subclass Seam. The diagram summarizes both the available seam types and the practical decision logic for choosing the most suitable one based on constraints in the legacy codebase."
+/>
 
 <Callout type="success">
 Look for the `new` keyword and class method calls — these are often where seams are missing. Every `.new` inside a method is a dependency that's hard to test. Every `SomeClass.method` call is a hidden dependency.
@@ -1213,32 +1193,10 @@ end
 Code: Test organization for legacy code.
 
 <Diagram
+  src={legacyTestingDiagram}
   title="Legacy testing strategy."
-  description={
-  `Flowchart summarizing three aspects of a legacy testing strategy. In the grouped section labeled Test Pyramid for Legacy, Golden Master Tests flow to Integration Tests with the label Broad coverage, Integration Tests flow to Characterization Tests with the label Critical paths, and Characterization Tests flow to Unit Tests with the label Extracted code. In the grouped section labeled Coverage Priority, Code changing soon points to 80%+ coverage with the label High, Bug-prone code points to 60%+ coverage with the label Medium, and Stable, untouched code points to Characterization only with the label Low. In the grouped section labeled Test Types by Purpose, Characterization points to Safety net for refactoring with the label Document behavior, Golden Master points to Catch regressions with the label Complex outputs, and Unit Tests point to Design feedback with the label New code. The diagram shows that legacy code testing starts with broad behavior-capturing tests and gradually grows more targeted unit coverage as code is extracted and refactored.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph testPyramidForLegacy[Test Pyramid for Legacy]
-    A[Golden Master Tests] -->|Broad coverage| B[Integration Tests]
-    B -->|Critical paths| C[Characterization Tests]
-    C -->|Extracted code| D[Unit Tests]
-  end
-
-  subgraph coveragePriority[Coverage Priority]
-    E[Code changing soon] -->|High| F[80%+ coverage]
-    G[Bug-prone code] -->|Medium| H[60%+ coverage]
-    I[Stable, untouched] -->|Low| J[Characterization only]
-  end
-
-  subgraph testTypesByPurpose[Test Types by Purpose]
-    K[Characterization] -->|Document behavior| L[Safety net for refactoring]
-    M[Golden Master] -->|Complex outputs| N[Catch regressions]
-    O[Unit Tests] -->|New code| P[Design feedback]
-  end
-```
-</Diagram>
+  description="Flowchart summarizing three aspects of a legacy testing strategy. In the grouped section labeled Test Pyramid for Legacy, Golden Master Tests flow to Integration Tests with the label Broad coverage, Integration Tests flow to Characterization Tests with the label Critical paths, and Characterization Tests flow to Unit Tests with the label Extracted code. In the grouped section labeled Coverage Priority, Code changing soon points to 80%+ coverage with the label High, Bug-prone code points to 60%+ coverage with the label Medium, and Stable, untouched code points to Characterization only with the label Low. In the grouped section labeled Test Types by Purpose, Characterization points to Safety net for refactoring with the label Document behavior, Golden Master points to Catch regressions with the label Complex outputs, and Unit Tests point to Design feedback with the label New code. The diagram shows that legacy code testing starts with broad behavior-capturing tests and gradually grows more targeted unit coverage as code is extracted and refactored."
+/>
 
 Note that this inverts the traditional test pyramid. In greenfield development, unit tests form the base. In legacy code, you start with broad characterization and golden master tests at the top — they're faster to write and provide immediate safety. As you extract and refactor, unit tests grow from the bottom up.
 

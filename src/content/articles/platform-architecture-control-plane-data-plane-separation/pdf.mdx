@@ -9,6 +9,9 @@ tags: ["platform-engineering", "kubernetes", "terraform", "grafana", "argo-cd", 
 featured: true
 ---
 
+import controlPlaneDiagram from "./diagrams/control-plane-pushes-desired-state-to-data-plane-data-plane-reports-actual-state-back_deep-dive.png"
+import scalingProgressionDiagram from "./diagrams/scaling-progression-from-shared-infrastructure-to-regional-fleets.png"
+
 *[CRD]: Custom Resource Definition
 *[CRDs]: Custom Resource Definitions
 *[HPA]: Horizontal Pod Autoscaler
@@ -90,35 +93,10 @@ The characteristics differ in ways that matter for architecture:
 The failure impact row is the critical insight. When the control plane goes down — during an upgrade, due to an etcd issue, whatever — running workloads continue. You can't deploy new versions or scale, but users aren't immediately impacted. When the data plane fails, users notice immediately.
 
 <Diagram
+  src={controlPlaneDiagram}
   title="Control plane pushes desired state to data plane - data plane reports actual state back."
-  description={
-  `Top-to-bottom flowchart with two grouped sections: Control Plane and Data Plane. In the Control Plane, API Server connects to State Store and Controllers. Controllers connect to Policy Engine and Scheduler, showing that orchestration logic sits in the control layer. In the Data Plane, three worker nodes represent execution targets. Controllers send Desired State to Worker Node 1, Worker Node 2, and Worker Node 3. Each worker node sends Actual State back to Controllers. The diagram illustrates the core control loop: the control plane stores intent and policies, pushes desired state outward, and continuously receives observed state from the data plane to reconcile differences.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph controlPlane[Control Plane]
-    A[API Server] --> B[State Store]
-    A --> C[Controllers]
-    C --> D[Policy Engine]
-    C --> E[Scheduler]
-  end
-
-  subgraph dataPlane[Data Plane]
-    F[Worker Node 1]
-    G[Worker Node 2]
-    H[Worker Node 3]
-  end
-
-  C -->|"Desired State"| F
-  C -->|"Desired State"| G
-  C -->|"Desired State"| H
-
-  F -->|"Actual State"| C
-  G -->|"Actual State"| C
-  H -->|"Actual State"| C
-```
-</Diagram>
+  description="Top-to-bottom flowchart with two grouped sections: Control Plane and Data Plane. In the Control Plane, API Server connects to State Store and Controllers. Controllers connect to Policy Engine and Scheduler, showing that orchestration logic sits in the control layer. In the Data Plane, three worker nodes represent execution targets. Controllers send Desired State to Worker Node 1, Worker Node 2, and Worker Node 3. Each worker node sends Actual State back to Controllers. The diagram illustrates the core control loop: the control plane stores intent and policies, pushes desired state outward, and continuously receives observed state from the data plane to reconcile differences."
+/>
 
 ### Platform Layers
 
@@ -419,42 +397,10 @@ Capacity planning ties these together. Compute capacity follows the formula: req
 At medium scale, the data plane stays in a single cluster but segments into multiple __node pools__ — groups of nodes with different instance types, taints, or availability zone placement. One pool might run general workloads while another handles memory-intensive jobs. At large scale, you move to separate clusters entirely, each with its own data plane.
 
 <Diagram
+  src={scalingProgressionDiagram}
   title="Scaling progression from shared infrastructure to regional fleets."
-  description={
-  `Top-to-bottom flowchart showing three scaling stages. In the Small Scale group, a Shared Control Plane connects to a Shared Data Plane, representing a single combined environment. In the Medium Scale group, a Dedicated Control Plane connects to two separate node pools, showing how a single control layer can manage a segmented data plane within one cluster. In the Large Scale group, Regional Control Plane 1 manages Data Plane Cluster 1 and Data Plane Cluster 2, while Regional Control Plane 2 manages Data Plane Cluster 3 and Data Plane Cluster 4. The diagram shows an architectural progression from simple shared infrastructure, to segmented node pools, to multiple regional control planes managing separate fleets of data plane clusters as scale and geographic distribution increase.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph smallScale[Small Scale]
-    S1[Shared Control Plane]
-    S2[Shared Data Plane]
-  end
-
-  subgraph mediumScale[Medium Scale]
-    M1[Dedicated Control Plane]
-    M2[Node Pool 1]
-    M3[Node Pool 2]
-  end
-
-  subgraph largeScale[Large Scale]
-    L1[Regional Control Plane 1]
-    L2[Regional Control Plane 2]
-    L3[Data Plane Cluster 1]
-    L4[Data Plane Cluster 2]
-    L5[Data Plane Cluster 3]
-    L6[Data Plane Cluster 4]
-  end
-
-  S1 --> S2
-  M1 --> M2
-  M1 --> M3
-  L1 --> L3
-  L1 --> L4
-  L2 --> L5
-  L2 --> L6
-```
-</Diagram>
+  description="Top-to-bottom flowchart showing three scaling stages. In the Small Scale group, a Shared Control Plane connects to a Shared Data Plane, representing a single combined environment. In the Medium Scale group, a Dedicated Control Plane connects to two separate node pools, showing how a single control layer can manage a segmented data plane within one cluster. In the Large Scale group, Regional Control Plane 1 manages Data Plane Cluster 1 and Data Plane Cluster 2, while Regional Control Plane 2 manages Data Plane Cluster 3 and Data Plane Cluster 4. The diagram shows an architectural progression from simple shared infrastructure, to segmented node pools, to multiple regional control planes managing separate fleets of data plane clusters as scale and geographic distribution increase."
+/>
 
 <Callout type="warning">
 Control plane and data plane scale differently. Control plane scales with managed resources and API requests. Data plane scales with traffic and workload count. Design for independent scaling from the start.

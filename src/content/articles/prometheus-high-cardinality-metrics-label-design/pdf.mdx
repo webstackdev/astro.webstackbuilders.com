@@ -9,6 +9,8 @@ tags: ["observability-and-telemetry","prometheus","grafana","python","kubernetes
 featured: true
 ---
 
+import singleUnboundedLabelDiagram from "./diagrams/a-single-unbounded-label-transforms-manageable-metrics-into-infrastructure-killing-cardinality.png"
+
 *[OOM]: Out of Memory
 *[P99]: 99th Percentile
 *[PromQL]: Prometheus Query Language
@@ -81,40 +83,10 @@ Histograms make this worse. A histogram with 10 buckets creates 12 series per un
 Memory estimation follows a rough formula: each active series consumes 1-3 KB for metadata, index entries, and the active chunk. A Prometheus instance with 16 GB of RAM can safely handle around 2 million active series. Push past that, and you're gambling on OOM during traffic spikes.
 
 <Diagram
+  src={singleUnboundedLabelDiagram}
   title="A single unbounded label transforms manageable metrics into infrastructure-killing cardinality."
-  description={
-  `Top-to-bottom flowchart showing how metric cardinality multiplies across labels. In the grouped section Label Multiplication, a metric named http_requests is followed by labels method with 4 values, endpoint with 10 values, status with 5 values, and user_id with 100 thousand values. One path stops before user_id and enters the grouped section Without user_id, producing 200 series from 4 times 10 times 5 and an estimated memory cost of about 2 megabytes. A second path continues through the unbounded user_id label into the grouped section With user_id, producing 20 million series from 4 times 10 times 5 times 100 thousand and an estimated memory cost of about 200 gigabytes. The manageable series count and memory estimate are highlighted positively, while the exploded series count and memory estimate are highlighted negatively. The diagram illustrates how adding a single high-cardinality label can turn a safe metric design into one that overwhelms Prometheus memory.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph labelMultiplication[Label Multiplication]
-    M[Metric: http_requests]
-    L1[method: 4 values]
-    L2[endpoint: 10 values]
-    L3[status: 5 values]
-    L4[user_id: 100k values]
-  end
-
-  subgraph withoutUserId[Without user_id]
-    S1[200 series<br/>4 × 10 × 5]
-    MEM1[~2 MB RAM]
-  end
-
-  subgraph withUserId[With user_id]
-    S2[20M series<br/>4 × 10 × 5 × 100k]
-    MEM2[~200 GB RAM]
-  end
-
-  M --> L1 --> L2 --> L3 --> S1 --> MEM1
-  L3 --> L4 --> S2 --> MEM2
-
-  style S1 fill:#9f9,color:#000
-  style S2 fill:#f99,color:#000
-  style MEM1 fill:#9f9,color:#000
-  style MEM2 fill:#f99,color:#000
-```
-</Diagram>
+  description="Top-to-bottom flowchart showing how metric cardinality multiplies across labels. In the grouped section Label Multiplication, a metric named http_requests is followed by labels method with 4 values, endpoint with 10 values, status with 5 values, and user_id with 100 thousand values. One path stops before user_id and enters the grouped section Without user_id, producing 200 series from 4 times 10 times 5 and an estimated memory cost of about 2 megabytes. A second path continues through the unbounded user_id label into the grouped section With user_id, producing 20 million series from 4 times 10 times 5 times 100 thousand and an estimated memory cost of about 200 gigabytes. The manageable series count and memory estimate are highlighted positively, while the exploded series count and memory estimate are highlighted negatively. The diagram illustrates how adding a single high-cardinality label can turn a safe metric design into one that overwhelms Prometheus memory."
+/>
 
 ### Prometheus Internals
 

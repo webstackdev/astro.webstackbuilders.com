@@ -9,6 +9,8 @@ tags: ["observability-and-telemetry","prometheus","grafana"]
 featured: true
 ---
 
+import theAlertingPyramidDiagram from "./diagrams/the-alerting-pyramid.png"
+
 Your on-call engineer gets paged at 2 AM for high CPU on a batch processing node. They investigate for 20 minutes, find nothing wrong, and go back to sleep. An hour later, another page: disk space on a log aggregator. Another false alarm. By the time the third alert fires — this one signaling elevated API error rates — they've learned to assume it's another false positive. They check Slack, see nothing, and go back to sleep.
 
 In the morning, they discover the payment service was down for 45 minutes. Customers couldn't complete purchases. The alert was real; the engineer had just been trained to ignore it.
@@ -44,36 +46,10 @@ The pattern is consistent: causes are __potential__ problems; symptoms are __act
 This creates a natural hierarchy for categorizing alerts:
 
 <Diagram
+  src={theAlertingPyramidDiagram}
   title="The alerting pyramid."
-  description={
-  `Top-to-bottom flowchart divided into three grouped tiers. The top tier, Page Alerts User Impact, contains Error rate greater than SLO burn rate, Latency greater than SLO target, and Availability below threshold. This tier points to User impact NOW with the label Wake someone up. The middle tier, Ticket Alerts Degradation, contains CPU sustained high, Disk filling toward capacity, and Connection pool trending hot. This tier points to Potential future impact with the label Fix during business hours. The bottom tier, Dashboards Awareness, contains All metrics visible, Trends and rates, and Capacity projections. This tier points to No action required with the label Context for investigation. The diagram shows a hierarchy where user-facing symptoms warrant urgent pages, potential causes become tickets, and the rest of the operational data stays on dashboards for context.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph pages["PAGE ALERTS (User Impact)"]
-    P1["Error rate > SLO burn rate"]
-    P2["Latency > SLO target"]
-    P3["Availability below threshold"]
-  end
-
-  subgraph tickets["TICKET ALERTS (Degradation)"]
-    T1["CPU sustained high"]
-    T2["Disk filling toward capacity"]
-    T3["Connection pool trending hot"]
-  end
-
-  subgraph dashboards["DASHBOARDS (Awareness)"]
-    D1["All metrics visible"]
-    D2["Trends and rates"]
-    D3["Capacity projections"]
-  end
-
-  pages -->|"Wake someone up"| U["User impact NOW"]
-  tickets -->|"Fix during business hours"| F["Potential future impact"]
-  dashboards -->|"Context for investigation"| C["No action required"]
-```
-</Diagram>
+  description="Top-to-bottom flowchart divided into three grouped tiers. The top tier, Page Alerts User Impact, contains Error rate greater than SLO burn rate, Latency greater than SLO target, and Availability below threshold. This tier points to User impact NOW with the label Wake someone up. The middle tier, Ticket Alerts Degradation, contains CPU sustained high, Disk filling toward capacity, and Connection pool trending hot. This tier points to Potential future impact with the label Fix during business hours. The bottom tier, Dashboards Awareness, contains All metrics visible, Trends and rates, and Capacity projections. This tier points to No action required with the label Context for investigation. The diagram shows a hierarchy where user-facing symptoms warrant urgent pages, potential causes become tickets, and the rest of the operational data stays on dashboards for context."
+/>
 
 ## SLO-Based Burn Rate Alerting
 

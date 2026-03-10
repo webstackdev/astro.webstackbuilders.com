@@ -9,6 +9,9 @@ tags: ["build-and-deploy", "kubernetes", "ruby", "dotnet", "typescript"]
 featured: true
 ---
 
+import expandContractDiagram from "./diagrams/expand-contract-pattern-phases.png"
+import tableLockDiagram from "./diagrams/table-lock-during-migration-blocks-all-application-threads.png"
+
 *[DDL]: Data Definition Language
 *[CD]: Continuous Deployment
 *[ORM]: Object-Relational Mapping
@@ -30,28 +33,10 @@ Here's what happens when you run `ALTER TABLE users ADD COLUMN status VARCHAR(20
 Modern PostgreSQL (11+) made some operations instant — adding a nullable column or a column with a default no longer rewrites the table. But plenty of operations still require rewrites: changing column types, adding NOT NULL constraints to existing columns, certain index operations. Here's how that blocking cascade looks:
 
 <Diagram
+  src={tableLockDiagram}
   title="Table lock during migration blocks all application threads."
-  description={
-    `Flowchart showing a migration lifecycle and the application impact of a table lock. The main sequence runs from Migration Starts to Acquire Table Lock, then Rewrite Table Data, Rebuild Indexes, and finally Release Lock. A separate grouped region labeled Blocked Application Threads contains four representative threads: Thread 1: Waiting..., Thread 2: Waiting..., Thread 3: Timeout, and Thread 4: Timeout. A dotted arrow labeled blocks points from Acquire Table Lock to that grouped region. The diagram illustrates that once an exclusive table lock is taken, normal application work stalls behind it, some requests remain queued, and others eventually fail with timeouts before the migration completes and the lock is released.`
-  }
->
-```mermaid
-flowchart LR
-    A[Migration Starts] --> B[Acquire Table Lock]
-    B --> C[Rewrite Table Data]
-    C --> D[Rebuild Indexes]
-    D --> E[Release Lock]
-
-    subgraph blocked[Blocked App Threads]
-        F[Thread 1: Waiting...]
-        G[Thread 2: Waiting...]
-        H[Thread 3: Timeout]
-        I[Thread 4: Timeout]
-    end
-
-    B -.->|blocks| blocked
-```
-</Diagram>
+  description="Flowchart showing a migration lifecycle and the application impact of a table lock. The main sequence runs from Migration Starts to Acquire Table Lock, then Rewrite Table Data, Rebuild Indexes, and finally Release Lock. A separate grouped region labeled Blocked Application Threads contains four representative threads: Thread 1: Waiting..., Thread 2: Waiting..., Thread 3: Timeout, and Thread 4: Timeout. A dotted arrow labeled blocks points from Acquire Table Lock to that grouped region. The diagram illustrates that once an exclusive table lock is taken, normal application work stalls behind it, some requests remain queued, and others eventually fail with timeouts before the migration completes and the lock is released."
+/>
 
 ### The Compatibility Window Problem
 
@@ -123,32 +108,11 @@ The pattern has three phases:
   ]}
 />
 
-  <Diagram
-    title="Expand-contract pattern phases."
-    description={
-    `Flowchart showing the three phases of a zero-downtime schema change. In Phase 1: Expand, Add new column leads to Deploy dual-write code, which leads to Backfill existing data. The flow then continues into Phase 2: Migrate, where All data in new column leads to Deploy code reading from new, then to Stop writing to old column. From there the process moves into Phase 3: Contract, where Old column unused leads to Remove old column. Connecting arrows between phases show that each stage depends on the previous one being completed safely. The diagram emphasizes that schema changes are broken into compatible, sequential phases rather than performed as one destructive operation.`
-    }
-  >
-  ```mermaid
-  flowchart LR
-    subgraph phase1[Phase 1: Expand]
-      A[Add new column] --> B[Deploy dual-write code]
-      B --> C[Backfill existing data]
-    end
-
-    subgraph phase2[Phase 2: Migrate]
-      D[All data in new column] --> E[Deploy code reading from new]
-      E --> F[Stop writing to old column]
-    end
-
-    subgraph phase3[Phase 3: Contract]
-      G[Old column unused] --> H[Remove old column]
-    end
-
-    C --> D
-    F --> G
-  ```
-  </Diagram>
+<Diagram
+  src={expandContractDiagram}
+  title="Expand-contract pattern phases."
+  description="Flowchart showing the three phases of a zero-downtime schema change. In Phase 1: Expand, Add new column leads to Deploy dual-write code, which leads to Backfill existing data. The flow then continues into Phase 2: Migrate, where All data in new column leads to Deploy code reading from new, then to Stop writing to old column. From there the process moves into Phase 3: Contract, where Old column unused leads to Remove old column. Connecting arrows between phases show that each stage depends on the previous one being completed safely. The diagram emphasizes that schema changes are broken into compatible, sequential phases rather than performed as one destructive operation."
+/>
 
 ### A Concrete Example
 

@@ -9,6 +9,8 @@ tags: ["cloud-platforms", "terraform", "kubernetes", "aws", "docker"]
 featured: true
 ---
 
+import conftestDiagram from "./diagrams/conftest-evaluation-flow.png"
+
 *[IaC]: Infrastructure as Code
 *[K8s]: Kubernetes
 *[OPA]: Open Policy Agent
@@ -72,43 +74,10 @@ conftest test tfplan.json --policy ./policies/terraform
 ```
 
 <Diagram
+  src={conftestDiagram}
   title="Conftest evaluation flow."
-  description={
-  `Left-to-right flowchart with three grouped sections. The Input section contains Terraform HCL, Kubernetes YAML, and Dockerfile as separate sources. All three inputs flow into a Parser node inside the Conftest section. The Conftest section also contains OPA Engine, Rego Policies, and External Data. The Parser sends normalized input into the OPA Engine, while Rego Policies and External Data also feed into the engine as policy logic and contextual data. The Output section contains three results: Pass or Fail, Violation Messages, and JSON Report. The OPA Engine sends results to all three outputs. The diagram shows that Conftest converts infrastructure files into structured data, evaluates them through OPA using Rego policies plus optional external context, and then emits human-readable and machine-readable results.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph input[Input]
-    A[Terraform HCL]
-    B[Kubernetes YAML]
-    C[Dockerfile]
-  end
-
-  subgraph conftest[Conftest]
-    D[Parser]
-    E[OPA Engine]
-    F[Rego Policies]
-    G[External Data]
-  end
-
-  subgraph output[Output]
-    H[Pass/Fail]
-    I[Violation Messages]
-    J[JSON Report]
-  end
-
-  A --> D
-  B --> D
-  C --> D
-  D --> E
-  F --> E
-  G --> E
-  E --> H
-  E --> I
-  E --> J
-```
-</Diagram>
+  description="Left-to-right flowchart with three grouped sections. The Input section contains Terraform HCL, Kubernetes YAML, and Dockerfile as separate sources. All three inputs flow into a Parser node inside the Conftest section. The Conftest section also contains OPA Engine, Rego Policies, and External Data. The Parser sends normalized input into the OPA Engine, while Rego Policies and External Data also feed into the engine as policy logic and contextual data. The Output section contains three results: Pass or Fail, Violation Messages, and JSON Report. The OPA Engine sends results to all three outputs. The diagram shows that Conftest converts infrastructure files into structured data, evaluates them through OPA using Rego policies plus optional external context, and then emits human-readable and machine-readable results."
+/>
 
 ### Rego Fundamentals
 

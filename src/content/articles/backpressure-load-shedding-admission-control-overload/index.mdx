@@ -9,6 +9,9 @@ tags: ["reliability-and-testing", "aws", "typescript", "python", "go", "grafana"
 featured: true
 ---
 
+import admissionControlDiagram from "./diagrams/admission-control-rejects-work-at-the-door.png"
+import cascadingFailureDiagram from "./diagrams/the-cascading-failure-loop_article.png"
+
 *[CoDel]: Controlled Delay
 *[FIFO]: First In, First Out
 *[LIFO]: Last In, First Out
@@ -34,23 +37,10 @@ A system without backpressure will accept work until it collapses. The goal isn'
 Overload doesn't just make systems slow — it makes them _worse_. There's a vicious cycle at work: load increases, latency increases, clients timeout, clients retry, and now you have even more load. A 2x traffic spike becomes a 4x spike from retries alone.
 
 <Diagram
+  src={cascadingFailureDiagram}
   title="The cascading failure loop where overload compounds itself through retries and resource exhaustion"
   description="Flowchart showing the feedback loop that turns overload into a full outage. A Traffic Spike leads to Queue Growth, which leads to Latency Increase. Increased latency causes Client Timeouts, which trigger Client Retries, sending more traffic back into the original spike and reinforcing the cycle. A second branch from Latency Increase leads to Resource Exhaustion, then Thread Pool Saturation, then Connection Pool Exhaustion, and finally Complete Failure. The diagram shows both the retry feedback loop and the internal resource collapse path that make overloaded systems degrade rapidly rather than recover naturally."
->
-```mermaid
-flowchart LR
-    A[Traffic Spike] --> B[Queue Growth]
-    B --> C[Latency Increase]
-    C --> D[Client Timeouts]
-    D --> E[Client Retries]
-    E --> A
-
-    C --> F[Resource Exhaustion]
-    F --> G[Thread Pool Saturation]
-    G --> H[Connection Pool Exhaustion]
-    H --> I[Complete Failure]
-```
-</Diagram>
+/>
 
 The retry loop is the most insidious — well-intentioned client retry logic turns a temporary overload into a sustained assault. Thread pool saturation means requests that _could_ be processed sit waiting for a worker. Connection pool exhaustion means even those workers can't reach the database. This is why overload tends to get worse rather than self-correcting.
 
@@ -109,22 +99,10 @@ Admission control works the same way: decide _upfront_ whether to accept work, r
 Here's how that flow looks in practice:
 
 <Diagram
+  src={admissionControlDiagram}
   title="Admission control rejects work at the door rather than accepting and failing"
   description="Flowchart showing an admission control decision at the start of request handling. An Incoming Request reaches a decision point labeled Admission Control. If the request is accepted, it moves to Process Request, then to a decision asking Completed. Successful completion returns a 200 Response, while failure returns a 500 Response. If the request is rejected at admission, the system immediately returns 503 plus Retry-After, which leads to Client Backs Off. The diagram emphasizes that rejecting early preserves capacity and guides clients toward backoff instead of letting requests consume resources only to fail later."
->
-```mermaid
-flowchart LR
-    A[Incoming Request] --> B{Admission Control}
-    B -->|Accepted| C[Process Request]
-    B -->|Rejected| D[Return 503 + Retry-After]
-
-    C --> E{Completed?}
-    E -->|Success| F[200 Response]
-    E -->|Failure| G[500 Response]
-
-    D --> H[Client Backs Off]
-```
-</Diagram>
+/>
 
 <Callout type="success">
 It's better to reject 20% of requests immediately than to accept 100% and fail 40% after wasting resources. Fast rejection preserves capacity for requests you can actually serve.

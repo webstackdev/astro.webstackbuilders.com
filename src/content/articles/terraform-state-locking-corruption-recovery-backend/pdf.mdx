@@ -9,6 +9,9 @@ tags: ["cloud-platforms","terraform","aws","azure"]
 featured: true
 ---
 
+import pathBasedDiagram from "./diagrams/path-based-state-organization-hierarchy.png"
+import stateLockingDiagram from "./diagrams/state-locking-prevents-concurrent-modifications.png"
+
 *[ARN]: Amazon Resource Name
 *[DynamoDB]: Amazon DynamoDB
 *[GCS]: Google Cloud Storage
@@ -146,30 +149,10 @@ When two engineers run `terraform apply` simultaneously against the same state, 
 Locking prevents this by ensuring only one operation can modify state at a time. Before Terraform reads state for a plan or apply, it acquires a lock. If someone else holds the lock, Terraform waits (or fails, depending on configuration). After the operation completes — successfully or not — Terraform releases the lock.
 
 <Diagram
+  src={stateLockingDiagram}
   title="State locking prevents concurrent modifications."
-  description={
-    `Sequence diagram with four participants: User A, Lock Backend, State Backend, and User B. User A first sends Acquire lock to the Lock Backend and receives Lock granted with an example lock ID. While User A holds the lock, User B also tries to acquire the lock and receives a response that the lock is denied because it is held by User A. User A then reads state from the State Backend, calculates the plan locally, writes updated state back to the State Backend, and releases the lock in the Lock Backend. After the release, User B retries lock acquisition and is then granted the lock. The diagram shows how state locking serializes Terraform operations so only one actor can modify a state file at a time.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant A as User A
-    participant L as Lock Backend
-    participant S as State Backend
-    participant B as User B
-
-    A->>L: Acquire lock
-    L-->>A: Lock granted (ID: abc123)
-    B->>L: Acquire lock
-    L-->>B: Lock denied (held by User A)
-    A->>S: Read state
-    A->>A: Calculate plan
-    A->>S: Write updated state
-    A->>L: Release lock
-    B->>L: Retry acquire lock
-    L-->>B: Lock granted
-```
-</Diagram>
+  description="Sequence diagram with four participants: User A, Lock Backend, State Backend, and User B. User A first sends Acquire lock to the Lock Backend and receives Lock granted with an example lock ID. While User A holds the lock, User B also tries to acquire the lock and receives a response that the lock is denied because it is held by User A. User A then reads state from the State Backend, calculates the plan locally, writes updated state back to the State Backend, and releases the lock in the Lock Backend. After the release, User B retries lock acquisition and is then granted the lock. The diagram shows how state locking serializes Terraform operations so only one actor can modify a state file at a time."
+/>
 
 The lock record includes metadata about who holds it: the user identity, the operation type (plan vs apply), and when the lock was acquired. This information is critical when you need to diagnose stuck locks — you can see whether it's a CI job that's still running or one that crashed hours ago.
 
@@ -667,30 +650,10 @@ Code: Path-based state separation by environment and component.
 />
 
 <Diagram
+  src={pathBasedDiagram}
   title="Path-based state organization hierarchy."
-  description={
-  `Top-to-bottom flowchart representing a Terraform state bucket named mycompany-terraform-state. Inside the bucket, there are three grouped prefixes: production, staging, and shared. The production prefix contains separate state files for networking, compute, and database. The staging prefix contains separate state files for networking and compute. The shared prefix contains separate state files for dns and iam. The diagram illustrates an organizational hierarchy where state is split first by environment or shared scope, and then by infrastructure component, keeping each state file smaller and limiting the blast radius of state corruption or concurrent changes.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph bucket["mycompany-terraform-state"]
-    subgraph prod["production/"]
-      P1["networking/terraform.tfstate"]
-      P2["compute/terraform.tfstate"]
-      P3["database/terraform.tfstate"]
-    end
-    subgraph staging["staging/"]
-      S1["networking/terraform.tfstate"]
-      S2["compute/terraform.tfstate"]
-    end
-    subgraph shared["shared/"]
-      H1["dns/terraform.tfstate"]
-      H2["iam/terraform.tfstate"]
-    end
-  end
-```
-</Diagram>
+  description="Top-to-bottom flowchart representing a Terraform state bucket named mycompany-terraform-state. Inside the bucket, there are three grouped prefixes: production, staging, and shared. The production prefix contains separate state files for networking, compute, and database. The staging prefix contains separate state files for networking and compute. The shared prefix contains separate state files for dns and iam. The diagram illustrates an organizational hierarchy where state is split first by environment or shared scope, and then by infrastructure component, keeping each state file smaller and limiting the blast radius of state corruption or concurrent changes."
+/>
 
 The key principle: keep state files small and focused. A single state file managing your entire infrastructure is a single point of failure and a concurrency bottleneck. Splitting by environment and component lets teams work in parallel and limits the blast radius of any single state problem.
 

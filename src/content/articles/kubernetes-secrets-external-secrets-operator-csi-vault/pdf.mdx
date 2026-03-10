@@ -9,6 +9,11 @@ tags: ["cloud-platforms", "kubernetes", "aws", "azure"]
 featured: true
 ---
 
+import csiDriverDiagram from "./diagrams/csi-driver-secret-fetch-flow.png"
+import esoSyncDiagram from "./diagrams/eso-sync-flow.png"
+import patternDecisionDiagram from "./diagrams/pattern-decision-tree.png"
+import threeSecretDiagram from "./diagrams/three-secret-injection-patterns.png"
+
 *[CSI]: Container Storage Interface
 *[ESO]: External Secrets Operator
 *[IAM]: Identity and Access Management
@@ -77,42 +82,10 @@ Each pattern fails differently when the secret manager goes away. Consider a 30-
 ESO's pods keep running with their last-synced secrets, and new pods start successfully because the Kubernetes Secret already exists — it's just stale. CSI Driver pods that are already running continue fine, but any new pods can't fetch their secrets and get stuck. Init containers? That depends entirely on what retry and fallback logic you built.
 
 <Diagram
+  src={threeSecretDiagram}
   title="Three secret injection patterns."
-  description={
-  `Flowchart comparing three ways Kubernetes workloads receive secrets from an external secret manager. At the top, an external group labeled External Secret Manager contains Vault, AWS Secrets Manager, or another provider. Inside a grouped Kubernetes Cluster section, the first pattern labeled Pattern 1: ESO shows ESO Controller writing to a Kubernetes Secret, which is then consumed by a pod through envFrom or volumeMount. The second pattern labeled Pattern 2: CSI Driver shows the CSI Driver DaemonSet providing a pod volume mount. The third pattern labeled Pattern 3: Init Container shows an Init Container writing secret data into a shared emptyDir, which the Main Container then reads. The external manager connects to ESO through a path labeled Periodic sync and connects to both the CSI Driver and Init Container through paths labeled On pod start. The diagram emphasizes that ESO caches into native Kubernetes Secrets, CSI fetches during pod startup, and init containers implement a custom startup-time retrieval path.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph External["External Secret Manager"]
-    V[Vault / AWS SM / etc]
-  end
-
-  subgraph K8s["Kubernetes Cluster"]
-    subgraph ESO["Pattern 1: ESO"]
-      E1[ESO Controller] --> E2[K8s Secret]
-      E2 --> E3[Pod via envFrom/volumeMount]
-    end
-
-    subgraph CSI["Pattern 2: CSI Driver"]
-      C1[CSI Driver DaemonSet] --> C2[Pod Volume Mount]
-    end
-
-    subgraph Init["Pattern 3: Init Container"]
-      I1[Init Container] --> I2[Shared emptyDir]
-      I2 --> I3[Main Container]
-    end
-  end
-
-  V -->|"Periodic sync"| E1
-  V -->|"On pod start"| C1
-  V -->|"On pod start"| I1
-
-  style E2 fill:#6f6,color:#000
-  style C2 fill:#69f,color:#000
-  style I2 fill:#f96,color:#000
-```
-</Diagram>
+  description="Flowchart comparing three ways Kubernetes workloads receive secrets from an external secret manager. At the top, an external group labeled External Secret Manager contains Vault, AWS Secrets Manager, or another provider. Inside a grouped Kubernetes Cluster section, the first pattern labeled Pattern 1: ESO shows ESO Controller writing to a Kubernetes Secret, which is then consumed by a pod through envFrom or volumeMount. The second pattern labeled Pattern 2: CSI Driver shows the CSI Driver DaemonSet providing a pod volume mount. The third pattern labeled Pattern 3: Init Container shows an Init Container writing secret data into a shared emptyDir, which the Main Container then reads. The external manager connects to ESO through a path labeled Periodic sync and connects to both the CSI Driver and Init Container through paths labeled On pod start. The diagram emphasizes that ESO caches into native Kubernetes Secrets, CSI fetches during pod startup, and init containers implement a custom startup-time retrieval path."
+/>
 
 <Callout type="info">
 This article uses HashiCorp Vault for examples, but the patterns apply equally to AWS Secrets Manager, Azure Key Vault, or any other provider. The injection mechanisms don't care where secrets come from — only how they get into pods.
@@ -364,32 +337,10 @@ Code: ExternalSecret with templating.
 The key insight with ESO is the decoupling between secret fetching and pod lifecycle. The controller runs its reconciliation loop independently — watching ExternalSecrets, fetching from the external manager, updating Kubernetes Secrets. Pods consume those Secrets normally, unaware that they came from Vault or AWS. This decoupling is what gives ESO its graceful degradation: the Kubernetes Secret exists even when the external manager doesn't respond.
 
 <Diagram
+  src={esoSyncDiagram}
   title="ESO sync flow."
-  description={
-    `Sequence diagram showing how External Secrets Operator synchronizes secret values into Kubernetes. The participants are ExternalSecret, ESO Controller, Secret Manager, Kubernetes Secret, and Pod. The flow begins when the ESO Controller watches an ExternalSecret resource. Inside a loop that repeats every refreshInterval, the controller fetches secret values from the external Secret Manager, receives the values in response, and then creates or updates a Kubernetes Secret. Separately, a Pod mounts that Kubernetes Secret and receives the secret data. A note over the ESO Controller and Secret Manager explains that if the Secret Manager is down, the Kubernetes Secret keeps its last value. The diagram highlights that ESO fetches asynchronously on a controller schedule and that pods consume cached Kubernetes Secret data rather than making direct startup-time calls to the external manager.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant ES as ExternalSecret
-    participant ESO as ESO Controller
-    participant SM as Secret Manager
-    participant KS as K8s Secret
-    participant Pod as Pod
-
-    ES->>ESO: Watch ExternalSecret
-    loop Every refreshInterval
-        ESO->>SM: Fetch secret values
-        SM-->>ESO: Return values
-        ESO->>KS: Create/Update Secret
-    end
-
-    Pod->>KS: Mount Secret
-    KS-->>Pod: Secret data
-
-    Note over ESO,SM: If Secret Manager down:<br/>K8s Secret keeps last value
-```
-</Diagram>
+  description="Sequence diagram showing how External Secrets Operator synchronizes secret values into Kubernetes. The participants are ExternalSecret, ESO Controller, Secret Manager, Kubernetes Secret, and Pod. The flow begins when the ESO Controller watches an ExternalSecret resource. Inside a loop that repeats every refreshInterval, the controller fetches secret values from the external Secret Manager, receives the values in response, and then creates or updates a Kubernetes Secret. Separately, a Pod mounts that Kubernetes Secret and receives the secret data. A note over the ESO Controller and Secret Manager explains that if the Secret Manager is down, the Kubernetes Secret keeps its last value. The diagram highlights that ESO fetches asynchronously on a controller schedule and that pods consume cached Kubernetes Secret data rather than making direct startup-time calls to the external manager."
+/>
 
 ### ESO Failure Modes
 
@@ -528,36 +479,10 @@ The CSI driver optionally supports rotation. Enable it by setting `--enable-secr
 The flow differs fundamentally from ESO: secrets are fetched synchronously during pod startup, not asynchronously by a controller.
 
 <Diagram
+  src={csiDriverDiagram}
   title="CSI driver secret fetch flow."
-  description={
-    `Sequence diagram showing how the Secrets Store CSI Driver fetches secrets during pod startup. The participants are Pod, CSI Driver, Vault Provider, and HashiCorp Vault. The flow begins when the Pod sends a mount volume request to the CSI Driver. The CSI Driver asks the Vault Provider to fetch secrets. The provider authenticates to Vault and reads the requested values. Vault returns the secret values to the provider, the provider returns secret data to the CSI Driver, and the CSI Driver mounts the secrets as files into the Pod. A note explains that the pod starts only after the secrets are mounted. An alternate failure path shows the provider attempting to authenticate to Vault when Vault is unavailable. Vault returns a connection failure, the provider returns an error to the CSI Driver, the CSI Driver reports that the mount fails, and a note states that the Pod stays Pending. The diagram emphasizes that CSI secret retrieval is synchronous and directly coupled to pod startup.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant Pod as Pod
-    participant CSI as CSI Driver
-    participant Provider as Vault Provider
-    participant Vault as HashiCorp Vault
-
-    Pod->>CSI: Mount volume request
-    CSI->>Provider: Fetch secrets
-    Provider->>Vault: Authenticate + Read
-    Vault-->>Provider: Secret values
-    Provider-->>CSI: Secret data
-    CSI-->>Pod: Mount secrets as files
-
-    Note over Pod,CSI: Pod starts AFTER secrets mounted
-
-    alt Vault unavailable
-        Provider->>Vault: Authenticate
-        Vault--xProvider: Connection failed
-        Provider-->>CSI: Error
-        CSI-->>Pod: Mount fails
-        Note over Pod: Pod stays Pending
-    end
-```
-</Diagram>
+  description="Sequence diagram showing how the Secrets Store CSI Driver fetches secrets during pod startup. The participants are Pod, CSI Driver, Vault Provider, and HashiCorp Vault. The flow begins when the Pod sends a mount volume request to the CSI Driver. The CSI Driver asks the Vault Provider to fetch secrets. The provider authenticates to Vault and reads the requested values. Vault returns the secret values to the provider, the provider returns secret data to the CSI Driver, and the CSI Driver mounts the secrets as files into the Pod. A note explains that the pod starts only after the secrets are mounted. An alternate failure path shows the provider attempting to authenticate to Vault when Vault is unavailable. Vault returns a connection failure, the provider returns an error to the CSI Driver, the CSI Driver reports that the mount fails, and a note states that the Pod stays Pending. The diagram emphasizes that CSI secret retrieval is synchronous and directly coupled to pod startup."
+/>
 
 ### CSI Failure Modes
 
@@ -826,30 +751,10 @@ With three patterns to choose from, the decision comes down to two questions: ho
 />
 
 <Diagram
+  src={patternDecisionDiagram}
   title="Pattern decision tree."
-  description={
-    `Flowchart guiding the choice between Kubernetes secret injection patterns based on failure tolerance. The process starts at Choose Secret Pattern and asks whether the application can tolerate minutes of staleness. If yes, the recommendation is ESO. If no, the chart asks whether the team accepts pod failures when the secret manager is down. If yes, the recommendation is CSI Driver. If no, the chart asks whether custom fallback logic is needed. If yes, the recommendation is Init Container. If no, the recommendation is ESO plus a short interval. The diagram highlights that the main decision points are tolerance for stale secrets, tolerance for blocked pod startup, and willingness to build custom fallback behavior.`
-  }
->
-```mermaid
-flowchart LR
-    A[Choose Secret Pattern] --> B{Tolerate minutes<br/>of staleness?}
-
-    B -->|Yes| C[ESO]
-    B -->|No| D{Accept pod failures<br/>if manager down?}
-
-    D -->|Yes| E[CSI Driver]
-    D -->|No| F{Need custom<br/>fallback logic?}
-
-    F -->|Yes| G[Init Container]
-    F -->|No| H[ESO + short interval]
-
-    style C fill:#6f6,color:#000
-    style E fill:#69f,color:#000
-    style G fill:#f96,color:#000
-    style H fill:#6f6,color:#000
-```
-</Diagram>
+  description="Flowchart guiding the choice between Kubernetes secret injection patterns based on failure tolerance. The process starts at Choose Secret Pattern and asks whether the application can tolerate minutes of staleness. If yes, the recommendation is ESO. If no, the chart asks whether the team accepts pod failures when the secret manager is down. If yes, the recommendation is CSI Driver. If no, the chart asks whether custom fallback logic is needed. If yes, the recommendation is Init Container. If no, the recommendation is ESO plus a short interval. The diagram highlights that the main decision points are tolerance for stale secrets, tolerance for blocked pod startup, and willingness to build custom fallback behavior."
+/>
 
 ### Recommendations by Use Case
 

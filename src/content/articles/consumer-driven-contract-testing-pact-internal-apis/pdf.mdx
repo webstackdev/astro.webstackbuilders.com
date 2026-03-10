@@ -9,6 +9,13 @@ tags: ["apis-and-gateways", "docker", "kubernetes", "typescript", "python", "go"
 featured: true
 ---
 
+import breakingChangeDiagram from "./diagrams/breaking-change-coordination-workflow-with-pact.png"
+import canIDeployDiagram from "./diagrams/can-i-deploy-flow-preventing-incompatible-deployments.png"
+import contractTestingAtScaleDiagram from "./diagrams/contract-testing-at-scale-with-pact-broker-as-central-registry.png"
+import decisionTreeDiagram from "./diagrams/decision-tree-for-choosing-contract-testing-approach.png"
+import pactWorkflowDiagram from "./diagrams/pact-workflow-from-consumer-test-to-provider-verification.png"
+import traditionalDiagram from "./diagrams/traditional-vs-consumer-driven-contract-model.png"
+
 *[CDC]: Consumer-Driven Contracts
 *[SUT]: System Under Test
 
@@ -121,24 +128,10 @@ Traditional API testing puts the provider in charge. The provider defines a sche
 Consumer-driven contracts invert this model. The __consumer__ defines what it needs from the provider and encodes those expectations in a contract. The provider then verifies it can satisfy that contract. Both sides test against the same artifact, so compatibility is verified before either side deploys.
 
 <Diagram
+  src={traditionalDiagram}
   title="Traditional vs consumer-driven contract model"
   description="Flowchart comparing the traditional model, where a provider defines a schema that the consumer uses and hopes stays accurate, with the consumer-driven model, where the consumer defines a contract that the provider verifies before deployment."
->
-```mermaid
-flowchart LR
-  subgraph Traditional
-    P1[Provider] -->|Defines| S1[Schema]
-    S1 -->|Consumed by| C1[Consumer]
-    C1 -.->|Hopes it works| P1
-  end
-
-  subgraph Consumer-Driven
-    C2[Consumer] -->|Defines| CT[Contract]
-    CT -->|Verified by| P2[Provider]
-    P2 -->|Guarantees| C2
-  end
-```
-</Diagram>
+/>
 
 The flow works like this: First, the consumer writes a test that defines its expectations. "When I call `GET /users/123`, I expect a response with a `userId` string and an `email` string." That test generates a contract file describing the expected interaction.
 
@@ -226,28 +219,10 @@ __Breaking changes__ (removing fields, renaming fields, changing types) trigger 
 6. Once all consumers have migrated, the provider deploys
 
 <Diagram
+  src={breakingChangeDiagram}
   title="Breaking change coordination workflow with Pact"
   description="Sequence diagram showing a provider team making a local change, failing contract verification, querying the Pact Broker for affected consumers, coordinating with consumer teams to update code and contracts, then rerunning verification successfully before deployment."
->
-```mermaid
-sequenceDiagram
-    participant PT as Provider Team
-    participant PB as Pact Broker
-    participant CT as Consumer Teams
-
-    PT->>PT: Update code locally
-    PT->>PT: Run contract verification
-    PT--xPT: Verification fails
-    PT->>PB: Query affected consumers
-    PB->>PT: ConsumerA, ConsumerB depend on changed field
-    PT->>CT: Coordinate migration
-    CT->>CT: Update code and contracts
-    CT->>PB: Publish updated contracts
-    PT->>PT: Re-run verification
-    PT->>PT: Verification passes
-    PT->>PT: Deploy
-```
-</Diagram>
+/>
 
 This isn't providers waiting on consumers' permission — it's providers having __evidence__ of who they need to coordinate with. Before CDC, step 3 was "check the wiki, ask around in Slack, hope you found everyone." With CDC, step 3 is "query the Pact Broker."
 
@@ -272,29 +247,10 @@ The component you run locally and in CI is the __Pact library__ for your languag
 Here's how the pieces fit together:
 
 <Diagram
+  src={pactWorkflowDiagram}
   title="Pact workflow from consumer test to provider verification"
   description="Sequence diagram showing the consumer test defining expectations against the Pact mock server, publishing the generated contract to the Pact Broker, and the provider test fetching that contract, replaying interactions against the real provider service, verifying responses, and publishing verification results back to the broker."
->
-```mermaid
-sequenceDiagram
-    participant CT as Consumer Test
-    participant MS as Pact Mock Server
-    participant PB as Pact Broker
-    participant PT as Provider Test
-    participant PS as Provider Service
-
-    CT->>MS: Define expectations
-    CT->>MS: Make HTTP calls
-    MS->>CT: Return mock responses
-    CT->>PB: Publish contract (pact file)
-
-    PT->>PB: Fetch contracts
-    PT->>PS: Replay interactions
-    PS->>PT: Return real responses
-    PT->>PT: Verify against expectations
-    PT->>PB: Publish verification results
-```
-</Diagram>
+/>
 
 On the __consumer side__, you write Pact tests that describe what your service expects from its dependencies. These tests run against a mock server that the Pact library spins up locally — no network calls to real services. You define the request you'll make and the response you expect. The mock server returns that response, and your test verifies your code handles it correctly. When the test passes, Pact generates a "pact file"—a JSON document describing every interaction your consumer expects.
 
@@ -667,27 +623,10 @@ The fundamental difference: Pact tests what consumers actually use, while schema
 The decision tree is simpler than it looks: if you know your consumers and can coordinate with them, Pact pays dividends. If you're building a public API or can't get consumer teams to write tests, schema-based is more practical.
 
 <Diagram
+  src={decisionTreeDiagram}
   title="Decision tree for choosing contract testing approach"
   description="Flowchart guiding teams through contract testing choices based on the number of consumers, whether consumers are known, and whether an OpenAPI specification already exists, ending with recommendations such as Pact CDC, schema plus versioning, Prism or Dredd, or the full Pact workflow."
->
-```mermaid
-flowchart LR
-    A[Need Contract Testing?] --> B{Many Consumers?}
-
-    B -->|Yes| C{Consumers Known?}
-    B -->|No| D[Schema-based may suffice]
-
-    C -->|Yes, Internal| E[Pact CDC]
-    C -->|No, Public API| F[Schema + Versioning]
-
-    D --> G{Existing OpenAPI?}
-    G -->|Yes| H[Prism/Dredd]
-    G -->|No| I[Consider Pact anyway]
-
-    E --> J[Full Pact workflow]
-    F --> K[OpenAPI + semver]
-```
-</Diagram>
+/>
 
 <Table
   variant="vertical-column-delineation-table"
@@ -868,31 +807,10 @@ The `can-i-deploy` command is the key to safe deployments. It checks if the curr
 The `can-i-deploy` command ties everything together. It queries the Pact Broker's compatibility matrix to determine if a specific version of a service can safely deploy to a target environment. The broker tracks which versions are deployed where, and which contracts have been verified — so it can answer "will this deployment break anything?" with certainty.
 
 <Diagram
+  src={canIDeployDiagram}
   title="Can-I-Deploy flow preventing incompatible deployments"
   description="Sequence diagram showing a developer pushing code to CI, CI running tests, publishing contracts or verification results to the Pact Broker, and querying can-i-deploy. If compatibility checks pass, CI deploys to production and records the deployment; if they fail, the build stops and the developer gets a breaking change notice."
->
-```mermaid
-sequenceDiagram
-  participant Dev as Developer
-  participant CI as CI Pipeline
-  participant PB as Pact Broker
-  participant Prod as Production
-
-  Dev->>CI: Push code
-  CI->>CI: Run tests
-  CI->>PB: Publish contract/verification
-  CI->>PB: can-i-deploy?
-
-  alt Compatible
-    PB->>CI: ✅ Safe to deploy
-    CI->>Prod: Deploy
-    CI->>PB: Record deployment
-  else Incompatible
-    PB->>CI: ❌ Breaking change detected
-    CI->>Dev: Fail build with details
-  end
-```
-</Diagram>
+/>
 
 When `can-i-deploy` passes, the pipeline records the deployment with `pact-broker record-deployment`. This updates the broker's view of what's running in each environment, so future compatibility checks are accurate. The entire flow — publish, verify, check, deploy, record — creates an audit trail of every service version that ever ran in production.
 
@@ -1143,38 +1061,10 @@ Contract testing shines at scale. While integration test complexity grows quadra
 The Pact Broker becomes your central nervous system for contract management. It tracks every contract, every verification, and every deployment across your entire service mesh.
 
 <Diagram
+  src={contractTestingAtScaleDiagram}
   title="Contract testing at scale with Pact Broker as central registry"
   description="Flowchart showing multiple consumer services publishing contracts into a central Pact Broker registry, which then serves those contracts to multiple provider services for verification and compatibility tracking."
->
-```mermaid
-flowchart LR
-  subgraph Consumers
-    C1[Order Service]
-    C2[Shipping Service]
-    C3[Analytics Service]
-    C4[Mobile App]
-  end
-
-  subgraph Pact Broker
-    PB[Contract Registry]
-  end
-
-  subgraph Providers
-    P1[User Service]
-    P2[Product Service]
-    P3[Payment Service]
-  end
-
-  C1 --> PB
-  C2 --> PB
-  C3 --> PB
-  C4 --> PB
-
-  PB --> P1
-  PB --> P2
-  PB --> P3
-```
-</Diagram>
+/>
 
 As services multiply, you'll need these scaling strategies:
 

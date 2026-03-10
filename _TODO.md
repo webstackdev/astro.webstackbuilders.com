@@ -274,6 +274,8 @@ https://mermaid.js.org/config/directives.html
 
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
 
+- How can we handle footnotes in List components? src/content/articles/kubernetes-multi-cluster-fleet-management-configuration/pdf.mdx line 80
+
 ### This file was badly mangled during refactoring, need to compare against original:
 
 src/content/articles/internal-developer-portal-platform-self-service-actions/pdf.mdx

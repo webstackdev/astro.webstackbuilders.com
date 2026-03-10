@@ -9,6 +9,8 @@ tags: ["cloud-platforms","azure","terraform","aws","kubernetes"]
 featured: true
 ---
 
+import oidcTokenDiagram from "./diagrams/oidc-token-exchange-flow-for-workload-identity-federation.png"
+
 *[OIDC]: OpenID Connect
 *[JWT]: JSON Web Token
 *[STS]: Security Token Service
@@ -77,25 +79,10 @@ Here's the core insight: your CI/CD platform already knows which repository trig
 The mechanism is OIDC — the same protocol that powers "Sign in with Google" on websites. Your workload requests a token from its platform (GitHub Actions, Azure Pipelines, Kubernetes), then exchanges that token with your cloud provider for short-lived credentials.
 
 <Diagram
+  src={oidcTokenDiagram}
   title="OIDC token exchange flow for workload identity federation."
-  description={
-    `Sequence diagram with three participants: Workload, Platform such as GitHub or Azure DevOps, and Cloud Provider such as Azure. The Workload requests an identity token from the Platform. The Platform returns a signed JWT containing claims. The Workload then sends that JWT to the Cloud Provider to exchange it for credentials. The Cloud Provider performs two internal checks: it verifies the JWT signature and checks the trust policy. If the token and policy checks succeed, the Cloud Provider returns short-lived credentials valid for one hour back to the Workload. The diagram shows how workload identity federation replaces static secrets with a signed identity assertion followed by temporary credentials.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant W as Workload
-    participant P as Platform (GitHub/Azure DevOps)
-    participant C as Cloud Provider (Azure)
-
-    W->>P: Request identity token
-    P->>W: Signed JWT with claims
-    W->>C: Exchange JWT for credentials
-    C->>C: Verify signature
-    C->>C: Check trust policy
-    C->>W: Short-lived credentials (1 hour)
-```
-</Diagram>
+  description="Sequence diagram with three participants: Workload, Platform such as GitHub or Azure DevOps, and Cloud Provider such as Azure. The Workload requests an identity token from the Platform. The Platform returns a signed JWT containing claims. The Workload then sends that JWT to the Cloud Provider to exchange it for credentials. The Cloud Provider performs two internal checks: it verifies the JWT signature and checks the trust policy. If the token and policy checks succeed, the Cloud Provider returns short-lived credentials valid for one hour back to the Workload. The diagram shows how workload identity federation replaces static secrets with a signed identity assertion followed by temporary credentials."
+/>
 
 The JWT contains claims about the workload — which repository triggered the build, which branch, which environment. Your cloud provider verifies the signature against the platform's public keys, checks that the claims match your access policy, and issues credentials that expire in an hour or less.
 

@@ -9,6 +9,10 @@ tags: ["systems-and-development", "typescript", "kubernetes"]
 featured: true
 ---
 
+import connectionEstablishmentDiagram from "./diagrams/connection-establishment-sequence.png"
+import connectionSaturationDiagram from "./diagrams/connection-saturation-progression.png"
+import pgbouncerDiagram from "./diagrams/pgbouncer-connection-multiplexing.png"
+
 *[HPA]: Horizontal Pod Autoscaler
 *[IOPS]: Input/Output Operations Per Second
 *[K8s]: Kubernetes
@@ -40,39 +44,10 @@ Establishing a new connection involves multiple steps: TCP handshake (1ms locall
 Each backend process consumes resources independent of whether it's actively running queries. The base memory footprint is roughly 5-10MB per connection, plus `work_mem` allocation when executing operations (4MB default, but can be much higher for complex queries). CPU overhead comes from OS scheduler contention — more backend processes means more context switching as the kernel cycles between them, even when most are idle.
 
 <Diagram
+  src={connectionEstablishmentDiagram}
   title="Connection establishment sequence."
-  description={
-    `Sequence diagram with three participants: Application, Postgres Process, and Backend Process. The application starts a TCP handshake by sending TCP SYN to the Postgres process, which responds with TCP SYN-ACK, followed by the application sending TCP ACK. The application then sends a startup message to the Postgres process. The Postgres process forks a backend process and hands the connection off to that backend. The backend requests authentication from the application, the application sends password or credentials, the backend verifies those credentials, and then responds with Authentication OK. A note marks that the connection is now established in roughly 10 to 200 milliseconds. After establishment, the application sends a query to the backend and receives results. Finally, the application sends Terminate, and the backend performs cleanup and exits. The diagram shows the full overhead involved in creating a fresh PostgreSQL connection before useful query work begins.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant PG as Postgres Process
-    participant Backend as Backend Process
-
-    App->>PG: TCP SYN
-    PG->>App: TCP SYN-ACK
-    App->>PG: TCP ACK
-
-    App->>PG: Startup message
-    PG->>PG: Fork backend process
-    PG->>Backend: Hand off connection
-
-    Backend->>App: Authentication request
-    App->>Backend: Password/credentials
-    Backend->>Backend: Verify credentials
-    Backend->>App: Authentication OK
-
-    Note over App,Backend: Connection established (~10-200ms)
-
-    App->>Backend: Query
-    Backend->>App: Results
-
-    App->>Backend: Terminate
-    Backend->>Backend: Cleanup & exit
-```
-</Diagram>
+  description="Sequence diagram with three participants: Application, Postgres Process, and Backend Process. The application starts a TCP handshake by sending TCP SYN to the Postgres process, which responds with TCP SYN-ACK, followed by the application sending TCP ACK. The application then sends a startup message to the Postgres process. The Postgres process forks a backend process and hands the connection off to that backend. The backend requests authentication from the application, the application sends password or credentials, the backend verifies those credentials, and then responds with Authentication OK. A note marks that the connection is now established in roughly 10 to 200 milliseconds. After establishment, the application sends a query to the backend and receives results. Finally, the application sends Terminate, and the backend performs cleanup and exits. The diagram shows the full overhead involved in creating a fresh PostgreSQL connection before useful query work begins."
+/>
 
 The `max_connections` setting determines how many backend processes can exist simultaneously. The conventional wisdom is to set it high "for safety," but this backfires. A database configured for 1000 connections reserves memory for 1000 potential backends even when only 50 are connected. The rule of thumb for bare metal: `max_connections = (CPU cores × 2) + effective_spindle_count`[^spindle]. For SSDs, `CPU cores × 4` works, but staying conservative (50-100) with a connection pooler is usually better.
 
@@ -246,41 +221,10 @@ External poolers support different __pooling modes__ that determine when connect
 />
 
 <Diagram
+  src={pgbouncerDiagram}
   title="PgBouncer connection multiplexing."
-  description={
-  `Top-to-bottom flowchart comparing direct PostgreSQL connections with pooled connections through PgBouncer. In the Application Layer group, App Instance 1, App Instance 2, and App Instance N each have a pool of 20 connections. In the Without PgBouncer group, each application instance connects directly to PostgreSQL, causing the database to accumulate N times 20 connections as application instances scale out. In the With PgBouncer group, the same application instances send their 20 connections each to PgBouncer, which accepts all incoming client connections and multiplexes them onto a fixed pool of 50 PostgreSQL connections. The direct PostgreSQL target is highlighted negatively, while the fixed 50-connection PostgreSQL target behind PgBouncer is highlighted positively. The diagram shows how PgBouncer decouples application scaling from raw database connection counts.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph applicationLayer[Application Layer]
-    A1[App Instance 1<br/>Pool: 20]
-    A2[App Instance 2<br/>Pool: 20]
-    A3[App Instance N<br/>Pool: 20]
-  end
-
-  subgraph withoutPgBouncer[Without PgBouncer]
-    B[PostgreSQL<br/>N × 20 connections]
-  end
-
-  subgraph withPgBouncer[With PgBouncer]
-    P[PgBouncer<br/>Accepts all]
-    C[PostgreSQL<br/>Fixed 50 connections]
-  end
-
-  A1 -->|"20 conn"| B
-  A2 -->|"20 conn"| B
-  A3 -->|"20 conn"| B
-
-  A1 -->|"20 conn"| P
-  A2 -->|"20 conn"| P
-  A3 -->|"20 conn"| P
-  P -->|"50 conn"| C
-
-  style B fill:#f99,color:#000
-  style C fill:#9f9,color:#000
-```
-</Diagram>
+  description="Top-to-bottom flowchart comparing direct PostgreSQL connections with pooled connections through PgBouncer. In the Application Layer group, App Instance 1, App Instance 2, and App Instance N each have a pool of 20 connections. In the Without PgBouncer group, each application instance connects directly to PostgreSQL, causing the database to accumulate N times 20 connections as application instances scale out. In the With PgBouncer group, the same application instances send their 20 connections each to PgBouncer, which accepts all incoming client connections and multiplexes them onto a fixed pool of 50 PostgreSQL connections. The direct PostgreSQL target is highlighted negatively, while the fixed 50-connection PostgreSQL target behind PgBouncer is highlighted positively. The diagram shows how PgBouncer decouples application scaling from raw database connection counts."
+/>
 
 ### PgBouncer Configuration
 
@@ -674,26 +618,10 @@ __Lock blocking analysis__ identifies chains where one query holds locks that ot
 The progression from healthy to critical follows a predictable pattern:
 
 <Diagram
+  src={connectionSaturationDiagram}
   title="Connection saturation progression."
-  description={
-    `Top-to-bottom flowchart showing three connection saturation states. The Healthy state shows 50 out of 200 connections in use, no queue, and 15 idle connections. A traffic increase moves the system from Healthy to Warning. The Warning state shows 160 out of 200 connections in use, a queue of 5, and 2 idle connections. From Warning, if no action is taken, the system progresses to Critical. The Critical state shows 198 out of 200 connections in use, a queue of 50, and 0 idle connections. There is also a recovery path from Warning back to Healthy labeled Scale or optimize. The healthy state is highlighted positively, the warning state is highlighted as cautionary, and the critical state is highlighted negatively. The diagram explains how connection exhaustion develops gradually and where intervention can restore normal operation before the database reaches saturation.`
-  }
->
-```mermaid
-flowchart LR
-    H["Healthy<br/>50/200 connections<br/>No queue, 15 idle"]
-    W["Warning<br/>160/200 connections<br/>Queue: 5, Idle: 2"]
-    C["Critical<br/>198/200 connections<br/>Queue: 50, Idle: 0"]
-
-    H -->|"Traffic increase"| W
-    W -->|"No action"| C
-    W -->|"Scale/optimize"| H
-
-    style H fill:#9f9,color:#000
-    style W fill:#ff9,color:#000
-    style C fill:#f99,color:#000
-```
-</Diagram>
+  description="Top-to-bottom flowchart showing three connection saturation states. The Healthy state shows 50 out of 200 connections in use, no queue, and 15 idle connections. A traffic increase moves the system from Healthy to Warning. The Warning state shows 160 out of 200 connections in use, a queue of 5, and 2 idle connections. From Warning, if no action is taken, the system progresses to Critical. The Critical state shows 198 out of 200 connections in use, a queue of 50, and 0 idle connections. There is also a recovery path from Warning back to Healthy labeled Scale or optimize. The healthy state is highlighted positively, the warning state is highlighted as cautionary, and the critical state is highlighted negatively. The diagram explains how connection exhaustion develops gradually and where intervention can restore normal operation before the database reaches saturation."
+/>
 
 ## Failure Patterns
 

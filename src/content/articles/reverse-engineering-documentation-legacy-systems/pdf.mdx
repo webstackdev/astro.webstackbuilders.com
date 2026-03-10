@@ -9,6 +9,10 @@ tags: ["system-modernization","typescript"]
 featured: true
 ---
 
+import documentationAccuracyDiagram from "./diagrams/documentation-accuracy-decay-in-a-typical-legacy-system.png"
+import eventFlowDiagram from "./diagrams/event-flow-topology-discovered-through-runtime-observation.png"
+import serviceTopologyDiagram from "./diagrams/service-topology-diagram-generated-from-tracing-data.png"
+
 *[ADR]: Architecture Decision Record
 *[ADRs]: Architecture Decision Records
 *[AST]: Abstract Syntax Tree
@@ -34,19 +38,10 @@ The pattern is predictable. Day one, someone writes docs that match the system p
 By year three, architecture drift has set in. Services have been renamed, split, or consolidated. New integrations exist that aren't mentioned anywhere. The diagrams show data flowing through components that were deprecated eighteen months ago.
 
 <Diagram
+  src={documentationAccuracyDiagram}
   title="Documentation accuracy decay in a typical legacy system."
-  description={
-    `Line chart titled Documentation Accuracy Over Time. The horizontal axis shows time points labeled Launch, 6 months, 1 year, 2 years, 3 years, 5 years, 7 years, and 10 years. The vertical axis is Accuracy percent from 0 to 100. A single line starts at 100 percent at launch, then declines to 95 percent at 6 months, 80 percent at 1 year, 65 percent at 2 years, 50 percent at 3 years, 35 percent at 5 years, 20 percent at 7 years, and 10 percent at 10 years. The chart illustrates a steady erosion in documentation accuracy as the system ages, with a notable drop after the first year and severe inaccuracy by years five through ten.`
-  }
->
-```mermaid
-xychart-beta
-    title "Documentation Accuracy Over Time"
-    x-axis ["Launch", "6 mo", "1 yr", "2 yr", "3 yr", "5 yr", "7 yr", "10 yr"]
-    y-axis "Accuracy %" 0 --> 100
-    line [100, 95, 80, 65, 50, 35, 20, 10]
-```
-</Diagram>
+  description="Line chart titled Documentation Accuracy Over Time. The horizontal axis shows time points labeled Launch, 6 months, 1 year, 2 years, 3 years, 5 years, 7 years, and 10 years. The vertical axis is Accuracy percent from 0 to 100. A single line starts at 100 percent at launch, then declines to 95 percent at 6 months, 80 percent at 1 year, 65 percent at 2 years, 50 percent at 3 years, 35 percent at 5 years, 20 percent at 7 years, and 10 percent at 10 years. The chart illustrates a steady erosion in documentation accuracy as the system ages, with a notable drop after the first year and severe inaccuracy by years five through ten."
+/>
 
 By __year five__ or beyond, the documentation has crossed into negative value territory. It's not just incomplete — it's actively misleading. New team members read it and form incorrect mental models that take months to unlearn. Incident responders follow outdated runbooks and make problems worse.
 
@@ -402,38 +397,10 @@ For AWS SQS/SNS architectures, CloudWatch metrics and the subscription configura
 The goal is to build a producer-consumer map: for each topic or queue, which services publish to it and which services consume from it. This map rarely exists in documentation but is essential for understanding how data flows through the system.
 
 <Diagram
+  src={eventFlowDiagram}
   title="Event flow topology discovered through runtime observation."
-  description={
-    `Left-to-right flowchart with three groups: Producers, Topics, and Consumers. In Producers, Order Service and Payment Service appear as separate source systems. In Topics, there are two event channels named order-events and payment-events. In Consumers, there are three downstream services: Notification Service, Analytics Service, and Fulfillment Service. Order Service publishes to order-events. Payment Service publishes to payment-events. The order-events topic is consumed by Notification Service, Analytics Service, and Fulfillment Service. The payment-events topic is consumed by Notification Service and Analytics Service. The diagram shows how runtime observation can reveal which services publish events, which topics carry them, and which downstream services depend on each stream.`
-  }
->
-```mermaid
-flowchart LR
-    subgraph Producers
-        A[Order Service]
-        B[Payment Service]
-    end
-
-    subgraph Topics
-        T1[order-events]
-        T2[payment-events]
-    end
-
-    subgraph Consumers
-        C[Notification Service]
-        D[Analytics Service]
-        E[Fulfillment Service]
-    end
-
-    A -->|publishes| T1
-    B -->|publishes| T2
-    T1 -->|consumed by| C
-    T1 -->|consumed by| D
-    T1 -->|consumed by| E
-    T2 -->|consumed by| C
-    T2 -->|consumed by| D
-```
-</Diagram>
+  description="Left-to-right flowchart with three groups: Producers, Topics, and Consumers. In Producers, Order Service and Payment Service appear as separate source systems. In Topics, there are two event channels named order-events and payment-events. In Consumers, there are three downstream services: Notification Service, Analytics Service, and Fulfillment Service. Order Service publishes to order-events. Payment Service publishes to payment-events. The order-events topic is consumed by Notification Service, Analytics Service, and Fulfillment Service. The payment-events topic is consumed by Notification Service and Analytics Service. The diagram shows how runtime observation can reveal which services publish events, which topics carry them, and which downstream services depend on each stream."
+/>
 
 ## Automated Diagram Generation
 
@@ -517,43 +484,10 @@ The X-Ray service graph includes call counts, latency percentiles, and error rat
 For systems without distributed tracing, service mesh telemetry (Istio, Linkerd) provides similar data. The mesh sees all traffic between services and can report on the actual communication patterns.
 
 <Diagram
+  src={serviceTopologyDiagram}
   title="Service topology diagram generated from tracing data."
-  description={
-    `Top-to-bottom flowchart divided into three groups: External, Services, and Data. In External, a Load Balancer sits at the entry point. In Services, the Load Balancer sends traffic to an API Gateway. The API Gateway then calls Auth Service, Order Service, and Inventory Service. In Data, PostgreSQL, Redis, and Kafka appear as shared infrastructure components. Order Service writes to PostgreSQL and Kafka. Inventory Service writes to PostgreSQL and Redis. Auth Service uses Redis. Kafka delivers events to Notification Service. The diagram represents a service topology reconstructed from tracing data, showing both synchronous service-to-service calls from the gateway and downstream dependencies on databases, caches, and messaging infrastructure.`
-  }
->
-```mermaid
-flowchart TB
-    subgraph "External"
-        LB[Load Balancer]
-    end
-
-    subgraph "Services"
-        API[API Gateway]
-        Auth[Auth Service]
-        Orders[Order Service]
-        Inventory[Inventory Service]
-        Notify[Notification Service]
-    end
-
-    subgraph "Data"
-        PG[(PostgreSQL)]
-        Redis[(Redis)]
-        Kafka[Kafka]
-    end
-
-    LB --> API
-    API --> Auth
-    API --> Orders
-    API --> Inventory
-    Orders --> PG
-    Orders --> Kafka
-    Inventory --> PG
-    Inventory --> Redis
-    Auth --> Redis
-    Kafka --> Notify
-```
-</Diagram>
+  description="Top-to-bottom flowchart divided into three groups: External, Services, and Data. In External, a Load Balancer sits at the entry point. In Services, the Load Balancer sends traffic to an API Gateway. The API Gateway then calls Auth Service, Order Service, and Inventory Service. In Data, PostgreSQL, Redis, and Kafka appear as shared infrastructure components. Order Service writes to PostgreSQL and Kafka. Inventory Service writes to PostgreSQL and Redis. Auth Service uses Redis. Kafka delivers events to Notification Service. The diagram represents a service topology reconstructed from tracing data, showing both synchronous service-to-service calls from the gateway and downstream dependencies on databases, caches, and messaging infrastructure."
+/>
 
 The value of this approach isn't just accuracy — it's that diagrams can be refreshed on demand. Run the script weekly in CI, commit the updated output, and the documentation stays current without manual effort.
 

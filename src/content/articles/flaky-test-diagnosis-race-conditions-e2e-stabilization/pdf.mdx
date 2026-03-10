@@ -9,6 +9,9 @@ tags: ["reliability-and-testing", "typescript"]
 featured: true
 ---
 
+import flakyTestDiagram from "./diagrams/flaky-test-quarantine-workflow.png"
+import timelineDiagram from "./diagrams/timeline-showing-race-condition.png"
+
 *[E2E]: End-to-End
 *[CI]: Continuous Integration
 *[CD]: Continuous Deployment
@@ -360,6 +363,7 @@ The navigation example shows a subtle race: clicking a link doesn't guarantee th
 This sequence diagram shows why the flaky version fails. The test asserts success before the network response has arrived — the assertion races ahead of the actual state change.
 
 <Diagram
+  src={timelineDiagram}
   title="Timeline showing race condition."
   description="Sequence diagram with four participants: Test, Browser, App, and Network. The test clicks submit,
   the browser delivers the click event to the app, and the test immediately checks for a success state before
@@ -367,24 +371,7 @@ This sequence diagram shows why the flaky version fails. The test asserts succes
   to the network, the network returns a response, and only then does the app update the browser DOM. The key
   point is that the assertion happens before the response and DOM update, which is the race condition that makes
   the test flaky."
->
-```mermaid
-sequenceDiagram
-    participant T as Test
-    participant B as Browser
-    participant A as App
-    participant N as Network
-
-    T->>B: click(submit)
-    B->>A: Click event
-    T->>B: expect(success)
-    Note right of T: Assert before response!
-    A->>N: API request
-    N-->>A: Response
-    A->>B: Update DOM
-    Note right of B: DOM updates after assertion
-```
-</Diagram>
+/>
 
 The fix is to insert a `waitForResponse` between the click and the assertion, so the test waits for the actual event (API response) before checking the result.
 
@@ -538,6 +525,7 @@ When you have flaky tests blocking CI, you need a system to manage them without 
 The workflow starts when a test fails. If it's already a known flake, log the occurrence and continue. If it's new, retry it. If the retry passes, mark it as a potential flake and monitor it. If it fails again within 24 hours, auto-quarantine it: create a tracking issue, assign an owner, and move it out of the main suite.
 
 <Diagram
+  src={flakyTestDiagram}
   title="Flaky test quarantine workflow."
   description="Flowchart showing the decision process after a test failure. It begins with Test Fails and asks
   whether the failure is a known flake. If yes, the team logs the occurrence, then checks whether the flake
@@ -547,29 +535,7 @@ The workflow starts when a test fails. If it's already a known flake, log the oc
   the test is marked as a potential flake and monitored. Monitoring then asks whether the test fails two or
   more times within 24 hours. If not, it stays in Monitor. If yes, the test is auto-quarantined, a tracking
   issue is created, the test is added to the quarantine list, and it is run separately from the main suite."
->
-```mermaid
-graph LR
-    A[Test Fails] --> B{Known Flake?}
-    B -->|Yes| C[Log occurrence]
-    B -->|No| D{Retry Pass?}
-
-    D -->|Yes| E[Mark as potential flake]
-    D -->|No| F[Real failure - block merge]
-
-    E --> G{Fails 2+ times in 24h?}
-    G -->|Yes| H[Auto-quarantine]
-    G -->|No| I[Monitor]
-
-    H --> J[Create tracking issue]
-    J --> K[Add to quarantine list]
-    K --> L[Run separately from main suite]
-
-    C --> M{Flake rate > 10%?}
-    M -->|Yes| N[Escalate priority]
-    M -->|No| O[Normal backlog]
-```
-</Diagram>
+/>
 
 The quarantine list itself is just configuration — a list of test IDs with metadata about why they're quarantined, who owns them, and when they were added.
 

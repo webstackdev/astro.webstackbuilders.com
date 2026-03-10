@@ -9,6 +9,11 @@ tags: ["cloud-platforms","kubernetes","prometheus"]
 featured: true
 ---
 
+import customMetricsDiagram from "./diagrams/custom-metrics-flow-from-application-to-hpa.png"
+import hpaDebuggingDiagram from "./diagrams/hpa-debugging-decision-tree.png"
+import hpaPolicyDiagram from "./diagrams/hpa-policy-selection-flow.png"
+import hpaScalingDiagram from "./diagrams/hpa-scaling-decision-flow.png"
+
 *[P95]: 95th Percentile
 *[P99]: 99th Percentile
 *[QPS]: Queries Per Second
@@ -39,35 +44,10 @@ $$
 If you have 3 replicas running at 75% CPU with a target of 50%, HPA calculates $$3 \times (75/50) = 5$$ replicas. The ceiling function ensures you always round up — better to have slightly more capacity than slightly less.
 
 <Diagram
+  src={hpaScalingDiagram}
   title="HPA scaling decision flow."
-  description={
-    `Sequence diagram showing the Horizontal Pod Autoscaler control loop. The participants are HPA Controller, Metrics Server, Deployment, and Pods. Inside a loop labeled Every 15 seconds by default, the HPA Controller queries the Metrics Server for current metrics, and the Metrics Server returns CPU at 75 percent and Memory at 60 percent. The HPA Controller then calculates desired replicas internally, with a note explaining the formula desired = ceil(3 × 75/50) = 5. Next, the controller applies the stabilization window and checks scale-up or scale-down policies. It then tells the Deployment to scale to 5 replicas, and the Deployment creates 2 new pods. A note over the Pods indicates the lifecycle Scheduling to Starting to Ready. The diagram shows that HPA scaling is a repeated control loop that depends on periodic metrics collection, replica calculation, policy evaluation, and the time it takes for newly created pods to become ready.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant HPA as HPA Controller
-    participant Metrics as Metrics Server
-    participant Deploy as Deployment
-    participant Pods as Pods
-
-    loop Every 15 seconds (default)
-        HPA->>Metrics: Query current metrics
-        Metrics-->>HPA: CPU: 75%, Memory: 60%
-
-        HPA->>HPA: Calculate desired replicas
-        Note over HPA: desired = ceil(3 × 75/50) = 5
-
-        HPA->>HPA: Apply stabilization window
-        Note over HPA: Check scale-up/down policies
-
-        HPA->>Deploy: Scale to 5 replicas
-        Deploy->>Pods: Create 2 new pods
-
-        Note over Pods: Scheduling → Starting → Ready
-    end
-```
-</Diagram>
+  description="Sequence diagram showing the Horizontal Pod Autoscaler control loop. The participants are HPA Controller, Metrics Server, Deployment, and Pods. Inside a loop labeled Every 15 seconds by default, the HPA Controller queries the Metrics Server for current metrics, and the Metrics Server returns CPU at 75 percent and Memory at 60 percent. The HPA Controller then calculates desired replicas internally, with a note explaining the formula desired = ceil(3 × 75/50) = 5. Next, the controller applies the stabilization window and checks scale-up or scale-down policies. It then tells the Deployment to scale to 5 replicas, and the Deployment creates 2 new pods. A note over the Pods indicates the lifecycle Scheduling to Starting to Ready. The diagram shows that HPA scaling is a repeated control loop that depends on periodic metrics collection, replica calculation, policy evaluation, and the time it takes for newly created pods to become ready."
+/>
 
 A basic HPA configuration targets CPU utilization across all pods. The `scaleTargetRef` points to the deployment you want to scale, and `minReplicas`/`maxReplicas` set the bounds:
 
@@ -246,21 +226,10 @@ The metric you choose determines how quickly HPA reacts — and whether it react
 Custom metrics let you scale on application-specific signals instead of generic resource utilization. The setup requires three components: your application exposing metrics, Prometheus scraping them, and an adapter translating Prometheus queries into the Kubernetes custom metrics API.
 
 <Diagram
+  src={customMetricsDiagram}
   title="Custom metrics flow from application to HPA."
-  description={
-    `Flowchart showing how application metrics reach the Horizontal Pod Autoscaler through Prometheus-based custom metrics. The main path starts at Application, which exposes a /metrics endpoint to Prometheus. Prometheus sends PromQL queries to Prometheus Adapter. Prometheus Adapter exposes those results through the Custom Metrics API to the HPA Controller. The HPA Controller then scales the Deployment. A separate path shows Metrics Server sending Resource Metrics API data directly to the same HPA Controller. The diagram emphasizes that HPA can consume both standard resource metrics from Metrics Server and custom application metrics translated through Prometheus and Prometheus Adapter before making scaling decisions.`
-  }
->
-```mermaid
-flowchart LR
-    A[Application] -->|/metrics endpoint| B[Prometheus]
-    B -->|PromQL queries| C[Prometheus Adapter]
-    C -->|Custom Metrics API| D[HPA Controller]
-    D -->|Scale| E[Deployment]
-
-    F[Metrics Server] -->|Resource Metrics API| D
-```
-</Diagram>
+  description="Flowchart showing how application metrics reach the Horizontal Pod Autoscaler through Prometheus-based custom metrics. The main path starts at Application, which exposes a /metrics endpoint to Prometheus. Prometheus sends PromQL queries to Prometheus Adapter. Prometheus Adapter exposes those results through the Custom Metrics API to the HPA Controller. The HPA Controller then scales the Deployment. A separate path shows Metrics Server sending Resource Metrics API data directly to the same HPA Controller. The diagram emphasizes that HPA can consume both standard resource metrics from Metrics Server and custom application metrics translated through Prometheus and Prometheus Adapter before making scaling decisions."
+/>
 
 HPA supports three metric types, each suited to different scenarios:
 
@@ -447,26 +416,10 @@ The `selectPolicy` field determines how HPA chooses between multiple policies:
 />
 
 <Diagram
+  src={hpaPolicyDiagram}
   title="HPA policy selection flow."
-  description={
-    `Flowchart showing how HPA decides whether and how to scale after a metric exceeds its target. The process starts at Metric exceeds target and moves to a decision asking whether the stabilization window has passed. If no, the flow goes to Wait and re-evaluate. If yes, the flow moves to Calculate replicas per each policy. From there, a decision asks for the selectPolicy setting. If the value is Max, the chart goes to Use largest increase. If the value is Min, it goes to Use smallest increase. If the value is Disabled, it goes to No scaling. The Max and Min branches both lead to Apply scale-up. The diagram shows that HPA does not act on raw metrics alone: it first waits for stabilization rules, then compares scaling policies, then applies the policy selected by the configuration.`
-  }
->
-```mermaid
-flowchart LR
-    A[Metric exceeds target] --> B{Stabilization\nwindow passed?}
-    B -->|No| C[Wait and re-evaluate]
-    B -->|Yes| D[Calculate replicas\nper each policy]
-
-    D --> E{selectPolicy?}
-    E -->|Max| F[Use largest increase]
-    E -->|Min| G[Use smallest increase]
-    E -->|Disabled| H[No scaling]
-
-    F --> I[Apply scale-up]
-    G --> I
-```
-</Diagram>
+  description="Flowchart showing how HPA decides whether and how to scale after a metric exceeds its target. The process starts at Metric exceeds target and moves to a decision asking whether the stabilization window has passed. If no, the flow goes to Wait and re-evaluate. If yes, the flow moves to Calculate replicas per each policy. From there, a decision asks for the selectPolicy setting. If the value is Max, the chart goes to Use largest increase. If the value is Min, it goes to Use smallest increase. If the value is Disabled, it goes to No scaling. The Max and Min branches both lead to Apply scale-up. The diagram shows that HPA does not act on raw metrics alone: it first waits for stabilization rules, then compares scaling policies, then applies the policy selected by the configuration."
+/>
 
 ### Common Behavior Patterns
 
@@ -797,35 +750,10 @@ Look for `selectPolicy: Disabled` in scale-down, or a policy with `value: 0` tha
 When HPA isn't behaving as expected, work through this diagnostic flow:
 
 <Diagram
+  src={hpaDebuggingDiagram}
   title="HPA debugging decision tree."
-  description={
-    `Flowchart showing a troubleshooting path for HPA behavior problems. The process starts at HPA not scaling as expected and first asks whether kubectl describe hpa shows metrics. If no and the message says unable to get metrics, the path goes to Check Metrics Server and then asks whether kubectl top pods works. If that answer is no, the next step is Fix Metrics Server deployment. If yes, the next step is Check pod resource requests. If metrics are visible, the chart asks what the symptom is. For Not scaling up, it asks whether the current metric is above target. If no, the result is Load not high enough yet. If yes, the next step is Check scaleUp stabilization and policies. For Not scaling down, it asks whether the current metric is below target. If no, the result is Load still too high. If yes, the next step is Check scaleDown stabilization and policies. For Oscillating, the path proceeds through Increase stabilization windows, then Lower target utilization, then Smooth metrics averaging. The diagram is meant to guide an operator from a visible scaling symptom to the most likely configuration or metrics problem.`
-  }
->
-```mermaid
-flowchart LR
-    A[HPA not scaling as expected] --> B{kubectl describe hpa<br/>shows metrics?}
-
-    B -->|No - unable to get metrics| C[Check Metrics Server]
-    C --> D{kubectl top pods works?}
-    D -->|No| E[Fix Metrics Server deployment]
-    D -->|Yes| F[Check pod resource requests]
-
-    B -->|Yes - metrics visible| G{What's the symptom?}
-
-    G -->|Not scaling up| H{Current metric ><br/>target?}
-    H -->|No| I[Load not high enough yet]
-    H -->|Yes| J[Check scaleUp stabilization<br/>and policies]
-
-    G -->|Not scaling down| K{Current metric <<br/>target?}
-    K -->|No| L[Load still too high]
-    K -->|Yes| M[Check scaleDown stabilization<br/>and policies]
-
-    G -->|Oscillating| N[Increase stabilization windows]
-    N --> O[Lower target utilization]
-    O --> P[Smooth metrics averaging]
-```
-</Diagram>
+  description="Flowchart showing a troubleshooting path for HPA behavior problems. The process starts at HPA not scaling as expected and first asks whether kubectl describe hpa shows metrics. If no and the message says unable to get metrics, the path goes to Check Metrics Server and then asks whether kubectl top pods works. If that answer is no, the next step is Fix Metrics Server deployment. If yes, the next step is Check pod resource requests. If metrics are visible, the chart asks what the symptom is. For Not scaling up, it asks whether the current metric is above target. If no, the result is Load not high enough yet. If yes, the next step is Check scaleUp stabilization and policies. For Not scaling down, it asks whether the current metric is below target. If no, the result is Load still too high. If yes, the next step is Check scaleDown stabilization and policies. For Oscillating, the path proceeds through Increase stabilization windows, then Lower target utilization, then Smooth metrics averaging. The diagram is meant to guide an operator from a visible scaling symptom to the most likely configuration or metrics problem."
+/>
 
 ### Essential Debugging Commands
 

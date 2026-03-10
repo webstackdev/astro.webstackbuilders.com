@@ -9,6 +9,8 @@ tags: ["reliability-and-testing","prometheus","typescript"]
 featured: true
 ---
 
+import fromSliDiagram from "./diagrams/from-SLI-measurement-to-error-budget-decision-flow.png"
+
 *[SLA]: Service Level Agreement
 *[SLI]: Service Level Indicator
 *[SLIs]: Service Level Indicators
@@ -50,19 +52,10 @@ Those 43 minutes are yours to spend however you want. A 10-minute deployment tha
 The mental shift matters more than the math: you're not trying to prevent all failures. You're trying to fail less often than your budget allows. Reliability becomes a resource to manage, not an absolute to pursue.
 
 <Diagram
+  src={fromSliDiagram}
   title="From SLI measurement to error budget decision flow."
-  description={`A left-to-right flowchart showing how teams turn service measurements into a delivery decision. SLI: Actual Measurements feed into SLO: Target Level. That target defines the Error Budget as 100 percent minus the SLO. Actual errors consume that budget, leading to a decision point labeled Budget Remaining? If budget remains, the flow continues to Ship Features. If no budget remains, the flow moves to Focus on Reliability. The diagram shows how remaining budget determines whether teams prioritize delivery or reliability work.`}
->
-```mermaid
-flowchart LR
-    A[SLI: Actual Measurements] --> B[SLO: Target Level]
-    B --> C[Error Budget: 100% - SLO]
-    C --> D[Budget Consumed: Actual Errors]
-    D --> E{Budget Remaining?}
-    E -->|Yes| F[Ship Features]
-    E -->|No| G[Focus on Reliability]
-```
-</Diagram>
+  description="A left-to-right flowchart showing how teams turn service measurements into a delivery decision. SLI: Actual Measurements feed into SLO: Target Level. That target defines the Error Budget as 100 percent minus the SLO. Actual errors consume that budget, leading to a decision point labeled Budget Remaining? If budget remains, the flow continues to Ship Features. If no budget remains, the flow moves to Focus on Reliability. The diagram shows how remaining budget determines whether teams prioritize delivery or reliability work."
+/>
 
 ## Spending Budget Wisely
 

@@ -9,6 +9,10 @@ tags: ["apis-and-gateways", "aws", "typescript"]
 featured: true
 ---
 
+import cdnEdgeRequestDiagram from "./diagrams/cdn-edge-request-flow-showing-cache-hit-and-miss-paths.png"
+import staleWhileRevalidateDiagram from "./diagrams/stale-while-revalidate-serving-stale-content-while-refreshing-in-background.png"
+import tagBasedPurgingDiagram from "./diagrams/tag-based-purging-invalidating-all-related-content.png"
+
 *[CDN]: Content Delivery Network
 *[CHR]: Cache Hit Ratio
 *[CORS]: Cross-Origin Resource Sharing
@@ -37,28 +41,10 @@ A cache that serves incorrect content is worse than no cache at all. Before opti
 When a user requests a resource, the request first hits the nearest CDN edge location — a Point of Presence (PoP). The edge server generates a cache key from the request — typically the URL — and checks if a valid cached response exists. If it does, the edge returns the cached response immediately without contacting your origin. If not, the edge forwards the request to your origin, receives the response, decides whether to cache it based on the response headers, and returns it to the user.
 
 <Diagram
+  src={cdnEdgeRequestDiagram}
   title="CDN edge request flow showing cache hit and miss paths"
   description="Sequence diagram showing a user request reaching a CDN edge point of presence, the edge checking the cache, returning immediately on a cache hit, or forwarding the request to the origin on a cache miss before storing the response and returning it to the user."
->
-```mermaid
-sequenceDiagram
-  participant User
-  participant Edge as CDN Edge (PoP)
-  participant Origin
-
-  User->>Edge: GET /api/products
-  Edge->>Edge: Check cache (cache key lookup)
-
-  alt Cache HIT
-    Edge->>User: Return cached response
-  else Cache MISS
-    Edge->>Origin: Forward request
-    Origin->>Edge: Response + cache headers
-    Edge->>Edge: Store in cache (if cacheable)
-    Edge->>User: Return response
-  end
-```
-</Diagram>
+/>
 
 The performance difference is dramatic. A cache hit typically returns in 10-50ms regardless of where your origin is located. A cache miss adds the full round-trip to your origin plus processing time — often 200-500ms or more. At scale, improving your cache hit ratio from 70% to 90% can reduce origin load by two-thirds.
 
@@ -680,20 +666,10 @@ Surrogate-Key: product-123 category-shoes brand-nike
 Now when product 123 changes, you purge the tag `product-123` and _every_ cached response with that tag gets invalidated — regardless of URL:
 
 <Diagram
+  src={tagBasedPurgingDiagram}
   title="Tag-based purging invalidating all related content"
   description="Flowchart showing a product update triggering a purge of the product tag, which invalidates every cached URL associated with that tag, including the product page, API endpoint, category listing, and brand listing."
->
-```mermaid
-flowchart LR
-    A[Product 123 Updated] --> B[Purge tag: product-123]
-    B --> C[All URLs with tag invalidated]
-
-    C --> D["/products/123"]
-    C --> E["/api/products/123"]
-    C --> F["/categories/shoes includes 123"]
-    C --> G["/brands/nike includes 123"]
-```
-</Diagram>
+/>
 
 Design your tagging strategy around your data relationships:
 
@@ -745,28 +721,10 @@ Cache-Control: public, max-age=60, stale-while-revalidate=300
 Here's what happens when a request arrives during the SWR window:
 
 <Diagram
+  src={staleWhileRevalidateDiagram}
   title="Stale-while-revalidate serving stale content while refreshing in background"
   description="Sequence diagram showing a stale cached response still inside the stale-while-revalidate window, where the first user receives the stale response immediately, the edge revalidates against the origin in the background, updates the cache, and the next user receives the refreshed response."
->
-```mermaid
-sequenceDiagram
-    participant User1
-    participant User2
-    participant Edge
-    participant Origin
-
-    Note over Edge: Cache is 90 seconds old (stale but within SWR window)
-
-    User1->>Edge: GET /products
-    Edge->>User1: Return stale cached response (fast!)
-    Edge->>Origin: Background revalidation request
-    Origin->>Edge: Fresh response
-    Edge->>Edge: Update cache
-
-    User2->>Edge: GET /products
-    Edge->>User2: Return fresh cached response
-```
-</Diagram>
+/>
 
 SWR is particularly valuable for content that changes unpredictably but where brief staleness is acceptable. You get the performance of long TTLs with the freshness of short TTLs — the best of both worlds.
 

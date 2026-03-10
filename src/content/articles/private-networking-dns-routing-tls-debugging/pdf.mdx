@@ -9,6 +9,9 @@ tags: ["cloud-platforms", "aws", "azure"]
 featured: true
 ---
 
+import dnsResolutionDiagram from "./diagrams/dns-resolution-flow.png"
+import tlsHandshakeDiagram from "./diagrams/tls-handshake-with-failure-points.png"
+
 *[ARP]: Address Resolution Protocol
 *[BGP]: Border Gateway Protocol
 *[CA]: Certificate Authority
@@ -85,49 +88,10 @@ The most common private DNS failures:
 />
 
 <Diagram
+  src={dnsResolutionDiagram}
   title="DNS resolution flow."
-  description={
-  `Top-to-bottom flowchart with three grouped sections: Application, Resolution Chain, and Results. In Application, an app requests the hostname database.internal. The request enters the Resolution Chain, starting with a decision on whether the name exists in /etc/hosts. If it is found there, the flow goes directly to a successful result showing the private IP 10.0.1.50. If it is not found, the flow continues to the System Resolver, then to a Local Cache decision. If the answer is cached, it again returns the private IP. If it is not cached, the query goes to the VPC DNS Resolver, then to a Private Zone decision. If the private zone exists, the result is the private IP 10.0.1.50. If no private zone exists, the query falls through to Public DNS. Public DNS either returns a public IP 203.0.113.50 or returns NXDOMAIN if the name is not found. The diagram highlights the private IP result as the intended safe outcome, the public IP as a warning state, and NXDOMAIN as a failure state.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph application[Application]
-    A[App requests database.internal]
-  end
-
-  subgraph resolutionChain[Resolution Chain]
-    B{/etc/hosts?}
-    C[System Resolver]
-    D{Local Cache?}
-    E[VPC DNS Resolver]
-    F{Private Zone?}
-    G[Public DNS]
-  end
-
-  subgraph results[Results]
-    H[Private IP: 10.0.1.50]
-    I[Public IP: 203.0.113.50]
-    J[NXDOMAIN]
-  end
-
-  A --> B
-  B -->|Found| H
-  B -->|Not Found| C
-  C --> D
-  D -->|Cached| H
-  D -->|Not Cached| E
-  E --> F
-  F -->|Zone exists| H
-  F -->|No zone| G
-  G -->|Exists| I
-  G -->|Not found| J
-
-  style H fill:#9f9,color:#000
-  style I fill:#ff9,color:#000
-  style J fill:#f99,color:#000
-```
-</Diagram>
+  description="Top-to-bottom flowchart with three grouped sections: Application, Resolution Chain, and Results. In Application, an app requests the hostname database.internal. The request enters the Resolution Chain, starting with a decision on whether the name exists in /etc/hosts. If it is found there, the flow goes directly to a successful result showing the private IP 10.0.1.50. If it is not found, the flow continues to the System Resolver, then to a Local Cache decision. If the answer is cached, it again returns the private IP. If it is not cached, the query goes to the VPC DNS Resolver, then to a Private Zone decision. If the private zone exists, the result is the private IP 10.0.1.50. If no private zone exists, the query falls through to Public DNS. Public DNS either returns a public IP 203.0.113.50 or returns NXDOMAIN if the name is not found. The diagram highlights the private IP result as the intended safe outcome, the public IP as a warning state, and NXDOMAIN as a failure state."
+/>
 
 The diagram shows the critical branch point: if the private zone exists and is associated with your VPC, you get the private IP. If not, the query falls through to public DNS — which might return a public IP or NXDOMAIN, depending on whether the name exists publicly.
 
@@ -434,45 +398,10 @@ Code: Inspecting a certificate with openssl.
 Always include `-servername` to send SNI. Without it, you might get a different certificate than your application receives, and your debugging results won't match production behavior.
 
 <Diagram
+  src={tlsHandshakeDiagram}
   title="TLS handshake with failure points."
-  description={
-  `Sequence diagram with two participants: Client and Server. A note marks the TLS Handshake. The client first sends ClientHello containing supported versions, cipher suites, and SNI. One alternate branch shows an SNI mismatch: the server returns the wrong certificate because no SNI match was found, the client performs hostname verification, and that verification fails with a hostname mismatch error. In the normal path, the server responds with ServerHello plus Certificate. Another alternate branch then shows certificate issues: the client verifies the certificate and checks whether the CA is trusted, whether the certificate is expired, and whether the hostname appears in the SAN list. If any of those checks fail, the client sends an alert indicating certificate_unknown. If verification succeeds, the client sends Key Exchange, the server sends Finished, the client sends Finished, and a note marks that the TLS session is established. Finally, the client sends encrypted application data to the server. The diagram shows both the successful handshake sequence and the common failure points around SNI and certificate validation.`
-  }
->
-```mermaid
-sequenceDiagram
-  participant Client
-  participant Server
-
-  Note over Client,Server: TLS Handshake
-
-  Client->>Server: ClientHello (versions, ciphers, SNI)
-
-  alt SNI Mismatch
-    Server->>Client: Wrong certificate (no SNI match)
-    Client->>Client: Hostname verification fails
-    Note right of Client: Error: hostname mismatch
-  end
-
-  Server->>Client: ServerHello + Certificate
-
-  alt Certificate Issues
-    Client->>Client: Verify certificate
-    Note right of Client: Check: trusted CA?
-    Note right of Client: Check: not expired?
-    Note right of Client: Check: hostname in SAN?
-    Client->>Server: Alert: certificate_unknown
-  end
-
-  Client->>Server: Key Exchange
-  Server->>Client: Finished
-  Client->>Server: Finished
-
-  Note over Client,Server: TLS Session Established
-
-  Client->>Server: Application Data (encrypted)
-```
-</Diagram>
+  description="Sequence diagram with two participants: Client and Server. A note marks the TLS Handshake. The client first sends ClientHello containing supported versions, cipher suites, and SNI. One alternate branch shows an SNI mismatch: the server returns the wrong certificate because no SNI match was found, the client performs hostname verification, and that verification fails with a hostname mismatch error. In the normal path, the server responds with ServerHello plus Certificate. Another alternate branch then shows certificate issues: the client verifies the certificate and checks whether the CA is trusted, whether the certificate is expired, and whether the hostname appears in the SAN list. If any of those checks fail, the client sends an alert indicating certificate_unknown. If verification succeeds, the client sends Key Exchange, the server sends Finished, the client sends Finished, and a note marks that the TLS session is established. Finally, the client sends encrypted application data to the server. The diagram shows both the successful handshake sequence and the common failure points around SNI and certificate validation."
+/>
 
 ### Certificate Management
 

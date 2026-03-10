@@ -9,6 +9,8 @@ tags: ["reliability-and-testing","prometheus","typescript"]
 featured: true
 ---
 
+import fromSliDiagram from "./diagrams/from-SLI-measurement-to-error-budget-decision-flow.png"
+
 *[CUJ]: Critical User Journey
 *[MTTR]: Mean Time To Recovery
 *[P50]: 50th Percentile (Median)
@@ -403,19 +405,10 @@ The calculation is simple. If your SLO is 99.9% availability over a 30-day windo
 Those 43 minutes are yours to spend however you want. A 10-minute deployment that causes errors? That's 10 minutes of budget consumed. A 30-minute outage? You've used most of your month's budget in one incident. Every degradation, every error, every moment of unavailability draws from this pool.
 
 <Diagram
+  src={fromSliDiagram}
   title="From SLI measurement to error budget decision flow."
-  description={`A left-to-right flowchart showing how reliability measurements become deployment decisions. The flow starts with SLI: Actual Measurements, which feed into SLO: Target Level. The SLO then determines the Error Budget, defined as 100 percent minus the SLO target. Actual errors consume that budget, producing a decision point labeled Budget Remaining? If the answer is yes, the flow continues to Ship Features. If the answer is no, the flow moves to Focus on Reliability. The diagram illustrates that teams use measured service performance and remaining budget to decide whether to prioritize velocity or reliability work.`}
->
-```mermaid
-flowchart LR
-    A[SLI: Actual Measurements] --> B[SLO: Target Level]
-    B --> C[Error Budget: 100% - SLO]
-    C --> D[Budget Consumed: Actual Errors]
-    D --> E{Budget Remaining?}
-    E -->|Yes| F[Ship Features]
-    E -->|No| G[Focus on Reliability]
-```
-</Diagram>
+  description="A left-to-right flowchart showing how reliability measurements become deployment decisions. The flow starts with SLI: Actual Measurements, which feed into SLO: Target Level. The SLO then determines the Error Budget, defined as 100 percent minus the SLO target. Actual errors consume that budget, producing a decision point labeled Budget Remaining? If the answer is yes, the flow continues to Ship Features. If the answer is no, the flow moves to Focus on Reliability. The diagram illustrates that teams use measured service performance and remaining budget to decide whether to prioritize velocity or reliability work."
+/>
 
 The power of this framing: reliability becomes a resource to manage, not an absolute to pursue. You're not trying to prevent all failures. You're trying to fail less often than your budget allows.
 

@@ -9,6 +9,8 @@ tags: ["platform-engineering","backstage","terraform","kubernetes","aws"]
 featured: true
 ---
 
+import multiStepDiagram from "./diagrams/multi-step-service-creation-workflow.png"
+
 *[IDP]: Internal Developer Portal/Platform
 *[RBAC]: Role-Based Access Control
 *[SSO]: Single Sign-On
@@ -217,48 +219,10 @@ This is workflow orchestration - coordinating multi-step processes with proper e
 Consider what happens when a developer requests a new service. The portal validates their inputs and permissions, creates a repository from a template, generates a Terraform PR for the service's infrastructure, waits for approval (or auto-approves for non-production), applies the Terraform changes, stores the resulting credentials, and notifies the developer. That's seven steps with dependencies between them.
 
 <Diagram
+  src={multiStepDiagram}
   title="Multi-step service creation workflow."
-  description={`Sequence diagram showing a Developer submitting a "Create Service" action to the Platform, the Platform validating inputs + permissions, creating a repository and infrastructure PR through Git, receiving plan output from CI / CD, either auto-approving or waiting for approval before merging, then triggering apply, provisioning Infrastructure, storing credentials in Vault, and notifying the Developer when the service is ready.`}
->
-  ```mermaid
-  sequenceDiagram
-    participant D as Developer
-    participant Plt as Platform
-    participant G as Git
-    participant CI as CI / CD
-    participant I as Infrastructure
-    participant V as Vault
-
-    D->>Plt: Submit "Create Service" action
-    Plt->>Plt: Validate inputs + permissions
-
-    Plt->>G: Create repository from template
-    G-->>Plt: Repo created
-
-    Plt->>G: Create infrastructure PR
-    G->>CI: Trigger plan
-    CI-->>Plt: Plan output
-
-    alt Auto-approve (dev/staging)
-      Plt->>G: Merge PR
-    else Requires approval (production)
-      Plt->>Plt: Create approval request
-      Plt-->>D: Notify: approval needed
-      Note over Plt: Wait for approval
-      Plt->>G: Merge PR after approval
-    end
-
-    G->>CI: Trigger apply
-    CI->>I: Provision resources
-    I-->>CI: Resources ready
-
-    CI->>V: Store credentials
-    V-->>CI: Credentials stored
-
-    CI-->>Plt: Workflow complete
-    Plt-->>D: Notify: service ready
-  ```
-</Diagram>
+  description='Sequence diagram showing a Developer submitting a "Create Service" action to the Platform, the Platform validating inputs + permissions, creating a repository and infrastructure PR through Git, receiving plan output from CI / CD, either auto-approving or waiting for approval before merging, then triggering apply, provisioning Infrastructure, storing credentials in Vault, and notifying the Developer when the service is ready.'
+/>
 
 The sequence diagram shows the happy path, but real workflows need to handle failures at every step. What if the repository creation succeeds but the Terraform PR fails? What if the apply times out? What if credential storage fails after infrastructure is already provisioned?
 

@@ -9,6 +9,10 @@ tags: ["apis-and-gateways", "kubernetes", "prometheus"]
 featured: true
 ---
 
+import caRotationDiagram from "./diagrams/ca-rotation-sequence-showing-the-safe-order-of-operations.png"
+import mtlsHandshakeDiagram from "./diagrams/mtls-handshake-between-client-and-server-services.png"
+import threeTierDiagram from "./diagrams/three-tier-certificate-authority-hierarchy-for-mtls.png"
+
 *[ACME]: Automatic Certificate Management Environment
 *[CA]: Certificate Authority
 *[CN]: Common Name
@@ -48,33 +52,10 @@ Mutual TLS adds a second handshake step: after the client validates the server's
 This is what makes mTLS attractive for service-to-service communication — identity verification happens at the network layer, not the application layer.
 
 <Diagram
+  src={mtlsHandshakeDiagram}
   title="mTLS handshake between client and server services."
-  description={
-    `Sequence diagram with two participants: Client Service and Server Service. A note marks the beginning of the mTLS handshake. The client sends ClientHello to the server. The server responds with ServerHello plus its server certificate. The client validates the server certificate against its trust store. The server then sends a CertificateRequest asking for the client certificate. The client sends its certificate to the server, and the server validates the client certificate against its trust store. After mutual identity validation, the client sends ClientKeyExchange plus Finished, and the server replies with Finished. A second note marks that the encrypted channel is established. Finally, both sides exchange encrypted application data in both directions. The diagram shows that mTLS adds client certificate validation on top of the standard TLS handshake before application traffic is allowed.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant C as Client Service
-    participant S as Server Service
-
-    Note over C,S: mTLS Handshake
-
-    C->>S: ClientHello
-    S->>C: ServerHello + Server Certificate
-    C->>C: Validate Server Cert against Trust Store
-    S->>C: CertificateRequest
-    C->>S: Client Certificate
-    S->>S: Validate Client Cert against Trust Store
-    C->>S: ClientKeyExchange + Finished
-    S->>C: Finished
-
-    Note over C,S: Encrypted Channel Established
-
-    C->>S: Encrypted Application Data
-    S->>C: Encrypted Application Data
-```
-</Diagram>
+  description="Sequence diagram with two participants: Client Service and Server Service. A note marks the beginning of the mTLS handshake. The client sends ClientHello to the server. The server responds with ServerHello plus its server certificate. The client validates the server certificate against its trust store. The server then sends a CertificateRequest asking for the client certificate. The client sends its certificate to the server, and the server validates the client certificate against its trust store. After mutual identity validation, the client sends ClientKeyExchange plus Finished, and the server replies with Finished. A second note marks that the encrypted channel is established. Finally, both sides exchange encrypted application data in both directions. The diagram shows that mTLS adds client certificate validation on top of the standard TLS handshake before application traffic is allowed."
+/>
 
 The operational cost difference is significant. With standard TLS, you manage certificates for servers — maybe dozens or hundreds. With mTLS, __every__ service needs a certificate, and every service needs to validate certificates from every other service it communicates with. In a 100-service mesh, that's potentially thousands of certificate validation paths to maintain.
 
@@ -158,42 +139,10 @@ The downside is blast radius. If the issuing CA is compromised, every certificat
 A __three-tier hierarchy__ adds an intermediate layer between root and issuing CAs. The root (20-year validity, offline) signs intermediate CAs (5-10 years), which sign issuing CAs (1-2 years), which sign workload certificates (24 hours to 7 days). This creates natural isolation boundaries — you can have separate intermediates for production and staging, or for different regions, or for different teams.
 
 <Diagram
+  src={threeTierDiagram}
   title="Three-tier certificate authority hierarchy for mTLS."
-  description={
-    `Flowchart showing a three-tier certificate authority hierarchy inside a grouped section labeled Three-Tier Hierarchy. At the top is Root CA with labels for 20-year validity and offline or HSM storage. The root signs two intermediate certificate authorities: one for Production and one for Staging, each labeled with 5-year validity. The production intermediate signs two issuing certificate authorities for Cluster-1 and Cluster-2, each labeled with 1-year validity. The staging intermediate signs one issuing certificate authority for Staging, also labeled with 1-year validity. Each issuing certificate authority then signs a set of workload certificates labeled 24-hour TTL. The diagram shows how a single root anchors trust, intermediates create isolation boundaries between environments, issuing CAs handle cluster-level signing, and short-lived workload certificates sit at the bottom of the chain.`
-  }
->
-```mermaid
-flowchart LR
-    subgraph threeTierHierarchy[Three-Tier Hierarchy]
-        R[Root CA<br/>Validity: 20 years<br/>Offline/HSM]
-
-        I1[Intermediate CA<br/>Production<br/>5 years]
-        I2[Intermediate CA<br/>Staging<br/>5 years]
-
-        L1[Issuing CA<br/>Cluster-1<br/>1 year]
-        L2[Issuing CA<br/>Cluster-2<br/>1 year]
-        L3[Issuing CA<br/>Staging<br/>1 year]
-
-        W1[Workload Certs<br/>24h TTL]
-        W2[Workload Certs<br/>24h TTL]
-        W3[Workload Certs<br/>24h TTL]
-    end
-
-    R --> I1
-    R --> I2
-    I1 --> L1
-    I1 --> L2
-    I2 --> L3
-    L1 --> W1
-    L2 --> W2
-    L3 --> W3
-
-    style R fill:#f96,color:#000
-    style I1 fill:#9cf,color:#000
-    style I2 fill:#9cf,color:#000
-```
-</Diagram>
+  description="Flowchart showing a three-tier certificate authority hierarchy inside a grouped section labeled Three-Tier Hierarchy. At the top is Root CA with labels for 20-year validity and offline or HSM storage. The root signs two intermediate certificate authorities: one for Production and one for Staging, each labeled with 5-year validity. The production intermediate signs two issuing certificate authorities for Cluster-1 and Cluster-2, each labeled with 1-year validity. The staging intermediate signs one issuing certificate authority for Staging, also labeled with 1-year validity. Each issuing certificate authority then signs a set of workload certificates labeled 24-hour TTL. The diagram shows how a single root anchors trust, intermediates create isolation boundaries between environments, issuing CAs handle cluster-level signing, and short-lived workload certificates sit at the bottom of the chain."
+/>
 
 The tradeoff is complexity. Longer certificate chains mean more validation steps during handshakes. More CAs mean more things to monitor for expiration. But for multi-cluster or multi-region deployments, the isolation is worth it.
 
@@ -338,36 +287,10 @@ The safe order for CA rotation:
 />
 
 <Diagram
+  src={caRotationDiagram}
   title="CA rotation sequence showing the safe order of operations."
-  description={
-    `Sequence diagram with three participants: Workload, Certificate Authority, and Trust Store. In Step 1, Add New CA to Trust, the Certificate Authority adds the new CA certificate to the Trust Store, and the Trust Store updates the Workload with a bundle that trusts both the old and new CA. In Step 2, Verify Distribution, the Workload confirms it has received the updated trust bundle. In Step 3, Issue New Certs, the Workload sends a CSR for a new certificate to the Certificate Authority, which returns a certificate signed by the new CA. In Step 4, Wait for Full Rotation, the Workload indicates that all workloads are now using new certificates. In Step 5, Remove Old CA, the Trust Store removes the old CA and sends the Workload an updated bundle containing only the new CA. The diagram emphasizes the required order: distribute trust first, rotate certificates second, and remove the old trust anchor last.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant W as Workload
-    participant CA as Certificate Authority
-    participant TS as Trust Store
-
-    Note over W,TS: Step 1: Add New CA to Trust
-    CA->>TS: New CA certificate added
-    TS->>W: Trust bundle updated (trusts both old and new)
-
-    Note over W,TS: Step 2: Verify Distribution
-    W->>W: Confirm new trust bundle received
-
-    Note over W,TS: Step 3: Issue New Certs
-    W->>CA: CSR for new cert
-    CA->>W: Cert signed by new CA
-
-    Note over W,TS: Step 4: Wait for Full Rotation
-    W->>W: All workloads using new certs
-
-    Note over W,TS: Step 5: Remove Old CA
-    TS->>TS: Old CA removed
-    W->>TS: Trust bundle updated (new CA only)
-```
-</Diagram>
+  description="Sequence diagram with three participants: Workload, Certificate Authority, and Trust Store. In Step 1, Add New CA to Trust, the Certificate Authority adds the new CA certificate to the Trust Store, and the Trust Store updates the Workload with a bundle that trusts both the old and new CA. In Step 2, Verify Distribution, the Workload confirms it has received the updated trust bundle. In Step 3, Issue New Certs, the Workload sends a CSR for a new certificate to the Certificate Authority, which returns a certificate signed by the new CA. In Step 4, Wait for Full Rotation, the Workload indicates that all workloads are now using new certificates. In Step 5, Remove Old CA, the Trust Store removes the old CA and sends the Workload an updated bundle containing only the new CA. The diagram emphasizes the required order: distribute trust first, rotate certificates second, and remove the old trust anchor last."
+/>
 
 In Istio, root CA rotation requires careful coordination. Use `istioctl experimental precheck` to verify the mesh is healthy before starting, and `istioctl analyze` to catch configuration issues. The rotation can take hours in a large mesh — every workload needs to receive the new trust bundle and rotate its certificate.
 

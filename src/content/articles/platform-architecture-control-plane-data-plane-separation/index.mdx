@@ -9,6 +9,8 @@ tags: ["platform-engineering", "kubernetes", "terraform", "grafana", "argo-cd", 
 featured: true
 ---
 
+import controlPlaneDiagram from "./diagrams/control-plane-pushes-desired-state-to-data-plane-data-plane-reports-actual-state-back_article.png"
+
 *[CRD]: Custom Resource Definition
 *[HPA]: Horizontal Pod Autoscaler
 *[RBAC]: Role-Based Access Control
@@ -61,37 +63,10 @@ The characteristics differ in ways that matter for architecture:
 The failure impact row is the critical insight: when the control plane goes down, running workloads continue serving traffic. When the data plane fails, users notice immediately. This asymmetry is the foundation of the pattern. The control plane pushes desired state to the data plane; the data plane reports actual state back. They communicate but don't depend on each other moment-to-moment.
 
 <Diagram
+  src={controlPlaneDiagram}
   title="Control plane pushes desired state to data plane - data plane reports actual state back."
-  description={
-  `Top-to-bottom flowchart with two grouped sections labeled Control Plane and Data Plane, separated by a node labeled Isolation Boundary. In the Control Plane, API Server connects to State Store and Controllers. Controllers send Desired State to the Isolation Boundary. The Isolation Boundary then fans out to Worker Node 1, Worker Node 2, and Worker Node 3 in the Data Plane. Each worker node sends Actual State back to the Isolation Boundary, which then returns that state to Controllers. The diagram emphasizes that orchestration logic and source-of-truth state live in the control plane, workload execution lives in the data plane, and communication between them crosses an explicit separation boundary.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph CP[Control Plane]
-    A[API Server] --> B[State Store]
-    A --> C[Controllers]
-  end
-
-  D[Isolation Boundary]
-
-  subgraph DP[Data Plane]
-    F[Worker Node 1]
-    G[Worker Node 2]
-    H[Worker Node 3]
-  end
-
-  C -->|"Desired State"| D
-  D --> F
-  D --> G
-  D --> H
-
-  F -->|"Actual State"| D
-  G -->|"Actual State"| D
-  H -->|"Actual State"| D
-  D --> C
-```
-</Diagram>
+  description="Top-to-bottom flowchart with two grouped sections labeled Control Plane and Data Plane, separated by a node labeled Isolation Boundary. In the Control Plane, API Server connects to State Store and Controllers. Controllers send Desired State to the Isolation Boundary. The Isolation Boundary then fans out to Worker Node 1, Worker Node 2, and Worker Node 3 in the Data Plane. Each worker node sends Actual State back to the Isolation Boundary, which then returns that state to Controllers. The diagram emphasizes that orchestration logic and source-of-truth state live in the control plane, workload execution lives in the data plane, and communication between them crosses an explicit separation boundary."
+/>
 
 ## Multi-Tenancy Patterns
 

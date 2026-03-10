@@ -9,6 +9,9 @@ tags: ["apis-and-gateways", "docker", "kubernetes", "typescript", "python", "go"
 featured: true
 ---
 
+import contractTestingWorkflowDiagram from "./diagrams/contract-testing-workflow-showing-consumer-first-approach_article.png"
+import contractViolationDiagram from "./diagrams/contract-violation-detected-at-PR-time-not-production.png"
+
 A User Service team ships what they consider a minor change: renaming `userId` to `user_id` in their response payload to match their new coding standards. They updated their OpenAPI spec. They ran their own tests. Everything passed.
 
 Three services broke in production that Friday.
@@ -76,24 +79,10 @@ Pact is the most widely-used contract testing framework, with libraries for Java
 </Callout>
 
 <Diagram
+  src={contractTestingWorkflowDiagram}
   title="Contract testing workflow showing consumer-first approach"
   description="Sequence diagram showing the consumer writing a test, generating a contract, and publishing it to the Pact Broker, followed by the provider fetching the contract, replaying it against the real API, publishing verification results, and the broker tracking compatibility across service versions."
->
-```mermaid
-sequenceDiagram
-    participant C as Consumer
-    participant B as Pact Broker
-    participant P as Provider
-
-    C->>C: Write consumer test
-    C->>C: Test generates contract
-    C->>B: Publish contract
-    P->>B: Fetch contracts
-    P->>P: Replay against real API
-    P->>B: Publish verification results
-    B->>B: Track compatibility matrix
-```
-</Diagram>
+/>
 
 Here's what this looks like in practice. A consumer test defines the expected request and response for an API call:
 
@@ -163,20 +152,10 @@ This command answers: "If I deploy UserService v2.3.1 to production, will it bre
 When a provider makes an incompatible change, they discover it immediately. The provider's CI runs verification against all consumer contracts, and any contract violation fails the build with a clear message identifying which consumer would break and why.
 
 <Diagram
+  src={contractViolationDiagram}
   title="Contract violation detected at PR time, not production"
   description="Flowchart showing a provider code change triggering CI to fetch consumer contracts, then branching on verification success: successful verification leads to a successful can-i-deploy check and safe deployment, while failure breaks the build, reports that OrderService expects userId, and sends the developer to fix the change or coordinate with consumers."
->
-```mermaid
-flowchart LR
-    A[Provider pushes code] --> B[CI fetches consumer contracts]
-    B --> C{Verification passes?}
-    C -->|Yes| D[can-i-deploy succeeds]
-    D --> E[Safe to deploy]
-    C -->|No| F[Build fails]
-    F --> G[Error: OrderService expects userId]
-    G --> H[Developer fixes or coordinates]
-```
-</Diagram>
+/>
 
 This is the fundamental shift: from discovering API incompatibilities in staging (or worse, production) to catching them at PR time. The provider team doesn't need to manually coordinate with every consumer team. They don't need to check a wiki or ask in Slack. The contracts encode what consumers actually use, and CI enforces compatibility automatically.
 

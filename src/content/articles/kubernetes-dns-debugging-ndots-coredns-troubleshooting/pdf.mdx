@@ -9,6 +9,11 @@ tags: ["cloud-platforms","kubernetes"]
 featured: true
 ---
 
+import corednsQueryDiagram from "./diagrams/coredns-query-processing-flow.png"
+import dnsDebuggingDiagram from "./diagrams/dns-debugging-decision-tree.png"
+import externalDnsDiagram from "./diagrams/external-dns-lookup-showing-failed-search-domain-queries-before-success.png"
+import internalServiceDiagram from "./diagrams/internal-service-discovery-fast-path-with-single-query.png"
+
 *[A]: Address Record (IPv4)
 *[AAAA]: Address Record (IPv6)
 *[CNAME]: Canonical Name Record
@@ -40,58 +45,18 @@ Understanding the DNS stack is essential for effective debugging. Kubernetes doe
 The first diagram shows internal service discovery — the fast path. When you look up a service name, the search domain gets appended, CoreDNS finds the service in the Kubernetes API, and you get an IP back immediately.
 
 <Diagram
+  src={internalServiceDiagram}
   title="Internal service discovery — fast path with single query."
-  description={
-    `Sequence diagram showing the fast path for Kubernetes internal service discovery. An Application Pod sends a lookup for myservice to /etc/resolv.conf. A note over the resolver lists the pod DNS configuration: nameserver 10.96.0.10, search domains default.svc.cluster.local, svc.cluster.local, and cluster.local, and options ndots:5. The resolver sends the fully expanded query myservice.default.svc.cluster.local to CoreDNS. CoreDNS then queries the Kubernetes API for the Service named myservice in the default namespace. The Kubernetes API returns the Service IP 10.96.123.45 to CoreDNS, and CoreDNS returns an A record with that same IP back to the application. The diagram emphasizes that internal service discovery completes in a single query path because the search domain expansion immediately matches a cluster service.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant App as Application Pod
-    participant Resolv as /etc/resolv.conf
-    participant CoreDNS as CoreDNS Pod
-    participant K8sAPI as Kubernetes API
-
-    App->>Resolv: Lookup "myservice"
-    Note over Resolv: nameserver 10.96.0.10<br/>search default.svc.cluster.local<br/>svc.cluster.local cluster.local<br/>options ndots:5
-
-    Resolv->>CoreDNS: Query: myservice.default.svc.cluster.local
-    CoreDNS->>K8sAPI: Get Service "myservice" in "default"
-    K8sAPI-->>CoreDNS: Service IP: 10.96.123.45
-    CoreDNS-->>App: A record: 10.96.123.45
-```
-</Diagram>
+  description="Sequence diagram showing the fast path for Kubernetes internal service discovery. An Application Pod sends a lookup for myservice to /etc/resolv.conf. A note over the resolver lists the pod DNS configuration: nameserver 10.96.0.10, search domains default.svc.cluster.local, svc.cluster.local, and cluster.local, and options ndots:5. The resolver sends the fully expanded query myservice.default.svc.cluster.local to CoreDNS. CoreDNS then queries the Kubernetes API for the Service named myservice in the default namespace. The Kubernetes API returns the Service IP 10.96.123.45 to CoreDNS, and CoreDNS returns an A record with that same IP back to the application. The diagram emphasizes that internal service discovery completes in a single query path because the search domain expansion immediately matches a cluster service."
+/>
 
 The second diagram shows what happens with external lookups — this is where the trouble starts. Because `api.example.com` has only 2 dots and ndots is 5, the resolver tries three search domain suffixes before finally querying the actual hostname.
 
 <Diagram
+  src={externalDnsDiagram}
   title="External DNS lookup — slow path with multiple failed queries before success."
-  description={
-    `Sequence diagram showing how Kubernetes DNS resolution slows an external lookup when ndots is set to 5. An Application Pod sends a lookup for api.example.com to /etc/resolv.conf. A note over the resolver explains that api.example.com has 2 dots and that ndots:5 means search domains are tried first. The resolver then sends three queries to CoreDNS in order: api.example.com.default.svc.cluster.local, api.example.com.svc.cluster.local, and api.example.com.cluster.local. CoreDNS returns NXDOMAIN for each of those names. After the failed internal-style lookups, the resolver finally sends api.example.com as a fully qualified domain name to CoreDNS. CoreDNS forwards that query to an upstream DNS server, receives an A record for 93.184.216.34, and returns the successful answer to the application. The diagram shows that the latency comes from the repeated failed search-domain queries that happen before the real external hostname is attempted.`
-  }
->
-```mermaid
-sequenceDiagram
-    participant App as Application Pod
-    participant Resolv as /etc/resolv.conf
-    participant CoreDNS as CoreDNS Pod
-    participant Upstream as Upstream DNS
-
-    App->>Resolv: Lookup "api.example.com"
-    Note over Resolv: "api.example.com" has 2 dots<br/>ndots:5 means try search domains first
-
-    Resolv->>CoreDNS: api.example.com.default.svc.cluster.local
-    CoreDNS-->>Resolv: NXDOMAIN
-    Resolv->>CoreDNS: api.example.com.svc.cluster.local
-    CoreDNS-->>Resolv: NXDOMAIN
-    Resolv->>CoreDNS: api.example.com.cluster.local
-    CoreDNS-->>Resolv: NXDOMAIN
-    Resolv->>CoreDNS: api.example.com (finally as FQDN)
-    CoreDNS->>Upstream: Forward to upstream DNS
-    Upstream-->>CoreDNS: A record: 93.184.216.34
-    CoreDNS-->>App: A record: 93.184.216.34
-```
-</Diagram>
+  description="Sequence diagram showing how Kubernetes DNS resolution slows an external lookup when ndots is set to 5. An Application Pod sends a lookup for api.example.com to /etc/resolv.conf. A note over the resolver explains that api.example.com has 2 dots and that ndots:5 means search domains are tried first. The resolver then sends three queries to CoreDNS in order: api.example.com.default.svc.cluster.local, api.example.com.svc.cluster.local, and api.example.com.cluster.local. CoreDNS returns NXDOMAIN for each of those names. After the failed internal-style lookups, the resolver finally sends api.example.com as a fully qualified domain name to CoreDNS. CoreDNS forwards that query to an upstream DNS server, receives an A record for 93.184.216.34, and returns the successful answer to the application. The diagram shows that the latency comes from the repeated failed search-domain queries that happen before the real external hostname is attempted."
+/>
 
 The key components work together: every pod gets a `/etc/resolv.conf` that points to CoreDNS and defines search domains. CoreDNS runs as a deployment in `kube-system`, watches the Kubernetes API for services and endpoints, and forwards external queries to upstream DNS servers. Service DNS records follow a predictable format: `servicename.namespace.svc.cluster.local` resolves to the service's ClusterIP, while headless services return the pod IPs directly.
 
@@ -392,34 +357,10 @@ Code: Tuned CoreDNS configuration with negative caching.
 The diagram below shows how CoreDNS processes queries. Notice that cache hits return immediately, and the Kubernetes plugin only handles `cluster.local` queries. Everything else forwards upstream.
 
 <Diagram
+  src={corednsQueryDiagram}
   title="CoreDNS query processing flow."
-  description={
-    `Flowchart showing the decision path CoreDNS follows when handling a DNS query. The chart is grouped under the heading CoreDNS Query Flow. A query first enters at Query Received, then moves to a decision asking In Cache. If yes, the flow goes directly to Return Cached Response. If no, it moves to a second decision asking whether the query is for cluster.local. If yes, the flow goes to Kubernetes Plugin, then to a decision asking Service Exists. A yes result returns Return Service IP, while a no result returns NXDOMAIN. If the query is not for cluster.local, the flow goes to a decision asking Custom Zone. A yes result forwards the query to Zone Server, while a no result forwards it to Upstream. The outcomes Return Service IP, NXDOMAIN, Forward to Zone Server, and Forward to Upstream all converge on Cache Response. The diagram emphasizes that cached answers are returned immediately, internal cluster names are handled by the Kubernetes plugin, and everything else is forwarded externally or to a custom zone handler before being cached.`
-  }
->
-```mermaid
-flowchart LR
-    subgraph coreDnsQueryFlow[CoreDNS Query Flow]
-        A[Query Received] --> B{In Cache?}
-        B -->|Yes| C[Return Cached Response]
-        B -->|No| D{cluster.local?}
-
-        D -->|Yes| E[Kubernetes Plugin]
-        E --> F{Service Exists?}
-        F -->|Yes| G[Return Service IP]
-        F -->|No| H[NXDOMAIN]
-
-        D -->|No| I{Custom Zone?}
-        I -->|Yes| J[Forward to Zone Server]
-        I -->|No| K[Forward to Upstream]
-
-        G --> L[Cache Response]
-        H --> L
-        J --> L
-        K --> L
-    end
-```
-</Diagram>
+  description="Flowchart showing the decision path CoreDNS follows when handling a DNS query. The chart is grouped under the heading CoreDNS Query Flow. A query first enters at Query Received, then moves to a decision asking In Cache. If yes, the flow goes directly to Return Cached Response. If no, it moves to a second decision asking whether the query is for cluster.local. If yes, the flow goes to Kubernetes Plugin, then to a decision asking Service Exists. A yes result returns Return Service IP, while a no result returns NXDOMAIN. If the query is not for cluster.local, the flow goes to a decision asking Custom Zone. A yes result forwards the query to Zone Server, while a no result forwards it to Upstream. The outcomes Return Service IP, NXDOMAIN, Forward to Zone Server, and Forward to Upstream all converge on Cache Response. The diagram emphasizes that cached answers are returned immediately, internal cluster names are handled by the Kubernetes plugin, and everything else is forwarded externally or to a custom zone handler before being cached."
+/>
 
 For large clusters with hundreds of pods making DNS queries, you may also need to scale the CoreDNS deployment itself. The default two replicas can become a bottleneck.
 
@@ -508,33 +449,10 @@ The comparison between `nslookup api.stripe.com` and `nslookup api.stripe.com.` 
 Most DNS problems fall into a few categories. The decision tree below helps you quickly identify which category you're dealing with.
 
 <Diagram
+  src={dnsDebuggingDiagram}
   title="DNS debugging decision tree."
-  description={
-    `Flowchart showing a step-by-step DNS troubleshooting path in Kubernetes. The process starts at DNS Problem Reported and first asks whether the pod can reach the CoreDNS IP. If no, the issue is categorized as Network issue and the next step is Check CNI, NetworkPolicy. If yes, the chart asks whether internal DNS is working. If no, the issue is categorized as CoreDNS issue and the next step is Check CoreDNS pods, logs, config. If internal DNS is working, the chart asks whether external DNS is working. If no, the issue is categorized as Upstream or forward issue and the next step is Check CoreDNS forward config, upstream DNS. If external DNS is working but slow, the chart asks whether lookups are faster with a trailing dot. If yes, the issue is categorized as ndots issue and the recommended action is Reduce ndots or use FQDNs. If no, the issue is categorized as Upstream DNS slow and the recommended action is Change upstream DNS or increase cache. The diagram is intended to guide the reader from symptom to likely cause in a fixed order that rules out the most common DNS failure modes.`
-  }
->
-```mermaid
-flowchart LR
-    A[DNS Problem Reported] --> B{Can pod reach<br/>CoreDNS IP?}
-    B -->|No| C[Network issue]
-    C --> D[Check CNI, NetworkPolicy]
-
-    B -->|Yes| E{Internal DNS<br/>working?}
-    E -->|No| F[CoreDNS issue]
-    F --> G[Check CoreDNS pods,<br/>logs, config]
-
-    E -->|Yes| H{External DNS<br/>working?}
-    H -->|No| I[Upstream/forward issue]
-    I --> J[Check CoreDNS forward<br/>config, upstream DNS]
-
-    H -->|Yes, but slow| K{Faster with<br/>trailing dot?}
-    K -->|Yes| L[ndots issue]
-    L --> M[Reduce ndots or<br/>use FQDNs]
-
-    K -->|No| N[Upstream DNS slow]
-    N --> O[Change upstream DNS<br/>or increase cache]
-```
-</Diagram>
+  description="Flowchart showing a step-by-step DNS troubleshooting path in Kubernetes. The process starts at DNS Problem Reported and first asks whether the pod can reach the CoreDNS IP. If no, the issue is categorized as Network issue and the next step is Check CNI, NetworkPolicy. If yes, the chart asks whether internal DNS is working. If no, the issue is categorized as CoreDNS issue and the next step is Check CoreDNS pods, logs, config. If internal DNS is working, the chart asks whether external DNS is working. If no, the issue is categorized as Upstream or forward issue and the next step is Check CoreDNS forward config, upstream DNS. If external DNS is working but slow, the chart asks whether lookups are faster with a trailing dot. If yes, the issue is categorized as ndots issue and the recommended action is Reduce ndots or use FQDNs. If no, the issue is categorized as Upstream DNS slow and the recommended action is Change upstream DNS or increase cache. The diagram is intended to guide the reader from symptom to likely cause in a fixed order that rules out the most common DNS failure modes."
+/>
 
 Here's what to check for each common scenario:
 

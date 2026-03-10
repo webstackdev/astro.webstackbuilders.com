@@ -9,7 +9,14 @@ tags: ["build-and-deploy", "kubernetes", "aws", "python", "prometheus", "typescr
 featured: true
 ---
 
-import Callout from '@components/Callout/index.astro'
+import blueGreenDiagram from "./diagrams/blue-green-deployment-lifecycle-showing-environment-swap.png"
+import canaryDeploymentDiagram from "./diagrams/canary-deployment-progression-with-traffic-percentage-increase.png"
+import databaseSchemaDiagram from "./diagrams/database-schema-change-categories-and-their-deployment-impact.png"
+import dataConsistencyDiagram from "./diagrams/data-consistency-challenges-when-rolling-back-after-data-has-been-written.png"
+import decisionTreeDiagram from "./diagrams/decision-tree-for-selecting-a-deployment-strategy.png"
+import expandContractDiagram from "./diagrams/expand-contract-pattern-for-safe-schema-evolution.png"
+import hybridApproachDiagram from "./diagrams/hybrid-approach-using-canary-validation-before-blue-green-cutover.png"
+import keyChallengesDiagram from "./diagrams/key-challenges-with-blue-green-deployment-strategy.png"
 
 *[LB]: Load Balancer
 
@@ -99,32 +106,10 @@ I've seen teams implement canary deployments for services that deploy once a mon
 The questions that actually matter:
 
 <Diagram
+  src={decisionTreeDiagram}
   title="Decision tree for selecting a deployment strategy"
   description="Flowchart that starts by asking whether 30 seconds of downtime is tolerable. If yes, recreate may be fine. If no, the path asks whether the workload is stateless, whether instant rollback is needed, whether production validation is needed, and whether traffic splitting exists, leading to rolling update, blue-green, or canary recommendations. All viable paths then converge on a final database backward-compatibility question. If database changes are not backward-compatible, the chart ends with a warning to fix that first because no deployment strategy will compensate for schema incompatibility."
->
-```mermaid
-flowchart LR
-    A[Start] --> B{Can you tolerate<br/>30s downtime?}
-    B -->|Yes| C[Recreate might be fine]
-    B -->|No| D{Is workload stateless?}
-    D -->|Yes| E[Rolling update is often sufficient]
-    D -->|No| F{Need instant rollback?}
-    F -->|Yes| G[Blue/green is worth the cost]
-    F -->|No| H{Need production validation?}
-    H -->|Yes| I{Have traffic splitting?}
-    H -->|No| G
-    I -->|Yes| J[Canary is appropriate]
-    I -->|No| G
-
-    K{Database changes<br/>backward-compatible?}
-    G --> K
-    J --> K
-    E --> K
-    C --> K
-    K -->|No| L[Fix this first — no strategy will save you]
-    K -->|Yes| M[Proceed with chosen strategy]
-```
-</Diagram>
+/>
 
 That last question is the one teams most often ignore. If your schema migration breaks the old version, it doesn't matter whether you're doing blue/green, canary, or rolling — you've got a problem. We'll cover this in detail later.
 
@@ -137,27 +122,10 @@ Blue/green deployment maintains two identical production environments. At any ti
 The mental model is simple: you're always one configuration change away from either the new version or the old one.
 
 <Diagram
+  src={blueGreenDiagram}
   title="Blue/green deployment lifecycle showing environment swap"
   description="Flowchart divided into three stages. Before deploy, the load balancer routes traffic to the blue environment running version 1.0 while green is idle. During deploy, blue stays active while green is deploying version 1.1. After cutover, the load balancer routes traffic to green running version 1.1 and blue becomes the standby environment. The diagram emphasizes that both environments exist simultaneously and traffic moves by switching which one is active."
->
-```mermaid
-flowchart LR
-  subgraph beforeDeploy[Before Deploy]
-    LB1[Load Balancer] --> Blue1[Blue Environment<br/>v1.0 - ACTIVE]
-    Green1[Green Environment<br/>idle]
-  end
-
-  subgraph duringDeploy[During Deploy]
-    LB2[Load Balancer] --> Blue2[Blue Environment<br/>v1.0 - ACTIVE]
-    Green2[Green Environment<br/>v1.1 - DEPLOYING]
-  end
-
-  subgraph afterCutover[After Cutover]
-    LB3[Load Balancer] --> Green3[Green Environment<br/>v1.1 - ACTIVE]
-    Blue3[Blue Environment<br/>v1.0 - STANDBY]
-  end
-```
-</Diagram>
+/>
 
 In Kubernetes, the simplest implementation uses label selectors. Both deployments run simultaneously, and the Service routes traffic based on which label it selects.
 
@@ -264,22 +232,10 @@ The cutover is a single `kubectl patch` command. No pods restart, no gradual rol
 Blue/green isn't free. The tradeoffs are real, and ignoring them leads to surprises.
 
 <Diagram
+  src={keyChallengesDiagram}
   title="Key challenges with blue/green deployment strategy"
   description="Flowchart with Blue-Green Challenges at the center branching to Resource Cost, Database State, Long-Running Connections, and Warmup Time. Each branch points to a concrete issue: two times infrastructure during deployment, both versions must work with the same schema, WebSockets and gRPC streams can break on cutover, and cold caches or JIT compilation can hurt performance after switching. The diagram summarizes the major operational costs that come with blue-green deployments."
->
-```mermaid
-flowchart LR
-    A[Blue/Green Challenges] --> B[Resource Cost]
-    A --> C[Database State]
-    A --> D[Long-Running Connections]
-    A --> E[Warmup Time]
-
-    B --> B1[2x infrastructure during deploy]
-    C --> C1[Both versions must work with same schema]
-    D --> D1[WebSockets, gRPC streams break on cutover]
-    E --> E1[Cold caches, JIT compilation]
-```
-</Diagram>
+/>
 
 __Resource cost__ is the obvious one: you're running two production environments. During active deployment, that's 2x compute. Even when idle, the standby environment consumes resources unless you scale it down.
 
@@ -354,30 +310,10 @@ Canary deployment takes a different approach: instead of switching all traffic a
 The name comes from coal mining, where canaries detected toxic gases before miners were harmed. Your canary deployment detects production problems before most users are affected.
 
 <Diagram
+  src={canaryDeploymentDiagram}
   title="Canary deployment progression with traffic percentage increase"
   description="Flowchart showing four rollout stages. Initial State sends 100 percent of traffic from the load balancer to version 1.0 pods. Canary 1 percent sends 99 percent to version 1.0 and 1 percent to the version 1.1 canary. Canary 10 percent sends 90 percent to version 1.0 and 10 percent to version 1.1. Full Rollout sends 100 percent of traffic to version 1.1 pods. The diagram illustrates gradual exposure to a new version before committing fully."
->
-```mermaid
-flowchart LR
-  subgraph initialState[Initial State]
-    LB1[Load Balancer] -->|100%| V1A[v1.0 Pods]
-  end
-
-  subgraph canaryOne[Canary 1%]
-    LB2[Load Balancer] -->|99%| V1B[v1.0 Pods]
-    LB2 -->|1%| V11A[v1.1 Canary]
-  end
-
-  subgraph canaryTen[Canary 10%]
-    LB3[Load Balancer] -->|90%| V1C[v1.0 Pods]
-    LB3 -->|10%| V11B[v1.1 Canary]
-  end
-
-  subgraph fullRollout[Full Rollout]
-    LB4[Load Balancer] -->|100%| V11C[v1.1 Pods]
-  end
-```
-</Diagram>
+/>
 
 Implementing canary requires traffic splitting at the load balancer or service mesh level. Here's an Istio configuration that routes 5% of traffic to the canary, with an override header for testing:
 
@@ -723,25 +659,10 @@ Here's the uncomfortable truth that deployment strategy discussions often gloss 
 Schema changes fall into three categories with very different risk profiles:
 
 <Diagram
+  src={databaseSchemaDiagram}
   title="Database schema change categories and their deployment impact"
   description="Flowchart starting with Schema Change Types and branching to Additive Only, Modify Existing, and Remove or Rename. Additive changes lead to Add column or add table and then to Both versions work. Modify Existing leads to Change column type and then to Old version may break. Remove or Rename leads to Remove column or rename and then to Old version will break. The diagram shows why additive changes are safest and destructive changes are risky for any deployment strategy."
->
-```mermaid
-flowchart LR
-    A[Schema Change Types] --> B[Additive Only]
-    A --> C[Modify Existing]
-    A --> D[Remove/Rename]
-
-    B -->|Safe| B1[Add column, add table]
-    B1 --> B2[Both versions work]
-
-    C -->|Dangerous| C1[Change column type]
-    C1 --> C2[Old version may break]
-
-    D -->|Very Dangerous| D1[Remove column, rename]
-    D1 --> D2[Old version will break]
-```
-</Diagram>
+/>
 
 __Additive changes__ are safe: adding a nullable column, creating a new table, adding an index. The old version ignores what it doesn't know about, the new version uses what it needs. Both versions work.
 
@@ -756,31 +677,10 @@ The deployment strategy you choose doesn't change this calculus. Canary doesn't 
 The solution is decoupling schema changes from application deployments through expand-contract migrations. Instead of one deployment that changes both schema and code, you do three:
 
 <Diagram
+  src={expandContractDiagram}
   title="Expand-contract pattern for safe schema evolution"
   description="Sequence diagram with Database, App v1, App v2, and App v3 participants. In Phase 1 Expand, the database adds a nullable new column while App v1 keeps reading the old column and ignores the new one. In Phase 2 Migrate, App v2 writes to both columns and reads from the old column while the database backfills the new column. In Phase 3 Contract, App v3 reads and writes only the new column, and the database drops the old column only after all traffic has moved to v3. The diagram shows how schema and application changes are staged safely across versions."
->
-```mermaid
-sequenceDiagram
-    participant DB as Database
-    participant V1 as App v1
-    participant V2 as App v2
-    participant V3 as App v3
-
-    Note over DB,V1: Phase 1: Expand
-    DB->>DB: Add new_column (nullable)
-    V1->>DB: Reads old_column, ignores new_column
-
-    Note over DB,V2: Phase 2: Migrate
-    V2->>DB: Writes to both columns
-    V2->>DB: Reads from old_column
-    DB->>DB: Backfill new_column
-
-    Note over DB,V3: Phase 3: Contract
-    V3->>DB: Reads from new_column only
-    V3->>DB: Writes to new_column only
-    DB->>DB: Drop old_column (after all traffic on v3)
-```
-</Diagram>
+/>
 
 Here's a concrete example — renaming `email_verified` (boolean) to `email_verified_at` (timestamp):
 
@@ -813,20 +713,10 @@ The best teams don't treat blue/green and canary as mutually exclusive — they 
 This hybrid gives you canary's production validation _and_ blue/green's instant rollback. The green environment is fully deployed and warmed up before it sees any traffic, and the blue environment stays ready for instant fallback throughout.
 
 <Diagram
+  src={hybridApproachDiagram}
   title="Hybrid approach using canary validation before blue/green cutover"
   description="Flowchart showing a hybrid rollout path. The process starts by deploying to green with zero percent traffic, then sending five percent of traffic to green as a canary. A canary analysis decision follows. If the analysis passes, traffic fully cuts over to green and blue remains on standby. If the analysis fails, traffic stays 100 percent on blue and the team fixes the issue before retrying. The chart combines small-scale validation with clean environment cutover."
->
-```mermaid
-flowchart LR
-    A[Start] --> B[Deploy to Green<br/>0% traffic]
-    B --> C[Canary to Green<br/>5% traffic]
-    C --> D{Canary Analysis}
-    D -->|Pass| E[Full Cutover<br/>100% to Green]
-    D -->|Fail| F[Keep Blue<br/>100% to Blue]
-    E --> G[Blue on Standby]
-    F --> H[Fix and Retry]
-```
-</Diagram>
+/>
 
 The key difference from pure canary: you're not gradually ramping from 5% to 10% to 50%. You validate at a low percentage, then cut over completely. This simplifies the analysis — you only need to answer "is green healthy enough?" not "should we increase the percentage?"
 
@@ -983,25 +873,10 @@ Rollback speed is often the deciding factor between deployment strategies. Here'
 Here's the problem nobody wants to talk about: rollback isn't truly instant for stateful applications. Even if you shift traffic in under a second, what about the data the new version already wrote?
 
 <Diagram
+  src={dataConsistencyDiagram}
   title="Data consistency challenges when rolling back after data has been written"
   description="Flowchart showing a rollback scenario for stateful data. Version 1.1 is deployed, users create data, a bug is discovered, and traffic rolls back to version 1.0. That leads to a data problem decision node with three causes: version 1.1 wrote a new format, version 1.1 used new columns, and version 1.1 created new records. These outcomes lead to specific failures where version 1.0 cannot read the data, ignores or overwrites it, or does not know about the records. The diagram highlights that rollback of code does not automatically roll back data shape changes."
->
-```mermaid
-flowchart LR
-    A[v1.1 Deployed] --> B[Users Create Data]
-    B --> C[Bug Discovered]
-    C --> D[Rollback to v1.0]
-    D --> E{Data Problem}
-
-    E --> F[v1.1 wrote new format]
-    E --> G[v1.1 used new columns]
-    E --> H[v1.1 created new records]
-
-    F --> I[v1.0 cannot read]
-    G --> J[v1.0 ignores/overwrites]
-    H --> K[v1.0 does not know about them]
-```
-</Diagram>
+/>
 
 Consider a scenario: v1.1 adds a `preferences_json` column and starts writing user preferences there instead of the old `preferences` blob. You deploy, 100 users update their preferences, then you discover a bug and roll back. Now v1.0 is running, but those 100 users have preferences in a column v1.0 doesn't read. Their preferences appear to be gone.
 

@@ -9,6 +9,8 @@ tags: ["cloud-platforms", "kubernetes", "aws"]
 featured: true
 ---
 
+import sharedVsDedicatedDiagram from "./diagrams/shared-vs-dedicated-resource-cost-comparison.png"
+
 *[PR]: Pull Request
 *[TTL]: Time To Live
 *[RDS]: Relational Database Service
@@ -90,37 +92,10 @@ Start with TTL enforcement — it catches 80% of waste. A 72-hour default TTL wi
 The most impactful cost optimization is using shared infrastructure with logical isolation instead of dedicated instances per environment. The math is stark: three dedicated database instances cost three times as much as one shared instance with three schemas.
 
 <Diagram
+  src={sharedVsDedicatedDiagram}
   title="Shared vs dedicated resource cost comparison."
-  description={
-  `Flowchart comparing dedicated preview databases with a shared database model. In the Dedicated (Expensive) group are three separate databases labeled PR-123 DB, PR-124 DB, and PR-125 DB. In the Shared (Cost-Effective) group, one Shared DB branches into three isolated schemas: schema_pr_123, schema_pr_124, and schema_pr_125. A third group labeled Cost Comparison (db.t3.small) shows that three dedicated databases cost 3 x $30/mo = $90/mo, while one shared database costs 1 x $30/mo = $30/mo. Dotted arrows connect the dedicated databases to the higher cost and the shared database to the lower cost. The diagram demonstrates that logical isolation within a shared service can preserve separation while dramatically lowering per-preview infrastructure cost.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph dedicated["Dedicated (Expensive)"]
-    A1["PR-123 DB"]
-    A2["PR-124 DB"]
-    A3["PR-125 DB"]
-  end
-
-  subgraph shared["Shared (Cost-Effective)"]
-    B1["Shared DB"]
-    B1 --> B2["schema_pr_123"]
-    B1 --> B3["schema_pr_124"]
-    B1 --> B4["schema_pr_125"]
-  end
-
-  subgraph cost["Comparison (db.t3.small)"]
-    C1["3 x $30/mo = $90/mo"]
-    C2["1 x $30/mo = $30/mo"]
-  end
-
-  A1 -.-> C1
-  A2 -.-> C1
-  A3 -.-> C1
-  B1 -.-> C2
-```
-</Diagram>
+  description="Flowchart comparing dedicated preview databases with a shared database model. In the Dedicated (Expensive) group are three separate databases labeled PR-123 DB, PR-124 DB, and PR-125 DB. In the Shared (Cost-Effective) group, one Shared DB branches into three isolated schemas: schema_pr_123, schema_pr_124, and schema_pr_125. A third group labeled Cost Comparison (db.t3.small) shows that three dedicated databases cost 3 x $30/mo = $90/mo, while one shared database costs 1 x $30/mo = $30/mo. Dotted arrows connect the dedicated databases to the higher cost and the shared database to the lower cost. The diagram demonstrates that logical isolation within a shared service can preserve separation while dramatically lowering per-preview infrastructure cost."
+/>
 
 For PostgreSQL, schema isolation provides strong separation. Each preview environment gets its own schema with a dedicated role that can only access that schema. Provisioning is fast — no instance startup time, just a `CREATE SCHEMA` command. Cleanup is equally simple: `DROP SCHEMA CASCADE` removes everything in one operation.
 

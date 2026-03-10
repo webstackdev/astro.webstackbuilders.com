@@ -9,6 +9,8 @@ tags: ["build-and-deploy", "typescript", "aws", "azure", "docker", "kubernetes"]
 featured: true
 ---
 
+import ciOptimizationDiagram from "./diagrams/ci-optimization-progression-from-sequential-to-distributed-execution.png"
+
 *[DAG]: Directed Acyclic Graph
 *[NX]: Nrwl Extensions
 *[PR]: Pull Request
@@ -583,39 +585,10 @@ Code: Manual distribution using GitHub Actions matrix strategy.
 The optimization levels stack. First, skip unaffected packages entirely. Second, use remote caching to skip packages that are affected but haven't actually changed (cache hit). Third, parallelize the remaining work within each runner. Fourth, distribute across multiple runners. Each level compounds the previous one's gains.
 
 <Diagram
+  src={ciOptimizationDiagram}
   title="CI optimization progression from sequential to distributed execution."
-  description={
-  `Flowchart comparing three stages of CI optimization in a monorepo. In the grouped section labeled Traditional CI, a single Runner performs Build pkg1, then Build pkg2, then Build pkg3, then Test all, ending at 60 min total. In the grouped section labeled Affected plus Cache, a Runner first checks a decision node labeled Affected. One branch indicates pkg1 only, leading to Build pkg1 and then Test pkg1, ending at 5 min total. Another branch indicates a Cache hit, leading to Skip pkg2, pkg3. In the grouped section labeled Distributed, a Coordinator dispatches work to Agent 1 for pkg1, Agent 2 for pkg2, and Agent 3 for pkg3, and all three converge on 3 min total. The diagram shows the progression from slow sequential execution, to skipping unaffected or cached work, to coordinating parallel work across multiple agents for the fastest feedback.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph traditionalCi[Traditional CI]
-    A1[Runner] --> B1[Build pkg1]
-    B1 --> C1[Build pkg2]
-    C1 --> D1[Build pkg3]
-    D1 --> E1[Test all]
-    E1 --> F1[60 min total]
-  end
-
-  subgraph affectedCache[Affected + Cache]
-    A2[Runner] --> B2{Affected?}
-    B2 -->|pkg1 only| C2[Build pkg1]
-    B2 -->|Cache hit| D2[Skip pkg2, pkg3]
-    C2 --> E2[Test pkg1]
-    E2 --> F2[5 min total]
-  end
-
-  subgraph distributed[Distributed]
-    A3[Coordinator] --> B3[Agent 1: pkg1]
-    A3 --> C3[Agent 2: pkg2]
-    A3 --> D3[Agent 3: pkg3]
-    B3 --> E3[3 min total]
-    C3 --> E3
-    D3 --> E3
-  end
-```
-</Diagram>
+  description="Flowchart comparing three stages of CI optimization in a monorepo. In the grouped section labeled Traditional CI, a single Runner performs Build pkg1, then Build pkg2, then Build pkg3, then Test all, ending at 60 min total. In the grouped section labeled Affected plus Cache, a Runner first checks a decision node labeled Affected. One branch indicates pkg1 only, leading to Build pkg1 and then Test pkg1, ending at 5 min total. Another branch indicates a Cache hit, leading to Skip pkg2, pkg3. In the grouped section labeled Distributed, a Coordinator dispatches work to Agent 1 for pkg1, Agent 2 for pkg2, and Agent 3 for pkg3, and all three converge on 3 min total. The diagram shows the progression from slow sequential execution, to skipping unaffected or cached work, to coordinating parallel work across multiple agents for the fastest feedback."
+/>
 
 <Callout type="success">
 The optimization stack: 1) Skip unaffected packages. 2) Cache affected but unchanged. 3) Parallelize what remains. 4) Distribute across agents. Each level provides significant speedup; together they're transformative.
