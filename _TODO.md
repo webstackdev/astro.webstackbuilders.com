@@ -282,7 +282,5 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
 
 ## Prompt for Mermaid Images
 
-Should keep arrowheads, not make lines too thin, keep subgraph blocks, square edges not curves, use database cylinders
-
 ├──
 └──
