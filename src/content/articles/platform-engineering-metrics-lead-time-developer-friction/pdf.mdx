@@ -9,6 +9,9 @@ tags: ["platform-engineering", "kubernetes", "helm", "terraform", "docker", "cro
 featured: true
 ---
 
+import leadTimeDiagram from "./diagrams/lead-time-improvement-visualization-12-days-reduced-to-5-hours.png"
+import metricsDiagram from "./diagrams/metrics-data-flow-from-source-systems-to-dashboards.jpg"
+
 *[CSAT]: Customer Satisfaction Score
 *[DORA]: DevOps Research and Assessment
 *[MTTR]: Mean Time to Recovery
@@ -94,30 +97,10 @@ These metrics align with DORA's[^dora] research-backed framework.
 [^dora]: DORA (DevOps Research and Assessment) is a research program that identified four key metrics predicting software delivery performance: deployment frequency, lead time for changes, change failure rate, and time to restore service. Their annual State of DevOps reports provide industry benchmarks. Elite performers deploy multiple times per day with lead times under an hour. If you're measuring in weeks, you're not just slow — you're losing competitive ground.
 
 <Diagram
+  src={leadTimeDiagram}
   title="Lead time improvement visualization — 12 days reduced to 5 hours."
-  description={
-    `Gantt chart titled Time to First Deployment Before versus After Platform. The chart compares two timelines. In the Before Platform section, Account setup takes 2 days, Request infrastructure takes 3 more days, Wait for provisioning takes 5 days, Configure access takes 2 days, and then First deployment appears as a milestone, for a total of roughly 12 days. In the After Platform section, Self-service onboarding takes 4 hours, Auto-provisioned environment takes 1 more hour, and then First deployment appears as a milestone, for a total of roughly 5 hours. The diagram shows how platform automation compresses a multi-day onboarding and provisioning sequence into a same-day self-service path.`
-  }
->
-```mermaid
-gantt
-    title Time to First Deployment (Before vs After Platform)
-    dateFormat X
-    axisFormat %d days
-
-    section Before Platform
-    Account setup           :a1, 0, 2d
-    Request infrastructure  :a2, after a1, 3d
-    Wait for provisioning   :a3, after a2, 5d
-    Configure access        :a4, after a3, 2d
-    First deployment        :milestone, after a4, 0d
-
-    section After Platform
-    Self-service onboarding :b1, 0, 4h
-    Auto-provisioned env    :b2, after b1, 1h
-    First deployment        :milestone, after b2, 0d
-```
-</Diagram>
+  description="Gantt chart titled Time to First Deployment Before versus After Platform. The chart compares two timelines. In the Before Platform section, Account setup takes 2 days, Request infrastructure takes 3 more days, Wait for provisioning takes 5 days, Configure access takes 2 days, and then First deployment appears as a milestone, for a total of roughly 12 days. In the After Platform section, Self-service onboarding takes 4 hours, Auto-provisioned environment takes 1 more hour, and then First deployment appears as a milestone, for a total of roughly 5 hours. The diagram shows how platform automation compresses a multi-day onboarding and provisioning sequence into a same-day self-service path."
+/>
 
 ### Developer Friction Metrics
 
@@ -188,48 +171,10 @@ Platform metrics come from multiple systems that don't naturally talk to each ot
 The collection pattern that works: event-driven ingestion into a stream (Kafka or Kinesis), enrichment with team and service metadata, aggregation into time-series storage, and visualization through dashboards. Raw events go to a data lake for historical analysis; aggregated metrics go to a time-series database for dashboards.
 
 <Diagram
+  src={metricsDiagram}
   title="Metrics data flow from source systems to dashboards."
-  description={
-  `Top-to-bottom flowchart with four grouped stages: Data Sources, Collection, Storage, and Presentation. The Data Sources group contains Deployment System, Ticketing System, Platform Portal, and HR System. All four sources feed into an Event Stream in the Collection group, which then feeds into Enrichment. From Enrichment, data flows to two storage targets: Raw Events and Aggregated Metrics. Aggregated Metrics then feed three presentation outputs: Dashboards, Reports, and Alerts. The diagram shows a metrics pipeline where operational and business events are collected from multiple systems, enriched with metadata, stored in both raw and summarized forms, and then exposed for visualization, reporting, and alerting.`
-  }
->
-```mermaid
-flowchart LR
-  subgraph dataSources[Data Sources]
-    A[Deployment System]
-    B[Ticketing System]
-    C[Platform Portal]
-    D[HR System]
-  end
-
-  subgraph collection[Collection]
-    E[Event Stream]
-    F[Enrichment]
-  end
-
-  subgraph storage[Storage]
-    G[Raw Events]
-    H[Aggregated Metrics]
-  end
-
-  subgraph presentation[Presentation]
-    I[Dashboards]
-    J[Reports]
-    K[Alerts]
-  end
-
-  A --> E
-  B --> E
-  C --> E
-  D --> E
-  E --> F
-  F --> G
-  F --> H
-  H --> I
-  H --> J
-  H --> K
-```
-</Diagram>
+  description="Top-to-bottom flowchart with four grouped stages: Data Sources, Collection, Storage, and Presentation. The Data Sources group contains Deployment System, Ticketing System, Platform Portal, and HR System. All four sources feed into an Event Stream in the Collection group, which then feeds into Enrichment. From Enrichment, data flows to two storage targets: Raw Events and Aggregated Metrics. Aggregated Metrics then feed three presentation outputs: Dashboards, Reports, and Alerts. The diagram shows a metrics pipeline where operational and business events are collected from multiple systems, enriched with metadata, stored in both raw and summarized forms, and then exposed for visualization, reporting, and alerting."
+/>
 
 For deployment events, capture the service name, team, environment, duration, and commit SHA. For tickets, capture category, requester team, resolution time, and first response time. For portal events, capture user, team, duration, and success/failure. The key is consistent metadata across sources so you can correlate — linking a developer's first deployment to their HR start date, for example.
 

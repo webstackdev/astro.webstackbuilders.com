@@ -284,3 +284,5 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
 
 ├──
 └──
+
+jpg

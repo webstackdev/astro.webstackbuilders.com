@@ -38,6 +38,20 @@ const theadClass = 'bg-page-offset border-b border-trim'
 const tbodyClass = ''
 const tfootClass = ''
 const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b border-trim-offset last:border-b-0'
+
+const getMarkerColorClass = (rowHeader: string | { label: string; color?: string }) => {
+  if (typeof rowHeader === 'string') {
+    return 'bg-secondary'
+  }
+
+  const color = rowHeader.color?.trim()
+
+  if (!color) {
+    return 'bg-secondary'
+  }
+
+  return color.startsWith('bg-') ? color : `bg-${color}`
+}
 ---
 
 <table class:list={[tableClass, classes?.table]}>
@@ -67,8 +81,8 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
                 <span
                   class:list={[
                     'h-2.5 w-2.5 mb-1 rounded-full',
+                    getMarkerColorClass(row.th),
                   ]}
-                  style={`background-color: var(--color-${(typeof row.th === 'string' ? undefined : row.th.color)?.trim() || 'secondary'})`}
                   aria-hidden="true"
                 />
                 <span set:html={typeof row.th === 'string' ? row.th : row.th.label}></span>

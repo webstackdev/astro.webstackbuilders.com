@@ -11,7 +11,7 @@ featured: true
 
 import argocdHealthDiagram from "./diagrams/argocd-health-assessment-flow-for-different-resource-types.jpg"
 import argocdSyncDiagram from "./diagrams/argocd-sync-process-from-git-commit-to-healthy-application.jpg"
-import hookExecutionDiagram from "./diagrams/hook-execution-sequence-during-argocd-sync-lifecycle.png"
+import hookExecutionDiagram from "./diagrams/hook-execution-sequence-during-argocd-sync-lifecycle.jpg"
 import outofsyncLoopDiagram from "./diagrams/outofsync-loop-caused-by-external-modifications-to-resources.jpg"
 import resourceDependencyDiagram from "./diagrams/resource-dependency-graph-showing-potential-failure-points.jpg"
 
@@ -101,7 +101,10 @@ Code: Sync wave annotations controlling resource application order.
 The wave number itself is arbitrary — what matters is the relative ordering. I've seen teams use -10 to 10, and others use -2 to 2. Pick a convention and stick with it. Here's a pattern that works for most applications:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="striped-rows-table"
+  classes={{
+    figure: "mb-12",
+  }}
   content={{
     figure: "Common sync wave ordering pattern for application deployments.",
     thead: { th: ["Wave", "Typical Resources", "Purpose"] },
@@ -153,7 +156,7 @@ The most common use case is database migrations. You want to run migrations afte
 ArgoCD supports five hook types, each running at a specific point in the sync lifecycle:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "ArgoCD hook types with execution timing and use cases.",
     thead: { th: ["Hook Type", "When It Runs", "Use Case"] },
@@ -235,17 +238,24 @@ These failures are frustrating because they're often intermittent. Sync works so
 When a dependency is missing, pods fail to start with characteristic error messages:
 
 **Common Symptoms:**
+
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
+  classes={{
+    wrapper: "ml-6 mb-8",
+  }}
   items={[
     {
-      text: "Pod stuck in `CreateContainerConfigError`",
+      text: 'Pod stuck in <span class="font-mono font-danger-offset">CreateContainerConfigError</span>',
+      color: "bg-danger-offset",
     },
     {
-      text: "`secret \"x\" not found` errors",
+      text: '<span class="font-mono font-danger-offset">secret "x" not found</span> errors',
+      color: "bg-danger-offset",
     },
     {
-      text: "`serviceaccount \"x\" not found` errors",
+      text: '<span class="font-mono font-danger-offset">serviceaccount "x" not found</span> errors',
+      color: "bg-danger-offset",
     },
   ]}
 />
@@ -280,7 +290,7 @@ Hooks fail differently than normal resources because they're Jobs, not long-runn
 The trickiest hook failures are timeouts. ArgoCD waits for hooks to complete before proceeding, and "complete" means the Job reached a terminal state (Succeeded or Failed). If your hook runs longer than expected, the sync just hangs. There's no timeout by default — ArgoCD will wait forever.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="report-table"
   content={{
     figure: "Common hook failure modes with symptoms and causes.",
     thead: { th: ["Failure Mode", "Symptom", "Cause"] },
@@ -288,7 +298,7 @@ The trickiest hook failures are timeouts. ArgoCD waits for hooks to complete bef
       tr: [
         {
           th: "Hook timeout",
-          td: ["Sync stuck at \"Running PreSync hooks\"", "Hook job takes too long"],
+          td: ['Sync stuck at "Running PreSync hooks"', "Hook job takes too long"],
         },
         {
           th: "Hook crash",
@@ -310,7 +320,7 @@ Table: Common hook failure modes with symptoms and causes.
 
 For long-running hooks like database migrations, always set `activeDeadlineSeconds` on the Job. This gives ArgoCD a timeout — if the migration takes longer than expected, the sync fails instead of hanging forever:
 
-```yaml title="manifests/app/migrations/slow-migration-job.yaml" {14}
+```yaml title="manifests/app/migrations/slow-migration-job.yaml" {13}
 # Long-running migration hook with explicit timeout.
 # The activeDeadlineSeconds ensures ArgoCD doesn't wait forever
 # if the migration hangs or takes longer than expected.
@@ -417,29 +427,34 @@ spec:
 ```
 Code: Application-level ignoreDifferences configuration for expected drift.
 
+The `ignoreDifferences` configuration uses JSON pointers to target specific fields, so you need to know exactly which path is causing the drift. Start with `argocd app diff myapp` to see what ArgoCD considers out of sync, then add the relevant pointer. Be precise — ignoring too broadly (like an entire `metadata` block) can mask real configuration drift that you actually want ArgoCD to catch.
+
 <Callout type="info">
 If a resource shows `OutOfSync` but the diff looks identical, check for whitespace differences, field ordering, or default values that Kubernetes adds but your manifests do not include.
 </Callout>
 
 Other common sources of drift:
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "ml-6 mb-8",
+  }}
   items={[
     {
-      lead: "Mutating webhooks:",
-      text: "that add labels or annotations to resources",
+      lead: "Mutating webhooks",
+      text: "That add labels or annotations to resources",
     },
     {
-      lead: "Kubernetes defaulting:",
-      text: "that adds fields your manifest doesn't specify (like `imagePullPolicy: IfNotPresent`)",
+      lead: "Kubernetes defaulting",
+      text: 'That adds fields your manifest doesn\'t specify (like <span class="font-mono">imagePullPolicy: IfNotPresent</span>)',
     },
     {
-      lead: "Controller timestamps:",
-      text: "like `lastTransitionTime` in status fields",
+      lead: "Controller timestamps",
+      text: 'Like <span class="font-mono">lastTransitionTime</span> in status fields',
     },
     {
-      lead: "Cloud provider annotations:",
-      text: "added by load balancer controllers or ingress controllers",
+      lead: "Cloud provider annotations",
+      text: "Added by load balancer controllers or ingress controllers",
     },
   ]}
 />
@@ -496,27 +511,29 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller |
 ```
 Code: ArgoCD component logs for different failure types.
 
+Each ArgoCD component owns a different part of the sync pipeline, so knowing which pod to check narrows your search immediately. The application-controller handles sync orchestration and health evaluation; the repo-server handles manifest generation from Git; and the server pod handles API requests and the UI. Here's the mapping:
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     figure: "ArgoCD components and their log relevance.",
     thead: { th: ["Component", "Log Location", "Failure Types"] },
     tbody: {
       tr: [
         {
-          th: "application-controller",
+          th: '<span class="font-mono">application-controller</span>',
           td: ["Controller pod", "Sync decisions, health checks"],
         },
         {
-          th: "repo-server",
+          th: '<span class="font-mono">repo-server</span>',
           td: ["Repo server pod", "Manifest generation, Helm/Kustomize"],
         },
         {
-          th: "server",
+          th: '<span class="font-mono">server</span>',
           td: ["Server pod", "API errors, authentication"],
         },
         {
-          th: "redis",
+          th: '<span class="font-mono">redis</span>',
           td: ["Redis pod", "Caching issues, state corruption"],
         },
       ],

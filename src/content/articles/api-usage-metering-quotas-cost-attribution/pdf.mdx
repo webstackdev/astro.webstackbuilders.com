@@ -11,7 +11,7 @@ featured: true
 
 import consumerUsageDiagram from "./diagrams/consumer-usage-dashboard-layout-with-logical-panel-grouping.jpg"
 import costAttributionDiagram from "./diagrams/cost-attribution-flow-from-infrastructure-costs-to-consumer-invoices.jpg"
-import endToEndBillingDiagram from "./diagrams/end-to-end-billing-flow-from-API-usage-to-payment-processing.png"
+import endToEndBillingDiagram from "./diagrams/end-to-end-billing-flow-from-API-usage-to-payment-processing.jpg"
 import meteringDataDiagram from "./diagrams/metering-data-flow-from-API-request-to-billing-and-enforcement-systems.jpg"
 import pricingModelDiagram from "./diagrams/pricing-model-evolution-from-flat-rate-to-usage-based.jpg"
 import quotaEnforcementDiagram from "./diagrams/quota-enforcement-decision-flow-with-soft-limits-and-burst-allowance.jpg"
@@ -45,7 +45,7 @@ Not every metric needs to be billable, but you need to capture enough dimensions
 The metrics that drive API costs:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Common metering dimensions mapped to cost drivers.",
     thead: { th: ["Dimension", "Example", "Cost Driver"] },
@@ -171,7 +171,7 @@ Code: Usage event schema with consumer context, request details, and billable di
 Key decisions:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "Identifiers:",
@@ -254,7 +254,7 @@ Double-counting usage events leads to overbilling disputes and customer trust er
 Quotas answer the question: "How much usage is too much?" But "too much" depends on context. A hard limit that rejects requests prevents runaway costs but creates a poor user experience. A soft limit that allows overages is forgiving but harder to predict financially. You need both, applied at different levels.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="striped-rows-table"
   content={{
     figure: "Quota enforcement models with use cases.",
     thead: { th: ["Model", "Behavior", "Use Case"] },
@@ -300,7 +300,7 @@ Token buckets are elegant for smoothing usage. Instead of "1 million requests pe
 Rate limiting and quota enforcement solve different problems. Rate limiting is "requests per second"—it protects infrastructure and ensures fairness. Quota enforcement is "requests per billing period"—it controls costs and enforces plan limits. You need both.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="striped-rows-table"
   content={{
     figure: "Rate limiting vs. quota enforcement — different tools for different problems.",
     thead: { th: ["Mechanism", "Scope", "Purpose"] },
@@ -490,18 +490,18 @@ You've captured usage metrics — now you need to translate them into dollar cos
 Three common approaches:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
   items={[
     {
-      lead: "Direct attribution:",
+      lead: "Direct attribution",
       text: "Map specific costs directly to usage dimensions. If your compute bill is $10,000 and you processed 10 million requests, each request costs $0.001 in compute. Simple, but it ignores fixed costs and assumes all requests are equal.",
     },
     {
-      lead: "Proportional allocation:",
+      lead: "Proportional allocation",
       text: "Create a cost pool of all API infrastructure costs, then allocate based on usage share. If Team A made 60% of requests, they get 60% of costs. Fair for similar usage patterns, but a team making cheap health checks subsidizes one making expensive video transcoding.",
     },
     {
-      lead: "Tiered pricing:",
+      lead: "Tiered pricing",
       text: "Charge different rates based on volume or feature usage. High-volume consumers get volume discounts, premium features cost more. This is closer to how SaaS companies price APIs and aligns incentives better than pure cost recovery.",
     },
   ]}
@@ -520,30 +520,45 @@ Most internal APIs start with direct attribution (simple to explain) then move t
 Picking a cost model is as much psychology as math. The model shapes behavior — per-request pricing encourages consumers to reduce calls, compute-based pricing encourages efficient code, tiered pricing encourages growth.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="timeline-labels-table"
   content={{
     figure: "Cost models with formulas and use cases.",
     thead: { th: ["Model", "Formula", "Best For"] },
     tbody: {
       tr: [
         {
-          th: "Per-Request",
+          th: {
+            label: "Per-Request",
+            color: "blue-600",
+          },
           td: ["$0.001 × requests", "Simple, predictable APIs"],
         },
         {
-          th: "Compute-Based",
+          th: {
+            label: "Compute-Based",
+            color: "orange-600",
+          },
           td: ["$0.10 × CPU-hours", "Processing-intensive workloads"],
         },
         {
-          th: "Data Transfer",
+          th: {
+            label: "Data Transfer",
+            color: "green-600",
+          },
           td: ["$0.05 × GB", "Data-heavy APIs"],
         },
         {
-          th: "Tiered",
+          th: {
+            label: "Tiered",
+            color: "purple-600",
+          },
           td: ["Decreasing $/unit at volume", "Encouraging growth"],
         },
         {
-          th: "Flat + Overage",
+          th: {
+            label: "Flat + Overage",
+            color: "yellow-600",
+          },
           td: ["$500/month + $0.001/request over 1M", "Predictable base + flexibility"],
         },
       ],
@@ -636,26 +651,38 @@ Export this to CSV, send it to finance, and let them handle the budget transfers
 There's a spectrum between "no cost visibility" and "full chargebacks." Most organizations benefit from moving gradually rather than jumping straight to chargebacks.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="semantic-coloring-table"
   content={{
     figure: "Attribution approaches from visibility-only to hard chargebacks.",
     thead: { th: ["Approach", "Visibility", "Budget Impact", "Organizational Friction"] },
     tbody: {
       tr: [
         {
-          th: "No Attribution",
+          th: {
+            label: "No Attribution",
+            color: "note",
+          },
           td: ["None", "Hidden in shared costs", "Low"],
         },
         {
-          th: "Showback",
+          th: {
+            label: "Showback",
+            color: "info",
+          },
           td: ["Full", "Informational only", "Low"],
         },
         {
-          th: "Soft Chargeback",
+          th: {
+            label: "Soft Chargeback",
+            color: "warning",
+          },
           td: ["Full", "Budget guidance", "Medium"],
         },
         {
-          th: "Hard Chargeback",
+          th: {
+            label: "Hard Chargeback",
+            color: "danger",
+          },
           td: ["Full", "Actual cost transfer", "High"],
         },
       ],
@@ -664,7 +691,10 @@ There's a spectrum between "no cost visibility" and "full chargebacks." Most org
 />
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "m-12",
+  }}
   items={[
     {
       lead: "Showback means \"here's what you're using, here's what it costs, but we're not moving money between budgets.\"",
@@ -825,7 +855,7 @@ Consumers need to see their usage in real-time, not when the bill arrives. A goo
 The essential panels:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "Consumer-facing usage dashboard panels.",
     thead: { th: ["Panel", "Visualization", "Purpose"] },
@@ -1042,7 +1072,11 @@ Code: Implementation checklist for API cost management systems.
 The order matters: build metering first (you need data), then reporting (visibility), then enforcement (quotas), then billing (money). Trying to build them in parallel creates dependencies you can't resolve.
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "mr-12 mb-8",
+    em: "pt-6",
+  }}
   items={[
     {
       lead: "Multi-region considerations:",
@@ -1067,6 +1101,9 @@ The pitch needs to frame cost attribution as an enabler, not a punitive measure:
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "ml-6 mr-12 mb-8",
+  }}
   items={[
     {
       lead: "For Engineering Teams:",
@@ -1092,7 +1129,7 @@ The most common objection: "This will create budget battles between teams." True
 Jumping straight to hard enforcement will cause significant organizational friction and backlash. A phased rollout lets you see your usage, understand the patterns, and optimize before financial consequences kick in.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Phased rollout for API cost management implementation.",
     thead: { th: ["Phase", "Duration", "Deliverable", "Organizational Impact"] },
@@ -1121,23 +1158,28 @@ Jumping straight to hard enforcement will cause significant organizational frict
 
 Soft Enforce warnings look like this:
 
-> **Subject**: API Quota Alert: You've used 90% of your monthly allocation
->
-> Your team (team-mobile-app) has used 9M of your 10M request quota for February 2024. At your current rate, you'll hit your limit in 3 days.
->
-> **Next steps**:
->
-> - Review your usage dashboard: https://platform.example.com/quota
-> - Identify high-usage endpoints (likely /v2/user/profile based on patterns)
-> - Consider optimizing request batching or caching
-> - If you need more capacity, upgrade to the Growth plan
->
-> Questions? Reply to this email or ping #api-platform on Slack.
+<Inset>
+**Subject**: API Quota Alert: You've used 90% of your monthly allocation
+
+Your team (team-mobile-app) has used 9M of your 10M request quota for February 2024. At your current rate, you'll hit your limit in 3 days.
+
+**Next steps**:
+
+- Review your usage dashboard: https://platform.example.com/quota
+- Identify high-usage endpoints (likely /v2/user/profile based on patterns)
+- Consider optimizing request batching or caching
+- If you need more capacity, upgrade to the Growth plan
+
+Questions? Reply to this email or ping #api-platform on Slack.
+</Inset>
 
 This gives teams actionable information and time to respond before enforcement kicks in.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "ml-6 mr-12 mb-8",
+  }}
   items={[
     {
       lead: "Instrument phase:",
@@ -1190,21 +1232,24 @@ The key principles:
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "ml-6 mr-12 mb-8",
+  }}
   items={[
     {
-      lead: "Meter everything—",
+      lead: "Meter everything",
       text: "even if you're not billing for it today. You can't retroactively meter usage you never captured. Start with request count, data transfer, and compute time. Add more dimensions as you understand cost drivers.",
     },
     {
-      lead: "Enforce quotas at multiple levels—",
+      lead: "Enforce quotas at multiple levels",
       text: "rate limits protect infrastructure, monthly quotas control costs. You need both. Hard limits prevent abuse, soft limits with overages enable growth.",
     },
     {
-      lead: "Attribute costs transparently—",
+      lead: "Attribute costs transparently",
       text: "showback before chargeback. Teams need to understand their usage patterns before costs hit their budgets. Disputes are inevitable; raw usage events are your defense.",
     },
     {
-      lead: "Roll out gradually—",
+      lead: "Roll out gradually",
       text: "instrumentation, reporting, soft enforcement, hard enforcement. Each phase builds trust and gives teams time to optimize. Jumping straight to hard enforcement creates organizational friction.",
     },
   ]}

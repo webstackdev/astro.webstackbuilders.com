@@ -22,13 +22,13 @@ export type Props = {
     tbody: {
       tr: {
         th?: string | { label: string; color?: string }
-        td: string[]
+        td: Array<string | { label: string; color?: string }>
       }[]
     }
     tfoot?: {
       tr: {
         th?: string
-        td: string[]
+        td: Array<string | { label: string; color?: string }>
       }[]
     }
   }
@@ -38,6 +38,8 @@ export type Props = {
     figure?: string
     thead?: string
     tbody?: string
+    tbodyRowHeader?: string
+    tbodyLastColumn?: string
     tfoot?: string
   }
   fullWidth?: boolean
@@ -48,6 +50,7 @@ const { content, variant = 'default', classes, fullWidth = true } = Astro.props
 
 const classesProps = classes ? { classes } : {}
 const layoutProps = { ...classesProps, fullWidth }
+const layoutContent = content as any
 const wrapperClass = [
   'overflow-x-auto rounded-md border border-trim bg-content-inverse',
   fullWidth ? 'w-full' : 'mx-auto w-fit max-w-full',
@@ -56,17 +59,17 @@ const wrapperClass = [
 
 <figure class:list={[content.figure ? 'my-4 mx-auto max-w-none' : '', classes?.figure]}>
   <div class={wrapperClass}>
-    {variant === 'criteria-highlight-table' && <CriteriaHighlightTable content={content} {...layoutProps} />}
-    {variant === 'grid-and-accent-header-table' && <GridAndAccentHeaderTable content={content} {...layoutProps} />}
-    {variant === 'minimal-borders-table' && <MinimalBordersTable content={content} {...layoutProps} />}
-    {variant === 'numbered-review-table' && <NumberedReviewTable content={content} {...layoutProps} />}
-    {variant === 'report-table' && <ReportTable content={content} {...layoutProps} />}
-    {variant === 'semantic-coloring-table' && <SemanticColoringTable content={content} {...layoutProps} />}
-    {variant === 'soft-header-card-table' && <SoftHeaderCardTable content={content} {...layoutProps} />}
-    {variant === 'sticky-header-table' && <StickyHeaderTable content={content} {...layoutProps} />}
-    {variant === 'striped-rows-table' && <StripedRowsTable content={content} {...layoutProps} />}
-    {variant === 'timeline-labels-table' && <TimelineLabelsTable content={content} {...layoutProps} />}
-    {variant === 'vertical-column-delineation-table' && <VerticalColumnDelineationTable content={content} {...layoutProps} />}
+    {variant === 'criteria-highlight-table' && <CriteriaHighlightTable content={layoutContent} {...layoutProps} />}
+    {variant === 'grid-and-accent-header-table' && <GridAndAccentHeaderTable content={layoutContent} {...layoutProps} />}
+    {variant === 'minimal-borders-table' && <MinimalBordersTable content={layoutContent} {...layoutProps} />}
+    {variant === 'numbered-review-table' && <NumberedReviewTable content={layoutContent} {...layoutProps} />}
+    {variant === 'report-table' && <ReportTable content={layoutContent} {...layoutProps} />}
+    {variant === 'semantic-coloring-table' && <SemanticColoringTable content={layoutContent} {...layoutProps} />}
+    {variant === 'soft-header-card-table' && <SoftHeaderCardTable content={layoutContent} {...layoutProps} />}
+    {variant === 'sticky-header-table' && <StickyHeaderTable content={layoutContent} {...layoutProps} />}
+    {variant === 'striped-rows-table' && <StripedRowsTable content={layoutContent} {...layoutProps} />}
+    {variant === 'timeline-labels-table' && <TimelineLabelsTable content={layoutContent} {...layoutProps} />}
+    {variant === 'vertical-column-delineation-table' && <VerticalColumnDelineationTable content={layoutContent} {...layoutProps} />}
   </div>
   {content.figure && (
     <figcaption class="italic text-base text-center mt-3" set:html={content.figure}></figcaption>

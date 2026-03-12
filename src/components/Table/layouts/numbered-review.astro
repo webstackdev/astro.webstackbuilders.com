@@ -24,6 +24,8 @@ export type Props = {
     caption?: string
     thead?: string
     tbody?: string
+    tbodyRowHeader?: string
+    tbodyLastColumn?: string
     tfoot?: string
   }
   fullWidth?: boolean
@@ -66,7 +68,7 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
           {row.th && (
             <th
               scope="row"
-              class:list={['px-4 py-3 text-page-inverse', classes?.tbody]}
+              class:list={['px-4 py-3 text-page-inverse', classes?.tbody, classes?.tbodyRowHeader]}
               set:html={row.th}
             ></th>
           )}
@@ -76,6 +78,7 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
                 'px-4 py-3',
                 index === 0 ? 'text-content font-semibold' : '',
                 index === 1 ? 'text-content' : '',
+                index === row.td.length - 1 ? classes?.tbodyLastColumn : '',
                 classes?.tbody,
               ]}
               set:html={td}

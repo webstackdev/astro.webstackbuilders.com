@@ -44,22 +44,26 @@ The request lifecycle through a gateway has distinct phases, each consuming time
 At minimum, instrument these separately:
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
+  classes={{
+    titleClass: "text-right",
+    wrapper: "ml-6 mb-6",
+  }}
   items={[
     {
-      lead: "Gateway overhead:",
+      title: "Gateway overhead:",
       text: "Total request time minus upstream time",
     },
     {
-      lead: "Upstream time:",
+      title: "Upstream time:",
       text: "Time from sending the backend request until receiving the complete response",
     },
     {
-      lead: "Auth time:",
+      title: "Auth time:",
       text: "Time spent on authentication and authorization",
     },
     {
-      lead: "Rate limit time:",
+      title: "Rate limit time:",
       text: "Time spent checking rate limits",
     },
   ]}
@@ -109,7 +113,10 @@ For AWS API Gateway, use CloudWatch metrics (`Latency` and `IntegrationLatency`)
 When latency increases, this breakdown immediately narrows your investigation:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "ml-6 mb-6",
+  }}
   items={[
     {
       lead: "Total latency is 3.2 seconds:",
@@ -123,12 +130,6 @@ When latency increases, this breakdown immediately narrows your investigation:
       lead: "Gateway time is 3 seconds, backend time is 200ms:",
       text: "The gateway has a problem (slow auth plugin, connection pool exhaustion, rate limiter blocking).",
     },
-  ]}
-/>
-
-<List
-  variant="check-icons-list"
-  items={[
     {
       lead: "Gateway overhead spiked, upstream time flat:",
       text: "Problem is in the gateway itself — check CPU, memory, connection pools, or auth provider latency.",
@@ -188,7 +189,10 @@ These tracing systems are interoperable via W3C Trace Context — you can trace 
 Common propagation failures that break traces:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-24 mb-6",
+  }}
   items={[
     {
       lead: "No propagation:",
@@ -212,7 +216,11 @@ Verify propagation by checking a trace end-to-end in your tracing UI. You should
 A minimal span that just records "request happened" is useless. A well-designed span captures the context needed to understand the request:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    tbodyRowHeader: "font-mono",
+    tbodyLastColumn: "font-mono",
+  }}
   content={{
     figure: "Essential gateway span attributes for debugging.",
     thead: { th: ["Span Attribute", "Source", "Example Value"] },
@@ -220,35 +228,35 @@ A minimal span that just records "request happened" is useless. A well-designed 
       tr: [
         {
           th: "http.method",
-          td: ["Request", "`POST`"],
+          td: ["Request", "POST"],
         },
         {
           th: "http.route",
-          td: ["Route match", "`/users/:id`"],
+          td: ["Route match", "/users/:id"],
         },
         {
           th: "http.status_code",
-          td: ["Response", "`200`"],
+          td: ["Response", "200"],
         },
         {
           th: "gateway.upstream.name",
-          td: ["Routing decision", "`users-service`"],
+          td: ["Routing decision", "users-service"],
         },
         {
           th: "gateway.consumer_id",
-          td: ["Auth plugin", "`consumer-abc123` (opaque ID, not PII)"],
+          td: ["Auth plugin", "consumer-abc123 (opaque ID, not PII)"],
         },
         {
           th: "gateway.retry_count",
-          td: ["Retry logic", "`2`"],
+          td: ["Retry logic", "2"],
         },
         {
           th: "gateway.circuit_breaker.state",
-          td: ["Circuit breaker", "`closed`"],
+          td: ["Circuit breaker", "closed"],
         },
         {
           th: "auth.method",
-          td: ["Auth plugin", "`jwt`, `api-key`"],
+          td: ["Auth plugin", "jwt, api-key"],
         },
       ],
     },
@@ -320,7 +328,10 @@ If gateway overhead is high, check gateway resources (CPU, memory, connection po
 Find slow traces for the affected route in your tracing UI (Jaeger, Tempo, AWS X-Ray). Sort by duration. Look for:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "ml-6 mb-6",
+  }}
   items={[
     {
       text: "Long spans indicating slow backend calls",
@@ -356,19 +367,35 @@ If circuit breakers are open, the gateway's protecting itself from a failing bac
 Search logs for the affected time range and route. Look for:
 
 <List
-  variant="check-icons-list"
+  variant="two-column-icon-list"
+  classes={{
+    wrapper: "mx-6 mb-6",
+    content: "pt-1",
+  }}
   items={[
     {
-      text: "Error messages from backends",
+      icon: "error",
+      color: "danger",
+      bgColor: "note-inverse",
+      title: "Error messages from backends",
     },
     {
-      text: "Timeout logs",
+      icon: "clock",
+      color: "danger",
+      bgColor: "note-inverse",
+      title: "Timeout logs",
     },
     {
-      text: "Retry attempts",
+      icon: "reload",
+      color: "danger",
+      bgColor: "note-inverse",
+      title: "Retry attempts",
     },
     {
-      text: "Connection errors or exhausted connection pool warnings",
+      icon: "link",
+      color: "danger",
+      bgColor: "note-inverse",
+      title: "Connection errors or exhausted connection pool warnings",
     },
   ]}
 />
@@ -419,4 +446,4 @@ Gateway observability isn't about collecting more data — it's about making the
 
 The comprehensive guide (linked below) covers additional topics: structured logging with correlation IDs, dashboard design for debugging instead of monitoring, alerting strategies to reduce noise, handling high-cardinality consumers, and controlling costs in production.
 
-_Start with latency breakdown metrics. Add distributed tracing once you need request-level visibility. Everything else is details. The difference between a 5-minute fix and a 5-hour nightmare is knowing which side of the gateway is slow._
+Start with latency breakdown metrics. Add distributed tracing once you need request-level visibility. Everything else is details. The difference between a 5-minute fix and a 5-hour nightmare is knowing which side of the gateway is slow.
