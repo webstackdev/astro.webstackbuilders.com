@@ -9,6 +9,9 @@ tags: ["system-modernization", "ruby", "typescript", "dotnet"]
 featured: true
 ---
 
+import legacyTestingDiagram from "./diagrams/legacy-testing-strategy.jpg"
+import seamTypeDiagram from "./diagrams/seam-type-decision.jpg"
+
 *[DI]: Dependency Injection
 *[IoC]: Inversion of Control
 *[OOP]: Object-Oriented Programming
@@ -23,17 +26,17 @@ The code is "untestable." Except it isn't.
 
 Consider a real scenario: a team inherits an `OrderProcessor` class. It's 2,000 lines, creates its own database connections, sends emails directly, calls external inventory APIs, and reads from configuration files scattered across the filesystem. No tests exist. The class touches revenue-critical paths, and the team needs to modify it for a new payment provider.
 
-Within two weeks, using the techniques in this article, they have 80% of the critical paths under test _without changing production behavior_. The "untestable" code is now testable. The difference isn't magic—it's specific techniques: characterization tests to capture existing behavior, seam identification to find injection points, and surgical dependency breaking that isolates without altering.
+Within two weeks, using the techniques in this article, they have 80% of the critical paths under test __without changing production behavior__. The "untestable" code is now testable. The difference isn't magic — it's specific techniques: characterization tests to capture existing behavior, seam identification to find injection points, and surgical dependency breaking that isolates without altering.
 
 <Callout type="warning">
-The goal isn't 100% coverage—it's getting enough safety net to make changes with confidence. Focus on the code you need to change, not comprehensive coverage of code that works and won't be touched.
+The goal isn't 100% coverage — it's getting enough safety net to make changes with confidence. Focus on the code you need to change, not comprehensive coverage of code that works and won't be touched.
 </Callout>
 
 ## Characterization Tests
 
-Traditional unit tests verify that code does what it _should_ do—you write a test based on a specification, and the test fails if the code doesn't match. Characterization tests flip this: they capture what the code _actually_ does, regardless of intent. You're not testing against a spec; you're documenting observed behavior.
+Traditional unit tests verify that code does what it __should__ do — you write a test based on a specification, and the test fails if the code doesn't match. Characterization tests flip this: they capture what the code __actually__ does, regardless of intent. You're not testing against a spec; you're documenting observed behavior.
 
-The distinction matters for legacy code. You don't have a spec. The original authors are gone. The code has undocumented edge cases, implicit business rules buried in conditionals, and behaviors that might be bugs or might be features—you can't tell. Characterization tests don't try to answer "is this correct?" They answer "what does this do?" and lock it in.
+The distinction matters for legacy code. You don't have a spec. The original authors are gone. The code has undocumented edge cases, implicit business rules buried in conditionals, and behaviors that might be bugs or might be features — you can't tell. Characterization tests don't try to answer "is this correct?" They answer "what does this do?" and lock it in.
 
 ### The Discovery Process
 
@@ -60,7 +63,7 @@ RSpec.describe 'DiscountCalculator (characterization)' do
   end
 
   it 'returns 12 when given 99.99' do
-    # Edge case discovered—might be a bug, but document it
+    # Edge case discovered — might be a bug, but document it
     expect(DiscountCalculator.calculate(99.99)).to eq(12)
   end
 end
@@ -99,13 +102,13 @@ end
 ```
 Code: Using failing tests to discover actual behavior.
 
-That last test—the $5.00 minimum fee for empty orders—is exactly the kind of thing characterization tests reveal. Is it a bug? Intentional? You don't know, and for now, you don't care. You're building a safety net, not making judgments. Document it with a comment, move on, and address it later when you have coverage.
+That last test — the $5.00 minimum fee for empty orders — is exactly the kind of thing characterization tests reveal. Is it a bug? Intentional? You don't know, and for now, you don't care. You're building a safety net, not making judgments. Document it with a comment, move on, and address it later when you have coverage.
 
 ### Writing Effective Characterization Tests
 
 Comprehensive characterization requires systematic exploration. Three strategies help ensure you're covering the behavior that matters:
 
-_Input partitioning_ divides inputs into equivalence classes. For an order processor, that might be order sizes (empty, single, small, bulk), customer types (guest, regular, premium), payment methods, and shipping regions. Test at least one representative from each partition, and key combinations:
+__Input partitioning__ divides inputs into equivalence classes. For an order processor, that might be order sizes (empty, single, small, bulk), customer types (guest, regular, premium), payment methods, and shipping regions. Test at least one representative from each partition, and key combinations:
 
 ```ruby title="input_partitioning_spec.rb"
 RSpec.describe 'OrderProcessor (input partitioning)' do
@@ -145,7 +148,7 @@ end
 ```
 Code: Testing across input partitions with snapshots.
 
-_Boundary value analysis_ focuses on thresholds—the places where behavior changes. If there's a discount tier at $100, test $99.99, $100.00, and $100.01. Legacy code often has off-by-one errors or inconsistent boundary handling that you'll only catch by probing the edges:
+__Boundary value analysis__ focuses on thresholds — the places where behavior changes. If there's a discount tier at $100, test $99.99, $100.00, and $100.01. Legacy code often has off-by-one errors or inconsistent boundary handling that you'll only catch by probing the edges:
 
 ```ruby title="boundary_testing_spec.rb"
 RSpec.describe 'DiscountCalculator (boundaries)' do
@@ -167,7 +170,7 @@ end
 ```
 Code: Probing boundary values to discover threshold behavior.
 
-_Error condition exploration_ tests what happens when inputs are invalid. Don't assume the code throws—observe what it actually does. Legacy code often has surprising error handling:
+__Error condition exploration__ tests what happens when inputs are invalid. Don't assume the code throws — observe what it actually does. Legacy code often has surprising error handling:
 
 ```ruby title="error_exploration_spec.rb"
 RSpec.describe 'PaymentProcessor (error conditions)' do
@@ -190,19 +193,19 @@ end
 ```
 Code: Exploring error handling without assumptions.
 
-For complex outputs—reports, invoices, nested data structures—snapshot testing captures the entire structure without you having to write assertions for every field. When the snapshot changes, the test fails and shows you a diff. You review whether the change was intentional.
+For complex outputs — reports, invoices, nested data structures — snapshot testing captures the entire structure without you having to write assertions for every field. When the snapshot changes, the test fails and shows you a diff. You review whether the change was intentional.
 
 <Callout type="info">
-Characterization tests are not about correctness—they're about documenting current behavior. If you discover a bug during characterization, document it with a comment but don't "fix" the test. Fix the bug later, after you have your safety net in place.
+Characterization tests are not about correctness — they're about documenting current behavior. If you discover a bug during characterization, document it with a comment but don't "fix" the test. Fix the bug later, after you have your safety net in place.
 </Callout>
 
 ## Finding Seams
 
-Michael Feathers introduced the concept of seams in _Working Effectively with Legacy Code_, and it remains the most useful mental model for making untestable code testable. A seam is a place where you can alter program behavior without editing the code at that location. The seam itself doesn't change—you change behavior at what Feathers calls the "enabling point."
+Michael Feathers introduced the concept of seams in __Working Effectively with Legacy Code__, and it remains the most useful mental model for making untestable code testable. A seam is a place where you can alter program behavior without editing the code at that location. The seam itself doesn't change — you change behavior at what Feathers calls the "enabling point."
 
 The distinction matters because legacy code often can't be edited safely. You don't have tests, so any edit risks breaking something. Seams let you substitute behavior for testing purposes without touching the production logic you're trying to protect.
 
-Consider a method that sends emails. The email-sending code is deep inside a 500-line method that also processes orders, updates inventory, and logs analytics. You can't easily extract the email logic—too risky without tests. But if you can find a seam, you can replace the email sender with a test double that captures what _would_ have been sent, without changing the method itself.
+Consider a method that sends emails. The email-sending code is deep inside a 500-line method that also processes orders, updates inventory, and logs analytics. You can't easily extract the email logic — too risky without tests. But if you can find a seam, you can replace the email sender with a test double that captures what __would__ have been sent, without changing the method itself.
 
 ### Seam Types
 
@@ -278,7 +281,7 @@ end
 ```
 Code: Types of seams.
 
-The _object seam_ is the most common and usually the cleanest. You pass a dependency through a constructor or method parameter, and the enabling point is the call site where you can pass a different implementation. Ruby makes this trivially easy with default arguments—existing callers get production behavior, tests pass doubles. The same pattern works across many different frameworks.
+The __object seam__ is the most common and usually the cleanest. You pass a dependency through a constructor or method parameter, and the enabling point is the call site where you can pass a different implementation. Ruby makes this trivially easy with default arguments — existing callers get production behavior, tests pass doubles. The same pattern works across many different frameworks.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -322,11 +325,11 @@ The _object seam_ is the most common and usually the cleanest. You pass a depend
   }}
 />
 
-_Link seams_ operate at the module level. In Ruby, you can use `stub_const` to replace a class entirely. In TypeScript/JavaScript, Jest's `jest.mock()` intercepts imports. PHP's Mockery can override class instantiation. Java has PowerMock for static method mocking, though it's a code smell. The enabling point is the test setup. Link seams are powerful but fragile—they couple tests to implementation details like class names, and they break if someone renames things.
+__Link seams__ operate at the module level. In Ruby, you can use `stub_const` to replace a class entirely. In TypeScript/JavaScript, Jest's `jest.mock()` intercepts imports. PHP's Mockery can override class instantiation. Java has PowerMock for static method mocking, though it's a code smell. The enabling point is the test setup. Link seams are powerful but fragile — they couple tests to implementation details like class names, and they break if someone renames things.
 
-_Subclass seams_ work by extracting behavior into a protected method, then overriding it in a test subclass. The enabling point is inheritance. This technique is underrated for legacy code because it requires minimal changes to the original class—you extract one line into a method, and suddenly you have a seam.
+__Subclass seams__ work by extracting behavior into a protected method, then overriding it in a test subclass. The enabling point is inheritance. This technique is underrated for legacy code because it requires minimal changes to the original class — you extract one line into a method, and suddenly you have a seam.
 
-The preprocessor seam is mostly a C/C++ concept, but the pattern applies anywhere you use environment-based branching. Rails' `Rails.env.test?`, Laravel's `app()->environment('testing')`, Spring's `@Profile("test")`, and Node's `process.env.NODE_ENV === 'test'` are all effectively preprocessor seams. Use them sparingly—they litter production code with test concerns.
+The preprocessor seam is mostly a C/C++ concept, but the pattern applies anywhere you use environment-based branching. Rails' `Rails.env.test?`, Laravel's `app()->environment('testing')`, Spring's `@Profile("test")`, and Node's `process.env.NODE_ENV === 'test'` are all effectively preprocessor seams. Use them sparingly — they litter production code with test concerns.
 
 ### Identifying Seams in Legacy Code
 
@@ -395,44 +398,27 @@ end
 ```
 Code: Identifying seams in legacy code.
 
-The sensing variable pattern deserves special attention. Sometimes you can't easily intercept a dependency, but you _can_ add a field that captures what happened. It's ugly—test-specific code in production—but it's a temporary scaffold. Add the sensing variable, write your characterization tests, then refactor toward proper seams and remove the sensing code. The tests survive because they now use better seams.
+The sensing variable pattern deserves special attention. Sometimes you can't easily intercept a dependency, but you __can__ add a field that captures what happened. It's ugly — test-specific code in production — but it's a temporary scaffold. Add the sensing variable, write your characterization tests, then refactor toward proper seams and remove the sensing code. The tests survive because they now use better seams.
 
-When choosing which seam type to use, prefer object seams for long-term maintainability. They make dependencies explicit and support proper dependency injection. But when you need tests _now_ and can't change constructor signatures (maybe there are 50 call sites), link seams or subclass seams get you there faster. You can always refactor later—once you have tests.
+When choosing which seam type to use, prefer object seams for long-term maintainability. They make dependencies explicit and support proper dependency injection. But when you need tests __now__ and can't change constructor signatures (maybe there are 50 call sites), link seams or subclass seams get you there faster. You can always refactor later — once you have tests.
 
-```mermaid
-graph TD
-    subgraph "Seam Types"
-        A[Object Seam] --> A1[Inject via constructor]
-        A --> A2[Inject via setter]
-        A --> A3[Inject via method parameter]
-
-        B[Link Seam] --> B1[Module mocking]
-        B --> B2[Import substitution]
-
-        C[Subclass Seam] --> C1[Extract to protected method]
-        C --> C2[Override in test class]
-    end
-
-    subgraph "Decision"
-        D{Which seam<br/>to use?}
-        D -->|Cleanest| A
-        D -->|Quick fix| B
-        D -->|No constructor access| C
-    end
-```
-Figure: Seam type decision.
+<Diagram
+  src={seamTypeDiagram}
+  title="Seam type decision."
+  description="Flowchart showing three seam categories and how to choose between them for legacy code testing. In the grouped section labeled Seam Types, Object Seam branches to Inject via constructor, Inject via setter, and Inject via method parameter. Link Seam branches to Module mocking and Import substitution. Subclass Seam branches to Extract to protected method and Override in test class. In a separate grouped section labeled Decision, a decision node asks Which seam to use. The Cleanest path points to Object Seam, the Quick fix path points to Link Seam, and the No constructor access path points to Subclass Seam. The diagram summarizes both the available seam types and the practical decision logic for choosing the most suitable one based on constraints in the legacy codebase."
+/>
 
 <Callout type="success">
-Look for the `new` keyword and class method calls—these are often where seams are missing. Every `.new` inside a method is a dependency that's hard to test. Every `SomeClass.method` call is a hidden dependency.
+Look for the `new` keyword and class method calls — these are often where seams are missing. Every `.new` inside a method is a dependency that's hard to test. Every `SomeClass.method` call is a hidden dependency.
 </Callout>
 
 ## Breaking Dependencies
 
-Once you've identified seams, you need techniques to exploit them. The goal is surgical: make the minimum change that enables testing, without altering the behavior you're trying to protect. These techniques work across languages and frameworks—the syntax differs, but the patterns are universal.
+Once you've identified seams, you need techniques to exploit them. The goal is surgical: make the minimum change that enables testing, without altering the behavior you're trying to protect. These techniques work across languages and frameworks — the syntax differs, but the patterns are universal.
 
 ### Extract and Override
 
-_Extract and Override_ is the fastest path to testability when you can't change a class's constructor. You take the problematic code—the `new Database()`, the `fetch()` call, the `new Date()`—and extract it into a protected method. The original method calls the new method instead of the dependency directly. Then in your test, you subclass and override the protected method to return controlled values.
+__Extract and Override__ is the fastest path to testability when you can't change a class's constructor. You take the problematic code — the `new Database()`, the `fetch()` call, the `new Date()`—and extract it into a protected method. The original method calls the new method instead of the dependency directly. Then in your test, you subclass and override the protected method to return controlled values.
 
 The beauty is that production code doesn't change behavior at all. The protected method still calls the real dependency. Only in tests do you swap it out. This technique works in any language with inheritance: Java, C#, PHP, TypeScript, Ruby, Python.
 
@@ -524,11 +510,11 @@ end
 ```
 Code: Extract and override technique.
 
-The test subclass feels awkward if you're used to mocking frameworks, but it has advantages: no magic, no reflection, obvious what's happening. The downside is proliferating test subclasses—one per class you're testing. It's a stepping stone. Once you have tests, refactor toward constructor injection.
+The test subclass feels awkward if you're used to mocking frameworks, but it has advantages: no magic, no reflection, obvious what's happening. The downside is proliferating test subclasses — one per class you're testing. It's a stepping stone. Once you have tests, refactor toward constructor injection.
 
 ### Parameterize Constructor
 
-_Parameterize Constructor_ is the classic dependency injection pattern. Instead of creating dependencies internally, the class receives them through its constructor. The key insight for legacy code: use optional parameters with defaults. Existing call sites don't need to change—they get production dependencies automatically. Only tests pass explicit doubles.
+__Parameterize Constructor__ is the classic dependency injection pattern. Instead of creating dependencies internally, the class receives them through its constructor. The key insight for legacy code: use optional parameters with defaults. Existing call sites don't need to change — they get production dependencies automatically. Only tests pass explicit doubles.
 
 This pattern is the foundation of modern DI frameworks. Spring Boot's `@Autowired`, Laravel's service container, .NET's `IServiceCollection`, and NestJS's providers all build on this concept. Even without a framework, manual constructor injection works everywhere.
 
@@ -595,11 +581,11 @@ end
 ```
 Code: Parameterize constructor technique.
 
-Notice the defaults preserve backward compatibility. Every existing `new NotificationService()` call still works—it gets production dependencies. This is crucial in legacy codebases where you might have dozens of call sites. You don't want to update them all before you can write your first test.
+Notice the defaults preserve backward compatibility. Every existing `new NotificationService()` call still works — it gets production dependencies. This is crucial in legacy codebases where you might have dozens of call sites. You don't want to update them all before you can write your first test.
 
 ### Introduce Instance Delegator
 
-_Instance Delegator_ handles the special case of static method calls—what Feathers calls "static cling." Static methods can't be overridden through inheritance, and many mocking frameworks struggle with them. The solution: wrap the static call in an instance method, then use Extract and Override or constructor injection on that wrapper.
+__Instance Delegator__ handles the special case of static method calls — what Feathers calls "static cling." Static methods can't be overridden through inheritance, and many mocking frameworks struggle with them. The solution: wrap the static call in an instance method, then use Extract and Override or constructor injection on that wrapper.
 
 In Java, this often means wrapping calls to utility classes or legacy static factories. In PHP, it's facade calls. In Ruby, it's class methods. In C#, it's static helpers. The pattern is the same: create an instance method that delegates to the static, then test against the instance method.
 
@@ -661,7 +647,7 @@ end
 ```
 Code: Instance delegator technique.
 
-The alternative approach—injecting the validator classes themselves rather than wrapping their calls—produces cleaner code long-term. You can pass mock classes in tests that respond to `.validate` however you need. This is effectively Parameterize Constructor applied to class method dependencies.
+The alternative approach — injecting the validator classes themselves rather than wrapping their calls — produces cleaner code long-term. You can pass mock classes in tests that respond to `.validate` however you need. This is effectively Parameterize Constructor applied to class method dependencies.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -699,15 +685,15 @@ Choose based on your constraints. If you need tests today and can't change the c
 These techniques are stepping stones, not final designs. Extract and Override is faster but creates inheritance-based testing. After you have tests, refactor toward proper dependency injection.
 </Callout>
 
-The techniques above work well for individual classes with a few dependencies. But what happens when the problem isn't a class—it's an entire subsystem?
+The techniques above work well for individual classes with a few dependencies. But what happens when the problem isn't a class — it's an entire subsystem?
 
 ## The Strangler Fig Approach
 
-The dependency-breaking techniques get you tests around individual classes. But what about the 3,000-line monolith that does everything? You can't test it as a unit—it _is_ the unit. The Strangler Fig pattern, named after the tropical vines that gradually envelop and replace their host trees, offers a path forward.
+The dependency-breaking techniques get you tests around individual classes. But what about the 3,000-line monolith that does everything? You can't test it as a unit — it __is__ the unit. The Strangler Fig pattern, named after the tropical vines that gradually envelop and replace their host trees, offers a path forward.
 
-The idea: wrap the legacy system with a facade that has a clean interface. Write characterization tests against the facade. Then, one responsibility at a time, extract logic from the legacy system into new, tested components. The facade orchestrates both old and new code. Eventually, the legacy system is hollow—all real work happens in the new components—and you remove it entirely.
+The idea: wrap the legacy system with a facade that has a clean interface. Write characterization tests against the facade. Then, one responsibility at a time, extract logic from the legacy system into new, tested components. The facade orchestrates both old and new code. Eventually, the legacy system is hollow — all real work happens in the new components — and you remove it entirely.
 
-This pattern works at any scale: a single class, a module, an entire service. It's how you migrate from a legacy monolith to microservices without a big-bang rewrite. It's how you replace a legacy ORM with a new one. The key is incremental progress with continuous delivery—every step is deployable.
+This pattern works at any scale: a single class, a module, an entire service. It's how you migrate from a legacy monolith to microservices without a big-bang rewrite. It's how you replace a legacy ORM with a new one. The key is incremental progress with continuous delivery — every step is deployable.
 
 ### Incremental Testing Strategy
 
@@ -807,7 +793,7 @@ Some legacy systems produce outputs so complex that writing assertions for each 
 
 The technique: run the system against a representative sample of inputs and capture the outputs. This becomes your "golden master"—the canonical record of what the system does. Future test runs compare against this baseline. Any difference triggers investigation: did we change something intentionally, or did we break something?
 
-Golden master tests trade precision for coverage. You're not asserting _why_ the output is correct—you're asserting that it hasn't changed. This makes them perfect for legacy systems where understanding every nuance would take months. They're also framework-agnostic: any language can serialize outputs and compare them later.
+Golden master tests trade precision for coverage. You're not asserting __why__ the output is correct — you're asserting that it hasn't changed. This makes them perfect for legacy systems where understanding every nuance would take months. They're also framework-agnostic: any language can serialize outputs and compare them later.
 
 ```ruby title="golden_master_spec.rb"
 # Golden Master: Capture comprehensive output for complex systems
@@ -872,23 +858,23 @@ end
 # 1. Intentional behavior change
 # 2. Bug fix (behavior was wrong)
 # 3. New feature (new outputs expected)
-# NEVER update just because tests fail—investigate first!
+# NEVER update just because tests fail — investigate first!
 ```
 Code: Golden master testing.
 
 <Callout type="success">
-Golden master tests are particularly powerful for legacy systems with complex outputs. They capture "what the system does" across hundreds of scenarios without you needing to understand each one. When they fail, you know something changed—then you investigate whether it was intentional.
+Golden master tests are particularly powerful for legacy systems with complex outputs. They capture "what the system does" across hundreds of scenarios without you needing to understand each one. When they fail, you know something changed — then you investigate whether it was intentional.
 </Callout>
 
 ## Quick Reference: Common Legacy Code Patterns
 
-The techniques covered so far—characterization tests, seams, dependency breaking, strangler fig—are the foundations. This section provides a quick reference for recognizing and addressing the most common anti-patterns you'll encounter. Each pattern maps directly to techniques already discussed; this is a condensed lookup table for when you're staring at problematic code and need to identify your approach quickly.
+The techniques covered so far — characterization tests, seams, dependency breaking, strangler fig — are the foundations. This section provides a quick reference for recognizing and addressing the most common anti-patterns you'll encounter. Each pattern maps directly to techniques already discussed; this is a condensed lookup table for when you're staring at problematic code and need to identify your approach quickly.
 
 ### Static Cling
 
 Static method calls look innocent but create testing nightmares. When your class calls `DateUtils.getCurrentTime()` or `Database.query()`, you can't substitute test doubles. The dependency is baked into the bytecode, not passed through a seam you control.
 
-The problem exists across all statically-typed languages—Java's static methods, C#'s static classes, PHP's static functions. Even dynamically-typed languages suffer when code calls library functions directly rather than through injectable collaborators.
+The problem exists across all statically-typed languages — Java's static methods, C#'s static classes, PHP's static functions. Even dynamically-typed languages suffer when code calls library functions directly rather than through injectable collaborators.
 
 Two solutions dominate. First, wrap static calls in instance methods, then override in tests (Extract and Override). Second, wrap static access behind an interface and inject it (Adapter pattern). The latter produces better design; the former requires less immediate change.
 
@@ -951,7 +937,7 @@ Code: Handling static cling.
 
 ### Hidden Dependencies
 
-Singletons and global state create invisible coupling. The code _looks_ like it has no dependencies—the constructor takes no arguments, the method signature is clean. But inside, it reaches into global state: `Configuration.instance`, `Logger.global`, `ServiceLocator.resolve()`. You can't see the dependencies from the API, but they're there, and they'll sabotage your tests.
+Singletons and global state create invisible coupling. The code __looks__ like it has no dependencies — the constructor takes no arguments, the method signature is clean. But inside, it reaches into global state: `Configuration.instance`, `Logger.global`, `ServiceLocator.resolve()`. You can't see the dependencies from the API, but they're there, and they'll sabotage your tests.
 
 Every framework has its version. Java has the classic Singleton pattern. PHP has facades that hide service container lookups. Node.js has module-level singletons. Rails has `Rails.application.config`. The symptom is always the same: tests pass in isolation but fail when run together, because they're sharing state through these hidden channels.
 
@@ -1019,9 +1005,9 @@ Code: Handling hidden dependencies.
 
 ### Monster Methods
 
-Every legacy codebase has them: methods that span hundreds of lines, doing everything from validation to database access to email sending. They're impossible to test as units because they _aren't_ units—they're entire subsystems crammed into a single method signature.
+Every legacy codebase has them: methods that span hundreds of lines, doing everything from validation to database access to email sending. They're impossible to test as units because they __aren't__ units — they're entire subsystems crammed into a single method signature.
 
-Don't try to test monster methods directly. Don't try to refactor them all at once. Instead, use "sprout" techniques to grow tested code alongside the monster—this is the Strangler Fig philosophy applied at method level. Need to add a feature? Write it in a new, tested method, then call it from the monster. Need to fix a bug? Extract that logic into a tested class, then delegate to it.
+Don't try to test monster methods directly. Don't try to refactor them all at once. Instead, use "sprout" techniques to grow tested code alongside the monster — this is the Strangler Fig philosophy applied at method level. Need to add a feature? Write it in a new, tested method, then call it from the monster. Need to fix a bug? Extract that logic into a tested class, then delegate to it.
 
 Over time, the monster becomes a thin shell that orchestrates calls to well-tested components. You never had to understand the monster's full complexity. You never had to write tests for code that might have subtle bugs you'd be enshrining.
 
@@ -1102,11 +1088,11 @@ Code: Handling monster methods.
 
 With techniques in hand, you need strategy. Legacy codebases are too large to test comprehensively. You need to focus effort where it matters: code that's changing, code that's failing, code that's critical. Testing stable legacy code that works and won't be touched is waste.
 
-Think of coverage as insurance. You buy more insurance for valuable, at-risk assets. A module you're rewriting next month needs heavy coverage. A module that hasn't changed in three years and has no planned changes needs minimal coverage—maybe just characterization tests to catch accidental modifications.
+Think of coverage as insurance. You buy more insurance for valuable, at-risk assets. A module you're rewriting next month needs heavy coverage. A module that hasn't changed in three years and has no planned changes needs minimal coverage — maybe just characterization tests to catch accidental modifications.
 
 ### Incremental Coverage Strategy
 
-Prioritize based on three factors: change frequency (code that changes often needs more coverage), bug history (code that breaks often needs more coverage), and planned work (code you'll modify soon needs coverage _before_ you touch it). Stable, boring code that just works? Leave it alone.
+Prioritize based on three factors: change frequency (code that changes often needs more coverage), bug history (code that breaks often needs more coverage), and planned work (code you'll modify soon needs coverage __before__ you touch it). Stable, boring code that just works? Leave it alone.
 
 This isn't about reaching arbitrary coverage numbers. It's about building confidence where you need it. 80% coverage on code you're actively refactoring is more valuable than 20% coverage spread across the entire codebase.
 
@@ -1151,7 +1137,7 @@ Code: Coverage prioritization strategy.
 
 Legacy test suites need structure that standard test organization doesn't provide. You have characterization tests (documenting existing behavior), golden masters (complex output snapshots), regression tests (bug fixes), and unit tests for newly extracted code. Mixing them together creates confusion about what each test means and when it should change.
 
-Separate tests by purpose. Characterization tests should be clearly marked—these document what the system _does_, not what it _should do_, and changing them requires investigation. Regression tests should reference bug tracker IDs so future developers understand the history. Unit tests for extracted code follow normal conventions.
+Separate tests by purpose. Characterization tests should be clearly marked — these document what the system __does__, not what it __should do__, and changing them requires investigation. Regression tests should reference bug tracker IDs so future developers understand the history. Unit tests for extracted code follow normal conventions.
 
 Naming matters too. A prefix like `[CHAR]` for characterization tests or `[BUG-1234]` for regressions makes intent scannable. When a test fails, the name tells you whether you broke something or whether you're seeing expected change from intentional refactoring.
 
@@ -1206,29 +1192,13 @@ end
 ```
 Code: Test organization for legacy code.
 
-```mermaid
-graph TD
-    subgraph "Test Pyramid for Legacy"
-        A[Golden Master Tests] -->|Broad coverage| B[Integration Tests]
-        B -->|Critical paths| C[Characterization Tests]
-        C -->|Extracted code| D[Unit Tests]
-    end
+<Diagram
+  src={legacyTestingDiagram}
+  title="Legacy testing strategy."
+  description="Flowchart summarizing three aspects of a legacy testing strategy. In the grouped section labeled Test Pyramid for Legacy, Golden Master Tests flow to Integration Tests with the label Broad coverage, Integration Tests flow to Characterization Tests with the label Critical paths, and Characterization Tests flow to Unit Tests with the label Extracted code. In the grouped section labeled Coverage Priority, Code changing soon points to 80%+ coverage with the label High, Bug-prone code points to 60%+ coverage with the label Medium, and Stable, untouched code points to Characterization only with the label Low. In the grouped section labeled Test Types by Purpose, Characterization points to Safety net for refactoring with the label Document behavior, Golden Master points to Catch regressions with the label Complex outputs, and Unit Tests point to Design feedback with the label New code. The diagram shows that legacy code testing starts with broad behavior-capturing tests and gradually grows more targeted unit coverage as code is extracted and refactored."
+/>
 
-    subgraph "Coverage Priority"
-        E[Code changing soon] -->|High| F[80%+ coverage]
-        G[Bug-prone code] -->|Medium| H[60%+ coverage]
-        I[Stable, untouched] -->|Low| J[Characterization only]
-    end
-
-    subgraph "Test Types by Purpose"
-        K[Characterization] -->|Document behavior| L[Safety net for refactoring]
-        M[Golden Master] -->|Complex outputs| N[Catch regressions]
-        O[Unit Tests] -->|New code| P[Design feedback]
-    end
-```
-Figure: Legacy testing strategy.
-
-Note that this inverts the traditional test pyramid. In greenfield development, unit tests form the base. In legacy code, you start with broad characterization and golden master tests at the top—they're faster to write and provide immediate safety. As you extract and refactor, unit tests grow from the bottom up.
+Note that this inverts the traditional test pyramid. In greenfield development, unit tests form the base. In legacy code, you start with broad characterization and golden master tests at the top — they're faster to write and provide immediate safety. As you extract and refactor, unit tests grow from the bottom up.
 
 <Callout type="warning">
 Don't aim for 100% coverage on legacy code. Aim for coverage where you need confidence: code you're changing, code with bug history, and critical paths. Testing stable legacy code that works is wasteful.
@@ -1236,18 +1206,18 @@ Don't aim for 100% coverage on legacy code. Aim for coverage where you need conf
 
 ## Conclusion
 
-Legacy code isn't a curse—it's working software that's earned its complexity through years of real-world use. The techniques in this article let you approach it systematically rather than fearfully.
+Legacy code isn't a curse — it's working software that's earned its complexity through years of real-world use. The techniques in this article let you approach it systematically rather than fearfully.
 
-Start with characterization tests. Run the code, observe what happens, write it down. Don't judge whether the behavior is correct—just document it. These tests become your safety net, catching unintended changes during refactoring.
+Start with characterization tests. Run the code, observe what happens, write it down. Don't judge whether the behavior is correct — just document it. These tests become your safety net, catching unintended changes during refactoring.
 
 Find seams where you can alter behavior without modifying code. Object seams let you substitute implementations. Link seams let you intercept at module boundaries. Preprocessor seams let you swap behavior based on environment. Every language has them; you just need to recognize them.
 
-Break dependencies incrementally. Extract and Override gets you started with minimal change. Parameterize Constructor creates explicit dependency graphs. Instance Delegator handles static cling. Each technique trades design improvement against change risk—choose based on your context.
+Break dependencies incrementally. Extract and Override gets you started with minimal change. Parameterize Constructor creates explicit dependency graphs. Instance Delegator handles static cling. Each technique trades design improvement against change risk — choose based on your context.
 
 Use the Strangler Fig pattern for larger extractions. Wrap legacy in a facade, extract one responsibility at a time into tested components, gradually hollow out the legacy code until it's gone. Every step is deployable. No big-bang rewrites.
 
-Prioritize ruthlessly. Test code that's changing, code that's breaking, code that's critical. Leave stable legacy code alone—characterization tests catch accidental changes, but comprehensive testing of code that won't change is waste.
+Prioritize ruthlessly. Test code that's changing, code that's breaking, code that's critical. Leave stable legacy code alone — characterization tests catch accidental changes, but comprehensive testing of code that won't change is waste.
 
 <Callout type="success">
-The key insight: you don't need to understand legacy code to test it. Characterization tests capture behavior you can observe. Seams let you isolate without understanding. The myth of "untestable" code usually means "code that's hard to test with conventional techniques." With these patterns, almost any code becomes testable—the question is whether the investment is worth it for code that may never change.
+The key insight: you don't need to understand legacy code to test it. Characterization tests capture behavior you can observe. Seams let you isolate without understanding. The myth of "untestable" code usually means "code that's hard to test with conventional techniques." With these patterns, almost any code becomes testable — the question is whether the investment is worth it for code that may never change.
 </Callout>

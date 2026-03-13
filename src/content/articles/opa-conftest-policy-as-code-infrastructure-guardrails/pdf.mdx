@@ -9,6 +9,8 @@ tags: ["cloud-platforms", "terraform", "kubernetes", "aws", "docker"]
 featured: true
 ---
 
+import conftestDiagram from "./diagrams/conftest-evaluation-flow.jpg"
+
 *[IaC]: Infrastructure as Code
 *[K8s]: Kubernetes
 *[OPA]: Open Policy Agent
@@ -19,14 +21,14 @@ featured: true
 
 ## Introduction
 
-A developer opens a pull request for a Terraform change. Sixteen hours later, a security review rejects it: the S3 bucket lacks encryption. The developer fixes it, waits another day for re-review. This cycle—write, wait, reject, fix, wait—drains velocity and breeds resentment toward security processes.
+A developer opens a pull request for a Terraform change. Sixteen hours later, a security review rejects it: the S3 bucket lacks encryption. The developer fixes it, waits another day for re-review. This cycle — write, wait, reject, fix, wait — drains velocity and breeds resentment toward security processes.
 
-Shift-left advocates say to check policies earlier. But "earlier" often means CI, which still means waiting for pipelines after pushing code. Real shift-left means _before the commit_—policy checks that run in seconds during `git add`, catching violations while the context is fresh and the fix is trivial.
+Shift-left advocates say to check policies earlier. But "earlier" often means CI, which still means waiting for pipelines after pushing code. Real shift-left means __before the commit__ — policy checks that run in seconds during `git add`, catching violations while the context is fresh and the fix is trivial.
 
 This article covers building infrastructure guardrails with OPA (Open Policy Agent) and Conftest. The focus is on speed: pre-commit hooks that run in under two seconds, CI checks that parallelize across hundreds of policies, and feedback loops that make compliance a developer experience issue rather than a security bottleneck.
 
 <Callout type="warning">
-Policy adoption paradox: comprehensive policies with slow feedback get disabled. Minimal policies with fast feedback get expanded. Start with five critical policies—encryption enabled, no public access, resource limits, no privileged containers, no `:latest` tags—that run fast. Get adoption first, then add coverage.
+Policy adoption paradox: comprehensive policies with slow feedback get disabled. Minimal policies with fast feedback get expanded. Start with five critical policies — encryption enabled, no public access, resource limits, no privileged containers, no `:latest` tags — that run fast. Get adoption first, then add coverage.
 </Callout>
 
 The target architecture runs Conftest against Terraform plans and Kubernetes manifests at three stages: pre-commit for immediate feedback, CI for enforcement, and deployment pipelines for final validation. Each stage uses the same policies but different optimization strategies.
@@ -35,7 +37,7 @@ The target architecture runs Conftest against Terraform plans and Kubernetes man
 
 ### OPA Architecture
 
-OPA is a general-purpose policy engine that decouples policy decisions from policy enforcement. You feed it structured data (JSON), it evaluates policies written in Rego, and it returns decisions. The engine itself is stateless—policies and data define behavior.
+OPA is a general-purpose policy engine that decouples policy decisions from policy enforcement. You feed it structured data (JSON), it evaluates policies written in Rego, and it returns decisions. The engine itself is stateless — policies and data define behavior.
 
 Three deployment modes serve different use cases:
 
@@ -48,7 +50,7 @@ Three deployment modes serve different use cases:
     },
     {
       lead: 'Daemon mode',
-      text: 'Run OPA as a sidecar or standalone service. Kubernetes admission controllers use this pattern—the API server sends admission requests to OPA, which returns allow/deny decisions.',
+      text: 'Run OPA as a sidecar or standalone service. Kubernetes admission controllers use this pattern — the API server sends admission requests to OPA, which returns allow/deny decisions.',
     },
     {
       lead: 'CLI mode',
@@ -71,44 +73,17 @@ terraform show -json tfplan > tfplan.json
 conftest test tfplan.json --policy ./policies/terraform
 ```
 
-```mermaid
-flowchart LR
-    subgraph "Input"
-        A[Terraform HCL]
-        B[Kubernetes YAML]
-        C[Dockerfile]
-    end
-
-    subgraph "Conftest"
-        D[Parser]
-        E[OPA Engine]
-        F[Rego Policies]
-        G[External Data]
-    end
-
-    subgraph "Output"
-        H[Pass/Fail]
-        I[Violation Messages]
-        J[JSON Report]
-    end
-
-    A --> D
-    B --> D
-    C --> D
-    D --> E
-    F --> E
-    G --> E
-    E --> H
-    E --> I
-    E --> J
-```
-Figure: Conftest evaluation flow.
+<Diagram
+  src={conftestDiagram}
+  title="Conftest evaluation flow."
+  description="Left-to-right flowchart with three grouped sections. The Input section contains Terraform HCL, Kubernetes YAML, and Dockerfile as separate sources. All three inputs flow into a Parser node inside the Conftest section. The Conftest section also contains OPA Engine, Rego Policies, and External Data. The Parser sends normalized input into the OPA Engine, while Rego Policies and External Data also feed into the engine as policy logic and contextual data. The Output section contains three results: Pass or Fail, Violation Messages, and JSON Report. The OPA Engine sends results to all three outputs. The diagram shows that Conftest converts infrastructure files into structured data, evaluates them through OPA using Rego policies plus optional external context, and then emits human-readable and machine-readable results."
+/>
 
 ### Rego Fundamentals
 
-Rego is a declarative language designed for querying nested data structures. If you've used SQL, the mental model is similar: you describe _what_ you want, not _how_ to compute it. Unlike SQL, Rego operates on hierarchical JSON rather than relational tables.
+Rego is a declarative language designed for querying nested data structures. If you've used SQL, the mental model is similar: you describe __what__ you want, not __how__ to compute it. Unlike SQL, Rego operates on hierarchical JSON rather than relational tables.
 
-**Rules generate values.** A rule with no conditions always produces its value. A rule with conditions only produces its value when all conditions succeed:
+__Rules generate values.__ A rule with no conditions always produces its value. A rule with conditions only produces its value when all conditions succeed:
 
 ```rego
 # Unconditional: always true
@@ -121,7 +96,7 @@ allow if {
 }
 ```
 
-**Rules with the same name combine.** Multiple rules with the same head form a logical OR—any rule matching makes the head true:
+__Rules with the same name combine.__ Multiple rules with the same head form a logical OR — any rule matching makes the head true:
 
 ```rego
 # Either condition makes allow true
@@ -129,7 +104,7 @@ allow if { input.user.role == "admin" }
 allow if { input.resource.public == true }
 ```
 
-**Iteration is implicit.** Referencing an array index with a variable iterates over all elements:
+__Iteration is implicit.__ Referencing an array index with a variable iterates over all elements:
 
 ```rego
 # Finds ANY container without limits
@@ -140,7 +115,7 @@ deny contains msg if {
 }
 ```
 
-**Sets collect unique values.** Using `contains` with a rule head builds a set of all values where conditions match:
+__Sets collect unique values.__ Using `contains` with a rule head builds a set of all values where conditions match:
 
 ```rego
 # Collects all violations into a set
@@ -150,7 +125,7 @@ deny contains msg if {
 }
 ```
 
-**External data enriches decisions.** The `data` object provides context beyond the immediate input—allowed registries, team mappings, environment configurations:
+__External data enriches decisions.__ The `data` object provides context beyond the immediate input — allowed registries, team mappings, environment configurations:
 
 ```rego
 # data.allowed_registries loaded from JSON file
@@ -162,7 +137,7 @@ deny contains msg if {
 }
 ```
 
-With these fundamentals in place—rules, iteration, sets, and data—you have the building blocks for any infrastructure policy. The patterns below show how these primitives combine for common validation scenarios.
+With these fundamentals in place — rules, iteration, sets, and data — you have the building blocks for any infrastructure policy. The patterns below show how these primitives combine for common validation scenarios.
 
 ### Common Rego Patterns
 
@@ -217,7 +192,7 @@ deny contains msg if {
 ```
 Code: Required labels pattern using set difference.
 
-The same structure applies to allowed values—define the valid set, check membership, and generate a message with the violation and valid options:
+The same structure applies to allowed values — define the valid set, check membership, and generate a message with the violation and valid options:
 
 ```rego
 # Allowed values pattern
@@ -254,11 +229,11 @@ Four principles separate policies that get adopted from policies that get bypass
     },
     {
       lead: 'Minimal false positives.',
-      text: 'Precision matters more than recall. A policy that blocks valid configurations trains developers to request exceptions—or bypass the system entirely. Start permissive and tighten over time. Test against real configurations before enforcing. Provide escape hatches for legitimate edge cases.',
+      text: 'Precision matters more than recall. A policy that blocks valid configurations trains developers to request exceptions — or bypass the system entirely. Start permissive and tighten over time. Test against real configurations before enforcing. Provide escape hatches for legitimate edge cases.',
     },
     {
       lead: 'Fast evaluation.',
-      text: 'Policies should evaluate in milliseconds, not seconds. Avoid external HTTP calls within policies—pre-load data into bundles. Avoid complex regex on large inputs. Avoid deep recursion. The goal is sub-second feedback that doesn\'t interrupt flow.',
+      text: 'Policies should evaluate in milliseconds, not seconds. Avoid external HTTP calls within policies — pre-load data into bundles. Avoid complex regex on large inputs. Avoid deep recursion. The goal is sub-second feedback that doesn\'t interrupt flow.',
     },
   ]}
 />
@@ -287,7 +262,7 @@ Examples:
 
 ### Policy Organization
 
-Organize policies by technology, then resource type, then concern. This structure makes policies discoverable and enables selective evaluation—run only Terraform policies on Terraform files.
+Organize policies by technology, then resource type, then concern. This structure makes policies discoverable and enables selective evaluation — run only Terraform policies on Terraform files.
 
 ```text
 policies/
@@ -362,7 +337,7 @@ has_label(obj, label) if {
 ```
 Code: Policy namespacing by package.
 
-Conftest uses the `--namespace` flag to selectively evaluate policies. This is how namespace organization pays off—you can run subsets of policies based on context:
+Conftest uses the `--namespace` flag to selectively evaluate policies. This is how namespace organization pays off — you can run subsets of policies based on context:
 
 ```bash
 # Run only Kubernetes policies on YAML files
@@ -394,7 +369,7 @@ Put shared helper functions in `lib/helpers.rego` and import them with `import d
 
 OPA includes a built-in test framework. Test files use `_test` suffix in the package name and define rules prefixed with `test_`. Each test rule should evaluate to `true` when the test passes.
 
-The `with` keyword is the key to Rego testing—it lets you override `input` and `data` for a specific evaluation:
+The `with` keyword is the key to Rego testing — it lets you override `input` and `data` for a specific evaluation:
 
 ```rego
 package kubernetes.pods.resources_test
@@ -519,7 +494,7 @@ Test both positive cases (valid configs pass) and negative cases (invalid config
 
 ### Pre-commit Hooks
 
-Pre-commit is where shift-left becomes real. Conftest integrates with the pre-commit framework to run policies against staged files before they're committed. The key is speed—pre-commit hooks that take more than a few seconds get disabled.
+Pre-commit is where shift-left becomes real. Conftest integrates with the pre-commit framework to run policies against staged files before they're committed. The key is speed — pre-commit hooks that take more than a few seconds get disabled.
 
 ```yaml
 # .pre-commit-config.yaml
@@ -600,7 +575,7 @@ Husky is Node.js-based but runs any shell command, making it viable for polyglot
 
 ### GitHub Actions Integration
 
-CI provides the enforcement layer—policies that developers can't bypass. The workflow runs policy tests first (catching broken policies), then evaluates Kubernetes and Terraform configurations in parallel.
+CI provides the enforcement layer — policies that developers can't bypass. The workflow runs policy tests first (catching broken policies), then evaluates Kubernetes and Terraform configurations in parallel.
 
 ```yaml
 # .github/workflows/policy-check.yml
@@ -671,7 +646,7 @@ Code: GitHub Actions workflow for policy checks.
 
 The `--output github` flag formats violations as GitHub annotations, surfacing them directly in the PR diff where developers see them.
 
-**Branch protection is required for enforcement.** Without it, developers can merge directly to main, bypassing CI entirely. In GitHub, navigate to Settings → Branches → Add rule, then enable "Require status checks to pass before merging" and select your policy jobs. This is a manual step that's easy to forget when setting up new repositories.
+__Branch protection is required for enforcement.__ Without it, developers can merge directly to main, bypassing CI entirely. In GitHub, navigate to Settings → Branches → Add rule, then enable "Require status checks to pass before merging" and select your policy jobs. This is a manual step that's easy to forget when setting up new repositories.
 
 Other platforms have equivalent mechanisms:
 
@@ -709,13 +684,13 @@ Other platforms have equivalent mechanisms:
   }}
 />
 
-AWS CodePipeline lacks native branch protection—you'll need to combine it with a Git provider's branch rules or add manual approval stages. Azure DevOps and GitLab offer the most granular controls, including path-based policies and approval requirements.
+AWS CodePipeline lacks native branch protection — you'll need to combine it with a Git provider's branch rules or add manual approval stages. Azure DevOps and GitLab offer the most granular controls, including path-based policies and approval requirements.
 
 ### Performance Optimization
 
 Policy checks that exceed 30 seconds get skipped "just this once"—and then every time after. Four optimizations keep evaluation fast:
 
-**Namespace filtering.** Only evaluate relevant policies. Kubernetes policies for YAML files, Terraform policies for plan JSON:
+__Namespace filtering.__ Only evaluate relevant policies. Kubernetes policies for YAML files, Terraform policies for plan JSON:
 
 ```bash
 conftest test k8s/*.yaml --namespace kubernetes
@@ -723,14 +698,14 @@ conftest test tfplan.json --namespace terraform.aws
 ```
 Code: Namespace filtering for faster evaluation.
 
-**Parallel execution.** Evaluate multiple files simultaneously:
+__Parallel execution.__ Evaluate multiple files simultaneously:
 
 ```bash
 find . -name '*.yaml' -print0 | xargs -0 -P4 -n10 conftest test --policy policies/
 ```
 Code: Parallel file evaluation with xargs.
 
-**Policy bundling.** Pre-compile policies into optimized bundles:
+__Policy bundling.__ Pre-compile policies into optimized bundles:
 
 ```bash
 # Build optimized bundle
@@ -741,7 +716,7 @@ conftest test --policy bundle.tar.gz input.yaml
 ```
 Code: Pre-compiled policy bundles.
 
-**CI caching.** Cache policy bundles between runs:
+__CI caching.__ Cache policy bundles between runs:
 
 ```yaml
 - uses: actions/cache@v3
@@ -789,7 +764,7 @@ Code: GitHub Actions cache configuration.
 
 When policies produce unexpected results, OPA's tracing and printing capabilities help identify the problem.
 
-**Print debugging.** Add `print()` statements to see intermediate values:
+__Print debugging.__ Add `print()` statements to see intermediate values:
 
 ```rego
 deny contains msg if {
@@ -801,7 +776,7 @@ deny contains msg if {
 ```
 Code: Debug output with print statements.
 
-**Trace evaluation.** OPA's `--explain` flag shows the evaluation path:
+__Trace evaluation.__ OPA's `--explain` flag shows the evaluation path:
 
 ```bash
 # Show full evaluation trace
@@ -812,7 +787,7 @@ opa eval --data policies/ --input input.json "data.kubernetes.security.deny" --e
 ```
 Code: OPA evaluation tracing.
 
-**Parse input.** Verify Conftest parses your file correctly:
+__Parse input.__ Verify Conftest parses your file correctly:
 
 ```bash
 # See what Conftest sees
@@ -832,7 +807,7 @@ The 30-second rule: if policy checks take longer than 30 seconds, developers wil
 
 ### Terraform Plan Evaluation
 
-Terraform plan JSON contains the full resolved state of what Terraform _will_ create—variables interpolated, modules expanded, data sources resolved. This is where security policies have complete visibility.
+Terraform plan JSON contains the full resolved state of what Terraform __will__ create — variables interpolated, modules expanded, data sources resolved. This is where security policies have complete visibility.
 
 The plan JSON structure nests resource changes under `input.resource_changes`. Each change includes `before` (current state), `after` (planned state), and `actions` (create, update, delete, no-op). Helper functions make policies more readable:
 
@@ -927,7 +902,7 @@ Code: Required tagging policy.
 
 ### HCL vs Plan JSON
 
-Two approaches exist for evaluating Terraform configurations, each with tradeoffs. HCL (HashiCorp Configuration Language) is Terraform's native syntax—the `.tf` files developers write. Plan JSON is the output of `terraform show -json`, containing the fully resolved execution plan with all variables interpolated and modules expanded.
+Two approaches exist for evaluating Terraform configurations, each with tradeoffs. HCL (HashiCorp Configuration Language) is Terraform's native syntax — the `.tf` files developers write. Plan JSON is the output of `terraform show -json`, containing the fully resolved execution plan with all variables interpolated and modules expanded.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -1001,7 +976,7 @@ Use HCL parsing for fast feedback (pre-commit, early CI) and plan JSON for compr
 
 ### Pod Security Policies
 
-Kubernetes manifests present a challenge: the same pod spec appears in Pods, Deployments, DaemonSets, StatefulSets, Jobs, and CronJobs—each at a different path in the YAML structure. Effective policies need helper functions to normalize access.
+Kubernetes manifests present a challenge: the same pod spec appears in Pods, Deployments, DaemonSets, StatefulSets, Jobs, and CronJobs — each at a different path in the YAML structure. Effective policies need helper functions to normalize access.
 
 Conftest evaluates these policies during CI/CD, but you can also enforce them at runtime using [OPA Gatekeeper](https://open-policy-agent.github.io/gatekeeper/website/)—a Kubernetes admission controller that rejects non-compliant resources at apply time. The Rego logic is identical; Gatekeeper just runs it as a webhook instead of a CI check.
 
@@ -1092,7 +1067,7 @@ Code: Capability and host namespace restrictions.
 
 ### Resource and Image Policies
 
-Resource limits prevent noisy neighbor problems; image policies prevent supply chain attacks. The severity differs by environment—production requires limits, development can warn:
+Resource limits prevent noisy neighbor problems; image policies prevent supply chain attacks. The severity differs by environment — production requires limits, development can warn:
 
 ```rego
 package kubernetes.resources
@@ -1216,14 +1191,14 @@ import future.keywords.contains
 deny contains msg if {
     container := containers[_]
     endswith(container.image, ":latest")
-    msg := sprintf("Container '%s' uses :latest tag—blocked", [container.name])
+    msg := sprintf("Container '%s' uses :latest tag — blocked", [container.name])
 }
 
 # Soft warning: prefer digests over tags for supply chain security
 warn contains msg if {
     container := containers[_]
     not contains(container.image, "@sha256:")
-    msg := sprintf("Container '%s' uses tag instead of digest—consider pinning", [container.name])
+    msg := sprintf("Container '%s' uses tag instead of digest — consider pinning", [container.name])
 }
 ```
 Code: Combining deny and warn in a single policy file.
@@ -1234,13 +1209,13 @@ Use `warn` for best practices and `deny` for security requirements. Too many `de
 
 ## Handling Exceptions
 
-Policies without escape hatches get bypassed entirely. Legitimate exceptions exist—CNI plugins need privileged access, node exporters need host network, legacy applications need time to migrate. Effective exception handling isn't about eliminating workarounds—it's about governing them with justification, expiration, and audit trails.
+Policies without escape hatches get bypassed entirely. Legitimate exceptions exist — CNI plugins need privileged access, node exporters need host network, legacy applications need time to migrate. Effective exception handling isn't about eliminating workarounds — it's about governing them with justification, expiration, and audit trails.
 
 ### Exception Mechanisms
 
 Three patterns handle exceptions at different granularities. Choose based on your governance model: annotation-based for developer self-service, expiring exceptions for temporary workarounds, and data-driven for centralized management.
 
-**Annotation-based exceptions** let developers request exceptions inline with the resource. The policy checks for an exception annotation before denying:
+__Annotation-based exceptions__ let developers request exceptions inline with the resource. The policy checks for an exception annotation before denying:
 
 ```rego
 package kubernetes.security
@@ -1262,7 +1237,7 @@ has_exception(policy_name) if {
 ```
 Code: Annotation-based exception checking.
 
-**Expiring exceptions** prevent permanent workarounds. The policy parses an expiration date and blocks if the exception has lapsed:
+__Expiring exceptions__ prevent permanent workarounds. The policy parses an expiration date and blocks if the exception has lapsed:
 
 ```rego
 deny contains msg if {
@@ -1280,7 +1255,7 @@ exception_expired(policy_name) if {
 ```
 Code: Time-limited exception with expiration.
 
-**Data-driven exceptions** centralize exception management. Instead of annotations scattered across manifests, a JSON file defines which resources are excepted:
+__Data-driven exceptions__ centralize exception management. Instead of annotations scattered across manifests, a JSON file defines which resources are excepted:
 
 ```json
 {
@@ -1319,7 +1294,7 @@ Exceptions without governance accumulate indefinitely. A structured process keep
       text: 'Developer adds exception annotation with reason',
     },
     {
-      text: 'PR triggers policy check—warns about exception usage',
+      text: 'PR triggers policy check — warns about exception usage',
     },
     {
       text: 'Security team reviews exception request',
@@ -1381,7 +1356,7 @@ Different exception types warrant different governance levels:
   }}
 />
 
-Track exception metrics to identify patterns: total active exceptions, exceptions by policy type, exceptions by team, expired exceptions still in use, average exception age. Alert on anomalies—exceptions granted without expiration, exceptions older than 90 days, namespaces with excessive exceptions.
+Track exception metrics to identify patterns: total active exceptions, exceptions by policy type, exceptions by team, expired exceptions still in use, average exception age. Alert on anomalies — exceptions granted without expiration, exceptions older than 90 days, namespaces with excessive exceptions.
 
 <Callout type="info">
 Exceptions are a feature, not a bug. Legitimate use cases exist for most security rules. The goal is governance: require justification, set expiration, track usage, and review regularly.
@@ -1389,9 +1364,9 @@ Exceptions are a feature, not a bug. Legitimate use cases exist for most securit
 
 ## Conclusion
 
-Effective infrastructure guardrails require more than comprehensive policies—they require fast feedback, clear messages, appropriate severity levels, and pragmatic exception handling. Policies that run in pre-commit catch violations before they become PRs. Policies with actionable messages get fixed instead of ignored. Policies with exception mechanisms accommodate legitimate edge cases.
+Effective infrastructure guardrails require more than comprehensive policies — they require fast feedback, clear messages, appropriate severity levels, and pragmatic exception handling. Policies that run in pre-commit catch violations before they become PRs. Policies with actionable messages get fixed instead of ignored. Policies with exception mechanisms accommodate legitimate edge cases.
 
-The goal is policies that developers trust: fast enough to not slow them down, accurate enough to not cry wolf, and flexible enough to handle real-world complexity. The measure of success isn't how many violations you block—it's how few violations reach production combined with how little friction developers experience. Both matter.
+The goal is policies that developers trust: fast enough to not slow them down, accurate enough to not cry wolf, and flexible enough to handle real-world complexity. The measure of success isn't how many violations you block — it's how few violations reach production combined with how little friction developers experience. Both matter.
 
 <Callout type="success">
 Start with five critical policies that run in under two seconds. Get adoption. Add coverage. The fastest path to comprehensive guardrails runs through developer trust.

@@ -9,8 +9,8 @@ tags: ["reliability-and-testing", "kubernetes", "python", "go"]
 featured: false
 ---
 
-*[SRE]: Site Reliability Engineering
 *[PDU]: Power Distribution Unit
+*[SRE]: Site Reliability Engineering
 
 ## Introduction
 
@@ -24,31 +24,45 @@ This article covers what chaos engineering actually is (hint: it's not random de
 
 ## What Chaos Engineering Actually Is
 
-The term "chaos engineering" sounds destructive, which leads to a common misconception: that it's about randomly breaking things to see what happens. That's not chaos engineering—that's just chaos.
+The term "chaos engineering" sounds destructive, which leads to a common misconception: that it's about randomly breaking things to see what happens. That's not chaos engineering — that's just chaos.
 
-Real chaos engineering follows the scientific method. You form a hypothesis about how your system should behave under specific failure conditions, you design a controlled experiment to test that hypothesis, and you observe whether reality matches your expectations. The goal isn't to cause outages; it's to build confidence that your system handles failures gracefully—or to learn exactly how it doesn't.
+Real chaos engineering follows the scientific method. You form a hypothesis about how your system should behave under specific failure conditions, you design a controlled experiment to test that hypothesis, and you observe whether reality matches your expectations. The goal isn't to cause outages; it's to build confidence that your system handles failures gracefully — or to learn exactly how it doesn't.
 
 <Table
   variant="vertical-column-delineation-table"
   content={{
     figure: "The distinction that separates chaos engineering from breaking things.",
-    thead: { th: ["Chaos Engineering IS", "Chaos Engineering IS NOT"] },
+    thead: {
+      th: ["Chaos Engineering IS", "Chaos Engineering IS NOT"],
+    },
     tbody: {
       tr: [
-        { th: "Hypothesis-driven experimentation", td: ["Random destruction"] },
-        { th: "Controlled failure injection", td: ["Breaking things for fun"] },
-        { th: "Learning about system behavior", td: ["Proving you can cause outages"] },
-        { th: "Building confidence", td: ["Testing in production blindly"] },
+        {
+          th: "Hypothesis-driven experimentation",
+          td: ["Random destruction"],
+        },
+        {
+          th: "Controlled failure injection",
+          td: ["Breaking things for fun"],
+        },
+        {
+          th: "Learning about system behavior",
+          td: ["Proving you can cause outages"],
+        },
+        {
+          th: "Building confidence",
+          td: ["Testing in production blindly"],
+        },
       ],
     },
   }}
 />
 
-The key insight: without a hypothesis, you're just breaking things. If you kill a pod and the service degrades, what did you learn? Was that expected? Was it acceptable? Without a hypothesis—"the service should recover within 30 seconds with no user-visible errors"—you can't answer those questions. You can't distinguish expected behavior from bugs, and you won't know if your system got better or worse.
+The key insight: without a hypothesis, you're just breaking things. If you kill a pod and the service degrades, what did you learn? Was that expected? Was it acceptable? Without a hypothesis — "the service should recover within 30 seconds with no user-visible errors" — you can't answer those questions. You can't distinguish expected behavior from bugs, and you won't know if your system got better or worse.
 
 ## Your First Experiment: Pod Termination
 
-The simplest and most valuable first experiment is killing a pod. If you've never run a chaos experiment, start here—you can do it this week with tools you already have.
+The simplest and most valuable first experiment is killing a pod. If you've never run a chaos experiment, start here — you can do it this week with tools you already have.
 
 **Hypothesis:** When a single pod is terminated, Kubernetes will automatically restart it and the service will continue handling requests with no more than 2 minutes of degraded availability.
 
@@ -57,27 +71,52 @@ The simplest and most valuable first experiment is killing a pod. If you've neve
 <List
   variant="check-icons-list"
   items={[
-    { text: "Your deployment has replicas > 1 (so traffic continues on surviving pods during recovery)" },
-    { text: "Health checks (liveness and readiness probes) are configured" },
-    { text: "You have monitoring in place to observe the experiment" },
+    {
+      text: "Your deployment has replicas > 1 (so traffic continues on surviving pods during recovery)",
+    },
+    {
+      text: "Health checks (liveness and readiness probes) are configured",
+    },
+    {
+      text: "You have monitoring in place to observe the experiment",
+    },
   ]}
 />
 
 **Steps:**
 
-1. Record baseline metrics for 5 minutes (error rate, latency, throughput)
-2. Delete one pod: `kubectl delete pod <pod-name>`
-3. Observe recovery for 5 minutes, watching for new pod scheduling, health check passing, and traffic resuming
-4. Compare post-experiment metrics to baseline
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      text: "Record baseline metrics for 5 minutes (error rate, latency, throughput)",
+    },
+    {
+      text: "Delete one pod: `kubectl delete pod &lt;pod-name&gt;`",
+    },
+    {
+      text: "Observe recovery for 5 minutes, watching for new pod scheduling, health check passing, and traffic resuming",
+    },
+    {
+      text: "Compare post-experiment metrics to baseline",
+    },
+  ]}
+/>
 
 **Success criteria:**
 
 <List
   variant="check-icons-list"
   items={[
-    { text: "New pod running within 60 seconds" },
-    { text: "No 5xx errors during recovery" },
-    { text: "Latency returned to baseline within 2 minutes" },
+    {
+      text: "New pod running within 60 seconds",
+    },
+    {
+      text: "No 5xx errors during recovery",
+    },
+    {
+      text: "Latency returned to baseline within 2 minutes",
+    },
   ]}
 />
 
@@ -102,9 +141,18 @@ Code: Simple pod termination experiment with recovery observation.
 <List
   variant="check-icons-list"
   items={[
-    { lead: "_Slow container startup delays recovery._", text: "If your container takes 45 seconds to start, that's 45 seconds of degraded capacity. Optimize image size, add startup probes, or adjust replica counts." },
-    { lead: "_Missing readiness probes cause traffic to unhealthy pods._", text: "Without a readiness probe, Kubernetes sends traffic to pods that aren't ready to handle it, causing errors during startup." },
-    { lead: "_No alerts fired despite degradation._", text: "This is the \"aha\" moment—your monitoring gap was invisible until you tested it." },
+    {
+      lead: "Slow container startup delays recovery.",
+      text: "If your container takes 45 seconds to start, that's 45 seconds of degraded capacity. Optimize image size, add startup probes, or adjust replica counts.",
+    },
+    {
+      lead: "Missing readiness probes cause traffic to unhealthy pods.",
+      text: "Without a readiness probe, Kubernetes sends traffic to pods that aren't ready to handle it, causing errors during startup.",
+    },
+    {
+      lead: "No alerts fired despite degradation.",
+      text: "This is the \"aha\" moment — your monitoring gap was invisible until you tested it.",
+    },
   ]}
 />
 
@@ -119,13 +167,13 @@ Now that you know how to run an experiment, here's how to avoid turning it into 
 
 ### Mistake 1: No Hypothesis
 
-I covered this earlier, but it bears repeating: "let's see what happens" isn't an experiment. Write down what you expect _before_ you start, or you won't know if what you observed was a bug or expected behavior.
+I covered this earlier, but it bears repeating: "let's see what happens" isn't an experiment. Write down what you expect **before** you start, or you won't know if what you observed was a bug or expected behavior.
 
 ### Mistake 2: No Abort Conditions
 
 Running an experiment with the plan "watch and manually stop if things look bad" is a recipe for turning experiments into incidents. Humans are slow to react, especially when they're not sure if what they're seeing is expected behavior or a problem.
 
-Define abort conditions _before_ you start: error rate > 5%, p99 latency > 5 seconds, any customer complaint. Ideally these trigger automatic rollback. At minimum, write them down so you know when to pull the plug.
+Define abort conditions **before** you start: error rate > 5%, p99 latency > 5 seconds, any customer complaint. Ideally these trigger automatic rollback. At minimum, write them down so you know when to pull the plug.
 
 ### Mistake 3: No Follow-Through
 
@@ -134,7 +182,7 @@ The worst pattern: find bugs, document them, move on. Six months later, someone 
 Chaos without fixes is expensive documentation. The workflow must be: find bugs → document → create tickets → fix → re-run experiment to verify the fix. If you're finding bugs but not fixing them, you're wasting effort and building false confidence.
 
 <Callout type="info">
-The value of chaos engineering is not in finding problems—it's in fixing them. An experiment without follow-through is worse than no experiment because it creates false confidence.
+The value of chaos engineering is not in finding problems — it's in fixing them. An experiment without follow-through is worse than no experiment because it creates false confidence.
 </Callout>
 
 ## Conclusion
@@ -161,7 +209,7 @@ You can start chaos engineering today. Pick a service. Form a hypothesis about w
   ]}
 />
 
-That's a real chaos experiment—no enterprise platform required.
+That's a real chaos experiment — no enterprise platform required.
 
 Once you're comfortable with pod termination, the natural next steps are latency injection (what happens when your database responds slowly?) and network partitions (what happens when your cache is unreachable?). These three failure modes cover the vast majority of real-world incidents.
 

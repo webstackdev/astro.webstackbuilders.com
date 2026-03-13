@@ -9,6 +9,10 @@ tags: ["cloud-platforms", "kubernetes", "aws"]
 featured: true
 ---
 
+import costMonitoringDiagram from "./diagrams/cost-monitoring-and-escalation-flow.jpg"
+import ephemeralEnvironmentDiagram from "./diagrams/ephemeral-environment-lifecycle-states.jpg"
+import sharedVsDedicatedDiagram from "./diagrams/shared-vs-dedicated-resource-cost-comparison.jpg"
+
 *[PR]: Pull Request
 *[TTL]: Time To Live
 *[CI]: Continuous Integration
@@ -23,46 +27,31 @@ featured: true
 
 Preview environments for every PR sound like a developer experience win until someone notices the cloud bill. I've seen this pattern play out multiple times: a team enables preview deployments, developers love the fast feedback loops, and six weeks later finance is asking why infrastructure costs tripled.
 
-The math is straightforward but easy to ignore. A 50-developer team with an average of 40 open PRs, each spawning a full stack with database, Redis, and object storage, is running 40 duplicate environments around the clock. Most of those environments are idle most of the time—the PR author pushed code, tested for an hour, then moved on to something else. But the database is still running. The load balancer is still running. The persistent volumes are still allocated.
+The math is straightforward but easy to ignore. A 50-developer team with an average of 40 open PRs, each spawning a full stack with database, Redis, and object storage, is running 40 duplicate environments around the clock. Most of those environments are idle most of the time — the PR author pushed code, tested for an hour, then moved on to something else. But the database is still running. The load balancer is still running. The persistent volumes are still allocated.
 
-The first month, nobody notices because the incremental cost of one environment is small. By month three, preview environments are costing more than production. The culprit isn't the environments themselves—it's orphaned databases that outlived their PRs, forgotten load balancers for branches that were merged weeks ago, and abandoned containers accumulating charges while serving exactly zero requests.
+The first month, nobody notices because the incremental cost of one environment is small. By month three, preview environments are costing more than production. The culprit isn't the environments themselves — it's orphaned databases that outlived their PRs, forgotten load balancers for branches that were merged weeks ago, and abandoned containers accumulating charges while serving exactly zero requests.
 
-This article covers the lifecycle management, cleanup automation, and cost controls that make preview environments sustainable. We'll walk through the environment lifecycle and where costs accumulate, provisioning architecture that favors shared resources, TTL enforcement and cleanup automation, hibernation strategies for idle environments, and the visibility tools that change developer behavior. The goal isn't to spend less on previews—it's to stop spending on previews that deliver no value.
+This article covers the lifecycle management, cleanup automation, and cost controls that make preview environments sustainable. We'll walk through the environment lifecycle and where costs accumulate, provisioning architecture that favors shared resources, TTL enforcement and cleanup automation, hibernation strategies for idle environments, and the visibility tools that change developer behavior. The goal isn't to spend less on previews — it's to stop spending on previews that deliver no value.
 
 <Callout type="warning">
-Preview environments are "free" until they're not. The marginal cost of one environment is negligible; the compound cost of 50 forgotten environments is a budget emergency. Cleanup automation isn't optional—it's the prerequisite.
+Preview environments are "free" until they're not. The marginal cost of one environment is negligible; the compound cost of 50 forgotten environments is a budget emergency. Cleanup automation isn't optional — it's the prerequisite.
 </Callout>
 
 ## The Ephemeral Environment Lifecycle
 
-An ephemeral environment moves through a predictable set of states, and understanding this lifecycle is the foundation for cost control. The critical insight is that cost accumulates in the idle state—after the developer has finished testing but before cleanup runs.
+An ephemeral environment moves through a predictable set of states, and understanding this lifecycle is the foundation for cost control. The critical insight is that cost accumulates in the idle state — after the developer has finished testing but before cleanup runs.
 
 ### Environment Lifecycle States
 
-```mermaid
-stateDiagram-v2
-    [*] --> Requested: PR opened
-    Requested --> Provisioning: CI triggered
-    Provisioning --> Ready: Resources created
-    Ready --> Active: Developer testing
-    Active --> Idle: No activity
-    Idle --> Active: New activity
-    Idle --> Expiring: TTL exceeded
-    Expiring --> Destroyed: Cleanup job
-    Active --> Destroyed: PR merged/closed
-    Ready --> Destroyed: PR merged/closed
-    Destroyed --> [*]
-
-    note right of Idle
-        Cost accumulates here
-        without value delivery
-    end note
-```
-Figure: Ephemeral environment lifecycle states.
+<Diagram
+  src={ephemeralEnvironmentDiagram}
+  title="Ephemeral environment lifecycle states."
+  description="State diagram showing the lifecycle of a preview environment from creation through cleanup. The process starts when a PR is opened, moving to Requested, then Provisioning when CI is triggered, then Ready once resources are created. From Ready the environment becomes Active while the developer is testing. Active can transition to Idle when there is no activity, and Idle can return to Active when new activity occurs. Idle can also transition to Expiring once the TTL is exceeded, followed by Destroyed when the cleanup job runs. Active and Ready can both transition directly to Destroyed when the PR is merged or closed. A note attached to the Idle state highlights that cost accumulates there without delivering value. The diagram emphasizes that the main waste comes from environments that linger idle between active testing and final destruction."
+/>
 
 Most environments spend the majority of their existence in the idle state. A developer opens a PR, the environment provisions, they test for an hour, then context-switch to something else. The environment sits idle for days until the PR is finally merged or someone remembers to close it. Every hour in that idle state is cost without value.
 
-The lifecycle events that matter most are the destruction triggers. PR merge and close should trigger immediate cleanup—no grace period, no waiting for a scheduled job. TTL expiration and idle timeout provide the safety net for PRs that are abandoned without being formally closed.
+The lifecycle events that matter most are the destruction triggers. PR merge and close should trigger immediate cleanup — no grace period, no waiting for a scheduled job. TTL expiration and idle timeout provide the safety net for PRs that are abandoned without being formally closed.
 
 ### What Gets Provisioned
 
@@ -83,15 +72,30 @@ Not all resources carry equal cost or cleanup risk. Containers are cheap and eas
           th: "Databases",
           td: ["Instance hours + storage", "Medium (data retention)", "High"],
         },
-        { th: "Load Balancers", td: ["Hourly + data transfer", "Easy", "Medium"] },
-        { th: "DNS Records", td: ["Per record (usually free)", "Easy", "Medium"] },
-        { th: "SSL Certificates", td: ["Usually free (Let's Encrypt)", "Easy", "Low"] },
+        {
+          th: "Load Balancers",
+          td: ["Hourly + data transfer", "Easy", "Medium"],
+        },
+        {
+          th: "DNS Records",
+          td: ["Per record (usually free)", "Easy", "Medium"],
+        },
+        {
+          th: "SSL Certificates",
+          td: ["Usually free (Let's Encrypt)", "Easy", "Low"],
+        },
         {
           th: "Object Storage",
           td: ["Storage + requests", "Hard (orphaned objects)", "High"],
         },
-        { th: "Message Queues", td: ["Messages + throughput", "Medium", "Medium"] },
-        { th: "Secrets/Config", td: ["Usually free", "Easy", "Low"] },
+        {
+          th: "Message Queues",
+          td: ["Messages + throughput", "Medium", "Medium"],
+        },
+        {
+          th: "Secrets/Config",
+          td: ["Usually free", "Easy", "Low"],
+        },
         {
           th: "Persistent Volumes",
           td: ["Storage GB", "Hard (data retention)", "High"],
@@ -101,9 +105,9 @@ Not all resources carry equal cost or cleanup risk. Containers are cheap and eas
   }}
 />
 
-The high-orphan-risk resources—databases, object storage, and persistent volumes—share a common trait: they hold state that might be important. This makes teams hesitant to delete them automatically, which is exactly how they become orphans. The solution isn't to avoid deleting them; it's to design your preview environments so that this data is explicitly disposable.
+The high-orphan-risk resources — databases, object storage, and persistent volumes — share a common trait: they hold state that might be important. This makes teams hesitant to delete them automatically, which is exactly how they become orphans. The solution isn't to avoid deleting them; it's to design your preview environments so that this data is explicitly disposable.
 
-The cleanup difficulty ratings in the table reflect real operational experience. Object storage and persistent volumes are "hard" because they often contain orphaned objects without clear ownership—you can delete the bucket, but finding all the objects that belong to a specific PR requires consistent naming or tagging. Databases are "medium" because while the deletion command is simple, teams often add retention policies that prevent immediate deletion.
+The cleanup difficulty ratings in the table reflect real operational experience. Object storage and persistent volumes are "hard" because they often contain orphaned objects without clear ownership — you can delete the bucket, but finding all the objects that belong to a specific PR requires consistent naming or tagging. Databases are "medium" because while the deletion command is simple, teams often add retention policies that prevent immediate deletion.
 
 <Callout type="info">
 Databases and persistent storage are the biggest cost risks. They're expensive per-hour, accumulate data that makes deletion scary, and are often provisioned with "just in case" retention policies that keep them alive long after the environment is gone.
@@ -172,36 +176,15 @@ The key decisions embedded in this template: small container resource limits (yo
 
 The most impactful cost optimization is using shared infrastructure with logical isolation instead of dedicated instances per environment. The math is stark: three dedicated database instances cost three times as much as one shared instance with three schemas.
 
-```mermaid
-graph TD
-    subgraph "Dedicated (Expensive)"
-        A1[PR-123 DB]
-        A2[PR-124 DB]
-        A3[PR-125 DB]
-    end
-
-    subgraph "Shared (Cost-Effective)"
-        B1[Shared DB]
-        B1 --> B2[schema_pr_123]
-        B1 --> B3[schema_pr_124]
-        B1 --> B4[schema_pr_125]
-    end
-
-    subgraph "Cost Comparison (db.t3.small)"
-        C1["3 x $30/mo = $90/mo"]
-        C2["1 x $30/mo = $30/mo"]
-    end
-
-    A1 -.-> C1
-    A2 -.-> C1
-    A3 -.-> C1
-    B1 -.-> C2
-```
-Figure: Shared vs dedicated resource cost comparison.
+<Diagram
+  src={sharedVsDedicatedDiagram}
+  title="Shared vs dedicated resource cost comparison."
+  description="Flowchart comparing dedicated preview databases with a shared database model. In the Dedicated (Expensive) group are three separate databases labeled PR-123 DB, PR-124 DB, and PR-125 DB. In the Shared (Cost-Effective) group, one Shared DB branches into three isolated schemas: schema_pr_123, schema_pr_124, and schema_pr_125. A third group labeled Cost Comparison (db.t3.small) shows that three dedicated databases cost 3 x $30/mo = $90/mo, while one shared database costs 1 x $30/mo = $30/mo. Dotted arrows connect the dedicated databases to the higher cost and the shared database to the lower cost. The diagram shows how logical isolation in one shared service can preserve separation while reducing monthly infrastructure spend."
+/>
 
 For PostgreSQL, schema isolation provides strong separation. Each preview environment gets its own schema with a dedicated role that can only access that schema. Provisioning is fast (no instance startup time), and cleanup is a single `DROP SCHEMA CASCADE` command.
 
-The tradeoff is that shared instances create a blast radius. If your shared preview database goes down, all preview environments are affected. In practice, this is acceptable for preview environments—they're not production, and the cost savings are substantial. Size the shared instance appropriately and monitor it like any other piece of infrastructure.
+The tradeoff is that shared instances create a blast radius. If your shared preview database goes down, all preview environments are affected. In practice, this is acceptable for preview environments — they're not production, and the cost savings are substantial. Size the shared instance appropriately and monitor it like any other piece of infrastructure.
 
 <Callout type="success">
 Shared databases with schema isolation can reduce database costs by 80%+. Instead of spinning up a new RDS instance per PR, create a schema in a shared instance. Cleanup is a single DROP SCHEMA command, and you avoid the 10-minute RDS provisioning delay.
@@ -215,7 +198,7 @@ TTL enforcement is the difference between preview environments that cost a predi
 
 A good TTL policy has three layers: a hard maximum lifetime (environments get destroyed regardless of activity), an idle timeout (environments get hibernated or destroyed after a period of no requests), and a grace period (authors get warned before destruction so they can extend if needed).
 
-The defaults should be aggressive. A 72-hour maximum lifetime and an 8-hour idle timeout cover the vast majority of legitimate use cases. PRs that need longer—demo environments, long-running feature branches—can request an extension via a label or approval workflow.
+The defaults should be aggressive. A 72-hour maximum lifetime and an 8-hour idle timeout cover the vast majority of legitimate use cases. PRs that need longer — demo environments, long-running feature branches — can request an extension via a label or approval workflow.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -224,8 +207,14 @@ The defaults should be aggressive. A 72-hour maximum lifetime and an 8-hour idle
     thead: { th: ["Policy", "Max Lifetime", "Idle Timeout", "Use Case"] },
     tbody: {
       tr: [
-        { th: "Default", td: ["72 hours", "8 hours", "Standard PR development"] },
-        { th: "Extended", td: ["1 week", "24 hours", "Long feature branches"] },
+        {
+          th: "Default",
+          td: ["72 hours", "8 hours", "Standard PR development"],
+        },
+        {
+          th: "Extended",
+          td: ["1 week", "24 hours", "Long feature branches"],
+        },
         {
           th: "Critical",
           td: ["2 weeks", "48 hours", "Demo environments, requires approval"],
@@ -235,7 +224,7 @@ The defaults should be aggressive. A 72-hour maximum lifetime and an 8-hour idle
   }}
 />
 
-The enforcement mechanism runs as a scheduled job (every 15 minutes is a reasonable interval) that checks each environment against its policy. When an environment exceeds its idle timeout, hibernate it first—scale compute to zero while preserving data. If it remains idle after hibernation, destroy it completely.
+The enforcement mechanism runs as a scheduled job (every 15 minutes is a reasonable interval) that checks each environment against its policy. When an environment exceeds its idle timeout, hibernate it first — scale compute to zero while preserving data. If it remains idle after hibernation, destroy it completely.
 
 ### Cleanup Job Architecture
 
@@ -270,14 +259,14 @@ The critical design principle: cleanup must be idempotent and handle partial fai
 
 ### Event-Driven Cleanup
 
-Scheduled jobs catch TTL violations, but the fastest cleanup happens in response to PR events. When a developer merges or closes a PR, you want the environment destroyed immediately—not on the next 15-minute cleanup cycle.
+Scheduled jobs catch TTL violations, but the fastest cleanup happens in response to PR events. When a developer merges or closes a PR, you want the environment destroyed immediately — not on the next 15-minute cleanup cycle.
 
 GitHub (and GitLab, Bitbucket) webhooks deliver these events in real-time. Configure your repository to send `pull_request` events to an endpoint that triggers cleanup. The key events are `pull_request.closed` and `pull_request.merged`. When either fires, invoke the same cleanup logic that the scheduled job uses.
 
-This creates defense in depth: webhooks provide immediate cleanup for the happy path, and the scheduled job catches anything that slips through—webhook delivery failures, environments that were created manually, or edge cases where the PR was deleted rather than closed.
+This creates defense in depth: webhooks provide immediate cleanup for the happy path, and the scheduled job catches anything that slips through — webhook delivery failures, environments that were created manually, or edge cases where the PR was deleted rather than closed.
 
 <Callout type="warning">
-Cleanup jobs must be idempotent and handle partial failures. If deleting a database fails, the job shouldn't crash—it should log the failure, alert, and continue cleaning other resources. Orphaned resources accumulate when cleanup jobs are fragile.
+Cleanup jobs must be idempotent and handle partial failures. If deleting a database fails, the job shouldn't crash — it should log the failure, alert, and continue cleaning other resources. Orphaned resources accumulate when cleanup jobs are fragile.
 </Callout>
 
 ## Cost Monitoring and Alerting
@@ -286,7 +275,7 @@ Cleanup automation prevents runaway costs, but cost visibility changes behavior.
 
 ### Per-Environment Cost Tracking
 
-Every preview environment should have an attributed cost that's visible to the PR author. The calculation doesn't need to be exact—an estimate based on resource types and hourly rates is sufficient to drive the right behavior.
+Every preview environment should have an attributed cost that's visible to the PR author. The calculation doesn't need to be exact — an estimate based on resource types and hourly rates is sufficient to drive the right behavior.
 
 The basic formula: for each resource in the environment, multiply its hourly rate by the hours it has been running. Sum across all resources. This gives you a cost-so-far number and a projected monthly cost if the environment continues running.
 
@@ -297,11 +286,26 @@ The basic formula: for each resource in the environment, multiply its hourly rat
     thead: { th: ["Resource", "Hourly Rate (AWS us-east-1)", "24h Cost", "7d Cost"] },
     tbody: {
       tr: [
-        { th: "db.t3.micro", td: ["$0.017", "$0.41", "$2.86"] },
-        { th: "db.t3.small", td: ["$0.034", "$0.82", "$5.71"] },
-        { th: "Fargate (0.5 vCPU, 1GB)", td: ["$0.025", "$0.60", "$4.20"] },
-        { th: "ALB", td: ["$0.023", "$0.55", "$3.86"] },
-        { th: "NAT Gateway", td: ["$0.045", "$1.08", "$7.56"] },
+        {
+          th: "db.t3.micro",
+          td: ["$0.017", "$0.41", "$2.86"],
+        },
+        {
+          th: "db.t3.small",
+          td: ["$0.034", "$0.82", "$5.71"],
+        },
+        {
+          th: "Fargate (0.5 vCPU, 1GB)",
+          td: ["$0.025", "$0.60", "$4.20"],
+        },
+        {
+          th: "ALB",
+          td: ["$0.023", "$0.55", "$3.86"],
+        },
+        {
+          th: "NAT Gateway",
+          td: ["$0.045", "$1.08", "$7.56"],
+        },
       ],
     },
   }}
@@ -313,22 +317,13 @@ Post the cost information directly in the PR. A comment that says "Your preview 
 
 Set thresholds that trigger notifications when environments get expensive. A tiered approach works well: notify the author when an environment exceeds $15, notify the author and their manager at $30, and force a review at $50.
 
-```mermaid
-graph TD
-    A[Cost Monitoring] --> B{Environment Cost}
+<Diagram
+  src={costMonitoringDiagram}
+  title="Cost monitoring and escalation flow."
+  description="Flowchart showing two parallel escalation paths driven by cost monitoring. The first path evaluates Environment Cost: if cost is under $15 the environment remains in a Normal state, from $15 to $30 it triggers Notify Author, and above $30 it triggers Notify Author + Manager. The second path evaluates Team Budget: under 80 percent remains Normal, from 80 to 100 percent sends a Warning to Lead, and above 100 percent pauses the creation of new environments. The diagram communicates that both individual environment cost and total team budget should drive escalating notifications and enforcement decisions."
+/>
 
-    B -->|< $15| C[Normal]
-    B -->|$15-$30| D[Notify Author]
-    B -->|> $30| E[Notify Author + Manager]
-
-    A --> F{Team Budget}
-    F -->|< 80%| G[Normal]
-    F -->|80-100%| H[Warning to Lead]
-    F -->|> 100%| I[Pause New Envs]
-```
-Figure: Cost monitoring and escalation flow.
-
-Team-level budgets add another layer. If a team's total preview environment cost exceeds their budget, you can pause the creation of new environments until they clean up existing ones. This creates peer pressure—no one wants to be the person whose forgotten PR is blocking the team from deploying previews.
+Team-level budgets add another layer. If a team's total preview environment cost exceeds their budget, you can pause the creation of new environments until they clean up existing ones. This creates peer pressure — no one wants to be the person whose forgotten PR is blocking the team from deploying previews.
 
 <Callout type="info">
 Cost visibility changes behavior. When developers see "Your PR environment has cost $47 this week" in their PR, they close stale PRs faster. Make costs visible, attributable, and actionable.
@@ -340,11 +335,11 @@ Despite TTL enforcement and webhook-based cleanup, orphaned resources happen. A 
 
 ### Orphan Detection
 
-An orphaned resource is one that exists but shouldn't—typically because the PR it was associated with has been merged, closed, or deleted. The detection algorithm is straightforward: enumerate all resources with preview environment tags, check whether their associated PRs still exist and are open, and flag anything whose PR is gone.
+An orphaned resource is one that exists but shouldn't — typically because the PR it was associated with has been merged, closed, or deleted. The detection algorithm is straightforward: enumerate all resources with preview environment tags, check whether their associated PRs still exist and are open, and flag anything whose PR is gone.
 
 The detection logic varies by resource type. For Kubernetes resources, query for namespaces or resources with the `preview/pr-number` label, then check each PR's status via the GitHub API. For AWS resources like RDS instances or S3 buckets, use resource tagging to identify preview resources, then perform the same PR status check.
 
-Resources without proper tags are also suspects. If a database has a name that looks like a preview environment (`pr-123-db`) but lacks the standard tags, it's probably an orphan created through a non-standard path. Flag these for manual review—they might be legitimate, but more often they're forgotten experiments.
+Resources without proper tags are also suspects. If a database has a name that looks like a preview environment (`pr-123-db`) but lacks the standard tags, it's probably an orphan created through a non-standard path. Flag these for manual review — they might be legitimate, but more often they're forgotten experiments.
 
 Run orphan detection weekly at minimum, daily if your preview environment volume is high. The report should include the resource type, age, estimated monthly cost, associated PR (if identifiable), and a recommendation (delete, review, or keep). Start with dry-run mode that reports but doesn't delete, then graduate to automatic cleanup for high-confidence orphans.
 
@@ -359,13 +354,22 @@ Consistent tagging is what makes orphan detection possible. Every resource creat
     thead: { th: ["Tag", "Purpose", "Example"] },
     tbody: {
       tr: [
-        { th: "`preview/pr-number`", td: ["Links resource to PR", "`123`"] },
+        {
+          th: "`preview/pr-number`",
+          td: ["Links resource to PR", "`123`"],
+        },
         {
           th: "`preview/repository`",
           td: ["Source repo for cross-repo queries", "`myorg/myapp`"],
         },
-        { th: "`preview/author`", td: ["Cost attribution", "`jsmith`"] },
-        { th: "`preview/team`", td: ["Budget tracking", "`platform`"] },
+        {
+          th: "`preview/author`",
+          td: ["Cost attribution", "`jsmith`"],
+        },
+        {
+          th: "`preview/team`",
+          td: ["Budget tracking", "`platform`"],
+        },
         {
           th: "`preview/created-at`",
           td: ["TTL calculation", "`2024-01-15T10:30:00Z`"],
@@ -382,16 +386,16 @@ Consistent tagging is what makes orphan detection possible. Every resource creat
 Enforce tagging at the infrastructure layer. In AWS, use Service Control Policies to deny resource creation that lacks required tags. In Terraform, use Sentinel or OPA policies to block untagged resources. The goal is to make it impossible to create a preview resource without the tags that enable cleanup.
 
 <Callout type="success">
-Consistent tagging is the foundation of orphan detection. If every preview resource has a `preview/pr-number` tag, you can easily find resources whose PRs no longer exist. Enforce tagging with IaC policies—untagged resources are future orphans.
+Consistent tagging is the foundation of orphan detection. If every preview resource has a `preview/pr-number` tag, you can easily find resources whose PRs no longer exist. Enforce tagging with IaC policies — untagged resources are future orphans.
 </Callout>
 
 ## CI/CD Integration
 
-The provisioning and cleanup logic I've described needs to be wired into your CI/CD pipeline. The goal is to make preview environments automatic—developers shouldn't need to think about infrastructure when opening a PR.
+The provisioning and cleanup logic I've described needs to be wired into your CI/CD pipeline. The goal is to make preview environments automatic — developers shouldn't need to think about infrastructure when opening a PR.
 
 ### Pipeline Structure
 
-A typical preview environment pipeline has two jobs: one for provisioning (runs on PR open, synchronize, and reopen) and one for cleanup (runs on PR close). The provisioning job should be idempotent—if the environment already exists, update it rather than failing. In GitHub Actions, use concurrency groups to ensure that rapid pushes don't create multiple environments for the same PR. GitLab CI offers `resource_group` for the same purpose, and cloud-native pipelines like AWS CodePipeline or Azure Pipelines have their own mechanisms for preventing parallel executions.
+A typical preview environment pipeline has two jobs: one for provisioning (runs on PR open, synchronize, and reopen) and one for cleanup (runs on PR close). The provisioning job should be idempotent — if the environment already exists, update it rather than failing. In GitHub Actions, use concurrency groups to ensure that rapid pushes don't create multiple environments for the same PR. GitLab CI offers `resource_group` for the same purpose, and cloud-native pipelines like AWS CodePipeline or Azure Pipelines have their own mechanisms for preventing parallel executions.
 
 ```yaml title="preview-environment.yml"
 # GitHub Actions workflow for preview environments
@@ -440,7 +444,7 @@ jobs:
 ```
 Code: GitHub Actions workflow with concurrency groups to prevent parallel deploys.
 
-The `cancel-in-progress: true` setting is important—if a developer pushes three commits in quick succession, you don't want three parallel deployments racing each other. Cancel the in-flight deploys and run only the latest.
+The `cancel-in-progress: true` setting is important — if a developer pushes three commits in quick succession, you don't want three parallel deployments racing each other. Cancel the in-flight deploys and run only the latest.
 
 ### PR Comments for Visibility
 
@@ -449,22 +453,34 @@ Post environment details back to the PR as a comment. Include the URL, expiratio
 The cleanup job should post a summary comment when the environment is destroyed: total cost incurred, how long the environment was active, and how many resources were cleaned up. This closes the feedback loop and reinforces cost awareness.
 
 <Callout type="info">
-PR comments transform abstract costs into visible feedback. When a developer sees "This PR environment cost $23.47 over 3 days," they develop intuition for what different workflows cost—and start closing PRs faster.
+PR comments transform abstract costs into visible feedback. When a developer sees "This PR environment cost $23.47 over 3 days," they develop intuition for what different workflows cost — and start closing PRs faster.
 </Callout>
 
 ### Defense in Depth
 
-Don't rely on a single cleanup mechanism. The Event-Driven Cleanup section covered webhook-based lifecycle management, but webhooks can fail—the endpoint might be down, GitHub might have an outage, or a network partition might prevent delivery.
+Don't rely on a single cleanup mechanism. The Event-Driven Cleanup section covered webhook-based lifecycle management, but webhooks can fail — the endpoint might be down, GitHub might have an outage, or a network partition might prevent delivery.
 
 Layer your cleanup mechanisms:
 
 <List
   variant="check-icons-list"
   items={[
-    { text: "**CI/CD pipeline**", lead: "Cleanup job triggered by PR close event" },
-    { text: "**Webhooks**", lead: "Direct GitHub webhook to your cleanup service" },
-    { text: "**TTL enforcement**", lead: "CronJob that deletes expired resources" },
-    { text: "**Orphan detection**", lead: "Weekly scan for resources whose PRs no longer exist" },
+    {
+      lead: "CI/CD pipeline",
+      text: "Cleanup job triggered by PR close event",
+    },
+    {
+      lead: "Webhooks",
+      text: "Direct GitHub webhook to your cleanup service",
+    },
+    {
+      lead: "TTL enforcement",
+      text: "CronJob that deletes expired resources",
+    },
+    {
+      lead: "Orphan detection",
+      text: "Weekly scan for resources whose PRs no longer exist",
+    },
   ]}
 />
 
@@ -476,7 +492,7 @@ Deleting an environment when its TTL expires is one approach, but sometimes you 
 
 ### When Hibernation Makes Sense
 
-Hibernation works well for environments that are idle but might be needed again. A developer working on a feature for two weeks doesn't want their environment destroyed every night—they want it to stop costing money overnight and wake up when they need it. Scheduled hibernation during non-working hours can reduce costs by 50% or more without affecting developer experience.
+Hibernation works well for environments that are idle but might be needed again. A developer working on a feature for two weeks doesn't want their environment destroyed every night — they want it to stop costing money overnight and wake up when they need it. Scheduled hibernation during non-working hours can reduce costs by 50% or more without affecting developer experience.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -485,15 +501,24 @@ Hibernation works well for environments that are idle but might be needed again.
     thead: { th: ["Trigger", "Use Case", "Typical Savings"] },
     tbody: {
       tr: [
-        { th: "Idle timeout (4h)", td: ["Pause inactive environments", "40-60%"] },
-        { th: "Schedule (nights/weekends)", td: ["Known non-working hours", "50-70%"] },
-        { th: "Budget pressure", td: ["Team approaching limit", "Variable"] },
+        {
+          th: "Idle timeout (4h)",
+          td: ["Pause inactive environments", "40-60%"],
+        },
+        {
+          th: "Schedule (nights/weekends)",
+          td: ["Known non-working hours", "50-70%"],
+        },
+        {
+          th: "Budget pressure",
+          td: ["Team approaching limit", "Variable"],
+        },
       ],
     },
   }}
 />
 
-The tradeoff is cold start time. Waking a hibernated environment takes 30-60 seconds for Kubernetes deployments to scale up, longer if databases need to start. For environments with dedicated RDS instances, AWS allows you to stop the instance (saving compute costs) while retaining storage—starting it again takes a few minutes.
+The tradeoff is cold start time. Waking a hibernated environment takes 30-60 seconds for Kubernetes deployments to scale up, longer if databases need to start. For environments with dedicated RDS instances, AWS allows you to stop the instance (saving compute costs) while retaining storage — starting it again takes a few minutes.
 
 ### Wake-on-Access
 
@@ -523,7 +548,10 @@ Define a set of resource profiles that match different use cases. Each profile s
     thead: { th: ["Profile", "CPU", "Memory", "Database", "Hourly Cost", "Use Case"] },
     tbody: {
       tr: [
-        { th: "Minimal", td: ["100m", "256Mi", "Shared schema", "~$0.05", "Docs, CSS changes"] },
+        {
+          th: "Minimal",
+          td: ["100m", "256Mi", "Shared schema", "~$0.05", "Docs, CSS changes"],
+        },
         {
           th: "Standard",
           td: ["250m", "512Mi", "Shared schema", "~$0.10", "Most feature work"],
@@ -541,7 +569,7 @@ Define a set of resource profiles that match different use cases. Each profile s
   }}
 />
 
-The _standard_ profile should be your default—sufficient for typical development workflows without excess. Reserve _enhanced_ and _production-like_ for specific needs, and require approval for them. A developer shouldn't be able to spin up a $1.50/hour environment without someone asking "do you really need that?"
+The __standard__ profile should be your default — sufficient for typical development workflows without excess. Reserve __enhanced__ and __production-like__ for specific needs, and require approval for them. A developer shouldn't be able to spin up a $1.50/hour environment without someone asking "do you really need that?"
 
 ### Automatic Profile Selection
 
@@ -550,15 +578,30 @@ The most effective sizing happens automatically. Analyze what files a PR changes
 <List
   variant="check-icons-list"
   items={[
-    { text: "Changes only in `docs/`, `README.md`, or `.md` files", lead: "_minimal_" },
-    { text: "Changes in frontend code with no backend changes", lead: "_minimal_ or _standard_" },
-    { text: "Standard backend changes", lead: "_standard_" },
-    { text: "PR labeled `performance-test` or `load-test`", lead: "_enhanced_" },
-    { text: "PR labeled `release-candidate`", lead: "_production-like_ (with approval)" },
+    {
+      lead: "Minimal",
+      text: "Changes only in `docs/`, `README.md`, or `.md` files",
+    },
+    {
+      lead: "Minimal or Standard",
+      text: "Changes in frontend code with no backend changes",
+    },
+    {
+      lead: "Standard",
+      text: "Standard backend changes",
+    },
+    {
+      lead: "Enhanced",
+      text: "PR labeled `performance-test` or `load-test`",
+    },
+    {
+      lead: "Production-like (with approval)",
+      text: "PR labeled `release-candidate`",
+    },
   ]}
 />
 
-This automation prevents the common scenario where every environment gets production-like resources "just in case." Most PRs don't need dedicated databases, and automatically selecting _minimal_ for documentation changes can reduce those environments' costs by 95%.
+This automation prevents the common scenario where every environment gets production-like resources "just in case." Most PRs don't need dedicated databases, and automatically selecting __minimal__ for documentation changes can reduce those environments' costs by 95%.
 
 ### Dynamic Adjustment
 
@@ -572,17 +615,17 @@ Most preview environments are massively over-provisioned. A PR that touches CSS 
 
 ## Reporting and Visibility
 
-All the automation in the world doesn't help if no one knows what's happening. Visibility into preview environment costs drives behavior change—developers close stale PRs faster when they see the cost, and teams self-regulate when their spending is visible alongside other teams.
+All the automation in the world doesn't help if no one knows what's happening. Visibility into preview environment costs drives behavior change — developers close stale PRs faster when they see the cost, and teams self-regulate when their spending is visible alongside other teams.
 
 ### Cost Dashboard
 
 A cost dashboard should answer three questions at a glance: How much are we spending? Who's spending it? What can we do about it? You can build this in Grafana with data from Prometheus metrics and cloud cost APIs, use your cloud provider's native tools (AWS Cost Explorer with cost allocation tags, GCP Billing Reports, Azure Cost Management), or adopt a dedicated FinOps platform like Kubecost, Infracost, or CloudHealth that specializes in infrastructure cost tracking.
 
-The summary view shows total active environments, current monthly run rate, and trend direction. If costs are increasing week-over-week, that's a signal to investigate—are there more PRs open, or are environments living longer than they should?
+The summary view shows total active environments, current monthly run rate, and trend direction. If costs are increasing week-over-week, that's a signal to investigate — are there more PRs open, or are environments living longer than they should?
 
 Break down costs by team. This isn't about blame; it's about accountability. When a team sees they're spending 3x more than similar-sized teams, they'll investigate. Maybe they have legitimate reasons (more complex testing requirements), or maybe they've accumulated forgotten environments. Either way, visibility prompts the conversation.
 
-Surface the top cost drivers: the longest-running environments, the highest-cost environments, and orphaned resources waiting for cleanup. These are actionable—someone can look at the list and make decisions about what to keep and what to delete.
+Surface the top cost drivers: the longest-running environments, the highest-cost environments, and orphaned resources waiting for cleanup. These are actionable — someone can look at the list and make decisions about what to keep and what to delete.
 
 ### Weekly Reports
 
@@ -591,11 +634,26 @@ Send a weekly cost report to engineering managers and the platform team. Include
 <List
   variant="check-icons-list"
   items={[
-    { text: "**Summary metrics**", lead: "Active environments, weekly cost, projected monthly cost, budget utilization" },
-    { text: "**Team breakdown**", lead: "Table showing each team's environments, cost, and budget status" },
-    { text: "**Longest running**", lead: "Environments over 7 days old, prompting review" },
-    { text: "**Savings achieved**", lead: "How much was saved through hibernation, TTL cleanup, and orphan detection" },
-    { text: "**Recommendations**", lead: "Auto-generated suggestions like \"Consider closing PR #456, running for 12 days with no activity\"" },
+    {
+      lead: "Summary metrics",
+      text: "Active environments, weekly cost, projected monthly cost, budget utilization",
+    },
+    {
+      lead: "Team breakdown",
+      text: "Table showing each team's environments, cost, and budget status",
+    },
+    {
+      lead: "Longest running",
+      text: "Environments over 7 days old, prompting review",
+    },
+    {
+      lead: "Savings achieved",
+      text: "How much was saved through hibernation, TTL cleanup, and orphan detection",
+    },
+    {
+      lead: "Recommendations",
+      text: "Auto-generated suggestions like \"Consider closing PR #456, running for 12 days with no activity\"",
+    },
   ]}
 />
 
@@ -607,23 +665,38 @@ Weekly cost reports create accountability. When teams see their preview environm
 
 ## Conclusion
 
-Preview environments are worth the investment—catching bugs before production, enabling parallel development, and accelerating code review. But without active cost management, they become a line item that grows unchecked until someone notices and overreacts by restricting access.
+Preview environments are worth the investment — catching bugs before production, enabling parallel development, and accelerating code review. But without active cost management, they become a line item that grows unchecked until someone notices and overreacts by restricting access.
 
 The strategies in this article let you have it both ways: environments that are always available when developers need them, costs that stay predictable and reasonable. The key principles:
 
 <List
   variant="check-icons-list"
   items={[
-    { text: "**Treat environments as ephemeral**", lead: "Aggressive TTLs with automatic cleanup. If it hasn't been used in 72 hours, it probably won't be." },
-    { text: "**Share infrastructure where possible**", lead: "Shared databases with schema isolation, shared caches with namespace prefixes. Dedicated resources only when testing actually requires them." },
-    { text: "**Hibernate instead of delete**", lead: "Wake-on-access preserves the illusion of always-available environments while eliminating idle compute costs." },
-    { text: "**Tag everything**", lead: "Consistent tagging enables orphan detection, cost attribution, and automated cleanup." },
-    { text: "**Make costs visible**", lead: "PR comments, dashboards, and weekly reports create accountability without bureaucracy." },
+    {
+      lead: "Treat environments as ephemeral",
+      text: "Aggressive TTLs with automatic cleanup. If it hasn't been used in 72 hours, it probably won't be.",
+    },
+    {
+      lead: "Share infrastructure where possible",
+      text: "Shared databases with schema isolation, shared caches with namespace prefixes. Dedicated resources only when testing actually requires them.",
+    },
+    {
+      lead: "Hibernate instead of delete",
+      text: "Wake-on-access preserves the illusion of always-available environments while eliminating idle compute costs.",
+    },
+    {
+      lead: "Tag everything",
+      text: "Consistent tagging enables orphan detection, cost attribution, and automated cleanup.",
+    },
+    {
+      lead: "Make costs visible",
+      text: "PR comments, dashboards, and weekly reports create accountability without bureaucracy.",
+    },
   ]}
 />
 
-The goal isn't to minimize spending—it's to maximize value per dollar. A preview environment that catches a bug before production is worth far more than the compute cost. But an environment for an abandoned PR is pure waste. Automate the distinction, and you'll have preview environments that accelerate development without budget surprises.
+The goal isn't to minimize spending — it's to maximize value per dollar. A preview environment that catches a bug before production is worth far more than the compute cost. But an environment for an abandoned PR is pure waste. Automate the distinction, and you'll have preview environments that accelerate development without budget surprises.
 
 <Callout type="info">
-Start with TTL enforcement and PR-close cleanup—they'll catch 80% of waste. Add hibernation and right-sizing once the basics are working. Orphan detection is your safety net for everything else. Build iteratively, measure continuously, and adjust based on what you learn about your team's actual usage patterns.
+Start with TTL enforcement and PR-close cleanup — they'll catch 80% of waste. Add hibernation and right-sizing once the basics are working. Orphan detection is your safety net for everything else. Build iteratively, measure continuously, and adjust based on what you learn about your team's actual usage patterns.
 </Callout>

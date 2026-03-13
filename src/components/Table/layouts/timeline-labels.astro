@@ -26,17 +26,32 @@ export type Props = {
     tbody?: string
     tfoot?: string
   }
+  fullWidth?: boolean
 }
 
-const { content, classes }: Props = Astro.props
+const { content, classes, fullWidth = true }: Props = Astro.props
 
-const tableClass = 'w-full text-left'
+const tableClass = `text-left${fullWidth ? ' w-full' : ''}`
 const captionClass = 'text-left px-4 py-3 text-content-offset'
 const headerClass = 'px-4 py-2.5 font-semibold text-content-active'
 const theadClass = 'bg-page-offset border-b border-trim'
 const tbodyClass = ''
 const tfootClass = ''
 const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b border-trim-offset last:border-b-0'
+
+const getMarkerColorClass = (rowHeader: string | { label: string; color?: string }) => {
+  if (typeof rowHeader === 'string') {
+    return 'bg-secondary'
+  }
+
+  const color = rowHeader.color?.trim()
+
+  if (!color) {
+    return 'bg-secondary'
+  }
+
+  return color.startsWith('bg-') ? color : `bg-${color}`
+}
 ---
 
 <table class:list={[tableClass, classes?.table]}>
@@ -62,12 +77,12 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
         <tr class={rowClass}>
           {row.th && (
             <th scope="row" class:list={['px-4 py-3', classes?.tbody]}>
-              <span class="inline-flex items-center gap-2 font-semibold text-content">
+              <span class="inline-flex items-center gap-2.5 font-semibold text-content">
                 <span
                   class:list={[
                     'h-2.5 w-2.5 mb-1 rounded-full',
+                    getMarkerColorClass(row.th),
                   ]}
-                  style={`background-color: var(--color-${(typeof row.th === 'string' ? undefined : row.th.color)?.trim() || 'secondary'})`}
                   aria-hidden="true"
                 />
                 <span set:html={typeof row.th === 'string' ? row.th : row.th.label}></span>

@@ -9,6 +9,10 @@ tags: ["apis-and-gateways", "kubernetes", "prometheus"]
 featured: true
 ---
 
+import caRotationDiagram from "./diagrams/ca-rotation-sequence-showing-the-safe-order-of-operations.jpg"
+import mtlsHandshakeDiagram from "./diagrams/mtls-handshake-between-client-and-server-services.jpg"
+import threeTierDiagram from "./diagrams/three-tier-certificate-authority-hierarchy-for-mtls.jpg"
+
 *[ACME]: Automatic Certificate Management Environment
 *[CA]: Certificate Authority
 *[CN]: Common Name
@@ -25,9 +29,9 @@ featured: true
 *[TLS]: Transport Layer Security
 *[TTL]: Time To Live
 
-Enabling mutual TLS between services is a single configuration flag in most service meshes. Operating it reliably is where teams struggle. Managing certificate lifecycles, handling rotation without downtime, debugging cryptic handshake failures, maintaining trust hierarchies across clusters—these are the problems that show up at 3 AM when an expired certificate takes down production.
+Enabling mutual TLS between services is a single configuration flag in most service meshes. Operating it reliably is where teams struggle. Managing certificate lifecycles, handling rotation without downtime, debugging cryptic handshake failures, maintaining trust hierarchies across clusters — these are the problems that show up at 3 AM when an expired certificate takes down production.
 
-Here's a scenario that happens more often than it should. A team enables Istio mTLS across their 50-service mesh. Initial rollout goes smoothly. Everyone celebrates the "zero-trust network." Three months later, the intermediate CA certificate expires. No one knew it had a 90-day TTL—it was the default, and nobody thought to check. At 2:47 AM, all inter-service communication fails simultaneously. Recovery takes four hours because the on-call engineer has never manually rotated Istio certificates and the runbook doesn't exist yet.
+Here's a scenario that happens more often than it should. A team enables Istio mTLS across their 50-service mesh. Initial rollout goes smoothly. Everyone celebrates the "zero-trust network." Three months later, the intermediate CA certificate expires. No one knew it had a 90-day TTL — it was the default, and nobody thought to check. At 2:47 AM, all inter-service communication fails simultaneously. Recovery takes four hours because the on-call engineer has never manually rotated Istio certificates and the runbook doesn't exist yet.
 
 Post-incident, they implement automated rotation with 30-day workload certificates, monitoring for expiration at every level of the CA hierarchy, and quarterly rotation drills. The lesson: mTLS without lifecycle automation is a time bomb.
 
@@ -41,35 +45,19 @@ This article covers the operational reality of mTLS: how the handshake works and
 
 ### One-Way vs. Mutual TLS
 
-Standard TLS—what you use when visiting any HTTPS website—is a one-way trust relationship. The server proves its identity to the client by presenting a certificate, and the client validates that certificate against its trust store. The server has no idea who the client is at the transport layer; authentication happens later, at the application layer, via JWTs, API keys, or session cookies.
+Standard TLS — what you use when visiting any HTTPS website — is a one-way trust relationship. The server proves its identity to the client by presenting a certificate, and the client validates that certificate against its trust store. The server has no idea who the client is at the transport layer; authentication happens later, at the application layer, via JWTs, API keys, or session cookies.
 
 Mutual TLS adds a second handshake step: after the client validates the server's certificate, the server requests and validates a certificate from the client. Both parties cryptographically prove their identity before any application data flows.
 
-This is what makes mTLS attractive for service-to-service communication—identity verification happens at the network layer, not the application layer.
+This is what makes mTLS attractive for service-to-service communication — identity verification happens at the network layer, not the application layer.
 
-```mermaid
-sequenceDiagram
-    participant C as Client Service
-    participant S as Server Service
+<Diagram
+  src={mtlsHandshakeDiagram}
+  title="mTLS handshake between client and server services."
+  description="Sequence diagram with two participants: Client Service and Server Service. A note marks the beginning of the mTLS handshake. The client sends ClientHello to the server. The server responds with ServerHello plus its server certificate. The client validates the server certificate against its trust store. The server then sends a CertificateRequest asking for the client certificate. The client sends its certificate to the server, and the server validates the client certificate against its trust store. After mutual identity validation, the client sends ClientKeyExchange plus Finished, and the server replies with Finished. A second note marks that the encrypted channel is established. Finally, both sides exchange encrypted application data in both directions. The diagram shows that mTLS adds client certificate validation on top of the standard TLS handshake before application traffic is allowed."
+/>
 
-    Note over C,S: mTLS Handshake
-
-    C->>S: ClientHello
-    S->>C: ServerHello + Server Certificate
-    C->>C: Validate Server Cert against Trust Store
-    S->>C: CertificateRequest
-    C->>S: Client Certificate
-    S->>S: Validate Client Cert against Trust Store
-    C->>S: ClientKeyExchange + Finished
-    S->>C: Finished
-
-    Note over C,S: Encrypted Channel Established
-
-    C->>S: Encrypted Application Data
-    S->>C: Encrypted Application Data
-```
-
-The operational cost difference is significant. With standard TLS, you manage certificates for servers—maybe dozens or hundreds. With mTLS, _every_ service needs a certificate, and every service needs to validate certificates from every other service it communicates with. In a 100-service mesh, that's potentially thousands of certificate validation paths to maintain.
+The operational cost difference is significant. With standard TLS, you manage certificates for servers — maybe dozens or hundreds. With mTLS, __every__ service needs a certificate, and every service needs to validate certificates from every other service it communicates with. In a 100-service mesh, that's potentially thousands of certificate validation paths to maintain.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -108,13 +96,13 @@ The operational cost difference is significant. With standard TLS, you manage ce
 
 Understanding certificate structure helps when debugging handshake failures. An X.509 certificate contains several fields that matter for mTLS:
 
-The _subject_ identifies the certificate holder. In Kubernetes environments, this typically looks like `CN=service-a.namespace.svc.cluster.local`. The _issuer_ identifies who signed the certificate—this establishes the trust chain back to a root CA.
+The __subject__ identifies the certificate holder. In Kubernetes environments, this typically looks like `CN=service-a.namespace.svc.cluster.local`. The __issuer__ identifies who signed the certificate — this establishes the trust chain back to a root CA.
 
-_Subject Alternative Names_ (SANs) are where modern certificates store identity information. A single certificate can include multiple DNS names, URIs, and IP addresses. Service meshes typically include both DNS names (for Kubernetes service discovery) and SPIFFE URIs (for workload identity).
+__Subject Alternative Names__ (SANs) are where modern certificates store identity information. A single certificate can include multiple DNS names, URIs, and IP addresses. Service meshes typically include both DNS names (for Kubernetes service discovery) and SPIFFE URIs (for workload identity).
 
-The _validity_ period defines when the certificate is valid. For mTLS workload certificates, short lifetimes (24 hours to 7 days) are typical—short enough that a compromised certificate becomes useless quickly, but long enough that rotation doesn't cause operational overhead.
+The __validity__ period defines when the certificate is valid. For mTLS workload certificates, short lifetimes (24 hours to 7 days) are typical — short enough that a compromised certificate becomes useless quickly, but long enough that rotation doesn't cause operational overhead.
 
-The _Extended Key Usage_ extension is a common source of mTLS failures. For a certificate to work in both client and server roles (which is what mTLS requires), it must include both `serverAuth` and `clientAuth`. A certificate issued for server use only will fail when the service tries to act as a client.
+The __Extended Key Usage__ extension is a common source of mTLS failures. For a certificate to work in both client and server roles (which is what mTLS requires), it must include both `serverAuth` and `clientAuth`. A certificate issued for server use only will fail when the service tries to act as a client.
 
 ```text
 # Decoded certificate showing fields relevant to mTLS
@@ -144,46 +132,21 @@ Now that we understand certificate structure, the next question is: who signs th
 
 The CA hierarchy you choose affects every aspect of mTLS operations: how certificates are issued, how rotation works, what happens when a CA is compromised, and how difficult cross-cluster communication becomes. Getting this wrong early creates painful migrations later.
 
-A _two-tier hierarchy_ is the simplest approach: a root CA (kept offline or in an HSM) signs an issuing CA, which signs all workload certificates. The root never touches the network after initial setup. When a workload needs a certificate, the issuing CA—running online and automated—handles the signing. This works well for single-cluster deployments where you don't need isolation between environments.
+A __two-tier hierarchy__ is the simplest approach: a root CA (kept offline or in an HSM) signs an issuing CA, which signs all workload certificates. The root never touches the network after initial setup. When a workload needs a certificate, the issuing CA — running online and automated — handles the signing. This works well for single-cluster deployments where you don't need isolation between environments.
 
 The downside is blast radius. If the issuing CA is compromised, every certificate it ever signed is suspect. There's no intermediate layer to revoke.
 
-A _three-tier hierarchy_ adds an intermediate layer between root and issuing CAs. The root (20-year validity, offline) signs intermediate CAs (5-10 years), which sign issuing CAs (1-2 years), which sign workload certificates (24 hours to 7 days). This creates natural isolation boundaries—you can have separate intermediates for production and staging, or for different regions, or for different teams.
+A __three-tier hierarchy__ adds an intermediate layer between root and issuing CAs. The root (20-year validity, offline) signs intermediate CAs (5-10 years), which sign issuing CAs (1-2 years), which sign workload certificates (24 hours to 7 days). This creates natural isolation boundaries — you can have separate intermediates for production and staging, or for different regions, or for different teams.
 
-```mermaid
-graph TD
-    subgraph "Three-Tier Hierarchy"
-        R[Root CA<br/>Validity: 20 years<br/>Offline/HSM]
-
-        I1[Intermediate CA<br/>Production<br/>5 years]
-        I2[Intermediate CA<br/>Staging<br/>5 years]
-
-        L1[Issuing CA<br/>Cluster-1<br/>1 year]
-        L2[Issuing CA<br/>Cluster-2<br/>1 year]
-        L3[Issuing CA<br/>Staging<br/>1 year]
-
-        W1[Workload Certs<br/>24h TTL]
-        W2[Workload Certs<br/>24h TTL]
-        W3[Workload Certs<br/>24h TTL]
-    end
-
-    R --> I1
-    R --> I2
-    I1 --> L1
-    I1 --> L2
-    I2 --> L3
-    L1 --> W1
-    L2 --> W2
-    L3 --> W3
-
-    style R fill:#f96,color:#000
-    style I1 fill:#9cf,color:#000
-    style I2 fill:#9cf,color:#000
-```
+<Diagram
+  src={threeTierDiagram}
+  title="Three-tier certificate authority hierarchy for mTLS."
+  description="Flowchart showing a three-tier certificate authority hierarchy inside a grouped section labeled Three-Tier Hierarchy. At the top is Root CA with labels for 20-year validity and offline or HSM storage. The root signs two intermediate certificate authorities: one for Production and one for Staging, each labeled with 5-year validity. The production intermediate signs two issuing certificate authorities for Cluster-1 and Cluster-2, each labeled with 1-year validity. The staging intermediate signs one issuing certificate authority for Staging, also labeled with 1-year validity. Each issuing certificate authority then signs a set of workload certificates labeled 24-hour TTL. The diagram shows how a single root anchors trust, intermediates create isolation boundaries between environments, issuing CAs handle cluster-level signing, and short-lived workload certificates sit at the bottom of the chain."
+/>
 
 The tradeoff is complexity. Longer certificate chains mean more validation steps during handshakes. More CAs mean more things to monitor for expiration. But for multi-cluster or multi-region deployments, the isolation is worth it.
 
-For cross-cluster mTLS, you have two options. A _shared root_ means all clusters can communicate automatically—any certificate signed by any issuing CA validates back to the same root. Simple, but a root compromise affects everything. _Federated trust_ means each cluster has its own root, and you explicitly configure which clusters trust each other by distributing trust bundles. More work to set up, but you get selective trust and blast radius containment.
+For cross-cluster mTLS, you have two options. A __shared root__ means all clusters can communicate automatically — any certificate signed by any issuing CA validates back to the same root. Simple, but a root compromise affects everything. __Federated trust__ means each cluster has its own root, and you explicitly configure which clusters trust each other by distributing trust bundles. More work to set up, but you get selective trust and blast radius containment.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -212,11 +175,11 @@ For cross-cluster mTLS, you have two options. A _shared root_ means all clusters
 
 ### SPIFFE Identity Framework
 
-CA hierarchies establish _trust_—which certificates are valid. But they don't standardize _identity_—how workloads identify themselves within those certificates. That's where SPIFFE comes in.
+CA hierarchies establish __trust__ — which certificates are valid. But they don't standardize __identity__ — how workloads identify themselves within those certificates. That's where SPIFFE comes in.
 
-SPIFFE (Secure Production Identity Framework for Everyone) standardizes how workload identity is expressed in certificates. Instead of relying on DNS names or IP addresses—which can be spoofed or change unpredictably—SPIFFE encodes identity as a URI in the certificate's SAN field.
+SPIFFE (Secure Production Identity Framework for Everyone) standardizes how workload identity is expressed in certificates. Instead of relying on DNS names or IP addresses — which can be spoofed or change unpredictably — SPIFFE encodes identity as a URI in the certificate's SAN field.
 
-A SPIFFE ID looks like `spiffe://cluster.local/ns/default/sa/service-a`. The _trust domain_ (`cluster.local`) defines the scope of identity—workloads in the same trust domain can verify each other's certificates. The _path_ (`/ns/default/sa/service-a`) identifies the specific workload, typically derived from Kubernetes namespace and service account.
+A SPIFFE ID looks like `spiffe://cluster.local/ns/default/sa/service-a`. The __trust domain__ (`cluster.local`) defines the scope of identity — workloads in the same trust domain can verify each other's certificates. The __path__ (`/ns/default/sa/service-a`) identifies the specific workload, typically derived from Kubernetes namespace and service account.
 
 The identity document containing this SPIFFE ID is called an SVID (SPIFFE Verifiable Identity Document). For mTLS, this is usually an X.509 certificate with the SPIFFE ID in the URI SAN. Service meshes generate these automatically.
 
@@ -248,7 +211,7 @@ The identity document containing this SPIFFE ID is called an SVID (SPIFFE Verifi
 If you're not using a service mesh, SPIRE (the SPIFFE Runtime Environment) provides the same identity infrastructure as a standalone deployment. SPIRE consists of a server (central authority that signs SVIDs) and agents (one per node, serving workloads via a Unix domain socket). Workload attestation happens through Kubernetes metadata (pod UID, namespace, service account), container labels, or process attributes.
 
 <Callout type="success">
-SPIFFE provides a standard identity format that works across service meshes, cloud providers, and on-premise deployments. Adopting SPIFFE IDs makes identity portable and avoids vendor lock-in. If you're building mTLS infrastructure from scratch, start with SPIFFE—you'll thank yourself when you need to federate with another system.
+SPIFFE provides a standard identity format that works across service meshes, cloud providers, and on-premise deployments. Adopting SPIFFE IDs makes identity portable and avoids vendor lock-in. If you're building mTLS infrastructure from scratch, start with SPIFFE — you'll thank yourself when you need to federate with another system.
 </Callout>
 
 ## Certificate Lifecycle Management
@@ -257,7 +220,7 @@ SPIFFE provides a standard identity format that works across service meshes, clo
 
 Manual certificate issuance doesn't scale. In a mesh with hundreds of services, each needing certificates that rotate every 24 hours, you need automation from day one.
 
-Service meshes handle this transparently. In Istio, when a workload starts, the Envoy sidecar generates a CSR containing the workload's identity (derived from the Kubernetes service account). The sidecar sends this CSR to istiod via the Secret Discovery Service (SDS). Istiod validates the workload identity against Kubernetes, signs the certificate, and returns it to the sidecar—all before the workload accepts its first request. Rotation happens automatically at 80% of the certificate's TTL.
+Service meshes handle this transparently. In Istio, when a workload starts, the Envoy sidecar generates a CSR containing the workload's identity (derived from the Kubernetes service account). The sidecar sends this CSR to istiod via the Secret Discovery Service (SDS). Istiod validates the workload identity against Kubernetes, signs the certificate, and returns it to the sidecar — all before the workload accepts its first request. Rotation happens automatically at 80% of the certificate's TTL.
 
 Outside a service mesh, cert-manager provides similar automation. You declare a `Certificate` resource specifying the identity, validity period, and issuer. cert-manager watches these resources, generates CSRs, obtains signed certificates from the configured issuer (Vault, self-signed CA, or ACME), and stores them in Kubernetes Secrets. Workloads mount the Secret, and cert-manager handles renewal before expiration.
 
@@ -296,9 +259,9 @@ The key settings for mTLS: `usages` must include both `server auth` and `client 
 
 Certificate rotation is where mTLS complexity becomes real. The challenge: replace a certificate that's actively being used for authentication without breaking any connections.
 
-For _workload certificate rotation_, the strategy is straightforward—overlapping validity. Issue the new certificate before the old one expires. Both are valid during the overlap window, so it doesn't matter which one a service presents. The old certificate eventually expires, and the new one takes over. Service meshes do this automatically.
+For __workload certificate rotation__, the strategy is straightforward — overlapping validity. Issue the new certificate before the old one expires. Both are valid during the overlap window, so it doesn't matter which one a service presents. The old certificate eventually expires, and the new one takes over. Service meshes do this automatically.
 
-_CA rotation_ is harder. When you rotate an intermediate or root CA, you're changing the trust anchor that validates certificates. If you issue certificates from a new CA before services trust that CA, mTLS fails immediately.
+__CA rotation__ is harder. When you rotate an intermediate or root CA, you're changing the trust anchor that validates certificates. If you issue certificates from a new CA before services trust that CA, mTLS fails immediately.
 
 The safe order for CA rotation:
 
@@ -323,42 +286,23 @@ The safe order for CA rotation:
   ]}
 />
 
-```mermaid
-sequenceDiagram
-    participant W as Workload
-    participant CA as Certificate Authority
-    participant TS as Trust Store
+<Diagram
+  src={caRotationDiagram}
+  title="CA rotation sequence showing the safe order of operations."
+  description="Sequence diagram with three participants: Workload, Certificate Authority, and Trust Store. In Step 1, Add New CA to Trust, the Certificate Authority adds the new CA certificate to the Trust Store, and the Trust Store updates the Workload with a bundle that trusts both the old and new CA. In Step 2, Verify Distribution, the Workload confirms it has received the updated trust bundle. In Step 3, Issue New Certs, the Workload sends a CSR for a new certificate to the Certificate Authority, which returns a certificate signed by the new CA. In Step 4, Wait for Full Rotation, the Workload indicates that all workloads are now using new certificates. In Step 5, Remove Old CA, the Trust Store removes the old CA and sends the Workload an updated bundle containing only the new CA. The diagram emphasizes the required order: distribute trust first, rotate certificates second, and remove the old trust anchor last."
+/>
 
-    Note over W,TS: Step 1: Add New CA to Trust
-    CA->>TS: New CA certificate added
-    TS->>W: Trust bundle updated (trusts both old and new)
-
-    Note over W,TS: Step 2: Verify Distribution
-    W->>W: Confirm new trust bundle received
-
-    Note over W,TS: Step 3: Issue New Certs
-    W->>CA: CSR for new cert
-    CA->>W: Cert signed by new CA
-
-    Note over W,TS: Step 4: Wait for Full Rotation
-    W->>W: All workloads using new certs
-
-    Note over W,TS: Step 5: Remove Old CA
-    TS->>TS: Old CA removed
-    W->>TS: Trust bundle updated (new CA only)
-```
-
-In Istio, root CA rotation requires careful coordination. Use `istioctl experimental precheck` to verify the mesh is healthy before starting, and `istioctl analyze` to catch configuration issues. The rotation can take hours in a large mesh—every workload needs to receive the new trust bundle and rotate its certificate.
+In Istio, root CA rotation requires careful coordination. Use `istioctl experimental precheck` to verify the mesh is healthy before starting, and `istioctl analyze` to catch configuration issues. The rotation can take hours in a large mesh — every workload needs to receive the new trust bundle and rotate its certificate.
 
 <Callout type="warning">
-The cardinal rule of CA rotation: add the new CA to trust stores BEFORE issuing certificates with it. Violating this order causes immediate mTLS failures—services with the old trust bundle will reject certificates signed by the new CA as "unknown authority."
+The cardinal rule of CA rotation: add the new CA to trust stores BEFORE issuing certificates with it. Violating this order causes immediate mTLS failures — services with the old trust bundle will reject certificates signed by the new CA as "unknown authority."
 </Callout>
 
 ### Expiration Monitoring
 
-Automated rotation should make expiration invisible. But "should" isn't "will." Rotation can fail silently—a misconfigured issuer, a network partition, a crashed controller. You need monitoring to catch these failures before they become outages.
+Automated rotation should make expiration invisible. But "should" isn't "will." Rotation can fail silently — a misconfigured issuer, a network partition, a crashed controller. You need monitoring to catch these failures before they become outages.
 
-For Istio workloads, the `istio_agent_cert_expiry_seconds` metric exposes time until certificate expiration. Alert when this drops below one hour—that's a rotation failure in progress.
+For Istio workloads, the `istio_agent_cert_expiry_seconds` metric exposes time until certificate expiration. Alert when this drops below one hour — that's a rotation failure in progress.
 
 For cert-manager, `certmanager_certificate_expiration_timestamp_seconds` provides the expiration timestamp. Calculate time remaining and alert at appropriate thresholds.
 
@@ -425,7 +369,7 @@ Monitor expiration at every level of the hierarchy: workload certificates (24h T
 
 ### Istio mTLS Policies
 
-Istio controls mTLS through two resource types: `PeerAuthentication` for incoming traffic and `DestinationRule` for outgoing traffic. Getting these right—and understanding how they interact—is essential for a working mTLS deployment.
+Istio controls mTLS through two resource types: `PeerAuthentication` for incoming traffic and `DestinationRule` for outgoing traffic. Getting these right — and understanding how they interact — is essential for a working mTLS deployment.
 
 `PeerAuthentication` defines how a workload handles incoming connections. The mode determines behavior:
 
@@ -493,12 +437,12 @@ spec:
       mode: ISTIO_MUTUAL
 ```
 
-The common mistake: configuring `PeerAuthentication` but forgetting `DestinationRule`. Services will require mTLS for incoming connections but initiate plaintext outgoing connections—and the errors are confusing because they appear on the _receiving_ side.
+The common mistake: configuring `PeerAuthentication` but forgetting `DestinationRule`. Services will require mTLS for incoming connections but initiate plaintext outgoing connections — and the errors are confusing because they appear on the __receiving__ side.
 
 ### Authorization Policies
 
 <Callout type="success">
-mTLS proves _who_ the caller is; authorization policies decide _what_ they can do. Together, they provide defense in depth—identity verification at the transport layer, access control at the application layer.
+mTLS proves __who__ the caller is; authorization policies decide __what__ they can do. Together, they provide defense in depth — identity verification at the transport layer, access control at the application layer.
 </Callout>
 
 mTLS establishes identity; authorization policies control what that identity can do. The certificate proves who the caller is, and the policy decides whether that caller is allowed to make this specific request.
@@ -560,7 +504,7 @@ spec:
             paths: ["/metrics", "/health"]
 ```
 
-The authorization flow evaluates policies in order: DENY rules first, then ALLOW rules, then the default action. Understanding this order prevents surprises—a permissive ALLOW rule won't override an explicit DENY.
+The authorization flow evaluates policies in order: DENY rules first, then ALLOW rules, then the default action. Understanding this order prevents surprises — a permissive ALLOW rule won't override an explicit DENY.
 
 ## Debugging mTLS Issues
 
@@ -568,7 +512,7 @@ The authorization flow evaluates policies in order: DENY rules first, then ALLOW
 
 mTLS failures produce cryptic errors. The TLS handshake fails, and you get a generic "connection reset" or "certificate verify failed" with minimal context.
 
-I once spent two hours debugging a "connection reset by peer" that turned out to be a certificate with `serverAuth` only—no `clientAuth`. The error message mentioned nothing about key usage. The fix was a one-line change to the certificate spec, but finding it required systematically ruling out every other possibility.
+I once spent two hours debugging a "connection reset by peer" that turned out to be a certificate with `serverAuth` only — no `clientAuth`. The error message mentioned nothing about key usage. The fix was a one-line change to the certificate spec, but finding it required systematically ruling out every other possibility.
 
 Knowing the common failure modes helps narrow down the problem quickly.
 
@@ -688,7 +632,7 @@ Packet captures are often necessary for deep mTLS debugging. Use `tcpdump` or Wi
 
 Routine certificate rotation should be automated, but you still need a runbook for when automation fails or when you're rotating CA certificates (which requires coordination). The pre-checks prevent rotating into a broken state; the execution steps minimize the window of risk; and the post-checks confirm you haven't introduced new problems.
 
-**Pre-checks:**
+__Pre-checks:__
 
 Before touching certificates, verify the mesh is healthy. Rotating during an existing incident compounds problems.
 
@@ -696,7 +640,7 @@ Before touching certificates, verify the mesh is healthy. Rotating during an exi
   variant="numbered-with-background-list"
   items={[
     {
-      text: 'Verify current certificate status—all certificates should be Ready:',
+      text: 'Verify current certificate status — all certificates should be Ready:',
     },
   ]}
 />
@@ -727,7 +671,7 @@ kubectl get configmap -n istio-system istio-ca-root-cert -o yaml
   ]}
 />
 
-**Execution:**
+__Execution:__
 
 <List
   variant="numbered-with-background-list"
@@ -787,7 +731,7 @@ done
   ]}
 />
 
-**Post-checks:**
+__Post-checks:__
 
 <List
   variant="check-icons-list"
@@ -804,15 +748,15 @@ done
   ]}
 />
 
-**Rollback** (if mTLS failures occur): Apply backup certificates, restart istiod, restart affected workloads.
+__Rollback__ (if mTLS failures occur): Apply backup certificates, restart istiod, restart affected workloads.
 
 ### Emergency Recovery Runbook
 
-When mTLS fails across the mesh—multiple services reporting TLS handshake failures, error rates spiking, certificates expired—you need to restore communication first, then fix the root cause. The instinct to immediately fix the certificate issue is wrong; restoring service is the priority. That's why step 2 exists.
+When mTLS fails across the mesh — multiple services reporting TLS handshake failures, error rates spiking, certificates expired — you need to restore communication first, then fix the root cause. The instinct to immediately fix the certificate issue is wrong; restoring service is the priority. That's why step 2 exists.
 
-**Step 1: Assess scope.** Is it all services or a subset? Check pod status and Istio telemetry.
+__Step 1: Assess scope.__ Is it all services or a subset? Check pod status and Istio telemetry.
 
-**Step 2: Enable permissive mode (if needed).** This is the emergency valve—it allows plaintext traffic so services can communicate while you fix the underlying issue:
+__Step 2: Enable permissive mode (if needed).__ This is the emergency valve — it allows plaintext traffic so services can communicate while you fix the underlying issue:
 
 ```yaml title="emergency-permissive.yaml"
 apiVersion: security.istio.io/v1beta1
@@ -827,9 +771,9 @@ spec:
 
 Apply with `kubectl apply -f emergency-permissive.yaml`.
 
-**Step 3: Diagnose root cause.** Check certificate expiry, CA chain validity, and istiod logs.
+__Step 3: Diagnose root cause.__ Check certificate expiry, CA chain validity, and istiod logs.
 
-**Step 4: Apply fix based on diagnosis:**
+__Step 4: Apply fix based on diagnosis:__
 
 <List
   variant="check-icons-list"
@@ -849,7 +793,7 @@ Apply with `kubectl apply -f emergency-permissive.yaml`.
   ]}
 />
 
-**Step 5: Restore strict mode:**
+__Step 5: Restore strict mode:__
 
 ```bash
 kubectl delete peerauthentication emergency-permissive -n istio-system
@@ -857,7 +801,7 @@ kubectl delete peerauthentication emergency-permissive -n istio-system
 
 Verify all services are using mTLS before closing the incident.
 
-**Post-incident:** Document the timeline, add monitoring for this failure mode, update automation, schedule a post-mortem.
+__Post-incident:__ Document the timeline, add monitoring for this failure mode, update automation, schedule a post-mortem.
 
 <Callout type="danger">
 Switching to PERMISSIVE mode during an incident allows plaintext traffic, which bypasses mTLS security. Document this clearly in your incident timeline and switch back to STRICT as soon as the underlying issue is resolved.
@@ -871,7 +815,7 @@ The trust hierarchy you choose affects everything downstream. Two-tier is simple
 
 Certificate TTLs are a tradeoff. Short-lived certificates (24 hours) limit the damage from a compromised certificate but require robust automation. Longer certificates (7 days) are more forgiving of automation failures but increase your exposure window.
 
-The goal is automation so complete that certificate rotation becomes invisible—happening continuously in the background without human intervention or service disruption. When your certificates rotate and nobody notices, you've built a mature mTLS operation.
+The goal is automation so complete that certificate rotation becomes invisible — happening continuously in the background without human intervention or service disruption. When your certificates rotate and nobody notices, you've built a mature mTLS operation.
 
 <Callout type="info">
 Start with permissive mode, add monitoring before enforcement, and run a rotation drill before you need it for real. The worst time to learn your mTLS automation is broken is during an incident.

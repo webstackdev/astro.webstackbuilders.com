@@ -1,6 +1,6 @@
 ---
 title: "Blue/Green vs Canary: The Database Reality"
-description: "Most deployment strategy debates miss the critical constraint: your database. Learn when blue/green and canary deployments actually work—and when they'll fail spectacularly."
+description: "Most deployment strategy debates miss the critical constraint: your database. Learn when blue/green and canary deployments actually work — and when they'll fail spectacularly."
 cover: "./cover.jpg"
 coverAlt: "Deployment strategy spectrum showing progression from simple to complex: Recreate, Rolling, Blue/Green, Canary, and Progressive deployment patterns"
 author: "kevin-brown"
@@ -9,9 +9,9 @@ tags: ["build-and-deploy", "kubernetes", "aws", "python", "prometheus", "typescr
 featured: true
 ---
 
-A team I worked with spent six months building a sophisticated canary deployment pipeline. They had weighted traffic routing, automated rollback triggers, real-time metrics dashboards—the works. Their first production deployment went perfectly. The second one brought down the entire system.
+A team I worked with spent six months building a sophisticated canary deployment pipeline. They had weighted traffic routing, automated rollback triggers, real-time metrics dashboards — the works. Their first production deployment went perfectly. The second one brought down the entire system.
 
-The culprit wasn't their deployment tooling. It was a database schema migration that added a required column. The new code wrote rows with that column populated. The old code—still handling 90% of traffic—wrote rows without it, violating the constraint and failing silently. The canary metrics looked healthy. The database was corrupting data.
+The culprit wasn't their deployment tooling. It was a database schema migration that added a required column. The new code wrote rows with that column populated. The old code — still handling 90% of traffic — wrote rows without it, violating the constraint and failing silently. The canary metrics looked healthy. The database was corrupting data.
 
 This pattern plays out constantly. Teams invest heavily in deployment infrastructure, then discover their carefully planned strategy can't handle the one thing that matters most: database state.
 
@@ -21,9 +21,9 @@ Here's the uncomfortable truth most deployment strategy comparisons skip: the "b
 
 Before we dive into the database problem, let's establish baseline understanding of what these strategies actually do.
 
-_Blue/green deployment_ maintains two identical production environments. Blue runs your current version. When you're ready to release, you deploy to green, test it thoroughly, then switch all traffic at once. If something breaks, you switch back to blue.
+__Blue/green deployment__ maintains two identical production environments. Blue runs your current version. When you're ready to release, you deploy to green, test it thoroughly, then switch all traffic at once. If something breaks, you switch back to blue.
 
-_Canary deployment_ takes the opposite approach. Instead of switching everyone simultaneously, you route a small percentage of traffic—say, 5%—to the new version. You watch metrics, gradually increase the percentage, and only complete the rollout once you're confident the new version is healthy.
+__Canary deployment__ takes the opposite approach. Instead of switching everyone simultaneously, you route a small percentage of traffic — say, 5%—to the new version. You watch metrics, gradually increase the percentage, and only complete the rollout once you're confident the new version is healthy.
 
 The fundamental difference comes down to exposure:
 
@@ -34,11 +34,26 @@ The fundamental difference comes down to exposure:
     thead: { th: ["Aspect", "Blue/Green", "Canary"] },
     tbody: {
       tr: [
-        { th: "Traffic switch", td: ["All-at-once", "Gradual percentage"] },
-        { th: "Blast radius", td: ["100% of users", "Configurable (1-100%)"] },
-        { th: "Detection time", td: ["Post-switch", "During rollout"] },
-        { th: "Rollback speed", td: ["Instant (traffic switch)", "Fast (traffic routing)"] },
-        { th: "Infrastructure cost", td: ["2x capacity during deployment", "1x + canary capacity"] },
+        {
+          th: "Traffic switch",
+          td: ["All-at-once", "Gradual percentage"],
+        },
+        {
+          th: "Blast radius",
+          td: ["100% of users", "Configurable (1-100%)"],
+        },
+        {
+          th: "Detection time",
+          td: ["Post-switch", "During rollout"],
+        },
+        {
+          th: "Rollback speed",
+          td: ["Instant (traffic switch)", "Fast (traffic routing)"],
+        },
+        {
+          th: "Infrastructure cost",
+          td: ["2x capacity during deployment", "1x + canary capacity"],
+        },
       ],
     },
   }}
@@ -50,11 +65,11 @@ Both strategies promise the same thing: safer deployments with fast rollback. Bu
 
 Here's the question that should drive every deployment strategy decision: can your old and new code versions run simultaneously against the same database?
 
-If yes, canary deployment gives you gradual rollout with limited blast radius. If no, blue/green with instant cutover is your only realistic option—and you need to be very careful about how you handle schema changes.
+If yes, canary deployment gives you gradual rollout with limited blast radius. If no, blue/green with instant cutover is your only realistic option — and you need to be very careful about how you handle schema changes.
 
 ### Why This Matters
 
-During a canary deployment, both versions run concurrently—reading and writing to the same database, cache, and message queues. That's fine for application logic changes, but the moment your deployment includes schema changes, you're running two versions of code with different expectations about data structure.
+During a canary deployment, both versions run concurrently — reading and writing to the same database, cache, and message queues. That's fine for application logic changes, but the moment your deployment includes schema changes, you're running two versions of code with different expectations about data structure.
 
 <Callout type="danger" title="The Schema Migration Trap">
 Adding a required column breaks old code that can't provide values. Removing a column breaks new code that expects it. Changing a column type can corrupt data from either direction. Renaming a column breaks everything.
@@ -62,21 +77,30 @@ Adding a required column breaks old code that can't provide values. Removing a c
 
 ### The Expand-Contract Pattern
 
-The solution is to _never_ deploy schema changes and code changes together. Instead, use a multi-phase approach:
+The solution is to __never__ deploy schema changes and code changes together. Instead, use a multi-phase approach:
 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "_Phase 1 (Expand)_:", text: "Add new columns as nullable, add new tables, create new indexes. Old code ignores these additions. Deploy this schema change independently." },
-    { lead: "_Phase 2 (Migrate)_:", text: "Deploy application code that writes to both old and new structures. Backfill existing data. This is where canary deployment shines—you can gradually roll out the new code while both versions work correctly." },
-    { lead: "_Phase 3 (Contract)_:", text: "Once all code uses the new structure, remove the old columns, constraints, or tables in a separate deployment." },
+    {
+      lead: "Phase 1 (Expand):",
+      text: "Add new columns as nullable, add new tables, create new indexes. Old code ignores these additions. Deploy this schema change independently.",
+    },
+    {
+      lead: "Phase 2 (Migrate):",
+      text: "Deploy application code that writes to both old and new structures. Backfill existing data. This is where canary deployment shines — you can gradually roll out the new code while both versions work correctly.",
+    },
+    {
+      lead: "Phase 3 (Contract):",
+      text: "Once all code uses the new structure, remove the old columns, constraints, or tables in a separate deployment.",
+    },
   ]}
 />
 
 
 <Newsletter />
 
-This pattern works with both strategies, but it's _mandatory_ for canary deployments. Blue/green can sometimes shortcut this with careful timing and instant cutover, but you're accepting more risk.
+This pattern works with both strategies, but it's __mandatory__ for canary deployments. Blue/green can sometimes shortcut this with careful timing and instant cutover, but you're accepting more risk.
 
 ```sql
 # Phase 1: Add nullable column (schema only, no code change)
@@ -109,7 +133,7 @@ You can afford the infrastructure cost. Running two complete environments double
 
 ### Choose Canary When
 
-Your changes are primarily application logic without schema modifications. API endpoints, business rules, UI components—these are perfect canary candidates because old and new code can coexist safely.
+Your changes are primarily application logic without schema modifications. API endpoints, business rules, UI components — these are perfect canary candidates because old and new code can coexist safely.
 
 You want production validation before full exposure. Canary deployments let you catch issues that only manifest under real production load, with real user behavior, without risking your entire user base.
 
@@ -123,9 +147,9 @@ Flagger is an open-source progressive delivery operator for Kubernetes that simp
 
 ### The Hybrid Approach
 
-Many mature organizations don't choose one strategy—they use both. Schema migrations and infrastructure changes go through blue/green for instant cutover and clean rollback. Application logic changes go through canary for production validation with limited blast radius.
+Many mature organizations don't choose one strategy — they use both. Schema migrations and infrastructure changes go through blue/green for instant cutover and clean rollback. Application logic changes go through canary for production validation with limited blast radius.
 
-The key insight is that the database constraint drives the decision _per deployment_, not as a blanket policy. A team might deploy three canary releases in a row, then switch to blue/green for a migration, then back to canary. The tooling supports both; the deployment contents determine which to use.
+The key insight is that the database constraint drives the decision __per deployment__, not as a blanket policy. A team might deploy three canary releases in a row, then switch to blue/green for a migration, then back to canary. The tooling supports both; the deployment contents determine which to use.
 
 <Download
   resource="blue-green-canary-deployment-strategy-comparison"
@@ -149,7 +173,7 @@ The key insight is that the database constraint drives the decision _per deploym
 
 ## Conclusion
 
-The deployment strategy debate often focuses on the wrong things—rollback speed, blast radius, tooling sophistication. These matter, but they're secondary to the fundamental question: what are you actually deploying?
+The deployment strategy debate often focuses on the wrong things — rollback speed, blast radius, tooling sophistication. These matter, but they're secondary to the fundamental question: what are you actually deploying?
 
 For database schema changes, blue/green's instant cutover is often the only safe option. For application logic changes, canary's gradual rollout provides better production validation with limited risk. Most real-world systems need both approaches, selected based on what each specific deployment contains.
 

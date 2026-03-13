@@ -9,61 +9,53 @@ tags: ["reliability-and-testing", "aws", "typescript", "python", "go", "grafana"
 featured: true
 ---
 
-import Callout from '@components/Callout/index.astro'
+import admissionControlDiagram from "./diagrams/admission-control-rejects-work-at-the-door.jpg"
+import backpressurePropagatesDiagram from "./diagrams/backpressure-propagates-from-the-constrained-resource-back-to-the-client.jpg"
+import bulkheadArchitectureDiagram from "./diagrams/bulkhead-architecture-isolating-different-workloads-into-separate-resource-pools.jpg"
+import circuitBreakerDiagram from "./diagrams/circuit-breaker-state-machine-for-downstream-protection.jpg"
+import degradationTiersDiagram from "./diagrams/degradation-tiers-with-hysteresis-to-prevent-oscillation.jpg"
+import cascadingFailureDiagram from "./diagrams/the-cascading-failure-loop_deep-dive.jpg"
 
-*[QoS]: Quality of Service
-*[LIFO]: Last In, First Out
-*[FIFO]: First In, First Out
-*[CoDel]: Controlled Delay
 *[AIMD]: Additive Increase Multiplicative Decrease
-*[RTT]: Round Trip Time
+*[CoDel]: Controlled Delay
+*[FIFO]: First In, First Out
+*[LIFO]: Last In, First Out
 *[P99]: 99th Percentile Latency
-*[SLO]: Service Level Objective
+*[QoS]: Quality of Service
 *[RPS]: Requests Per Second
+*[RTT]: Round Trip Time
+*[SLO]: Service Level Objective
 
 Most systems don't fail because they can't handle load. They fail because they try to handle _all_ the load. Without explicit overload handling, a system accepts work it cannot complete, queues grow unbounded, latency spikes, timeouts cascade, and what could have been a recoverable traffic spike becomes a prolonged outage.
 
-I watched this happen to an e-commerce platform during a flash sale. Traffic spiked to 10x normal within minutes. The system accepted every request—that was the problem. Database connections exhausted. Response times climbed from 200ms to 30 seconds. Clients started timing out and retrying, which doubled the load again. The operations team tried scaling up, but new instances couldn't get database connections either. What could have been a 15-minute degradation became a 4-hour outage that required a full restart to clear the request backlog.
+I watched this happen to an e-commerce platform during a flash sale. Traffic spiked to 10x normal within minutes. The system accepted every request — that was the problem. Database connections exhausted. Response times climbed from 200ms to 30 seconds. Clients started timing out and retrying, which doubled the load again. The operations team tried scaling up, but new instances couldn't get database connections either. What could have been a 15-minute degradation became a 4-hour outage that required a full restart to clear the request backlog.
 
 The fix wasn't more capacity. It was teaching the system to say "no."
 
-Backpressure is a survival mechanism. It's the ability to signal upstream that you're overwhelmed and cannot accept more work right now. Done well, it keeps your system responsive at capacity while gracefully degrading beyond it. Done poorly—or not at all—your system accepts work until it collapses.
+Backpressure is a survival mechanism. It's the ability to signal upstream that you're overwhelmed and cannot accept more work right now. Done well, it keeps your system responsive at capacity while gracefully degrading beyond it. Done poorly — or not at all — your system accepts work until it collapses.
 
 <Callout type="warning">
-A system without backpressure will accept work until it collapses. The goal is not to handle unlimited load—it's to handle your design capacity reliably and degrade gracefully beyond it.
+A system without backpressure will accept work until it collapses. The goal is not to handle unlimited load — it's to handle your design capacity reliably and degrade gracefully beyond it.
 </Callout>
 
 ## Understanding Overload
 
 ### The Anatomy of Cascading Failure
 
-Overload doesn't just make systems slow—it makes them _worse_. There's a vicious cycle at work: load increases, latency increases, clients timeout, clients retry, and now you have even more load. What started as a 2x traffic spike becomes a 4x spike from retries alone.
+Overload doesn't just make systems slow — it makes them _worse_. There's a vicious cycle at work: load increases, latency increases, clients timeout, clients retry, and now you have even more load. What started as a 2x traffic spike becomes a 4x spike from retries alone.
 
-```mermaid
-graph TD
-    A[Traffic Spike] --> B[Queue Growth]
-    B --> C[Latency Increase]
-    C --> D[Client Timeouts]
-    D --> E[Client Retries]
-    E --> A
+<Diagram
+  src={cascadingFailureDiagram}
+  title="The cascading failure loop where overload compounds itself through retries and resource exhaustion"
+  description="Flowchart showing how overload amplifies itself into a full outage. A Traffic Spike leads to Queue Growth, which causes Latency Increase. Increased latency causes Client Timeouts, which trigger Client Retries, feeding additional traffic back into the original spike. From Latency Increase, a second branch leads to Resource Exhaustion, then Thread Pool Saturation, then Connection Pool Exhaustion, and finally Complete Failure. A third branch from Queue Growth leads to Memory Pressure, then GC Thrashing, which feeds back into Latency Increase. The diagram shows that retries, exhausted worker resources, and memory pressure can all reinforce each other and make overload worsen instead of stabilizing."
+/>
 
-    C --> F[Resource Exhaustion]
-    F --> G[Thread Pool Saturation]
-    G --> H[Connection Pool Exhaustion]
-    H --> I[Complete Failure]
+The diagram shows three paths to failure, and they often happen simultaneously. The retry loop is the most insidious — well-intentioned client retry logic turns a temporary overload into a sustained assault. Thread pool saturation means requests that _could_ be processed sit waiting for a worker. And memory pressure from growing queues triggers garbage collection pauses that reduce your effective capacity right when you need it most.
 
-    B --> J[Memory Pressure]
-    J --> K[GC Thrashing]
-    K --> C
-```
-Figure: The cascading failure loop where overload compounds itself through retries and resource exhaustion.
-
-The diagram shows three paths to failure, and they often happen simultaneously. The retry loop is the most insidious—well-intentioned client retry logic turns a temporary overload into a sustained assault. Thread pool saturation means requests that _could_ be processed sit waiting for a worker. And memory pressure from growing queues triggers garbage collection pauses that reduce your effective capacity right when you need it most.
-
-This is why overload tends to get worse rather than self-correcting. Every mechanism designed for reliability under normal conditions—retries, timeouts, connection pooling—becomes a liability under overload.
+This is why overload tends to get worse rather than self-correcting. Every mechanism designed for reliability under normal conditions — retries, timeouts, connection pooling — becomes a liability under overload.
 
 <Callout type="info">
-**When you don't need this**: If your system can scale horizontally fast enough to absorb traffic spikes (autoscaling in under 30 seconds, stateless services), you may not need sophisticated backpressure. But most systems have _something_ that doesn't scale—a database, a third-party API, a license-limited service. That's where these patterns become essential.
+**When you don't need this**: If your system can scale horizontally fast enough to absorb traffic spikes (autoscaling in under 30 seconds, stateless services), you may not need sophisticated backpressure. But most systems have _something_ that doesn't scale — a database, a third-party API, a license-limited service. That's where these patterns become essential.
 </Callout>
 
 ### Little's Law and Queue Theory
@@ -104,15 +96,24 @@ Here's a counterintuitive truth: throughput can _increase_ during overload while
     thead: { th: ["Metric", "Definition", "Under Normal Load", "Under Overload"] },
     tbody: {
       tr: [
-        { th: "Throughput", td: ["Requests processed", "1000 RPS", "1200 RPS"] },
-        { th: "Goodput", td: ["Successful responses", "1000 RPS", "400 RPS"] },
-        { th: "Badput", td: ["Failed/timed out", "0 RPS", "800 RPS"] },
+        {
+          th: "Throughput",
+          td: ["Requests processed", "1000 RPS", "1200 RPS"],
+        },
+        {
+          th: "Goodput",
+          td: ["Successful responses", "1000 RPS", "400 RPS"],
+        },
+        {
+          th: "Badput",
+          td: ["Failed/timed out", "0 RPS", "800 RPS"],
+        },
       ],
     },
   }}
 />
 
-Under overload, your system might process more requests than ever—but most of that work is wasted. Requests timeout after consuming resources. Database queries complete but the client already gave up. Retries succeed but the original request already errored out.
+Under overload, your system might process more requests than ever — but most of that work is wasted. Requests timeout after consuming resources. Database queries complete but the client already gave up. Retries succeed but the original request already errored out.
 
 This is the key insight: if you'd simply rejected 1,000 of those 2,000 requests immediately, you could have successfully served the other 1,000. Instead, by accepting all of them, you served only 400. Fast rejection is better than slow failure.
 
@@ -120,27 +121,13 @@ This is the key insight: if you'd simply rejected 1,000 of those 2,000 requests 
 
 ### What Is Backpressure?
 
-Backpressure is the propagation of flow control signals from consumers back to producers. When a downstream component is overwhelmed, it signals upstream to slow down. The signal travels backward through the system until it reaches something that can actually reduce the load—usually the client.
+Backpressure is the propagation of flow control signals from consumers back to producers. When a downstream component is overwhelmed, it signals upstream to slow down. The signal travels backward through the system until it reaches something that can actually reduce the load — usually the client.
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Gateway
-    participant Service
-    participant Database
-
-    Note over Database: Under pressure
-    Database->>Service: Slow responses
-    Service->>Gateway: 503 / Retry-After
-    Gateway->>Client: 429 Too Many Requests
-    Client->>Client: Backs off, retries later
-
-    Note over Database: Pressure relieved
-    Database->>Service: Normal responses
-    Service->>Gateway: 200 OK
-    Gateway->>Client: 200 OK
-```
-Figure: Backpressure propagates from the constrained resource back to the client.
+<Diagram
+  src={backpressurePropagatesDiagram}
+  title="Backpressure propagates from the constrained resource back to the client"
+  description="Sequence diagram showing overload signals moving backward through a request path. The participants are Client, Gateway, Service, and Database. While the Database is under pressure, it responds slowly to the Service. The Service returns 503 with Retry-After to the Gateway, which returns 429 Too Many Requests to the Client. The Client then backs off and retries later. After pressure is relieved, the Database returns normal responses to the Service, the Service returns 200 OK to the Gateway, and the Gateway returns 200 OK to the Client. The diagram illustrates that effective backpressure starts where capacity is constrained and propagates upstream until the client reduces demand."
+/>
 
 The key principle I keep coming back to: you can't process your way out of overload. The only thing that actually reduces load is getting clients to send fewer requests. Backpressure is the mechanism that makes that happen.
 
@@ -155,10 +142,37 @@ I've seen several ways to signal overload, each with different tradeoffs:
     thead: { th: ["Type", "Mechanism", "Example", "Pros", "Cons"] },
     tbody: {
       tr: [
-        { th: "Explicit", td: ["Protocol-level signals", "HTTP 429, TCP flow control", "Clear signal, client can react", "Requires client cooperation"] },
-        { th: "Implicit", td: ["Increased latency", "Slow responses", "No implementation needed", "Clients may not notice, retry"] },
-        { th: "Connection-based", td: ["Refuse connections", "Connection limits", "Hard boundary", "Poor client experience"] },
-        { th: "Queue-based", td: ["Bounded queues", "Reject when full", "Predictable latency", "Work is lost"] },
+        {
+          th: "Explicit",
+          td: [
+            "Protocol-level signals",
+            "HTTP 429, TCP flow control",
+            "Clear signal, client can react",
+            "Requires client cooperation",
+          ],
+        },
+        {
+          th: "Implicit",
+          td: [
+            "Increased latency",
+            "Slow responses",
+            "No implementation needed",
+            "Clients may not notice, retry",
+          ],
+        },
+        {
+          th: "Connection-based",
+          td: [
+            "Refuse connections",
+            "Connection limits",
+            "Hard boundary",
+            "Poor client experience",
+          ],
+        },
+        {
+          th: "Queue-based",
+          td: ["Bounded queues", "Reject when full", "Predictable latency", "Work is lost"],
+        },
       ],
     },
   }}
@@ -185,29 +199,21 @@ TCP solved the backpressure problem decades ago. Its flow control mechanism prov
 3. As service recovers, capacity opens
 4. If service is slow, clients back off
 
-The elegance of TCP's approach is that backpressure is _automatic_. The receiver doesn't have to decide when to apply pressure—the window size naturally reflects its processing capacity. Application-level backpressure often requires more explicit coordination, but the principle is the same: consumers must be able to tell producers "slow down."
+The elegance of TCP's approach is that backpressure is _automatic_. The receiver doesn't have to decide when to apply pressure — the window size naturally reflects its processing capacity. Application-level backpressure often requires more explicit coordination, but the principle is the same: consumers must be able to tell producers "slow down."
 
 ## Admission Control
 
 ### The Bouncer Pattern
 
-Think of admission control like a nightclub bouncer. The bouncer's job isn't to throw people out after they're inside causing trouble—it's to decide at the door who gets in. If the club is at capacity, new arrivals wait outside. The people inside have a good experience because it's not overcrowded.
+Think of admission control like a nightclub bouncer. The bouncer's job isn't to throw people out after they're inside causing trouble — it's to decide at the door who gets in. If the club is at capacity, new arrivals wait outside. The people inside have a good experience because it's not overcrowded.
 
-Admission control works the same way: decide _upfront_ whether to accept work, rather than accepting everything and failing later. A request rejected at the door costs almost nothing. A request that gets halfway through your system before timing out has consumed database connections, CPU cycles, and memory—resources that could have served requests you _could_ complete.
+Admission control works the same way: decide _upfront_ whether to accept work, rather than accepting everything and failing later. A request rejected at the door costs almost nothing. A request that gets halfway through your system before timing out has consumed database connections, CPU cycles, and memory — resources that could have served requests you _could_ complete.
 
-```mermaid
-graph TD
-    A[Incoming Request] --> B{Admission Control}
-    B -->|Accepted| C[Process Request]
-    B -->|Rejected| D[Return 429/503]
-
-    C --> E{Completed?}
-    E -->|Success| F[200 Response]
-    E -->|Failure| G[500 Response]
-
-    D --> H[Client Retries Later]
-```
-Figure: Admission control rejects work at the door rather than accepting and failing.
+<Diagram
+  src={admissionControlDiagram}
+  title="Admission control rejects work at the door rather than accepting and failing"
+  description="Flowchart showing the admission control decision at request entry. An Incoming Request reaches a decision point labeled Admission Control. If accepted, it moves to Process Request and then to a Completed decision. A successful completion returns 200 Response, while an unsuccessful one returns 500 Response. If rejected at admission, the request immediately returns 429 or 503 and leads to Client Retries Later. The diagram highlights the benefit of deciding early whether the system can accept more work instead of letting requests consume scarce resources before failing."
+/>
 
 <Callout type="success">
 It's better to reject 20% of requests immediately than to accept 100% and fail 40% after wasting resources on them. Fast rejection preserves capacity for requests you can actually serve.
@@ -518,11 +524,11 @@ class QueueDepthAdmission(AdmissionController):
 
 Code: Different admission control strategies with varying tradeoffs.
 
-Rate limiting is the simplest—it caps throughput regardless of what the system can actually handle. Concurrency limiting is better because it naturally adapts: if requests are fast, you can serve more per second; if they're slow, you serve fewer but don't overload. Latency-based admission is the most sophisticated—it directly targets the metric you care about (response time) and adjusts admission probability based on observed behavior.
+Rate limiting is the simplest — it caps throughput regardless of what the system can actually handle. Concurrency limiting is better because it naturally adapts: if requests are fast, you can serve more per second; if they're slow, you serve fewer but don't overload. Latency-based admission is the most sophisticated — it directly targets the metric you care about (response time) and adjusts admission probability based on observed behavior.
 
 ### Priority-Based Admission
 
-Not all requests are equal. During overload, you want to protect critical traffic—health checks, payment processing, authenticated users—while shedding less important work. Priority-based admission reserves capacity for high-priority requests.
+Not all requests are equal. During overload, you want to protect critical traffic — health checks, payment processing, authenticated users — while shedding less important work. Priority-based admission reserves capacity for high-priority requests.
 
 ```yaml title="aws-alb-priority-rules.yaml"
 # AWS ALB listener rules with priority-based routing
@@ -562,7 +568,7 @@ The key insight is that critical traffic can _borrow_ capacity from lower tiers.
 
 ### What to Shed and When
 
-Load shedding is the deliberate dropping of work to preserve system stability. It sounds brutal—and it is—but it's also essential. When you're drowning, you throw cargo overboard to keep the ship afloat. The alternative is losing everything.
+Load shedding is the deliberate dropping of work to preserve system stability. It sounds brutal — and it is — but it's also essential. When you're drowning, you throw cargo overboard to keep the ship afloat. The alternative is losing everything.
 
 The key insight is that _some_ work completing successfully is better than _all_ work failing. If your system can handle 1,000 RPS but 2,000 are arriving, you have a choice: accept all 2,000 and watch goodput collapse to 400 (because everything times out), or shed 1,000 immediately and successfully serve the other 1,000.
 
@@ -573,22 +579,37 @@ The key insight is that _some_ work completing successfully is better than _all_
     thead: { th: ["Shedding Strategy", "When to Use", "Tradeoff"] },
     tbody: {
       tr: [
-        { th: "Random", td: ["Simple implementation", "May drop important requests"] },
-        { th: "LIFO (newest first)", td: ["Reduce queuing latency", "May serve stale requests"] },
-        { th: "FIFO (oldest first)", td: ["Likely already timed out", "Wasted work on old requests"] },
-        { th: "Priority-based", td: ["Protect important traffic", "Complexity, starvation risk"] },
-        { th: "Cost-based", td: ["Protect expensive operations", "Requires cost tracking"] },
+        {
+          th: "Random",
+          td: ["Simple implementation", "May drop important requests"],
+        },
+        {
+          th: "LIFO (newest first)",
+          td: ["Reduce queuing latency", "May serve stale requests"],
+        },
+        {
+          th: "FIFO (oldest first)",
+          td: ["Likely already timed out", "Wasted work on old requests"],
+        },
+        {
+          th: "Priority-based",
+          td: ["Protect important traffic", "Complexity, starvation risk"],
+        },
+        {
+          th: "Cost-based",
+          td: ["Protect expensive operations", "Requires cost tracking"],
+        },
       ],
     },
   }}
 />
 
 
-The choice of strategy depends on your workload. Random shedding is the simplest—it's statistically fair and requires no tracking. But "fair" isn't always optimal. Sometimes you want to be deliberately unfair to maximize successful completions.
+The choice of strategy depends on your workload. Random shedding is the simplest — it's statistically fair and requires no tracking. But "fair" isn't always optimal. Sometimes you want to be deliberately unfair to maximize successful completions.
 
 ### LIFO Shedding: Drop the Newest
 
-Here's a counterintuitive idea: when you need to shed load, drop the _newest_ requests first, not the oldest. Traditional queuing is FIFO—first in, first out. LIFO shedding inverts this.
+Here's a counterintuitive idea: when you need to shed load, drop the _newest_ requests first, not the oldest. Traditional queuing is FIFO — first in, first out. LIFO shedding inverts this.
 
 Consider a queue with 100 requests where processing takes 100ms each:
 
@@ -597,9 +618,17 @@ Consider a queue with 100 requests where processing takes 100ms each:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Request 1 (oldest):", text: "waited 10 seconds, will be served" },
-    { lead: "Request 100 (newest):", text: "will wait 10+ seconds, likely timeout" },
-    { text: "Client already gave up on request 1, wasted work" },
+    {
+      lead: "Request 1 (oldest):",
+      text: "waited 10 seconds, will be served",
+    },
+    {
+      lead: "Request 100 (newest):",
+      text: "will wait 10+ seconds, likely timeout",
+    },
+    {
+      text: "Client already gave up on request 1, wasted work",
+    },
   ]}
 />
 
@@ -608,9 +637,17 @@ Consider a queue with 100 requests where processing takes 100ms each:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Request 100 (newest):", text: "rejected immediately, client can retry" },
-    { lead: "Request 1 (oldest):", text: "served, but client may have given up" },
-    { text: "Better: CoDel-style approach that considers wait time" },
+    {
+      lead: "Request 100 (newest):",
+      text: "rejected immediately, client can retry",
+    },
+    {
+      lead: "Request 1 (oldest):",
+      text: "served, but client may have given up",
+    },
+    {
+      text: "Better: CoDel-style approach that considers wait time",
+    },
   ]}
 />
 
@@ -629,7 +666,7 @@ CoDel was originally designed for network routers, but its principles apply perf
 The clever part is _how_ it drops. Rather than dropping everything, CoDel drops at an accelerating rate proportional to the square root of how many consecutive drops have occurred. This creates just enough backpressure to bring the queue under control without overreacting.
 
 ```go title="codel-queue.go"
-// CoDel queue for use as a WASM filter in Envoy—either as
+// CoDel queue for use as a WASM filter in Envoy — either as
 // reverse proxy/API gateway middleware or service mesh sidecar.
 
 package codel
@@ -714,7 +751,7 @@ The beauty of CoDel is that it's self-tuning. During normal operation, it never 
 
 Load shedding doesn't have to be all-or-nothing. A smarter approach is _graceful degradation_: as load increases, progressively disable non-essential features to preserve capacity for what matters.
 
-Think of it like a submarine diving deeper. At each depth threshold, you seal off another compartment. The ship loses functionality but gains survivability. At maximum depth, only the core systems remain operational—but the ship is still alive.
+Think of it like a submarine diving deeper. At each depth threshold, you seal off another compartment. The ship loses functionality but gains survivability. At maximum depth, only the core systems remain operational — but the ship is still alive.
 
 ```yaml title="graceful-degradation-tiers.yaml"
 # Feature flags for use with LaunchDarkly, Unleash, Flagsmith, or similar.
@@ -767,24 +804,13 @@ degradation_tiers:
 ```
 Code: Multi-tier graceful degradation configuration.
 
-Notice the _hysteresis_ in the diagram below—the thresholds to recover are lower than the thresholds to degrade. You enter "elevated" at 80% but don't return to "normal" until you're below 70%. This prevents oscillation. Without hysteresis, a system hovering around 80% would constantly flip between normal and elevated, which is worse than staying in one state.
+Notice the _hysteresis_ in the diagram below — the thresholds to recover are lower than the thresholds to degrade. You enter "elevated" at 80% but don't return to "normal" until you're below 70%. This prevents oscillation. Without hysteresis, a system hovering around 80% would constantly flip between normal and elevated, which is worse than staying in one state.
 
-```mermaid
-graph LR
-    A[Normal] -->|80%| B[Elevated]
-    B -->|90%| C[Critical]
-    C -->|95%| D[Emergency]
-
-    D -->|<90%| C
-    C -->|<80%| B
-    B -->|<70%| A
-
-    A -.->|All features| A1[Full service]
-    B -.->|Reduced features| B1[No personalization]
-    C -.->|Core only| C1[No search]
-    D -.->|Survival mode| D1[Auth users only]
-```
-Figure: Degradation tiers with hysteresis to prevent oscillation.
+<Diagram
+  src={degradationTiersDiagram}
+  title="Degradation tiers with hysteresis to prevent oscillation"
+  description="Flowchart showing four operating states with different entry and recovery thresholds. Normal transitions to Elevated at 80 percent load, Elevated transitions to Critical at 90 percent, and Critical transitions to Emergency at 95 percent. Recovery uses lower thresholds: Emergency returns to Critical below 90 percent, Critical returns to Elevated below 80 percent, and Elevated returns to Normal below 70 percent. Dotted annotations show the user-facing behavior of each state: Normal provides full service, Elevated removes personalization, Critical disables search and keeps only core behavior, and Emergency serves authenticated users only. The diagram illustrates hysteresis by making recovery thresholds lower than degradation thresholds to avoid rapid oscillation between states."
+/>
 
 <Callout type="success">
 Graceful degradation requires knowing which features are expendable. Work with product owners to classify features into tiers _before_ an incident. During an outage is the wrong time to debate whether search is more important than recommendations.
@@ -794,7 +820,7 @@ Graceful degradation requires knowing which features are expendable. Work with p
 
 ### HTTP Status Codes for Overload
 
-Backpressure only works if clients understand the signal. HTTP provides specific status codes for communicating overload—use them correctly, and well-behaved clients will back off automatically.
+Backpressure only works if clients understand the signal. HTTP provides specific status codes for communicating overload — use them correctly, and well-behaved clients will back off automatically.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -803,10 +829,22 @@ Backpressure only works if clients understand the signal. HTTP provides specific
     thead: { th: ["Status Code", "Meaning", "When to Use", "Client Action"] },
     tbody: {
       tr: [
-        { th: "429", td: ["Too Many Requests", "Rate limit exceeded", "Back off, retry with delay"] },
-        { th: "503", td: ["Service Unavailable", "Temporary overload", "Retry after delay"] },
-        { th: "504", td: ["Gateway Timeout", "Upstream timeout", "May retry"] },
-        { th: "507", td: ["Insufficient Storage", "Queue/buffer full", "Reduce request rate"] },
+        {
+          th: "429",
+          td: ["Too Many Requests", "Rate limit exceeded", "Back off, retry with delay"],
+        },
+        {
+          th: "503",
+          td: ["Service Unavailable", "Temporary overload", "Retry after delay"],
+        },
+        {
+          th: "504",
+          td: ["Gateway Timeout", "Upstream timeout", "May retry"],
+        },
+        {
+          th: "507",
+          td: ["Insufficient Storage", "Queue/buffer full", "Reduce request rate"],
+        },
       ],
     },
   }}
@@ -815,11 +853,11 @@ Backpressure only works if clients understand the signal. HTTP provides specific
 
 The distinction between 429 and 503 matters. A 429 says "you specifically are sending too many requests"—it's a per-client signal. A 503 says "the service is overwhelmed regardless of who's asking"—it's a global signal. Rate limiters return 429; admission control during overload returns 503.
 
-Avoid returning 500 for overload conditions. A 500 suggests a bug—something the client can't fix by waiting. Clients may not retry 500s, or may retry them aggressively assuming it's a transient glitch. Be explicit: if the problem is capacity, say so with 429 or 503.
+Avoid returning 500 for overload conditions. A 500 suggests a bug — something the client can't fix by waiting. Clients may not retry 500s, or may retry them aggressively assuming it's a transient glitch. Be explicit: if the problem is capacity, say so with 429 or 503.
 
 ### Retry-After Header
 
-The `Retry-After` header tells clients exactly how long to wait before trying again. Without it, clients are guessing—and they'll usually guess too short, creating a thundering herd when they all retry simultaneously.
+The `Retry-After` header tells clients exactly how long to wait before trying again. Without it, clients are guessing — and they'll usually guess too short, creating a thundering herd when they all retry simultaneously.
 
 ```typescript title="retry-after-middleware.ts"
 import { Request, Response, NextFunction } from 'express';
@@ -870,7 +908,7 @@ function overloadMiddleware(req: Request, res: Response, next: NextFunction) {
 ```
 Code: Middleware that returns informative overload responses with Retry-After headers.
 
-A few implementation notes: the `Retry-After` value can be either seconds (an integer) or an HTTP date. Seconds is simpler and avoids clock-sync issues. The `X-RateLimit-*` headers aren't standardized but are widely understood—include them for clients that check. Always include a JSON body with details; some clients log these for debugging, and it makes your support team's life easier.
+A few implementation notes: the `Retry-After` value can be either seconds (an integer) or an HTTP date. Seconds is simpler and avoids clock-sync issues. The `X-RateLimit-*` headers aren't standardized but are widely understood — include them for clients that check. Always include a JSON body with details; some clients log these for debugging, and it makes your support team's life easier.
 
 <Callout type="warning">
 Always include a Retry-After header when returning 429 or 503. Without it, clients have no guidance and may retry immediately, making the overload worse.
@@ -880,7 +918,7 @@ Always include a Retry-After header when returning 429 or 503. Without it, clien
 
 The server half of backpressure is useless without cooperative clients. A client that ignores 429s and retries immediately is actively making the problem worse. Good clients implement exponential backoff with jitter.
 
-Exponential backoff means each retry waits longer than the last—typically doubling. After 5 retries with a 1-second base, you're waiting 32 seconds. This naturally spreads out retry storms. Jitter adds randomness to prevent synchronization—without it, 1,000 clients that all failed at the same time will all retry at the same time, recreating the original spike.
+Exponential backoff means each retry waits longer than the last — typically doubling. After 5 retries with a 1-second base, you're waiting 32 seconds. This naturally spreads out retry storms. Jitter adds randomness to prevent synchronization — without it, 1,000 clients that all failed at the same time will all retry at the same time, recreating the original spike.
 
 ```typescript [g4:TypeScript]
 interface BackoffConfig {
@@ -1036,7 +1074,7 @@ async def fetch_with_backoff(url: str, max_retries: int = 5) -> httpx.Response:
 ```
 Code: Client-side exponential backoff with jitter and Retry-After support.
 
-The critical detail: always honor `Retry-After` when the server provides it. The server knows its load better than your exponential formula. If the server says "wait 30 seconds," wait 30 seconds—don't override with your calculated 2-second delay.
+The critical detail: always honor `Retry-After` when the server provides it. The server knows its load better than your exponential formula. If the server says "wait 30 seconds," wait 30 seconds — don't override with your calculated 2-second delay.
 
 <Callout type="info">
 If you control both the client and server, you can do better than generic backoff. Have the server return current queue depth or estimated wait time, and let clients make informed decisions about whether to retry or fail fast to the user.
@@ -1048,35 +1086,13 @@ If you control both the client and server, you can do better than generic backof
 
 Circuit breakers prevent a failing downstream dependency from taking down your entire system. The pattern comes from electrical engineering: when current exceeds safe levels, the breaker trips and stops all current flow, protecting the circuit from damage.
 
-In software, the "current" is requests to a downstream service. When that service starts failing, you don't want to keep hammering it—that wastes your resources waiting for timeouts and makes the downstream service's recovery harder. Instead, you "trip" the circuit: stop calling the failing service entirely, fail fast, and return a fallback or cached response.
+In software, the "current" is requests to a downstream service. When that service starts failing, you don't want to keep hammering it — that wastes your resources waiting for timeouts and makes the downstream service's recovery harder. Instead, you "trip" the circuit: stop calling the failing service entirely, fail fast, and return a fallback or cached response.
 
-```mermaid
-stateDiagram-v2
-    [*] --> Closed
-    Closed --> Open: Failures exceed threshold
-    Open --> HalfOpen: Timeout expires
-    HalfOpen --> Closed: Probe succeeds
-    HalfOpen --> Open: Probe fails
-
-    note right of Closed
-        Normal operation
-        Requests flow through
-        Track failure rate
-    end note
-
-    note right of Open
-        Fail fast
-        Don't call downstream
-        Return cached/fallback
-    end note
-
-    note right of HalfOpen
-        Test recovery
-        Allow limited probes
-        Monitor success
-    end note
-```
-Figure: Circuit breaker state machine for downstream protection.
+<Diagram
+  src={circuitBreakerDiagram}
+  title="Circuit breaker state machine for downstream protection"
+  description="State diagram showing the three standard circuit breaker states. The initial state enters Closed, where normal operation allows requests through and tracks failure rate. If failures exceed the threshold, the breaker moves from Closed to Open. In Open, requests fail fast without calling the downstream dependency and typically return cached or fallback responses. After a timeout expires, the breaker moves from Open to HalfOpen, where a limited number of probe requests are allowed through to test recovery. If a probe succeeds, the breaker returns to Closed. If a probe fails, it goes back to Open. The diagram shows how circuit breakers stop repeated downstream calls during failure and only cautiously resume traffic after recovery signals."
+/>
 
 I think of the three states as a conversation between your service and its dependencies. **Closed** is normal operation where requests flow through and you track failure rates. When failures exceed a threshold, the breaker trips to **Open**—all requests fail immediately without calling downstream. After a timeout, it transitions to **Half-Open**, allowing a few probe requests through. If probes succeed, back to Closed; if they fail, back to Open.
 
@@ -1156,7 +1172,7 @@ class CircuitBreaker {
 ```yaml [g5:Service Mesh]
 # Istio DestinationRule for Envoy sidecar circuit breaking.
 # Pros: Consistent behavior across all services regardless of language,
-#       no code changes required—works for legacy services.
+#       no code changes required — works for legacy services.
 # Cons: Coarser granularity (per-service, not per-operation),
 #       limited fallback options (can't return cached data).
 apiVersion: networking.istio.io/v1beta1
@@ -1229,7 +1245,7 @@ The fallback is critical. A circuit breaker that just throws errors is only marg
 
 ### Bulkheads for Isolation
 
-The bulkhead pattern comes from ship design. A ship's hull is divided into watertight compartments. If one compartment floods, the bulkheads contain the damage—the ship stays afloat because the other compartments are isolated.
+The bulkhead pattern comes from ship design. A ship's hull is divided into watertight compartments. If one compartment floods, the bulkheads contain the damage — the ship stays afloat because the other compartments are isolated.
 
 In software, bulkheads isolate different workloads into separate resource pools. If your analytics queries suddenly go rogue and consume all available database connections, that shouldn't affect your payment processing. Each workload gets its own pool, and exhausting one pool doesn't starve the others.
 
@@ -1361,24 +1377,13 @@ client_idle_timeout = 300
 ```
 Code: Bulkhead configuration isolating different workloads.
 
-The sizing reflects priority. Critical APIs get 50 threads and fast timeouts—they need to respond quickly or not at all. Analytics gets only 10 threads and longer timeouts—it's acceptable for reports to take 30 seconds, but it's _not_ acceptable for analytics to consume resources needed elsewhere.
+The sizing reflects priority. Critical APIs get 50 threads and fast timeouts — they need to respond quickly or not at all. Analytics gets only 10 threads and longer timeouts — it's acceptable for reports to take 30 seconds, but it's _not_ acceptable for analytics to consume resources needed elsewhere.
 
-```mermaid
-graph TD
-    A[Incoming Requests] --> B{Route by Type}
-
-    B -->|Critical| C[Critical Pool<br/>50 threads]
-    B -->|Search| D[Search Pool<br/>20 threads]
-    B -->|Analytics| E[Analytics Pool<br/>10 threads]
-
-    C --> F[(Primary DB<br/>100 conns)]
-    D --> G[(Read Replica<br/>50 conns)]
-    E --> H[(Analytics DB<br/>20 conns)]
-
-    C --> I[(Cache<br/>200 conns)]
-    D --> I
-```
-Figure: Bulkhead architecture isolating different workloads into separate resource pools.
+<Diagram
+  src={bulkheadArchitectureDiagram}
+  title="Bulkhead architecture isolating different workloads into separate resource pools"
+  description="Flowchart showing workload isolation through separate execution pools. Incoming Requests first reach a decision point labeled Route by Type. Critical traffic is routed to a Critical Pool with 50 threads, Search traffic goes to a Search Pool with 20 threads, and Analytics traffic goes to an Analytics Pool with 10 threads. The Critical Pool uses a Primary DB with 100 connections, the Search Pool uses a Read Replica with 50 connections, and the Analytics Pool uses an Analytics DB with 20 connections. Both Critical and Search traffic also use a shared Cache with 200 connections. The diagram shows how separating thread pools and backing resources limits blast radius so that one workload cannot fully starve another."
+/>
 
 <Callout type="success">
 Bulkheads ensure that a slow analytics query cannot exhaust the connection pool needed for critical payment processing. Isolation prevents cascading failures across unrelated functionality.
@@ -1388,7 +1393,7 @@ Bulkheads ensure that a slow analytics query cannot exhaust the connection pool 
 
 Static concurrency limits are a guess. You pick a number, deploy it, and hope it's right. If your dependencies get faster (new hardware, query optimization), you're leaving capacity on the table. If they get slower (more data, degraded network), you're overloading them.
 
-Adaptive concurrency limits adjust automatically based on observed behavior. The algorithm uses AIMD—Additive Increase Multiplicative Decrease—the same approach TCP uses for congestion control. When latency is healthy, slowly increase the limit. When latency exceeds target, cut the limit significantly. This finds the optimal concurrency for current conditions without manual tuning.
+Adaptive concurrency limits adjust automatically based on observed behavior. The algorithm uses AIMD — Additive Increase Multiplicative Decrease — the same approach TCP uses for congestion control. When latency is healthy, slowly increase the limit. When latency exceeds target, cut the limit significantly. This finds the optimal concurrency for current conditions without manual tuning.
 
 ```typescript title="adaptive-concurrency.ts"
 // Use in app code
@@ -1457,15 +1462,15 @@ Code: Adaptive concurrency limiter using AIMD (Additive Increase Multiplicative 
 
 If you'd rather not implement this in application code, infrastructure-level options exist. Envoy's adaptive concurrency filter applies the same AIMD algorithm at the proxy layer — useful in service mesh deployments where you want consistent behavior across polyglot services without code changes. AWS ALB offers some adaptive behavior through its "least outstanding requests" routing algorithm, which naturally sends traffic to less-loaded targets, but it's coarser-grained: ALB doesn't implement true AIMD or expose the concurrency limit for tuning, so it won't protect individual downstream services the way application-level or sidecar-level limiters can.
 
-The asymmetry in AIMD is intentional. Additive increase (+1) means slow, cautious growth when things are good. Multiplicative decrease (×0.9) means rapid reduction when things are bad. This responds quickly to overload while avoiding wild oscillations during normal operation. Netflix's `concurrency-limits` library implements this pattern with additional sophistication—worth considering before rolling your own.
+The asymmetry in AIMD is intentional. Additive increase (+1) means slow, cautious growth when things are good. Multiplicative decrease (×0.9) means rapid reduction when things are bad. This responds quickly to overload while avoiding wild oscillations during normal operation. Netflix's `concurrency-limits` library implements this pattern with additional sophistication — worth considering before rolling your own.
 
 ## Testing Overload Handling
 
 ### Load Testing for Backpressure
 
-Building backpressure mechanisms isn't enough—you need to verify they work. Standard load tests measure throughput and latency under expected conditions. Backpressure testing deliberately pushes _beyond_ capacity to validate graceful degradation.
+Building backpressure mechanisms isn't enough — you need to verify they work. Standard load tests measure throughput and latency under expected conditions. Backpressure testing deliberately pushes _beyond_ capacity to validate graceful degradation.
 
-The key insight: you're not testing whether your system can handle the load. You're testing whether it _fails correctly_ when it can't. A successful test might show 50% of requests rejected with 503s—that's the system protecting itself, not a failure.
+The key insight: you're not testing whether your system can handle the load. You're testing whether it _fails correctly_ when it can't. A successful test might show 50% of requests rejected with 503s — that's the system protecting itself, not a failure.
 
 <Callout type="info">
 Load testing tools like [Grafana's k6](https://grafana.com/docs/k6/latest/get-started/) and [Locust](https://docs.locust.io/en/stable/what-is-locust.html) work well for these scenarios.
@@ -1518,9 +1523,9 @@ scenarios:
 ```
 Code: Load test scenarios specifically designed to validate backpressure mechanisms.
 
-The "gradual ramp" scenario is the foundation. Watch for these signals as you cross capacity: queue depths should grow but plateau (shedding kicks in), 503 rates should increase proportionally (admission control working), and latency for _successful_ requests should stay bounded (CoDel or similar doing its job). The recovery phase is equally important—a system that can't return to normal after overload subsides has a leak somewhere.
+The "gradual ramp" scenario is the foundation. Watch for these signals as you cross capacity: queue depths should grow but plateau (shedding kicks in), 503 rates should increase proportionally (admission control working), and latency for _successful_ requests should stay bounded (CoDel or similar doing its job). The recovery phase is equally important — a system that can't return to normal after overload subsides has a leak somewhere.
 
-The "sudden spike" scenario simulates flash crowds—Black Friday launches, viral posts, or just someone's misconfigured retry loop. The goal isn't zero errors during the spike; it's _survival_. If goodput drops to zero during a 10x spike, your system is too brittle. If it maintains 50% of baseline throughput while rejecting the excess, that's success.
+The "sudden spike" scenario simulates flash crowds — Black Friday launches, viral posts, or just someone's misconfigured retry loop. The goal isn't zero errors during the spike; it's _survival_. If goodput drops to zero during a 10x spike, your system is too brittle. If it maintains 50% of baseline throughput while rejecting the excess, that's success.
 
 "Sustained overload" catches a different class of bugs: resource leaks under pressure. A system might handle a 2-minute spike just fine but accumulate dead connections, grow heap indefinitely, or exhaust file descriptors over 10 minutes of steady overload. The key assertion is _stabilization_—error rates should plateau, not keep climbing.
 
@@ -1550,7 +1555,7 @@ Load testing validates behavior under high request volume. Chaos engineering val
 />
 
 
-Connection exhaustion is my go-to first chaos experiment because it's both common in production and easy to simulate. Database connection pools are the usual culprit—a slow query holds a connection, the pool fills, and suddenly every request is waiting for a connection that won't come.
+Connection exhaustion is my go-to first chaos experiment because it's both common in production and easy to simulate. Database connection pools are the usual culprit — a slow query holds a connection, the pool fills, and suddenly every request is waiting for a connection that won't come.
 
 ```bash [g7:BASH]
 #!/bin/bash
@@ -1648,7 +1653,7 @@ if __name__ == "__main__":
 ```
 Code: Chaos experiment script for connection exhaustion testing.
 
-What should happen when you run this? If your bulkheads are working, the connection-starved workload should degrade while others continue normally. If your circuit breakers are working, requests that can't get connections should fail fast rather than timeout. If neither is working, you'll see cascading failure—the connection wait blocks threads, which blocks request processing, which backs up the request queue, which exhausts memory. That's exactly what you're testing for.
+What should happen when you run this? If your bulkheads are working, the connection-starved workload should degrade while others continue normally. If your circuit breakers are working, requests that can't get connections should fail fast rather than timeout. If neither is working, you'll see cascading failure — the connection wait blocks threads, which blocks request processing, which backs up the request queue, which exhausts memory. That's exactly what you're testing for.
 
 For thread starvation, inject artificial latency into a dependency (a chaos proxy like Toxiproxy works well). Watch for circuit breakers tripping and fallbacks activating. For memory pressure, use stress-ng or similar to consume memory on the host running a dependency. Watch for graceful degradation rather than OOM kills propagating to callers.
 
@@ -1656,13 +1661,13 @@ For thread starvation, inject artificial latency into a dependency (a chaos prox
 Never run chaos experiments in production without proper safeguards. Start in staging, have kill switches ready, and ensure the blast radius is contained.
 </Callout>
 
-Testing tells you whether your backpressure mechanisms work. But in production, you need to _see_ them working—or not working—in real time. That's where observability comes in.
+Testing tells you whether your backpressure mechanisms work. But in production, you need to _see_ them working — or not working — in real time. That's where observability comes in.
 
 ## Observability for Overload
 
 ### Key Metrics to Monitor
 
-You can't manage what you can't measure—and during overload, you need to measure the _right_ things. Standard throughput and latency metrics tell you how the system is performing, but backpressure observability requires metrics that tell you _why_ and _where_ the system is protecting itself.
+You can't manage what you can't measure — and during overload, you need to measure the _right_ things. Standard throughput and latency metrics tell you how the system is performing, but backpressure observability requires metrics that tell you _why_ and _where_ the system is protecting itself.
 
 I organize overload metrics into three categories: capacity indicators (how close are we to limits?), backpressure indicators (are protection mechanisms activating?), and health indicators (are we still serving users effectively?).
 
@@ -1901,14 +1906,23 @@ Code: Essential metrics for overload monitoring.
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Capacity indicators:", text: "are your early warning system. When `concurrent_requests` crosses 90% of your concurrency limit, you're not in trouble yet—but you're one traffic spike away. When `queue_depth` grows faster than it drains, backpressure is about to kick in. These metrics let you see overload coming before users notice." },
-    { lead: "Backpressure indicators:", text: "tell you when protection mechanisms are active. A spike in `requests_rejected` with reason `rate_limit` means your rate limiter is doing its job. If you see rejections with reason `circuit_open`, a downstream dependency is struggling. The `shed_requests` counter broken down by tier shows which degradation level you're operating at. These metrics answer the question: \"Is the system protecting itself correctly?\"" },
-    { lead: "Health indicators:", text: "are the bottom line. `goodput_ratio` is the most important—it's the percentage of requests that actually succeeded. A 503 is a successful rejection (the system protected itself), but it's not goodput. If goodput drops below your SLO, users are suffering regardless of how well your backpressure mechanisms work. Latency percentiles matter too: p99 staying bounded while p50 degrades slightly is healthy backpressure; p99 exploding means something's queuing that shouldn't be." },
+    {
+      lead: "Capacity indicators:",
+      text: "are your early warning system. When `concurrent_requests` crosses 90% of your concurrency limit, you're not in trouble yet — but you're one traffic spike away. When `queue_depth` grows faster than it drains, backpressure is about to kick in. These metrics let you see overload coming before users notice.",
+    },
+    {
+      lead: "Backpressure indicators:",
+      text: "tell you when protection mechanisms are active. A spike in `requests_rejected` with reason `rate_limit` means your rate limiter is doing its job. If you see rejections with reason `circuit_open`, a downstream dependency is struggling. The `shed_requests` counter broken down by tier shows which degradation level you're operating at. These metrics answer the question: \"Is the system protecting itself correctly?\"",
+    },
+    {
+      lead: "Health indicators:",
+      text: "are the bottom line. `goodput_ratio` is the most important — it's the percentage of requests that actually succeeded. A 503 is a successful rejection (the system protected itself), but it's not goodput. If goodput drops below your SLO, users are suffering regardless of how well your backpressure mechanisms work. Latency percentiles matter too: p99 staying bounded while p50 degrades slightly is healthy backpressure; p99 exploding means something's queuing that shouldn't be.",
+    },
   ]}
 />
 
 <Callout type="info">
-The `requests_rejected` label `reason` is critical. During an incident, you need to know _which_ mechanism is rejecting—rate limiter, circuit breaker, queue full, or admission control. Different reasons point to different root causes.
+The `requests_rejected` label `reason` is critical. During an incident, you need to know _which_ mechanism is rejecting — rate limiter, circuit breaker, queue full, or admission control. Different reasons point to different root causes.
 </Callout>
 
 ### Dashboard Layout
@@ -1922,10 +1936,22 @@ A good overload dashboard tells a story at a glance. When you're paged at 3 AM, 
     thead: { th: ["Section", "Panels", "Purpose"] },
     tbody: {
       tr: [
-        { th: "Load & Capacity", td: ["Request Rate, Concurrency, Queue Depth", "Current vs. max capacity indicators"] },
-        { th: "Backpressure Activity", td: ["429s/min, 503s/min, Shed Rate, Circuit State", "Active backpressure mechanisms"] },
-        { th: "Health Indicators", td: ["Goodput %, P99 Latency, Error Rate", "Are we serving users effectively?"] },
-        { th: "Degradation State", td: ["Current Tier, Features Disabled", "Operational mode at a glance"] },
+        {
+          th: "Load & Capacity",
+          td: ["Request Rate, Concurrency, Queue Depth", "Current vs. max capacity indicators"],
+        },
+        {
+          th: "Backpressure Activity",
+          td: ["429s/min, 503s/min, Shed Rate, Circuit State", "Active backpressure mechanisms"],
+        },
+        {
+          th: "Health Indicators",
+          td: ["Goodput %, P99 Latency, Error Rate", "Are we serving users effectively?"],
+        },
+        {
+          th: "Degradation State",
+          td: ["Current Tier, Features Disabled", "Operational mode at a glance"],
+        },
       ],
     },
   }}
@@ -1934,10 +1960,22 @@ A good overload dashboard tells a story at a glance. When you're paged at 3 AM, 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Load & Capacity:", text: "goes at the top because it's your first question: \"How much traffic are we getting, and how close are we to limits?\" Show request rate as a line with capacity threshold as a horizontal marker. Show concurrency and queue depth as gauges with red zones. At a glance, you should see whether you're at 50% capacity or 95%." },
-    { lead: "Backpressure Activity:", text: "answers the second question: \"Is the system protecting itself?\" Show rejection rates by type—429s (rate limiting), 503s (admission control), circuit breaker state (open/closed/half-open). If these counters are at zero, you're not in overload. If they're spiking, the system is actively shedding load. This section turns from green to yellow to red as backpressure intensifies." },
-    { lead: "Health Indicators:", text: "answer the critical question: \"Are users being served?\" Goodput percentage should be front and center—if it's above 95%, things are okay even if you're shedding some load. P99 latency shows whether successful requests are still fast. Error rate distinguishes between deliberate rejections (503s you sent) and unexpected failures (5xxs from bugs)." },
-    { lead: "Degradation State:", text: "shows operational mode at a glance. If you've implemented graceful degradation tiers, show the current tier prominently—a big \"ELEVATED\" or \"CRITICAL\" badge tells the on-call engineer immediately that the system is in a degraded state. List which features are disabled so they don't waste time investigating why search isn't working." },
+    {
+      lead: "Load & Capacity:",
+      text: "goes at the top because it's your first question: \"How much traffic are we getting, and how close are we to limits?\" Show request rate as a line with capacity threshold as a horizontal marker. Show concurrency and queue depth as gauges with red zones. At a glance, you should see whether you're at 50% capacity or 95%.",
+    },
+    {
+      lead: "Backpressure Activity:",
+      text: "answers the second question: \"Is the system protecting itself?\" Show rejection rates by type—429s (rate limiting), 503s (admission control), circuit breaker state (open/closed/half-open). If these counters are at zero, you're not in overload. If they're spiking, the system is actively shedding load. This section turns from green to yellow to red as backpressure intensifies.",
+    },
+    {
+      lead: "Health Indicators:",
+      text: "answer the critical question: \"Are users being served?\" Goodput percentage should be front and center — if it's above 95%, things are okay even if you're shedding some load. P99 latency shows whether successful requests are still fast. Error rate distinguishes between deliberate rejections (503s you sent) and unexpected failures (5xxs from bugs).",
+    },
+    {
+      lead: "Degradation State:",
+      text: "shows operational mode at a glance. If you've implemented graceful degradation tiers, show the current tier prominently — a big \"ELEVATED\" or \"CRITICAL\" badge tells the on-call engineer immediately that the system is in a degraded state. List which features are disabled so they don't waste time investigating why search isn't working.",
+    },
   ]}
 />
 
@@ -1947,21 +1985,36 @@ During an incident, read the dashboard top to bottom: "We're at 120% capacity (L
 
 ## Conclusion
 
-Every system has limits. The question isn't whether yours will face overload—it's whether it will handle overload gracefully or collapse catastrophically. The patterns in this article share a common philosophy: _admit your limits, communicate them clearly, and degrade predictably_.
+Every system has limits. The question isn't whether yours will face overload — it's whether it will handle overload gracefully or collapse catastrophically. The patterns in this article share a common philosophy: _admit your limits, communicate them clearly, and degrade predictably_.
 
 Here's what that looks like in practice:
 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Fast rejection beats slow failure:", text: "When you can't serve a request, say so immediately. A 503 returned in 5ms is infinitely better than a timeout after 30 seconds. The fast rejection frees resources, gives the client useful information, and preserves capacity for requests you _can_ serve. Every slow failure is a cascading failure waiting to happen." },
-    { lead: "Backpressure requires cooperation:", text: "Your server-side mechanisms—rate limiting, admission control, circuit breakers—only work if clients understand and respect the signals. Return proper status codes (429, 503). Include `Retry-After` headers. Document your backpressure behavior. And if you control the clients, implement exponential backoff with jitter. A system where servers shed load but clients immediately retry is a system that's fighting itself." },
-    { lead: "Isolation contains failures:", text: "Bulkheads ensure that a runaway analytics query can't starve your payment processing. Circuit breakers ensure that a failing dependency can't take down callers. Separate resource pools, separate failure domains. When something breaks—and something always breaks—the blast radius should be contained." },
-    { lead: "Graceful degradation preserves what matters:", text: "Not all features are equally important. During overload, shed the non-essential (personalization, recommendations, fancy animations) to preserve the critical (authentication, checkout, core functionality). Work with product owners to classify features _before_ the incident. The middle of an outage is the wrong time to debate priorities." },
-    { lead: "Observability makes it all work:", text: "You can't manage what you can't measure. Track capacity indicators to see overload coming. Track backpressure indicators to verify protection mechanisms are activating. Track health indicators to know if users are actually being served. Build dashboards that tell the story at a glance." },
+    {
+      lead: "Fast rejection beats slow failure:",
+      text: "When you can't serve a request, say so immediately. A 503 returned in 5ms is infinitely better than a timeout after 30 seconds. The fast rejection frees resources, gives the client useful information, and preserves capacity for requests you _can_ serve. Every slow failure is a cascading failure waiting to happen.",
+    },
+    {
+      lead: "Backpressure requires cooperation:",
+      text: "Your server-side mechanisms — rate limiting, admission control, circuit breakers — only work if clients understand and respect the signals. Return proper status codes (429, 503). Include `Retry-After` headers. Document your backpressure behavior. And if you control the clients, implement exponential backoff with jitter. A system where servers shed load but clients immediately retry is a system that's fighting itself.",
+    },
+    {
+      lead: "Isolation contains failures:",
+      text: "Bulkheads ensure that a runaway analytics query can't starve your payment processing. Circuit breakers ensure that a failing dependency can't take down callers. Separate resource pools, separate failure domains. When something breaks — and something always breaks — the blast radius should be contained.",
+    },
+    {
+      lead: "Graceful degradation preserves what matters:",
+      text: "Not all features are equally important. During overload, shed the non-essential (personalization, recommendations, fancy animations) to preserve the critical (authentication, checkout, core functionality). Work with product owners to classify features _before_ the incident. The middle of an outage is the wrong time to debate priorities.",
+    },
+    {
+      lead: "Observability makes it all work:",
+      text: "You can't manage what you can't measure. Track capacity indicators to see overload coming. Track backpressure indicators to verify protection mechanisms are activating. Track health indicators to know if users are actually being served. Build dashboards that tell the story at a glance.",
+    },
   ]}
 />
 
 The underlying principle is simple: _some_ work completing successfully is better than _all_ work failing. A system that accepts 2,000 requests per second when it can only handle 1,000 will serve nobody well. A system that accepts 1,000 and rejects 1,000 with clear signals serves half its users perfectly and gives the other half actionable information.
 
-Backpressure isn't about handling unlimited load—nothing can do that. It's about maintaining service quality within your design capacity and degrading predictably beyond it. Build systems that know their limits, and you'll build systems that survive.
+Backpressure isn't about handling unlimited load — nothing can do that. It's about maintaining service quality within your design capacity and degrading predictably beyond it. Build systems that know their limits, and you'll build systems that survive.

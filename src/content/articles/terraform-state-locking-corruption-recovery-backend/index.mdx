@@ -31,19 +31,19 @@ The most common causes, roughly in order of frequency:
   items={[
     {
       lead: 'Interrupted applies',
-      text: "happen when someone hits Ctrl+C during an apply, a network failure kills the connection, or CI times out. The cloud resource might be partially created, fully created, or not created at all — but state reflects whatever Terraform believed at the moment of interruption. You'll see plan showing unexpected changes, or attempting to create resources that already exist.",
+      text: "Happens when someone hits Ctrl+C during an apply, a network failure kills the connection, or CI times out. The cloud resource might be partially created, fully created, or not created at all — but state reflects whatever Terraform believed at the moment of interruption. You'll see plan showing unexpected changes, or attempting to create resources that already exist.",
     },
     {
       lead: 'Concurrent modifications',
-      text: 'occur despite locking, usually because someone ran Terraform locally while CI was running, or two CI jobs targeted the same state due to misconfigured triggers. Look for "state serial mismatch" errors, or changes from one apply silently missing after another completes.',
+      text: 'Occurs despite locking, usually because someone ran Terraform locally while CI was running, or two CI jobs targeted the same state due to misconfigured triggers. Look for "state serial mismatch" errors, or changes from one apply silently missing after another completes.',
     },
     {
       lead: 'Manual state edits',
-      text: 'are tempting when you need to fix something quickly, but JSON is unforgiving. A missing comma, wrong type, or malformed resource address can corrupt the entire file. Any Terraform command will fail with parse errors.',
+      text: 'Tempting when you need to fix something quickly, but JSON is unforgiving. A missing comma, wrong type, or malformed resource address can corrupt the entire file. Any Terraform command will fail with parse errors.',
     },
     {
       lead: 'Provider version mismatches',
-      text: "happen when you upgrade providers without considering state compatibility. The provider's internal schema version might change, and state written by the old provider might not be readable by the new one. Watch for warnings about schema versions or unexpected replacement plans.",
+      text: "Happens when you upgrade providers without considering state compatibility. The provider's internal schema version might change, and state written by the old provider might not be readable by the new one. Watch for warnings about schema versions or unexpected replacement plans.",
     },
   ]}
 />
@@ -144,7 +144,7 @@ Run `terraform plan` to preview, then `terraform apply` to execute. If you don't
 
 ### State Surgery
 
-Import handles resources missing from state. But sometimes resources are _in_ state and just need reorganizing — you're refactoring modules, renaming resources, or handing off a resource to a different team. State surgery lets you restructure the state file without affecting the actual cloud infrastructure.
+Import handles resources missing from state. But sometimes resources are __in__ state and just need reorganizing — you're refactoring modules, renaming resources, or handing off a resource to a different team. State surgery lets you restructure the state file without affecting the actual cloud infrastructure.
 
 ```bash title="state-surgery.sh"
 #!/bin/bash

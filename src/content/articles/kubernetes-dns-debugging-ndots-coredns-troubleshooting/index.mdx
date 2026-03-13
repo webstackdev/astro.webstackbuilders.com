@@ -9,44 +9,28 @@ tags: ["cloud-platforms","kubernetes"]
 featured: true
 ---
 
+import externalDnsDiagram from "./diagrams/external-dns-lookup-showing-failed-search-domain-queries-before-success.jpg"
+
 *[FQDN]: Fully Qualified Domain Name
 *[TTL]: Time To Live
 
 An application works perfectly in development. You deploy it to Kubernetes, and suddenly external API calls take 5+ seconds. The API itself responds in 100ms. You spend hours debugging network policies, service meshes, and egress configurations. Finally, you discover the culprit: `ndots:5`.
 
-That single configuration option—the default in every Kubernetes cluster—causes every lookup like `api.stripe.com` to first try `api.stripe.com.default.svc.cluster.local`, then `api.stripe.com.svc.cluster.local`, then `api.stripe.com.cluster.local`, before finally trying the actual hostname. Three failed lookups, each potentially timing out, equals mysterious latency.
+That single configuration option — the default in every Kubernetes cluster — causes every lookup like `api.stripe.com` to first try `api.stripe.com.default.svc.cluster.local`, then `api.stripe.com.svc.cluster.local`, then `api.stripe.com.cluster.local`, before finally trying the actual hostname. Three failed lookups, each potentially timing out, equals mysterious latency.
 
 I've watched teams lose days to this problem. The symptoms look like network issues, timeout misconfigurations, or flaky external services. But most Kubernetes DNS latency traces back to one misunderstood setting. The good news: once you know what to look for, you can diagnose the problem in 30 seconds and fix it in another 30.
 
 ## Understanding the ndots Problem
 
-The `ndots` option controls when the resolver tries search domains versus treating a hostname as absolute. The rule is simple: if a hostname has fewer dots than the `ndots` value, the resolver appends search domains first. With the default `ndots:5`, any hostname with 4 or fewer dots—which includes nearly every external hostname—gets the search domain treatment.
+The `ndots` option controls when the resolver tries search domains versus treating a hostname as absolute. The rule is simple: if a hostname has fewer dots than the `ndots` value, the resolver appends search domains first. With the default `ndots:5`, any hostname with 4 or fewer dots — which includes nearly every external hostname — gets the search domain treatment.
 
 Here's what happens when your application looks up `api.stripe.com`. The resolver counts two dots. Two is less than five, so it appends each search domain in order before trying the hostname as-is. The diagram below shows this slow path:
 
-```mermaid
-sequenceDiagram
-    participant App as Application Pod
-    participant Resolv as /etc/resolv.conf
-    participant CoreDNS as CoreDNS Pod
-    participant Upstream as Upstream DNS
-
-    App->>Resolv: Lookup "api.stripe.com"
-    Note over Resolv: "api.stripe.com" has 2 dots<br/>ndots:5 means try search domains first
-
-    Resolv->>CoreDNS: api.stripe.com.default.svc.cluster.local
-    CoreDNS-->>Resolv: NXDOMAIN
-    Resolv->>CoreDNS: api.stripe.com.svc.cluster.local
-    CoreDNS-->>Resolv: NXDOMAIN
-    Resolv->>CoreDNS: api.stripe.com.cluster.local
-    CoreDNS-->>Resolv: NXDOMAIN
-    Resolv->>CoreDNS: api.stripe.com (finally as FQDN)
-    CoreDNS->>Upstream: Forward to upstream DNS
-    Upstream-->>CoreDNS: A record: 93.184.216.34
-    CoreDNS-->>App: A record: 93.184.216.34
-```
-
-Figure: External DNS lookup showing failed search domain queries before success.
+<Diagram
+  src={externalDnsDiagram}
+  title="External DNS lookup showing failed search domain queries before success."
+  description="Sequence diagram showing how Kubernetes DNS resolution slows an external lookup when ndots is set to 5. An Application Pod sends a lookup for api.stripe.com to /etc/resolv.conf. A note over the resolver explains that the hostname has 2 dots and that ndots:5 causes search domains to be tried first. The resolver then sends three queries to CoreDNS in order: api.stripe.com.default.svc.cluster.local, api.stripe.com.svc.cluster.local, and api.stripe.com.cluster.local. CoreDNS returns NXDOMAIN for each of those internal-style names. After those failures, the resolver finally sends api.stripe.com as a fully qualified domain name to CoreDNS. CoreDNS forwards that final query to an upstream DNS server, receives the A record 93.184.216.34, and returns the successful answer back to the application. The diagram emphasizes that the delay comes from the three failed search-domain lookups that happen before the real external hostname is attempted."
+/>
 
 Each of those NXDOMAIN responses takes time. The math is painful: with the default 5-second timeout, three failed queries could mean 15+ seconds of latency before your application gets a response. Even with a tuned 1-second timeout, you're looking at 3+ seconds versus the 100ms the API actually needs.
 
@@ -82,7 +66,7 @@ time nslookup api.stripe.com
 time nslookup api.stripe.com.
 ```
 
-Code: The key diagnostic—compare resolution with and without trailing dot.
+Code: The key diagnostic — compare resolution with and without trailing dot.
 
 What counts as "significantly faster"? If the FQDN version (with the trailing dot) resolves in 50-100ms while the non-FQDN version takes 2-5 seconds, you've found your problem. The difference tells you exactly how much overhead the search domains add. In severe cases, I've seen the non-FQDN version take 15+ seconds while the FQDN version returns in under 100ms.
 
@@ -130,9 +114,9 @@ This approach requires no cluster changes and works immediately. The trailing do
 
 ### Which Fix Should You Choose?
 
-Both approaches work, but they fit different situations. Use **pod-level dnsConfig** when you control the deployment manifests and want a systematic fix that applies to all external lookups from that pod. This is the cleaner solution for new applications or when you're refactoring existing ones.
+Both approaches work, but they fit different situations. Use __pod-level dnsConfig__ when you control the deployment manifests and want a systematic fix that applies to all external lookups from that pod. This is the cleaner solution for new applications or when you're refactoring existing ones.
 
-Use **trailing dots in configuration** when you need a quick fix without changing deployment manifests, or when you're dealing with a third-party application where you can only modify environment variables. It's also useful for targeted fixes—if only one external service is causing problems, you can add the trailing dot to just that hostname.
+Use __trailing dots in configuration__ when you need a quick fix without changing deployment manifests, or when you're dealing with a third-party application where you can only modify environment variables. It's also useful for targeted fixes — if only one external service is causing problems, you can add the trailing dot to just that hostname.
 
 For most teams, I recommend starting with trailing dots for immediate relief, then migrating to pod-level dnsConfig as part of your next deployment update.
 
@@ -210,7 +194,7 @@ When connectivity issues arise and you suspect DNS, here's the fastest path to c
   ]}
 />
 
-If the ndots test doesn't show a significant difference, the problem lies elsewhere—check CoreDNS health with `kubectl get pods -n kube-system -l k8s-app=kube-dns` and examine its logs for errors.
+If the ndots test doesn't show a significant difference, the problem lies elsewhere — check CoreDNS health with `kubectl get pods -n kube-system -l k8s-app=kube-dns` and examine its logs for errors.
 
 <Callout type="warning" title="Always Test From Inside a Pod">
 Node-level DNS and pod-level DNS are configured differently. A successful `nslookup` from the node doesn't prove DNS works for your application pods. Always test from inside a pod to get accurate results.

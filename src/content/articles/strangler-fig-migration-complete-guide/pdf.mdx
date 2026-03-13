@@ -9,6 +9,8 @@ tags: ["system-modernization","azure","python"]
 featured: true
 ---
 
+import shadowTrafficDiagram from "./diagrams/shadow-traffic-architecture-with-async-mirroring.jpg"
+
 *[CDN]: Content Delivery Network
 *[CQRS]: Command Query Responsibility Segregation
 *[CSRF]: Cross-Site Request Forgery
@@ -32,13 +34,13 @@ featured: true
 
 > Migrate what you can observe; observe before you migrate.
 
-The strangler fig pattern succeeds because it trades big-bang risk for incremental progress. This guide walks through the complete lifecycle—from baseline instrumentation through traffic shifting to legacy decommissioning—using authentication extraction as a concrete running example.
+The strangler fig pattern succeeds because it trades big-bang risk for incremental progress. This guide walks through the complete lifecycle — from baseline instrumentation through traffic shifting to legacy decommissioning — using authentication extraction as a concrete running example.
 
 ## The Strangler Fig Pattern
 
 The strangler fig pattern gets its name from the strangler fig tree, which grows around a host tree and gradually replaces it while the original structure remains standing. That's exactly what we're doing with migrations: building the new system around the old one, shifting traffic incrementally, and only decommissioning the legacy system when we've proven the new one works.
 
-The core insight is simple: _you can't migrate what you can't observe_. Before touching any traffic, you need to know what "normal" looks like. That baseline becomes your comparison point throughout the migration.
+The core insight is simple: __you can't migrate what you can't observe__. Before touching any traffic, you need to know what "normal" looks like. That baseline becomes your comparison point throughout the migration.
 
 ### Why Strangler Fig Works
 
@@ -65,17 +67,17 @@ The pattern eliminates the single point of failure that kills most migrations. W
   }}
 />
 
-The strangler fig approach also delivers value earlier. You don't wait months for a complete rewrite—you start seeing benefits as soon as the first piece migrates successfully. This keeps stakeholders engaged and gives you opportunities to course-correct before you've invested heavily in the wrong direction.
+The strangler fig approach also delivers value earlier. You don't wait months for a complete rewrite — you start seeing benefits as soon as the first piece migrates successfully. This keeps stakeholders engaged and gives you opportunities to course-correct before you've invested heavily in the wrong direction.
 
 ### Migration Unit Selection
 
 Strangler fig works at multiple levels of granularity, and choosing the right migration unit depends on your system's architecture and coupling patterns.
 
-For a monolith with a REST API, the natural unit is often a _service boundary_—a cohesive set of endpoints that share data and business logic. Authentication is one such boundary: login, logout, password reset, and token validation form a logical group. Payments might be another. The key is that endpoints within a boundary are tightly coupled to each other but loosely coupled to the rest of the system.
+For a monolith with a REST API, the natural unit is often a __service boundary__ — a cohesive set of endpoints that share data and business logic. Authentication is one such boundary: login, logout, password reset, and token validation form a logical group. Payments might be another. The key is that endpoints within a boundary are tightly coupled to each other but loosely coupled to the rest of the system.
 
 Within a service boundary, you still migrate incrementally by endpoint. Start with the simplest, lowest-traffic endpoints to learn the process. For auth, that might be password reset (clear boundaries, low frequency) before tackling login (high frequency, session management complexity).
 
-The first wave should be low-traffic, low-criticality endpoints that teach you the migration process itself—how to deploy, monitor, and roll back. You'll make mistakes, and you want those mistakes to affect the fewest users possible. Second wave takes on medium complexity. Third wave is high traffic. The final wave is core business logic and anything with deep dependencies.
+The first wave should be low-traffic, low-criticality endpoints that teach you the migration process itself — how to deploy, monitor, and roll back. You'll make mistakes, and you want those mistakes to affect the fewest users possible. Second wave takes on medium complexity. Third wave is high traffic. The final wave is core business logic and anything with deep dependencies.
 
 <Callout type="info">
 Read-only endpoints (GET requests, queries) are ideal first migration candidates. They have no state modification risk, responses are easy to compare, and you can roll back instantly without data consistency concerns.
@@ -83,19 +85,19 @@ Read-only endpoints (GET requests, queries) are ideal first migration candidates
 
 ### Why Auth Is the Hardest Extraction
 
-I'm using authentication as the running example throughout this guide because if you can extract auth, you can extract anything. Auth is the hardest extraction because it touches _everything_.
+I'm using authentication as the running example throughout this guide because if you can extract auth, you can extract anything. Auth is the hardest extraction because it touches __everything__.
 
 The coupling points are numerous: user table foreign keys exist in every table with a `user_id` column, session storage lives in a shared database, permission checks are scattered throughout business logic, and password reset flows integrate with email and SMS services. Each of these creates a dependency that must be addressed during migration.
 
-The core challenge is that user table foreign keys have high migration difficulty—you need to keep user IDs consistent and reference by ID rather than join. Session storage requires moving to stateless JWTs or an external session store. Permission checks must first be extracted to middleware before moving to the auth service. Password reset and MFA have clearer boundaries and can be extracted earlier.
+The core challenge is that user table foreign keys have high migration difficulty — you need to keep user IDs consistent and reference by ID rather than join. Session storage requires moving to stateless JWTs or an external session store. Permission checks must first be extracted to middleware before moving to the auth service. Password reset and MFA have clearer boundaries and can be extracted earlier.
 
 <Callout type="warning">
-Auth extraction is expert-level work. If your team hasn't extracted a service before, start with something simpler—a notification service, a reporting service, or a feature with clear boundaries. Learn the patterns before tackling auth.
+Auth extraction is expert-level work. If your team hasn't extracted a service before, start with something simpler — a notification service, a reporting service, or a feature with clear boundaries. Learn the patterns before tackling auth.
 </Callout>
 
 ## Building the Migration Baseline
 
-Before touching any traffic, you need to know what "normal" looks like. This means instrumenting the legacy system to capture metrics, response patterns, and error rates. The baseline becomes your reference point for the entire migration—if you can't compare the new system's behavior to something concrete, you're flying blind.
+Before touching any traffic, you need to know what "normal" looks like. This means instrumenting the legacy system to capture metrics, response patterns, and error rates. The baseline becomes your reference point for the entire migration — if you can't compare the new system's behavior to something concrete, you're flying blind.
 
 I recommend collecting at least two weeks of baseline data before migrating any traffic. This captures weekly patterns (Monday traffic differs from Friday), edge cases, and gives you statistical confidence in your metrics.
 
@@ -103,9 +105,9 @@ I recommend collecting at least two weeks of baseline data before migrating any 
 
 Many legacy systems have minimal observability. Adding instrumentation is the first step, and OpenTelemetry provides a vendor-neutral way to do it.
 
-The goal is to capture four key metrics for every endpoint: request count, error rate, latency distribution, and response shape. The first three are standard. The fourth—response shape—is specific to migration work. You need to know what the legacy system returns so you can verify the new system returns the same thing.
+The goal is to capture four key metrics for every endpoint: request count, error rate, latency distribution, and response shape. The first three are standard. The fourth — response shape — is specific to migration work. You need to know what the legacy system returns so you can verify the new system returns the same thing.
 
-```csharp
+```csharp [g1:csharp]
 // OpenTelemetry instrumentation middleware for ASP.NET MVC or
 // Web API 2 running on .NET Framework 4.6.2+ legacy services
 public class LegacyInstrumentationModule : IHttpModule {
@@ -150,7 +152,9 @@ public class LegacyInstrumentationModule : IHttpModule {
 }
 ```
 
-```csharp title="Global.asax.cs"
+Code: Legacy OpenTelemetry instrumentation module.
+
+```csharp [g1:Global.asax.cs]
 // initialize the OpenTelemetry SDK at application startup and register the module
 protected void Application_Start() {
     Sdk.CreateTracerProviderBuilder()
@@ -166,7 +170,9 @@ protected void Application_Start() {
 }
 ```
 
-```xml title="Web.config"
+Code: OpenTelemetry startup registration.
+
+```xml [g1:Web.config]
 <!-- Register the module in server configuration -->
 <system.webServer>
   <modules>
@@ -175,7 +181,9 @@ protected void Application_Start() {
 </system.webServer>
 ```
 
-If you're working with a system that can't easily add middleware—maybe it's a compiled binary or a third-party service—you can instrument at the proxy layer instead. AWS ALB access logs or NGINX logs can be parsed into metrics, though you lose the ability to capture response bodies.
+Code: Web.config module registration.
+
+If you're working with a system that can't easily add middleware — maybe it's a compiled binary or a third-party service — you can instrument at the proxy layer instead. AWS ALB access logs or NGINX logs can be parsed into metrics, though you lose the ability to capture response bodies.
 
 ### Capturing Response Signatures
 
@@ -255,6 +263,8 @@ public class MigrationLoggingHandler : DelegatingHandler {
 }
 ```
 
+Code: Response signature capture and hashing.
+
 ### Baseline Dashboard
 
 Once instrumentation is in place, build a dashboard that shows the metrics you'll monitor throughout the migration. At minimum, you need request rate by endpoint, error rate by endpoint, and latency percentiles (P50 and P99).
@@ -274,11 +284,13 @@ sum(rate(http_requests_total{system="legacy"}[5m])) by (path)
 histogram_quantile(0.99, sum(rate(http_request_duration_ms_bucket{system="legacy"}[5m])) by (le, path))
 ```
 
+Code: Baseline Prometheus queries.
+
 Record the baseline values before starting the migration. You'll compare these to the new system's metrics at each traffic percentage. If P99 latency is 50ms on legacy, and jumps to 200ms on the new system at 10% traffic, that's a signal to investigate before increasing traffic further.
 
 ## Shadow Traffic and Comparison Testing
 
-Before shifting any real traffic to the new system, you want to know it behaves correctly. Shadow traffic lets you test with production request patterns without affecting users. The legacy system continues serving all responses—the new system receives copies of requests, processes them, and logs the results for comparison.
+Before shifting any real traffic to the new system, you want to know it behaves correctly. Shadow traffic lets you test with production request patterns without affecting users. The legacy system continues serving all responses — the new system receives copies of requests, processes them, and logs the results for comparison.
 
 This is where your baseline investment pays off. You already know what the legacy system's responses look like. Now you can verify the new system produces the same results.
 
@@ -286,17 +298,11 @@ This is where your baseline investment pays off. You already know what the legac
 
 The basic architecture routes production requests to the legacy system as normal, while asynchronously copying them to the new system. A comparison service receives both responses and logs any differences.
 
-```mermaid
-flowchart LR
-    Client[Client Request] --> LB[Load Balancer]
-    LB --> Legacy[Legacy System]
-    Legacy --> Response[Response to Client]
-    LB -.-> |async copy| New[New System]
-    New -.-> Compare[Compare & Log]
-    Legacy -.-> Compare
-```
-
-Figure: Shadow traffic architecture with async mirroring
+<Diagram
+  src={shadowTrafficDiagram}
+  title="Shadow traffic architecture with async mirroring"
+  description="A left-to-right flowchart showing how shadow traffic is mirrored during migration. A client request goes to a load balancer, which sends the primary request to the legacy system. The legacy system returns the response to the client. At the same time, the load balancer sends an asynchronous copy of the request to the new system. Both the new system and the legacy system send their results to a comparison and logging component. The diagram shows that users continue receiving responses only from the legacy system while the new system is evaluated in parallel."
+/>
 
 You can implement this at different layers depending on your infrastructure. If you're using AWS, Application Load Balancer doesn't support native traffic mirroring, but you can achieve it with a Lambda@Edge function or by deploying an Envoy sidecar. For on-premises deployments, NGINX Plus has built-in mirroring, or you can implement it in application code.
 
@@ -378,7 +384,9 @@ public class ShadowTrafficHandler : DelegatingHandler {
 }
 ```
 
-Notice the shadow handler doesn't do comparison inline—it just stores signatures. Comparison happens offline, outside the application.
+  Code: Shadow traffic handler.
+
+Notice the shadow handler doesn't do comparison inline — it just stores signatures. Comparison happens offline, outside the application.
 
 ### Response Comparison Engine
 
@@ -445,6 +453,8 @@ def compare_signatures(legacy: dict, new: dict) -> dict:
     }
 ```
 
+  Code: Azure Function response comparison.
+
 For AWS, DynamoDB Streams with Lambda achieves the same pattern:
 
 ```python
@@ -505,19 +515,21 @@ def compare_signatures(legacy: dict, new: dict) -> dict:
     }
 ```
 
+  Code: AWS Lambda response comparison.
+
 ### Alternative: Batch Processing
 
 If you don't need real-time comparison results, a batch job is simpler to implement and debug. The job periodically queries for signature pairs that haven't been compared yet, runs comparisons, and emits metrics.
 
-For Azure, an **Azure WebJob** running on a schedule works well—it's just a console application that runs in the same App Service as your application. For AWS, **Step Functions** with a scheduled EventBridge rule provides orchestration with built-in retry logic. The simplest option on any platform is a **cron-triggered container**—a Docker container running on ECS, Azure Container Instances, or even a Kubernetes CronJob that executes the comparison script on a schedule.
+For Azure, an __Azure WebJob__ running on a schedule works well — it's just a console application that runs in the same App Service as your application. For AWS, __Step Functions__ with a scheduled EventBridge rule provides orchestration with built-in retry logic. The simplest option on any platform is a __cron-triggered container__ — a Docker container running on ECS, Azure Container Instances, or even a Kubernetes CronJob that executes the comparison script on a schedule.
 
 The batch approach trades latency for simplicity. You might see mismatches 15 minutes after they occur rather than within seconds, but you avoid the complexity of event-driven infrastructure. For most migrations, that delay is acceptable.
 
 ### High-Volume: Stream Processing
 
-If you're dealing with thousands of requests per second, the event-driven approach can struggle with the "partner lookup" problem—you're doing a database query for every incoming signature. At high volume, this becomes expensive and slow.
+If you're dealing with thousands of requests per second, the event-driven approach can struggle with the "partner lookup" problem — you're doing a database query for every incoming signature. At high volume, this becomes expensive and slow.
 
-Stream processing solves this with windowed joins. Both legacy and new signatures flow into a stream (Kafka, Kinesis, or Azure Event Hubs). A stream processor like **Apache Flink**, **Spark Streaming**, or **Kafka Streams** joins records by request ID within a time window (say, 60 seconds). Matched pairs get compared; unmatched records after the window expires indicate a problem (one system responded but the other didn't).
+Stream processing solves this with windowed joins. Both legacy and new signatures flow into a stream (Kafka, Kinesis, or Azure Event Hubs). A stream processor like __Apache Flink__, __Spark Streaming__, or __Kafka Streams__ joins records by request ID within a time window (say, 60 seconds). Matched pairs get compared; unmatched records after the window expires indicate a problem (one system responded but the other didn't).
 
 This approach scales horizontally and handles backpressure gracefully, but it's significantly more infrastructure to operate. Only reach for stream processing if the simpler approaches can't keep up with your traffic volume.
 
@@ -551,7 +563,7 @@ Once these criteria are met, you're ready to start shifting real traffic.
 
 ## Building the New Service
 
-With validation complete, you shift from testing to construction. Shadow traffic proved the new system can handle production patterns correctly—now you need to design the interfaces that'll let both systems coexist during the transition. For auth extraction, this means designing the API contract, deciding on a token strategy, and keeping data synchronized during the transition.
+With validation complete, you shift from testing to construction. Shadow traffic proved the new system can handle production patterns correctly — now you need to design the interfaces that'll let both systems coexist during the transition. For auth extraction, this means designing the API contract, deciding on a token strategy, and keeping data synchronized during the transition.
 
 ### Defining the Target API Contract
 
@@ -566,27 +578,27 @@ Design the interface before writing implementation code. For an auth service, th
     tbody: {
       tr: [
         {
-          th: '`/auth/login`',
+          th: '<span class="text-mono">/auth/login</span>',
           td: ['POST', 'Authenticate user, return tokens', 'P99 < 200ms, 99.9% available'],
         },
         {
-          th: '`/auth/logout`',
+          th: '<span class="text-mono">/auth/logout</span>',
           td: ['POST', 'Invalidate tokens', 'P99 < 50ms, 99.9% available'],
         },
         {
-          th: '`/auth/refresh`',
+          th: '<span class="text-mono">/auth/refresh</span>',
           td: ['POST', 'Exchange refresh token for new access', 'P99 < 50ms, 99.9% available'],
         },
         {
-          th: '`/auth/password/reset-request`',
+          th: '<span class="text-mono">/auth/password/reset-request</span>',
           td: ['POST', 'Initiate password reset', 'P99 < 100ms, 99.9% available'],
         },
         {
-          th: '`/auth/password/reset`',
+          th: '<span class="text-mono">/auth/password/reset</span>',
           td: ['POST', 'Complete password reset', 'P99 < 100ms, 99.9% available'],
         },
         {
-          th: '`/internal/validate`',
+          th: '<span class="text-mono">/internal/validate</span>',
           td: ['POST', 'Validate token (internal only)', 'P99 < 10ms, 99.99% available'],
         },
       ],
@@ -594,11 +606,11 @@ Design the interface before writing implementation code. For an auth service, th
   }}
 />
 
-The `/internal/validate` endpoint deserves attention—it's called on every authenticated request across your entire system. It needs to be fast (sub-10ms P99) and highly available. Consider local JWT validation with periodic key refresh rather than a network call for every request.
+The `/internal/validate` endpoint deserves attention — it's called on every authenticated request across your entire system. It needs to be fast (sub-10ms P99) and highly available. Consider local JWT validation with periodic key refresh rather than a network call for every request.
 
 ### Token Strategy: Sessions to JWTs
 
-The legacy system likely uses server-side sessions—user logs in, server creates a session record, client gets a session cookie, every request looks up that session. This doesn't scale well and creates sticky session problems for load balancing.
+The legacy system likely uses server-side sessions — user logs in, server creates a session record, client gets a session cookie, every request looks up that session. This doesn't scale well and creates sticky session problems for load balancing.
 
 JWTs move the session data into the token itself. The token contains the user ID, permissions, and expiration; the server validates the signature without a database lookup. This trades some flexibility (you can't instantly invalidate a token) for scalability and simplicity.
 
@@ -618,7 +630,9 @@ A typical JWT payload for an auth service looks like this:
 }
 ```
 
-The `legacySessionId` field is temporary—it lets you correlate new tokens with old sessions during the dual-running period. Remove it once migration completes.
+Code: Example auth service JWT payload.
+
+The `legacySessionId` field is temporary — it lets you correlate new tokens with old sessions during the dual-running period. Remove it once migration completes.
 
 The new auth service issues token pairs: a short-lived access token (15 minutes) and a longer-lived refresh token (7 days). The access token is stateless; the refresh token is stored server-side so it can be revoked:
 
@@ -700,9 +714,11 @@ public class TokenService {
 }
 ```
 
+  Code: Auth service token generation and validation.
+
 ### Dual-Write Pattern for User Data
 
-During migration, both systems need consistent user data. The dual-write pattern writes to both databases, with the legacy system as the source of truth. If the write to the new service fails, log it and queue a retry—don't fail the user operation.
+During migration, both systems need consistent user data. The dual-write pattern writes to both databases, with the legacy system as the source of truth. If the write to the new service fails, log it and queue a retry — don't fail the user operation.
 
 ```csharp
 // Dual-write implementation in the legacy system
@@ -733,7 +749,7 @@ public class DualWriteUserService {
                 });
             }
             catch (Exception ex) {
-                // Log but don't fail—legacy write succeeded
+                // Log but don't fail — legacy write succeeded
                 _logger.LogError(ex, "Failed to sync user {UserId} to auth service", user.Id);
                 await _syncQueue.EnqueueAsync(new SyncUserJob { UserId = user.Id });
             }
@@ -761,11 +777,13 @@ public class DualWriteUserService {
 }
 ```
 
+Code: Dual-write user sync service.
+
 The retry queue is important. Network failures happen, and you don't want users stuck in an inconsistent state. A background job picks up failed syncs and retries with exponential backoff.
 
 ## Data Migration Strategy
 
-Dual-write handles new changes, but you also need to migrate existing users. Do this incrementally with checkpointing—if the job fails partway through, it resumes from where it left off.
+Dual-write handles new changes, but you also need to migrate existing users. Do this incrementally with checkpointing — if the job fails partway through, it resumes from where it left off.
 
 ```csharp
 // Incremental user migration job
@@ -826,11 +844,13 @@ public class UserMigrationJob {
 }
 ```
 
+  Code: Incremental user migration job.
+
 Run the migration during off-peak hours and monitor the new service's resource usage. A rate limit of 100-200 users per second is usually safe; adjust based on your database performance.
 
 ## Traffic Shifting Strategies
 
-Shadow traffic validated the new system; now you're moving real users. This is where the strangler fig earns its name—you're gradually routing traffic away from the legacy system until it withers from disuse.
+Shadow traffic validated the new system; now you're moving real users. This is where the strangler fig earns its name — you're gradually routing traffic away from the legacy system until it withers from disuse.
 
 ### Percentage-Based Traffic Split
 
@@ -878,7 +898,7 @@ The most common approach: route a percentage of requests to the new system, incr
   }}
 />
 
-The wait periods matter. Two days at each level gives you time to observe behavior across different traffic patterns (weekday vs. weekend, peak vs. off-peak). The gate criteria should be measurable—define "no incidents" before you start.
+The wait periods matter. Two days at each level gives you time to observe behavior across different traffic patterns (weekday vs. weekend, peak vs. off-peak). The gate criteria should be measurable — define "no incidents" before you start.
 
 If you're using a service mesh like Istio, traffic splitting is declarative:
 
@@ -910,11 +930,13 @@ spec:
           weight: 100
 ```
 
-Without a service mesh, you can implement splitting in the API gateway or in application code. The key is making the split configurable without redeployment—you need to roll back quickly if metrics degrade.
+Code: Istio traffic split configuration.
+
+Without a service mesh, you can implement splitting in the API gateway or in application code. The key is making the split configurable without redeployment — you need to roll back quickly if metrics degrade.
 
 ### Cohort-Based Migration
 
-Percentage-based splitting is random—any user might hit either system on any request. That's fine for stateless operations, but for auth you often want consistency: a user should authenticate against the same system for their entire session.
+Percentage-based splitting is random — any user might hit either system on any request. That's fine for stateless operations, but for auth you often want consistency: a user should authenticate against the same system for their entire session.
 
 Cohort-based migration routes entire user segments rather than random requests. Start with low-risk cohorts:
 
@@ -940,7 +962,7 @@ Cohort-based migration routes entire user segments rather than random requests. 
   ]}
 />
 
-The cohort router needs to be deterministic—the same user hits the same system every time:
+The cohort router needs to be deterministic — the same user hits the same system every time:
 
 ```csharp
 // Cohort-based routing in the legacy system
@@ -980,6 +1002,8 @@ public class CohortRouter {
     }
 }
 ```
+
+  Code: Cohort-based routing logic.
 
 ### Legacy Token Validation Adapter
 
@@ -1056,7 +1080,7 @@ public class HybridAuthMiddleware : IHttpModule {
             };
         }
         catch (SecurityTokenException) {
-            // Local validation failed—try the auth service (handles revocation)
+            // Local validation failed — try the auth service (handles revocation)
             result = ValidateViaAuthService(token);
         }
 
@@ -1066,7 +1090,7 @@ public class HybridAuthMiddleware : IHttpModule {
 
     private ValidationResult ValidateViaAuthService(string token) {
         // Synchronous .Result for IHttpModule compatibility. In modern async code,
-        // never use .Result—it can deadlock. Use await instead.
+        // never use .Result — it can deadlock. Use await instead.
         var response = _authServiceClient.PostAsJsonAsync(
             "/internal/validate",
             new { token }).Result;
@@ -1078,11 +1102,13 @@ public class HybridAuthMiddleware : IHttpModule {
 }
 ```
 
-The cache is important—you're validating tokens on every request, and calling the auth service each time would add latency and create a dependency. Local JWT validation with a short cache handles the common case; the auth service call handles token revocation.
+  Code: Hybrid session and JWT middleware.
+
+The cache is important — you're validating tokens on every request, and calling the auth service each time would add latency and create a dependency. Local JWT validation with a short cache handles the common case; the auth service call handles token revocation.
 
 ## Automatic Rollback
 
-When metrics degrade during traffic shifting, you need to roll back immediately—before users start reporting problems. Automatic rollback detects issues and shifts traffic back to the legacy system without human intervention.
+When metrics degrade during traffic shifting, you need to roll back immediately — before users start reporting problems. Automatic rollback detects issues and shifts traffic back to the legacy system without human intervention.
 
 ### Rollback Triggers
 
@@ -1149,9 +1175,11 @@ groups:
           summary: "New system P99 latency 50%+ higher than legacy for {{ $labels.endpoint }}"
 ```
 
+Code: Prometheus rollback alert rules.
+
 ### Rollback Controller
 
-The rollback controller watches these alerts and adjusts traffic splits. It needs to be separate from both systems—if the new auth service is failing, you don't want the rollback logic to depend on it.
+The rollback controller watches these alerts and adjusts traffic splits. It needs to be separate from both systems — if the new auth service is failing, you don't want the rollback logic to depend on it.
 
 ```csharp
 // Rollback controller (runs as a separate service or scheduled job)
@@ -1224,11 +1252,13 @@ public class AutomaticRollbackController {
 }
 ```
 
-The cooldown period prevents rollback flapping—if you roll back, wait (say, 30 minutes) before allowing another rollback or traffic increase. This gives the team time to investigate before the system tries again.
+  Code: Automatic rollback controller.
+
+The cooldown period prevents rollback flapping — if you roll back, wait (say, 30 minutes) before allowing another rollback or traffic increase. This gives the team time to investigate before the system tries again.
 
 ## Migration Completion and Legacy Decommissioning
 
-You've reached 100% traffic on the new system. The migration isn't complete until the legacy system is decommissioned—that hanging code is a liability, and the infrastructure costs money.
+You've reached 100% traffic on the new system. The migration isn't complete until the legacy system is decommissioned — that hanging code is a liability, and the infrastructure costs money.
 
 ### Completion Criteria
 
@@ -1331,7 +1361,7 @@ public class AuthReconciliationJob {
             report.UsersChecked++;
 
             if (!authServiceMap.TryGetValue(monolithUser.Id, out var authUser)) {
-                // User exists in legacy system but not auth service—sync it
+                // User exists in legacy system but not auth service — sync it
                 await _authService.SyncUserAsync(monolithUser);
                 report.Fixed++;
                 _metrics.Increment("reconciliation.missing_in_auth_service");
@@ -1373,6 +1403,8 @@ public class AuthReconciliationJob {
 }
 ```
 
+  Code: Auth data reconciliation job.
+
 When the reconciliation job reports zero mismatches for a week straight, you can safely remove the legacy system's auth code and stop the dual-write.
 
 ### Post-Migration Retrospective
@@ -1401,14 +1433,14 @@ After decommissioning, hold a retrospective while the details are fresh. Track t
   ]}
 />
 
-Document what worked and what didn't. The patterns you develop during auth extraction—dual-write, cohort routing, shadow traffic—apply to future service extractions.
+Document what worked and what didn't. The patterns you develop during auth extraction — dual-write, cohort routing, shadow traffic — apply to future service extractions.
 
 ## Conclusion
 
 Strangler fig migrations succeed because they trade big-bang risk for incremental progress. The key is observability-first: instrument before you migrate, so you have a baseline to compare against. Shadow traffic reveals response differences without user impact. Use percentage-based splits for broad migrations and cohort-based routing when you need targeted feedback. Automatic rollback protects users when metrics degrade.
 
-Auth extraction is the hardest case because auth touches everything. Keep user IDs consistent, use dual-write during migration with the legacy system as source of truth, and teach the legacy system to validate new tokens before completing the cutover. Run reconciliation jobs continuously until the auth code is deleted.
-
 <Callout type="success">
-You'll know the migration succeeded when: zero extended outages, fewer than 3 rollbacks, less than 50% schedule overrun—and the team would use the same approach again.
+You'll know the migration succeeded when: zero extended outages, fewer than 3 rollbacks, less than 50% schedule overrun — and the team would use the same approach again.
 </Callout>
+
+Auth extraction is the hardest case because auth touches everything. Keep user IDs consistent, use dual-write during migration with the legacy system as source of truth, and teach the legacy system to validate new tokens before completing the cutover. Run reconciliation jobs continuously until the auth code is deleted.

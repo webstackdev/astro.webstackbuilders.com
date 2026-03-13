@@ -9,22 +9,26 @@ tags: ["apis-and-gateways", "aws", "prometheus", "grafana", "python"]
 featured: true
 ---
 
-import Callout from '@components/Callout/index.astro'
+import consumerUsageDiagram from "./diagrams/consumer-usage-dashboard-layout-with-logical-panel-grouping.jpg"
+import costAttributionDiagram from "./diagrams/cost-attribution-flow-from-infrastructure-costs-to-consumer-invoices.jpg"
+import endToEndBillingDiagram from "./diagrams/end-to-end-billing-flow-from-API-usage-to-payment-processing.jpg"
+import meteringDataDiagram from "./diagrams/metering-data-flow-from-API-request-to-billing-and-enforcement-systems.jpg"
+import pricingModelDiagram from "./diagrams/pricing-model-evolution-from-flat-rate-to-usage-based.jpg"
+import quotaEnforcementDiagram from "./diagrams/quota-enforcement-decision-flow-with-soft-limits-and-burst-allowance.jpg"
 
-*[API]: Application Programming Interface
-*[SaaS]: Software as a Service
-*[COGS]: Cost of Goods Sold
 *[ARR]: Annual Recurring Revenue
+*[COGS]: Cost of Goods Sold
 *[MAU]: Monthly Active Users
-*[RPM]: Requests Per Minute
-*[QPS]: Queries Per Second
 *[P99]: 99th Percentile
+*[QPS]: Queries Per Second
+*[RPM]: Requests Per Minute
+*[SaaS]: Software as a Service
 
 ## Introduction
 
-Last year I watched a finance director lose his mind during a quarterly budget review. His team's infrastructure costs had doubled, but when he asked engineering why, nobody could answer. The problem wasn't capacity—it was one internal team consuming 80% of an API's capacity while costs were split evenly across six teams. The heavy user's budget allocation: $15,000. Their actual cost: $120,000. The other five teams were subsidizing them, and nobody knew.
+Last year I watched a finance director lose his mind during a quarterly budget review. His team's infrastructure costs had doubled, but when he asked engineering why, nobody could answer. The problem wasn't capacity — it was one internal team consuming 80% of an API's capacity while costs were split evenly across six teams. The heavy user's budget allocation: $15,000. Their actual cost: $120,000. The other five teams were subsidizing them, and nobody knew.
 
-This isn't a billing problem—it's a visibility problem. APIs aren't free to operate. Every request costs compute time, network transfer, and storage. Usage patterns vary wildly between consumers: one might make 100 requests per day, another 10 million. Without measurement, you're guessing at capacity planning, pricing decisions become political negotiations, and cost allocation is fiction.
+This isn't a billing problem — it's a visibility problem. APIs aren't free to operate. Every request costs compute time, network transfer, and storage. Usage patterns vary wildly between consumers: one might make 100 requests per day, another 10 million. Without measurement, you're guessing at capacity planning, pricing decisions become political negotiations, and cost allocation is fiction.
 
 The pattern I've seen repeatedly: teams build APIs focused on functionality, ship them, then realize months later they can't answer basic questions. Which team is driving costs? Which endpoints are expensive? Should we charge for this feature? By then, changing the contract is organizational surgery.
 
@@ -36,63 +40,64 @@ You can't manage API costs you don't measure. Without usage metering, you're fly
 
 ### What to Meter
 
-Not every metric needs to be billable, but you need to capture enough dimensions to support future billing models and answer cost questions. The challenge is balancing granularity against cardinality—too many dimensions and your time-series database explodes, too few and you can't attribute costs accurately.
+Not every metric needs to be billable, but you need to capture enough dimensions to support future billing models and answer cost questions. The challenge is balancing granularity against cardinality — too many dimensions and your time-series database explodes, too few and you can't attribute costs accurately.
 
 The metrics that drive API costs:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Common metering dimensions mapped to cost drivers.",
     thead: { th: ["Dimension", "Example", "Cost Driver"] },
     tbody: {
       tr: [
-        { th: "Request Count", td: ["1.2M requests/month", "Infrastructure scaling"] },
-        { th: "Data Transfer", td: ["500 GB egress/month", "Network costs"] },
-        { th: "Compute Time", td: ["150 CPU-hours/month", "Processing-intensive endpoints"] },
-        { th: "Storage", td: ["50 GB stored", "Persistent data APIs"] },
-        { th: "Unique Users", td: ["10,000 MAU", "License-based pricing"] },
-        { th: "Feature Usage", td: ["500 report generations", "Premium feature tracking"] },
+        {
+          th: "Request Count",
+          td: ["1.2M requests/month", "Infrastructure scaling"],
+        },
+        {
+          th: "Data Transfer",
+          td: ["500 GB egress/month", "Network costs"],
+        },
+        {
+          th: "Compute Time",
+          td: ["150 CPU-hours/month", "Processing-intensive endpoints"],
+        },
+        {
+          th: "Storage",
+          td: ["50 GB stored", "Persistent data APIs"],
+        },
+        {
+          th: "Unique Users",
+          td: ["10,000 MAU", "License-based pricing"],
+        },
+        {
+          th: "Feature Usage",
+          td: ["500 report generations", "Premium feature tracking"],
+        },
       ],
     },
   }}
 />
 
-Request count is universal—every API tracks it. But it's often a poor proxy for cost. A 200-byte health check and a 50MB data export both count as "one request," but their infrastructure impact differs by orders of magnitude. Add data transfer and compute time to capture the actual resource consumption.
+Request count is universal — every API tracks it. But it's often a poor proxy for cost. A 200-byte health check and a 50MB data export both count as "one request," but their infrastructure impact differs by orders of magnitude. Add data transfer and compute time to capture the actual resource consumption.
 
 For storage-backed APIs (document processing, media transcoding, backup systems), track storage deltas. For APIs with expensive features (PDF generation, video encoding, ML inference), track feature-specific usage separately. The billing model can come later, but you can't retroactively meter usage you never captured.
 
-```mermaid
-graph TD
-    A[API Request] --> B{Metering Points}
-    B --> C[Request Count]
-    B --> D[Request Size]
-    B --> E[Response Size]
-    B --> F[Compute Duration]
-    B --> G[Storage Delta]
-
-    C --> H[Usage Record]
-    D --> H
-    E --> H
-    F --> H
-    G --> H
-
-    H --> I[Aggregation Pipeline]
-    I --> J[Billing System]
-    I --> K[Analytics]
-    I --> L[Quota Enforcement]
-```
-
-Figure: Metering data flow from API request to billing and enforcement systems.
+<Diagram
+  src={meteringDataDiagram}
+  title="Metering data flow from API request to billing and enforcement systems"
+  description="Flowchart showing how an API request becomes billing and quota data. An API Request enters a decision point labeled Metering Points. From there, the request is measured across five dimensions: Request Count, Request Size, Response Size, Compute Duration, and Storage Delta. All five measurements feed into a single Usage Record. That usage record then flows into an Aggregation Pipeline, which distributes the aggregated data to three downstream systems: Billing System, Analytics, and Quota Enforcement. The diagram emphasizes that the same metering event supports cost reporting, product analysis, and quota control."
+/>
 
 ### Metering Architecture Patterns
 
-The first question: should metering be synchronous or asynchronous? Synchronous metering blocks the request until the usage event is recorded. It's accurate but adds latency to every request. Asynchronous metering emits the event and continues processing—it's fast but introduces eventual consistency challenges.
+The first question: should metering be synchronous or asynchronous? Synchronous metering blocks the request until the usage event is recorded. It's accurate but adds latency to every request. Asynchronous metering emits the event and continues processing — it's fast but introduces eventual consistency challenges.
 
 For high-throughput APIs, async metering is usually the right call. Billing doesn't need millisecond accuracy. If a usage event takes 50ms to persist but your API target is sub-100ms latency, synchronous metering breaks your SLA. Emit events to a message queue and process them out-of-band.
 
 <Callout type="info">
-Synchronous metering adds latency to every request. For high-throughput APIs, use asynchronous metering with eventual consistency—billing doesn't need millisecond accuracy.
+Synchronous metering adds latency to every request. For high-throughput APIs, use asynchronous metering with eventual consistency — billing doesn't need millisecond accuracy.
 </Callout>
 
 ```yaml title="async-metering-architecture.yaml"
@@ -125,7 +130,7 @@ components:
 
 Code: Asynchronous metering architecture with separated collection and aggregation.
 
-The tradeoff: eventual consistency means quota enforcement lags usage by minutes. If a consumer hits their quota, they might get a few extra requests through before the quota counter updates. For most use cases, this is acceptable—you're billing by the month, not by the second. For strict enforcement scenarios (preventing abuse, hard cost controls), check quotas synchronously but meter asynchronously.
+The tradeoff: eventual consistency means quota enforcement lags usage by minutes. If a consumer hits their quota, they might get a few extra requests through before the quota counter updates. For most use cases, this is acceptable — you're billing by the month, not by the second. For strict enforcement scenarios (preventing abuse, hard cost controls), check quotas synchronously but meter asynchronously.
 
 ### Event Schema Design
 
@@ -166,12 +171,24 @@ Code: Usage event schema with consumer context, request details, and billable di
 Key decisions:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
-    { lead: "Identifiers:", text: "Use opaque IDs (`team_analytics`) not email addresses or names. Consumer IDs should be stable—if a team renames themselves, the ID stays constant." },
-    { lead: "Timestamps:", text: "Use ISO 8601 with millisecond precision. Time zones matter for billing periods." },
-    { lead: "Status codes:", text: "Separate billable requests (2xx) from errors (4xx, 5xx). You probably don't want to charge for failed requests." },
-    { lead: "Cardinality:", text: "Avoid unbounded fields like IP addresses or user agents in dimensions you'll aggregate by. Route patterns (`/users/:id`) are fine, raw paths (`/users/12345`) are not." },
+    {
+      lead: "Identifiers:",
+      text: "Use opaque IDs (`team_analytics`) not email addresses or names. Consumer IDs should be stable — if a team renames themselves, the ID stays constant.",
+    },
+    {
+      lead: "Timestamps:",
+      text: "Use ISO 8601 with millisecond precision. Time zones matter for billing periods.",
+    },
+    {
+      lead: "Status codes:",
+      text: "Separate billable requests (2xx) from errors (4xx, 5xx). You probably don't want to charge for failed requests.",
+    },
+    {
+      lead: "Cardinality:",
+      text: "Avoid unbounded fields like IP addresses or user agents in dimensions you'll aggregate by. Route patterns (`/users/:id`) are fine, raw paths (`/users/12345`) are not.",
+    },
   ]}
 />
 
@@ -227,7 +244,7 @@ Workflow integration: run deduplication as part of your aggregation pipeline (ev
 Choose the deduplication window based on your retry logic. If your queue consumer retries for up to 6 hours, deduplicate across 12 hours to be safe. The storage cost of keeping event IDs for deduplication is negligible compared to the cost of billing disputes.
 
 <Callout type="danger">
-Double-counting usage events leads to overbilling disputes and customer trust erosion. Build deduplication into your metering pipeline from day one—retrofitting is expensive.
+Double-counting usage events leads to overbilling disputes and customer trust erosion. Build deduplication into your metering pipeline from day one — retrofitting is expensive.
 </Callout>
 
 ## Quota Enforcement
@@ -237,55 +254,66 @@ Double-counting usage events leads to overbilling disputes and customer trust er
 Quotas answer the question: "How much usage is too much?" But "too much" depends on context. A hard limit that rejects requests prevents runaway costs but creates a poor user experience. A soft limit that allows overages is forgiving but harder to predict financially. You need both, applied at different levels.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="striped-rows-table"
   content={{
     figure: "Quota enforcement models with use cases.",
     thead: { th: ["Model", "Behavior", "Use Case"] },
     tbody: {
       tr: [
-        { th: "Hard Limit", td: ["Reject requests over quota", "Prevent runaway costs"] },
-        { th: "Soft Limit", td: ["Allow overage, bill extra", "Usage-based pricing"] },
-        { th: "Burst Allowance", td: ["Allow temporary spikes", "Handle legitimate traffic bursts"] },
-        { th: "Rolling Window", td: ["Reset over sliding period", "Smooth usage patterns"] },
-        { th: "Token Bucket", td: ["Accumulate unused quota", "Reward consistent usage"] },
+        {
+          th: "Hard Limit",
+          td: ["Reject requests over quota", "Prevent runaway costs"],
+        },
+        {
+          th: "Soft Limit",
+          td: ["Allow overage, bill extra", "Usage-based pricing"],
+        },
+        {
+          th: "Burst Allowance",
+          td: ["Allow temporary spikes", "Handle legitimate traffic bursts"],
+        },
+        {
+          th: "Rolling Window",
+          td: ["Reset over sliding period", "Smooth usage patterns"],
+        },
+        {
+          th: "Token Bucket",
+          td: ["Accumulate unused quota", "Reward consistent usage"],
+        },
       ],
     },
   }}
 />
 
-Hard limits are common for free tiers and trial accounts—once you hit the cap, you're done until the next billing period. Soft limits work for paid plans where you want to allow growth but charge for it. Burst allowances let consumers handle legitimate spikes (a batch job that runs monthly) without hitting a hard wall.
+Hard limits are common for free tiers and trial accounts — once you hit the cap, you're done until the next billing period. Soft limits work for paid plans where you want to allow growth but charge for it. Burst allowances let consumers handle legitimate spikes (a batch job that runs monthly) without hitting a hard wall.
 
 Token buckets are elegant for smoothing usage. Instead of "1 million requests per month," you get tokens at a steady rate (about 385 requests per hour for a 1M monthly quota). If you don't use them, they accumulate up to a cap. This prevents someone from using their entire monthly quota in the first day, then being throttled for the remaining 29 days.
 
-```mermaid
-graph LR
-    A[Request] --> B{Check Quota}
-    B -->|Under Limit| C[Allow]
-    B -->|At Soft Limit| D[Allow + Alert]
-    B -->|At Hard Limit| E{Burst Available?}
-    E -->|Yes| F[Allow from Burst]
-    E -->|No| G[Reject 429]
-
-    C --> H[Decrement Counter]
-    D --> H
-    F --> I[Decrement Burst]
-```
-
-Figure: Quota enforcement decision flow with soft limits and burst allowance.
+<Diagram
+  src={quotaEnforcementDiagram}
+  title="Quota enforcement decision flow with soft limits and burst allowance"
+  description="Flowchart showing how each request is checked against quota rules. A Request enters a decision point labeled Check Quota. If the request is under the limit, it is allowed and the main counter is decremented. If it reaches the soft limit, it is still allowed but also triggers an alert before the main counter is decremented. If it reaches the hard limit, a second decision checks whether burst capacity is available. If burst capacity exists, the request is allowed from the burst pool and the burst counter is decremented. If no burst capacity remains, the request is rejected with HTTP 429. The diagram shows how soft limits provide warning, hard limits enforce plan boundaries, and burst allowances absorb short traffic spikes."
+/>
 
 ### Rate Limiting vs. Quota Enforcement
 
 Rate limiting and quota enforcement solve different problems. Rate limiting is "requests per second"—it protects infrastructure and ensures fairness. Quota enforcement is "requests per billing period"—it controls costs and enforces plan limits. You need both.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="striped-rows-table"
   content={{
-    figure: "Rate limiting vs. quota enforcement—different tools for different problems.",
+    figure: "Rate limiting vs. quota enforcement — different tools for different problems.",
     thead: { th: ["Mechanism", "Scope", "Purpose"] },
     tbody: {
       tr: [
-        { th: "Rate Limiting", td: ["Per-second/minute", "Protect infrastructure, ensure fairness"] },
-        { th: "Quota Enforcement", td: ["Per-day/month", "Control costs, enforce plan limits"] },
+        {
+          th: "Rate Limiting",
+          td: ["Per-second/minute", "Protect infrastructure, ensure fairness"],
+        },
+        {
+          th: "Quota Enforcement",
+          td: ["Per-day/month", "Control costs, enforce plan limits"],
+        },
       ],
     },
   }}
@@ -323,7 +351,7 @@ The interaction matters: if a starter-tier consumer hits their monthly quota on 
 
 ### Quota Counter Implementation
 
-Quota counters need to be fast, accurate, and work correctly in distributed systems. The naive approach—read current usage, check if increment would exceed limit, write new value—is a race condition. Multiple requests can check the quota simultaneously, all see "under limit," and all increment past it.
+Quota counters need to be fast, accurate, and work correctly in distributed systems. The naive approach — read current usage, check if increment would exceed limit, write new value — is a race condition. Multiple requests can check the quota simultaneously, all see "under limit," and all increment past it.
 
 The atomic operation is critical:
 
@@ -408,7 +436,7 @@ X-Quota-Reset: 2024-02-01T00:00:00Z
 
 Code: Response headers communicating both rate limit and quota status.
 
-The pattern is adopted from GitHub's API: every response includes quota headers. Consumers can check their status without making a separate API call. The reset timestamp tells them when the quota refreshes—critical for clients that implement backoff or scheduling logic.
+The pattern is adopted from GitHub's API: every response includes quota headers. Consumers can check their status without making a separate API call. The reset timestamp tells them when the quota refreshes — critical for clients that implement backoff or scheduling logic.
 
 For dashboards and detailed breakdowns, provide a quota status endpoint:
 
@@ -449,65 +477,90 @@ For dashboards and detailed breakdowns, provide a quota status endpoint:
 
 Code: Dedicated quota status endpoint response with usage breakdown and alerts.
 
-Send alerts at 50%, 75%, and 90% of quota usage—this gives consumers time to optimize their code, upgrade their plan, or at least know throttling is coming.
+Send alerts at 50%, 75%, and 90% of quota usage — this gives consumers time to optimize their code, upgrade their plan, or at least know throttling is coming.
 
-When quotas reset (typically at the start of a new billing period), requests immediately succeed again. The quota counter resets to zero atomically, but be aware of clock skew in distributed systems—use a grace period (2-5 minutes) where requests near the reset boundary are allowed even if the counter hasn't reset yet. This prevents frustrating "429 errors at midnight" support tickets.
+When quotas reset (typically at the start of a new billing period), requests immediately succeed again. The quota counter resets to zero atomically, but be aware of clock skew in distributed systems — use a grace period (2-5 minutes) where requests near the reset boundary are allowed even if the counter hasn't reset yet. This prevents frustrating "429 errors at midnight" support tickets.
 
 ## Cost Attribution
 
 ### Mapping Usage to Costs
 
-You've captured usage metrics—now you need to translate them into dollar costs. The challenge is that infrastructure costs are bundled (you pay for compute, storage, network, overhead) but usage is granular (requests, bytes, milliseconds). The mapping is never exact.
+You've captured usage metrics — now you need to translate them into dollar costs. The challenge is that infrastructure costs are bundled (you pay for compute, storage, network, overhead) but usage is granular (requests, bytes, milliseconds). The mapping is never exact.
 
 Three common approaches:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
   items={[
-    { lead: "Direct attribution:", text: "Map specific costs directly to usage dimensions. If your compute bill is $10,000 and you processed 10 million requests, each request costs $0.001 in compute. Simple, but it ignores fixed costs and assumes all requests are equal." },
-    { lead: "Proportional allocation:", text: "Create a cost pool of all API infrastructure costs, then allocate based on usage share. If Team A made 60% of requests, they get 60% of costs. Fair for similar usage patterns, but a team making cheap health checks subsidizes one making expensive video transcoding." },
-    { lead: "Tiered pricing:", text: "Charge different rates based on volume or feature usage. High-volume consumers get volume discounts, premium features cost more. This is closer to how SaaS companies price APIs and aligns incentives better than pure cost recovery." },
+    {
+      lead: "Direct attribution",
+      text: "Map specific costs directly to usage dimensions. If your compute bill is $10,000 and you processed 10 million requests, each request costs $0.001 in compute. Simple, but it ignores fixed costs and assumes all requests are equal.",
+    },
+    {
+      lead: "Proportional allocation",
+      text: "Create a cost pool of all API infrastructure costs, then allocate based on usage share. If Team A made 60% of requests, they get 60% of costs. Fair for similar usage patterns, but a team making cheap health checks subsidizes one making expensive video transcoding.",
+    },
+    {
+      lead: "Tiered pricing",
+      text: "Charge different rates based on volume or feature usage. High-volume consumers get volume discounts, premium features cost more. This is closer to how SaaS companies price APIs and aligns incentives better than pure cost recovery.",
+    },
   ]}
 />
 
-```mermaid
-graph TD
-    A[Infrastructure Costs] --> B[Cost Pool]
-
-    B --> C{Allocation Method}
-    C --> D[Direct Attribution]
-    C --> E[Proportional Allocation]
-    C --> F[Tiered Pricing]
-
-    D --> G[Per-Request Cost]
-    E --> H[% of Total Usage]
-    F --> I[Volume Discounts]
-
-    G --> J[Consumer Invoice]
-    H --> J
-    I --> J
-```
-
-Figure: Cost attribution flow from infrastructure costs to consumer invoices.
+<Diagram
+  src={costAttributionDiagram}
+  title="Cost attribution flow from infrastructure costs to consumer invoices"
+  description="Flowchart showing how infrastructure spending becomes charges for consumers. Infrastructure Costs feed into a Cost Pool. That pool enters a decision point labeled Allocation Method, which branches into three pricing strategies: Direct Attribution, Proportional Allocation, and Tiered Pricing. Direct Attribution leads to Per-Request Cost, Proportional Allocation leads to Percent of Total Usage, and Tiered Pricing leads to Volume Discounts. All three calculated paths feed into a final Consumer Invoice. The diagram highlights that the same underlying operating cost can be turned into invoices through different allocation strategies depending on pricing goals, fairness, and customer behavior."
+/>
 
 Most internal APIs start with direct attribution (simple to explain) then move to proportional allocation once they realize different usage patterns have different costs. External APIs almost always use tiered pricing because it creates better business incentives.
 
 ### Cost Models
 
-Picking a cost model is as much psychology as math. The model shapes behavior—per-request pricing encourages consumers to reduce calls, compute-based pricing encourages efficient code, tiered pricing encourages growth.
+Picking a cost model is as much psychology as math. The model shapes behavior — per-request pricing encourages consumers to reduce calls, compute-based pricing encourages efficient code, tiered pricing encourages growth.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="timeline-labels-table"
   content={{
     figure: "Cost models with formulas and use cases.",
     thead: { th: ["Model", "Formula", "Best For"] },
     tbody: {
       tr: [
-        { th: "Per-Request", td: ["$0.001 × requests", "Simple, predictable APIs"] },
-        { th: "Compute-Based", td: ["$0.10 × CPU-hours", "Processing-intensive workloads"] },
-        { th: "Data Transfer", td: ["$0.05 × GB", "Data-heavy APIs"] },
-        { th: "Tiered", td: ["Decreasing $/unit at volume", "Encouraging growth"] },
-        { th: "Flat + Overage", td: ["$500/month + $0.001/request over 1M", "Predictable base + flexibility"] },
+        {
+          th: {
+            label: "Per-Request",
+            color: "blue-600",
+          },
+          td: ["$0.001 × requests", "Simple, predictable APIs"],
+        },
+        {
+          th: {
+            label: "Compute-Based",
+            color: "orange-600",
+          },
+          td: ["$0.10 × CPU-hours", "Processing-intensive workloads"],
+        },
+        {
+          th: {
+            label: "Data Transfer",
+            color: "green-600",
+          },
+          td: ["$0.05 × GB", "Data-heavy APIs"],
+        },
+        {
+          th: {
+            label: "Tiered",
+            color: "purple-600",
+          },
+          td: ["Decreasing $/unit at volume", "Encouraging growth"],
+        },
+        {
+          th: {
+            label: "Flat + Overage",
+            color: "yellow-600",
+          },
+          td: ["$500/month + $0.001/request over 1M", "Predictable base + flexibility"],
+        },
       ],
     },
   }}
@@ -546,11 +599,11 @@ pricing:
 
 Code: Tiered pricing configuration with volume discounts and free tiers.
 
-Volume discounts align incentives: you want high usage (more value from your API investment), and consumers get lower unit costs as they grow. The free tier for egress is a nod to AWS pricing—sometimes it's better to eliminate tiny charges that create more billing friction than revenue.
+Volume discounts align incentives: you want high usage (more value from your API investment), and consumers get lower unit costs as they grow. The free tier for egress is a nod to AWS pricing — sometimes it's better to eliminate tiny charges that create more billing friction than revenue.
 
 ### Internal Chargeback Implementation
 
-Internal chargebacks are where cost attribution gets political. You're not just tracking costs—you're moving money between teams' budgets. The technical part is straightforward; the organizational part requires diplomacy.
+Internal chargebacks are where cost attribution gets political. You're not just tracking costs — you're moving money between teams' budgets. The technical part is straightforward; the organizational part requires diplomacy.
 
 <Callout type="info">
 Internal chargebacks are as much an organizational challenge as a technical one. Get finance and team leads aligned on the allocation methodology before building the system.
@@ -591,34 +644,70 @@ ORDER BY total_cost DESC;
 
 Code: SQL query generating monthly chargeback report by consuming team.
 
-Export this to CSV, send it to finance, and let them handle the budget transfers. The first month you run chargebacks, expect complaints. Teams will question the methodology, dispute costs, and ask for historical data to validate. This is why you keep raw usage events—you need evidence.
+Export this to CSV, send it to finance, and let them handle the budget transfers. The first month you run chargebacks, expect complaints. Teams will question the methodology, dispute costs, and ask for historical data to validate. This is why you keep raw usage events — you need evidence.
 
 ### Showback vs. Chargeback
 
 There's a spectrum between "no cost visibility" and "full chargebacks." Most organizations benefit from moving gradually rather than jumping straight to chargebacks.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="semantic-coloring-table"
   content={{
     figure: "Attribution approaches from visibility-only to hard chargebacks.",
     thead: { th: ["Approach", "Visibility", "Budget Impact", "Organizational Friction"] },
     tbody: {
       tr: [
-        { th: "No Attribution", td: ["None", "Hidden in shared costs", "Low"] },
-        { th: "Showback", td: ["Full", "Informational only", "Low"] },
-        { th: "Soft Chargeback", td: ["Full", "Budget guidance", "Medium"] },
-        { th: "Hard Chargeback", td: ["Full", "Actual cost transfer", "High"] },
+        {
+          th: {
+            label: "No Attribution",
+            color: "note",
+          },
+          td: ["None", "Hidden in shared costs", "Low"],
+        },
+        {
+          th: {
+            label: "Showback",
+            color: "info",
+          },
+          td: ["Full", "Informational only", "Low"],
+        },
+        {
+          th: {
+            label: "Soft Chargeback",
+            color: "warning",
+          },
+          td: ["Full", "Budget guidance", "Medium"],
+        },
+        {
+          th: {
+            label: "Hard Chargeback",
+            color: "danger",
+          },
+          td: ["Full", "Actual cost transfer", "High"],
+        },
       ],
     },
   }}
 />
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "m-12",
+  }}
   items={[
-    { lead: "Showback means \"here's what you're using, here's what it costs, but we're not moving money between budgets.\"", text: "It's pure visibility. Teams can see their consumption and optimize without financial pressure." },
-    { lead: "Soft chargeback means \"here's your cost, it's tracked against your budget, but we're not enforcing it strictly.\"", text: "Finance tracks it, teams know they're accountable, but there's flexibility for legitimate overages." },
-    { lead: "Hard chargeback means \"we're moving money from your budget to the API team's budget.\"", text: "This is real accountability. It creates strong incentives to optimize but also creates friction when teams dispute costs." },
+    {
+      lead: "Showback means \"here's what you're using, here's what it costs, but we're not moving money between budgets.\"",
+      text: "It's pure visibility. Teams can see their consumption and optimize without financial pressure.",
+    },
+    {
+      lead: "Soft chargeback means \"here's your cost, it's tracked against your budget, but we're not enforcing it strictly.\"",
+      text: "Finance tracks it, teams know they're accountable, but there's flexibility for legitimate overages.",
+    },
+    {
+      lead: "Hard chargeback means \"we're moving money from your budget to the API team's budget.\"",
+      text: "This is real accountability. It creates strong incentives to optimize but also creates friction when teams dispute costs.",
+    },
   ]}
 />
 
@@ -626,7 +715,7 @@ There's a spectrum between "no cost visibility" and "full chargebacks." Most org
 Start with showback before implementing chargebacks. Teams need time to understand their usage patterns and optimize before costs hit their budgets.
 </Callout>
 
-I've seen organizations that jumped straight to hard chargebacks and created resentment. Teams felt blindsided by costs they didn't understand and couldn't control. Give them 2-3 months of showback first—usage behavior changes when teams can see their consumption, even without financial consequences.
+I've seen organizations that jumped straight to hard chargebacks and created resentment. Teams felt blindsided by costs they didn't understand and couldn't control. Give them 2-3 months of showback first — usage behavior changes when teams can see their consumption, even without financial consequences.
 
 ## Billing Integration
 
@@ -636,30 +725,11 @@ Once you have usage data and cost models, you need to connect it to an invoicing
 
 The flow is consistent regardless of the destination:
 
-```mermaid
-sequenceDiagram
-    participant API
-    participant Metering
-    participant Aggregation
-    participant Billing
-    participant Payment
-
-    API->>Metering: Usage Event
-    Metering->>Metering: Deduplicate
-    Metering->>Aggregation: Buffered Events
-
-    Note over Aggregation: Hourly rollup job
-    Aggregation->>Aggregation: Calculate costs
-    Aggregation->>Billing: Period summary
-
-    Note over Billing: End of billing period
-    Billing->>Billing: Generate invoice
-    Billing->>Payment: Charge customer
-    Payment-->>Billing: Confirmation
-    Billing->>API: Update quota limits
-```
-
-Figure: End-to-end billing flow from API usage to payment processing.
+<Diagram
+  src={endToEndBillingDiagram}
+  title="End-to-end billing flow from API usage to payment processing"
+  description="Sequence diagram showing how API usage becomes a bill and then updates quota state. The API sends a Usage Event to Metering. Metering deduplicates the event and forwards Buffered Events to Aggregation. A note marks Aggregation as an hourly rollup job. Aggregation calculates costs and sends a Period Summary to Billing. Another note marks Billing as operating at the end of the billing period. Billing generates an invoice, charges the customer through Payment, receives a confirmation, and then updates quota limits back in the API system. The diagram emphasizes that usage collection, aggregation, invoicing, payment processing, and quota management form one connected lifecycle."
+/>
 
 The key decision point is timing. Do you report usage continuously (every hour, every day) or only at the end of the billing period? Continuous reporting gives consumers real-time visibility into costs but requires more API calls to the billing platform. End-of-period reporting is simpler but consumers don't see costs until the bill arrives.
 
@@ -715,11 +785,11 @@ def finalize_billing_period(consumer_id: str) -> None:
 
 Code: Stripe Billing integration for usage-based API pricing.
 
-For AWS SaaS products sold through AWS Marketplace, you report usage via the AWS Metering Marketplace API instead. The pattern is identical—aggregate usage, report to the billing platform, let them handle invoicing.
+For AWS SaaS products sold through AWS Marketplace, you report usage via the AWS Metering Marketplace API instead. The pattern is identical — aggregate usage, report to the billing platform, let them handle invoicing.
 
 ### Handling Billing Disputes
 
-Billing disputes are inevitable. A consumer will question a charge, claim they didn't make that many requests, or argue about what should be billable. Your defense is data—raw usage events that prove what happened.
+Billing disputes are inevitable. A consumer will question a charge, claim they didn't make that many requests, or argue about what should be billable. Your defense is data — raw usage events that prove what happened.
 
 This is why you keep raw usage events for at least one billing cycle beyond the dispute window. You need evidence.
 
@@ -785,57 +855,54 @@ Consumers need to see their usage in real-time, not when the bill arrives. A goo
 The essential panels:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "Consumer-facing usage dashboard panels.",
     thead: { th: ["Panel", "Visualization", "Purpose"] },
     tbody: {
       tr: [
-        { th: "Current Period Usage", td: ["Gauge/Progress", "How much quota used"] },
-        { th: "Usage Trend", td: ["Time series", "Daily/hourly usage pattern"] },
-        { th: "Usage by Endpoint", td: ["Bar chart", "Which APIs drive usage"] },
-        { th: "Projected Month-End", td: ["Stat", "Forecast based on current rate"] },
-        { th: "Cost Breakdown", td: ["Pie chart", "Where money is going"] },
-        { th: "Alerts", td: ["List", "Approaching limits, unusual patterns"] },
+        {
+          th: "Current Period Usage",
+          td: ["Gauge/Progress", "How much quota used"],
+        },
+        {
+          th: "Usage Trend",
+          td: ["Time series", "Daily/hourly usage pattern"],
+        },
+        {
+          th: "Usage by Endpoint",
+          td: ["Bar chart", "Which APIs drive usage"],
+        },
+        {
+          th: "Projected Month-End",
+          td: ["Stat", "Forecast based on current rate"],
+        },
+        {
+          th: "Cost Breakdown",
+          td: ["Pie chart", "Where money is going"],
+        },
+        {
+          th: "Alerts",
+          td: ["List", "Approaching limits, unusual patterns"],
+        },
       ],
     },
   }}
 />
 
-The layout matters. Put the most important information at the top—current usage and projected costs. Trends and breakdowns go below. Alerts go at the bottom unless they're critical (approaching quota), then promote them to the top.
+The layout matters. Put the most important information at the top — current usage and projected costs. Trends and breakdowns go below. Alerts go at the bottom unless they're critical (approaching quota), then promote them to the top.
 
-```mermaid
-graph LR
-    subgraph "Row 1: Overview"
-        A[Monthly Usage Gauge<br/>4.5M / 10M requests]
-        B[Projected Cost<br/>$450 estimate]
-        C[Days Remaining<br/>15 days left]
-    end
-
-    subgraph "Row 2: Trends"
-        D[Daily Usage Time Series<br/>Last 30 days]
-        E[Usage vs. Previous Month<br/>+15% increase]
-    end
-
-    subgraph "Row 3: Breakdown"
-        F[Usage by Endpoint<br/>Top 10 routes]
-        G[Usage by Region<br/>Geographic split]
-        H[Cost by Dimension<br/>Requests, compute, egress]
-    end
-
-    subgraph "Row 4: Alerts"
-        I[Quota Alerts<br/>No alerts]
-        J[Anomaly Detection<br/>Usage spike detected]
-    end
-```
-
-Figure: Consumer usage dashboard layout with logical panel grouping.
+<Diagram
+  src={consumerUsageDiagram}
+  title="Consumer usage dashboard layout with logical panel grouping"
+  description="Left-to-right dashboard layout organized into four grouped sections. Row 1 Overview contains Monthly Usage Gauge showing 4.5 million of 10 million requests, Projected Cost showing a 450 dollar estimate, and Days Remaining showing 15 days left. Row 2 Trends contains Daily Usage Time Series for the last 30 days and Usage versus Previous Month showing a 15 percent increase. Row 3 Breakdown contains Usage by Endpoint for the top 10 routes, Usage by Region for geographic split, and Cost by Dimension for requests, compute, and egress. Row 4 Alerts contains Quota Alerts showing no alerts and Anomaly Detection showing a usage spike detected. The layout moves from current status to trends, then breakdowns, then alerting."
+/>
 
 Projected month-end usage is critical. If a consumer is at 50% of their quota with 25% of the month remaining, they're on track to use 200% of their quota. Show them this projection so they can optimize before hitting limits.
 
 ### Internal Cost Visibility Dashboard
 
-Platform teams need a different view—total costs, top consumers, cost trends, and anomalies. This dashboard is for capacity planning and identifying optimization opportunities.
+Platform teams need a different view — total costs, top consumers, cost trends, and anomalies. This dashboard is for capacity planning and identifying optimization opportunities.
 
 The queries you need (Prometheus examples):
 
@@ -936,7 +1003,7 @@ groups:
 
 Code: Usage anomaly detection alerts for abuse, bugs, and service issues.
 
-The credential leak alert is particularly important. If you see requests from 100+ unique IPs in an hour for a single consumer, either their API key leaked or they're running a distributed system. Reach out proactively—they'll appreciate the heads up if it's a leak.
+The credential leak alert is particularly important. If you see requests from 100+ unique IPs in an hour for a single consumer, either their API key leaked or they're running a distributed system. Reach out proactively — they'll appreciate the heads up if it's a leak.
 
 ## Implementation Checklist
 
@@ -1005,10 +1072,20 @@ Code: Implementation checklist for API cost management systems.
 The order matters: build metering first (you need data), then reporting (visibility), then enforcement (quotas), then billing (money). Trying to build them in parallel creates dependencies you can't resolve.
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "mr-12 mb-8",
+    em: "pt-6",
+  }}
   items={[
-    { lead: "Multi-region considerations:", text: "If your API runs across multiple regions, each region typically has its own metering pipeline writing to region-local storage, then aggregated to a central database for billing. Quota counters should be global (using Redis Cluster or a distributed counter service) to prevent consumers from bypassing quotas by spreading requests across regions." },
-    { lead: "Security note:", text: "Secure your metering pipeline. Consumers should not be able to emit fake low-usage events to reduce their bills. Use authenticated message queues, validate event signatures, and monitor for unusual patterns (sudden drops in reported usage from a consumer indicate possible tampering)." },
+    {
+      lead: "Multi-region considerations:",
+      text: "If your API runs across multiple regions, each region typically has its own metering pipeline writing to region-local storage, then aggregated to a central database for billing. Quota counters should be global (using Redis Cluster or a distributed counter service) to prevent consumers from bypassing quotas by spreading requests across regions.",
+    },
+    {
+      lead: "Security note:",
+      text: "Secure your metering pipeline. Consumers should not be able to emit fake low-usage events to reduce their bills. Use authenticated message queues, validate event signatures, and monitor for unusual patterns (sudden drops in reported usage from a consumer indicate possible tampering).",
+    },
   ]}
 />
 
@@ -1024,32 +1101,56 @@ The pitch needs to frame cost attribution as an enabler, not a punitive measure:
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "ml-6 mr-12 mb-8",
+  }}
   items={[
-    { lead: "For Engineering Teams:", text: "\"This helps you understand which parts of your system are expensive so you can optimize effectively. Right now you're guessing.\"" },
-    { lead: "For Finance:", text: "\"We can finally answer 'what does this API cost per team' and make data-driven decisions about pricing, capacity, and investment.\"" },
-    { lead: "For Leadership:", text: "\"This enables us to scale sustainably. We're currently cross-subsidizing heavy users from light users, which creates perverse incentives.\"" },
+    {
+      lead: "For Engineering Teams:",
+      text: "\"This helps you understand which parts of your system are expensive so you can optimize effectively. Right now you're guessing.\"",
+    },
+    {
+      lead: "For Finance:",
+      text: "\"We can finally answer 'what does this API cost per team' and make data-driven decisions about pricing, capacity, and investment.\"",
+    },
+    {
+      lead: "For Leadership:",
+      text: "\"This enables us to scale sustainably. We're currently cross-subsidizing heavy users from light users, which creates perverse incentives.\"",
+    },
   ]}
 />
 
-The most common objection: "This will create budget battles between teams." True. But the alternative is cross-subsidization where one team's budget unknowingly funds everyone else's usage. Cost visibility creates accountability—budget battles are a feature, not a bug.
+The most common objection: "This will create budget battles between teams." True. But the alternative is cross-subsidization where one team's budget unknowingly funds everyone else's usage. Cost visibility creates accountability — budget battles are a feature, not a bug.
 
-> The hardest part of API cost attribution isn't the engineering—it's getting agreement on what's fair.
+> The hardest part of API cost attribution isn't the engineering — it's getting agreement on what's fair.
 
 ### Gradual Rollout Strategy
 
 Jumping straight to hard enforcement will cause significant organizational friction and backlash. A phased rollout lets you see your usage, understand the patterns, and optimize before financial consequences kick in.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Phased rollout for API cost management implementation.",
     thead: { th: ["Phase", "Duration", "Deliverable", "Organizational Impact"] },
     tbody: {
       tr: [
-        { th: "Instrument", td: ["1-2 months", "Metering pipeline", "None (invisible)"] },
-        { th: "Report", td: ["2-3 months", "Showback dashboards", "Awareness"] },
-        { th: "Soft Enforce", td: ["1-2 months", "Warnings at limits", "Behavior change"] },
-        { th: "Hard Enforce", td: ["Ongoing", "Quotas and billing", "Budget impact"] },
+        {
+          th: "Instrument",
+          td: ["1-2 months", "Metering pipeline", "None (invisible)"],
+        },
+        {
+          th: "Report",
+          td: ["2-3 months", "Showback dashboards", "Awareness"],
+        },
+        {
+          th: "Soft Enforce",
+          td: ["1-2 months", "Warnings at limits", "Behavior change"],
+        },
+        {
+          th: "Hard Enforce",
+          td: ["Ongoing", "Quotas and billing", "Budget impact"],
+        },
       ],
     },
   }}
@@ -1057,27 +1158,45 @@ Jumping straight to hard enforcement will cause significant organizational frict
 
 Soft Enforce warnings look like this:
 
-> **Subject**: API Quota Alert: You've used 90% of your monthly allocation
->
-> Your team (team-mobile-app) has used 9M of your 10M request quota for February 2024. At your current rate, you'll hit your limit in 3 days.
->
-> **Next steps**:
-> - Review your usage dashboard: https://platform.example.com/quota
-> - Identify high-usage endpoints (likely /v2/user/profile based on patterns)
-> - Consider optimizing request batching or caching
-> - If you need more capacity, upgrade to the Growth plan
->
-> Questions? Reply to this email or ping #api-platform on Slack.
+<Inset>
+**Subject**: API Quota Alert: You've used 90% of your monthly allocation
+
+Your team (team-mobile-app) has used 9M of your 10M request quota for February 2024. At your current rate, you'll hit your limit in 3 days.
+
+**Next steps**:
+
+- Review your usage dashboard: https://platform.example.com/quota
+- Identify high-usage endpoints (likely /v2/user/profile based on patterns)
+- Consider optimizing request batching or caching
+- If you need more capacity, upgrade to the Growth plan
+
+Questions? Reply to this email or ping #api-platform on Slack.
+</Inset>
 
 This gives teams actionable information and time to respond before enforcement kicks in.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "ml-6 mr-12 mb-8",
+  }}
   items={[
-    { lead: "Instrument phase:", text: "Build the metering pipeline, get data flowing, validate accuracy. You don't see anything yet. Use this time to debug your instrumentation and handle edge cases." },
-    { lead: "Report phase:", text: "Launch showback dashboards. You can see your usage but it doesn't affect budgets. Watch usage patterns change—you optimize just from visibility, even without financial pressure." },
-    { lead: "Soft enforce phase:", text: "Add quota warnings and alerts. \"You're at 90% of your monthly quota\" emails start going out. Behavior changes again as you realize quotas are real." },
-    { lead: "Hard enforce phase:", text: "Turn on quota enforcement and chargebacks. Requests over quota get throttled or billed at overage rates. This is when you find out if your pricing is right." },
+    {
+      lead: "Instrument phase:",
+      text: "Build the metering pipeline, get data flowing, validate accuracy. You don't see anything yet. Use this time to debug your instrumentation and handle edge cases.",
+    },
+    {
+      lead: "Report phase:",
+      text: "Launch showback dashboards. You can see your usage but it doesn't affect budgets. Watch usage patterns change — you optimize just from visibility, even without financial pressure.",
+    },
+    {
+      lead: "Soft enforce phase:",
+      text: "Add quota warnings and alerts. \"You're at 90% of your monthly quota\" emails start going out. Behavior changes again as you realize quotas are real.",
+    },
+    {
+      lead: "Hard enforce phase:",
+      text: "Turn on quota enforcement and chargebacks. Requests over quota get throttled or billed at overage rates. This is when you find out if your pricing is right.",
+    },
   ]}
 />
 
@@ -1089,28 +1208,19 @@ The mistake you should avoid: skip phases 2 and 3, jump straight from instrument
 
 ### Pricing Model Evolution
 
-Your pricing model will evolve as you learn more about usage patterns. The first model is always wrong—you don't know enough about cost drivers yet. Plan for iteration.
+Your pricing model will evolve as you learn more about usage patterns. The first model is always wrong — you don't know enough about cost drivers yet. Plan for iteration.
 
-```mermaid
-graph LR
-    A["Launch: Flat Rate<br/>(Month 0)"] --> B["Learn: Usage Patterns<br/>(Month 1-3)"]
-    B --> C["Add: Metering<br/>(Month 4-5)"]
-    C --> D["Introduce: Showback<br/>(Month 6-8)"]
-    D --> E["Pilot: Usage-Based Tier<br/>(Month 9-11)"]
-    E --> F["Scale: Full Usage-Based<br/>(Month 12+)"]
-
-    B -.-> G["Insight: Heavy users subsidized<br/>Top 20% = 80% usage"]
-    D -.-> H["Insight: 80/20 confirmed<br/>Usage stabilizes after visibility"]
-    E -.-> I["Insight: Price sensitivity by segment<br/>10% optimize, 5% churn"]
-```
-
-Figure: Pricing model evolution from flat rate to usage-based billing with typical timelines.
+<Diagram
+  src={pricingModelDiagram}
+  title="Pricing model evolution from flat rate to usage-based billing with typical timelines"
+  description="Flowchart showing a left-to-right pricing maturity path across roughly one year. The sequence begins with Launch Flat Rate at month zero, moves to Learn Usage Patterns during months one to three, then Add Metering during months four to five, Introduce Showback during months six to eight, Pilot Usage Based Tier during months nine to eleven, and finally Scale Full Usage Based from month twelve onward. Three dotted insight branches capture what the organization learns at each stage. After learning usage patterns, it discovers that heavy users are subsidized and that the top 20 percent of consumers generate 80 percent of usage. After showback, it confirms the 80 20 pattern and sees usage stabilize once visibility exists. During the usage-based pilot, it learns that customer segments have different price sensitivity, with 10 percent optimizing and 5 percent churning. The diagram emphasizes that usage-based pricing usually evolves through staged learning rather than a single launch."
+/>
 
 Readiness indicators: move to the next phase when (1) data quality is stable (< 1% discrepancies), (2) you've stopped hearing "why is my usage so high" questions, and (3) you've documented edge cases that caused confusion in the current phase.
 
 You'll discover that some endpoints are far more expensive than others. Your initial "one price per request" model doesn't reflect that. You'll find that some consumers are price-sensitive and will optimize aggressively, while others value convenience over cost. You'll realize that volume discounts encourage growth better than flat rates.
 
-This is normal. Build flexibility into your pricing config from the start—make it easy to change rates, add tiers, or introduce new billable dimensions. Your pricing will change, plan for it.
+This is normal. Build flexibility into your pricing config from the start — make it easy to change rates, add tiers, or introduce new billable dimensions. Your pricing will change, plan for it.
 
 ## Conclusion
 
@@ -1122,20 +1232,35 @@ The key principles:
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "ml-6 mr-12 mb-8",
+  }}
   items={[
-    { lead: "Meter everything—", text: "even if you're not billing for it today. You can't retroactively meter usage you never captured. Start with request count, data transfer, and compute time. Add more dimensions as you understand cost drivers." },
-    { lead: "Enforce quotas at multiple levels—", text: "rate limits protect infrastructure, monthly quotas control costs. You need both. Hard limits prevent abuse, soft limits with overages enable growth." },
-    { lead: "Attribute costs transparently—", text: "showback before chargeback. Teams need to understand their usage patterns before costs hit their budgets. Disputes are inevitable; raw usage events are your defense." },
-    { lead: "Roll out gradually—", text: "instrumentation, reporting, soft enforcement, hard enforcement. Each phase builds trust and gives teams time to optimize. Jumping straight to hard enforcement creates organizational friction." },
+    {
+      lead: "Meter everything",
+      text: "even if you're not billing for it today. You can't retroactively meter usage you never captured. Start with request count, data transfer, and compute time. Add more dimensions as you understand cost drivers.",
+    },
+    {
+      lead: "Enforce quotas at multiple levels",
+      text: "rate limits protect infrastructure, monthly quotas control costs. You need both. Hard limits prevent abuse, soft limits with overages enable growth.",
+    },
+    {
+      lead: "Attribute costs transparently",
+      text: "showback before chargeback. Teams need to understand their usage patterns before costs hit their budgets. Disputes are inevitable; raw usage events are your defense.",
+    },
+    {
+      lead: "Roll out gradually",
+      text: "instrumentation, reporting, soft enforcement, hard enforcement. Each phase builds trust and gives teams time to optimize. Jumping straight to hard enforcement creates organizational friction.",
+    },
   ]}
 />
 
 API cost management enables business decisions you couldn't make before. You can offer usage-based pricing that aligns with value delivered. You can identify optimization opportunities by seeing which endpoints are expensive. You can make capacity decisions based on data instead of politics.
 
 <Callout type="success">
-API cost management isn't about charging customers more—it's about understanding the true cost of your API and making informed decisions about pricing, capacity, and investment.
+API cost management isn't about charging customers more — it's about understanding the true cost of your API and making informed decisions about pricing, capacity, and investment.
 </Callout>
 
-Here's your starting point: pick your highest-traffic API (the one consuming the most infrastructure budget), instrument it to meter request count only, and deploy a read-only dashboard showing usage by consumer. Run this for 30 days without enforcement. You'll immediately see usage patterns you didn't know existed—teams making 10x more requests than others, endpoints that are unexpectedly expensive, retry storms from misconfigured clients. Fix the obvious problems, then add more dimensions (data transfer, compute time) and introduce soft quotas. Expand from there.
+Here's your starting point: pick your highest-traffic API (the one consuming the most infrastructure budget), instrument it to meter request count only, and deploy a read-only dashboard showing usage by consumer. Run this for 30 days without enforcement. You'll immediately see usage patterns you didn't know existed — teams making 10x more requests than others, endpoints that are unexpectedly expensive, retry storms from misconfigured clients. Fix the obvious problems, then add more dimensions (data transfer, compute time) and introduce soft quotas. Expand from there.
 
-The infrastructure you build now—the metering pipeline, the quota counters, the cost attribution logic—will serve you for years. Get the foundation right, then iterate on pricing and enforcement.
+The infrastructure you build now — the metering pipeline, the quota counters, the cost attribution logic — will serve you for years. Get the foundation right, then iterate on pricing and enforcement.

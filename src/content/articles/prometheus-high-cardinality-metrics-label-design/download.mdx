@@ -12,7 +12,7 @@ pages: 33
 fileName: "prometheus-high-cardinality-metrics-label-design.pdf"
 ---
 
-Every unique combination of metric name and label values creates a separate time series in Prometheus. Add three labels each with 100 values and you've created up to one million time series. A team added user_id to their API response time histogram—with 50 endpoints, 10 status codes, and 100,000 users, they created 50 million potential time series. Initial memory usage was fine (only active users generated metrics), but over months more users became active, and a traffic spike caused Prometheus to OOM during an incident. The fix: remove user_id, add it to traces, implement cardinality limits. Prometheus stabilized at 50,000 series.
+Every unique combination of metric name and label values creates a separate time series in Prometheus. Add three labels each with 100 values and you've created up to one million time series. A team added user_id to their API response time histogram — with 50 endpoints, 10 status codes, and 100,000 users, they created 50 million potential time series. Initial memory usage was fine (only active users generated metrics), but over months more users became active, and a traffic spike caused Prometheus to OOM during an incident. The fix: remove user_id, add it to traces, implement cardinality limits. Prometheus stabilized at 50,000 series.
 
 Labels are multiplicative, not additive. A single unbounded label can destroy your Prometheus deployment.
 

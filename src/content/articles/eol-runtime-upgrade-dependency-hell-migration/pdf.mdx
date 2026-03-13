@@ -9,6 +9,8 @@ tags: ["system-modernization", "platform-engineering", "dotnet", "python", "dock
 featured: true
 ---
 
+import directDependenciesDiagram from "./diagrams/direct-dependencies-hide-a-much-larger-transitive-graph.jpg"
+
 *[EOL]: End of Life
 *[LTS]: Long Term Support
 *[CVE]: Common Vulnerabilities and Exposures
@@ -31,66 +33,26 @@ Here is a typical scenario. A team needs to move from .NET 6 to .NET 8. Their di
 In this article I will lay out a practical upgrade path: map the graph, identify blockers by type, then build a staged plan that gets you to a supported runtime without a multi-month freeze.
 
 <Callout type="warning">
-EOL isn't a deadline—it's a vulnerability window opening. Every day past EOL is a day your runtime won't receive security patches. The question isn't whether to upgrade, but how fast you can safely do it.
+EOL isn't a deadline — it's a vulnerability window opening. Every day past EOL is a day your runtime won't receive security patches. The question isn't whether to upgrade, but how fast you can safely do it.
 </Callout>
 
 ## Understanding the Dependency Graph
 
-Before touching any code, you need to understand what you are actually upgrading. The answer is never just "my application." It is your application plus every package it depends on, plus every package _those_ packages depend on, recursively, until you hit the bottom of the tree.
+Before touching any code, you need to understand what you are actually upgrading. The answer is never just "my application." It is your application plus every package it depends on, plus every package __those__ packages depend on, recursively, until you hit the bottom of the tree.
 
 ### Direct vs Transitive Dependencies
 
-Most teams dramatically underestimate their dependency surface. They look at their package.json, Gemfile, or .csproj and see maybe twenty direct dependencies. That is the visible part. The iceberg below the waterline is the transitive graph—the dependencies of your dependencies, often numbering in the hundreds.
+Most teams dramatically underestimate their dependency surface. They look at their package.json, Gemfile, or .csproj and see maybe twenty direct dependencies. That is the visible part. The iceberg below the waterline is the transitive graph — the dependencies of your dependencies, often numbering in the hundreds.
 
 This matters for EOL upgrades because a single incompatible package anywhere in that tree blocks the entire upgrade. You can have perfect Node 20 compatibility in your code and in every package you directly reference. But if one of those packages depends on something that depends on something else that ships a native binary compiled against Node 16 headers, you are stuck.
 
-```mermaid
-graph TD
-  A[Your Application] --> B[express 4.18]
-  A --> C[prisma 5.0]
-  A --> D[winston 3.8]
+<Diagram
+  src={directDependenciesDiagram}
+  title="Direct dependencies hide a much larger transitive graph."
+  description="Flowchart showing how a small set of direct dependencies expands into a much larger transitive graph. Your Application depends directly on express 4.18, prisma 5.0, and winston 3.8. Those direct dependencies branch into body-parser 1.20, cookie-parser 1.4, prisma-client 5.0, prisma-engines 5.0, and logform 2.4. The graph continues downward to raw-body 2.5, cookie 0.5, a Native Binary - Node 16+, iconv-lite 0.4, and safer-buffer 2.1. A grouped region labeled Direct 3 contains the three direct packages, and another labeled Transitive 10 plus contains the deeper dependency set. The native binary node is visually emphasized as the blocker. The diagram illustrates how a seemingly small application dependency list can conceal a much larger transitive tree where a single deep dependency can block a runtime upgrade."
+/>
 
-    B --> E[body-parser 1.20]
-    B --> F[cookie-parser 1.4]
-    C --> G[prisma-client 5.0]
-    C --> H[prisma-engines 5.0]
-    D --> I[logform 2.4]
-
-    E --> J[raw-body 2.5]
-    F --> K[cookie 0.5]
-    H --> L[Native Binary - Node 16+]
-    J --> M[iconv-lite 0.4]
-
-    M --> N[safer-buffer 2.1]
-
-    style A fill:#4CAF50
-    style B fill:#81C784
-    style C fill:#81C784
-    style D fill:#81C784
-    style L fill:#FF5722
-
-    subgraph direct[Direct 3]
-        B
-        C
-        D
-    end
-
-    subgraph transitive[Transitive 10 plus]
-        E
-        F
-        G
-        H
-        I
-        J
-        K
-        L
-        M
-        N
-    end
-```
-Figure: Direct dependencies hide a much larger transitive graph.
-
-The diagram shows a typical pattern: three direct dependencies fan out to ten transitive dependencies, and one of those transitives—the native binary in prisma-engines—has a hard runtime version constraint. That single node, four levels deep, determines whether your upgrade succeeds.
+The diagram shows a typical pattern: three direct dependencies fan out to ten transitive dependencies, and one of those transitives — the native binary in prisma-engines — has a hard runtime version constraint. That single node, four levels deep, determines whether your upgrade succeeds.
 
 Your first step is making this hidden graph visible. Every package manager provides tooling to dump the full tree and trace why a particular package exists in your dependency graph.
 
@@ -168,7 +130,7 @@ Native modules are usually the most painful. They ship compiled binaries that li
 Internal packages deserve special attention. If your organization maintains shared libraries, those libraries are now on your critical path. An internal package that pins an old runtime version blocks everyone who depends on it. The upgrade conversation becomes a coordination problem across teams, not a technical one.
 
 <Callout type="info">
-The packages you directly depend on are rarely the problem. It's the packages three or four levels deep—ones you've never heard of—that block your upgrade. Start analysis from the bottom of the tree, not the top.
+The packages you directly depend on are rarely the problem. It's the packages three or four levels deep — ones you've never heard of — that block your upgrade. Start analysis from the bottom of the tree, not the top.
 </Callout>
 
 ## Mapping the Upgrade Path
@@ -179,7 +141,7 @@ With the dependency graph visible and blockers classified, you can start plannin
 
 Start by cataloging every dependency that touches the runtime boundary. For each one, answer three questions: Does it support the target runtime? If not, is there a version that does? If no compatible version exists, what is the replacement?
 
-This is tedious work, but it is the foundation of your upgrade plan. I typically build a spreadsheet with columns for the package name, current version, target runtime compatibility, upgrade path, and estimated effort. The effort estimate does not need to be precise—you are trying to distinguish between "version bump" and "rewrite all call sites."
+This is tedious work, but it is the foundation of your upgrade plan. I typically build a spreadsheet with columns for the package name, current version, target runtime compatibility, upgrade path, and estimated effort. The effort estimate does not need to be precise — you are trying to distinguish between "version bump" and "rewrite all call sites."
 
 For transitive dependencies, focus on the ones that showed up as blockers in your graph analysis. You do not need to manually check every transitive package. You need to know which direct dependencies pull in incompatible transitives, because upgrading or replacing those direct dependencies is how you eliminate the blockers.
 
@@ -192,9 +154,18 @@ The order matters. Some upgrades unblock others. Some create risk that you want 
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Unblock__ means eliminating packages that have no path forward on the new runtime. If you are stuck on Node 16 because of `node-sass`, replacing it with Dart Sass is the first step—not because it is the most important change, but because everything else depends on it. These blockers sit at the bottom of your dependency graph, and until they are gone, you cannot move." },
-    { text: "__Core dependencies__ are the major libraries that define your application's architecture: your ORM, your web framework, your authentication library. These often have breaking changes between major versions, so upgrading them is real work. But they are also well-documented, with migration guides and changelogs. Do these upgrades while you are still on the old runtime. That way, if something breaks, you know it is the library upgrade, not the runtime change." },
-    { text: "__Runtime change__ comes last. By the time you change the Node version or .NET target framework, every dependency should already be compatible. The runtime switch itself should be anticlimactic—a container base image change and a CI configuration update. If you have done the preparation correctly, your tests pass on the first try." },
+    {
+      lead: "Unblock",
+      text: "Means eliminating packages that have no path forward on the new runtime. If you are stuck on Node 16 because of `node-sass`, replacing it with Dart Sass is the first step — not because it is the most important change, but because everything else depends on it. These blockers sit at the bottom of your dependency graph, and until they are gone, you cannot move.",
+    },
+    {
+      lead: "Core dependencies",
+      text: "The major libraries that define your application's architecture: your ORM, your web framework, your authentication library. These often have breaking changes between major versions, so upgrading them is real work. But they are also well-documented, with migration guides and changelogs. Do these upgrades while you are still on the old runtime. That way, if something breaks, you know it is the library upgrade, not the runtime change.",
+    },
+    {
+      lead: "Runtime change",
+      text: "Comes last. By the time you change the Node version or .NET target framework, every dependency should already be compatible. The runtime switch itself should be anticlimactic — a container base image change and a CI configuration update. If you have done the preparation correctly, your tests pass on the first try.",
+    },
   ]}
 />
 
@@ -204,9 +175,9 @@ Do not skip intermediate versions when the gap is large. Jumping from Node 14 to
 
 ### Estimating the Work
 
-Managers want timelines. The honest answer is that EOL upgrades are hard to estimate because the work is discovery-driven—you do not know what you will find until you start. But you can provide ranges based on blocker classification.
+Managers want timelines. The honest answer is that EOL upgrades are hard to estimate because the work is discovery-driven — you do not know what you will find until you start. But you can provide ranges based on blocker classification.
 
-Version bumps with no breaking changes take minutes. You update the version, run tests, and move on. Library upgrades with documented migration paths take hours to days, depending on how many call sites need to change. Package replacements—swapping one library for a different one with a different API—take days to weeks. And if you discover an abandoned dependency with no replacement, you are looking at forking, vendoring, or rewriting, which is unbounded.
+Version bumps with no breaking changes take minutes. You update the version, run tests, and move on. Library upgrades with documented migration paths take hours to days, depending on how many call sites need to change. Package replacements — swapping one library for a different one with a different API — take days to weeks. And if you discover an abandoned dependency with no replacement, you are looking at forking, vendoring, or rewriting, which is unbounded.
 
 Add up the estimates for your blocker list, then double it. EOL upgrades always surface surprises: undocumented behaviors your code depends on, test suites that assume a specific runtime version, deployment scripts that hardcode paths. The buffer is not pessimism; it is realism.
 
@@ -217,7 +188,7 @@ I strongly prefer serial upgrades. Change one thing, run the full test suite, co
 The exception is when you have genuinely independent workstreams. If one team owns the frontend build and another owns the backend ORM, they can work in parallel because their changes do not interact. But be conservative here. Dependencies have a way of being more coupled than you expect, and a "quick parallel fix" can turn into a merge conflict that costs more time than serial execution would have.
 
 <Callout type="success">
-Sequence upgrades to minimize parallel work streams. Each breaking change is a potential source of bugs—doing them serially means you know exactly what broke when tests fail.
+Sequence upgrades to minimize parallel work streams. Each breaking change is a potential source of bugs — doing them serially means you know exactly what broke when tests fail.
 </Callout>
 
 ## .NET Framework to .NET Core/5+ Migration
@@ -228,7 +199,7 @@ The .NET ecosystem has a unique challenge that Node and Python developers do not
 
 .NET Framework 4.8 reached feature-complete status in 2019. Microsoft continues to ship security patches, but new development happens exclusively on .NET 8 and beyond. If you are still on Framework, you are maintaining a codebase that cannot access modern C# language features, cannot run on Linux, and depends on Windows-only APIs that have no forward path.
 
-The breaking changes fall into three categories. _Removed APIs_ are namespaces and classes that do not exist in .NET Core at all—`System.Web` is the biggest one, but `WCF` server-side, `AppDomain.CreateDomain`, and various Windows-specific APIs are also gone. _Changed APIs_ still exist but work differently—`HttpContext` becomes `IHttpContextAccessor` with dependency injection, `ConfigurationManager` becomes `IConfiguration`, and `System.Drawing` has limited cross-platform support. _Architecture changes_ are the deepest—the entire application startup model moved from `Global.asax` to `Program.cs`, configuration moved from `Web.config` to `appsettings.json`, and dependency injection is now built into the framework rather than bolted on.
+The breaking changes fall into three categories. _Removed APIs_ are namespaces and classes that do not exist in .NET Core at all—`System.Web` is the biggest one, but `WCF` server-side, `AppDomain.CreateDomain`, and various Windows-specific APIs are also gone. _Changed APIs_ still exist but work differently—`HttpContext` becomes `IHttpContextAccessor` with dependency injection, `ConfigurationManager` becomes `IConfiguration`, and `System.Drawing` has limited cross-platform support. _Architecture changes_ are the deepest — the entire application startup model moved from `Global.asax` to `Program.cs`, configuration moved from `Web.config` to `appsettings.json`, and dependency injection is now built into the framework rather than bolted on.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -237,17 +208,26 @@ The breaking changes fall into three categories. _Removed APIs_ are namespaces a
     thead: { th: ["Blocker", "Replacement", "Migration Effort"] },
     tbody: {
       tr: [
-        { th: "ASP.NET Web Forms", td: ["Blazor or Razor Pages", "Extreme—full rewrite"] },
-        { th: "WCF server-side", td: ["gRPC or REST APIs", "High—new service contracts"] },
+        {
+          th: "ASP.NET Web Forms",
+          td: ["Blazor or Razor Pages", "Extreme — full rewrite"],
+        },
+        {
+          th: "WCF server-side",
+          td: ["gRPC or REST APIs", "High — new service contracts"],
+        },
         {
           th: "Entity Framework 6",
-          td: ["EF Core", "Medium-high—query translation differences"],
+          td: ["EF Core", "Medium-high — query translation differences"],
         },
         {
           th: "System.Web dependencies",
-          td: ["ASP.NET Core equivalents", "High—scattered throughout codebase"],
+          td: ["ASP.NET Core equivalents", "High — scattered throughout codebase"],
         },
-        { th: "Crystal Reports", td: ["Third-party or custom", "High—report redesign"] },
+        {
+          th: "Crystal Reports",
+          td: ["Third-party or custom", "High — report redesign"],
+        },
         {
           th: "Windows-only APIs",
           td: ["Platform-specific code or alternatives", "Varies"],
@@ -257,7 +237,7 @@ The breaking changes fall into three categories. _Removed APIs_ are namespaces a
   }}
 />
 
-Web Forms deserves special mention. There is no migration path. If your application uses Web Forms, you are looking at a rewrite in Blazor, Razor Pages, or a JavaScript frontend. This is often the blocker that kills .NET modernization projects—the effort is so large that teams choose to maintain Framework indefinitely or rebuild from scratch.
+Web Forms deserves special mention. There is no migration path. If your application uses Web Forms, you are looking at a rewrite in Blazor, Razor Pages, or a JavaScript frontend. This is often the blocker that kills .NET modernization projects — the effort is so large that teams choose to maintain Framework indefinitely or rebuild from scratch.
 
 ### Using the Upgrade Assistant
 
@@ -279,7 +259,7 @@ Code: Installing and running the .NET Upgrade Assistant.
 
 The analyze command generates a report showing which projects can migrate cleanly, which have blockers, and what those blockers are. This is the fastest way to get a compatibility assessment. The upgrade command walks you through the migration interactively, making changes and asking for confirmation at each step.
 
-Do not expect the tool to handle everything. It automates the mechanical parts—updating project file formats, changing target frameworks, adding package references. But it cannot rewrite your Web Forms pages or convert your WCF services. Use it to accelerate the parts it handles well, and plan manual work for the rest.
+Do not expect the tool to handle everything. It automates the mechanical parts — updating project file formats, changing target frameworks, adding package references. But it cannot rewrite your Web Forms pages or convert your WCF services. Use it to accelerate the parts it handles well, and plan manual work for the rest.
 
 ### Multi-Targeting for Gradual Migration
 
@@ -305,15 +285,15 @@ Code: A multi-targeting project file that compiles for both .NET Framework 4.8 a
 
 The conditional `ItemGroup` elements let you specify different dependencies for each target. Combined with `#if NETFRAMEWORK` preprocessor directives in your code, you can maintain platform-specific implementations behind a common interface.
 
-This approach works well for libraries but poorly for applications. An ASP.NET Framework application and an ASP.NET Core application have fundamentally different startup and hosting models—you cannot meaningfully multi-target them. Use this technique for shared code, not for the applications themselves.
+This approach works well for libraries but poorly for applications. An ASP.NET Framework application and an ASP.NET Core application have fundamentally different startup and hosting models — you cannot meaningfully multi-target them. Use this technique for shared code, not for the applications themselves.
 
 <Callout type="warning">
-.NET Framework to .NET 8 isn't an upgrade—it's a migration. APIs are removed, not deprecated. Web Forms has no equivalent. WCF server-side doesn't exist. Plan for significant rewriting, not just version bumps.
+.NET Framework to .NET 8 isn't an upgrade — it's a migration. APIs are removed, not deprecated. Web Forms has no equivalent. WCF server-side doesn't exist. Plan for significant rewriting, not just version bumps.
 </Callout>
 
 ## Node.js Version Upgrades
 
-Node.js upgrades are more forgiving than .NET migrations—the platform maintains better backward compatibility, and most pure JavaScript packages work across versions without changes. The problems cluster around native modules, cryptography changes, and the ongoing CommonJS-to-ESM transition.
+Node.js upgrades are more forgiving than .NET migrations — the platform maintains better backward compatibility, and most pure JavaScript packages work across versions without changes. The problems cluster around native modules, cryptography changes, and the ongoing CommonJS-to-ESM transition.
 
 ### Native Modules and the ABI Boundary
 
@@ -348,7 +328,7 @@ The tempting fix is to set `NODE_OPTIONS=--openssl-legacy-provider`, which re-en
 The correct fix is to audit your crypto usage. Search your codebase and dependencies for the specific algorithm that is failing. If it is in your code, update to a modern alternative. If it is in a dependency, check for a newer version that uses updated crypto. If the dependency is abandoned, you have another item for your replacement list.
 
 <Callout type="info">
-Node 18 and 20 changed OpenSSL defaults, breaking legacy crypto. If you see ERR_OSSL_EVP_UNSUPPORTED, don't just set --openssl-legacy-provider—audit your crypto usage and update to modern algorithms.
+Node 18 and 20 changed OpenSSL defaults, breaking legacy crypto. If you see ERR_OSSL_EVP_UNSUPPORTED, don't just set --openssl-legacy-provider — audit your crypto usage and update to modern algorithms.
 </Callout>
 
 ### The ESM Transition
@@ -374,7 +354,7 @@ console.log(chalk.green('Loaded ESM package from CommonJS'));
 ```
 Code: Using dynamic imports to load ESM packages from CommonJS.
 
-The third option is pinning to the last CommonJS version of the package. Check the changelog to find when the package went ESM-only, then pin your dependency to the version just before that. This buys time but is not a long-term solution—you are now stuck on an older version that will eventually stop receiving updates.
+The third option is pinning to the last CommonJS version of the package. Check the changelog to find when the package went ESM-only, then pin your dependency to the version just before that. This buys time but is not a long-term solution — you are now stuck on an older version that will eventually stop receiving updates.
 
 ## Web Framework EOL Considerations
 
@@ -438,13 +418,13 @@ Operating system EOL is the foundation beneath all the runtime and framework upg
 
 The GNU C Library (glibc) is the most common OS-level blocker. Every dynamically linked binary on a Linux system depends on glibc, and binaries compiled against a newer glibc version will not run on systems with older versions. You will see errors like "version GLIBC_2.28 not found."
 
-This affects you in two ways. First, prebuilt binaries for tools and runtimes may not work on your old OS. The Node.js 20 official binaries require glibc 2.28, which means they will not run on CentOS 7 (glibc 2.17) or Ubuntu 16.04 (glibc 2.23). Second, binaries you build on a newer OS will not run on older deployment targets—if your CI builds on Ubuntu 22.04 and deploys to Ubuntu 18.04, you may hit glibc mismatches.
+This affects you in two ways. First, prebuilt binaries for tools and runtimes may not work on your old OS. The Node.js 20 official binaries require glibc 2.28, which means they will not run on CentOS 7 (glibc 2.17) or Ubuntu 16.04 (glibc 2.23). Second, binaries you build on a newer OS will not run on older deployment targets — if your CI builds on Ubuntu 22.04 and deploys to Ubuntu 18.04, you may hit glibc mismatches.
 
 <Callout type="warning">
 If you are hitting glibc mismatches, upgrading the OS is the real fix. Workarounds like static linking or building on older systems are temporary measures that create ongoing maintenance burden.
 </Callout>
 
-The workarounds are limited: build on the oldest OS you need to support, use statically linked binaries where available, or—the real answer—upgrade your OS.
+The workarounds are limited: build on the oldest OS you need to support, use statically linked binaries where available, or — the real answer — upgrade your OS.
 
 ### Container Base Image Migration
 
@@ -467,7 +447,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip
 ```
 Code: Key differences when upgrading container base images.
 
-The critical principle: test your application on the new base image in dev _before_ committing to the upgrade. The combination of glibc version, system Python, OpenSSL version, and package availability changes between LTS releases can surface issues that are tedious to debug in production.
+The critical principle: test your application on the new base image in dev __before__ committing to the upgrade. The combination of glibc version, system Python, OpenSSL version, and package availability changes between LTS releases can surface issues that are tedious to debug in production.
 
 When you maintain images for multiple applications, consider a staged rollout: upgrade one low-risk application first, let it soak for a week, then proceed with higher-criticality services. The first upgrade catches the base image issues. Subsequent upgrades are smoother because you have already fixed the common problems.
 
@@ -478,10 +458,22 @@ For non-containerized infrastructure, OS upgrades require more coordination. The
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Preparation__ starts weeks before the migration. Inventory every server and its OS version. Identify applications with dependencies on OS-level packages or paths. Test applications on the new OS in dev and staging environments. Update CI/CD pipelines to build artifacts compatible with both OS versions." },
-    { text: "__Parallel operation__ runs both OS versions simultaneously in production. Route a small percentage of traffic to new-OS instances and monitor closely for errors, latency changes, and functional issues. This is where you discover the edge cases that testing missed—the hardcoded path that changed, the system call that behaves differently, the package that is no longer available." },
-    { text: "__Cutover__ shifts the majority of traffic to the new OS while keeping old instances warm. Do not decommission old infrastructure immediately. Give yourself a week to catch issues that only manifest under full production load or at specific times (batch jobs, month-end processing)." },
-    { text: "__Cleanup__ is where you finally remove the old infrastructure, update documentation, and simplify CI/CD back to a single target OS." },
+    {
+      lead: "Preparation",
+      text: "Starts weeks before the migration. Inventory every server and its OS version. Identify applications with dependencies on OS-level packages or paths. Test applications on the new OS in dev and staging environments. Update CI/CD pipelines to build artifacts compatible with both OS versions.",
+    },
+    {
+      lead: "Parallel operation",
+      text: "Runs both OS versions simultaneously in production. Route a small percentage of traffic to new-OS instances and monitor closely for errors, latency changes, and functional issues. This is where you discover the edge cases that testing missed — the hardcoded path that changed, the system call that behaves differently, the package that is no longer available.",
+    },
+    {
+      lead: "Cutover",
+      text: "Shifts the majority of traffic to the new OS while keeping old instances warm. Do not decommission old infrastructure immediately. Give yourself a week to catch issues that only manifest under full production load or at specific times (batch jobs, month-end processing).",
+    },
+    {
+      lead: "Cleanup",
+      text: "Where you finally remove the old infrastructure, update documentation, and simplify CI/CD back to a single target OS.",
+    },
   ]}
 />
 
@@ -495,9 +487,9 @@ Runtime and OS upgrades have documented migration paths. But abandoned dependenc
 
 ### Recognizing Abandonment
 
-Not every old package is abandoned. Some packages are simply stable—they do one thing well, they are done, and they do not need updates. The signal is not age alone; it is the combination of age, unresponsiveness, and incompatibility.
+Not every old package is abandoned. Some packages are simply stable — they do one thing well, they are done, and they do not need updates. The signal is not age alone; it is the combination of age, unresponsiveness, and incompatibility.
 
-Red flags include: no releases in two or more years, open issues and pull requests with no maintainer response, explicit deprecation notices without migration paths, and—most relevant to EOL upgrades—failure to work on current runtime versions. A package that was last updated in 2019 and throws errors on Node 20 is effectively abandoned for your purposes, regardless of whether the maintainer considers it complete.
+Red flags include: no releases in two or more years, open issues and pull requests with no maintainer response, explicit deprecation notices without migration paths, and — most relevant to EOL upgrades — failure to work on current runtime versions. A package that was last updated in 2019 and throws errors on Node 20 is effectively abandoned for your purposes, regardless of whether the maintainer considers it complete.
 
 Check the GitHub repository (or equivalent) before concluding a package is abandoned. Sometimes maintenance has moved to a fork, or the package has been absorbed into a larger project. The npm deprecation field, if set, often points to alternatives.
 
@@ -508,9 +500,18 @@ Your options, roughly in order of preference:
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Find a replacement.__ Many abandoned packages have actively maintained alternatives. The `request` library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements—`node-fetch`, `axios`, `got`—are well documented and widely adopted. Search for \"[package name] alternative\" or check the npm deprecation notice for suggestions." },
-    { text: "__Upgrade to a compatible version.__ Sometimes the package is not abandoned; you are just on an old version. Check whether a newer major version exists that supports your target runtime. This requires a migration, but it is often less work than replacing the package entirely." },
-    { text: "__Fork and patch.__ If the package is abandoned and has no replacement, you can fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. Update your package.json to reference the fork:" },
+    {
+      lead: "Find a replacement.",
+      text: "Many abandoned packages have actively maintained alternatives. The `request` library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements—`node-fetch`, `axios`, `got`—are well documented and widely adopted. Search for \"[package name] alternative\" or check the npm deprecation notice for suggestions.",
+    },
+    {
+      lead: "Upgrade to a compatible version.",
+      text: "Sometimes the package is not abandoned; you are just on an old version. Check whether a newer major version exists that supports your target runtime. This requires a migration, but it is often less work than replacing the package entirely.",
+    },
+    {
+      lead: "Fork and patch.",
+      text: "If the package is abandoned and has no replacement, you can fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. Update your package.json to reference the fork:",
+    },
   ]}
 />
 
@@ -531,8 +532,14 @@ The `npm:` prefix lets you alias the fork to the original package name, so you d
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Vendor the code.__ For small packages with simple functionality, copying the source code into your repository may be simpler than maintaining a fork. Put it in a `vendor/` directory, update your imports, and apply whatever patches you need. This removes the dependency from your package.json entirely." },
-    { text: "__Rewrite.__ If the package's functionality is narrow and well-defined, writing a replacement yourself may be faster than maintaining someone else's code. The infamous `left-pad` incident aside, many utility packages are just a few functions that you could implement in an afternoon." },
+    {
+      lead: "Vendor the code.",
+      text: "For small packages with simple functionality, copying the source code into your repository may be simpler than maintaining a fork. Put it in a `vendor/` directory, update your imports, and apply whatever patches you need. This removes the dependency from your package.json entirely.",
+    },
+    {
+      lead: "Rewrite.",
+      text: "If the package's functionality is narrow and well-defined, writing a replacement yourself may be faster than maintaining someone else's code. The infamous `left-pad` incident aside, many utility packages are just a few functions that you could implement in an afternoon.",
+    },
   ]}
 />
 
@@ -576,12 +583,12 @@ Code: .NET dependency version override via direct reference.
 For larger .NET solutions, Central Package Management (available in .NET 6+) provides better control. Define all package versions in a `Directory.Packages.props` file, and projects reference packages without specifying versions.
 
 <Callout type="info">
-Other ecosystems have varying support for version overrides. Bundler (Ruby) supports overrides via the `force_ruby_platform` config or by adding direct dependencies to your Gemfile. pip (Python) has no native override mechanism—you must add direct dependencies or use pip-compile with constraints files. Composer (PHP) supports `"replace"` and version aliases in composer.json. Yarn uses `"resolutions"` similar to npm overrides.
+Other ecosystems have varying support for version overrides. Bundler (Ruby) supports overrides via the `force_ruby_platform` config or by adding direct dependencies to your Gemfile. pip (Python) has no native override mechanism — you must add direct dependencies or use pip-compile with constraints files. Composer (PHP) supports `"replace"` and version aliases in composer.json. Yarn uses `"resolutions"` similar to npm overrides.
 </Callout>
 
 ### Patching Dependencies
 
-Overrides change _which version_ is installed. Patches change _the code itself_ after installation. This is useful when the fix you need does not exist in any released version—maybe it is in a PR that has not been merged, or you are fixing something specific to your use case.
+Overrides change __which version__ is installed. Patches change __the code itself__ after installation. This is useful when the fix you need does not exist in any released version — maybe it is in a PR that has not been merged, or you are fixing something specific to your use case.
 
 The `patch-package` tool for npm/yarn makes this workflow practical:
 
@@ -654,7 +661,7 @@ jobs:
 ```
 Code: GitHub Actions workflow testing against multiple Node versions.
 
-The `fail-fast: false` setting is important—you want to see results for all versions even if one fails. The `npm rebuild` step ensures native modules are compiled for each Node version being tested.
+The `fail-fast: false` setting is important — you want to see results for all versions even if one fails. The `npm rebuild` step ensures native modules are compiled for each Node version being tested.
 
 Run this matrix throughout your upgrade project. It tells you immediately when a dependency change breaks compatibility with either the old or new runtime. You want both to pass: the old version ensures you have not broken production, and the new version ensures you are making progress toward the target.
 
@@ -664,11 +671,11 @@ Beyond unit tests, pay special attention to integration tests that exercise exte
 
 Even with comprehensive tests, production traffic reveals things that tests miss. Deploy upgrades progressively, with clear rollback triggers.
 
-Start with a single canary instance receiving maybe 1% of traffic. Monitor error rates and latency for at least an hour. If metrics stay within acceptable bounds—I typically use 1.5x baseline as the threshold—expand to 5% for a few hours, then 25% for a day. Only then do a full rollout.
+Start with a single canary instance receiving maybe 1% of traffic. Monitor error rates and latency for at least an hour. If metrics stay within acceptable bounds — I typically use 1.5x baseline as the threshold — expand to 5% for a few hours, then 25% for a day. Only then do a full rollout.
 
-The key is automated rollback triggers. Define the conditions that should automatically revert the deployment: error rate exceeding 2x baseline for five minutes, p99 latency exceeding 2x baseline, any sign of data corruption. Do not rely on humans to notice and react—by the time someone pages you, the damage is done.
+The key is automated rollback triggers. Define the conditions that should automatically revert the deployment: error rate exceeding 2x baseline for five minutes, p99 latency exceeding 2x baseline, any sign of data corruption. Do not rely on humans to notice and react — by the time someone pages you, the damage is done.
 
-During the canary phase, segment your monitoring by runtime version. You want dashboards that show error rate _for Node 20 instances_ versus _for Node 16 instances_. If errors spike only on the new runtime, the cause is obvious. If errors spike on both, you have a different problem.
+During the canary phase, segment your monitoring by runtime version. You want dashboards that show error rate __for Node 20 instances__ versus __for Node 16 instances__. If errors spike only on the new runtime, the cause is obvious. If errors spike on both, you have a different problem.
 
 <Callout type="success">
 Run your test suite against both old and new runtime versions in CI. If tests pass on both, you have confidence the upgrade won't break existing functionality. If tests only pass on one, you've found your compatibility issues.
@@ -676,7 +683,7 @@ Run your test suite against both old and new runtime versions in CI. If tests pa
 
 ## Upgrade Runbook Template
 
-Complex upgrades benefit from written runbooks—not as bureaucratic overhead, but as checklists that prevent skipped steps under pressure. A runbook captures the upgrade procedure, verification steps, and rollback process in a form that anyone on the team can execute.
+Complex upgrades benefit from written runbooks — not as bureaucratic overhead, but as checklists that prevent skipped steps under pressure. A runbook captures the upgrade procedure, verification steps, and rollback process in a form that anyone on the team can execute.
 
 ### Pre-Upgrade Checklist
 
@@ -698,13 +705,33 @@ Document each step with its command, expected outcome, and rollback action if it
 <List
   variant="check-icons-list"
   items={[
-    { text: "Deploy canary instances with the new runtime.", lead: "Verify: pods running, health checks passing." },
-    { text: "Route 1% of traffic to canary.", lead: "Verify: metrics show traffic split." },
-    { text: "Monitor for 15 minutes.", lead: "Rollback if: error rate > 2x baseline or p99 latency > 2x baseline." },
-    { text: "Expand to 10% of traffic.", lead: "Monitor for 1 hour." },
-    { text: "Expand to 50% of traffic.", lead: "Monitor for 4 hours." },
-    { text: "Complete rollout.", lead: "Monitor for 24 hours." },
-    { text: "Decommission old runtime instances after soak period." },
+    {
+      text: "Deploy canary instances with the new runtime.",
+      lead: "Verify: pods running, health checks passing.",
+    },
+    {
+      text: "Route 1% of traffic to canary.",
+      lead: "Verify: metrics show traffic split.",
+    },
+    {
+      text: "Monitor for 15 minutes.",
+      lead: "Rollback if: error rate > 2x baseline or p99 latency > 2x baseline.",
+    },
+    {
+      text: "Expand to 10% of traffic.",
+      lead: "Monitor for 1 hour.",
+    },
+    {
+      text: "Expand to 50% of traffic.",
+      lead: "Monitor for 4 hours.",
+    },
+    {
+      text: "Complete rollout.",
+      lead: "Monitor for 24 hours.",
+    },
+    {
+      text: "Decommission old runtime instances after soak period.",
+    },
   ]}
 />
 
@@ -714,17 +741,17 @@ The specifics depend on your deployment tooling and traffic patterns. The princi
 
 The rollback section should be the simplest part of the runbook. Under stress, you want to execute the minimum steps to restore service, not debug the upgrade.
 
-Typical rollback: set the traffic split back to 0% for the new runtime, scale down the new instances, verify traffic is flowing through the old runtime, then investigate. Do not troubleshoot during an incident—restore service first.
+Typical rollback: set the traffic split back to 0% for the new runtime, scale down the new instances, verify traffic is flowing through the old runtime, then investigate. Do not troubleshoot during an incident — restore service first.
 
-Document the conditions that trigger rollback and make sure everyone on the team knows them. Error rate thresholds, latency thresholds, specific error messages that indicate incompatibility—these should be concrete, not judgment calls.
+Document the conditions that trigger rollback and make sure everyone on the team knows them. Error rate thresholds, latency thresholds, specific error messages that indicate incompatibility — these should be concrete, not judgment calls.
 
 ## Conclusion
 
-EOL runtime upgrades are not version bumps. They are forced audits of your entire dependency graph, and the blockers are rarely in code you own. The transitive dependencies—packages you have never looked at, three or four levels deep in the tree—are where upgrades stall.
+EOL runtime upgrades are not version bumps. They are forced audits of your entire dependency graph, and the blockers are rarely in code you own. The transitive dependencies — packages you have never looked at, three or four levels deep in the tree — are where upgrades stall.
 
 The approach that works: map the dependency graph before you start writing code. Identify and classify blockers by type. Sequence the work so that unblocking changes come first, core library upgrades come second, and the runtime change itself comes last. Test against both old and new runtimes in CI throughout the project. Deploy progressively with automated rollback triggers.
 
-The teams that struggle with EOL upgrades are the ones who wait until the deadline is imminent, then try to do everything at once. The teams that handle them smoothly treat upgrades as continuous maintenance—small, frequent updates rather than multi-year gaps that accumulate compounding breakage.
+The teams that struggle with EOL upgrades are the ones who wait until the deadline is imminent, then try to do everything at once. The teams that handle them smoothly treat upgrades as continuous maintenance — small, frequent updates rather than multi-year gaps that accumulate compounding breakage.
 
 The overrides, patches, and forks described in this article are stopgaps, not destinations. They buy time for a proper fix while keeping you off EOL runtimes. If you find yourself maintaining patched dependencies for months, that is a signal to invest in proper replacement or contribute the fix upstream.
 

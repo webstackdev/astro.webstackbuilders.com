@@ -25,9 +25,9 @@ Kubernetes releases new versions roughly every four months. Each version brings 
 
 Yet upgrades feel scary. The control plane manages everything - one mistake can take down the entire cluster. So teams delay. "Everything is working fine" becomes the justification for running a version that's a year out of support.
 
-I watched this play out at a company that avoided upgrades for 18 months. When they finally _had_ to upgrade for security compliance, they faced a five-version jump. Deprecated APIs were everywhere. Custom controllers broke. Workloads failed in ways nobody expected. What should have been four routine 2-hour maintenance windows became a three-week crisis involving weekend war rooms and executive escalations.
+I watched this play out at a company that avoided upgrades for 18 months. When they finally __had__ to upgrade for security compliance, they faced a five-version jump. Deprecated APIs were everywhere. Custom controllers broke. Workloads failed in ways nobody expected. What should have been four routine 2-hour maintenance windows became a three-week crisis involving weekend war rooms and executive escalations.
 
-The lesson: frequent, incremental upgrades are _less_ risky than infrequent large jumps. The goal of this playbook is to make upgrades boring - predictable procedures that happen quarterly without drama.
+The lesson: frequent, incremental upgrades are __less__ risky than infrequent large jumps. The goal of this playbook is to make upgrades boring - predictable procedures that happen quarterly without drama.
 
 <Callout type="warning">
 The riskiest upgrade is the one you've been avoiding. Each version you skip accumulates: deprecated APIs, changed behaviors, incompatible add-ons. A cluster 3+ versions behind is an emergency waiting to happen.
@@ -52,7 +52,7 @@ Most upgrade failures trace back to skipped preparation. Before touching the clu
     },
     {
       lead: "Backup and recovery",
-      text: "is your safety net. Take an etcd snapshot before starting. Document current cluster state with `kubectl get all -A -o yaml`. Most importantly, document and _test_ your rollback procedure in a non-production environment before you need it.",
+      text: "is your safety net. Take an etcd snapshot before starting. Document current cluster state with `kubectl get all -A -o yaml`. Most importantly, document and test your rollback procedure in a non-production environment before you need it.",
     },
   ]}
 />
@@ -72,32 +72,48 @@ etcdctl snapshot status /backup/etcd-pre-upgrade-$(date +%Y%m%d).db
 ```
 Code: etcd backup before upgrade.
 
-_Compatibility verification_ catches the issues that break workloads. Check that your add-ons - CNI plugin, CSI drivers, ingress controller, cert-manager, monitoring stack - are compatible with the target version. Run custom controllers against the target version in staging. Validate workload manifests for deprecated APIs.
+__Compatibility verification__ catches the issues that break workloads. Check that your add-ons - CNI plugin, CSI drivers, ingress controller, cert-manager, monitoring stack - are compatible with the target version. Run custom controllers against the target version in staging. Validate workload manifests for deprecated APIs.
 
 <Table
   variant="vertical-column-delineation-table"
   content={{
     figure: "Pre-upgrade checklist summary.",
     thead: {
-      th: ["Category", "Key Checks", "Abort If"],
+      th: [
+        "Category",
+        "Key Checks",
+        "Abort If",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Timing",
-          td: ["Release notes reviewed, upgrade path valid", "Multi-version jump required"],
+          td: [
+            "Release notes reviewed, upgrade path valid",
+            "Multi-version jump required",
+          ],
         },
         {
           th: "Health",
-          td: ["Nodes Ready, pods running, etcd healthy", "Unhealthy components"],
+          td: [
+            "Nodes Ready, pods running, etcd healthy",
+            "Unhealthy components",
+          ],
         },
         {
           th: "Backup",
-          td: ["etcd snapshot taken, rollback tested", "Backup failed"],
+          td: [
+            "etcd snapshot taken, rollback tested",
+            "Backup failed",
+          ],
         },
         {
           th: "Compatibility",
-          td: ["Add-ons verified, deprecated APIs addressed", "Incompatible add-ons"],
+          td: [
+            "Add-ons verified, deprecated APIs addressed",
+            "Incompatible add-ons",
+          ],
         },
       ],
     },
@@ -167,11 +183,11 @@ The order of operations matters. Upgrade in the wrong sequence and you'll hit ve
   ]}
 />
 
-For _self-managed HA clusters_ (kubeadm with multiple control plane nodes), you upgrade one control plane node at a time. The first node gets `kubeadm upgrade apply`, which upgrades the API server, controller-manager, scheduler, and etcd on that node. Remaining control plane nodes get `kubeadm upgrade node`. During each node's upgrade (typically 2-5 minutes), that node's API server is unavailable, but other control plane nodes continue serving requests. There's brief disruption during leader election when the active controller-manager or scheduler node upgrades, but workloads aren't affected.
+For __self-managed HA clusters__ (kubeadm with multiple control plane nodes), you upgrade one control plane node at a time. The first node gets `kubeadm upgrade apply`, which upgrades the API server, controller-manager, scheduler, and etcd on that node. Remaining control plane nodes get `kubeadm upgrade node`. During each node's upgrade (typically 2-5 minutes), that node's API server is unavailable, but other control plane nodes continue serving requests. There's brief disruption during leader election when the active controller-manager or scheduler node upgrades, but workloads aren't affected.
 
-For _single control plane clusters_, the API server is unavailable during the upgrade. Existing workloads continue running - pods don't restart just because the API server is down - but nothing can deploy, scale, or update until the control plane is back. This is why single control plane clusters should have short maintenance windows.
+For __single control plane clusters__, the API server is unavailable during the upgrade. Existing workloads continue running - pods don't restart just because the API server is down - but nothing can deploy, scale, or update until the control plane is back. This is why single control plane clusters should have short maintenance windows.
 
-For _managed Kubernetes_ (EKS, GKE, AKS), the cloud provider handles the mechanics. They typically use a similar rolling approach internally, but you don't control the timing. EKS and AKS upgrade the control plane atomically from your perspective - you run the command and wait. GKE gives more visibility into the process. In all cases, there's a period (typically 10-30 minutes) where control plane operations may be slow or unavailable.
+For __managed Kubernetes__ (EKS, GKE, AKS), the cloud provider handles the mechanics. They typically use a similar rolling approach internally, but you don't control the timing. EKS and AKS upgrade the control plane atomically from your perspective - you run the command and wait. GKE gives more visibility into the process. In all cases, there's a period (typically 10-30 minutes) where control plane operations may be slow or unavailable.
 
 ```bash
 # Self-managed (kubeadm)
@@ -235,29 +251,54 @@ Code: Worker node upgrade sequence.
   content={{
     figure: "Upgrade phases with risk assessment.",
     thead: {
-      th: ["Phase", "Duration", "Risk Level", "Rollback Difficulty"],
+      th: [
+        "Phase",
+        "Duration",
+        "Risk Level",
+        "Rollback Difficulty",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Preparation",
-          td: ["30 min", "Low", "N/A"],
+          td: [
+            "30 min",
+            "Low",
+            "N/A",
+          ],
         },
         {
           th: "Control Plane",
-          td: ["30-60 min", "High", "Hard (restore from backup)"],
+          td: [
+            "30-60 min",
+            "High",
+            "Hard (restore from backup)",
+          ],
         },
         {
           th: "Add-ons",
-          td: ["15-30 min", "Medium", "Medium (reinstall previous)"],
+          td: [
+            "15-30 min",
+            "Medium",
+            "Medium (reinstall previous)",
+          ],
         },
         {
           th: "Workers",
-          td: ["10-15 min/node", "Low", "Easy (don't uncordon)"],
+          td: [
+            "10-15 min/node",
+            "Low",
+            "Easy (don't uncordon)",
+          ],
         },
         {
           th: "Validation",
-          td: ["15-30 min", "Low", "N/A"],
+          td: [
+            "15-30 min",
+            "Low",
+            "N/A",
+          ],
         },
       ],
     },
@@ -297,21 +338,38 @@ If you have multiple clusters, don't upgrade them all at once. Use a tiered appr
   content={{
     figure: "Canary cluster upgrade schedule.",
     thead: {
-      th: ["Cluster Tier", "Upgrade Timing", "Soak Period", "Proceed If"],
+      th: [
+        "Cluster Tier",
+        "Upgrade Timing",
+        "Soak Period",
+        "Proceed If",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Canary (dev, staging)",
-          td: ["Day 1", "3-5 business days", "No issues observed"],
+          td: [
+            "Day 1",
+            "3-5 business days",
+            "No issues observed",
+          ],
         },
         {
           th: "Non-critical prod",
-          td: ["After tier 1 soak", "5-7 business days", "Metrics stable"],
+          td: [
+            "After tier 1 soak",
+            "5-7 business days",
+            "Metrics stable",
+          ],
         },
         {
           th: "Critical prod",
-          td: ["After tier 2 soak", "7-14 business days", "Full confidence"],
+          td: [
+            "After tier 2 soak",
+            "7-14 business days",
+            "Full confidence",
+          ],
         },
       ],
     },
@@ -347,21 +405,38 @@ For managed Kubernetes (EKS, GKE, AKS), node pool strategy significantly affects
   content={{
     figure: "Node pool upgrade strategy comparison.",
     thead: {
-      th: ["Strategy", "Rollback Ease", "Cost During Upgrade", "Best For"],
+      th: [
+        "Strategy",
+        "Rollback Ease",
+        "Cost During Upgrade",
+        "Best For",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "In-place rolling",
-          td: ["Hard", "None", "Small clusters, tight budgets"],
+          td: [
+            "Hard",
+            "None",
+            "Small clusters, tight budgets",
+          ],
         },
         {
           th: "Blue-green pools",
-          td: ["Easy", "2x nodes temporarily", "Production, stateless workloads"],
+          td: [
+            "Easy",
+            "2x nodes temporarily",
+            "Production, stateless workloads",
+          ],
         },
         {
           th: "Surge upgrade",
-          td: ["Medium", "+N% nodes temporarily", "Most production scenarios"],
+          td: [
+            "Medium",
+            "+N% nodes temporarily",
+            "Most production scenarios",
+          ],
         },
       ],
     },
@@ -543,25 +618,46 @@ If you used blue-green node pools for the upgrade, rollback is trivial: uncordon
   content={{
     figure: "Rollback scenario risk assessment.",
     thead: {
-      th: ["Rollback Scenario", "Complexity", "Data Loss Risk", "Downtime"],
+      th: [
+        "Rollback Scenario",
+        "Complexity",
+        "Data Loss Risk",
+        "Downtime",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Single worker node",
-          td: ["Low", "None", "Per-node"],
+          td: [
+            "Low",
+            "None",
+            "Per-node",
+          ],
         },
         {
           th: "All worker nodes",
-          td: ["Medium", "None", "Rolling"],
+          td: [
+            "Medium",
+            "None",
+            "Rolling",
+          ],
         },
         {
           th: "Control plane (kubeadm)",
-          td: ["High", "Possible", "Minutes"],
+          td: [
+            "High",
+            "Possible",
+            "Minutes",
+          ],
         },
         {
           th: "Control plane (managed)",
-          td: ["Very High", "Possible", "Hours"],
+          td: [
+            "Very High",
+            "Possible",
+            "Hours",
+          ],
         },
       ],
     },
@@ -580,7 +676,7 @@ The upgrade isn't complete when the last node reports Ready. It's complete when 
 
 I organize post-upgrade checks into five categories, run in order of criticality:
 
-_Infrastructure checks_ verify the cluster itself is healthy. All nodes should be Ready, control plane components should show healthy status, and the API server should respond quickly. These are blocking - don't proceed if any fail.
+__Infrastructure checks__ verify the cluster itself is healthy. All nodes should be Ready, control plane components should show healthy status, and the API server should respond quickly. These are blocking - don't proceed if any fail.
 
 ```bash
 #!/bin/bash
@@ -641,29 +737,54 @@ Validation should be automated and fast. If checking takes an hour, you won't ch
   content={{
     figure: "Validation checks by category.",
     thead: {
-      th: ["Validation Category", "Critical Checks", "Non-Critical Checks", "Target Time"],
+      th: [
+        "Validation Category",
+        "Critical Checks",
+        "Non-Critical Checks",
+        "Target Time",
+      ],
     },
     tbody: {
       tr: [
         {
           th: "Infrastructure",
-          td: ["Nodes Ready, API healthy", "Node resource pressure", "30 seconds"],
+          td: [
+            "Nodes Ready, API healthy",
+            "Node resource pressure",
+            "30 seconds",
+          ],
         },
         {
           th: "Networking",
-          td: ["DNS, pod-to-pod", "External egress", "60 seconds"],
+          td: [
+            "DNS, pod-to-pod",
+            "External egress",
+            "60 seconds",
+          ],
         },
         {
           th: "Storage",
-          td: ["PVCs bound", "Storage class default", "30 seconds"],
+          td: [
+            "PVCs bound",
+            "Storage class default",
+            "30 seconds",
+          ],
         },
         {
           th: "Workloads",
-          td: ["System pods, no crashloops", "Pending pods", "60 seconds"],
+          td: [
+            "System pods, no crashloops",
+            "Pending pods",
+            "60 seconds",
+          ],
         },
         {
           th: "Observability",
-          td: ["Metrics scraping", "Dashboard loading", "60 seconds"],
+          td: [
+            "Metrics scraping",
+            "Dashboard loading",
+            "60 seconds",
+          ],
         },
       ],
     },
@@ -678,7 +799,7 @@ The goal is confidence. If your validation suite passes, you should feel comfort
 
 ## Conclusion
 
-Kubernetes upgrades don't have to be scary. The teams I've seen handle them best share a few common practices: they prepare thoroughly with deprecated API detection and compatibility checks; they follow strict upgrade ordering; they use canary clusters and staged rollouts to limit blast radius; they have tested rollback procedures ready _before_ they start; and they validate comprehensively after each phase.
+Kubernetes upgrades don't have to be scary. The teams I've seen handle them best share a few common practices: they prepare thoroughly with deprecated API detection and compatibility checks; they follow strict upgrade ordering; they use canary clusters and staged rollouts to limit blast radius; they have tested rollback procedures ready __before__ they start; and they validate comprehensively after each phase.
 
 The investment in upgrade infrastructure pays for itself quickly. Automated API scanning, blue-green node pools, practiced rollbacks, and comprehensive validation all reduce risk and build confidence.
 

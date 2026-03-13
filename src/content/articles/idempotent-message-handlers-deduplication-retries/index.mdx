@@ -9,6 +9,8 @@ tags: ["systems-and-development", "python", "aws", "typescript"]
 featured: true
 ---
 
+import idempotencyFlowDiagram from "./diagrams/idempotency-flow-second-delivery-skips-processing-entirely.jpg"
+
 *[ACK]: Acknowledgment
 *[UUID]: Universally Unique Identifier
 *[ULID]: Universally Unique Lexicographically Sortable Identifier
@@ -19,7 +21,7 @@ Your payment service receives a charge message, successfully charges the custome
 
 This isn't a hypothetical edge case. I've seen it happen in production - payment services that charged customers twice, inventory systems where stock counts drifted negative from duplicate decrements, and welcome emails that arrived in triplicate. The common thread? Handlers that assumed each message would arrive exactly once.
 
-Every production queue operates on at-least-once delivery - "probably more than once." The question isn't _if_ duplicates arrive, it's when.
+Every production queue operates on at-least-once delivery - "probably more than once." The question isn't __if__ duplicates arrive, it's when.
 
 This article covers the two foundational patterns for building idempotent handlers: designing idempotency keys that reliably identify duplicates, and choosing the right storage strategy for your deduplication state.
 
@@ -38,7 +40,7 @@ There are four common strategies, each with distinct tradeoffs:
     },
     {
       lead: "Content hash",
-      text: "works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content _should_ be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
+      text: "works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content should be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
     },
     {
       lead: "Business key composite",
@@ -108,32 +110,11 @@ The `ON CONFLICT` clause makes the insert atomic. If the key already exists, the
 
 The sequence diagram below shows the full flow. Notice that on the second delivery, the handler skips all business logic and immediately acknowledges - the idempotency store has already recorded success.
 
-```mermaid
-sequenceDiagram
-    participant Q as Queue
-    participant H as Handler
-    participant S as Idempotency Store
-    participant DB as Database
-
-    Q->>H: Deliver message (1st time)
-    H->>S: Check key "order:123:pay"
-    S-->>H: Not found, lock acquired
-
-    H->>DB: Process payment
-    DB-->>H: Success
-
-    H->>S: Mark completed + cache result
-    H->>Q: ACK message
-
-    Note over Q,H: Consumer crashes, message redelivered
-
-    Q->>H: Deliver message (2nd time)
-    H->>S: Check key "order:123:pay"
-    S-->>H: Found: completed, result cached
-
-    H->>Q: ACK message (skip processing)
-```
-Figure: Idempotency flow showing first delivery processing and second delivery short-circuit.
+<Diagram
+  src={idempotencyFlowDiagram}
+  title="Idempotency flow - second delivery skips processing entirely."
+  description="Sequence diagram showing how an idempotent message handler processes a first delivery and short-circuits a duplicate. A queue delivers a message to the handler, which checks the idempotency store for key order:123:pay. The store reports the key is not found and grants the lock. The handler processes the payment through the database, receives success, marks the idempotency key as completed with a cached result, and acknowledges the message back to the queue. Later, after a note indicating the consumer crashed and the message was redelivered, the queue sends the same message again. The handler checks the same idempotency key, the store reports it is already completed with a cached result, and the handler immediately acknowledges the message without processing the payment again."
+/>
 
 Which storage should you use? It depends on your consistency requirements and latency budget:
 

@@ -17,9 +17,9 @@ Last year, a routine deploy took down production for two hours. An engineer ran 
 
 The postmortem was predictable: "improve the wrapper's context handling." But here's the uncomfortable truth - that wrapper shouldn't have existed in its current form. It was solving a problem that didn't warrant the complexity, and the abstraction itself became the attack surface.
 
-This isn't an isolated story. Platform teams love building internal CLIs, and I've built several myself. Some genuinely improved developer experience: hiding multi-step complexity, enforcing standards, preventing the kind of mistakes that page you at 3am. Others became maintenance nightmares that lagged behind upstream releases, broke in subtle ways, and required developers to learn both the wrapper _and_ the underlying tool to troubleshoot problems.
+This isn't an isolated story. Platform teams love building internal CLIs, and I've built several myself. Some genuinely improved developer experience: hiding multi-step complexity, enforcing standards, preventing the kind of mistakes that page you at 3am. Others became maintenance nightmares that lagged behind upstream releases, broke in subtle ways, and required developers to learn both the wrapper __and__ the underlying tool to troubleshoot problems.
 
-The question isn't whether you _can_ build a wrapper - it's whether you _should_. And if you do, how do you build it in a way that doesn't become a liability?
+The question isn't whether you __can__ build a wrapper - it's whether you __should__. And if you do, how do you build it in a way that doesn't become a liability?
 
 ## When Wrappers Genuinely Add Value
 
@@ -38,7 +38,7 @@ Not all wrappers are created equal. Some genuinely earn their maintenance cost; 
     },
     {
       lead: "Context injection",
-      text: "automatically selects environment-specific configuration. A terraform wrapper that auto-selects workspace, backend, and var files based on your git branch eliminates \"I thought I was in staging\" mistakes - but only if it _shows_ you what it detected. Silent context switching is how you get production outages.",
+      text: "automatically selects environment-specific configuration. A terraform wrapper that auto-selects workspace, backend, and var files based on your git branch eliminates \"I thought I was in staging\" mistakes - but only if it shows you what it detected. Silent context switching is how you get production outages.",
     },
     {
       lead: "Credential management",
@@ -87,25 +87,25 @@ Each "no" is a signal that better docs, shell aliases, or lightweight scripts wi
 
 ## The Transparent Wrapper Pattern
 
-If you've decided a wrapper is worth building, the core principle is _transparency_: your wrapper should add value without hiding what's happening. Developers should always be able to see the underlying commands, bypass the wrapper when needed, and use their existing tool knowledge.
+If you've decided a wrapper is worth building, the core principle is __transparency__: your wrapper should add value without hiding what's happening. Developers should always be able to see the underlying commands, bypass the wrapper when needed, and use their existing tool knowledge.
 
-The transparent wrapper pattern treats the underlying tool as the source of truth. The wrapper adds hooks for context injection, guard rails, and logging, but everything it doesn't explicitly handle passes through unchanged. Unknown flags? Pass them through. New subcommands? Pass them through. The wrapper should _never_ be the reason a valid command fails.
+The transparent wrapper pattern treats the underlying tool as the source of truth. The wrapper adds hooks for context injection, guard rails, and logging, but everything it doesn't explicitly handle passes through unchanged. Unknown flags? Pass them through. New subcommands? Pass them through. The wrapper should __never__ be the reason a valid command fails.
 
 <Callout type="info">
 The best wrappers are thin. They compose underlying tools rather than reimplementing them. When developers outgrow the wrapper, the transition to raw tools should be seamless.
 </Callout>
 
-Two features are essential. First, `--wrapper-debug` shows exactly what command will be executed, so developers can verify the wrapper is doing what they expect. Second, `--wrapper-bypass` lets them skip the wrapper entirely when they hit edge cases - and there _will_ be edge cases.
+Two features are essential. First, `--wrapper-debug` shows exactly what command will be executed, so developers can verify the wrapper is doing what they expect. Second, `--wrapper-bypass` lets them skip the wrapper entirely when they hit edge cases - and there __will__ be edge cases.
 
-Notice what a transparent wrapper _doesn't_ do: it doesn't parse kubectl's output, it doesn't assume specific flag formats, and it doesn't try to interpret what the user is doing beyond the minimum needed for guard rails. This restraint is what makes it maintainable. When kubectl adds a new flag in version 1.32, the wrapper doesn't need to change - the flag passes through automatically.
+Notice what a transparent wrapper __doesn't__ do: it doesn't parse kubectl's output, it doesn't assume specific flag formats, and it doesn't try to interpret what the user is doing beyond the minimum needed for guard rails. This restraint is what makes it maintainable. When kubectl adds a new flag in version 1.32, the wrapper doesn't need to change - the flag passes through automatically.
 
 <Newsletter />
 
 ### Context Injection Done Right
 
-Earlier I mentioned context injection as a legitimate use case - auto-selecting environment configs based on git branch or directory. But this is also where wrappers most often go wrong. Remember the `tf-deploy` incident? The rule is simple: _always show the injected context, never hide it_.
+Earlier I mentioned context injection as a legitimate use case - auto-selecting environment configs based on git branch or directory. But this is also where wrappers most often go wrong. Remember the `tf-deploy` incident? The rule is simple: __always show the injected context, never hide it__.
 
-A kubectl wrapper that silently switches to production because you're on the `main` branch is a disaster waiting to happen. A wrapper that _shows_ you it detected production context and asks for confirmation? That's genuinely useful.
+A kubectl wrapper that silently switches to production because you're on the `main` branch is a disaster waiting to happen. A wrapper that __shows__ you it detected production context and asks for confirmation? That's genuinely useful.
 
 ```text title="context-display-example.txt"
 ┌─────────────────────────────────────┐

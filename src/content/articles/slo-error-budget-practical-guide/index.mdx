@@ -9,6 +9,8 @@ tags: ["reliability-and-testing","prometheus","typescript"]
 featured: true
 ---
 
+import fromSliDiagram from "./diagrams/from-SLI-measurement-to-error-budget-decision-flow.jpg"
+
 *[SLA]: Service Level Agreement
 *[SLI]: Service Level Indicator
 *[SLIs]: Service Level Indicators
@@ -16,7 +18,7 @@ featured: true
 *[SLOs]: Service Level Objectives
 *[SRE]: Site Reliability Engineering
 
-Every deployment becomes a political negotiation. "Is this change safe enough?" gets answered by whoever argues loudest or has more organizational capital. Product wants to ship. Engineering wants to experiment. Operations—or SRE, as the discipline has evolved—wants stability. Without a shared framework, these conversations become battles of opinion where the most senior person in the room wins—not the most informed decision.
+Every deployment becomes a political negotiation. "Is this change safe enough?" gets answered by whoever argues loudest or has more organizational capital. Product wants to ship. Engineering wants to experiment. Operations — or SRE, as the discipline has evolved — wants stability. Without a shared framework, these conversations become battles of opinion where the most senior person in the room wins — not the most informed decision.
 
 Error budgets change the game. Instead of "should we ship this risky change?" the question becomes "do we have budget to spend on this risk?" The answer is a number, not an opinion. And that number creates alignment where politics used to create friction.
 
@@ -49,17 +51,11 @@ Those 43 minutes are yours to spend however you want. A 10-minute deployment tha
 
 The mental shift matters more than the math: you're not trying to prevent all failures. You're trying to fail less often than your budget allows. Reliability becomes a resource to manage, not an absolute to pursue.
 
-```mermaid
-flowchart LR
-    A[SLI: Actual Measurements] --> B[SLO: Target Level]
-    B --> C[Error Budget: 100% - SLO]
-    C --> D[Budget Consumed: Actual Errors]
-    D --> E{Budget Remaining?}
-    E -->|Yes| F[Ship Features]
-    E -->|No| G[Focus on Reliability]
-```
-
-Figure: Error budget decision flow—when budget is healthy, ship. When it's depleted, invest in reliability.
+<Diagram
+  src={fromSliDiagram}
+  title="From SLI measurement to error budget decision flow."
+  description="A left-to-right flowchart showing how teams turn service measurements into a delivery decision. SLI: Actual Measurements feed into SLO: Target Level. That target defines the Error Budget as 100 percent minus the SLO. Actual errors consume that budget, leading to a decision point labeled Budget Remaining? If budget remains, the flow continues to Ship Features. If no budget remains, the flow moves to Focus on Reliability. The diagram shows how remaining budget determines whether teams prioritize delivery or reliability work."
+/>
 
 ## Spending Budget Wisely
 
@@ -73,7 +69,7 @@ Poor investments include untested deployments (unpredictable budget impact), Fri
 
 ## The Budget Conversation
 
-This is where error budgets prove their worth. Product wants to launch a new payment flow next week. Engineering estimates the change is medium-risk—it touches the checkout path and historically similar changes cause 5-10 minutes of elevated errors during rollout. SRE checks the dashboard: 25 minutes of budget remaining this month.
+This is where error budgets prove their worth. Product wants to launch a new payment flow next week. Engineering estimates the change is medium-risk — it touches the checkout path and historically similar changes cause 5-10 minutes of elevated errors during rollout. SRE checks the dashboard: 25 minutes of budget remaining this month.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -101,15 +97,15 @@ This is where error budgets prove their worth. Product wants to launch a new pay
         },
       ],
     },
-    figure: 'How error budgets transform deployment conversations.',
+    figure: 'Error budget deployment decisions.',
   }}
 />
 
-The answer might still be yes—but now it's an informed yes, with shared understanding of the tradeoff. Everyone sees the same number. Everyone understands what's being spent and what's left. The decision is collaborative rather than political.
+The answer might still be yes — but now it's an informed yes, with shared understanding of the tradeoff. Everyone sees the same number. Everyone understands what's being spent and what's left. The decision is collaborative rather than political.
 
 ## When Budget Gets Low
 
-An error budget without a policy is just a dashboard. The policy defines what happens when budget gets low—and critically, it defines this _before_ you're in crisis mode making decisions under pressure.
+An error budget without a policy is just a dashboard. The policy defines what happens when budget gets low — and critically, it defines this __before__ you're in crisis mode making decisions under pressure.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -137,22 +133,22 @@ An error budget without a policy is just a dashboard. The policy defines what ha
         },
       ],
     },
-    figure: 'Error budget policy thresholds—define these before you need them.',
+    figure: 'Error budget policy thresholds.',
   }}
 />
 
 The specific thresholds will vary by organization and service criticality. A payment system might trigger Orange at 30% remaining; an internal tool might not freeze features until budget is exhausted. The important thing is having agreed-upon rules before you need them.
 
-One critical detail: automated enforcement must have escape hatches. Sometimes you need to deploy a critical security patch even with exhausted budget. Build in exception workflows with appropriate approvals and audit trails—but make exceptions visible and uncomfortable enough that they don't become the norm.
+One critical detail: automated enforcement must have escape hatches. Sometimes you need to deploy a critical security patch even with exhausted budget. Build in exception workflows with appropriate approvals and audit trails — but make exceptions visible and uncomfortable enough that they don't become the norm.
 
 ## Getting Started
 
-Error budgets succeed when they create alignment, not compliance. The goal isn't to hit arbitrary targets—it's to have a shared language for reliability that lets engineering, product, and SRE make informed tradeoffs together.
+Error budgets succeed when they create alignment, not compliance. The goal isn't to hit arbitrary targets — it's to have a shared language for reliability that lets engineering, product, and SRE make informed tradeoffs together.
 
 <Download
   resource="slo-error-budget-practical-guide"
   title="SLIs, SLOs, and Error Budgets: A Practical Guide"
-  description="From choosing user-centric metrics to negotiating reliability tradeoffs with stakeholders—the complete framework for service level management."
+  description="From choosing user-centric metrics to negotiating reliability tradeoffs with stakeholders — the complete framework for service level management."
   listItems={[
     { text: "SLO target setting worksheet" },
     { text: "Error budget policy templates" },
@@ -161,8 +157,8 @@ Error budgets succeed when they create alignment, not compliance. The goal isn't
   ]}
 />
 
-Start simple: one service, two SLIs (availability and latency), one quarter of measurement. Pick a service that's broken enough to demonstrate value when improved but not so broken that fixing it seems impossible—you want a quick win, not a multi-quarter project. Set your initial SLO slightly below your current performance so you have a target you can hit from day one while leaving room for normal variation.
+Start simple: one service, two SLIs (availability and latency), one quarter of measurement. Pick a service that's broken enough to demonstrate value when improved but not so broken that fixing it seems impossible — you want a quick win, not a multi-quarter project. Set your initial SLO slightly below your current performance so you have a target you can hit from day one while leaving room for normal variation.
 
-After a quarter, you'll know whether the SLO is too tight (constant breaches, alert fatigue), too loose (never breaches, no useful signal), or about right. Most teams need 2-3 iterations to find the right level. That's expected—the first SLO is never perfect, and it doesn't need to be.
+After a quarter, you'll know whether the SLO is too tight (constant breaches, alert fatigue), too loose (never breaches, no useful signal), or about right. Most teams need 2-3 iterations to find the right level. That's expected — the first SLO is never perfect, and it doesn't need to be.
 
 The value is in the conversation it enables, not the number itself.

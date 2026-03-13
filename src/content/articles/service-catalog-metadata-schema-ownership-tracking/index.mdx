@@ -14,21 +14,21 @@ featured: true
 *[MTTR]: Mean Time To Recovery
 *[SLO]: Service Level Objective
 
-Service catalogs follow a depressingly predictable arc. At launch, you've got 90% coverage and 95% accuracy—teams are entering their services because the initiative has leadership attention. By year two, coverage has dropped to 45%, accuracy to 30%, and the catalog has become a punchline in onboarding jokes. Engineers ask in Slack instead of checking the catalog because they've learned they can't trust it.
+Service catalogs follow a depressingly predictable arc. At launch, you've got 90% coverage and 95% accuracy — teams are entering their services because the initiative has leadership attention. By year two, coverage has dropped to 45%, accuracy to 30%, and the catalog has become a punchline in onboarding jokes. Engineers ask in Slack instead of checking the catalog because they've learned they can't trust it.
 
 Here's what makes this worse: a catalog with 80% accurate data is more dangerous than no catalog at all. It gives you false confidence. You page the listed owner at 3 AM, confident you've got the right team, and waste twenty minutes before discovering they handed off the service six months ago. Every minute spent paging the wrong team is a minute your users are affected.
 
-The fix isn't discipline or better training—it's ownership modeling that captures how teams actually work, combined with enforcement automation that keeps data accurate without relying on anyone remembering to update it.
+The fix isn't discipline or better training — it's ownership modeling that captures how teams actually work, combined with enforcement automation that keeps data accurate without relying on anyone remembering to update it.
 
 ## The Ownership Problem
 
-If I had to pick one field that determines whether a catalog succeeds or fails, it's ownership. Every use case—incident routing, cost attribution, security scanning—depends on knowing who's responsible. Get ownership wrong and you've built an expensive spreadsheet.
+If I had to pick one field that determines whether a catalog succeeds or fails, it's ownership. Every use case — incident routing, cost attribution, security scanning — depends on knowing who's responsible. Get ownership wrong and you've built an expensive spreadsheet.
 
-But "ownership" is deceptively simple. A service might have a development team that writes the code, an SRE team that handles production incidents, a security contact for vulnerability disclosures, and a cost owner for budget decisions. Flattening all of that into a single `owner` field creates ambiguity during incidents—when a critical CVE drops, do you page the dev team listed as owner, or does someone else handle security?
+But "ownership" is deceptively simple. A service might have a development team that writes the code, an SRE team that handles production incidents, a security contact for vulnerability disclosures, and a cost owner for budget decisions. Flattening all of that into a single `owner` field creates ambiguity during incidents — when a critical CVE drops, do you page the dev team listed as owner, or does someone else handle security?
 
 ### Primary Owner Plus Role Contacts
 
-The ownership model that works distinguishes between different types of responsibility: a _primary owner_ who's responsible for the service's existence and development, plus _role-specific contacts_ for specialized functions.
+The ownership model that works distinguishes between different types of responsibility: a __primary owner__ who's responsible for the service's existence and development, plus __role-specific contacts__ for specialized functions.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -64,7 +64,7 @@ The ownership model that works distinguishes between different types of responsi
   }}
 />
 
-For most services, the primary owner handles all roles. You only need role-specific contacts when there's a reason to route differently—a shared SRE oncall rotation, a dedicated security champion, or a manager who approves production changes.
+For most services, the primary owner handles all roles. You only need role-specific contacts when there's a reason to route differently — a shared SRE oncall rotation, a dedicated security champion, or a manager who approves production changes.
 
 Here's how this looks in a Backstage catalog entry:
 
@@ -91,7 +91,7 @@ Code: Backstage entry with primary owner and role-specific contacts.
 
 ### Services Change Hands
 
-Services become orphaned when their owning team dissolves, empties out, or goes inactive. This happens more than you'd think—reorgs, layoffs, and attrition all create orphans. A tier-1 service with no valid owner is a ticking time bomb.
+Services become orphaned when their owning team dissolves, empties out, or goes inactive. This happens more than you'd think — reorgs, layoffs, and attrition all create orphans. A tier-1 service with no valid owner is a ticking time bomb.
 
 Run orphan detection weekly. The rules should catch dissolved teams, empty teams, inactive teams, and missing oncall schedules:
 
@@ -186,7 +186,7 @@ jobs:
 
 Code: GitHub Action for catalog validation on PRs.
 
-For tier-1 and tier-2 services, make validation failures blocking. For tier-3 and tier-4, warn but allow the PR to merge—you want to reduce friction for less critical services while maintaining strict standards for critical ones.
+For tier-1 and tier-2 services, make validation failures blocking. For tier-3 and tier-4, warn but allow the PR to merge — you want to reduce friction for less critical services while maintaining strict standards for critical ones.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -245,10 +245,10 @@ kubectl get namespaces \
 
 Code: Basic drift detection comparing Kubernetes deployments to catalog entries.
 
-Run drift detection daily. For critical drift—invalid owner on tier-1 service, missing oncall—alert immediately. For less critical drift like undeclared dependencies on tier-3 services, batch into a weekly report.
+Run drift detection daily. For critical drift — invalid owner on tier-1 service, missing oncall — alert immediately. For less critical drift like undeclared dependencies on tier-3 services, batch into a weekly report.
 
 <Callout type="warning">
-Drift detection requires API access to your identity provider, oncall system, and runtime infrastructure. Expect 2-4 weeks of integration work per system—PagerDuty and Okta have good APIs, but some legacy CMDBs will fight you.
+Drift detection requires API access to your identity provider, oncall system, and runtime infrastructure. Expect 2-4 weeks of integration work per system — PagerDuty and Okta have good APIs, but some legacy CMDBs will fight you.
 </Callout>
 
 ## Measuring Success
@@ -299,4 +299,4 @@ Don't set coverage targets at 100% on day one. A realistic progression: tier-1 s
   ]}
 />
 
-When catalog health becomes visible—tracked on a dashboard, reviewed weekly by the platform team, summarized monthly for leadership—it gets attention. Treat catalog coverage like any other SLO (if you'd alert on 99.9% availability dropping, alert on catalog accuracy dropping below target too).
+When catalog health becomes visible — tracked on a dashboard, reviewed weekly by the platform team, summarized monthly for leadership — it gets attention. Treat catalog coverage like any other SLO (if you'd alert on 99.9% availability dropping, alert on catalog accuracy dropping below target too).

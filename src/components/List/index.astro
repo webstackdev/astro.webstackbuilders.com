@@ -29,6 +29,7 @@ export type Props = {
     ol?: string
     ul?: string
     li?: string
+    titleClass?: string
     icon?: string
     header?: string
     content?: string
@@ -38,11 +39,13 @@ export type Props = {
   }
   size?: number
   variant: string
+  style?: Record<string, unknown>
 }
 
-const { items, size, variant = 'default', classes } = Astro.props
+const { items, size, variant = 'default', classes, style } = Astro.props
 const classesProps = classes ? { classes } : {}
 const sizeProps = size !== undefined ? { size } : {}
+const styleProps = style ? { style } : {}
 const itemsWithColor = items as Array<{
   title?: string
   lead?: string
@@ -64,19 +67,19 @@ const plainIconItems = items.filter((item): item is Props['items'][number] & { i
 })
 ---
 
-<div class:list={[classes?.wrapper ? classes.wrapper : 'mb-8']}>
-  {variant === 'accent-border-left-list' && <AccentBorderLeftList items={items} {...classesProps} />}
-  {variant === 'badge-list' && <BadgeList items={items} {...classesProps} />}
-  {variant === 'card-grid-list' && <CardGridList items={items} {...classesProps} />}
-  {variant === 'check-icons-list' && <CheckIconsList items={items} {...classesProps} />}
-  {variant === 'chevron-list' && <ChevronList items={items} {...classesProps} />}
-  {variant === 'colored-marker-list' && <ColoredMarkerList items={itemsWithColor} {...classesProps} {...sizeProps} />}
-  {variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={items} {...classesProps} />}
-  {variant === 'plain-icon-list' && <PlainIconList items={plainIconItems} {...classesProps} {...sizeProps} />}
-  {variant === 'side-by-side-list' && <SideBySideList items={items} {...classesProps} />}
-  {variant === 'timeline-list' && <TimelineList items={items} {...classesProps} />}
-  {variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={items} {...classesProps} {...sizeProps} />}
-  {variant === 'two-column-icon-list' && <TwoColumnIconList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} />}
-  {variant === 'three-column-icon-list' && <ThreeColumnIconList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} />}
-  {variant === 'zebra-list' && <ZebraList items={items} {...classesProps} />}
+<div class:list={[classes?.wrapper ? classes.wrapper : 'mb-6']}>
+  {variant === 'accent-border-left-list' && <AccentBorderLeftList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'badge-list' && <BadgeList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'card-grid-list' && <CardGridList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'check-icons-list' && <CheckIconsList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'chevron-list' && <ChevronList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'colored-marker-list' && <ColoredMarkerList items={itemsWithColor} {...classesProps} {...sizeProps} {...styleProps} />}
+  {variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'plain-icon-list' && <PlainIconList items={plainIconItems} {...classesProps} {...sizeProps} {...styleProps} />}
+  {variant === 'side-by-side-list' && <SideBySideList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'timeline-list' && <TimelineList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={items} {...classesProps} {...sizeProps} {...styleProps} />}
+  {variant === 'two-column-icon-list' && <TwoColumnIconList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} {...styleProps} />}
+  {variant === 'three-column-icon-list' && <ThreeColumnIconList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} {...styleProps} />}
+  {variant === 'zebra-list' && <ZebraList items={items} {...classesProps} {...styleProps} />}
 </div>
