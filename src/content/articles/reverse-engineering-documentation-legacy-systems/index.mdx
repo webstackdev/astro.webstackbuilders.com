@@ -13,7 +13,7 @@ featured: true
 
 You've inherited a system with a README that was last updated three years ago. The architecture diagrams reference services that no longer exist. The wiki has seventeen conflicting pages about deployment, and no one's sure which ones are current. The original architects left two reorganizations ago.
 
-Here's the uncomfortable truth: outdated documentation isn't just unhelpful—it's actively harmful. When a new team member reads that architecture diagram and forms a mental model of how the system works, they're building on outdated assumptions that will take months to unlearn. When an on-call engineer follows a runbook during an incident, they might make things worse by following steps that no longer apply.
+Here's the uncomfortable truth: outdated documentation isn't just unhelpful — it's actively harmful. When a new team member reads that architecture diagram and forms a mental model of how the system works, they're building on outdated assumptions that will take months to unlearn. When an on-call engineer follows a runbook during an incident, they might make things worse by following steps that no longer apply.
 
 But there's good news. The codebase itself contains more reliable documentation than any wiki page ever will. Git history records what changed, when, and often why. Tests that pass demonstrate working behavior that prose documentation might get wrong. And the engineers who've kept the system alive hold knowledge that's never been written down.
 
@@ -21,7 +21,7 @@ The trick is knowing how to extract it.
 
 ## Code Archaeology: Mining Version History
 
-Every commit in your repository is a documentation artifact. Unlike wiki pages that silently become wrong, git history is immutable. It tells you not just what changed, but when, by whom, and—if commit messages are decent—why.
+Every commit in your repository is a documentation artifact. Unlike wiki pages that silently become wrong, git history is immutable. It tells you not just what changed, but when, by whom, and — if commit messages are decent — why.
 
 Start with the most-changed files. This single command reveals the heartbeat of your codebase:
 
@@ -46,7 +46,7 @@ Code: Finding the engineers with the most commits to a specific file.
 That person is your first interview target. They may have moved to another team or even left the company, but they're often reachable and willing to help explain their past work.
 
 <Callout type="info">
-`git blame` tells you who wrote each line, but the commit message tells you _why_. A message like "fix prod issue #1234" points you to a ticket with context. Follow those breadcrumbs.
+`git blame` tells you who wrote each line, but the commit message tells you __why__. A message like "fix prod issue #1234" points you to a ticket with context. Follow those breadcrumbs.
 </Callout>
 
 The pickaxe search is invaluable for tracing how specific logic evolved:
@@ -77,7 +77,7 @@ Reading through a dozen related tickets often teaches you more about a module th
 
 Documentation rots silently. Tests break loudly. That asymmetry makes tests the most reliable form of documentation for system behavior.
 
-When you're inheriting code and don't know whether observed behavior is intentional or accidental, _characterization tests_ capture the truth. The pattern is simple: poke the system with inputs, record the outputs, assert that future runs produce the same outputs. You're not testing that the code is correct—you're testing that it hasn't changed.
+When you're inheriting code and don't know whether observed behavior is intentional or accidental, __characterization tests__ capture the truth. The pattern is simple: poke the system with inputs, record the outputs, assert that future runs produce the same outputs. You're not testing that the code is correct — you're testing that it hasn't changed.
 
 ```typescript
 // Characterization tests for OrderProcessor
@@ -110,7 +110,7 @@ Code: Characterization tests documenting discovered discount behavior.
 Notice the comments. When I discovered that the code applies a 10% discount while the requirements doc claims 15%, I noted it. When I found that the threshold is strictly greater than $100 (not greater-than-or-equal), I documented that edge case. These comments matter as much as the assertions.
 
 <Callout type="success">
-Run characterization tests against production data snapshots when possible. Synthetic test data often misses the edge cases that real data reveals—the customer with a null address, the order with negative quantity from a bug three years ago, the account that predates a schema migration.
+Run characterization tests against production data snapshots when possible. Synthetic test data often misses the edge cases that real data reveals — the customer with a null address, the order with negative quantity from a bug three years ago, the account that predates a schema migration.
 </Callout>
 
 Well-written tests also serve as executable API examples. Unlike documentation that might be wrong, tests that pass demonstrate working code. I organize these around use cases:
@@ -150,7 +150,7 @@ describe('PaymentClient usage examples', () => {
 
 Code: Tests structured as API usage documentation.
 
-The test names read like a table of contents: "basic charge," "error handling." Someone integrating with this API can scan the test file and find exactly what they need—with working code they can copy.
+The test names read like a table of contents: "basic charge," "error handling." Someone integrating with this API can scan the test file and find exactly what they need — with working code they can copy.
 
 ## Before They Leave
 
@@ -158,7 +158,7 @@ Code analysis gets you far, but some knowledge exists only in people's heads. Th
 
 This knowledge has an expiration date: when the person leaves. Extracting it requires targeted questions organized by what you're trying to learn.
 
-For _architectural knowledge_:
+For __architectural knowledge__:
 
 <List
   variant="check-icons-list"
@@ -175,7 +175,7 @@ For _architectural knowledge_:
   ]}
 />
 
-For _operational knowledge_:
+For __operational knowledge__:
 
 <List
   variant="check-icons-list"
@@ -192,7 +192,7 @@ For _operational knowledge_:
   ]}
 />
 
-For _business rules encoded in code_:
+For __business rules encoded in code__:
 
 <List
   variant="check-icons-list"
@@ -239,10 +239,10 @@ For _business rules encoded in code_:
   }}
 />
 
-The questions about fear are particularly revealing. "What's the scariest part of this codebase to change?" surfaces the areas with the most hidden complexity, the fewest tests, and the highest consequences for mistakes—exactly where documentation gaps hurt most.
+The questions about fear are particularly revealing. "What's the scariest part of this codebase to change?" surfaces the areas with the most hidden complexity, the fewest tests, and the highest consequences for mistakes — exactly where documentation gaps hurt most.
 
 <Callout type="warning">
-Capture tribal knowledge _before_ someone announces they're leaving. By the time there's a departure date, they're focused on transition tasks and their memory is already fading. Build documentation interviews into onboarding: new hires ask the questions, tenured engineers answer, and you get written artifacts from the exchange.
+Capture tribal knowledge __before__ someone announces they're leaving. By the time there's a departure date, they're focused on transition tasks and their memory is already fading. Build documentation interviews into onboarding: new hires ask the questions, tenured engineers answer, and you get written artifacts from the exchange.
 </Callout>
 
 ## Where to Start
@@ -281,4 +281,4 @@ With git history mined, tests written, and interviews conducted, the question be
 
 Tests as documentation have an advantage that prose never will: they break when behavior changes. A characterization test that fails is more valuable than a wiki page that silently becomes wrong. Where possible, encode knowledge in tests rather than documents.
 
-The documentation you create today will decay. Accept that reality. Choose formats that break visibly when they become stale—tests, generated diagrams, validated specs—and reserve prose documentation for the knowledge that can't be captured any other way.
+The documentation you create today will decay. Accept that reality. Choose formats that break visibly when they become stale — tests, generated diagrams, validated specs — and reserve prose documentation for the knowledge that can't be captured any other way.

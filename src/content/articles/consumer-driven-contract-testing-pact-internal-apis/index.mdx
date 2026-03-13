@@ -9,6 +9,9 @@ tags: ["apis-and-gateways", "docker", "kubernetes", "typescript", "python", "go"
 featured: true
 ---
 
+import contractTestingWorkflowDiagram from "./diagrams/contract-testing-workflow-showing-consumer-first-approach_article.jpg"
+import contractViolationDiagram from "./diagrams/contract-violation-detected-at-PR-time-not-production.jpg"
+
 A User Service team ships what they consider a minor change: renaming `userId` to `user_id` in their response payload to match their new coding standards. They updated their OpenAPI spec. They ran their own tests. Everything passed.
 
 Three services broke in production that Friday.
@@ -21,7 +24,7 @@ That instinct is wrong. Integration tests won't save you here. Consumer-driven c
 
 ## The Integration Test Trap
 
-Integration tests require _all_ services to be running simultaneously. For a simple three-service chain, that means coordinating databases, message queues, and network connectivity across all three. Add a fourth service, and the coordination overhead grows. By the time you have 20 services, the "integration test environment" has become a full-time job for someone on the platform team.
+Integration tests require __all__ services to be running simultaneously. For a simple three-service chain, that means coordinating databases, message queues, and network connectivity across all three. Add a fourth service, and the coordination overhead grows. By the time you have 20 services, the "integration test environment" has become a full-time job for someone on the platform team.
 
 The problems compound quickly. Shared test databases accumulate garbage data from previous runs, causing tests to fail for reasons unrelated to the code change. Port conflicts appear when two developers run tests simultaneously. Network timeouts introduce flakiness that erodes trust in the test suite. Developers stop running integration tests locally because they take too long, pushing the feedback loop to CI where it's even slower.
 
@@ -67,36 +70,26 @@ Documentation without enforcement is fiction. Schemas describe intent; contract 
 
 ## How Consumer-Driven Contracts Work
 
-Traditional API testing puts the provider in charge. The provider defines a schema, publishes documentation, and consumers build against it. If the provider changes the API, consumers find out when their code breaks—often in production.
+Traditional API testing puts the provider in charge. The provider defines a schema, publishes documentation, and consumers build against it. If the provider changes the API, consumers find out when their code breaks — often in production.
 
-Consumer-driven contracts invert this model. The _consumer_ defines what it needs from the provider and encodes those expectations in a contract. The provider then verifies it can satisfy that contract. Both sides test against the same artifact, so compatibility is verified before either side deploys.
+Consumer-driven contracts invert this model. The __consumer__ defines what it needs from the provider and encodes those expectations in a contract. The provider then verifies it can satisfy that contract. Both sides test against the same artifact, so compatibility is verified before either side deploys.
 
 <Callout type="info">
 Pact is the most widely-used contract testing framework, with libraries for JavaScript, Java, Python, Go, and more. The Pact Broker is a separate service that stores contracts and tracks verification results across all your services.
 </Callout>
 
-```mermaid
-sequenceDiagram
-    participant C as Consumer
-    participant B as Pact Broker
-    participant P as Provider
-
-    C->>C: Write consumer test
-    C->>C: Test generates contract
-    C->>B: Publish contract
-    P->>B: Fetch contracts
-    P->>P: Replay against real API
-    P->>B: Publish verification results
-    B->>B: Track compatibility matrix
-```
-Figure: Contract testing workflow showing consumer-first approach.
+<Diagram
+  src={contractTestingWorkflowDiagram}
+  title="Contract testing workflow showing consumer-first approach"
+  description="Sequence diagram showing the consumer writing a test, generating a contract, and publishing it to the Pact Broker, followed by the provider fetching the contract, replaying it against the real API, publishing verification results, and the broker tracking compatibility across service versions."
+/>
 
 Here's what this looks like in practice. A consumer test defines the expected request and response for an API call:
 
 ```typescript title="user-api.pact.spec.ts"
 import { PactV3, MatchersV3 } from '@pact-foundation/pact';
 tags: ["apis-and-gateways", "docker", "kubernetes", "typescript", "python", "go", "ruby", "dotnet"]
-// like() matches type/structure, not exact values—keeps contracts flexible
+// like() matches type/structure, not exact values — keeps contracts flexible
 
 const provider = new PactV3({
   consumer: 'OrderService',
@@ -130,11 +123,11 @@ describe('User API Contract', () => {
 ```
 Code: Consumer contract test defining expected API behavior.
 
-Notice the `like()` matcher wrapping values. The contract tests _structure_, not exact values. The consumer expects a `userId` field containing a string, but doesn't care if it's "123" or "abc-456". This loose matching keeps contracts maintainable—they verify the shape of responses without becoming brittle assertions on test data.
+Notice the `like()` matcher wrapping values. The contract tests __structure__, not exact values. The consumer expects a `userId` field containing a string, but doesn't care if it's "123" or "abc-456". This loose matching keeps contracts maintainable — they verify the shape of responses without becoming brittle assertions on test data.
 
 When this test runs, Pact spins up a mock server that returns the expected response. The consumer's actual API client code runs against this mock, validating that the client correctly handles the response format. Pact then generates a JSON contract file capturing the interaction.
 
-That contract gets published to a Pact Broker, where the provider fetches it and replays the requests against its real implementation. If the provider's response doesn't match the expected structure, the provider's build fails—before deployment, before it reaches any consumer.
+That contract gets published to a Pact Broker, where the provider fetches it and replays the requests against its real implementation. If the provider's response doesn't match the expected structure, the provider's build fails — before deployment, before it reaches any consumer.
 
 The contract becomes a living artifact that both sides test against. Consumers can't expect something they haven't declared. Providers can't break something they've verified they support.
 
@@ -158,21 +151,15 @@ This command answers: "If I deploy UserService v2.3.1 to production, will it bre
 
 When a provider makes an incompatible change, they discover it immediately. The provider's CI runs verification against all consumer contracts, and any contract violation fails the build with a clear message identifying which consumer would break and why.
 
-```mermaid
-flowchart TD
-    A[Provider pushes code] --> B[CI fetches consumer contracts]
-    B --> C{Verification passes?}
-    C -->|Yes| D[can-i-deploy succeeds]
-    D --> E[Safe to deploy]
-    C -->|No| F[Build fails]
-    F --> G[Error: OrderService expects userId]
-    G --> H[Developer fixes or coordinates]
-```
-Figure: Contract violation detected at PR time, not production.
+<Diagram
+  src={contractViolationDiagram}
+  title="Contract violation detected at PR time, not production"
+  description="Flowchart showing a provider code change triggering CI to fetch consumer contracts, then branching on verification success: successful verification leads to a successful can-i-deploy check and safe deployment, while failure breaks the build, reports that OrderService expects userId, and sends the developer to fix the change or coordinate with consumers."
+/>
 
 This is the fundamental shift: from discovering API incompatibilities in staging (or worse, production) to catching them at PR time. The provider team doesn't need to manually coordinate with every consumer team. They don't need to check a wiki or ask in Slack. The contracts encode what consumers actually use, and CI enforces compatibility automatically.
 
-The deployment safety isn't theoretical. When the UserService team tries to rename `userId` to `user_id`, their build fails immediately. The error message tells them exactly which services would break: OrderService, ShippingService, and AnalyticsService all expect `userId`. They can make an informed decision—coordinate with those teams, version the API, or reconsider the change entirely—before any code reaches production.
+The deployment safety isn't theoretical. When the UserService team tries to rename `userId` to `user_id`, their build fails immediately. The error message tells them exactly which services would break: OrderService, ShippingService, and AnalyticsService all expect `userId`. They can make an informed decision — coordinate with those teams, version the API, or reconsider the change entirely — before any code reaches production.
 
 <Callout type="info">
 The `can-i-deploy` command moves deployment decisions from "hope and pray" to "verified compatibility." Your CI pipeline becomes the enforcement mechanism, not late-night Slack messages.

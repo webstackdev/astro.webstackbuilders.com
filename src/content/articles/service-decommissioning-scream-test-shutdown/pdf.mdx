@@ -20,13 +20,13 @@ featured: true
 *[SOX]: Sarbanes-Oxley Act
 *[TTL]: Time To Live
 
-Spinning up a new service is hard—getting infrastructure, CI/CD, and monitoring in place takes real effort. But turning off an old service? That's harder. The asymmetry makes sense: creating something new has bounded risk (it either works or it doesn't), but deleting something has unbounded risk (you won't know what breaks until it breaks). Nobody gets promoted for removing things. And the one time someone deleted a "dead" service that turned out to power a VP's quarterly dashboard, the story echoed through the organization for years.
+Spinning up a new service is hard — getting infrastructure, CI/CD, and monitoring in place takes real effort. But turning off an old service? That's harder. The asymmetry makes sense: creating something new has bounded risk (it either works or it doesn't), but deleting something has unbounded risk (you won't know what breaks until it breaks). Nobody gets promoted for removing things. And the one time someone deleted a "dead" service that turned out to power a VP's quarterly dashboard, the story echoed through the organization for years.
 
 So services accumulate. They sit there, burning money, expanding your attack surface, and confusing new engineers who wonder why the architecture diagram has 47 boxes when only 12 seem to do anything. This article covers how to find out what's actually used, how to turn things off safely, and how to communicate so nobody gets surprised at 3 AM.
 
 ## The Decommissioning Problem
 
-Every organization I've worked with has more zombie services than they realize. These aren't services that are completely dead—those are easy. Zombies are the ones that _might_ be dead. They receive occasional traffic that could be health checks or could be production workloads. They haven't been deployed in months, but maybe that's because they're "stable." The owning team dissolved in a reorg, but surely someone took over. The uncertainty is what keeps them running.
+Every organization I've worked with has more zombie services than they realize. These aren't services that are completely dead — those are easy. Zombies are the ones that __might__ be dead. They receive occasional traffic that could be health checks or could be production workloads. They haven't been deployed in months, but maybe that's because they're "stable." The owning team dissolved in a reorg, but surely someone took over. The uncertainty is what keeps them running.
 
 ### The Cost of Not Decommissioning
 
@@ -78,13 +78,13 @@ Every zombie service makes the next decommissioning harder. They create phantom 
 
 The fear cascade is predictable. "What if someone uses it?" leads to "What if it breaks something?" which leads to "Who owns the decision?" which leads to "What if we need it later?" which ends at "It's not hurting anything, let's just leave it."
 
-Each step is rational in isolation. You _don't_ have visibility into usage. Dependencies _are_ unknown. Authority _is_ unclear. You _might_ need it. And the costs _are_ invisible because nobody's tracking them per-service.
+Each step is rational in isolation. You __don't__ have visibility into usage. Dependencies __are__ unknown. Authority __is__ unclear. You __might__ need it. And the costs __are__ invisible because nobody's tracking them per-service.
 
 The default is always "leave it running" because turning something off requires courage and knowledge that leaving it alone doesn't require. This article is about getting that knowledge so the courage part is easier.
 
 ### Signs a Service Should Be Decommissioned
 
-Not every quiet service is a decommissioning candidate. Some services are legitimately low-traffic—the annual compliance report generator doesn't need to handle requests in July. But certain signals, especially in combination, indicate a service worth investigating:
+Not every quiet service is a decommissioning candidate. Some services are legitimately low-traffic — the annual compliance report generator doesn't need to handle requests in July. But certain signals, especially in combination, indicate a service worth investigating:
 
 <List
   variant="check-icons-list"
@@ -120,7 +120,7 @@ Not every quiet service is a decommissioning candidate. Some services are legiti
   ]}
 />
 
-Any one of these might be fine. Three or more together? That's a candidate. I score services by combining weighted signals—zero traffic scores highest, no deployments lower—and anything above a threshold goes on the review list.
+Any one of these might be fine. Three or more together? That's a candidate. I score services by combining weighted signals — zero traffic scores highest, no deployments lower — and anything above a threshold goes on the review list.
 
 ## The Scream Test: Controlled Failure
 
@@ -155,14 +155,14 @@ A proper scream test has four phases, each lasting about a week. The goal is pro
 />
 
 <Callout type="info">
-Send deprecation notices to every communication channel 2-4 weeks before starting Phase 1. Email, Slack, team standups—anywhere consumers might see it. Some will self-identify, saving you discovery effort during the test.
+Send deprecation notices to every communication channel 2-4 weeks before starting Phase 1. Email, Slack, team standups — anywhere consumers might see it. Some will self-identify, saving you discovery effort during the test.
 </Callout>
 
 Throughout all phases, add deprecation headers to every response. The `Deprecation` and `Sunset` headers are standardized (RFC 8594), and good HTTP clients will log warnings when they see them. Include a link to your migration guide and a contact email for questions.
 
 ### Implementing Soft Shutdown Responses
 
-The key to a good scream test is returning helpful responses, not just errors. When you fail a request, tell the caller _why_ it failed and _what to do about it_.
+The key to a good scream test is returning helpful responses, not just errors. When you fail a request, tell the caller __why__ it failed and __what to do about it__.
 
 ```typescript title="scream-test-middleware.ts" {19}
 // Express middleware for scream test phases
@@ -259,11 +259,11 @@ You need a dashboard that answers three questions in real-time: Who's calling? H
   }}
 />
 
-Set up automatic rollback triggers. If consumer error rates spike above a threshold, or if a critical alert fires, pause the test and investigate. The goal is discovery, not damage. A scream test that causes an outage defeats the purpose—you want to find unknown dependencies _before_ they become incidents.
+Set up automatic rollback triggers. If consumer error rates spike above a threshold, or if a critical alert fires, pause the test and investigate. The goal is discovery, not damage. A scream test that causes an outage defeats the purpose — you want to find unknown dependencies __before__ they become incidents.
 
 ## Traffic Analysis and Consumer Discovery
 
-The scream test is the final answer to "who uses this?" But you don't want to go in blind. Before you start degrading a service, spend a few weeks doing passive discovery—analyzing traffic patterns, tracing requests, and checking data dependencies. The more consumers you can identify upfront, the fewer surprises during the test.
+The scream test is the final answer to "who uses this?" But you don't want to go in blind. Before you start degrading a service, spend a few weeks doing passive discovery — analyzing traffic patterns, tracing requests, and checking data dependencies. The more consumers you can identify upfront, the fewer surprises during the test.
 
 ### Passive Traffic Analysis
 
@@ -303,15 +303,15 @@ For each caller, classify the traffic pattern. This tells you what kind of depen
   }}
 />
 
-Skip callers with fewer than one request per day—those are usually health checks, monitoring probes, or one-off debugging sessions. Focus your energy on the high-volume consumers and the ones with real-time patterns.
+Skip callers with fewer than one request per day — those are usually health checks, monitoring probes, or one-off debugging sessions. Focus your energy on the high-volume consumers and the ones with real-time patterns.
 
 ### Distributed Tracing for Dependency Discovery
 
-If you have distributed tracing (Jaeger, Zipkin, or AWS X-Ray), you can discover dependencies you'd never find through traffic analysis alone. Traces show you _who calls you_ (upstream dependencies) and _who you call_ (downstream dependencies).
+If you have distributed tracing (Jaeger, Zipkin, or AWS X-Ray), you can discover dependencies you'd never find through traffic analysis alone. Traces show you __who calls you__ (upstream dependencies) and __who you call__ (downstream dependencies).
 
 Query any traces that include your service over a 30-day window. For each trace, find the spans belonging to your service and walk the tree in both directions. The parent span tells you who initiated the call. The child spans tell you what services you depend on.
 
-This matters for decommissioning because your service might be a transitive dependency. ServiceA calls ServiceB calls your service—and ServiceA's team has no idea they depend on you because they've never called you directly. The trace data reveals these hidden chains.
+This matters for decommissioning because your service might be a transitive dependency. ServiceA calls ServiceB calls your service — and ServiceA's team has no idea they depend on you because they've never called you directly. The trace data reveals these hidden chains.
 
 <Callout type="info">
 Trace sampling can miss low-volume callers. If you sample at 1%, a consumer that calls you 50 times per day might not appear in your trace data at all. Supplement tracing with access logs for complete coverage.
@@ -335,17 +335,17 @@ WHERE query LIKE '%/* service:legacy-user-lookup */%'
 ORDER BY calls DESC;
 ```
 
-Code: PostgreSQL query to identify table dependencies from pg_stat_statements.
+Code: PostgreSQL query to identify table dependencies from `pg_stat_statements`.
 
 <Callout type="warning">
-A service might have zero traffic but still own critical data. Always check what tables the service writes to before decommissioning—you might be about to orphan a dataset that other services depend on.
+A service might have zero traffic but still own critical data. Always check what tables the service writes to before decommissioning — you might be about to orphan a dataset that other services depend on.
 </Callout>
 
 ## Communication and Stakeholder Management
 
 The technical work of decommissioning is straightforward compared to the human work. You can automate traffic analysis and rollback triggers, but you can't automate convincing a product manager that their "critical integration" can wait two weeks for migration support.
 
-Good communication prevents most escalations. Bad communication—or no communication—guarantees them.
+Good communication prevents most escalations. Bad communication — or no communication — guarantees them.
 
 ### Deprecation Announcement Template
 
@@ -382,7 +382,7 @@ A complete announcement includes: what's being decommissioned and when, why it's
 
 Code: Deprecation announcement template covering the essential information consumers need.
 
-Post this announcement in multiple channels: email to known consumers, Slack in relevant team channels, mention in all-hands or engineering syncs, and a wiki page that becomes the canonical reference. Repetition isn't annoying here—it's necessary. People miss announcements.
+Post this announcement in multiple channels: email to known consumers, Slack in relevant team channels, mention in all-hands or engineering syncs, and a wiki page that becomes the canonical reference. Repetition isn't annoying here — it's necessary. People miss announcements.
 
 ### Escalation Handling
 
@@ -422,7 +422,7 @@ Escalations fall into four categories, each with a standard response:
 
 For blocking escalations—"this will cause an outage for 10,000 users if you proceed"—pause the scream test immediately. You don't want to be the team that caused an incident because you were too committed to your own timeline. Investigate, understand the true impact, and adjust the plan.
 
-Grant extensions based on demonstrated impact, not urgency theater. Compliance concerns get automatic extensions (you don't want to explain to auditors why you broke a regulatory integration). Revenue impact above a threshold gets an extension. "We're busy" doesn't get an extension—everyone's busy.
+Grant extensions based on demonstrated impact, not urgency theater. Compliance concerns get automatic extensions (you don't want to explain to auditors why you broke a regulatory integration). Revenue impact above a threshold gets an extension. "We're busy" doesn't get an extension — everyone's busy.
 
 <Callout type="info">
 Keep an audit trail of every escalation and resolution. When leadership asks why the decommissioning took 12 weeks instead of 8, you want receipts showing which teams requested extensions and why.
@@ -466,7 +466,7 @@ With stakeholders aligned and consumers migrated (or at least warned), you're re
 
 A checklist sounds bureaucratic, but it prevents the "oh no, we forgot to revoke the service account credentials" moment three weeks later. Break it into four phases:
 
-_Pre-shutdown (before you touch anything):_
+__Pre-shutdown (before you touch anything):__
 
 <List
   variant="check-icons-list"
@@ -495,7 +495,7 @@ _Pre-shutdown (before you touch anything):_
   ]}
 />
 
-_Shutdown (the actual turning off):_
+__Shutdown (the actual turning off):__
 
 <List
   variant="check-icons-list"
@@ -518,7 +518,7 @@ _Shutdown (the actual turning off):_
   ]}
 />
 
-_Post-shutdown (the waiting period):_
+__Post-shutdown (the waiting period):__
 
 <List
   variant="check-icons-list"
@@ -538,7 +538,7 @@ _Post-shutdown (the waiting period):_
   ]}
 />
 
-_Cleanup (after the grace period):_
+__Cleanup (after the grace period):__
 
 <List
   variant="check-icons-list"
@@ -567,7 +567,7 @@ _Cleanup (after the grace period):_
   ]}
 />
 
-The cleanup phase happens after a grace period—typically 30 days. This gives you time to discover any dependencies you missed and roll back if needed.
+The cleanup phase happens after a grace period — typically 30 days. This gives you time to discover any dependencies you missed and roll back if needed.
 
 ### Automated Shutdown Script
 
@@ -627,21 +627,21 @@ Always run the script with `DRY_RUN=true` first, review the output, then run it 
 
 Sometimes the scream test screams loudly enough that you need to bring the service back. Having a tested rollback procedure is the difference between a 10-minute recovery and a 2-hour scramble.
 
-The rollback reverses the shutdown steps in order: restore load balancer config, scale the deployment back up, unsuspend cron jobs, restore service account. Then wait for pods to be ready and verify health checks pass. Don't call it done until you've confirmed error rates in dependent services have returned to baseline and latency metrics look normal—health checks alone won't catch all problems.
+The rollback reverses the shutdown steps in order: restore load balancer config, scale the deployment back up, unsuspend cron jobs, restore service account. Then wait for pods to be ready and verify health checks pass. Don't call it done until you've confirmed error rates in dependent services have returned to baseline and latency metrics look normal — health checks alone won't catch all problems.
 
 <Callout type="warning">
-After a rollback, create an incident ticket even if there was no customer impact. You need to investigate why the decommissioning failed—was there an unknown consumer? Did someone ignore the deprecation warnings? The rollback buys you time, but you still need to solve the underlying problem.
+After a rollback, create an incident ticket even if there was no customer impact. You need to investigate why the decommissioning failed — was there an unknown consumer? Did someone ignore the deprecation warnings? The rollback buys you time, but you still need to solve the underlying problem.
 </Callout>
 
-Automatic rollback triggers should fire on clear signals: error rate in dependent services exceeding a threshold, critical alerts firing, or explicit rollback requests from on-call. Don't auto-rollback on every minor anomaly—you'll never finish decommissioning anything.
+Automatic rollback triggers should fire on clear signals: error rate in dependent services exceeding a threshold, critical alerts firing, or explicit rollback requests from on-call. Don't auto-rollback on every minor anomaly — you'll never finish decommissioning anything.
 
 ## Data Handling During Decommissioning
 
-Turning off the compute is easy. The data is where decommissioning gets complicated. You can't just delete everything—compliance requirements, potential rollback needs, and the possibility that someone will ask "can you get me that report from 2019?" all require careful planning.
+Turning off the compute is easy. The data is where decommissioning gets complicated. You can't just delete everything — compliance requirements, potential rollback needs, and the possibility that someone will ask "can you get me that report from 2019?" all require careful planning.
 
 ### Data Retention Strategy
 
-Different data types have different retention requirements. PII and financial records often have legal retention periods (7 years for SOX compliance, for example). Application logs might only need 90 days. Source code should probably be kept forever—storage is cheap, and you never know when you'll need to understand how something worked.
+Different data types have different retention requirements. PII and financial records often have legal retention periods (7 years for SOX compliance, for example). Application logs might only need 90 days. Source code should probably be kept forever — storage is cheap, and you never know when you'll need to understand how something worked.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -679,11 +679,11 @@ Different data types have different retention requirements. PII and financial re
 
 For source code archival, use your Git host's archive feature (GitHub and GitLab both support marking repositories as archived, which makes them read-only) rather than deleting. If you must remove a repository entirely, clone it with full history to a tarball and store it in your artifact archive. You'll be glad you kept it when someone asks "how did the old system handle currency conversion?" two years later.
 
-Before archiving, classify the data. If you're not sure what compliance requirements apply to a dataset, ask your legal or compliance team—this isn't something to guess at. Getting data retention wrong can mean regulatory fines or failing to produce records during litigation.
+Before archiving, classify the data. If you're not sure what compliance requirements apply to a dataset, ask your legal or compliance team — this isn't something to guess at. Getting data retention wrong can mean regulatory fines or failing to produce records during litigation.
 
 ### Database Archival Process
 
-Database archival has a specific workflow that's easy to get wrong. The goal is to ensure data is accessible from the archive _before_ you delete the source.
+Database archival has a specific workflow that's easy to get wrong. The goal is to ensure data is accessible from the archive __before__ you delete the source.
 
 <List
   variant="numbered-with-background-list"
@@ -894,6 +894,6 @@ Calculate the ROI: divide annual cost savings by engineering hours spent times h
 
 ## Conclusion
 
-The scream test—announce, degrade, fail, shutdown—is the safest way to discover unknown consumers before they become 3 AM incidents. Combine it with traffic analysis and distributed tracing to find dependencies proactively, not reactively.
+The scream test — announce, degrade, fail, shutdown — is the safest way to discover unknown consumers before they become 3 AM incidents. Combine it with traffic analysis and distributed tracing to find dependencies proactively, not reactively.
 
 Never delete data without verified archives and a 30-day grace period. And document every decommissioning so the next one goes faster. The organization that gets good at turning things off is the organization that can move quickly when building new things.

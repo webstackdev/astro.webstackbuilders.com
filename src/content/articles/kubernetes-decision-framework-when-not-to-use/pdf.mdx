@@ -9,6 +9,9 @@ tags: ["cloud-platforms","kubernetes","helm","aws","azure"]
 featured: true
 ---
 
+import decisionFactorsDiagram from "./diagrams/decision-factors-for-infrastructure-choice.jpg"
+import kubernetesFitDiagram from "./diagrams/kubernetes-fit-decision-tree.jpg"
+
 *[FaaS]: Function as a Service
 *[IaaS]: Infrastructure as a Service
 *[K8s]: Kubernetes
@@ -57,29 +60,54 @@ Compare that to the same workloads on VMs. Operations drops to 5-10 hours monthl
   variant="vertical-column-delineation-table"
   content={{
     thead: {
-      th: ['Cost Category', 'Kubernetes', 'Simple VMs', 'Serverless'],
+      th: [
+        'Cost Category',
+        'Kubernetes',
+        'Simple VMs',
+        'Serverless',
+      ],
     },
     tbody: {
       tr: [
         {
           th: 'Compute (10 services)',
-          td: ['$2,000-5,000/mo', '$500-1,500/mo', '$100-2,000/mo*'],
+          td: [
+            '$2,000-5,000/mo',
+            '$500-1,500/mo',
+            '$100-2,000/mo*',
+          ],
         },
         {
           th: 'Operations hours/mo',
-          td: ['30-50', '10-20', '5-15'],
+          td: [
+            '30-50',
+            '10-20',
+            '5-15',
+          ],
         },
         {
           th: 'Learning curve',
-          td: ['Steep (months)', 'Moderate (weeks)', 'Low (days)'],
+          td: [
+            'Steep (months)',
+            'Moderate (weeks)',
+            'Low (days)',
+          ],
         },
         {
           th: 'Upgrade burden',
-          td: ['High (quarterly)', 'Medium (monthly)', 'None'],
+          td: [
+            'High (quarterly)',
+            'Medium (monthly)',
+            'None',
+          ],
         },
         {
           th: 'Incident complexity',
-          td: ['High', 'Low', 'Varies'],
+          td: [
+            'High',
+            'Low',
+            'Varies',
+          ],
         },
       ],
     },
@@ -97,37 +125,11 @@ The largest hidden cost is opportunity cost. Every hour spent debugging why pods
 
 The first question isn't "Should we use Kubernetes?" It's "What problems are we trying to solve?" Kubernetes fits well when you have genuine complexity that justifies the operational overhead. It fits poorly when you're adding complexity to solve problems you don't actually have.
 
-```mermaid
-flowchart TD
-    A[Considering Kubernetes?] --> B{How many services<br/>do you have?}
-
-    B -->|1-3 services| C{Are they tightly<br/>coupled?}
-    C -->|Yes| D[Consider: Monolith on VMs]
-    C -->|No| E{Need auto-scaling?}
-    E -->|Yes| F[Consider: Serverless or PaaS]
-    E -->|No| D
-
-    B -->|4-10 services| G{Complex networking<br/>requirements?}
-    G -->|Yes| H{Team has K8s<br/>experience?}
-    G -->|No| I[Consider: VMs with<br/>simple orchestration]
-
-    H -->|Yes| J[Kubernetes may fit]
-    H -->|No| K{Can invest in<br/>learning?}
-    K -->|Yes - 6+ months| J
-    K -->|No| I
-
-    B -->|10+ services| L{Multiple teams<br/>deploying independently?}
-    L -->|Yes| M[Kubernetes likely fits]
-    L -->|No| N{Microservices actually<br/>needed?}
-    N -->|Yes| M
-    N -->|No| O[Consider: Modular<br/>monolith first]
-
-    J --> P{Using managed K8s?}
-    P -->|Yes| Q[Proceed with caution]
-    P -->|No| R[Reconsider: Self-managed<br/>rarely makes sense]
-```
-
-Figure: Kubernetes fit decision tree.
+<Diagram
+  src={kubernetesFitDiagram}
+  title="Kubernetes fit decision tree."
+  description="Flowchart that starts with Considering Kubernetes? and asks how many services do you have. For 1-3 services, it asks whether they are tightly coupled and whether auto-scaling is needed, leading toward Monolith on VMs or Serverless or PaaS. For 4-10 services, it asks about complex networking requirements, team K8s experience, and whether the team can invest in learning, leading toward Kubernetes may fit or VMs with simple orchestration. For 10+ services, it asks about multiple teams deploying independently and whether microservices are actually needed, leading toward Kubernetes likely fits or Modular monolith first. A final decision asks whether managed K8s is used, ending at Proceed with caution or Reconsider: Self-managed rarely makes sense."
+/>
 
 The service count matters because Kubernetes overhead amortizes across workloads. Running one service on Kubernetes means you're paying the full complexity tax for a single application. Running fifty services means the overhead is spread thin.
 
@@ -161,7 +163,7 @@ Kubernetes fits well when your workloads have these characteristics:
   ]}
 />
 
-Kubernetes fits _poorly_ in these situations:
+Kubernetes fits __poorly__ in these situations:
 
 <List
   variant="check-icons-list"
@@ -193,7 +195,7 @@ Kubernetes fits _poorly_ in these situations:
 
 Kubernetes requires specific skills across a timeline:
 
-_Day one prerequisites_ (must have before starting):
+__Day one prerequisites__ (must have before starting):
 
 <List
   variant="check-icons-list"
@@ -207,7 +209,7 @@ _Day one prerequisites_ (must have before starting):
   ]}
 />
 
-_Day thirty_ (need within first month):
+__Day thirty__ (need within first month):
 
 <List
   variant="check-icons-list"
@@ -221,7 +223,7 @@ _Day thirty_ (need within first month):
   ]}
 />
 
-_Day ninety_ (for sustainable operations):
+__Day ninety__ (for sustainable operations):
 
 <List
   variant="check-icons-list"
@@ -240,7 +242,7 @@ A team without Kubernetes experience will spend 3-6 months reaching operational 
 
 ## Better Alternatives by Use Case
 
-If Kubernetes isn't the right choice, what is? The answer depends on your workload characteristics, team size, and operational appetite. The good news is that the alternatives have matured significantly. VMs aren't the "old way" anymore—they're a legitimate choice with modern tooling. Serverless has moved past the hype cycle into genuine production use. And PaaS platforms have evolved from "toy infrastructure" into platforms that run real businesses at scale.
+If Kubernetes isn't the right choice, what is? The answer depends on your workload characteristics, team size, and operational appetite. The good news is that the alternatives have matured significantly. VMs aren't the "old way" anymore — they're a legitimate choice with modern tooling. Serverless has moved past the hype cycle into genuine production use. And PaaS platforms have evolved from "toy infrastructure" into platforms that run real businesses at scale.
 
 ### When VMs Win
 
@@ -271,7 +273,7 @@ VMs aren't outdated technology. For many workloads, they're the right choice.
     },
     {
       lead: "Deployment tooling.",
-      text: "Ansible handles configuration management with a simple push-based model. Packer builds immutable VM images for AMI-based deployments. And if you want container benefits without Kubernetes complexity, HashiCorp Nomad provides workload orchestration (containers, VMs, and standalone executables) with a simpler operational model—fewer moving parts, easier upgrades, and a gentler learning curve. Docker Swarm offers basic container orchestration built into Docker itself, making it a natural fit for smaller deployments where you already use Docker but don't need Kubernetes' full feature set.",
+      text: "Ansible handles configuration management with a simple push-based model. Packer builds immutable VM images for AMI-based deployments. And if you want container benefits without Kubernetes complexity, HashiCorp Nomad provides workload orchestration (containers, VMs, and standalone executables) with a simpler operational model — fewer moving parts, easier upgrades, and a gentler learning curve. Docker Swarm offers basic container orchestration built into Docker itself, making it a natural fit for smaller deployments where you already use Docker but don't need Kubernetes' full feature set.",
     },
   ]}
 />
@@ -310,31 +312,11 @@ The limitations are real. Cold starts add 100ms-2s latency on first requests; pr
 
 Two factors dominate the infrastructure decision: traffic patterns and team size. This diagram captures the core logic.
 
-```mermaid
-graph TD
-    subgraph "Traffic Pattern Decision"
-        A[What's your traffic<br/>pattern?] --> B{Constant load?}
-
-        B -->|Yes, predictable| C[VMs or K8s]
-        B -->|No, variable| D{Scales to zero?}
-
-        D -->|Yes, significant idle| E[Serverless]
-        D -->|No, always some load| F{Spiky but<br/>baseline exists?}
-
-        F -->|Yes| G[K8s with HPA or<br/>Serverless + baseline]
-        F -->|No| E
-    end
-
-    subgraph "Team Size Decision"
-        H[Team size?] --> I{< 5 engineers?}
-        I -->|Yes| J[Serverless or PaaS]
-        I -->|No| K{< 15 engineers?}
-        K -->|Yes| L[Managed K8s or<br/>Platform team]
-        K -->|No| M[Can justify<br/>dedicated platform team]
-    end
-```
-
-Figure: Decision factors for infrastructure choice.
+<Diagram
+  src={decisionFactorsDiagram}
+  title="Decision factors for infrastructure choice."
+  description="Flowchart divided into two subgraphs. The first, Traffic Pattern Decision, starts with What's your traffic pattern? and asks whether load is constant, whether it scales to zero, and whether spikes occur with an existing baseline, leading to VMs or K8s, Serverless, or K8s with HPA or Serverless + baseline. The second, Team Size Decision, starts with Team size? and asks whether there are less than 5 engineers or less than 15 engineers, leading to Serverless or PaaS, Managed K8s or Platform team, or Can justify dedicated platform team."
+/>
 
 ### When PaaS Wins
 
@@ -364,7 +346,7 @@ For frontend-focused workloads, Vercel and Netlify both offer free tiers and exc
 
 [^jamstack]: JAMstack (JavaScript, APIs, Markup) is an architecture where sites are pre-rendered at build time and served from a CDN, with dynamic functionality handled by JavaScript calling APIs. It trades server-side rendering complexity for simpler deployment and better performance.
 
-When should you consider leaving PaaS? When your monthly bill exceeds $5k-10k, when you need more infrastructure control, when performance requirements exceed PaaS limits, or when compliance requires specific configurations. When _shouldn't_ you leave? Because "it's not real infrastructure," because everyone else uses Kubernetes, because you might need to scale someday, or because you want to learn Kubernetes. Those are bad reasons.
+When should you consider leaving PaaS? When your monthly bill exceeds $5k-10k, when you need more infrastructure control, when performance requirements exceed PaaS limits, or when compliance requires specific configurations. When __shouldn't__ you leave? Because "it's not real infrastructure," because everyone else uses Kubernetes, because you might need to scale someday, or because you want to learn Kubernetes. Those are bad reasons.
 
 <Callout type="success">
 Many successful companies run on PaaS well past their startup phase. If your PaaS bill is $5,000/month and your engineering team's time is worth $50,000/month, spending 20% of engineering time on Kubernetes operations to save $3,000 is a bad trade.
@@ -374,7 +356,7 @@ Many successful companies run on PaaS well past their startup phase. If your Paa
 
 ### If You're Already on Kubernetes
 
-Maybe you adopted Kubernetes and it's not working out. That's not a failure—it's information. Here are the signals that suggest reconsidering:
+Maybe you adopted Kubernetes and it's not working out. That's not a failure — it's information. Here are the signals that suggest reconsidering:
 
 <List
   variant="check-icons-list"
@@ -393,12 +375,12 @@ Maybe you adopted Kubernetes and it's not working out. That's not a failure—it
     },
     {
       lead: "Feature velocity has dropped.",
-      text: "If you're shipping slower than before Kubernetes adoption—measured by deployment frequency, lead time for changes, or simply features shipped per sprint—infrastructure is hurting instead of helping. That's the opposite of what it should do.",
+      text: "If you're shipping slower than before Kubernetes adoption — measured by deployment frequency, lead time for changes, or simply features shipped per sprint — infrastructure is hurting instead of helping. That's the opposite of what it should do.",
     },
   ]}
 />
 
-If you decide to migrate away, do it in phases. Start with assessment: inventory all workloads, categorize them by Kubernetes fit, calculate current costs (compute plus human time), and estimate costs on alternatives. Then pilot with one non-critical workload—migrate it to simpler infrastructure, measure the operational burden change, and validate cost savings before committing to more.
+If you decide to migrate away, do it in phases. Start with assessment: inventory all workloads, categorize them by Kubernetes fit, calculate current costs (compute plus human time), and estimate costs on alternatives. Then pilot with one non-critical workload — migrate it to simpler infrastructure, measure the operational burden change, and validate cost savings before committing to more.
 
 For staged migration, start with workloads that fit Kubernetes poorly: batch jobs move to managed batch services, databases to managed database services, simple web apps to PaaS or VMs, and cron jobs to scheduled functions. Keep the workloads that actually benefit from Kubernetes: multi-replica stateless services, complex service mesh requirements, and multi-tenant platforms. Consider moving remaining workloads to managed Kubernetes if self-managed operations are the pain point.
 
@@ -442,33 +424,69 @@ Here's a simple scoring framework to help clarify whether Kubernetes makes sense
   variant="vertical-column-delineation-table"
   content={{
     thead: {
-      th: ['Factor', '0', '1', '2', '3'],
+      th: [
+        'Factor',
+        '0',
+        '1',
+        '2',
+        '3',
+      ],
     },
     tbody: {
       tr: [
         {
           th: 'Service count',
-          td: ['1-3 services', '4-10 services', '10-20 services', '20+ services'],
+          td: [
+            '1-3 services',
+            '4-10 services',
+            '10-20 services',
+            '20+ services',
+          ],
         },
         {
           th: 'Scaling requirements',
-          td: ['Fixed capacity', 'Occasional scaling', 'Regular scaling', 'Complex auto-scaling'],
+          td: [
+            'Fixed capacity',
+            'Occasional scaling',
+            'Regular scaling',
+            'Complex auto-scaling',
+          ],
         },
         {
           th: 'Networking complexity',
-          td: ['Single service', 'Simple service calls', 'Complex routing', 'Service mesh needed'],
+          td: [
+            'Single service',
+            'Simple service calls',
+            'Complex routing',
+            'Service mesh needed',
+          ],
         },
         {
           th: 'Team size',
-          td: ['1-5 people', '5-15 people', '15-50 people', '50+ people'],
+          td: [
+            '1-5 people',
+            '5-15 people',
+            '15-50 people',
+            '50+ people',
+          ],
         },
         {
           th: 'K8s experience',
-          td: ['None', 'Basic (tutorials)', 'Production experience', 'Deep expertise'],
+          td: [
+            'None',
+            'Basic (tutorials)',
+            'Production experience',
+            'Deep expertise',
+          ],
         },
         {
           th: 'Operations capacity',
-          td: ['No dedicated ops', 'Part-time ops', 'Dedicated ops person', 'Platform team'],
+          td: [
+            'No dedicated ops',
+            'Part-time ops',
+            'Dedicated ops person',
+            'Platform team',
+          ],
         },
       ],
     },
@@ -476,7 +494,7 @@ Here's a simple scoring framework to help clarify whether Kubernetes makes sense
   }}
 />
 
-_Interpretation_: **0-6** means Kubernetes is likely overkill—consider VMs, serverless, or PaaS. **7-12** means Kubernetes might fit if you're using managed K8s and investing in training. **13-18** means Kubernetes is a reasonable choice; use managed K8s.
+_Interpretation_: __0-6__ means Kubernetes is likely overkill — consider VMs, serverless, or PaaS. __7-12__ means Kubernetes might fit if you're using managed K8s and investing in training. __13-18__ means Kubernetes is a reasonable choice; use managed K8s.
 
 Some factors are critical blockers regardless of score: team size under 5 with no Kubernetes experience, single application workload, no budget for learning and mistakes, or less than 6 months of runway. If any of these apply, simpler infrastructure is almost certainly the right choice.
 
@@ -484,7 +502,7 @@ Some factors are critical blockers regardless of score: team size under 5 with n
 
 Kubernetes is a powerful platform for the right use cases: many services that need independent deployment, complex networking requirements, multi-team deployments with isolation needs, and horizontal scaling that benefits from orchestration. When you have these problems, Kubernetes' complexity is justified by the problems it solves.
 
-But it comes with significant operational burden that isn't justified for every workload. The complexity tax is real: ongoing operations, cluster upgrades, debugging distributed systems, and keeping skills current. For small teams, single applications, or workloads that don't need orchestration, simpler infrastructure isn't settling—it's the right engineering decision.
+But it comes with significant operational burden that isn't justified for every workload. The complexity tax is real: ongoing operations, cluster upgrades, debugging distributed systems, and keeping skills current. For small teams, single applications, or workloads that don't need orchestration, simpler infrastructure isn't settling — it's the right engineering decision.
 
 The best infrastructure choice considers workload characteristics, team capabilities, and total cost of ownership. Not industry trends. Not what "everyone else" is using. The question isn't "Should we use Kubernetes?" It's "What infrastructure best serves our workloads, team, and business?"
 

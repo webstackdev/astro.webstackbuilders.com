@@ -9,11 +9,13 @@ tags: ["reliability-and-testing"]
 featured: true
 ---
 
+import multipleContributingInterventionDiagram from "./diagrams/multiple-contributing-factors-each-representing-a-potential-intervention-point.jpg"
+
 An engineer fat-fingers a production config change. The payment service goes down for two hours. Customers are angry, revenue is lost, and everyone wants to know what happened.
 
 The instinctive investigation goes like this: Who made the change? Why weren't they more careful? They need more training. Maybe a written warning. Case closed.
 
-This feels satisfying—we found the problem and addressed it. But three months later, a _different_ engineer makes a _different_ config mistake, and we're back here again. The "solution" didn't prevent anything—it just rotated the blame to someone new.
+This feels satisfying — we found the problem and addressed it. But three months later, a _different_ engineer makes a _different_ config mistake, and we're back here again. The "solution" didn't prevent anything — it just rotated the blame to someone new.
 
 There's a better way. Instead of asking "who screwed up?" blameless postmortems ask: Why could a single engineer make that change without review? Why was there no canary deployment? Why didn't monitoring catch the error before customers did? That investigation finds five systemic improvements instead of one scapegoat.
 
@@ -30,11 +32,26 @@ But blame produces terrible outcomes. When people fear punishment for mistakes, 
     thead: { th: ["Blame-Based Approach", "Systemic Approach"] },
     tbody: {
       tr: [
-        { th: "Finds a person to hold accountable", td: ["Finds system conditions to improve"] },
-        { th: "Investigation stops at human action", td: ["Investigation continues to context"] },
-        { th: "\"Don't do that again\"", td: ["\"Make that harder to do\""] },
-        { th: "People hide mistakes", td: ["People report near-misses"] },
-        { th: "Same incident recurs with different person", td: ["Incident class becomes less likely"] },
+        {
+          th: "Finds a person to hold accountable",
+          td: ["Finds system conditions to improve"],
+        },
+        {
+          th: "Investigation stops at human action",
+          td: ["Investigation continues to context"],
+        },
+        {
+          th: "\"Don't do that again\"",
+          td: ["\"Make that harder to do\""],
+        },
+        {
+          th: "People hide mistakes",
+          td: ["People report near-misses"],
+        },
+        {
+          th: "Same incident recurs with different person",
+          td: ["Incident class becomes less likely"],
+        },
       ],
     },
   }}
@@ -44,13 +61,13 @@ The divergence compounds over time. Blame-focused organizations accumulate hidde
 
 Beyond information hiding, blame-based thinking leads to another trap: the search for a scapegoat. There's a comforting belief that most engineers are careful and competent, and incidents happen because a few "bad apples" are careless. If we could just identify and remove these people, incidents would stop.
 
-This theory has been tested extensively in aviation, healthcare, and nuclear power. It doesn't hold up. "Careless" people aren't a distinct population you can screen out—everyone makes errors under the right conditions. Fatigue, time pressure, confusing interfaces, incomplete information, and conflicting priorities create errors in even the most skilled practitioners.
+This theory has been tested extensively in aviation, healthcare, and nuclear power. It doesn't hold up. "Careless" people aren't a distinct population you can screen out — everyone makes errors under the right conditions. Fatigue, time pressure, confusing interfaces, incomplete information, and conflicting priorities create errors in even the most skilled practitioners.
 
-If you fire the engineer who made today's mistake, someone else will make a similar mistake next month—because the conditions that enabled the error remain unchanged.
+If you fire the engineer who made today's mistake, someone else will make a similar mistake next month — because the conditions that enabled the error remain unchanged.
 
 ## What "Blameless" Actually Means
 
-"Blameless" is frequently misunderstood. It doesn't mean no one is accountable. It doesn't mean we ignore mistakes or lower our standards. It means we hold the _right things_ accountable—and in complex systems, that's almost never an individual human making a one-off error.
+"Blameless" is frequently misunderstood. It doesn't mean no one is accountable. It doesn't mean we ignore mistakes or lower our standards. It means we hold the _right things_ accountable — and in complex systems, that's almost never an individual human making a one-off error.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -59,18 +76,33 @@ If you fire the engineer who made today's mistake, someone else will make a simi
     thead: { th: ["What Blameless IS", "What Blameless IS NOT"] },
     tbody: {
       tr: [
-        { th: "Holding systems accountable", td: ["Letting individuals off the hook"] },
-        { th: "Safe to report errors", td: ["Safe to be negligent"] },
-        { th: "Learning from mistakes", td: ["Ignoring mistakes"] },
-        { th: "Improving processes", td: ["Accepting poor processes"] },
-        { th: "Psychological safety", td: ["Lack of standards"] },
+        {
+          th: "Holding systems accountable",
+          td: ["Letting individuals off the hook"],
+        },
+        {
+          th: "Safe to report errors",
+          td: ["Safe to be negligent"],
+        },
+        {
+          th: "Learning from mistakes",
+          td: ["Ignoring mistakes"],
+        },
+        {
+          th: "Improving processes",
+          td: ["Accepting poor processes"],
+        },
+        {
+          th: "Psychological safety",
+          td: ["Lack of standards"],
+        },
       ],
     },
   }}
 />
 
 
-The distinction matters because different types of accountability call for different responses. An engineer who made an honest mistake while following normal practices needs system improvements. A manager who created deadline pressure that encouraged skipping safety checks needs to change their leadership approach. These are both accountability—just not the "find someone to blame" kind.
+The distinction matters because different types of accountability call for different responses. An engineer who made an honest mistake while following normal practices needs system improvements. A manager who created deadline pressure that encouraged skipping safety checks needs to change their leadership approach. These are both accountability — just not the "find someone to blame" kind.
 
 <Newsletter />
 
@@ -79,9 +111,18 @@ The Just Culture framework, developed in healthcare and aviation, helps distingu
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Human error:", text: "is inadvertent—a typo, a misremembered procedure. The response is system improvement." },
-    { lead: "At-risk behavior:", text: "involves conscious shortcuts where the person doesn't fully appreciate the risk—skipping a checklist because \"it's always fine.\" The response is coaching and removing incentives for the shortcut." },
-    { lead: "Reckless behavior:", text: "is conscious disregard of a known substantial risk—genuinely rare in professional settings and the only category where punitive action may be appropriate." },
+    {
+      lead: "Human error:",
+      text: "is inadvertent — a typo, a misremembered procedure. The response is system improvement.",
+    },
+    {
+      lead: "At-risk behavior:",
+      text: "involves conscious shortcuts where the person doesn't fully appreciate the risk — skipping a checklist because \"it's always fine.\" The response is coaching and removing incentives for the shortcut.",
+    },
+    {
+      lead: "Reckless behavior:",
+      text: "is conscious disregard of a known substantial risk — genuinely rare in professional settings and the only category where punitive action may be appropriate.",
+    },
   ]}
 />
 
@@ -93,19 +134,15 @@ You can't mandate blameless culture. If people have seen colleagues punished for
 
 ## Finding Contributing Factors, Not "Root Causes"
 
-The phrase "root cause" implies there's one cause at the bottom of the causal chain—find it, fix it, and the problem is solved. In complex systems, this is almost never true. Incidents arise from the confluence of multiple factors, none of which is _the_ cause. Remove any one of them, and the incident might not have happened—or might have happened differently.
+The phrase "root cause" implies there's one cause at the bottom of the causal chain — find it, fix it, and the problem is solved. In complex systems, this is almost never true. Incidents arise from the confluence of multiple factors, none of which is _the_ cause. Remove any one of them, and the incident might not have happened — or might have happened differently.
 
-```mermaid
-graph TD
-    B[No config validation] --> A[Incident]
-    C[No canary deployment] --> A
-    D[Alert threshold too high] --> A
-    E[Runbook outdated] --> A
-    F[On-call fatigued] --> A
-```
-Figure: Multiple contributing factors, each representing a potential intervention point.
+<Diagram
+  src={multipleContributingInterventionDiagram}
+  title="Multiple contributing factors, each representing a potential intervention point"
+  description="Flowchart showing several independent contributing factors converging on a single incident. No config validation, No canary deployment, Alert threshold too high, Runbook outdated, and On-call fatigued each point into Incident. The diagram emphasizes that complex failures typically arise from multiple interacting conditions rather than one root cause, and that each contributing factor is a possible place to intervene and reduce future risk."
+/>
 
-The Five Whys technique—keep asking "why" until you reach an actionable cause—is popular but easily misused. Here's what going wrong looks like:
+The Five Whys technique — keep asking "why" until you reach an actionable cause — is popular but easily misused. Here's what going wrong looks like:
 
 ```text title="five-whys-antipattern.txt"
 Q: Why did the system go down?
@@ -117,7 +154,7 @@ A: Because the engineer made a mistake.
 Q: Why did the engineer make a mistake?
 A: Because they were careless.
 
-[Investigation stops at blame—nothing actionable learned]
+[Investigation stops at blame — nothing actionable learned]
 ```
 Code: Five Whys antipattern that terminates at human blame.
 
@@ -143,7 +180,7 @@ A: Because documentation was outdated and there was no config inventory.
 ```
 Code: Five Whys done well, leading to systemic improvements.
 
-The difference is where you choose to stop. If you reach a human attribute—careless, rushed, didn't know—that's a signal you've taken a wrong turn. Human attributes aren't fixable. But every human attribute has a system context: Why was carelessness possible? What created the rush? Why wasn't the knowledge available?
+The difference is where you choose to stop. If you reach a human attribute — careless, rushed, didn't know — that's a signal you've taken a wrong turn. Human attributes aren't fixable. But every human attribute has a system context: Why was carelessness possible? What created the rush? Why wasn't the knowledge available?
 
 <Callout type="info">
 Five Whys works when each "why" leads to a system condition. It fails when it leads to human attributes. If you reach "they were careless," ask instead: "what about the system allowed carelessness to cause an incident?"
@@ -151,7 +188,7 @@ Five Whys works when each "why" leads to a system condition. It fails when it le
 
 ## Action Items That Actually Prevent Recurrence
 
-The analysis is only as valuable as the actions it produces. I've seen beautifully written postmortems with insightful contributing factor analysis—followed by vague action items like "improve monitoring" that never get done and wouldn't help much if they did.
+The analysis is only as valuable as the actions it produces. I've seen beautifully written postmortems with insightful contributing factor analysis — followed by vague action items like "improve monitoring" that never get done and wouldn't help much if they did.
 
 Good action items share specific characteristics:
 
@@ -162,11 +199,26 @@ Good action items share specific characteristics:
     thead: { th: ["Characteristic", "What It Means", "Example"] },
     tbody: {
       tr: [
-        { th: "Specific", td: ["Describes the exact change, not the general area", "\"Add validation for auth config changes\""] },
-        { th: "Measurable", td: ["Has a clear done/not-done state you can verify", "\"Deploy canary to 1% before full rollout\""] },
-        { th: "Assignable", td: ["Names a team and person, not \"we\" or \"someone\"", "\"Platform team owns, Sarah implements\""] },
-        { th: "Realistic", td: ["Scoped to complete in the committed timeframe", "\"Can be completed in one sprint\""] },
-        { th: "Systemic", td: ["Blocks the failure mode, not just this instance", "\"Blocks all invalid configs, not just this format\""] },
+        {
+          th: "Specific",
+          td: ["Describes the exact change, not the general area", "\"Add validation for auth config changes\""],
+        },
+        {
+          th: "Measurable",
+          td: ["Has a clear done/not-done state you can verify", "\"Deploy canary to 1% before full rollout\""],
+        },
+        {
+          th: "Assignable",
+          td: ["Names a team and person, not \"we\" or \"someone\"", "\"Platform team owns, Sarah implements\""],
+        },
+        {
+          th: "Realistic",
+          td: ["Scoped to complete in the committed timeframe", "\"Can be completed in one sprint\""],
+        },
+        {
+          th: "Systemic",
+          td: ["Blocks the failure mode, not just this instance", "\"Blocks all invalid configs, not just this format\""],
+        },
       ],
     },
   }}
@@ -175,12 +227,18 @@ Good action items share specific characteristics:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Good examples:", text: "\"Add pre-deploy hook that validates config schema.\" \"Implement 1% canary with automatic rollback on error spike.\" \"Add config change review requirement to deploy pipeline.\"" },
-    { lead: "Bad examples:", text: "\"Be more careful with config changes.\" \"Engineer X needs training.\" \"Review all configs.\" \"Improve monitoring.\"" },
+    {
+      lead: "Good examples:",
+      text: "\"Add pre-deploy hook that validates config schema.\" \"Implement 1% canary with automatic rollback on error spike.\" \"Add config change review requirement to deploy pipeline.\"",
+    },
+    {
+      lead: "Bad examples:",
+      text: "\"Be more careful with config changes.\" \"Engineer X needs training.\" \"Review all configs.\" \"Improve monitoring.\"",
+    },
   ]}
 />
 
-The "bad" examples are common because they're easy to write. But "be more careful" changes nothing structural and relies on human vigilance—exactly what failed. "Engineer X needs training" is blame dressed up as remediation. "Review all configs" and "improve monitoring" lack the specificity needed to actually get done.
+The "bad" examples are common because they're easy to write. But "be more careful" changes nothing structural and relies on human vigilance — exactly what failed. "Engineer X needs training" is blame dressed up as remediation. "Review all configs" and "improve monitoring" lack the specificity needed to actually get done.
 
 Here's a useful test: if someone else picked up the action item, would they know exactly what to build or change? If the answer is no, refine it until they would.
 
@@ -190,7 +248,7 @@ An incident without completed action items is an incident that will recur. Track
 
 ## The Path Forward
 
-Blameless postmortems aren't soft—they're more rigorous than blame culture. They demand that we find _all_ the contributing factors, not just the most obvious one. They demand _real_ fixes, not just "be more careful." They demand measurement to verify fixes actually work.
+Blameless postmortems aren't soft — they're more rigorous than blame culture. They demand that we find _all_ the contributing factors, not just the most obvious one. They demand _real_ fixes, not just "be more careful." They demand measurement to verify fixes actually work.
 
 <Download
   resource="blameless-postmortem-incident-analysis-systemic-causes"
@@ -217,10 +275,22 @@ The core principles:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Human error is where investigation begins, not where it ends:", text: "The interesting question is always: what made that action likely, possible, and undetected?" },
-    { lead: "Blame produces hiding; systems thinking produces learning:", text: "When people fear punishment, they stop reporting. When they feel safe, they share near-misses that prevent future incidents." },
-    { lead: "Incidents have contributing factors, not root causes:", text: "Complex failures arise from multiple interacting conditions. Identify them all before deciding which to fix." },
-    { lead: "Effective remediation requires specific, systemic action items tracked to completion:", text: "Vague actions don't get done. Person-focused actions don't prevent recurrence." },
+    {
+      lead: "Human error is where investigation begins, not where it ends:",
+      text: "The interesting question is always: what made that action likely, possible, and undetected?",
+    },
+    {
+      lead: "Blame produces hiding; systems thinking produces learning:",
+      text: "When people fear punishment, they stop reporting. When they feel safe, they share near-misses that prevent future incidents.",
+    },
+    {
+      lead: "Incidents have contributing factors, not root causes:",
+      text: "Complex failures arise from multiple interacting conditions. Identify them all before deciding which to fix.",
+    },
+    {
+      lead: "Effective remediation requires specific, systemic action items tracked to completion:",
+      text: "Vague actions don't get done. Person-focused actions don't prevent recurrence.",
+    },
   ]}
 />
 

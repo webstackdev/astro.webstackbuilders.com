@@ -19,11 +19,11 @@ featured: true
 *[CI]: Continuous Integration
 *[CD]: Continuous Deployment
 
-Platform teams love building internal CLIs. I've built several myself - wrappers around kubectl, terraform, helm, and various deployment pipelines. Some of these genuinely improved developer experience: hiding multi-step complexity, enforcing standards, preventing the kind of mistakes that page you at 3am. Others became maintenance nightmares that lagged behind upstream releases, broke in subtle ways, and required developers to learn both the wrapper _and_ the underlying tool to troubleshoot problems.
+Platform teams love building internal CLIs. I've built several myself - wrappers around kubectl, terraform, helm, and various deployment pipelines. Some of these genuinely improved developer experience: hiding multi-step complexity, enforcing standards, preventing the kind of mistakes that page you at 3am. Others became maintenance nightmares that lagged behind upstream releases, broke in subtle ways, and required developers to learn both the wrapper __and__ the underlying tool to troubleshoot problems.
 
 The pattern is predictable. A platform team builds `deploy-cli` that wraps kubectl and helm. Initially, it's simpler than raw commands - developers type `deploy-cli push myapp` instead of a 12-step sequence. Everyone's happy. Then Kubernetes releases a new feature. Helm updates its flag syntax. The CLI needs updates, but the original author moved to a different team. Developers hit cryptic errors. They start bypassing the CLI. Within a year, the wrapper is abandonware that everyone works around, but nobody removes because "someone might be using it."
 
-I've seen this cycle repeat across multiple organizations. The question isn't whether you _can_ build a wrapper - it's whether you _should_, and if you do, how to build it in a way that doesn't become a liability. This article covers when wrappers genuinely add value, how to design them for transparency and maintainability, the real cost of keeping them healthy, and how to recognize when it's time to deprecate.
+I've seen this cycle repeat across multiple organizations. The question isn't whether you __can__ build a wrapper - it's whether you __should__, and if you do, how to build it in a way that doesn't become a liability. This article covers when wrappers genuinely add value, how to design them for transparency and maintainability, the real cost of keeping them healthy, and how to recognize when it's time to deprecate.
 
 <Callout type="warning">
 The bar for building a wrapper CLI should be high. Every abstraction layer you add is a maintenance commitment. If the underlying tool's UX is good enough with documentation and templates, don't wrap it - improve the docs instead.
@@ -125,7 +125,7 @@ The best wrappers are thin. They compose underlying tools rather than reimplemen
 
 ## Abstraction Design Principles
 
-If you've decided a wrapper is worth building, the next question is _how_ to build it so it doesn't become a liability. The core principle is transparency: your wrapper should add value without hiding what's happening. Developers should always be able to see the underlying commands, bypass the wrapper when needed, and use their existing tool knowledge.
+If you've decided a wrapper is worth building, the next question is __how__ to build it so it doesn't become a liability. The core principle is transparency: your wrapper should add value without hiding what's happening. Developers should always be able to see the underlying commands, bypass the wrapper when needed, and use their existing tool knowledge.
 
 ### The Transparent Wrapper Pattern
 
@@ -240,15 +240,15 @@ class TransparentWrapper:
 ```
 Code: Transparent wrapper that passes through unknown flags.
 
-The `--wrapper-debug` and `--wrapper-bypass` flags are essential. Debug mode shows exactly what command will be executed, so developers can verify the wrapper is doing what they expect. Bypass mode lets them skip the wrapper entirely when they hit edge cases - and there _will_ be edge cases.
+The `--wrapper-debug` and `--wrapper-bypass` flags are essential. Debug mode shows exactly what command will be executed, so developers can verify the wrapper is doing what they expect. Bypass mode lets them skip the wrapper entirely when they hit edge cases - and there __will__ be edge cases.
 
-Notice what the transparent wrapper _doesn't_ do: it doesn't parse kubectl's output, it doesn't assume specific flag formats, and it doesn't try to interpret what the user is doing beyond the minimum needed for guard rails. This restraint is what makes it maintainable. When kubectl adds a new flag in version 1.32, the wrapper doesn't need to change - the flag passes through automatically.
+Notice what the transparent wrapper __doesn't__ do: it doesn't parse kubectl's output, it doesn't assume specific flag formats, and it doesn't try to interpret what the user is doing beyond the minimum needed for guard rails. This restraint is what makes it maintainable. When kubectl adds a new flag in version 1.32, the wrapper doesn't need to change - the flag passes through automatically.
 
 ### Context Injection
 
 Context injection is one of the highest-value wrapper features, but it's also where wrappers can go wrong. The rule is simple: always show the injected context, never hide it.
 
-A kubectl wrapper that silently switches to production because you're on the `main` branch is a disaster waiting to happen. A wrapper that _shows_ you it detected production context and asks for confirmation? That's genuinely useful.
+A kubectl wrapper that silently switches to production because you're on the `main` branch is a disaster waiting to happen. A wrapper that __shows__ you it detected production context and asks for confirmation? That's genuinely useful.
 
 The following example builds on the transparent wrapper pattern, adding environment detection based on git branches, directory structure, or explicit environment variables. The key design choice: the wrapper displays detected context visually before destructive operations, so there's no ambiguity about which cluster you're targeting.
 
@@ -363,7 +363,7 @@ Guard rails are the second high-value wrapper feature. The idea is simple: inter
 
 ### What to Block
 
-The most valuable guard rails prevent operations that are both _easy to trigger accidentally_ and _hard to recover from_. For kubectl, that means:
+The most valuable guard rails prevent operations that are both __easy to trigger accidentally__ and __hard to recover from__. For kubectl, that means:
 
 <List
   variant="check-icons-list"
@@ -453,7 +453,7 @@ To proceed: Use --force-delete with ticket number
 Example: kube delete namespace payments --force-delete=TICKET-123
 ```
 
-The user knows _why_ it's blocked, _how_ to proceed if necessary, and the ticket number creates accountability.
+The user knows __why__ it's blocked, __how__ to proceed if necessary, and the ticket number creates accountability.
 
 ### Environment-Specific Rules
 
@@ -598,20 +598,20 @@ Write your documentation in Markdown. It's the format developers expect, it rend
 
 ## SYNOPSIS
 
-**kube** [*wrapper-options*] *command* [*kubectl-options*]
+kube [*wrapper-options*] *command* [*kubectl-options*]
 
 ## DESCRIPTION
 
-**kube** is a thin wrapper around kubectl that provides automatic context
+kube is a thin wrapper around kubectl that provides automatic context
 injection, production guard rails, and audit logging. All unknown flags
 pass through to kubectl unchanged.
 
 ## WRAPPER OPTIONS
 
-**--wrapper-bypass**
+--wrapper-bypass
 : Skip all wrapper logic and run kubectl directly.
 
-**--wrapper-debug**
+--wrapper-debug
 : Show the kubectl command that will be executed.
 
 ## CONTEXT DETECTION
@@ -627,8 +627,8 @@ The wrapper detects environment from (in order of precedence):
 
 In production, these operations require explicit override:
 
-- Namespace deletion: use **--force-delete**=*TICKET*
-- Bulk deletion with --all: use **--force-delete**=*TICKET*
+- Namespace deletion: use --force-delete=*TICKET*
+- Bulk deletion with --all: use --force-delete=*TICKET*
 - Direct resource edits: use GitOps workflow instead
 
 ## EXAMPLES
@@ -640,7 +640,7 @@ In production, these operations require explicit override:
 
 ## SEE ALSO
 
-**kubectl**(1), **kubectl-config**(1)
+kubectl(1), kubectl-config(1)
 ```
 Code: Documentation structured for man page conversion.
 
@@ -902,7 +902,7 @@ When deprecating a wrapper, provide concrete alternatives for every feature. "Us
 
 Most internal CLI wrappers shouldn't exist. Before building one, exhaust the alternatives: shell aliases, config files, documentation, training.
 
-But when wrappers _are_ worth building - for genuine complexity hiding, meaningful guard rails, or critical context injection - build them well. Design for transparency: pass through unknown flags, show underlying commands, provide bypass modes. Commit to ongoing maintenance. Monitor adoption and bypass rates to catch problems early. And build with eventual deprecation in mind - the best outcome is retirement because the ecosystem caught up or your team outgrew the need.
+But when wrappers __are__ worth building - for genuine complexity hiding, meaningful guard rails, or critical context injection - build them well. Design for transparency: pass through unknown flags, show underlying commands, provide bypass modes. Commit to ongoing maintenance. Monitor adoption and bypass rates to catch problems early. And build with eventual deprecation in mind - the best outcome is retirement because the ecosystem caught up or your team outgrew the need.
 
 The goal isn't to build a wrapper that lasts forever. It's to build one that serves its purpose, helps your team work safely, and steps aside gracefully when it's no longer needed.
 

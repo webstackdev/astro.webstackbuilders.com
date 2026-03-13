@@ -19,15 +19,15 @@ featured: true
 
 You've spent months perfecting your NGINX Ingress configuration. The annotations are just right, traffic flows smoothly, and you've documented every quirk. Then someone decides you're switching to Traefik. Or Contour. Or migrating to a service mesh that uses Gateway API. Suddenly, none of your annotations work. Some are silently ignored, others cause validation errors, and you're left wondering why Kubernetes made this so hard.
 
-The answer: Ingress was designed in 2015 as a minimal abstraction. It defines _what_ you want (route traffic to services) but leaves _how_ entirely to the controller. Every controller filled that gap differently, creating the annotation mess you're now untangling.
+The answer: Ingress was designed in 2015 as a minimal abstraction. It defines __what__ you want (route traffic to services) but leaves __how__ entirely to the controller. Every controller filled that gap differently, creating the annotation mess you're now untangling.
 
-Gateway API, which reached GA in 2023, takes a different approach. It's more expressive, more portable, and designed for multi-team environments. But more powerful doesn't always mean better for your use case. I've seen teams migrate to Gateway API because "it's the future," only to discover that their simple routing requirements worked perfectly with Ingress—they just added complexity without new capabilities.
+Gateway API, which reached GA in 2023, takes a different approach. It's more expressive, more portable, and designed for multi-team environments. But more powerful doesn't always mean better for your use case. I've seen teams migrate to Gateway API because "it's the future," only to discover that their simple routing requirements worked perfectly with Ingress — they just added complexity without new capabilities.
 
 ## The Fundamental Difference
 
-The core distinction isn't feature lists—it's architecture. Ingress uses one resource type for everything. Gateway API uses three.
+The core distinction isn't feature lists — it's architecture. Ingress uses one resource type for everything. Gateway API uses three.
 
-With Ingress, you create a single resource that combines routing rules, TLS configuration, and backend references. Everything lives in one YAML file, which makes simple cases straightforward. The problem is that Ingress only defines the interface—actual behavior depends on annotations that vary by controller. An annotation that works perfectly on NGINX Ingress Controller might be silently ignored by Traefik or cause validation errors on HAProxy.
+With Ingress, you create a single resource that combines routing rules, TLS configuration, and backend references. Everything lives in one YAML file, which makes simple cases straightforward. The problem is that Ingress only defines the interface — actual behavior depends on annotations that vary by controller. An annotation that works perfectly on NGINX Ingress Controller might be silently ignored by Traefik or cause validation errors on HAProxy.
 
 ```yaml title="ingress-example.yaml"
 # Single Ingress resource handles everything
@@ -59,11 +59,11 @@ spec:
 
 Code: Ingress resource with controller-specific annotations.
 
-Gateway API separates concerns into layers. _GatewayClass_ defines which controller handles traffic (managed by infrastructure teams). _Gateway_ defines listeners—ports, protocols, TLS termination (managed by platform teams). _HTTPRoute_ defines routing rules (managed by application teams). Each layer has a clear owner and a narrow scope.
+Gateway API separates concerns into layers. __GatewayClass__ defines which controller handles traffic (managed by infrastructure teams). __Gateway__ defines listeners — ports, protocols, TLS termination (managed by platform teams). __HTTPRoute__ defines routing rules (managed by application teams). Each layer has a clear owner and a narrow scope.
 
 ```yaml title="gateway-api-example.yaml"
 # HTTPRoute: Application team defines their routing
-# Native fields for weights, filters, header matching—no annotations needed
+# Native fields for weights, filters, header matching — no annotations needed
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -87,7 +87,7 @@ spec:
 
 Code: HTTPRoute with cross-namespace reference to a shared Gateway.
 
-The critical difference: HTTPRoute uses native fields for routing configuration, not annotations. These fields work identically across any Gateway API implementation—Envoy Gateway, Istio, Contour, Kong, NGINX Gateway Fabric. Portability is built in, not bolted on.
+The critical difference: HTTPRoute uses native fields for routing configuration, not annotations. These fields work identically across any Gateway API implementation — Envoy Gateway, Istio, Contour, Kong, NGINX Gateway Fabric. Portability is built in, not bolted on.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -137,7 +137,7 @@ The decision depends on your current situation, not abstract feature comparisons
 
 ### When to Stick with Ingress
 
-Your routing needs are simple—host-based routing, path prefixes, TLS termination. If everything lives in one namespace (or a small number managed by one team) and your current setup works without friction, Ingress is fine. There's no deprecation timeline. The Kubernetes networking SIG has confirmed both APIs will coexist indefinitely.
+Your routing needs are simple — host-based routing, path prefixes, TLS termination. If everything lives in one namespace (or a small number managed by one team) and your current setup works without friction, Ingress is fine. There's no deprecation timeline. The Kubernetes networking SIG has confirmed both APIs will coexist indefinitely.
 
 Migrating because Gateway API is "the future" wastes engineering time. I've watched teams spend weeks converting resources, only to end up with equivalent functionality in a more complex setup. They'd have been better served improving their deployment pipeline or writing better runbooks.
 
@@ -145,7 +145,7 @@ Ingress makes sense for: a single application with a few endpoints, internal too
 
 ### When to Choose Gateway API
 
-You need capabilities Ingress genuinely lacks. Cross-namespace routing is the clearest signal—if application teams need to self-service their routing without accessing shared infrastructure namespaces, Gateway API solves this cleanly. Native traffic splitting for canary deployments is another strong indicator. With Ingress, you're juggling controller-specific annotations that break when you change controllers. Gateway API's `weight` field on backend references just works.
+You need capabilities Ingress genuinely lacks. Cross-namespace routing is the clearest signal — if application teams need to self-service their routing without accessing shared infrastructure namespaces, Gateway API solves this cleanly. Native traffic splitting for canary deployments is another strong indicator. With Ingress, you're juggling controller-specific annotations that break when you change controllers. Gateway API's `weight` field on backend references just works.
 
 Protocol requirements matter too. If you need TCP routing to databases, UDP routing to DNS servers, or gRPC routing with method-level matching, Ingress doesn't help. Gateway API has dedicated route types for each.
 
@@ -157,19 +157,19 @@ You don't have to choose one. Both APIs can run on the same cluster, even with t
 
 Consider a concrete example: your cluster runs an internal admin dashboard that hasn't changed in two years (Ingress works fine), a legacy API in maintenance mode (no reason to migrate), and a new public API with canary deployment requirements (Gateway API). Running both lets you use Gateway API where it adds value without touching stable workloads.
 
-The cost is cognitive load—your team needs to know both patterns. Document which services use which API and establish conventions for new services.
+The cost is cognitive load — your team needs to know both patterns. Document which services use which API and establish conventions for new services.
 
 ## Migration Reality Check
 
 If you've decided Gateway API is right for your use case, understand what you're signing up for.
 
-The good news: Ingress and Gateway API can run in parallel. You can migrate one route at a time with instant rollback—delete the HTTPRoute and traffic falls back to Ingress. This isn't a big-bang migration.
+The good news: Ingress and Gateway API can run in parallel. You can migrate one route at a time with instant rollback — delete the HTTPRoute and traffic falls back to Ingress. This isn't a big-bang migration.
 
-The conversion complexity depends entirely on your annotation usage. Standard fields (hosts, paths, TLS) convert mechanically. You can migrate a simple route in under an hour. But custom annotations need research. Each `nginx.ingress.kubernetes.io/*` annotation needs a Gateway API equivalent—some map to native filters, some require policy attachments, some have no direct equivalent.
+The conversion complexity depends entirely on your annotation usage. Standard fields (hosts, paths, TLS) convert mechanically. You can migrate a simple route in under an hour. But custom annotations need research. Each `nginx.ingress.kubernetes.io/*` annotation needs a Gateway API equivalent — some map to native filters, some require policy attachments, some have no direct equivalent.
 
 The `configuration-snippet` annotation is the hardest. It allows arbitrary NGINX config, meaning you need to understand exactly what it's doing and find an alternative. Sometimes there isn't one.
 
-Most major controllers now support Gateway API at GA level: NGINX Gateway Fabric, Envoy Gateway, Istio, Contour, Kong, and Traefik. HAProxy support is in beta. If you're using NGINX Ingress Controller, note that Gateway API support comes through a different project—NGINX Gateway Fabric—not the original nginx-ingress.
+Most major controllers now support Gateway API at GA level: NGINX Gateway Fabric, Envoy Gateway, Istio, Contour, Kong, and Traefik. HAProxy support is in beta. If you're using NGINX Ingress Controller, note that Gateway API support comes through a different project — NGINX Gateway Fabric — not the original nginx-ingress.
 
 <Callout type="warning">
 Plan for a multi-week timeline. A typical 20-service cluster with moderate annotation usage takes 4-8 weeks for careful migration with parallel operation. Rushed migrations create incidents.
@@ -201,7 +201,7 @@ Choose based on your actual problems, not industry trends. If Ingress works for 
   ]}
 />
 
-If you're not sure where to start: audit your current Ingress resources. Count the custom annotations. If you're using mostly standard fields (hosts, paths, TLS) and everything lives in a handful of namespaces managed by one team, Ingress is probably fine. If you're using controller-specific annotations for traffic splitting, header manipulation, or rate limiting—and especially if you've ever considered switching controllers—Gateway API is worth the investment.
+If you're not sure where to start: audit your current Ingress resources. Count the custom annotations. If you're using mostly standard fields (hosts, paths, TLS) and everything lives in a handful of namespaces managed by one team, Ingress is probably fine. If you're using controller-specific annotations for traffic splitting, header manipulation, or rate limiting — and especially if you've ever considered switching controllers — Gateway API is worth the investment.
 
 For greenfield projects without strong opinions, Gateway API is a reasonable default. It's mature enough for production, and starting there avoids a future migration. But "future-proofing" isn't a good reason to migrate existing stable workloads.
 

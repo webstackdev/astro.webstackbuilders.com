@@ -19,7 +19,7 @@ const { items, classes }: Props = Astro.props
 const ulClass = ["space-y-3", classes?.ul]
 const liClass = ["group", classes?.li]
 const emClass = ["text-content font-semibold not-italic", classes?.em]
-const textClass = "block text-content-offset text-sm mt-0.5"
+const textClass = "block text-content-offset mt-0.5"
 ---
 
 <ul class:list={ulClass}>
@@ -36,8 +36,8 @@ const textClass = "block text-content-offset text-sm mt-0.5"
             />
           </span>
           <div>
-            <em class:list={emClass}>{item.lead}</em>
-            <span class:list={textClass}>{item.text}</span>
+            {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
+            <span class:list={textClass} set:html={item.text}></span>
           </div>
         </div>
       </li>

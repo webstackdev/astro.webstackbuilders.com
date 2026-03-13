@@ -25,6 +25,7 @@
 @import "./focus.css";
 @import "./markdown.css" layer(components);
 @import "./vendor/carousel.css" layer(components);
+@import "./vendor/mermaid.css" layer(components);
 @import "./print.css" layer(utilities);
 
 /** Shiki code highlighting adapted to themes */
@@ -34,6 +35,14 @@
 /** Replaces "content" key in Tailwind config */
 @source "../../src/**/*.{astro,ts,tsx,md,mdx}";
 @source "!../../test/**/*";
+
+/**
+ * Allow-list any utility classes that are generated dynamically, and not otherwise
+ * used in static CSS so that Tailwind knows to add them in the final CSS bundle
+ */
+@source inline("bg-orange-600");
+@source inline("bg-yellow-500");
+@source inline("bg-yellow-600");
 
 /** New CSS directive in v4 to import Tailwind plugins */
 @plugin "@tailwindcss/forms";

@@ -12,11 +12,11 @@ featured: true
 *[CDN]: Content Delivery Network
 *[TTL]: Time To Live
 
-A CDN misconfiguration once cost a client three days of incident response. The setup was straightforward: an API endpoint returning user dashboard data, fronted by CloudFront. Someone had enabled caching without realizing the endpoint returned personalized content. User A's dashboard—complete with their name, email, and recent transactions—got cached and served to User B, then User C, then a few thousand more users before anyone noticed.
+A CDN misconfiguration once cost a client three days of incident response. The setup was straightforward: an API endpoint returning user dashboard data, fronted by CloudFront. Someone had enabled caching without realizing the endpoint returned personalized content. User A's dashboard — complete with their name, email, and recent transactions — got cached and served to User B, then User C, then a few thousand more users before anyone noticed.
 
 The cache hit ratio looked fantastic. 94% of requests served from edge. Response times dropped from 200ms to 15ms. Everyone was thrilled until support tickets started arriving.
 
-This is the fundamental tension in edge caching. Aggressive caching dramatically improves performance and reduces origin load, but incorrect configuration serves wrong content to users—sometimes catastrophically. Edge caching is a _data integrity_ problem first, performance problem second.
+This is the fundamental tension in edge caching. Aggressive caching dramatically improves performance and reduces origin load, but incorrect configuration serves wrong content to users — sometimes catastrophically. Edge caching is a __data integrity__ problem first, performance problem second.
 
 The good news: two concepts cause the vast majority of CDN cache bugs, and once you understand them, you can cache aggressively without fear. Those concepts are cache keys and Vary headers.
 
@@ -37,7 +37,7 @@ Cache key:
   "https://example.com/api/products?category=shoes"
 ```
 
-This seems straightforward, but the details matter enormously. Two requests that _should_ return identical content but generate different cache keys create duplicate cache entries—wasting storage and reducing hit ratios. Two requests that _should_ return different content but generate the same cache key serve wrong content to users—exactly the bug we opened with.
+This seems straightforward, but the details matter enormously. Two requests that __should__ return identical content but generate different cache keys create duplicate cache entries — wasting storage and reducing hit ratios. Two requests that __should__ return different content but generate the same cache key serve wrong content to users — exactly the bug we opened with.
 
 The rule is simple: every attribute that affects your response must be in the cache key. Miss one, and users get wrong content. Include unnecessary attributes, and your hit ratio suffers.
 
@@ -55,7 +55,7 @@ These are the same request but different cache keys:
 Result: Two cache entries for identical content
 ```
 
-Different parameter order, different cache keys, same content—you're now storing two copies and reducing your hit ratio. Marketing teams compound this by adding tracking parameters to URLs. Every `utm_source`, `fbclid`, and `gclid` creates a unique cache key for content that's identical regardless of how the user arrived.
+Different parameter order, different cache keys, same content — you're now storing two copies and reducing your hit ratio. Marketing teams compound this by adding tracking parameters to URLs. Every `utm_source`, `fbclid`, and `gclid` creates a unique cache key for content that's identical regardless of how the user arrived.
 
 The solution is query string normalization at the edge:
 
@@ -79,7 +79,7 @@ function handler(event: any): any {
 }
 ```
 
-Most CDNs support this natively. CloudFront lets you specify which query parameters to include in the cache key. Cloudflare and Fastly support query string sorting and parameter stripping. Enable these features—they're high-impact, low-effort wins.
+Most CDNs support this natively. CloudFront lets you specify which query parameters to include in the cache key. Cloudflare and Fastly support query string sorting and parameter stripping. Enable these features — they're high-impact, low-effort wins.
 
 <Callout type="warning" title="Cache Key Pollution">
 Query parameter pollution is one of the most common causes of poor cache hit ratios. Analytics and tracking parameters create millions of unique cache keys for identical content. Audit your cache key cardinality regularly.
@@ -89,7 +89,7 @@ Query parameter pollution is one of the most common causes of poor cache hit rat
 
 The `Vary` header tells caches "this response differs based on these request headers." It's the origin's way of saying "I returned different content to different clients based on header X, so you need to store separate cached versions."
 
-When a CDN sees `Vary: Accept-Language`, it doesn't just store one cached response per URL—it stores one per URL _per unique Accept-Language value_. The cache key effectively becomes URL + the values of all headers listed in Vary.
+When a CDN sees `Vary: Accept-Language`, it doesn't just store one cached response per URL — it stores one per URL __per unique Accept-Language value__. The cache key effectively becomes URL + the values of all headers listed in Vary.
 
 ```http title="vary-example.http"
 HTTP/1.1 200 OK
@@ -100,7 +100,7 @@ Vary: Accept-Encoding, Accept-Language
 <!DOCTYPE html>...
 ```
 
-With two headers in Vary, you get a combinatorial explosion of cache variants. Each unique combination of Accept-Encoding and Accept-Language creates a separate cache entry. This is powerful—it lets you cache content that legitimately varies by request attributes. But it's also dangerous, because Vary headers with high-cardinality values destroy your cache effectiveness entirely.
+With two headers in Vary, you get a combinatorial explosion of cache variants. Each unique combination of Accept-Encoding and Accept-Language creates a separate cache entry. This is powerful — it lets you cache content that legitimately varies by request attributes. But it's also dangerous, because Vary headers with high-cardinality values destroy your cache effectiveness entirely.
 
 The guideline: only vary on headers with a small, known set of values.
 
@@ -111,11 +111,26 @@ The guideline: only vary on headers with a small, known set of values.
     thead: { th: ["Vary On", "Good Idea?", "Reason"] },
     tbody: {
       tr: [
-        { th: "Accept-Encoding", td: ["Yes", "Limited values (gzip, br, identity)"] },
-        { th: "Accept-Language", td: ["Maybe", "Can explode if not normalized"] },
-        { th: "User-Agent", td: ["No", "Thousands of unique values"] },
-        { th: "Cookie", td: ["No", "Unique per user, kills caching"] },
-        { th: "Authorization", td: ["No", "Unique per user, kills caching"] },
+        {
+          th: "Accept-Encoding",
+          td: ["Yes", "Limited values (gzip, br, identity)"],
+        },
+        {
+          th: "Accept-Language",
+          td: ["Maybe", "Can explode if not normalized"],
+        },
+        {
+          th: "User-Agent",
+          td: ["No", "Thousands of unique values"],
+        },
+        {
+          th: "Cookie",
+          td: ["No", "Unique per user, kills caching"],
+        },
+        {
+          th: "Authorization",
+          td: ["No", "Unique per user, kills caching"],
+        },
       ],
     },
   }}
@@ -127,11 +142,11 @@ The guideline: only vary on headers with a small, known set of values.
 
 ### The Cookie Vary Trap
 
-The most common Vary mistake is `Vary: Cookie`. It seems logical—if your response depends on cookies, tell the cache to vary on them. But cookies include session IDs, authentication tokens, and tracking identifiers that are unique per user. Even when the actual content-affecting cookie (`preferences=dark`) is the same, the unique session IDs create separate cache entries.
+The most common Vary mistake is `Vary: Cookie`. It seems logical — if your response depends on cookies, tell the cache to vary on them. But cookies include session IDs, authentication tokens, and tracking identifiers that are unique per user. Even when the actual content-affecting cookie (`preferences=dark`) is the same, the unique session IDs create separate cache entries.
 
 Your cache becomes per-user, which defeats the entire purpose of edge caching.
 
-The solution is to handle cookies at the edge _before_ they reach your origin. Strip session cookies, extract only the cookies that actually affect content (like country or currency preference), and normalize those into a consistent format:
+The solution is to handle cookies at the edge __before__ they reach your origin. Strip session cookies, extract only the cookies that actually affect content (like country or currency preference), and normalize those into a consistent format:
 
 ```typescript title="cookie-normalization.ts"
 // CloudFront Function: normalize cookies for cache key
@@ -171,7 +186,7 @@ Understanding cache keys and Vary headers lets you avoid the two most dangerous 
 
 ### Caching Personalized Content
 
-This is the bug from our opening story—serving one user's content to another. It happens when:
+This is the bug from our opening story — serving one user's content to another. It happens when:
 
 - Your origin returns `Cache-Control: public` for personalized responses
 - You vary on session cookie but session IDs still contaminate the cache key
@@ -186,12 +201,30 @@ The patterns that keep you safe:
     thead: { th: ["Pattern", "Risk Level", "Why"] },
     tbody: {
       tr: [
-        { th: "Edge-side includes for personalization", td: ["Safe", "Cache page shell, personalize at edge"] },
-        { th: "Client-side personalization", td: ["Safe", "Cache generic content, personalize in browser"] },
-        { th: "Separate cacheable/non-cacheable endpoints", td: ["Safe", "Clear separation of concerns"] },
-        { th: "Origin returns `Cache-Control: public` for personalized API", td: ["Dangerous", "CDN caches response, serves to wrong user"] },
-        { th: "Vary on session cookie", td: ["Dangerous", "Still risks cross-contamination"] },
-        { th: "Cache without checking auth header", td: ["Dangerous", "Unauthenticated cache serves to authenticated users"] },
+        {
+          th: "Edge-side includes for personalization",
+          td: ["Safe", "Cache page shell, personalize at edge"],
+        },
+        {
+          th: "Client-side personalization",
+          td: ["Safe", "Cache generic content, personalize in browser"],
+        },
+        {
+          th: "Separate cacheable/non-cacheable endpoints",
+          td: ["Safe", "Clear separation of concerns"],
+        },
+        {
+          th: "Origin returns `Cache-Control: public` for personalized API",
+          td: ["Dangerous", "CDN caches response, serves to wrong user"],
+        },
+        {
+          th: "Vary on session cookie",
+          td: ["Dangerous", "Still risks cross-contamination"],
+        },
+        {
+          th: "Cache without checking auth header",
+          td: ["Dangerous", "Unauthenticated cache serves to authenticated users"],
+        },
       ],
     },
   }}
@@ -250,8 +283,8 @@ With these headers normalized or stripped, your origin never sees the attack vec
 
 ## Getting It Right
 
-Both of these bugs—and most CDN issues you'll encounter—stem from the same root cause: a mismatch between what's in the cache key and what actually affects the response.
+Both of these bugs — and most CDN issues you'll encounter — stem from the same root cause: a mismatch between what's in the cache key and what actually affects the response.
 
-A properly-configured cache with 70% hit ratio beats a misconfigured cache with 95% hit ratio. The latter is serving wrong content to 95% of users—or worse, leaking private data between users.
+A properly-configured cache with 70% hit ratio beats a misconfigured cache with 95% hit ratio. The latter is serving wrong content to 95% of users — or worse, leaking private data between users.
 
 Start with serving correct content: audit your cache keys, normalize your Vary headers, and verify that personalized content can never be cached. Once you've established that foundation, you can optimize for performance with confidence.

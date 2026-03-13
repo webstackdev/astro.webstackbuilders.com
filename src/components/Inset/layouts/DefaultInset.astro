@@ -1,0 +1,17 @@
+---
+export type Props = {
+  classes?: {
+    layout?: string
+  }
+  color?: string | undefined
+}
+
+const { classes, color }: Props = Astro.props
+
+const backgroundClass = color ? `bg-${color}` : 'bg-content-inverse-active'
+const layoutClass = `font-mono ${backgroundClass} border-2 border-trim rounded-md px-6 pt-6`
+---
+
+<div class:list={[layoutClass, classes?.layout]}>
+  <slot />
+</div>

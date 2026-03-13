@@ -9,6 +9,11 @@ tags: ["observability-and-telemetry", "typescript", "python", "go", "dotnet", "r
 featured: true
 ---
 
+import headBasedDiagram from "./diagrams/head-based-sampling-decision-flow.jpg"
+import samplingStrategyDiagram from "./diagrams/sampling-strategy-decision-tree.jpg"
+import tailBasedDiagram from "./diagrams/tail-based-sampling-decision-flow.jpg"
+import tradeOffsDiagram from "./diagrams/trade-offs-between-full-and-sampled-tracing.jpg"
+
 *[APM]: Application Performance Monitoring
 *[OTel]: OpenTelemetry
 *[SDK]: Software Development Kit
@@ -85,41 +90,23 @@ Cardinality explosion happens when you add high-cardinality attributes to spans 
 
 When I say "sampling" from here on, I mean keeping less than 100% of traces - making a deliberate decision about which traces to record and which to discard. This is the fundamental trade-off: you're exchanging complete data for manageable data. Understanding what you give up is essential for designing around those limitations, and for choosing sampling strategies that minimize the impact of what you lose.
 
-```mermaid
-graph TD
-    subgraph "100% Sampling"
-        A1[Every trace captured]
-        A2[Complete latency distribution]
-        A3[All error traces]
-    end
-
-    subgraph "Sampled Tracing"
-        B1[Representative traces]
-        B2[Statistical latency estimates]
-        B3[Most error traces]
-    end
-
-    subgraph "What You Lose"
-        C1[Specific trace lookup by ID]
-        C2[Exact percentile calculations]
-        C3[Rare edge cases]
-    end
-
-    A1 --> B1
-    A2 --> B2
-    A3 --> B3
-
-    B1 -.-> C1
-    B2 -.-> C2
-    B3 -.-> C3
-```
-Figure: Trade-offs between full and sampled tracing.
+<Diagram
+  src={tradeOffsDiagram}
+  title="Trade-offs between full and sampled tracing."
+  description="Flowchart comparing three grouped states: 100% Sampling, Sampled Tracing, and What You Lose. In the 100% Sampling group are Every trace captured, Complete latency distribution, and All error traces. These map respectively to Representative traces, Statistical latency estimates, and Most error traces in the Sampled Tracing group. Dotted arrows from the sampled group then point to three losses: Specific trace lookup by ID, Exact percentile calculations, and Rare edge cases. The diagram shows that sampling preserves broad representativeness and most important outcomes, but gives up exact lookup, exact tail-percentile math, and visibility into very rare events."
+/>
 
 <List
   variant="check-icons-list"
   items={[
-    { text: "__What sampling preserves:__ You still get representative traces for understanding request flow. You still get statistical estimates of latency distributions - with enough samples, your P50 and P95 estimates are accurate. You still get most error traces, especially if you use intelligent sampling that prioritizes errors." },
-    { text: "__What sampling loses:__ You can't guarantee you'll find a specific trace by ID. If a customer gives you a trace ID from their error message, that trace may not have been sampled. You lose exact percentile calculations - your P99 estimate has confidence intervals. You lose rare edge cases that happen less frequently than your sample rate." },
+    {
+      lead: "What sampling preserves:",
+      text: "You still get representative traces for understanding request flow. You still get statistical estimates of latency distributions - with enough samples, your P50 and P95 estimates are accurate. You still get most error traces, especially if you use intelligent sampling that prioritizes errors.",
+    },
+    {
+      lead: "What sampling loses:",
+      text: "You can't guarantee you'll find a specific trace by ID. If a customer gives you a trace ID from their error message, that trace may not have been sampled. You lose exact percentile calculations - your P99 estimate has confidence intervals. You lose rare edge cases that happen less frequently than your sample rate.",
+    },
   ]}
 />
 
@@ -140,10 +127,22 @@ The backend is where your traces live after collection. You have several options
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Jaeger__ is the most widely deployed open-source tracing backend. Originally built by Uber and now a CNCF graduated project, it provides storage, querying, and a web UI for exploring traces. You can run Jaeger with various storage backends - Cassandra, Elasticsearch, or in-memory for development. Its UI lets you search traces by service, operation, tags, and time range, then drill into individual traces to see the span waterfall." },
-    { text: "__Zipkin__ predates Jaeger and was originally built by Twitter. It's simpler to deploy (single binary, supports SQLite for small deployments) and has good ecosystem support. Many tracing libraries support Zipkin's wire format natively. The UI is functional if less polished than Jaeger's." },
-    { text: "__Grafana Tempo__ takes a different approach - it's a traces-only backend designed to be cheap to operate. Tempo stores traces in object storage (S3, GCS, Azure Blob) without indexing, which dramatically reduces cost. The trade-off is that you can't search by arbitrary attributes; you need a trace ID to retrieve a trace. The intended workflow is to discover trace IDs through other signals - metrics with exemplars, logs with trace correlation - then retrieve the full trace from Tempo. It integrates tightly with Grafana for visualization." },
-    { text: "__Commercial APM vendors__ (Datadog, New Relic, Honeycomb, Lightstep) provide fully managed backends with sophisticated UIs, alerting, and analytics built in. They charge per GB ingested, which is why sampling matters so much - the economics section in the introduction assumed vendor pricing." },
+    {
+      lead: "Jaeger",
+      text: "The most widely deployed open-source tracing backend. Originally built by Uber and now a CNCF graduated project, it provides storage, querying, and a web UI for exploring traces. You can run Jaeger with various storage backends - Cassandra, Elasticsearch, or in-memory for development. Its UI lets you search traces by service, operation, tags, and time range, then drill into individual traces to see the span waterfall.",
+    },
+    {
+      lead: "Zipkin",
+      text: "Predates Jaeger and was originally built by Twitter. It's simpler to deploy (single binary, supports SQLite for small deployments) and has good ecosystem support. Many tracing libraries support Zipkin's wire format natively. The UI is functional if less polished than Jaeger's.",
+    },
+    {
+      lead: "Grafana Tempo",
+      text: "Takes a different approach - it's a traces-only backend designed to be cheap to operate. Tempo stores traces in object storage (S3, GCS, Azure Blob) without indexing, which dramatically reduces cost. The trade-off is that you can't search by arbitrary attributes; you need a trace ID to retrieve a trace. The intended workflow is to discover trace IDs through other signals - metrics with exemplars, logs with trace correlation - then retrieve the full trace from Tempo. It integrates tightly with Grafana for visualization.",
+    },
+    {
+      lead: "Commercial APM vendors (Datadog, New Relic, Honeycomb, Lightstep)",
+      text: "Provide fully managed backends with sophisticated UIs, alerting, and analytics built in. They charge per GB ingested, which is why sampling matters so much - the economics section in the introduction assumed vendor pricing.",
+    },
   ]}
 />
 
@@ -171,28 +170,11 @@ This means you deploy sampling logic in your application code, not in a separate
 
 The sequence is straightforward. A request arrives at your entry point - let's say an API gateway. The gateway's OTel SDK generates a new trace ID and immediately asks the sampler: should we sample this trace? The sampler looks at whatever information is available (the trace ID, request attributes, current rate limits) and returns yes or no. If yes, the gateway creates spans and includes `sampled=true` in the trace context headers it forwards. If no, it can either skip span creation entirely or create spans but mark them as not-for-export.
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Gateway as API Gateway
-    participant ServiceA as Service A
-    participant ServiceB as Service B
-    participant Collector
-
-    Client->>Gateway: Request
-    Note over Gateway: Sample decision: YES (10% chance)
-    Gateway->>Gateway: Generate trace ID, set sampled=true
-    Gateway->>ServiceA: Request + trace context (sampled=true)
-    ServiceA->>ServiceA: Create spans (will be exported)
-    ServiceA->>ServiceB: Request + trace context (sampled=true)
-    ServiceB->>ServiceB: Create spans (will be exported)
-    ServiceB->>Collector: Export spans
-    ServiceA->>Collector: Export spans
-    Gateway->>Collector: Export spans
-
-    Note over Client,Collector: All services respect the head decision
-```
-Figure: Head-based sampling decision flow.
+<Diagram
+  src={headBasedDiagram}
+  title="Head-based sampling decision flow."
+  description="Sequence diagram showing how a head-sampling decision made at the start of a request propagates across services. A Client sends a Request to an API Gateway. At the gateway, a note indicates a sample decision of YES with a 10% chance. The gateway generates a trace ID, sets sampled=true, and forwards the request plus trace context to Service A. Service A creates spans that will be exported, forwards the request plus the same sampled=true trace context to Service B, and Service B also creates exportable spans. Service B, Service A, and the Gateway each export spans to the Collector. A final note emphasizes that all services respect the original head decision. The diagram shows that head sampling makes one early decision and then keeps the whole trace consistent across downstream services."
+/>
 
 When downstream services receive a request with trace context, they check the sampling flag. If `sampled=true`, they create spans normally. If `sampled=false`, they skip span creation (or create non-exported spans for local debugging). The key insight is that every service respects the head decision - no service overrides it. This keeps traces complete: you never end up with half a trace because some services sampled and others didn't.
 
@@ -310,10 +292,22 @@ The probability sampler above is the simplest approach, but it's not the only on
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Fixed probability__ is what we implemented above. It's simple, statistically representative, and gives you predictable costs. The downside is that it treats all requests equally. A payment transaction gets the same 10% chance as a health check." },
-    { text: "__Rate limiting__ uses a token bucket or leaky bucket to cap traces per second. You configure \"sample at most 100 traces per second,\" and the sampler keeps a counter. This guarantees a cost ceiling regardless of traffic volume. During a traffic spike, your effective sampling rate drops (100 TPS out of 10,000 RPS is 1%), but you never exceed budget. The risk is missing important traces during exactly the periods when you most want visibility." },
-    { text: "__Attribute-based sampling__ applies different rates to different request types. Sample 100% of errors, 50% of enterprise customer requests, 1% of health checks. This requires knowing which attributes matter upfront and configuring rules accordingly. It's more complex but captures more signal per dollar spent." },
-    { text: "__Parent-based sampling__ is the default in OpenTelemetry. When a service receives a request with existing trace context, it respects whatever sampling decision the parent made. This ensures trace completeness - you never have partial traces. For root spans (no parent), it falls back to another strategy like probability sampling." },
+    {
+      lead: "Fixed probability",
+      text: "What we implemented above. It's simple, statistically representative, and gives you predictable costs. The downside is that it treats all requests equally. A payment transaction gets the same 10% chance as a health check.",
+    },
+    {
+      lead: "Rate limiting",
+      text: "Uses a token bucket or leaky bucket to cap traces per second. You configure \"sample at most 100 traces per second,\" and the sampler keeps a counter. This guarantees a cost ceiling regardless of traffic volume. During a traffic spike, your effective sampling rate drops (100 TPS out of 10,000 RPS is 1%), but you never exceed budget. The risk is missing important traces during exactly the periods when you most want visibility.",
+    },
+    {
+      lead: "Attribute-based sampling",
+      text: "Applies different rates to different request types. Sample 100% of errors, 50% of enterprise customer requests, 1% of health checks. This requires knowing which attributes matter upfront and configuring rules accordingly. It's more complex but captures more signal per dollar spent.",
+    },
+    {
+      lead: "Parent-based sampling",
+      text: "The default in OpenTelemetry. When a service receives a request with existing trace context, it respects whatever sampling decision the parent made. This ensures trace completeness - you never have partial traces. For root spans (no parent), it falls back to another strategy like probability sampling.",
+    },
   ]}
 />
 
@@ -442,27 +436,11 @@ The trade-off is architectural complexity. Head sampling happens in your applica
 
 The flow looks different from head sampling. Your applications don't make any sampling decisions - they create spans for every request and export them all to a collector. The collector groups incoming spans by trace ID, buffers them in memory, and waits for the trace to complete. Once a trace is complete (or a timeout expires), the collector evaluates it against your policies: does it contain errors? Is it slow? Does it touch certain services? If any policy matches, the entire trace is forwarded to your backend. If nothing matches, the trace is discarded.
 
-```mermaid
-sequenceDiagram
-    participant Services as Application Services
-    participant Collector as OTel Collector
-    participant TailSampler as Tail Sampler
-    participant Backend as Trace Backend
-
-    Services->>Collector: All spans (100%)
-    Collector->>TailSampler: Buffer spans by trace ID
-
-    Note over TailSampler: Wait for trace to complete
-
-    TailSampler->>TailSampler: Evaluate complete trace
-
-    alt Interesting trace (error, slow, etc.)
-        TailSampler->>Backend: Export full trace
-    else Routine trace
-        TailSampler->>TailSampler: Discard
-    end
-```
-Figure: Tail-based sampling decision flow.
+<Diagram
+  src={tailBasedDiagram}
+  title="Tail-based sampling decision flow."
+  description="Sequence diagram showing how tail sampling buffers complete traces before deciding what to keep. Application Services send all spans, representing 100% of traffic, to an OTel Collector. The collector forwards buffered spans grouped by trace ID to a Tail Sampler. A note indicates that the tail sampler waits for the trace to complete. The tail sampler then evaluates the complete trace. If the trace is interesting, such as containing an error or slowness, the full trace is exported to the Trace Backend. If the trace is routine, it is discarded by the tail sampler. The diagram highlights that tail sampling makes decisions with full outcome information rather than guessing at trace start."
+/>
 
 The critical insight is that the collector sees the complete trace before deciding. It knows whether the request errored. It knows the total latency. It knows which services were involved and what happened in each one. This is information that head sampling simply doesn't have.
 
@@ -473,9 +451,18 @@ Tail sampling doesn't happen in your application code - it happens in dedicated 
 <List
   variant="check-icons-list"
   items={[
-    { text: "__OpenTelemetry Collector__ is the industry standard. It includes a Tail Sampling Processor that handles buffering, completion detection, and policy evaluation out of the box. You configure it in YAML rather than writing code. The Collector runs as a standalone service - typically a Kubernetes Deployment or DaemonSet - that receives spans from all your microservices." },
-    { text: "__Grafana Alloy__ (formerly Grafana Agent) is a high-performance distribution of the OTel Collector, widely used in environments that send data to Grafana Tempo. It supports the same tail-sampling processor with identical configuration." },
-    { text: "__Jaeger Collector v2__ is built directly on the OpenTelemetry Collector core, so it can use the same tail-sampling processors natively." },
+    {
+      lead: "OpenTelemetry Collector",
+      text: "The industry standard. It includes a Tail Sampling Processor that handles buffering, completion detection, and policy evaluation out of the box. You configure it in YAML rather than writing code. The Collector runs as a standalone service - typically a Kubernetes Deployment or DaemonSet - that receives spans from all your microservices.",
+    },
+    {
+      lead: "Grafana Alloy (formerly Grafana Agent)",
+      text: "A high-performance distribution of the OTel Collector, widely used in environments that send data to Grafana Tempo. It supports the same tail-sampling processor with identical configuration.",
+    },
+    {
+      lead: "Jaeger Collector v2",
+      text: "Built directly on the OpenTelemetry Collector core, so it can use the same tail-sampling processors natively.",
+    },
   ]}
 />
 
@@ -486,8 +473,14 @@ For simple deployments, you can run the collector as a sidecar in your applicati
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Tier 1 (Agents)__: Local collectors or sidecars receive spans from applications and forward them to a central tier" },
-    { text: "__Tier 2 (Tail-Sampling Cluster)__: A central cluster of collectors uses a load-balancing exporter that routes by trace ID, ensuring all spans with the same trace ID reach the same collector instance" },
+    {
+      lead: "Tier 1 (Agents)",
+      text: "Local collectors or sidecars receive spans from applications and forward them to a central tier",
+    },
+    {
+      lead: "Tier 2 (Tail-Sampling Cluster)",
+      text: "A central cluster of collectors uses a load-balancing exporter that routes by trace ID, ensuring all spans with the same trace ID reach the same collector instance",
+    },
   ]}
 />
 
@@ -570,10 +563,22 @@ Tail sampling solves the "incomplete information" problem of head sampling, but 
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Memory pressure__ is the biggest operational concern. The collector must hold all spans in RAM while waiting for traces to complete. At 10,000 RPS with 20 spans per trace and a 10-second decision wait, you're buffering 2 million spans. Each span might be 1-2KB, so you need gigabytes of RAM just for the buffer - and that's before accounting for the overhead of the data structures holding them. If you run out of memory, the collector either drops traces or crashes." },
-    { text: "__Trace completion detection__ is inherently heuristic. There's no \"trace complete\" signal in distributed tracing - you just stop seeing new spans. The collector uses a timeout (`decision_wait`) to guess when a trace is done. Set it too short and you'll miss late-arriving spans from slow downstream services. Set it too long and your buffer grows, your memory pressure increases, and your traces take longer to appear in your backend." },
-    { text: "__Distributed coordination__ adds complexity when you scale beyond a single collector instance. All spans for a trace must reach the same collector for tail sampling to work. This requires trace-ID-based routing at your load balancer, which means your collectors can't be fully stateless. If a collector handling certain trace IDs goes down, those in-flight traces are lost." },
-    { text: "__Latency addition__ affects how quickly traces appear in your backend. With head sampling, spans are exported immediately after creation. With tail sampling, spans wait in the buffer for `decision_wait` seconds before the decision is made and the trace is exported. This delay affects real-time debugging - if you're actively investigating an incident, your most recent traces won't be visible yet." },
+    {
+      lead: "Memory pressure",
+      text: "The biggest operational concern. The collector must hold all spans in RAM while waiting for traces to complete. At 10,000 RPS with 20 spans per trace and a 10-second decision wait, you're buffering 2 million spans. Each span might be 1-2KB, so you need gigabytes of RAM just for the buffer - and that's before accounting for the overhead of the data structures holding them. If you run out of memory, the collector either drops traces or crashes.",
+    },
+    {
+      lead: "Trace completion detection",
+      text: "Inherently heuristic. There's no \"trace complete\" signal in distributed tracing - you just stop seeing new spans. The collector uses a timeout (`decision_wait`) to guess when a trace is done. Set it too short and you'll miss late-arriving spans from slow downstream services. Set it too long and your buffer grows, your memory pressure increases, and your traces take longer to appear in your backend.",
+    },
+    {
+      lead: "Distributed coordination",
+      text: "Adds complexity when you scale beyond a single collector instance. All spans for a trace must reach the same collector for tail sampling to work. This requires trace-ID-based routing at your load balancer, which means your collectors can't be fully stateless. If a collector handling certain trace IDs goes down, those in-flight traces are lost.",
+    },
+    {
+      lead: "Latency addition",
+      text: "Affects how quickly traces appear in your backend. With head sampling, spans are exported immediately after creation. With tail sampling, spans wait in the buffer for `decision_wait` seconds before the decision is made and the trace is exported. This delay affects real-time debugging - if you're actively investigating an incident, your most recent traces won't be visible yet.",
+    },
   ]}
 />
 
@@ -591,27 +596,11 @@ The choice between head and tail sampling isn't binary - it's about matching you
 
 Start with your traffic volume. At low scale (under 1,000 RPS), the economics of sampling don't matter much - you can afford 100% sampling or use simple head sampling without overthinking it. At moderate scale (1,000-10,000 RPS), the question becomes whether you need deterministic error capture or can live with statistical sampling. At high scale (over 10,000 RPS), the question is whether you can afford the infrastructure for tail sampling.
 
-```mermaid
-graph TD
-    A[Choose Sampling Strategy] --> B{Traffic Volume?}
-
-    B -->|< 1000 RPS| C[100% or Simple Head]
-    B -->|1000-10000 RPS| D{Need Error Capture?}
-    B -->|> 10000 RPS| E{Budget for Tail Infrastructure?}
-
-    D -->|Must capture all errors| F[Tail Sampling]
-    D -->|Statistical error rate OK| G[Head Sampling]
-
-    E -->|Yes| H[Tail Sampling]
-    E -->|No| I[Aggressive Head Sampling]
-
-    C --> J[Simple Implementation]
-    F --> K[OTel Collector + Tail Processor]
-    G --> L[SDK-level Sampler]
-    H --> K
-    I --> L
-```
-Figure: Sampling strategy decision tree.
+<Diagram
+  src={samplingStrategyDiagram}
+  title="Sampling strategy decision tree."
+  description="Flowchart showing how to choose a sampling approach based on traffic volume and operational constraints. The process starts at Choose Sampling Strategy and asks about Traffic Volume. For less than 1,000 RPS, the recommendation is 100% or Simple Head, which leads to Simple Implementation. For 1,000 to 10,000 RPS, the next question is Need Error Capture? If yes, the result is Tail Sampling; if statistical error rate is acceptable, the result is Head Sampling. For more than 10,000 RPS, the next question is Budget for Tail Infrastructure? If yes, choose Tail Sampling; if no, choose Aggressive Head Sampling. Tail Sampling leads to OTel Collector + Tail Processor, while Head Sampling and Aggressive Head Sampling lead to SDK-level Sampler. The diagram emphasizes that the right choice depends on both scale and the team's ability to operate sampling infrastructure."
+/>
 
 The decision isn't just about what you want - it's about what you can operate. Tail sampling requires stateful infrastructure that needs monitoring, scaling, and maintenance. If your team is small or your ops capacity is limited, the operational overhead of tail sampling may outweigh its benefits.
 
@@ -622,8 +611,14 @@ The decision isn't just about what you want - it's about what you can operate. T
     thead: { th: ["Factor", "Head Sampling", "Tail Sampling"] },
     tbody: {
       tr: [
-        { th: "Decision point", td: ["Trace start", "Trace end"] },
-        { th: "Information available", td: ["Request attributes only", "Full trace with outcomes"] },
+        {
+          th: "Decision point",
+          td: ["Trace start", "Trace end"],
+        },
+        {
+          th: "Information available",
+          td: ["Request attributes only", "Full trace with outcomes"],
+        },
         {
           th: "Error capture",
           td: ["Probabilistic", "Deterministic (if policy includes)"],
@@ -632,10 +627,22 @@ The decision isn't just about what you want - it's about what you can operate. T
           th: "Infrastructure",
           td: ["Simple (SDK only)", "Complex (stateful collectors)"],
         },
-        { th: "Network overhead", td: ["Low (only sampled spans)", "High (all spans to collector)"] },
-        { th: "Latency impact", td: ["None", "decision_wait delay"] },
-        { th: "Memory requirements", td: ["Minimal", "Significant (buffering)"] },
-        { th: "Best for", td: ["High volume, cost control", "Error investigation, SLA monitoring"] },
+        {
+          th: "Network overhead",
+          td: ["Low (only sampled spans)", "High (all spans to collector)"],
+        },
+        {
+          th: "Latency impact",
+          td: ["None", "decision_wait delay"],
+        },
+        {
+          th: "Memory requirements",
+          td: ["Minimal", "Significant (buffering)"],
+        },
+        {
+          th: "Best for",
+          td: ["High volume, cost control", "Error investigation, SLA monitoring"],
+        },
       ],
     },
   }}
@@ -644,8 +651,14 @@ The decision isn't just about what you want - it's about what you can operate. T
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Choose head sampling when:__ You have high traffic volume and need predictable costs. Your error rate is high enough that probabilistic sampling catches most errors. You don't have the ops capacity for stateful collector infrastructure. You need traces to appear in your backend immediately." },
-    { text: "__Choose tail sampling when:__ You must capture every error trace for compliance or debugging. You're tracking SLAs and need to sample all requests that violated them. You have moderate traffic where the collector infrastructure is manageable. You can tolerate the `decision_wait` delay before traces appear." },
+    {
+      lead: "Choose head sampling when:",
+      text: "You have high traffic volume and need predictable costs. Your error rate is high enough that probabilistic sampling catches most errors. You don't have the ops capacity for stateful collector infrastructure. You need traces to appear in your backend immediately.",
+    },
+    {
+      lead: "Choose tail sampling when:",
+      text: "You must capture every error trace for compliance or debugging. You're tracking SLAs and need to sample all requests that violated them. You have moderate traffic where the collector infrastructure is manageable. You can tolerate the `decision_wait` delay before traces appear.",
+    },
   ]}
 />
 
@@ -787,14 +800,23 @@ Different metrics require different sample sizes for valid estimation.
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Error rate estimation__ follows the standard sample size formula from statistics. To estimate a 1% error rate with ±0.5% margin of error at 95% confidence, you need about 1,500 samples. At 10,000 RPS with 1% sampling, you get 6,000 samples per minute - more than enough. But if your error rate is 0.01% and you want ±0.005% precision, you need 150,000 samples. That changes the math significantly." },
-    { text: "__Latency percentiles__ need more samples than you might expect. The rule of thumb is that you need roughly 100/p samples to estimate the Pth percentile, where p is the tail probability. For P99 (p = 0.01), you need about 10,000 samples. For P99.9, you need 100,000 samples. If you're sampling at 1% and need P99.9 estimates, you need 10 million total requests in your analysis window to have enough samples." },
+    {
+      lead: "Error rate estimation",
+      text: "Follows the standard sample size formula from statistics. To estimate a 1% error rate with ±0.5% margin of error at 95% confidence, you need about 1,500 samples. At 10,000 RPS with 1% sampling, you get 6,000 samples per minute - more than enough. But if your error rate is 0.01% and you want ±0.005% precision, you need 150,000 samples. That changes the math significantly.",
+    },
+    {
+      lead: "Latency percentiles",
+      text: "Need more samples than you might expect. The rule of thumb is that you need roughly 100/p samples to estimate the Pth percentile, where p is the tail probability. For P99 (p = 0.01), you need about 10,000 samples. For P99.9, you need 100,000 samples. If you're sampling at 1% and need P99.9 estimates, you need 10 million total requests in your analysis window to have enough samples.",
+    },
   ]}
 />
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Rare event detection__ is where sampling hurts most. If an event occurs once per 10,000 requests and you're sampling at 1%, you need 1 million total requests just to expect to see one occurrence. Rare bugs, edge cases, and unusual failure modes may never appear in your sampled data at all." },
+    {
+      lead: "Rare event detection",
+      text: "Where sampling hurts most. If an event occurs once per 10,000 requests and you're sampling at 1%, you need 1 million total requests just to expect to see one occurrence. Rare bugs, edge cases, and unusual failure modes may never appear in your sampled data at all.",
+    },
   ]}
 />
 
@@ -805,11 +827,26 @@ Different metrics require different sample sizes for valid estimation.
     thead: { th: ["Metric", "Minimum Samples", "At 1% Sampling", "At 10% Sampling"] },
     tbody: {
       tr: [
-        { th: "Error rate (±0.5%)", td: ["~1,500", "150K requests", "15K requests"] },
-        { th: "P95 latency", td: ["~2,000", "200K requests", "20K requests"] },
-        { th: "P99 latency", td: ["~10,000", "1M requests", "100K requests"] },
-        { th: "P99.9 latency", td: ["~100,000", "10M requests", "1M requests"] },
-        { th: "1-in-10K event", td: ["~10,000", "1M requests", "100K requests"] },
+        {
+          th: "Error rate (±0.5%)",
+          td: ["~1,500", "150K requests", "15K requests"],
+        },
+        {
+          th: "P95 latency",
+          td: ["~2,000", "200K requests", "20K requests"],
+        },
+        {
+          th: "P99 latency",
+          td: ["~10,000", "1M requests", "100K requests"],
+        },
+        {
+          th: "P99.9 latency",
+          td: ["~100,000", "10M requests", "1M requests"],
+        },
+        {
+          th: "1-in-10K event",
+          td: ["~10,000", "1M requests", "100K requests"],
+        },
       ],
     },
   }}
@@ -852,9 +889,18 @@ The first instinct is to increase your sample rate, but that's treating the symp
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Always log trace IDs, even for unsampled requests.__ Your application creates a trace ID for every request, regardless of whether that request is sampled. Include the trace ID in your structured logs. When a trace isn't sampled, you can still find the logs for that request - and logs often contain enough context to diagnose the issue without the trace." },
-    { text: "__Correlate trace IDs with request IDs and user IDs.__ If you can't find trace `abc123`, but you know it was for user `user456` at 14:32 UTC, you can search for other traces from that user around that time. Sampled traces are statistically representative - a similar trace from the same user, endpoint, and time window often shows the same issue." },
-    { text: "__Use your trace backend's attribute search.__ Jaeger, Tempo, and commercial APM tools let you search traces by attributes, not just trace ID. Search for traces with the same `http.route`, same `error.type`, same `user.id`, same time window. You may not have _that_ trace, but you'll have similar ones." },
+    {
+      lead: "Always log trace IDs, even for unsampled requests.",
+      text: "Your application creates a trace ID for every request, regardless of whether that request is sampled. Include the trace ID in your structured logs. When a trace isn't sampled, you can still find the logs for that request - and logs often contain enough context to diagnose the issue without the trace.",
+    },
+    {
+      lead: "Correlate trace IDs with request IDs and user IDs.",
+      text: "If you can't find trace `abc123`, but you know it was for user `user456` at 14:32 UTC, you can search for other traces from that user around that time. Sampled traces are statistically representative - a similar trace from the same user, endpoint, and time window often shows the same issue.",
+    },
+    {
+      lead: "Use your trace backend's attribute search.",
+      text: "Jaeger, Tempo, and commercial APM tools let you search traces by attributes, not just trace ID. Search for traces with the same `http.route`, same `error.type`, same `user.id`, same time window. You may not have _that_ trace, but you'll have similar ones.",
+    },
   ]}
 />
 
@@ -865,7 +911,10 @@ Traces are one leg of the observability triad; logs and metrics are the others. 
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Structure your logs for trace correlation.__ Every log entry should include the trace ID and span ID. When you can't find a trace, you can still query your log aggregator (Loki, Elasticsearch, CloudWatch Logs) for entries with that trace ID. The logs won't show you the span waterfall, but they'll show you what happened." },
+    {
+      lead: "Structure your logs for trace correlation.",
+      text: "Every log entry should include the trace ID and span ID. When you can't find a trace, you can still query your log aggregator (Loki, Elasticsearch, CloudWatch Logs) for entries with that trace ID. The logs won't show you the span waterfall, but they'll show you what happened.",
+    },
   ]}
 />
 
@@ -889,8 +938,14 @@ Notice the `sampled: false` field. This tells you the trace wasn't sampled, so d
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Use metrics with exemplars.__ Modern metrics systems (Prometheus with exemplar support, Grafana Mimir) can attach trace IDs to metric data points. When you see a latency spike on your P99 dashboard, you can click through to an exemplar trace that represents that spike. This is a form of retroactive trace discovery - the metric tells you something interesting happened, and links you to a trace that was sampled." },
-    { text: "__Build dashboards that connect the three signals.__ Your Grafana dashboard should let you go from a metric anomaly → to logs from that time window → to traces matching those logs. Tempo's integration with Loki is designed for exactly this workflow: search logs, find trace IDs in log entries, click through to traces." },
+    {
+      lead: "Use metrics with exemplars.",
+      text: "Modern metrics systems (Prometheus with exemplar support, Grafana Mimir) can attach trace IDs to metric data points. When you see a latency spike on your P99 dashboard, you can click through to an exemplar trace that represents that spike. This is a form of retroactive trace discovery - the metric tells you something interesting happened, and links you to a trace that was sampled.",
+    },
+    {
+      lead: "Build dashboards that connect the three signals.",
+      text: "Your Grafana dashboard should let you go from a metric anomaly → to logs from that time window → to traces matching those logs. Tempo's integration with Loki is designed for exactly this workflow: search logs, find trace IDs in log entries, click through to traces.",
+    },
   ]}
 />
 
@@ -967,9 +1022,18 @@ During active incidents, you often want more traces than your normal rate provid
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Feature flags for sample rates.__ If your sampler reads its rate from a feature flag service (LaunchDarkly, Split, ConfigCat, or even a simple Redis key), you can adjust rates in real-time. During an incident, flip the flag to 100%. After investigation, flip it back. No deployment required." },
-    { text: "__OTel Collector hot reload.__ If you're using tail sampling in the OTel Collector, the Collector supports configuration reload via SIGHUP. Update your ConfigMap, trigger a reload, and your sampling policies change without collector restart. This is slower than a feature flag but doesn't require application changes." },
-    { text: "__Time-bounded sample rate increases.__ If you're increasing rates during an incident, set a reminder to decrease them afterward. Better yet, build automation that resets rates after a fixed period. A Lambda function that checks a \"debug mode\" flag and resets it after 30 minutes prevents the \"we left it on 100% for a week\" budget surprise." },
+    {
+      lead: "Feature flags for sample rates.",
+      text: "If your sampler reads its rate from a feature flag service (LaunchDarkly, Split, ConfigCat, or even a simple Redis key), you can adjust rates in real-time. During an incident, flip the flag to 100%. After investigation, flip it back. No deployment required.",
+    },
+    {
+      lead: "OTel Collector hot reload.",
+      text: "If you're using tail sampling in the OTel Collector, the Collector supports configuration reload via SIGHUP. Update your ConfigMap, trigger a reload, and your sampling policies change without collector restart. This is slower than a feature flag but doesn't require application changes.",
+    },
+    {
+      lead: "Time-bounded sample rate increases.",
+      text: "If you're increasing rates during an incident, set a reminder to decrease them afterward. Better yet, build automation that resets rates after a fixed period. A Lambda function that checks a \"debug mode\" flag and resets it after 30 minutes prevents the \"we left it on 100% for a week\" budget surprise.",
+    },
   ]}
 />
 
@@ -980,9 +1044,18 @@ When you can't find a specific trace, find similar ones. The workflow varies by 
 <List
   variant="check-icons-list"
   items={[
-    { text: "__In Jaeger:__ Use the search panel to filter by service, operation (endpoint), tags, and time range. If you're looking for traces where `/api/checkout` returned a 500 error, search for `service=checkout-service`, `http.status_code=500`, `operation=POST /api/checkout`, time range around when the error occurred. You won't find the exact trace the customer hit, but you'll find recent traces with the same characteristics." },
-    { text: "__In Grafana Tempo:__ Tempo's TraceQL query language lets you search by attributes. The query `{ resource.service.name=\"checkout-service\" && span.http.status_code=500 && span.http.route=\"/api/checkout\" }` finds error traces from checkout. Combine with Tempo's integration with Loki: search logs for the trace ID, find related log entries, discover other trace IDs in those logs that _were_ sampled." },
-    { text: "__In commercial APM (Datadog, New Relic, Honeycomb):__ These tools have sophisticated search and correlation features. Honeycomb's BubbleUp can automatically identify which attributes are correlated with errors. Datadog's trace search lets you pivot from one trace to others with similar attributes. Use these features - they're designed for exactly this problem." },
+    {
+      lead: "In Jaeger:",
+      text: "Use the search panel to filter by service, operation (endpoint), tags, and time range. If you're looking for traces where `/api/checkout` returned a 500 error, search for `service=checkout-service`, `http.status_code=500`, `operation=POST /api/checkout`, time range around when the error occurred. You won't find the exact trace the customer hit, but you'll find recent traces with the same characteristics.",
+    },
+    {
+      lead: "In Grafana Tempo:",
+      text: "Tempo's TraceQL query language lets you search by attributes. The query `{ resource.service.name=\"checkout-service\" && span.http.status_code=500 && span.http.route=\"/api/checkout\" }` finds error traces from checkout. Combine with Tempo's integration with Loki: search logs for the trace ID, find related log entries, discover other trace IDs in those logs that _were_ sampled.",
+    },
+    {
+      lead: "In commercial APM (Datadog, New Relic, Honeycomb):",
+      text: "These tools have sophisticated search and correlation features. Honeycomb's BubbleUp can automatically identify which attributes are correlated with errors. Datadog's trace search lets you pivot from one trace to others with similar attributes. Use these features - they're designed for exactly this problem.",
+    },
   ]}
 />
 

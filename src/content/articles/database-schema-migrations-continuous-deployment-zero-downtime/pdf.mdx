@@ -9,19 +9,22 @@ tags: ["build-and-deploy", "kubernetes", "typescript"]
 featured: true
 ---
 
-*[DDL]: Data Definition Language
-*[CD]: Continuous Deployment
-*[CI]: Continuous Integration
-*[ORM]: Object-Relational Mapping
-*[RDBMS]: Relational Database Management System
-*[FK]: Foreign Key
-*[PK]: Primary Key
+import compatibilityWindowDiagram from "./diagrams/compatibility-window-during-rolling-deployment.jpg"
+import expandContractDiagram from "./diagrams/expand-contract-pattern-phases.jpg"
+import migrationAwareDiagram from "./diagrams/migration-aware-deployment-pipeline.jpg"
+import tableLockDiagram from "./diagrams/table-lock-during-migration-blocks-all-application-threads.jpg"
 
-Application code can roll back in seconds. Schema changes can take hours to reverse—if they're reversible at all. That asymmetry makes database migrations the hardest part of continuous deployment.
+*[DDL]: Data Definition Language
+*[FK]: Foreign Key
+*[ORM]: Object-Relational Mapping
+*[PK]: Primary Key
+*[RDBMS]: Relational Database Management System
+
+Application code can roll back in seconds. Schema changes can take hours to reverse — if they're reversible at all. That asymmetry makes database migrations the hardest part of continuous deployment.
 
 The core tension: CD assumes stateless, independent deployments. Databases are stateful and shared. Your application runs across multiple pods that can be replaced atomically, but every instance talks to the same database. A migration that takes 200ms on your development dataset can lock tables for four minutes against 50 million production rows. During that window, writes queue up, connection pools exhaust, timeouts cascade, and users see errors.
 
-I've watched teams debate mid-incident: do we wait out the lock, or roll back and make things worse? Neither option is good once you're in that situation. The answer is to never get there—to treat migrations as a distinct deployment concern with their own safety patterns, rollback strategies, and monitoring.
+I've watched teams debate mid-incident: do we wait out the lock, or roll back and make things worse? Neither option is good once you're in that situation. The answer is to never get there — to treat migrations as a distinct deployment concern with their own safety patterns, rollback strategies, and monitoring.
 
 This article covers why migrations fail, how to decompose risky changes into safe ones, and how to build pipelines that make zero-downtime the default.
 
@@ -33,70 +36,62 @@ The biggest migration failures happen when teams treat schema changes like appli
 
 ### The Lock Problem
 
-Most DDL operations acquire exclusive locks. While you hold that lock, every other query on that table waits—reads, writes, everything. On a small table, nobody notices. On a table with tens of millions of rows, the lock can persist for minutes while the database rewrites data or rebuilds indexes.
+Most DDL operations acquire exclusive locks. While you hold that lock, every other query on that table waits — reads, writes, everything. On a small table, nobody notices. On a table with tens of millions of rows, the lock can persist for minutes while the database rewrites data or rebuilds indexes.
 
 Here's what happens when you run `ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'` on older PostgreSQL (pre-11):
 
-1. Database acquires ACCESS EXCLUSIVE lock on `users`
-2. Database rewrites entire table to add the column with default value
-3. Database rebuilds indexes
-4. Lock releases
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      text: "Database acquires ACCESS EXCLUSIVE lock on `users`",
+    },
+    {
+      text: "Database rewrites entire table to add the column with default value",
+    },
+    {
+      text: "Database rebuilds indexes",
+    },
+    {
+      text: "Lock releases",
+    },
+  ]}
+/>
 
 During steps 1-3, every application thread trying to touch that table blocks. Connection pools fill up with waiting queries. Those queries eventually timeout. The timeouts cascade through your application as dependent operations fail. Users see errors.
 
-Modern PostgreSQL (11+) made some operations instant—adding a nullable column or a column with a default no longer rewrites the table. But plenty of operations still require rewrites: changing column types, adding NOT NULL constraints to existing columns, certain index operations. MySQL has similar behavior without online schema change tools.
+Modern PostgreSQL (11+) made some operations instant — adding a nullable column or a column with a default no longer rewrites the table. But plenty of operations still require rewrites: changing column types, adding NOT NULL constraints to existing columns, certain index operations. MySQL has similar behavior without online schema change tools.
 
-```mermaid
-graph TD
-    A[Migration Starts] --> B[Acquire Table Lock]
-    B --> C[Rewrite Table Data]
-    C --> D[Rebuild Indexes]
-    D --> E[Release Lock]
-
-    subgraph blocked[Blocked Application Threads]
-        F[Thread 1: Waiting...]
-        G[Thread 2: Waiting...]
-        H[Thread 3: Timeout]
-        I[Thread 4: Timeout]
-    end
-
-    B -.->|blocks| blocked
-```
-Figure: Table lock during migration blocks all application threads.
+<Diagram
+  src={tableLockDiagram}
+  title="Table lock during migration blocks all application threads."
+  description="Flowchart showing the progression of a blocking migration and its impact on the application. The main path runs from Migration Starts to Acquire Table Lock, then to Rewrite Table Data, Rebuild Indexes, and Release Lock. A separate grouped region labeled Blocked Application Threads contains four representative threads: Thread 1: Waiting..., Thread 2: Waiting..., Thread 3: Timeout, and Thread 4: Timeout. A dotted arrow labeled blocks points from Acquire Table Lock to that blocked-thread group. The diagram shows that once the table lock is acquired, normal application work stalls behind the migration, some requests remain queued, and others eventually fail before the lock is released."
+/>
 
 ### The Compatibility Window Problem
 
 Rolling deployments mean old and new code run simultaneously. During a typical Kubernetes deployment, you might have 15 minutes where half your pods run v1 and half run v2. Your schema needs to work with both versions throughout that window.
 
-```mermaid
-sequenceDiagram
-    participant DB as Database
-    participant Old as Old Code (v1)
-    participant New as New Code (v2)
-
-    Note over Old,New: Rolling deployment starts
-
-    Old->>DB: SELECT email FROM users
-    Note right of DB: Both versions running
-    New->>DB: SELECT email, phone FROM users
-
-    Note over Old,New: If phone column doesn't exist yet...
-    New--xDB: ERROR: column "phone" does not exist
-
-    Note over Old,New: If phone column added but old code still running...
-    Old->>DB: INSERT INTO users (email) VALUES (...)
-    Note right of DB: phone is NULL - is that OK?
-```
-Figure: Compatibility window during rolling deployment.
+<Diagram
+  src={compatibilityWindowDiagram}
+  title="Compatibility window during rolling deployment."
+  description="Sequence diagram showing how old and new application versions interact with the same database during a rolling deployment. The participants are Database, Old Code (v1), and New Code (v2). A note indicates that the rolling deployment starts while both versions are running. Old Code queries the database for email, while New Code queries for both email and phone. Another note explains that if the phone column does not exist yet, the new code fails with an error stating that the phone column does not exist. A later note shows the opposite compatibility problem: if the phone column has been added while old code is still running, old code inserts only email, leaving phone as NULL and raising the question of whether that state is acceptable. The diagram illustrates why schema changes must remain compatible with both versions during the deployment overlap."
+/>
 
 The timing creates a catch-22:
 
 <List
   variant="check-icons-list"
   items={[
-    { text: "Add column _after_ deploying new code: new code errors because column doesn't exist" },
-    { text: "Add column _before_ old code terminates: old code might fail if it doesn't expect the column" },
-    { text: "Remove column while old code still runs: old code errors immediately" },
+    {
+      text: "Add column _after_ deploying new code: new code errors because column doesn't exist",
+    },
+    {
+      text: "Add column _before_ old code terminates: old code might fail if it doesn't expect the column",
+    },
+    {
+      text: "Remove column while old code still runs: old code errors immediately",
+    },
   ]}
 />
 
@@ -127,11 +122,19 @@ These are the failure modes I see repeatedly:
         },
         {
           th: "Column not found",
-          td: ["Code deployed before migration", "500 errors on new pods", "Deploy migration first"],
+          td: [
+            "Code deployed before migration",
+            "500 errors on new pods",
+            "Deploy migration first",
+          ],
         },
         {
           th: "NOT NULL violation",
-          td: ["Old code doesn't provide new column", "Insert failures", "Add column as nullable first"],
+          td: [
+            "Old code doesn't provide new column",
+            "Insert failures",
+            "Add column as nullable first",
+          ],
         },
         {
           th: "Foreign key violation",
@@ -143,18 +146,26 @@ These are the failure modes I see repeatedly:
         },
         {
           th: "Index creation timeout",
-          td: ["Creating index on large table", "Lock timeout", "CREATE INDEX CONCURRENTLY"],
+          td: [
+            "Creating index on large table",
+            "Lock timeout",
+            "CREATE INDEX CONCURRENTLY",
+          ],
         },
         {
           th: "Rollback impossible",
-          td: ["Destructive migration ran", "Can't undo", "Always write reversible migrations"],
+          td: [
+            "Destructive migration ran",
+            "Can't undo",
+            "Always write reversible migrations",
+          ],
         },
       ],
     },
   }}
 />
 
-The theme across all of these: migrations fail when they assume atomic, instantaneous changes in a system that's actually gradual and concurrent. The fix is always some form of phased rollout—expand first, then contract.
+The theme across all of these: migrations fail when they assume atomic, instantaneous changes in a system that's actually gradual and concurrent. The fix is always some form of phased rollout — expand first, then contract.
 
 ## The Expand-Contract Pattern
 
@@ -164,39 +175,47 @@ The expand-contract pattern (sometimes called parallel change) is the fundamenta
 
 The pattern has three phases:
 
-1. _Expand_: Add the new structure alongside the old. Both exist simultaneously. Deploy application code that writes to both structures but still reads from the old one.
-2. _Migrate_: Backfill existing data into the new structure. Once complete, deploy code that reads from the new structure (still writing to both for safety).
-3. _Contract_: Remove the old structure. Deploy code that only uses the new structure, then drop the old column/table.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: "Expand:",
+      text: "Add the new structure alongside the old. Both exist simultaneously. Deploy application code that writes to both structures but still reads from the old one.",
+    },
+    {
+      lead: "Migrate:",
+      text: "Backfill existing data into the new structure. Once complete, deploy code that reads from the new structure (still writing to both for safety).",
+    },
+    {
+      lead: "Contract:",
+      text: "Remove the old structure. Deploy code that only uses the new structure, then drop the old column/table.",
+    },
+  ]}
+/>
 
-```mermaid
-graph LR
-    subgraph Phase 1: Expand
-        A[Add new column] --> B[Deploy code that writes to both]
-        B --> C[Backfill existing data]
-    end
-
-    subgraph Phase 2: Migrate
-        D[All data in new column] --> E[Deploy code that reads from new]
-        E --> F[Stop writing to old column]
-    end
-
-    subgraph Phase 3: Contract
-        G[Old column unused] --> H[Remove old column]
-    end
-
-    C --> D
-    F --> G
-```
-Figure: Expand-contract pattern phases.
+<Diagram
+  src={expandContractDiagram}
+  title="Expand-contract pattern phases."
+  description="Flowchart showing the three phases of a safe schema migration. In Phase 1: Expand, Add new column leads to Deploy code that writes to both, then to Backfill existing data. The flow then continues into Phase 2: Migrate, where All data in new column leads to Deploy code that reads from new, then to Stop writing to old column. From there the process moves into Phase 3: Contract, where Old column unused leads to Remove old column. Connecting arrows between the phases show that each stage must complete before the next begins. The diagram communicates that a breaking schema change is decomposed into compatible steps rather than performed as one immediate rename or drop."
+/>
 
 Let's trace through a concrete example: renaming a column from `email` to `email_address`. A direct `ALTER TABLE RENAME COLUMN` would break every query referencing the old name instantly. Here's the expand-contract approach:
 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "_Week 1 (Expand)_:", text: "Run migration to add `email_address` column. Deploy code that writes to both columns on every insert and update, but still reads from `email`. At this point, new rows have both columns populated; old rows only have `email`." },
-    { lead: "_Week 1-2 (Migrate)_:", text: "Run backfill job to copy `email` values to `email_address` for existing rows. Once complete, deploy code that reads from `email_address` instead of `email`. Keep writing to both columns—old pods might still be running." },
-    { lead: "_Week 3 (Contract)_:", text: "After all old pods are gone and you've verified nothing reads `email`, deploy code that only uses `email_address`. Then run migration to drop the `email` column." },
+    {
+      lead: "Week 1 (Expand):",
+      text: "Run migration to add `email_address` column. Deploy code that writes to both columns on every insert and update, but still reads from `email`. At this point, new rows have both columns populated; old rows only have `email`.",
+    },
+    {
+      lead: "Week 1-2 (Migrate):",
+      text: "Run backfill job to copy `email` values to `email_address` for existing rows. Once complete, deploy code that reads from `email_address` instead of `email`. Keep writing to both columns — old pods might still be running.",
+    },
+    {
+      lead: "Week 3 (Contract):",
+      text: "After all old pods are gone and you've verified nothing reads `email`, deploy code that only uses `email_address`. Then run migration to drop the `email` column.",
+    },
   ]}
 />
 
@@ -251,7 +270,7 @@ class UserRepository {
   }
 }
 ```
-Code: Application code during expand phase—dual writes.
+Code: Application code during expand phase — dual writes.
 
 ```sql title="migrate-phase-backfill.sql"
 -- Migration 002: Backfill existing data
@@ -298,14 +317,14 @@ ALTER TABLE users DROP COLUMN email;
 Code: Phase 3 migration removing the old column.
 
 <Callout type="success">
-The expand-contract pattern is slower than a direct rename, but it guarantees zero downtime. Each phase can be deployed independently and rolled back without data loss.
+The expand - contract pattern is slower than a direct rename, but it guarantees zero downtime. Each phase can be deployed independently and rolled back without data loss.
 </Callout>
 
 Some teams use database views as an additional compatibility layer during migrations. A view can expose the old column name while the underlying table uses the new name, letting legacy code work without modification. Feature flags at the application layer can also control which schema path code takes, though this adds complexity and should be cleaned up once the migration completes.
 
 ## Safe Migration Patterns
 
-Now that we've covered the fundamental pattern, here's a quick reference for common schema changes. Each pattern follows expand-contract principles, but some operations have database-specific shortcuts that are safe to use directly.
+Now that we've covered the fundamental pattern, here's a quick reference for common schema changes. Each pattern follows expand - contract principles, but some operations have database-specific shortcuts that are safe to use directly.
 
 ### Adding Columns
 
@@ -375,7 +394,7 @@ ALTER TABLE users ADD COLUMN email_address VARCHAR(255);
 ```
 Code: Safe pattern for renaming columns.
 
-Yes, this means a "simple" rename takes three separate deployments spread over days or weeks. That's the cost of zero-downtime schema changes. Factor this into your planning when naming columns—getting it right the first time saves significant effort later.
+Yes, this means a "simple" rename takes three separate deployments spread over days or weeks. That's the cost of zero-downtime schema changes. Factor this into your planning when naming columns — getting it right the first time saves significant effort later.
 
 ### Changing Column Types
 
@@ -436,7 +455,7 @@ The tradeoff with concurrent index creation: it takes longer and uses more resou
 
 ### Adding Constraints
 
-Foreign key constraints are particularly tricky because they lock _both_ tables and require scanning all existing data. The NOT VALID approach separates these concerns:
+Foreign key constraints are particularly tricky because they lock __both__ tables and require scanning all existing data. The NOT VALID approach separates these concerns:
 
 ```sql title="adding-constraints-safely.sql"
 -- ❌️ DANGEROUS: Adding constraint that might fail
@@ -468,7 +487,7 @@ The NOT VALID constraint enforces referential integrity for new rows immediately
 
 ## Live Schema Change Tools
 
-When native database features aren't enough—particularly for MySQL or complex PostgreSQL alterations—dedicated schema migration tools let you modify large tables without locking. These tools work by creating a shadow copy of your table, applying the schema change to the copy, then atomically swapping the tables once the copy catches up with production writes.
+When native database features aren't enough — particularly for MySQL or complex PostgreSQL alterations — dedicated schema migration tools let you modify large tables without locking. These tools work by creating a shadow copy of your table, applying the schema change to the copy, then atomically swapping the tables once the copy catches up with production writes.
 
 ### PostgreSQL Tools
 
@@ -480,18 +499,36 @@ PostgreSQL has made significant progress with native non-blocking DDL support. M
     thead: { th: ["Operation", "PostgreSQL 11+ Behavior", "External Tool Needed?"] },
     tbody: {
       tr: [
-        { th: "Add nullable column", td: ["Instant (metadata only)", "No"] },
-        { th: "Add column with default", td: ["Instant (default in catalog)", "No"] },
-        { th: "Create index", td: ["`CONCURRENTLY` option available", "No"] },
-        { th: "Add foreign key", td: ["`NOT VALID` then `VALIDATE`", "No"] },
-        { th: "Change column type", td: ["Requires table rewrite", "Sometimes"] },
-        { th: "Add NOT NULL to existing column", td: ["Requires scan", "Sometimes"] },
+        {
+          th: "Add nullable column",
+          td: ["Instant (metadata only)", "No"],
+        },
+        {
+          th: "Add column with default",
+          td: ["Instant (default in catalog)", "No"],
+        },
+        {
+          th: "Create index",
+          td: ["`CONCURRENTLY` option available", "No"],
+        },
+        {
+          th: "Add foreign key",
+          td: ["`NOT VALID` then `VALIDATE`", "No"],
+        },
+        {
+          th: "Change column type",
+          td: ["Requires table rewrite", "Sometimes"],
+        },
+        {
+          th: "Add NOT NULL to existing column",
+          td: ["Requires scan", "Sometimes"],
+        },
       ],
     },
   }}
 />
 
-For operations that still require ACCESS EXCLUSIVE locks, _pgroll_ from Xata automates the expand-contract pattern. It creates triggers to dual-write during migrations and provides CLI commands for progressive rollout. The tradeoff: it's a newer tool with a smaller community than the MySQL alternatives.
+For operations that still require ACCESS EXCLUSIVE locks, __pgroll__ from Xata automates the expand-contract pattern. It creates triggers to dual-write during migrations and provides CLI commands for progressive rollout. The tradeoff: it's a newer tool with a smaller community than the MySQL alternatives.
 
 ### MySQL Tools
 
@@ -531,10 +568,18 @@ Both tools follow the same general strategy:
 <List
   variant="check-icons-list"
   items={[
-    { text: "Create an empty shadow table with the new schema" },
-    { text: "Copy existing rows in chunks (throttled to avoid overloading the database)" },
-    { text: "Capture ongoing writes (via triggers or binlog) and replay them to the shadow table" },
-    { text: "Once caught up, atomically rename tables to swap old and new" },
+    {
+      text: "Create an empty shadow table with the new schema",
+    },
+    {
+      text: "Copy existing rows in chunks (throttled to avoid overloading the database)",
+    },
+    {
+      text: "Capture ongoing writes (via triggers or binlog) and replay them to the shadow table",
+    },
+    {
+      text: "Once caught up, atomically rename tables to swap old and new",
+    },
   ]}
 />
 
@@ -542,7 +587,7 @@ The difference is in step 3: pt-online-schema-change uses database triggers to c
 
 ### Using gh-ost
 
-GitHub developed gh-ost (GitHub Online Schema Transmogrifier) after running into limitations with pt-online-schema-change at scale. The tool has become the de facto standard for MySQL schema changes at companies running large databases—it's battle-tested against tables with billions of rows.
+GitHub developed gh-ost (GitHub Online Schema Transmogrifier) after running into limitations with pt-online-schema-change at scale. The tool has become the de facto standard for MySQL schema changes at companies running large databases — it's battle-tested against tables with billions of rows.
 
 What makes gh-ost particularly useful in production: you can pause and resume migrations, throttle based on replica lag or server load, and even test the migration without actually cutting over. The `--dry-run` and `--test-on-replica` modes let you validate that a migration will complete successfully before touching your primary.
 
@@ -584,29 +629,13 @@ The patterns we've discussed work manually, but the real value comes from encodi
 
 ### Migration Pipeline Design
 
-The key insight is that migrations and application deploys are _different operations_ with different risk profiles and rollback characteristics. Your pipeline should treat them that way.
+The key insight is that migrations and application deploys are __different operations__ with different risk profiles and rollback characteristics. Your pipeline should treat them that way.
 
-```mermaid
-graph TD
-    A[Code Push] --> B{Has Migrations?}
-    B -->|No| C[Normal Deploy Pipeline]
-    B -->|Yes| D[Migration Safety Check]
-
-    D --> E{Safe Migration?}
-    E -->|Yes| F[Run Migration]
-    E -->|No| G[Human Review Required]
-
-    F --> H{Migration Success?}
-    H -->|Yes| I[Deploy Application]
-    H -->|No| J[Rollback Migration]
-
-    G --> K[Manual Approval]
-    K --> F
-
-    J --> L[Alert Team]
-    I --> M[Health Check]
-```
-Figure: Migration-aware deployment pipeline.
+<Diagram
+  src={migrationAwareDiagram}
+  title="Migration-aware deployment pipeline."
+  description="Flowchart showing how a CI/CD pipeline treats database migrations differently from normal code deployments. The flow starts at Code Push and asks whether the change has migrations. If no, it goes to Normal Deploy Pipeline. If yes, it goes to Migration Safety Check, then asks whether the migration is safe. Safe migrations go to Run Migration, while unsafe ones go to Human Review Required, then Manual Approval, and back to Run Migration. After migration execution, the pipeline asks whether the migration succeeded. Success leads to Deploy Application and then Health Check. Failure leads to Rollback Migration and then Alert Team. The diagram emphasizes that migrations introduce separate review, execution, and rollback paths before application deployment continues."
+/>
 
 The flow handles three scenarios: code-only changes skip migration steps entirely, safe migrations run automatically before application deployment, and potentially dangerous migrations pause for human review. This balances velocity (most deploys are code-only) with safety (risky changes get scrutiny).
 
@@ -667,7 +696,7 @@ jobs:
 ```
 Code: GitHub Actions workflow that separates migration and application deploys.
 
-The `deploy-application` job's conditional is the interesting part: it runs if there's code to deploy _and_ either migrations succeeded or there weren't any migrations to run. This ensures we never deploy application code if a migration failed.
+The `deploy-application` job's conditional is the interesting part: it runs if there's code to deploy __and__ either migrations succeeded or there weren't any migrations to run. This ensures we never deploy application code if a migration failed.
 
 ### Migration Safety Checks
 
@@ -730,10 +759,10 @@ if __name__ == "__main__":
 ```
 Code: Python script to flag potentially dangerous migration patterns.
 
-The script isn't trying to be smart—it just flags keywords that warrant a second look. A `DROP COLUMN` might be the final step of a well-executed expand-contract migration, completely safe and intentional. Or it might be someone who didn't realize the column was still in use. The script can't tell the difference, but it can force the conversation.
+The script isn't trying to be smart — it just flags keywords that warrant a second look. A `DROP COLUMN` might be the final step of a well-executed expand-contract migration, completely safe and intentional. Or it might be someone who didn't realize the column was still in use. The script can't tell the difference, but it can force the conversation.
 
 <Callout type="warning">
-Automated checks catch obvious issues, but they can't understand context. Human review remains essential for destructive operations—the script's job is to ensure that review happens.
+Automated checks catch obvious issues, but they can't understand context. Human review remains essential for destructive operations — the script's job is to ensure that review happens.
 </Callout>
 
 ### Rollback Strategy
@@ -743,24 +772,37 @@ Not all migrations can be rolled back, and knowing the difference ahead of time 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "__Reversible migrations__", text: "have straightforward inverses: `ADD COLUMN` reverses with `DROP COLUMN`, `CREATE INDEX` reverses with `DROP INDEX`, and `ADD CONSTRAINT` reverses with `DROP CONSTRAINT`. Most migration frameworks generate these down migrations automatically. When something goes wrong, you run a rollback command with the project's CLI tool and you're back to the previous state." },
-    { lead: "__Irreversible migrations__", text: "are the dangerous ones. Once you `DROP COLUMN`, that data is gone. Once you `TRUNCATE`, there's no undo. For these operations, your safety net is backups—take one immediately before the migration, verify it's restorable, and document the restoration steps. If you're running a backfill that transforms data, keep the original data until you've verified the migration succeeded." },
-    { lead: "__Forward fixes__", text: "are your last resort when rollback isn't an option. Maybe the migration already ran in production. Maybe rolling back would lose data you can't afford to lose. Maybe the rollback would take longer than fixing the problem. In these cases, you deploy code that handles both the old and new schema states, then run a corrective migration to get to a clean state. It's messy, but sometimes it's the only path forward." },
+    {
+      lead: "Reversible migrations",
+      text: "have straightforward inverses: `ADD COLUMN` reverses with `DROP COLUMN`, `CREATE INDEX` reverses with `DROP INDEX`, and `ADD CONSTRAINT` reverses with `DROP CONSTRAINT`. Most migration frameworks generate these down migrations automatically. When something goes wrong, you run a rollback command with the project's CLI tool and you're back to the previous state.",
+    },
+    {
+      lead: "Irreversible migrations",
+      text: "are the dangerous ones. Once you `DROP COLUMN`, that data is gone. Once you `TRUNCATE`, there's no undo. For these operations, your safety net is backups — take one immediately before the migration, verify it's restorable, and document the restoration steps. If you're running a backfill that transforms data, keep the original data until you've verified the migration succeeded.",
+    },
+    {
+      lead: "Forward fixes",
+      text: "are your last resort when rollback isn't an option. Maybe the migration already ran in production. Maybe rolling back would lose data you can't afford to lose. Maybe the rollback would take longer than fixing the problem. In these cases, you deploy code that handles both the old and new schema states, then run a corrective migration to get to a clean state. It's messy, but sometimes it's the only path forward.",
+    },
   ]}
 />
 
 
 ## Migration Framework Configuration
 
-Most full-stack frameworks and ORMs include migration tooling out of the box. They all solve the same fundamental problem—tracking which schema changes have been applied to which environments—but they approach it differently.
+Most full-stack frameworks and ORMs include migration tooling out of the box. They all solve the same fundamental problem — tracking which schema changes have been applied to which environments — but they approach it differently.
 
 ### Two Paradigms
 
 <List
   variant="check-icons-list"
   items={[
-    { text: "__Schema-diff tools__ (Prisma, Entity Framework, Django) compare your model definitions against the current database state and generate migrations automatically. This is convenient for rapid development but requires careful review: the generated SQL might not follow safe migration patterns. A model change that looks like a rename might generate a destructive `DROP COLUMN` followed by `ADD COLUMN` instead of the expand-contract approach." },
-    { text: "__SQL-first tools__ (Flyway, Knex, raw migration files) put you in control of the exact SQL that runs. You write the migration manually, which means more work but also more predictability. There's no magic diff algorithm making decisions about your production database." },
+    {
+      text: "Schema-diff tools (Prisma, Entity Framework, Django) compare your model definitions against the current database state and generate migrations automatically. This is convenient for rapid development but requires careful review: the generated SQL might not follow safe migration patterns. A model change that looks like a rename might generate a destructive `DROP COLUMN` followed by `ADD COLUMN` instead of the expand-contract approach.",
+    },
+    {
+      text: "SQL-first tools (Flyway, Knex, raw migration files) put you in control of the exact SQL that runs. You write the migration manually, which means more work but also more predictability. There's no magic diff algorithm making decisions about your production database.",
+    },
   ]}
 />
 
@@ -832,7 +874,7 @@ Most tools share a common CLI pattern: a command to generate a new migration fil
   }}
 />
 
-When evaluating migration tooling, look for _idempotency_ (can you safely run the same migration twice?), _dry-run support_ (can you preview what SQL will execute?), _transaction wrapping_ (does a failed migration leave your database in a broken state?), and _rollback generation_ (does the tool create down migrations automatically, or do you write them manually?).
+When evaluating migration tooling, look for __idempotency__ (can you safely run the same migration twice?), __dry-run support__ (can you preview what SQL will execute?), __transaction wrapping__ (does a failed migration leave your database in a broken state?), and __rollback generation__ (does the tool create down migrations automatically, or do you write them manually?).
 
 <Callout type="info">
 Schema-diff tools are convenient but can generate unsafe migrations. Always review generated SQL before running against production, especially for operations that look like renames or type changes.
@@ -840,9 +882,9 @@ Schema-diff tools are convenient but can generate unsafe migrations. Always revi
 
 ### Greenfield Projects
 
-If you're building an application without a full-stack framework—maybe a microservice, a CLI tool with persistent state, or an API built on a minimal framework—adding migration tooling early pays dividends. It's tempting to just run `ALTER TABLE` manually during early development, but that approach doesn't survive the first production deployment.
+If you're building an application without a full-stack framework — maybe a microservice, a CLI tool with persistent state, or an API built on a minimal framework — adding migration tooling early pays dividends. It's tempting to just run `ALTER TABLE` manually during early development, but that approach doesn't survive the first production deployment.
 
-The investment is small: Flyway, Liquibase, or a language-specific tool like Knex takes an hour to set up. What you get back is a repeatable deployment process, a history of every schema change, and the ability to spin up fresh environments that match production. The alternative—a wiki page of SQL commands to run in order, or worse, tribal knowledge about what the schema "should" look like—becomes technical debt that compounds with every team member and every environment.
+The investment is small: Flyway, Liquibase, or a language-specific tool like Knex takes an hour to set up. What you get back is a repeatable deployment process, a history of every schema change, and the ability to spin up fresh environments that match production. The alternative — a wiki page of SQL commands to run in order, or worse, tribal knowledge about what the schema "should" look like — becomes technical debt that compounds with every team member and every environment.
 
 ## Monitoring Migrations
 
@@ -850,9 +892,9 @@ Migrations that work perfectly in staging can still cause problems in production
 
 ### What to Watch During Migrations
 
-_Migration duration_ is your primary metric. Establish baselines in staging and alert if production takes significantly longer. A migration that usually completes in 30 seconds but is still running after 5 minutes deserves investigation.
+__Migration duration__ is your primary metric. Establish baselines in staging and alert if production takes significantly longer. A migration that usually completes in 30 seconds but is still running after 5 minutes deserves investigation.
 
-_Lock wait time_ reveals contention. In PostgreSQL, you can query `pg_stat_activity` to see queries waiting on locks:
+__Lock wait time__ reveals contention. In PostgreSQL, you can query `pg_stat_activity` to see queries waiting on locks:
 
 ```sql title="check-lock-waits.sql"
 SELECT pid, now() - query_start AS duration, query
@@ -863,9 +905,9 @@ Code: PostgreSQL query to identify queries waiting on locks.
 
 If you see application queries piling up with multi-second waits, your migration is blocking production traffic. This is exactly the situation you're trying to avoid with the patterns in this article.
 
-_Application error rate_ should be part of your deployment dashboard regardless, but pay special attention during migrations. A spike in 500 errors or database connection timeouts immediately after a migration starts is a strong signal to abort.
+__Application error rate__ should be part of your deployment dashboard regardless, but pay special attention during migrations. A spike in 500 errors or database connection timeouts immediately after a migration starts is a strong signal to abort.
 
-_Replication lag_ matters if you're running read replicas. Large migrations can cause replicas to fall behind, which means your application might read stale data or—worse—data that doesn't match the schema your code expects.
+__Replication lag__ matters if you're running read replicas. Large migrations can cause replicas to fall behind, which means your application might read stale data or — worse — data that doesn't match the schema your code expects.
 
 ### Pre-Migration Checklist
 
@@ -874,10 +916,18 @@ Before running any migration in production, verify the basics:
 <List
   variant="check-icons-list"
   items={[
-    { text: "**Staging verification**: The migration ran successfully in staging with production-like data volumes. The application works with the new schema. You've tested the rollback path." },
-    { text: "**Database health**: No long-running transactions that might conflict with your migration. Replication lag is minimal. Sufficient disk space exists (shadow-table tools like gh-ost temporarily double table size). A recent backup exists and you've verified it's restorable." },
-    { text: "**Timing and staffing**: You're not deploying during peak traffic. Team members are available to monitor the migration and respond to problems. No other deployments are in progress that might confuse incident response." },
-    { text: "**Rollback readiness**: The rollback script is tested. You know how long rollback will take. You've defined clear criteria for when to rollback versus wait it out." },
+    {
+      text: "Staging verification: The migration ran successfully in staging with production-like data volumes. The application works with the new schema. You've tested the rollback path.",
+    },
+    {
+      text: "Database health: No long-running transactions that might conflict with your migration. Replication lag is minimal. Sufficient disk space exists (shadow-table tools like gh-ost temporarily double table size). A recent backup exists and you've verified it's restorable.",
+    },
+    {
+      text: "Timing and staffing: You're not deploying during peak traffic. Team members are available to monitor the migration and respond to problems. No other deployments are in progress that might confuse incident response.",
+    },
+    {
+      text: "Rollback readiness: The rollback script is tested. You know how long rollback will take. You've defined clear criteria for when to rollback versus wait it out.",
+    },
   ]}
 />
 
@@ -887,10 +937,10 @@ The checklist feels bureaucratic until it saves you. Migrations fail most often 
 
 ## Conclusion
 
-Database migrations don't have to be the scariest part of your deployment pipeline. The patterns here—expand-contract changes, live schema change tools, separated migration jobs, automated safety checks—transform migrations from high-risk events into routine operations.
+Database migrations don't have to be the scariest part of your deployment pipeline. The patterns here — expand-contract changes, live schema change tools, separated migration jobs, automated safety checks — transform migrations from high-risk events into routine operations.
 
-The core principles: treat migrations as a distinct deployment concern with their own safety gates. Maintain backward compatibility so old and new code can coexist during rolling deployments. Use non-blocking DDL operations wherever possible. Always have a rollback plan, even if that plan is "restore from backup." And test migrations against production-like data volumes before they reach production—a migration that works on 10,000 rows can behave very differently against 10 million.
+The core principles: treat migrations as a distinct deployment concern with their own safety gates. Maintain backward compatibility so old and new code can coexist during rolling deployments. Use non-blocking DDL operations wherever possible. Always have a rollback plan, even if that plan is "restore from backup." And test migrations against production-like data volumes before they reach production — a migration that works on 10,000 rows can behave very differently against 10 million.
 
 <Callout type="success">
-Zero-downtime migrations aren't about clever tricks—they're about patience. The expand-contract pattern works because it decomposes one risky change into multiple safe changes. Accept that a "simple rename" takes three deployments and you'll never have a migration-induced outage.
+Zero-downtime migrations aren't about clever tricks — they're about patience. The expand-contract pattern works because it decomposes one risky change into multiple safe changes. Accept that a "simple rename" takes three deployments and you'll never have a migration-induced outage.
 </Callout>

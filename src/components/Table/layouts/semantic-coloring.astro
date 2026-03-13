@@ -9,13 +9,13 @@ export type Props = {
     tbody: {
       tr: {
         th?: string | { label: string; color?: string }
-        td: string[]
+        td: Array<string | { label: string; color?: string }>
       }[]
     }
     tfoot?: {
       tr: {
         th?: string
-        td: string[]
+        td: Array<string | { label: string; color?: string }>
       }[]
     }
   }
@@ -26,11 +26,12 @@ export type Props = {
     tbody?: string
     tfoot?: string
   }
+  fullWidth?: boolean
 }
 
-const { content, classes }: Props = Astro.props
+const { content, classes, fullWidth = true }: Props = Astro.props
 
-const tableClass = 'w-full text-left border-collapse'
+const tableClass = `text-left border-collapse${fullWidth ? ' w-full' : ''}`
 const captionClass = 'text-left px-5 py-3 text-content-offset'
 const headerClass = 'px-5 py-3 font-semibold text-content'
 const theadClass = 'bg-note-inverse/50 border-b border-trim'
@@ -38,6 +39,11 @@ const tbodyClass = ''
 const tfootClass = ''
 
 const stateClasses = {
+  note: {
+    rowBgClass: 'bg-note-inverse',
+    barClass: 'bg-note',
+    textClass: 'text-note-offset',
+  },
   success: {
     rowBgClass: 'bg-success-inverse',
     barClass: 'bg-success',
@@ -63,8 +69,16 @@ const stateClasses = {
 type SemanticStateName = keyof typeof stateClasses
 
 const isSemanticStateName = (value: string): value is SemanticStateName => {
-  return value === 'success' || value === 'warning' || value === 'danger' || value === 'info'
+  return value === 'note' || value === 'success' || value === 'warning' || value === 'danger' || value === 'info'
 }
+
+const firstBodyRow = content.tbody.tr[0]
+const hasRowHeaders = content.tbody.tr.some(row => row.th !== undefined)
+const bodyColumnCount = hasRowHeaders
+  ? (firstBodyRow?.td.length ?? 0) + 1
+  : (firstBodyRow?.td.length ?? 0)
+const shouldPrependStateHeader = hasRowHeaders && content.thead?.th.length === bodyColumnCount - 1
+const headerCells = shouldPrependStateHeader ? ['State', ...(content.thead?.th ?? [])] : (content.thead?.th ?? [])
 
 const getStateClass = (row: Props['content']['tbody']['tr'][number], rowIndex: number) => {
   if (typeof row.th === 'object' && row.th?.color && isSemanticStateName(row.th.color)) {
@@ -88,7 +102,21 @@ const getStateLabel = (row: Props['content']['tbody']['tr'][number]): string => 
     return row.th.label
   }
 
-  return row.th ?? row.td[0] ?? ''
+  const firstCell = row.td[0]
+
+  return row.th ?? (firstCell ? getCellLabel(firstCell) : '')
+}
+
+const getCellLabel = (cell: string | { label: string; color?: string }) => {
+  return typeof cell === 'string' ? cell : cell.label
+}
+
+const getCellStateClass = (cell: string | { label: string; color?: string }) => {
+  if (typeof cell === 'object' && cell.color && isSemanticStateName(cell.color)) {
+    return stateClasses[cell.color]
+  }
+
+  return undefined
 }
 ---
 
@@ -103,8 +131,7 @@ const getStateLabel = (row: Props['content']['tbody']['tr'][number]): string => 
     {content.thead && (
       <thead class:list={[theadClass, classes?.thead]}>
         <tr>
-          <th class="px-5 py-3 font-semibold text-content">State</th>
-          {content.thead.th.map((th) => (
+          {headerCells.map((th) => (
             <th scope="col" class:list={[headerClass, classes?.thead]} set:html={th}></th>
           ))}
         </tr>
@@ -133,24 +160,56 @@ const getStateLabel = (row: Props['content']['tbody']['tr'][number]): string => 
                     index === 0 ? 'font-medium text-content' : 'text-content',
                     classes?.tbody,
                   ]}
-                  set:html={td}
-                ></td>
+                >
+                  {(() => {
+                    const cellStateClass = getCellStateClass(td)
+
+                    if (!cellStateClass) {
+                      return <span set:html={getCellLabel(td)}></span>
+                    }
+
+                    return (
+                      <span
+                        class:list={[
+                          'inline-flex rounded-md px-2.5 py-1 font-medium',
+                          cellStateClass.rowBgClass,
+                          cellStateClass.textClass,
+                        ]}
+                        set:html={getCellLabel(td)}
+                      ></span>
+                    )
+                  })()}
+                </td>
               ))
             ) : (
-              row.td.map((td, index) => {
-                if (index === 0) return null
+              row.td.map((td, index) => (
+                <td
+                  class:list={[
+                    'px-5 py-3',
+                    index === 0 ? 'font-medium text-content' : 'text-content',
+                    classes?.tbody,
+                  ]}
+                >
+                  {(() => {
+                    const cellStateClass = getCellStateClass(td)
 
-                return (
-                  <td
-                    class:list={[
-                      'px-5 py-3',
-                      index === 1 ? 'font-medium text-content' : 'text-content',
-                      classes?.tbody,
-                    ]}
-                    set:html={td}
-                  ></td>
-                )
-              })
+                    if (!cellStateClass) {
+                      return <span set:html={getCellLabel(td)}></span>
+                    }
+
+                    return (
+                      <span
+                        class:list={[
+                          'inline-flex rounded-md px-2.5 py-1 font-medium',
+                          cellStateClass.rowBgClass,
+                          cellStateClass.textClass,
+                        ]}
+                        set:html={getCellLabel(td)}
+                      ></span>
+                    )
+                  })()}
+                </td>
+              ))
             )}
           </tr>
         )
@@ -179,7 +238,7 @@ const getStateLabel = (row: Props['content']['tbody']['tr'][number]): string => 
               <td class="px-5 py-3 font-bold relative">
                 <div class:list={['absolute inset-y-0 left-0 w-1', stateClass.barClass]} />
                 <span class={stateClass.textClass}>
-                  {row.th ?? row.td[0]}
+                  {row.th ?? (row.td[0] ? getCellLabel(row.td[0]) : '')}
                 </span>
               </td>
               {row.th ? (
@@ -190,24 +249,56 @@ const getStateLabel = (row: Props['content']['tbody']['tr'][number]): string => 
                       index === 0 ? 'font-medium text-content' : 'text-content',
                       classes?.tfoot,
                     ]}
-                    set:html={td}
-                  ></td>
+                  >
+                    {(() => {
+                      const cellStateClass = getCellStateClass(td)
+
+                      if (!cellStateClass) {
+                        return <span set:html={getCellLabel(td)}></span>
+                      }
+
+                      return (
+                        <span
+                          class:list={[
+                            'inline-flex rounded-md px-2.5 py-1 font-medium',
+                            cellStateClass.rowBgClass,
+                            cellStateClass.textClass,
+                          ]}
+                          set:html={getCellLabel(td)}
+                        ></span>
+                      )
+                    })()}
+                  </td>
                 ))
               ) : (
-                row.td.map((td, index) => {
-                  if (index === 0) return null
+                row.td.map((td, index) => (
+                  <td
+                    class:list={[
+                      'px-5 py-3',
+                      index === 0 ? 'font-medium text-content' : 'text-content',
+                      classes?.tfoot,
+                    ]}
+                  >
+                    {(() => {
+                      const cellStateClass = getCellStateClass(td)
 
-                  return (
-                    <td
-                      class:list={[
-                        'px-5 py-3',
-                        index === 1 ? 'font-medium text-content' : 'text-content',
-                        classes?.tfoot,
-                      ]}
-                      set:html={td}
-                    ></td>
-                  )
-                })
+                      if (!cellStateClass) {
+                        return <span set:html={getCellLabel(td)}></span>
+                      }
+
+                      return (
+                        <span
+                          class:list={[
+                            'inline-flex rounded-md px-2.5 py-1 font-medium',
+                            cellStateClass.rowBgClass,
+                            cellStateClass.textClass,
+                          ]}
+                          set:html={getCellLabel(td)}
+                        ></span>
+                      )
+                    })()}
+                  </td>
+                ))
               )}
             </tr>
           )

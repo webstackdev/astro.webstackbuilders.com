@@ -2,13 +2,20 @@ import { describe, it, expect } from 'vitest'
 import rehypeMermaid from 'rehype-mermaid'
 
 import { BuildError } from '@lib/errors/BuildError'
-import { rehypeMermaidConfig } from '@lib/config/markdown'
+import { rehypeMermaidConfig } from '@lib/config/mermaid'
 import { processIsolated } from '@lib/markdown/helpers/processors'
 
 describe('rehype-mermaid (Layer 1: Isolated)', () => {
-  it('should use inline-svg strategy and a local CSS file', () => {
+  it('should use inline-svg strategy and a build-time CSS data URL', () => {
     expect(rehypeMermaidConfig.strategy).toBe('inline-svg')
-    expect(String(rehypeMermaidConfig.css)).toContain('/src/styles/vendor/mermaid.css')
+    expect(String(rehypeMermaidConfig.css)).toContain('data:text/css')
+  })
+
+  it('should reserve space below subgraph titles in flowcharts', () => {
+    expect(rehypeMermaidConfig.mermaidConfig.flowchart.subGraphTitleMargin).toEqual({
+      top: 4,
+      bottom: 16,
+    })
   })
 
   it('should throw BuildError from errorFallback', () => {

@@ -9,6 +9,7 @@
  */
 import type { MdxOptions } from '@astrojs/mdx'
 import { shikiConfigOptions, shikiTransformers } from './shiki'
+import { rehypeMermaidConfig } from './mermaid'
 
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 Object.defineProperty(rehypeHeadingIds, 'name', { value: 'rehypeHeadingIds' })
@@ -138,8 +139,6 @@ Object.defineProperty(remarkSmartypants, 'name', { value: 'remarkSmartypants' })
 import { rehypeTailwindClasses } from '../markdown/plugins/rehype-tailwind'
 Object.defineProperty(rehypeTailwindClasses, 'name', { value: 'rehypeTailwindClasses' })
 
-import { BuildError } from '../errors/BuildError'
-
 /**
  * ==============================================================
  *
@@ -162,29 +161,6 @@ Object.defineProperty(remarkLinkifyRegexUrls, 'name', { value: 'remarkLinkifyReg
 
 /** remark-attributes plugin */
 export const remarkAttributesConfig = { scope: 'permissive' } as const
-
-/** rehype-mermaid plugin */
-export const rehypeMermaidConfig = {
-  strategy: 'inline-svg',
-  css: new URL('../../styles/vendor/mermaid.css', import.meta.url),
-  mermaidConfig: {
-    fontFamily: 'Arial, sans-serif',
-  },
-  errorFallback: (_element: unknown, _diagram: string, error: unknown, file: unknown) => {
-    const filePath =
-      typeof (file as { path?: unknown } | null)?.path === 'string'
-        ? ((file as { path: string }).path as string)
-        : undefined
-
-    throw new BuildError(new Error("Mermaid couldn't graph this diagram.", { cause: error }), {
-      phase: 'compilation',
-      tool: 'mermaid',
-      filePath,
-    })
-  },
-} as const
-
-
 
 /** remark-smartypants plugin */
 const remarkSmartypantsConfig: RemarkSmartypantsOptions = {

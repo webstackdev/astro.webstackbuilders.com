@@ -9,6 +9,8 @@ tags: ["apis-and-gateways", "kubernetes", "prometheus"]
 featured: true
 ---
 
+import caRotationDiagram from "./diagrams/ca-rotation-sequence-showing-the-safe-order-of-operations.jpg"
+
 *[CA]: Certificate Authority
 *[CSR]: Certificate Signing Request
 *[mTLS]: Mutual Transport Layer Security
@@ -16,7 +18,7 @@ featured: true
 *[TLS]: Transport Layer Security
 *[TTL]: Time To Live
 
-A team enables Istio mTLS across their 50-service mesh. Initial rollout goes smoothly. Everyone celebrates the "zero-trust network." Three months later, at 2:47 AM, all inter-service communication fails simultaneously. The intermediate CA certificate expired. No one knew it had a 90-day TTL—it was the default, and nobody thought to check.
+A team enables Istio mTLS across their 50-service mesh. Initial rollout goes smoothly. Everyone celebrates the "zero-trust network." Three months later, at 2:47 AM, all inter-service communication fails simultaneously. The intermediate CA certificate expired. No one knew it had a 90-day TTL — it was the default, and nobody thought to check.
 
 Recovery takes four hours because the on-call engineer has never manually rotated Istio certificates and the runbook doesn't exist yet.
 
@@ -24,11 +26,11 @@ If this sounds familiar, you're not alone. Enabling mTLS is a configuration chan
 
 ## The Operational Reality of mTLS
 
-Standard TLS—what you use when visiting any HTTPS website—is a one-way trust relationship. The server proves its identity to the client by presenting a certificate. The client validates that certificate against its trust store. The server has no idea who the client is at the transport layer.
+Standard TLS — what you use when visiting any HTTPS website — is a one-way trust relationship. The server proves its identity to the client by presenting a certificate. The client validates that certificate against its trust store. The server has no idea who the client is at the transport layer.
 
 Mutual TLS adds a second handshake step: after the client validates the server's certificate, the server requests and validates a certificate from the client. Both parties cryptographically prove their identity before any application data flows.
 
-The operational cost difference is significant. With standard TLS, you manage certificates for servers—maybe dozens or hundreds. With mTLS, _every_ service needs a certificate, and every service needs to validate certificates from every other service it communicates with. In a 100-service mesh, that's potentially thousands of certificate validation paths to maintain.
+The operational cost difference is significant. With standard TLS, you manage certificates for servers — maybe dozens or hundreds. With mTLS, __every__ service needs a certificate, and every service needs to validate certificates from every other service it communicates with. In a 100-service mesh, that's potentially thousands of certificate validation paths to maintain.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -64,15 +66,15 @@ The operational cost difference is significant. With standard TLS, you manage ce
 The mTLS system has multiple certificate layers (workload, issuing CA, intermediate CA, root CA), each with different TTLs. An outage can originate at any layer. Most teams monitor workload certificates but forget about the CAs that sign them.
 </Callout>
 
-## Certificate Lifecycle—Where Teams Fail
+## Certificate Lifecycle — Where Teams Fail
 
 Certificate rotation is where mTLS complexity becomes real. The challenge: replace a certificate that's actively being used for authentication without breaking any connections.
 
 ### Workload vs. CA Rotation
 
-For _workload certificate rotation_, the strategy is straightforward—overlapping validity. Issue the new certificate before the old one expires. Both are valid during the overlap window, so it doesn't matter which one a service presents. The old certificate eventually expires, and the new one takes over. Service meshes do this automatically.
+For __workload certificate rotation__, the strategy is straightforward — overlapping validity. Issue the new certificate before the old one expires. Both are valid during the overlap window, so it doesn't matter which one a service presents. The old certificate eventually expires, and the new one takes over. Service meshes do this automatically.
 
-_CA rotation_ is harder. When you rotate an intermediate or root CA, you're changing the trust anchor that validates certificates. If you issue certificates from a new CA before services trust that CA, mTLS fails immediately.
+__CA rotation__ is harder. When you rotate an intermediate or root CA, you're changing the trust anchor that validates certificates. If you issue certificates from a new CA before services trust that CA, mTLS fails immediately.
 
 The safe order for CA rotation:
 
@@ -99,41 +101,19 @@ The safe order for CA rotation:
 
 This sequence diagram shows the rotation flow:
 
-```mermaid
-sequenceDiagram
-    participant W as Workload
-    participant CA as Certificate Authority
-    participant TS as Trust Store
-
-    Note over W,TS: Step 1: Add New CA to Trust
-    CA->>TS: New CA certificate added
-    TS->>W: Trust bundle updated (trusts both old and new)
-
-    Note over W,TS: Step 2: Verify Distribution
-    W->>W: Confirm new trust bundle received
-
-    Note over W,TS: Step 3: Issue New Certs
-    W->>CA: CSR for new cert
-    CA->>W: Cert signed by new CA
-
-    Note over W,TS: Step 4: Verify Full Rotation
-    W->>CA: Query: any certs signed by old CA?
-    CA->>W: None remaining
-
-    Note over W,TS: Step 5: Remove Old CA
-    TS->>TS: Old CA removed
-    W->>TS: Trust bundle updated (new CA only)
-```
-
-Figure: CA rotation sequence showing the safe order of operations
+<Diagram
+  src={caRotationDiagram}
+  title="CA rotation sequence showing the safe order of operations."
+  description="Sequence diagram with three participants: Workload, Certificate Authority, and Trust Store. The first phase is Step 1, Add New CA to Trust. The Certificate Authority sends a new CA certificate to the Trust Store, and the Trust Store updates the Workload with a trust bundle that includes both the old and new CA. The second phase is Step 2, Verify Distribution, where the Workload confirms it has received the new trust bundle. The third phase is Step 3, Issue New Certs, where the Workload sends a CSR for a new certificate to the Certificate Authority, and the Certificate Authority returns a certificate signed by the new CA. The fourth phase is Step 4, Verify Full Rotation, where the Workload asks the Certificate Authority whether any certificates signed by the old CA remain, and the response is that none remain. The fifth phase is Step 5, Remove Old CA, where the Trust Store removes the old CA and the Workload receives an updated trust bundle containing only the new CA. The diagram emphasizes that trust must be updated before new certificates are issued, and the old CA must only be removed after all workloads have rotated."
+/>
 
 <Callout type="danger">
-The cardinal rule of CA rotation: add the new CA to trust stores BEFORE issuing certificates with it. Violating this order causes immediate mTLS failures—services with the old trust bundle will reject certificates signed by the new CA as "unknown authority."
+The cardinal rule of CA rotation: add the new CA to trust stores BEFORE issuing certificates with it. Violating this order causes immediate mTLS failures — services with the old trust bundle will reject certificates signed by the new CA as "unknown authority."
 </Callout>
 
 ### Expiration Monitoring
 
-Automated rotation should handle expiration seamlessly. But "should" isn't "will." Rotation can fail silently—a misconfigured issuer, a network partition, a crashed controller. You need monitoring to catch these failures before they become outages.
+Automated rotation should handle expiration seamlessly. But "should" isn't "will." Rotation can fail silently — a misconfigured issuer, a network partition, a crashed controller. You need monitoring to catch these failures before they become outages.
 
 <Newsletter />
 
@@ -225,7 +205,7 @@ mTLS failures produce cryptic errors. The TLS handshake fails, and you get a gen
   ]}
 />
 
-I once spent two hours debugging a "connection reset by peer" that turned out to be a certificate with `serverAuth` only—no `clientAuth`. The error message mentioned nothing about key usage. The fix was a one-line change to the certificate spec, but finding it required systematically ruling out every other possibility.
+I once spent two hours debugging a "connection reset by peer" that turned out to be a certificate with `serverAuth` only — no `clientAuth`. The error message mentioned nothing about key usage. The fix was a one-line change to the certificate spec, but finding it required systematically ruling out every other possibility.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -263,7 +243,7 @@ I once spent two hours debugging a "connection reset by peer" that turned out to
 
 ### The Diagnostic Toolkit
 
-When mTLS fails in an Istio environment, these commands help narrow down the problem. First, identify the affected pod—check your alerting system or look for pods with restart loops using `kubectl get pods | grep -E '(Error|CrashLoop)'`.
+When mTLS fails in an Istio environment, these commands help narrow down the problem. First, identify the affected pod — check your alerting system or look for pods with restart loops using `kubectl get pods | grep -E '(Error|CrashLoop)'`.
 
 ```bash title="mtls-diagnostics.sh"
 #!/bin/bash
@@ -294,7 +274,7 @@ Start with expiry (most common), then chain validation, then SANs, then key usag
 
 ## Making Rotation Invisible
 
-The goal is automation so complete that certificate rotation becomes invisible—happening continuously in the background without human intervention or service disruption.
+The goal is automation so complete that certificate rotation becomes invisible — happening continuously in the background without human intervention or service disruption.
 
 <Download
   resource="mtls-certificate-rotation-service-mesh-authentication"
@@ -310,4 +290,4 @@ The goal is automation so complete that certificate rotation becomes invisible�
 
 Certificate TTLs are a tradeoff. Short-lived certificates (24 hours) limit the damage from a compromised certificate but require robust automation. Longer certificates (7 days) are more forgiving of automation failures but increase your exposure window.
 
-Start with permissive mode, add monitoring before enforcement, and run a rotation drill before you need it for real. Your first rotation drill should happen within 30 days of enabling mTLS—before you've forgotten the deployment details and before the first real expiration hits. When your certificates rotate and nobody notices, you've built a mature mTLS operation.
+Start with permissive mode, add monitoring before enforcement, and run a rotation drill before you need it for real. Your first rotation drill should happen within 30 days of enabling mTLS — before you've forgotten the deployment details and before the first real expiration hits. When your certificates rotate and nobody notices, you've built a mature mTLS operation.

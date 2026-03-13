@@ -9,28 +9,30 @@ tags: ["reliability-and-testing"]
 featured: true
 ---
 
-import Callout from '@components/Callout/index.astro'
+import multipleContributingChainDiagram from "./diagrams/multiple-contributing-factors-each-with-their-own-chain-of-causation.jpg"
+import remediationPrioritizationDiagram from "./diagrams/remediation-prioritization-quadrants.jpg"
+import stampModelDiagram from "./diagrams/stamp-model-showing-the-control-hierarchy-and-feedback-loops.jpg"
 
-*[RCA]: Root Cause Analysis
-*[MTTR]: Mean Time To Recovery
-*[MTTD]: Mean Time To Detection
-*[SRE]: Site Reliability Engineering
-*[HRO]: High Reliability Organization
-*[STAMP]: Systems-Theoretic Accident Model and Processes
 *[CAST]: Causal Analysis based on STAMP
+*[HRO]: High Reliability Organization
+*[MTTD]: Mean Time To Detection
+*[MTTR]: Mean Time To Recovery
+*[RCA]: Root Cause Analysis
+*[SRE]: Site Reliability Engineering
+*[STAMP]: Systems-Theoretic Accident Model and Processes
 
 An engineer fat-fingers a production config change. The payment service goes down for two hours. Customers are angry, revenue is lost, and everyone wants to know what happened.
 
 The instinctive investigation goes like this: Who made the change? Why weren't they more careful? They need more training. Maybe a written warning. Case closed.
 
-This feels satisfying—we found the problem and addressed it. But three months later, a _different_ engineer makes a _different_ config mistake, and we're back here again. The "solution" didn't prevent anything—it just rotated the blame to someone new.
+This feels satisfying — we found the problem and addressed it. But three months later, a _different_ engineer makes a _different_ config mistake, and we're back here again. The "solution" didn't prevent anything — it just rotated the blame to someone new.
 
 The blameless investigation asks different questions: Why could a single engineer make that change without review? Why was there no canary deployment? Why didn't monitoring catch the error rate spike before customers did? Why was the config format so easy to break? That investigation finds five systemic improvements instead of one scapegoat.
 
 This isn't about being soft on mistakes. It's about being rigorous enough to find causes that actually prevent recurrence. If you're responsible for incident response, reliability engineering, or leading engineering teams, this guide will help you build postmortem practices that actually improve your systems.
 
 <Callout type="warning">
-"Human error" is not a root cause—it's the starting point for investigation. Every incident involves human actions, but the interesting question is: what about the system made that action likely, possible, and undetected?
+"Human error" is not a root cause — it's the starting point for investigation. Every incident involves human actions, but the interesting question is: what about the system made that action likely, possible, and undetected?
 </Callout>
 
 ## The Case Against Blame
@@ -48,11 +50,26 @@ But blame produces terrible outcomes. When people fear punishment for mistakes, 
     thead: { th: ["Blame-Based Approach", "Systemic Approach"] },
     tbody: {
       tr: [
-        { th: "Finds a person to hold accountable", td: ["Finds system conditions to improve"] },
-        { th: "Investigation stops at human action", td: ["Investigation continues to context"] },
-        { th: "\"Don't do that again\"", td: ["\"Make that harder to do\""] },
-        { th: "People hide mistakes", td: ["People report near-misses"] },
-        { th: "Same incident recurs with different person", td: ["Incident class becomes less likely"] },
+        {
+          th: "Finds a person to hold accountable",
+          td: ["Finds system conditions to improve"],
+        },
+        {
+          th: "Investigation stops at human action",
+          td: ["Investigation continues to context"],
+        },
+        {
+          th: "\"Don't do that again\"",
+          td: ["\"Make that harder to do\""],
+        },
+        {
+          th: "People hide mistakes",
+          td: ["People report near-misses"],
+        },
+        {
+          th: "Same incident recurs with different person",
+          td: ["Incident class becomes less likely"],
+        },
       ],
     },
   }}
@@ -64,12 +81,12 @@ The divergence compounds over time. Blame-focused organizations accumulate hidde
 
 There's a comforting belief that most engineers are careful and competent, and incidents happen because a few "bad apples" are careless or incompetent. If we could just identify and remove these people, incidents would stop.
 
-This theory has been tested extensively in aviation, healthcare, and nuclear power. It doesn't hold up. "Careless" people aren't a distinct population you can screen out—everyone makes errors under the right conditions. Fatigue, time pressure, confusing interfaces, incomplete information, and conflicting priorities create errors in even the most skilled practitioners.
+This theory has been tested extensively in aviation, healthcare, and nuclear power. It doesn't hold up. "Careless" people aren't a distinct population you can screen out — everyone makes errors under the right conditions. Fatigue, time pressure, confusing interfaces, incomplete information, and conflicting priorities create errors in even the most skilled practitioners.
 
 > If you believe the problem is a "bad apple," you'll try to remove the bad apple. If you believe the problem is the barrel, you'll redesign the barrel. The evidence from every high-reliability industry is clear: it's always the barrel.
 > — Adapted from Sidney Dekker
 
-The bad apple theory feels intuitive but leads nowhere useful. If you fire the engineer who made today's mistake, someone else will make a similar mistake next month—because the conditions that enabled the error are unchanged.
+The bad apple theory feels intuitive but leads nowhere useful. If you fire the engineer who made today's mistake, someone else will make a similar mistake next month — because the conditions that enabled the error are unchanged.
 
 <Callout type="info">
 Aviation and healthcare learned this decades ago: blaming individuals for accidents increased secrecy and prevented learning. Only when they shifted to systems thinking did safety actually improve.
@@ -86,19 +103,25 @@ Hindsight bias is nearly impossible to eliminate, but you can counteract it with
 <List
   variant="check-icons-list"
   items={[
-    { text: "Would I have made the same decision with the same information they had?" },
-    { text: "What would have had to be different for this to be a success story instead of an incident?" },
-    { text: "How many times has this exact action been taken without incident?" },
+    {
+      text: "Would I have made the same decision with the same information they had?",
+    },
+    {
+      text: "What would have had to be different for this to be a success story instead of an incident?",
+    },
+    {
+      text: "How many times has this exact action been taken without incident?",
+    },
   ]}
 />
 
-If the answer to the last question is "hundreds of times," then the action itself isn't the problem—something about _this particular instance_ was different, and that's what you need to find.
+If the answer to the last question is "hundreds of times," then the action itself isn't the problem — something about _this particular instance_ was different, and that's what you need to find.
 
 ## Building a Blameless Culture
 
 ### What "Blameless" Actually Means
 
-"Blameless" is frequently misunderstood. It doesn't mean no one is accountable. It doesn't mean we ignore mistakes or lower our standards. It means we hold the _right things_ accountable—and in complex systems, that's almost never an individual human making a one-off error.
+"Blameless" is frequently misunderstood. It doesn't mean no one is accountable. It doesn't mean we ignore mistakes or lower our standards. It means we hold the _right things_ accountable — and in complex systems, that's almost never an individual human making a one-off error.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -107,21 +130,36 @@ If the answer to the last question is "hundreds of times," then the action itsel
     thead: { th: ["What Blameless IS", "What Blameless IS NOT"] },
     tbody: {
       tr: [
-        { th: "Holding systems accountable", td: ["Letting individuals off the hook"] },
-        { th: "Safe to report errors", td: ["Safe to be negligent"] },
-        { th: "Learning from mistakes", td: ["Ignoring mistakes"] },
-        { th: "Improving processes", td: ["Accepting poor processes"] },
-        { th: "Psychological safety", td: ["Lack of standards"] },
+        {
+          th: "Holding systems accountable",
+          td: ["Letting individuals off the hook"],
+        },
+        {
+          th: "Safe to report errors",
+          td: ["Safe to be negligent"],
+        },
+        {
+          th: "Learning from mistakes",
+          td: ["Ignoring mistakes"],
+        },
+        {
+          th: "Improving processes",
+          td: ["Accepting poor processes"],
+        },
+        {
+          th: "Psychological safety",
+          td: ["Lack of standards"],
+        },
       ],
     },
   }}
 />
 
-The distinction matters because different types of accountability call for different responses. An engineer who made an honest mistake while following normal practices needs system improvements. A manager who created deadline pressure that encouraged skipping safety checks needs to change their leadership approach. These are both accountability—just not the "find someone to blame" kind.
+The distinction matters because different types of accountability call for different responses. An engineer who made an honest mistake while following normal practices needs system improvements. A manager who created deadline pressure that encouraged skipping safety checks needs to change their leadership approach. These are both accountability — just not the "find someone to blame" kind.
 
 ### Prerequisites for Blameless Culture
 
-Blameless postmortems don't work in a vacuum. They require organizational conditions that make psychological safety real, not just a stated value. I've seen teams try to adopt blameless practices while the broader organization still punishes mistakes—it doesn't work. People quickly learn that "blameless" is just rhetoric.
+Blameless postmortems don't work in a vacuum. They require organizational conditions that make psychological safety real, not just a stated value. I've seen teams try to adopt blameless practices while the broader organization still punishes mistakes — it doesn't work. People quickly learn that "blameless" is just rhetoric.
 
 __Leadership Behaviors__
 
@@ -157,18 +195,27 @@ The counter-indicators are the most telling. If you're not sure whether your cul
 You cannot mandate blameless culture. If people have seen colleagues punished for mistakes, no policy will make them feel safe. Building trust takes consistent behavior over time, especially from leadership.
 </Callout>
 
-If you're in an organization that doesn't yet have blameless culture, start small. Run one genuinely blameless postmortem for a low-stakes incident. Demonstrate the value. Get leadership to publicly acknowledge their role in one systemic issue. Each small success builds evidence that this approach works—and makes the next step easier.
+If you're in an organization that doesn't yet have blameless culture, start small. Run one genuinely blameless postmortem for a low-stakes incident. Demonstrate the value. Get leadership to publicly acknowledge their role in one systemic issue. Each small success builds evidence that this approach works — and makes the next step easier.
 
 ### The Just Culture Model
 
-Not all actions are the same, and blameless culture doesn't mean treating them identically. The Just Culture framework, developed in healthcare and aviation, distinguishes between three types of behavior—each calling for a different response.
+Not all actions are the same, and blameless culture doesn't mean treating them identically. The Just Culture framework, developed in healthcare and aviation, distinguishes between three types of behavior — each calling for a different response.
 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Human error:", text: "is inadvertent—the person didn't intend the outcome and didn't consciously take a risk. A typo, a misremembered procedure, a slip of the mouse. The appropriate response is to support the person (they feel bad already) and improve the system so the error is harder to make or causes less damage." },
-    { lead: "At-risk behavior:", text: "involves conscious choice, but the person doesn't fully appreciate the risk. An engineer skipping a checklist step because \"it's always fine\" or deploying without testing because \"the change is trivial.\" The response is coaching and removing the incentives that encouraged the shortcut—often time pressure or inconvenient tools." },
-    { lead: "Reckless behavior:", text: "is conscious disregard of a substantial and known risk. This is genuinely rare in professional settings. Someone who intentionally disables safety controls knowing it could cause an outage, not because they misjudged the risk, but because they didn't care. Remedial or punitive action may be appropriate here—but most incidents don't involve reckless behavior." },
+    {
+      lead: "Human error:",
+      text: "is inadvertent — the person didn't intend the outcome and didn't consciously take a risk. A typo, a misremembered procedure, a slip of the mouse. The appropriate response is to support the person (they feel bad already) and improve the system so the error is harder to make or causes less damage.",
+    },
+    {
+      lead: "At-risk behavior:",
+      text: "involves conscious choice, but the person doesn't fully appreciate the risk. An engineer skipping a checklist step because \"it's always fine\" or deploying without testing because \"the change is trivial.\" The response is coaching and removing the incentives that encouraged the shortcut — often time pressure or inconvenient tools.",
+    },
+    {
+      lead: "Reckless behavior:",
+      text: "is conscious disregard of a substantial and known risk. This is genuinely rare in professional settings. Someone who intentionally disables safety controls knowing it could cause an outage, not because they misjudged the risk, but because they didn't care. Remedial or punitive action may be appropriate here — but most incidents don't involve reckless behavior.",
+    },
   ]}
 />
 
@@ -179,21 +226,30 @@ Not all actions are the same, and blameless culture doesn't mean treating them i
     thead: { th: ["Behavior Type", "Example", "Response"] },
     tbody: {
       tr: [
-        { th: "Human Error", td: ["Typo in command", "System improvement"] },
-        { th: "At-Risk", td: ["Skipping checklist under time pressure", "Remove pressure, reinforce process"] },
-        { th: "Reckless", td: ["Knowingly bypassing safety controls", "Remedial action appropriate"] },
+        {
+          th: "Human Error",
+          td: ["Typo in command", "System improvement"],
+        },
+        {
+          th: "At-Risk",
+          td: ["Skipping checklist under time pressure", "Remove pressure, reinforce process"],
+        },
+        {
+          th: "Reckless",
+          td: ["Knowingly bypassing safety controls", "Remedial action appropriate"],
+        },
       ],
     },
   }}
 />
 
-The Just Culture model gives organizations a principled way to distinguish between behaviors without falling into "blame everyone" or "blame no one." Most incidents involve human error or at-risk behavior—both of which call for system-level responses, not individual punishment.
+The Just Culture model gives organizations a principled way to distinguish between behaviors without falling into "blame everyone" or "blame no one." Most incidents involve human error or at-risk behavior — both of which call for system-level responses, not individual punishment.
 
 ## The Postmortem Process
 
 ### Timeline Construction
 
-The timeline is the foundation of incident analysis. Before you can analyze what went wrong, you need to know what actually happened—in what order, with what information available at each point.
+The timeline is the foundation of incident analysis. Before you can analyze what went wrong, you need to know what actually happened — in what order, with what information available at each point.
 
 A good timeline captures more than just events. It captures _context_: what people were thinking, what information they had, what other things were happening simultaneously. This context is essential for understanding why decisions that seem wrong in retrospect were reasonable at the time.
 
@@ -248,32 +304,44 @@ __Timeline construction tips:__
 <List
   variant="check-icons-list"
   items={[
-    { text: "Use UTC timestamps consistently" },
-    { text: "Include what people were thinking, not just doing" },
-    { text: "Capture decision points and why options were chosen" },
-    { text: "Note information that was available vs. not available at each point" },
-    { text: "Include non-events (alerts that did not fire, people not paged)" },
+    {
+      text: "Use UTC timestamps consistently",
+    },
+    {
+      text: "Include what people were thinking, not just doing",
+    },
+    {
+      text: "Capture decision points and why options were chosen",
+    },
+    {
+      text: "Note information that was available vs. not available at each point",
+    },
+    {
+      text: "Include non-events (alerts that did not fire, people not paged)",
+    },
   ]}
 />
 
 <Callout type="info">
-For complex incidents with many data sources, [Timesketch](https://timesketch.org/) is an open source collaborative timeline analysis tool. It imports Plaso/log2timeline output, CSV, JSONL, and native formats from tools like Volatility and PCAP analyzers—useful when you're correlating application logs, system events, and network captures into a single investigative timeline.
+For complex incidents with many data sources, [Timesketch](https://timesketch.org/) is an open source collaborative timeline analysis tool. It imports Plaso/log2timeline output, CSV, JSONL, and native formats from tools like Volatility and PCAP analyzers — useful when you're correlating application logs, system events, and network captures into a single investigative timeline.
 </Callout>
 
 ### Facilitation Techniques
 
-The facilitator makes or breaks a postmortem. A skilled facilitator keeps the discussion focused on systems, redirects blame language in real-time, and creates space for people to share openly without fear. This is a learned skill—don't assume anyone can do it without training.
+The facilitator makes or breaks a postmortem. A skilled facilitator keeps the discussion focused on systems, redirects blame language in real-time, and creates space for people to share openly without fear. This is a learned skill — don't assume anyone can do it without training.
 
-__Timing matters.__ Hold the postmortem meeting within 24-72 hours of incident resolution—soon enough that details are fresh, but not so soon that people are still exhausted or emotional. For major incidents, a brief "hot wash" immediately after resolution can capture key facts, with the full postmortem following a day or two later.
+__Timing matters.__ Hold the postmortem meeting within 24-72 hours of incident resolution — soon enough that details are fresh, but not so soon that people are still exhausted or emotional. For major incidents, a brief "hot wash" immediately after resolution can capture key facts, with the full postmortem following a day or two later.
 
 ```markdown title="facilitator-guide.md"
 ## Before the Meeting
+
 - [ ] Timeline pre-populated and shared
 - [ ] Key participants identified and invited
 - [ ] Ground rules prepared
 - [ ] Private pre-interviews with key actors if needed
 
 ## Opening (5 minutes)
+
 - State the goal: learning, not blame
 - Review ground rules:
   - No "should have" statements
@@ -282,18 +350,21 @@ __Timing matters.__ Hold the postmortem meeting within 24-72 hours of incident r
   - We are all on the same team
 
 ## Timeline Review (20-30 minutes)
+
 - Walk through timeline chronologically
 - Ask clarifying questions: "What were you seeing at this point?"
 - Fill gaps: "What happened between X and Y?"
 - Capture context: "What else was going on that day?"
 
 ## Analysis (30-40 minutes)
+
 - Use "Five Whys" sparingly and carefully
 - Ask "What" instead of "Why": "What led to that decision?"
 - Identify contributing factors, not root causes
 - Look for systemic patterns
 
 ## Action Items (15-20 minutes)
+
 - Each factor gets at least one action item
 - Assign owners and due dates
 - Prioritize by impact and effort
@@ -302,14 +373,9 @@ __Timing matters.__ Hold the postmortem meeting within 24-72 hours of incident r
 
 ## Closing (5 minutes)
 
-<List
-  variant="check-icons-list"
-  items={[
-    { text: "Summarize key learnings" },
-    { text: "Thank participants for candor" },
-    { text: "Schedule follow-up for action item review" },
-  ]}
-/>
+- Summarize key learnings
+- Thank participants for candor
+- Schedule follow-up for action item review
 ```
 Code: Facilitator guide for running effective blameless postmortems.
 
@@ -330,13 +396,34 @@ The words we use shape the investigation. Blame-oriented language ("they should 
     thead: { th: ["Instead of...", "Try..."] },
     tbody: {
       tr: [
-        { th: "\"They should have...\"", td: ["\"What would have helped them...\""] },
-        { th: "\"Why didn't they...\"", td: ["\"What was preventing...\""] },
-        { th: "\"The mistake was...\"", td: ["\"The contributing factor was...\""] },
-        { th: "\"Human error\"", td: ["\"The action that triggered...\""] },
-        { th: "\"Failed to notice\"", td: ["\"The signal was not surfaced...\""] },
-        { th: "\"Knew better\"", td: ["\"The knowledge was not available at that moment...\""] },
-        { th: "\"Careless\"", td: ["\"The system did not catch...\""] },
+        {
+          th: "\"They should have...\"",
+          td: ["\"What would have helped them...\""],
+        },
+        {
+          th: "\"Why didn't they...\"",
+          td: ["\"What was preventing...\""],
+        },
+        {
+          th: "\"The mistake was...\"",
+          td: ["\"The contributing factor was...\""],
+        },
+        {
+          th: "\"Human error\"",
+          td: ["\"The action that triggered...\""],
+        },
+        {
+          th: "\"Failed to notice\"",
+          td: ["\"The signal was not surfaced...\""],
+        },
+        {
+          th: "\"Knew better\"",
+          td: ["\"The knowledge was not available at that moment...\""],
+        },
+        {
+          th: "\"Careless\"",
+          td: ["\"The system did not catch...\""],
+        },
       ],
     },
   }}
@@ -348,23 +435,13 @@ This isn't just semantics. Language shapes thought. When you ask "why didn't the
 
 ### Beyond "Root Cause"
 
-The phrase "root cause" implies there's one cause at the bottom of the causal chain—find it, fix it, and the problem is solved. In complex systems, this is almost never true. Incidents arise from the confluence of multiple factors, none of which is _the_ cause. Remove any one of them, and the incident might not have happened—or might have happened differently.
+The phrase "root cause" implies there's one cause at the bottom of the causal chain — find it, fix it, and the problem is solved. In complex systems, this is almost never true. Incidents arise from the confluence of multiple factors, none of which is _the_ cause. Remove any one of them, and the incident might not have happened — or might have happened differently.
 
-```mermaid
-graph TD
-    A[Incident] --> B[Contributing Factor 1:<br/>No config validation]
-    A --> C[Contributing Factor 2:<br/>No canary deployment]
-    A --> D[Contributing Factor 3:<br/>Alert threshold too high]
-    A --> E[Contributing Factor 4:<br/>Runbook outdated]
-    A --> F[Contributing Factor 5:<br/>On-call fatigued]
-
-    B --> G[Why?<br/>Validation not implemented]
-    C --> H[Why?<br/>Perceived as slowing deploys]
-    D --> I[Why?<br/>Alert fatigue led to raised threshold]
-    E --> J[Why?<br/>No runbook review process]
-    F --> K[Why?<br/>Short-staffed, heavy incident load]
-```
-Figure: Multiple contributing factors, each with their own chain of causation.
+<Diagram
+  src={multipleContributingChainDiagram}
+  title="Multiple contributing factors, each with their own chain of causation"
+  description="Flowchart showing an incident branching into five contributing factors, each followed by its own explanatory why-chain. Incident points to No config validation, No canary deployment, Alert threshold too high, Runbook outdated, and On-call fatigued. Each factor then points to a specific deeper condition such as Validation not implemented, Perceived as slowing deploys, Alert fatigue led to raised threshold, No runbook review process, or Short-staffed and heavy incident load. The diagram illustrates that failures come from multiple interacting contributors rather than a single root cause."
+/>
 
 ### The Five Whys and Its Limitations
 
@@ -384,7 +461,7 @@ A: Because the engineer made a mistake.
 Q: Why did the engineer make a mistake?
 A: Because they were careless.
 
-[Investigation stops at blame—nothing actionable learned]
+[Investigation stops at blame — nothing actionable learned]
 ```
 Code: Five Whys antipattern that terminates at human blame.
 
@@ -412,7 +489,7 @@ A: Because the documentation was outdated and there was no config inventory.
 ```
 Code: Five Whys done well, leading to systemic improvements.
 
-The difference is where you choose to stop. If you reach a human attribute—careless, rushed, didn't know—that's a signal you've taken a wrong turn. Human attributes aren't fixable. But every human attribute has a system context: Why was carelessness possible? What created the rush? Why wasn't the knowledge available?
+The difference is where you choose to stop. If you reach a human attribute — careless, rushed, didn't know — that's a signal you've taken a wrong turn. Human attributes aren't fixable. But every human attribute has a system context: Why was carelessness possible? What created the rush? Why wasn't the knowledge available?
 
 <Callout type="info">
 Five Whys works when each "why" leads to a system condition. It fails when it leads to human attributes. If you reach "they were careless," ask instead: "what about the system allowed carelessness to cause an incident?"
@@ -424,11 +501,21 @@ There are real limitations to Five Whys even when done well:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Linear assumption:", text: "Five Whys assumes a single causal chain, but most incidents have multiple interacting causes. You may need to run multiple chains in parallel." },
-    { lead: "Arbitrary stopping point:", text: "\"Five\" is arbitrary. Sometimes you need three whys, sometimes eight. Stop when you reach something you can change." },
-    { lead: "Leading questions:", text: "The phrasing of each \"why\" shapes the answer. \"Why didn't they test?\" leads to blame. \"What prevented testing?\" leads to systems." },
+    {
+      lead: "Linear assumption:",
+      text: "Five Whys assumes a single causal chain, but most incidents have multiple interacting causes. You may need to run multiple chains in parallel.",
+    },
+    {
+      lead: "Arbitrary stopping point:",
+      text: "\"Five\" is arbitrary. Sometimes you need three whys, sometimes eight. Stop when you reach something you can change.",
+    },
+    {
+      lead: "Leading questions:",
+      text: "The phrasing of each \"why\" shapes the answer. \"Why didn't they test?\" leads to blame. \"What prevented testing?\" leads to systems.",
+    },
   ]}
 />
+
 - __Knowledge limits__: You can only ask "why" about things you know happened. Unknown factors don't get investigated.
 
 For simple incidents with clear causation, Five Whys is often sufficient. For complex incidents with multiple interacting factors, you'll need more sophisticated analysis frameworks.
@@ -437,26 +524,15 @@ For simple incidents with clear causation, Five Whys is often sufficient. For co
 
 Some incidents resist simple causal chains. A cascade failure involving multiple teams, delayed alerts, unclear ownership, and organizational pressure isn't going to yield to "ask why five times." For these, Systems-Theoretic Accident Model and Processes (STAMP) and its investigation method CAST (Causal Analysis based on STAMP) offer a more powerful lens.
 
-In plain terms: STAMP asks "who was supposed to prevent this, and why didn't that control work?" It looks at the entire organizational hierarchy—not just the person who clicked the button.
+In plain terms: STAMP asks "who was supposed to prevent this, and why didn't that control work?" It looks at the entire organizational hierarchy — not just the person who clicked the button.
 
 STAMP treats safety as a control problem. Systems fail not because of component failures (though those happen), but because the _control structure_ that's supposed to prevent accidents has gaps. Every organization has a hierarchy of controllers: executives set policies, managers allocate resources, platform teams create tools, those tools constrain what engineers can do. Accidents happen when this control structure has inadequate constraints or missing feedback loops.
 
-```mermaid
-graph TD
-    subgraph control[Control Structure]
-        A[Company Leadership] -->|Sets priorities| B[Engineering Management]
-        B -->|Allocates resources| C[Platform Team]
-        C -->|Creates tools| D[Deploy Pipeline]
-        D -->|Enables| E[Engineer Actions]
-    end
-
-    subgraph feedback[Feedback Loops]
-        E -->|Incident reports| C
-        C -->|Metrics| B
-        B -->|Performance data| A
-    end
-```
-Figure: STAMP model showing the control hierarchy and feedback loops that govern system behavior.
+<Diagram
+  src={stampModelDiagram}
+  title="STAMP model showing the control hierarchy and feedback loops that govern system behavior"
+  description="Flowchart with two grouped sections. The Control Structure group shows Company Leadership setting priorities for Engineering Management, which allocates resources to the Platform Team, which creates tools for the Deploy Pipeline, which enables Engineer Actions. The Feedback Loops group shows Engineer Actions sending incident reports to the Platform Team, the Platform Team sending metrics to Engineering Management, and Engineering Management sending performance data back to Company Leadership. The diagram emphasizes how safety and failure are shaped by organizational control layers and by whether feedback reaches the right level."
+/>
 
 The insight is that the engineer making a config change is just the _lowest level_ of control. If you only investigate at that level, you're ignoring all the levels above that enabled, permitted, or encouraged the action. CAST asks questions at every level:
 
@@ -467,17 +543,32 @@ The insight is that the engineer making a config change is just the _lowest leve
     thead: { th: ["Control Level", "Key Questions"] },
     tbody: {
       tr: [
-        { th: "Governance", td: ["What policies or priorities contributed? Were safety incentives misaligned?"] },
-        { th: "Management", td: ["What resource or schedule pressures existed? Was adequate staffing provided?"] },
-        { th: "Platform/Tools", td: ["What constraints were missing? What unsafe actions did tools permit?"] },
-        { th: "Process", td: ["What procedures were inadequate? What checks were bypassed or missing?"] },
-        { th: "Operations", td: ["What information was unavailable? What feedback was missing or delayed?"] },
+        {
+          th: "Governance",
+          td: ["What policies or priorities contributed? Were safety incentives misaligned?"],
+        },
+        {
+          th: "Management",
+          td: ["What resource or schedule pressures existed? Was adequate staffing provided?"],
+        },
+        {
+          th: "Platform/Tools",
+          td: ["What constraints were missing? What unsafe actions did tools permit?"],
+        },
+        {
+          th: "Process",
+          td: ["What procedures were inadequate? What checks were bypassed or missing?"],
+        },
+        {
+          th: "Operations",
+          td: ["What information was unavailable? What feedback was missing or delayed?"],
+        },
       ],
     },
   }}
 />
 
-Let's apply this to our running example—the config change that took down the payment service.
+Let's apply this to our running example — the config change that took down the payment service.
 
 ```yaml title="cast-analysis-example.yaml"
 # CAST Analysis: Payment Service Config Outage
@@ -520,23 +611,23 @@ feedback_loop_gaps:
 ```
 Code: CAST analysis identifying control failures at multiple organizational levels.
 
-Notice how the analysis distributes findings across the entire control structure. The engineer who made the config change barely appears. That's intentional—not because the engineer is blameless (they are), but because the most powerful interventions are at higher levels. Adding config validation prevents _all_ invalid configs from reaching production, not just this one engineer's mistakes.
+Notice how the analysis distributes findings across the entire control structure. The engineer who made the config change barely appears. That's intentional — not because the engineer is blameless (they are), but because the most powerful interventions are at higher levels. Adding config validation prevents _all_ invalid configs from reaching production, not just this one engineer's mistakes.
 
 <Callout type="warning">
 STAMP/CAST is overkill for simple incidents. Use it when: the incident involved multiple teams or systems; there were organizational factors (pressure, understaffing, misaligned incentives); or simpler techniques like Five Whys aren't revealing actionable causes.
 </Callout>
 
-The feedback loop analysis is particularly valuable. In most incidents, information existed that could have prevented the failure—it just didn't reach the right people at the right time. Maybe the platform team knew the validation feature was needed but couldn't get it prioritized. Maybe near-misses had happened before but weren't communicated upward. Identifying these broken feedback loops often reveals the highest-leverage fixes.
+The feedback loop analysis is particularly valuable. In most incidents, information existed that could have prevented the failure — it just didn't reach the right people at the right time. Maybe the platform team knew the validation feature was needed but couldn't get it prioritized. Maybe near-misses had happened before but weren't communicated upward. Identifying these broken feedback loops often reveals the highest-leverage fixes.
 
-CAST requires more time and skill than Five Whys, but for complex incidents—especially those with organizational dimensions—it finds causes that simpler techniques miss entirely.
+CAST requires more time and skill than Five Whys, but for complex incidents — especially those with organizational dimensions — it finds causes that simpler techniques miss entirely.
 
 ## Remediation and Action Items
 
 ### Effective Action Items
 
-The analysis is only as valuable as the actions it produces. I've seen beautifully written postmortems with insightful contributing factor analysis—followed by vague action items like "improve monitoring" that never get done and wouldn't help much if they did. The remediation phase is where learning translates into actual risk reduction.
+The analysis is only as valuable as the actions it produces. I've seen beautifully written postmortems with insightful contributing factor analysis — followed by vague action items like "improve monitoring" that never get done and wouldn't help much if they did. The remediation phase is where learning translates into actual risk reduction.
 
-Good action items share specific characteristics. They're concrete enough that you can tell when they're done. They target system conditions, not human behavior. They prevent a _class_ of incidents, not just an exact repeat. And they're realistic—achievable within the stated timeframe with the stated resources.
+Good action items share specific characteristics. They're concrete enough that you can tell when they're done. They target system conditions, not human behavior. They prevent a _class_ of incidents, not just an exact repeat. And they're realistic — achievable within the stated timeframe with the stated resources.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -545,11 +636,26 @@ Good action items share specific characteristics. They're concrete enough that y
     thead: { th: ["Characteristic", "What It Means", "Example"] },
     tbody: {
       tr: [
-        { th: "Specific", td: ["Clear what needs to be built or changed", "\"Add validation for auth config changes\""] },
-        { th: "Measurable", td: ["You can tell when it's done", "\"Deploy canary to 1% before full rollout\""] },
-        { th: "Assignable", td: ["Single owner, clear responsibility", "\"Platform team owns, Sarah implements\""] },
-        { th: "Realistic", td: ["Achievable in stated timeframe", "\"Can be completed in one sprint\""] },
-        { th: "Systemic", td: ["Prevents class of incidents, not just this one", "\"Blocks all invalid configs, not just this format\""] },
+        {
+          th: "Specific",
+          td: ["Clear what needs to be built or changed", "\"Add validation for auth config changes\""],
+        },
+        {
+          th: "Measurable",
+          td: ["You can tell when it's done", "\"Deploy canary to 1% before full rollout\""],
+        },
+        {
+          th: "Assignable",
+          td: ["Single owner, clear responsibility", "\"Platform team owns, Sarah implements\""],
+        },
+        {
+          th: "Realistic",
+          td: ["Achievable in stated timeframe", "\"Can be completed in one sprint\""],
+        },
+        {
+          th: "Systemic",
+          td: ["Prevents class of incidents, not just this one", "\"Blocks all invalid configs, not just this format\""],
+        },
       ],
     },
   }}
@@ -558,12 +664,18 @@ Good action items share specific characteristics. They're concrete enough that y
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Good examples:", text: "\"Add pre-deploy hook that validates config schema.\" \"Implement 1% canary with automatic rollback on error spike.\" \"Add config change review requirement to deploy pipeline.\"" },
-    { lead: "Bad examples:", text: "\"Be more careful with config changes.\" \"Engineer X needs training.\" \"Review all configs.\" \"Improve monitoring.\"" },
+    {
+      lead: "Good examples:",
+      text: "\"Add pre-deploy hook that validates config schema.\" \"Implement 1% canary with automatic rollback on error spike.\" \"Add config change review requirement to deploy pipeline.\"",
+    },
+    {
+      lead: "Bad examples:",
+      text: "\"Be more careful with config changes.\" \"Engineer X needs training.\" \"Review all configs.\" \"Improve monitoring.\"",
+    },
   ]}
 />
 
-The "bad" examples deserve some attention because they're so common. "Be more careful" is worthless—it changes nothing structural and relies on human vigilance, which is exactly what failed. "Engineer X needs training" is blame dressed up as remediation; it implies the problem was the person, not the system. "Review all configs" and "improve monitoring" are well-intentioned but lack the specificity needed to actually get done.
+The "bad" examples deserve some attention because they're so common. "Be more careful" is worthless — it changes nothing structural and relies on human vigilance, which is exactly what failed. "Engineer X needs training" is blame dressed up as remediation; it implies the problem was the person, not the system. "Review all configs" and "improve monitoring" are well-intentioned but lack the specificity needed to actually get done.
 
 Here's a useful test: if someone else picked up the action item, would they know exactly what to build or change? If the answer is no, the action item needs refinement.
 
@@ -574,11 +686,26 @@ Here's a useful test: if someone else picked up the action item, would they know
     thead: { th: ["Action Item Type", "Example", "Problem"] },
     tbody: {
       tr: [
-        { th: "Behavior-focused", td: ["\"Be more careful\"", "Relies on vigilance, changes nothing structural"] },
-        { th: "Person-focused", td: ["\"Retrain engineer\"", "Blame in disguise, doesn't address system"] },
-        { th: "Vague", td: ["\"Improve monitoring\"", "No clear scope, success criteria, or end state"] },
-        { th: "Scoped but incomplete", td: ["\"Add more alerts\"", "Doesn't specify what to alert on or thresholds"] },
-        { th: "Effective", td: ["\"Add alert when auth success rate drops below 99% for 60 seconds\"", "Specific, measurable, implementable"] },
+        {
+          th: "Behavior-focused",
+          td: ["\"Be more careful\"", "Relies on vigilance, changes nothing structural"],
+        },
+        {
+          th: "Person-focused",
+          td: ["\"Retrain engineer\"", "Blame in disguise, doesn't address system"],
+        },
+        {
+          th: "Vague",
+          td: ["\"Improve monitoring\"", "No clear scope, success criteria, or end state"],
+        },
+        {
+          th: "Scoped but incomplete",
+          td: ["\"Add more alerts\"", "Doesn't specify what to alert on or thresholds"],
+        },
+        {
+          th: "Effective",
+          td: ["\"Add alert when auth success rate drops below 99% for 60 seconds\"", "Specific, measurable, implementable"],
+        },
       ],
     },
   }}
@@ -588,7 +715,7 @@ One more pattern to watch for: action items that address the _specific_ incident
 
 ### Prioritization Framework
 
-A thorough postmortem often generates more action items than you can realistically complete. I've seen postmortems with fifteen actions, of which two get done and the rest quietly rot in a backlog. That's worse than having three actions and completing all of them—both for actual risk reduction and for team morale around postmortems.
+A thorough postmortem often generates more action items than you can realistically complete. I've seen postmortems with fifteen actions, of which two get done and the rest quietly rot in a backlog. That's worse than having three actions and completing all of them — both for actual risk reduction and for team morale around postmortems.
 
 Prioritization requires honest assessment of two dimensions: impact (how much does this reduce risk?) and effort (how long will this take?). The classic quadrant framework works well:
 
@@ -599,40 +726,40 @@ Prioritization requires honest assessment of two dimensions: impact (how much do
     thead: { th: ["Priority", "Impact", "Effort", "Timeline", "Example"] },
     tbody: {
       tr: [
-        { th: "P0", td: ["High", "Low", "Days", "Add validation to block invalid configs"] },
-        { th: "P1", td: ["High", "High", "Weeks", "Implement canary deployment pipeline"] },
-        { th: "P2", td: ["Medium", "Low", "Days", "Update runbook with new scenarios"] },
-        { th: "P3", td: ["Medium", "High", "Months", "Redesign config management system"] },
-        { th: "P4", td: ["Low", "Any", "Backlog", "Nice-to-have improvements"] },
+        {
+          th: "P0",
+          td: ["High", "Low", "Days", "Add validation to block invalid configs"],
+        },
+        {
+          th: "P1",
+          td: ["High", "High", "Weeks", "Implement canary deployment pipeline"],
+        },
+        {
+          th: "P2",
+          td: ["Medium", "Low", "Days", "Update runbook with new scenarios"],
+        },
+        {
+          th: "P3",
+          td: ["Medium", "High", "Months", "Redesign config management system"],
+        },
+        {
+          th: "P4",
+          td: ["Low", "Any", "Backlog", "Nice-to-have improvements"],
+        },
       ],
     },
   }}
 />
 
-P0 items are your quick wins—high impact, low effort. These should be done immediately, often before the postmortem document is even finalized. There's no reason to let easy risk reduction sit in a queue.
+P0 items are your quick wins — high impact, low effort. These should be done immediately, often before the postmortem document is even finalized. There's no reason to let easy risk reduction sit in a queue.
 
-```mermaid
-graph TD
-  subgraph doNow[P0: Do Now]
-    A[Config validation]
-  end
+<Diagram
+  src={remediationPrioritizationDiagram}
+  title="Remediation prioritization quadrants"
+  description="Flowchart grouping remediation examples by priority. The P0 Do Now group contains Config validation. The P1 Plan group contains Canary deploys. The P2 Quick Wins group contains Update runbook and Better errors. The P3 and P4 Defer group contains Redesign config. The diagram summarizes how actions are sorted by a combination of impact and effort, with immediate low-effort high-impact work separated from planned, quick-win, and deferred work."
+/>
 
-  subgraph plan[P1: Plan]
-    B[Canary deploys]
-  end
-
-  subgraph quickWins[P2: Quick Wins]
-    C[Update runbook]
-    D[Better errors]
-  end
-
-  subgraph defer[P3/P4: Defer]
-    E[Redesign config]
-  end
-```
-Figure: Remediation prioritization quadrants. P0 = high impact, low effort. P1 = high impact, high effort. P2 = medium impact, low effort. P3/P4 = lower priority or high effort.
-
-P1 items are high-impact but require significant work. These need to be scheduled, resourced, and tracked—they won't happen by themselves. If your postmortem keeps generating P1 items that never get staffed, that's a feedback loop problem worth escalating.
+P1 items are high-impact but require significant work. These need to be scheduled, resourced, and tracked — they won't happen by themselves. If your postmortem keeps generating P1 items that never get staffed, that's a feedback loop problem worth escalating.
 
 P2 and P3 items are medium impact. The difference is effort: P2 quick wins are worth doing because they're cheap; P3 items may not be worth the investment unless you keep seeing the same contributing factor across multiple incidents.
 
@@ -646,7 +773,7 @@ If you're generating more action items than you can complete, that's signal. Eit
 
 Here's an uncomfortable truth: the correlation between postmortem quality and incident reduction is weak. The correlation between _action item completion rate_ and incident reduction is strong. The postmortem is a means to an end, and the end is completed remediation.
 
-Tracking requires infrastructure. Each action item needs an owner (a team, not a person—people leave), an assignee (the specific person doing the work), a due date, and a status. Progress updates should be captured so that if the assignee changes, context isn't lost.
+Tracking requires infrastructure. Each action item needs an owner (a team, not a person — people leave), an assignee (the specific person doing the work), a due date, and a status. Progress updates should be captured so that if the assignee changes, context isn't lost.
 
 ```yaml title="action-tracking.yaml"
 # Jira, Linear, or similar issue tracker
@@ -689,7 +816,7 @@ Follow-through also means closing the loop. Schedule a follow-up meeting 2-4 wee
 An incident without completed action items is an incident that will recur. Track actions to completion, verify they work, and close the loop in a follow-up meeting.
 </Callout>
 
-Some teams integrate action item tracking with their incident tooling—PagerDuty, FireHydrant, or similar platforms can create and track follow-up tasks automatically. Others use their standard project management tools (Jira, Linear, Asana) with a dedicated label or project for postmortem actions. The specific tool matters less than the discipline of using it consistently.
+Some teams integrate action item tracking with their incident tooling — PagerDuty, FireHydrant, or similar platforms can create and track follow-up tasks automatically. Others use their standard project management tools (Jira, Linear, Asana) with a dedicated label or project for postmortem actions. The specific tool matters less than the discipline of using it consistently.
 
 ## The Postmortem Document
 
@@ -710,45 +837,44 @@ The template below has evolved from hundreds of postmortems across different org
 **Status:** Draft/Review/Final
 
 ## Executive Summary
+
 [2-3 sentences: what happened, impact, key learnings]
 
 ## Impact
+
 - **Users affected:** [number/percentage]
 - **Revenue impact:** [if applicable]
 - **Data impact:** [if applicable]
 - **Duration:** [detection to resolution]
 
 ## Timeline
+
 [Detailed timeline with timestamps, events, actors]
 
 ## Contributing Factors
+
 1. **[Factor 1]:** [Description of how it contributed]
 2. **[Factor 2]:** [Description of how it contributed]
 3. **[Factor 3]:** [Description of how it contributed]
 
 ## What Went Well
+
 - [Things that worked during incident response]
 - [Existing safeguards that limited impact]
 
 ## What Could Be Improved
+
 - [Gaps in detection/response/recovery]
 - [Process or tooling improvements needed]
 
 ## Action Items
-<Table
-  variant="vertical-column-delineation-table"
-  content={{
-    figure: "Sample action item list.",
-    thead: { th: ["ID", "Action", "Owner", "Due Date", "Status"] },
-    tbody: {
-      tr: [
-        { th: "1", td: ["[Action description]", "[Owner]", "[Date]", "[Status]"] },
-      ],
-    },
-  }}
-/>
+
+| ID | Action | Owner | Due Date | Status |
+|----|--------|-------|----------|--------|
+| 1 | [Action description] | [Owner] | [Date] | [Status] |
 
 ## Lessons Learned
+
 [Key takeaways that apply beyond this specific incident]
 
 ## Appendix
@@ -763,14 +889,23 @@ A few notes on specific sections:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Executive Summary:", text: "is the most-read section. Write it last, after you understand the full picture, but put it first. Two to three sentences covering what broke, what the impact was, and the most important learning. Busy stakeholders may read only this." },
-    { lead: "What Went Well:", text: "is often skipped but shouldn't be. It's easy to focus entirely on what failed, but understanding what _worked_ is equally important. Maybe your monitoring detected the issue quickly. Maybe your on-call response was fast. Maybe a safeguard limited the blast radius." },
-    { lead: "Lessons Learned:", text: "should transcend the specific incident. \"Don't deploy config changes on Friday\" is incident-specific. \"Config changes need the same safety checks as code changes\" is a lesson that applies broadly." },
+    {
+      lead: "Executive Summary:",
+      text: "is the most-read section. Write it last, after you understand the full picture, but put it first. Two to three sentences covering what broke, what the impact was, and the most important learning. Busy stakeholders may read only this.",
+    },
+    {
+      lead: "What Went Well:",
+      text: "is often skipped but shouldn't be. It's easy to focus entirely on what failed, but understanding what _worked_ is equally important. Maybe your monitoring detected the issue quickly. Maybe your on-call response was fast. Maybe a safeguard limited the blast radius.",
+    },
+    {
+      lead: "Lessons Learned:",
+      text: "should transcend the specific incident. \"Don't deploy config changes on Friday\" is incident-specific. \"Config changes need the same safety checks as code changes\" is a lesson that applies broadly.",
+    },
   ]}
 />
 
 <Callout type="info">
-Store postmortems in a searchable, centralized location—a wiki, Confluence, Notion, or dedicated incident management tool. When a new incident occurs, searching past postmortems for similar symptoms often surfaces relevant context quickly.
+Store postmortems in a searchable, centralized location — a wiki, Confluence, Notion, or dedicated incident management tool. When a new incident occurs, searching past postmortems for similar symptoms often surfaces relevant context quickly.
 </Callout>
 
 ### Writing for Multiple Audiences
@@ -784,10 +919,22 @@ A single postmortem document serves readers with very different needs. The execu
     thead: { th: ["Audience", "Needs", "Section Focus"] },
     tbody: {
       tr: [
-        { th: "Executives", td: ["Quick summary, business impact", "Executive Summary, Impact"] },
-        { th: "On-call engineers", td: ["What to do if it recurs", "Timeline, Action Items"] },
-        { th: "Future investigators", td: ["Full context", "Contributing Factors, Appendix"] },
-        { th: "Other teams", td: ["What they can learn", "Lessons Learned"] },
+        {
+          th: "Executives",
+          td: ["Quick summary, business impact", "Executive Summary, Impact"],
+        },
+        {
+          th: "On-call engineers",
+          td: ["What to do if it recurs", "Timeline, Action Items"],
+        },
+        {
+          th: "Future investigators",
+          td: ["Full context", "Contributing Factors, Appendix"],
+        },
+        {
+          th: "Other teams",
+          td: ["What they can learn", "Lessons Learned"],
+        },
       ],
     },
   }}
@@ -800,10 +947,22 @@ Some practical guidance for each audience:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "For executives:", text: "Lead with business impact in concrete terms—users affected, revenue lost, SLA implications. Avoid jargon. The executive summary should be understandable by someone who doesn't know your tech stack." },
-    { lead: "For on-call engineers:", text: "The timeline is their reference. Include what symptoms were visible, what commands were run, what worked and what didn't. When they're investigating a similar incident at 3 AM, they'll search for symptoms and want to find your timeline." },
-    { lead: "For future investigators:", text: "Nothing is too detailed for the appendix. Raw log snippets, dashboard screenshots, Slack thread links, config diffs—anything that helped you understand the incident might help them understand a related one." },
-    { lead: "For other teams:", text: "The lessons learned section is their entry point. Write it as if explaining to a competent engineer who wasn't involved. What would you want them to take away and apply to their own systems?" },
+    {
+      lead: "For executives:",
+      text: "Lead with business impact in concrete terms — users affected, revenue lost, SLA implications. Avoid jargon. The executive summary should be understandable by someone who doesn't know your tech stack.",
+    },
+    {
+      lead: "For on-call engineers:",
+      text: "The timeline is their reference. Include what symptoms were visible, what commands were run, what worked and what didn't. When they're investigating a similar incident at 3 AM, they'll search for symptoms and want to find your timeline.",
+    },
+    {
+      lead: "For future investigators:",
+      text: "Nothing is too detailed for the appendix. Raw log snippets, dashboard screenshots, Slack thread links, config diffs — anything that helped you understand the incident might help them understand a related one.",
+    },
+    {
+      lead: "For other teams:",
+      text: "The lessons learned section is their entry point. Write it as if explaining to a competent engineer who wasn't involved. What would you want them to take away and apply to their own systems?",
+    },
   ]}
 />
 
@@ -858,9 +1017,18 @@ Code: Balanced metrics across process, outcomes, and culture.
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Process metrics:", text: "tell you whether postmortems are happening. A low postmortem rate means incidents are slipping through—either under-reported or not analyzed. Long time-to-postmortem means context is being lost (memory fades fast). Low action completion rate means you're doing analysis but not improving anything." },
-    { lead: "Outcome metrics:", text: "tell you whether postmortems are working. Recurrence rate is the gold standard: are the same types of incidents happening again after you've supposedly fixed them? If your recurrence rate is high, either your contributing factor analysis is missing the real causes, or your remediation isn't effective. MTTR trend shows whether your incident response is improving—better runbooks, better tooling, and better pattern recognition should drive this down over time." },
-    { lead: "Culture metrics:", text: "tell you whether the environment supports learning. Near-miss reports are particularly revealing. In a psychologically safe environment, people report close calls because they want to prevent future incidents. In a blame-heavy environment, people stay quiet because reporting brings scrutiny. An increasing trend in near-miss reports is one of the best indicators that your blameless culture is real, not aspirational." },
+    {
+      lead: "Process metrics:",
+      text: "tell you whether postmortems are happening. A low postmortem rate means incidents are slipping through — either under-reported or not analyzed. Long time-to-postmortem means context is being lost (memory fades fast). Low action completion rate means you're doing analysis but not improving anything.",
+    },
+    {
+      lead: "Outcome metrics:",
+      text: "tell you whether postmortems are working. Recurrence rate is the gold standard: are the same types of incidents happening again after you've supposedly fixed them? If your recurrence rate is high, either your contributing factor analysis is missing the real causes, or your remediation isn't effective. MTTR trend shows whether your incident response is improving — better runbooks, better tooling, and better pattern recognition should drive this down over time.",
+    },
+    {
+      lead: "Culture metrics:",
+      text: "tell you whether the environment supports learning. Near-miss reports are particularly revealing. In a psychologically safe environment, people report close calls because they want to prevent future incidents. In a blame-heavy environment, people stay quiet because reporting brings scrutiny. An increasing trend in near-miss reports is one of the best indicators that your blameless culture is real, not aspirational.",
+    },
   ]}
 />
 
@@ -871,16 +1039,25 @@ Code: Balanced metrics across process, outcomes, and culture.
     thead: { th: ["Metric Category", "What It Tells You", "Warning Signs"] },
     tbody: {
       tr: [
-        { th: "Process", td: ["Are postmortems happening?", "Low completion rate, long delays"] },
-        { th: "Outcome", td: ["Are postmortems working?", "High recurrence, flat MTTR"] },
-        { th: "Culture", td: ["Is the environment safe?", "Declining near-miss reports, low participation"] },
+        {
+          th: "Process",
+          td: ["Are postmortems happening?", "Low completion rate, long delays"],
+        },
+        {
+          th: "Outcome",
+          td: ["Are postmortems working?", "High recurrence, flat MTTR"],
+        },
+        {
+          th: "Culture",
+          td: ["Is the environment safe?", "Declining near-miss reports, low participation"],
+        },
       ],
     },
   }}
 />
 
 <Callout type="info">
-The most important metric is recurrence rate—are the same types of incidents happening again? If you can only track one thing, track that. It directly measures whether your remediation efforts are actually working.
+The most important metric is recurrence rate — are the same types of incidents happening again? If you can only track one thing, track that. It directly measures whether your remediation efforts are actually working.
 </Callout>
 
 Be careful about gaming. If you measure postmortem count, you'll get lots of low-quality postmortems. If you measure action item count, you'll get trivial actions. If you measure time-to-postmortem, you'll get rushed analysis. Any metric you emphasize will be optimized for, sometimes at the expense of actual learning. Balance your metrics and look at them together, not in isolation.
@@ -892,15 +1069,27 @@ Metrics only matter if someone looks at them. Establish a regular cadence of rev
 <List
   variant="check-icons-list"
   items={[
-    { lead: "Weekly reviews:", text: "are operational. The reliability team (or whoever owns incident management) checks that postmortems are getting done, action items aren't stuck, and nothing is falling through the cracks. This is maintenance work—review open action items, check for overdue postmortems, spot-check recent postmortems for quality." },
-    { lead: "Monthly reviews:", text: "look for patterns. When you see three incidents in a month involving config changes, that's signal. When you see action items consistently blocked by the same team, that's signal. Individual postmortems find individual causes; monthly reviews find systemic themes that span multiple incidents." },
-    { lead: "Quarterly reviews:", text: "assess the process itself. Are postmortems actually driving improvement? Is the blameless culture holding? Do facilitators need more training? This is also a good time to share learnings across the organization—a \"greatest hits\" of recent postmortems can spread lessons to teams who wouldn't otherwise see them." },
-    { lead: "Annual reviews:", text: "take the long view. How does your incident rate compare to last year? To industry benchmarks? Are there fundamental process changes worth making? This is where you make bigger bets on improving your incident management maturity." },
+    {
+      lead: "Weekly reviews:",
+      text: "are operational. The reliability team (or whoever owns incident management) checks that postmortems are getting done, action items aren't stuck, and nothing is falling through the cracks. This is maintenance work — review open action items, check for overdue postmortems, spot-check recent postmortems for quality.",
+    },
+    {
+      lead: "Monthly reviews:",
+      text: "look for patterns. When you see three incidents in a month involving config changes, that's signal. When you see action items consistently blocked by the same team, that's signal. Individual postmortems find individual causes; monthly reviews find systemic themes that span multiple incidents.",
+    },
+    {
+      lead: "Quarterly reviews:",
+      text: "assess the process itself. Are postmortems actually driving improvement? Is the blameless culture holding? Do facilitators need more training? This is also a good time to share learnings across the organization — a \"greatest hits\" of recent postmortems can spread lessons to teams who wouldn't otherwise see them.",
+    },
+    {
+      lead: "Annual reviews:",
+      text: "take the long view. How does your incident rate compare to last year? To industry benchmarks? Are there fundamental process changes worth making? This is where you make bigger bets on improving your incident management maturity.",
+    },
   ]}
 />
 
 <Callout type="warning">
-Without regular reviews, metrics become vanity metrics—collected but not acted upon. Schedule the reviews, put them on calendars, and treat them as non-negotiable. The review cadence is what turns data into action.
+Without regular reviews, metrics become vanity metrics — collected but not acted upon. Schedule the reviews, put them on calendars, and treat them as non-negotiable. The review cadence is what turns data into action.
 </Callout>
 
 The reviews themselves should be blameless. If metrics are trending poorly, the question isn't "who's failing?" but "what's preventing success?" Maybe postmortems are delayed because facilitators are overloaded. Maybe action items aren't completing because teams are understaffed. The same systems thinking you apply to incidents applies to your incident management process itself.
@@ -909,25 +1098,37 @@ The reviews themselves should be blameless. If metrics are trending poorly, the 
 
 Every incident investigation faces a choice: stop at human error, or continue to systemic causes. The first path is easier. It provides closure. It satisfies the instinct to hold someone accountable. But it produces hiding, not learning. The same incidents recur, just with different people taking the blame.
 
-The harder path—blameless investigation—requires discipline. It means asking "what about the system?" when you've already found a person who made a mistake. It means building culture where people report errors instead of concealing them. It means tracking action items to completion instead of declaring victory when the postmortem document is done.
+The harder path — blameless investigation — requires discipline. It means asking "what about the system?" when you've already found a person who made a mistake. It means building culture where people report errors instead of concealing them. It means tracking action items to completion instead of declaring victory when the postmortem document is done.
 
 Let's recap the core principles:
 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "__Human error is where investigation begins, not where it ends.__", text: "Every incident involves human actions, but the interesting question is always: what made that action likely, possible, and undetected?" },
-    { lead: "__Blame produces hiding; systems thinking produces learning.__", text: "When people fear punishment, they stop reporting. When they feel safe, they share near-misses that prevent future incidents." },
-    { lead: "__Incidents have contributing factors, not root causes.__", text: "Complex failures arise from multiple interacting conditions. Fix any one of them and the specific incident might not have happened—but you won't know which ones matter most until you identify them all." },
-    { lead: "__Effective remediation requires specific, systemic action items tracked to completion.__", text: "Vague actions don't get done. Person-focused actions don't prevent recurrence. Only concrete system improvements, verified and measured, actually reduce risk." },
+    {
+      lead: "__Human error is where investigation begins, not where it ends.__",
+      text: "Every incident involves human actions, but the interesting question is always: what made that action likely, possible, and undetected?",
+    },
+    {
+      lead: "__Blame produces hiding; systems thinking produces learning.__",
+      text: "When people fear punishment, they stop reporting. When they feel safe, they share near-misses that prevent future incidents.",
+    },
+    {
+      lead: "__Incidents have contributing factors, not root causes.__",
+      text: "Complex failures arise from multiple interacting conditions. Fix any one of them and the specific incident might not have happened — but you won't know which ones matter most until you identify them all.",
+    },
+    {
+      lead: "__Effective remediation requires specific, systemic action items tracked to completion.__",
+      text: "Vague actions don't get done. Person-focused actions don't prevent recurrence. Only concrete system improvements, verified and measured, actually reduce risk.",
+    },
   ]}
 />
 
 
 Blameless culture isn't soft. It's more rigorous than blame culture, not less. It demands that we find _all_ the contributing factors, not just the most obvious one. It demands that we implement _real_ fixes, not just "be more careful." It demands that we measure whether our fixes actually work. That's harder than pointing at a person and saying "don't do that again."
 
-The organizations that learn fastest are the ones where people feel safe enough to say "I made a mistake, and here's what we should change so it doesn't happen again." Building that safety—and that rigor—is the work.
+The organizations that learn fastest are the ones where people feel safe enough to say "I made a mistake, and here's what we should change so it doesn't happen again." Building that safety — and that rigor — is the work.
 
 <Callout type="success">
-The goal of incident analysis is not to find who to blame. It's to find what to change so that the same class of incident becomes less likely. A blameless postmortem that produces no systemic improvements has failed—not because it didn't assign blame, but because it didn't learn.
+The goal of incident analysis is not to find who to blame. It's to find what to change so that the same class of incident becomes less likely. A blameless postmortem that produces no systemic improvements has failed — not because it didn't assign blame, but because it didn't learn.
 </Callout>

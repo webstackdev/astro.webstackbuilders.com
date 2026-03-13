@@ -9,6 +9,9 @@ tags: ["apis-and-gateways","aws","azure","terraform","typescript","python"]
 featured: true
 ---
 
+import sameBurstDiagram from "./diagrams/same-burst-traffic-different-outcomes.jpg"
+import slidingWindowDiagram from "./diagrams/sliding-window-weighted-calculation-prevents-boundary-exploitation.jpg"
+
 *[DDoS]: Distributed Denial of Service
 *[JWT]: JSON Web Token
 *[LRU]: Least Recently Used
@@ -19,11 +22,11 @@ featured: true
 *[TTL]: Time To Live
 *[WAF]: Web Application Firewall
 
-Rate limiting is a double-edged sword. Done right, it protects your systems from overload and abuse. Done wrong, it becomes a self-inflicted outage—your own infrastructure rejecting legitimate users during the moments you need capacity most.
+Rate limiting is a double-edged sword. Done right, it protects your systems from overload and abuse. Done wrong, it becomes a self-inflicted outage — your own infrastructure rejecting legitimate users during the moments you need capacity most.
 
-I watched this play out at a company that implemented per-IP rate limiting at 100 requests per minute to prevent scraping. Seemed reasonable. Then a customer behind corporate NAT reported they couldn't use the service. Five hundred employees sharing one public IP meant each person got 0.2 requests per minute. They switched to API key-based limiting with per-key quotas. Problem solved—until a viral moment hit and legitimate traffic spiked 10x. Their fixed-window rate limiting rejected 90% of requests at minute boundaries. Users hammering refresh made it worse. They switched to a _sliding window counter_ to track request counts (eliminating the boundary problem) combined with _token bucket_ for burst control (allowing legitimate traffic spikes while maintaining sustained rate limits). Same traffic spike: requests distributed smoothly, everyone got served, the backend hummed along at capacity without falling over.
+I watched this play out at a company that implemented per-IP rate limiting at 100 requests per minute to prevent scraping. Seemed reasonable. Then a customer behind corporate NAT reported they couldn't use the service. Five hundred employees sharing one public IP meant each person got 0.2 requests per minute. They switched to API key-based limiting with per-key quotas. Problem solved — until a viral moment hit and legitimate traffic spiked 10x. Their fixed-window rate limiting rejected 90% of requests at minute boundaries. Users hammering refresh made it worse. They switched to a __sliding window counter__ to track request counts (eliminating the boundary problem) combined with __token bucket__ for burst control (allowing legitimate traffic spikes while maintaining sustained rate limits). Same traffic spike: requests distributed smoothly, everyone got served, the backend hummed along at capacity without falling over.
 
-The naive approach—"block anything over N requests"—fails because it treats rate limiting as a wall instead of a valve. The algorithms matter: token bucket, leaky bucket, sliding window, and fixed window each behave differently during bursts. The implementation matters more: _where_ you limit, _how_ you identify clients, _what_ happens when limits are hit, and _how_ you communicate constraints to callers.
+The naive approach—"block anything over N requests"—fails because it treats rate limiting as a wall instead of a valve. The algorithms matter: token bucket, leaky bucket, sliding window, and fixed window each behave differently during bursts. The implementation matters more: __where__ you limit, __how__ you identify clients, __what__ happens when limits are hit, and __how__ you communicate constraints to callers.
 
 Rate limiting isn't about saying "no." It's about saying "not yet" in a way that maintains service quality for everyone.
 
@@ -59,7 +62,7 @@ Rate limiting serves four distinct purposes, and conflating them leads to miscon
   ]}
 />
 
-But rate limiting has limits. It _slows_ attacks; it doesn't prevent them. Determined attackers distribute across IPs and rotate credentials. Rate limiting buys time—authentication, authorization, and WAF rules provide actual security. Similarly, rate limiting _sheds_ load; it doesn't handle it. You still need scaling for legitimate traffic. And rate limiting _helps_ availability; it doesn't guarantee it. Backend failures still cause errors regardless of how well you've throttled incoming requests.
+But rate limiting has limits. It __slows__ attacks; it doesn't prevent them. Determined attackers distribute across IPs and rotate credentials. Rate limiting buys time — authentication, authorization, and WAF rules provide actual security. Similarly, rate limiting __sheds__ load; it doesn't handle it. You still need scaling for legitimate traffic. And rate limiting __helps__ availability; it doesn't guarantee it. Backend failures still cause errors regardless of how well you've throttled incoming requests.
 
 ### Algorithm Overview
 
@@ -74,15 +77,15 @@ Four algorithms dominate production rate limiting, each with different tradeoffs
     tbody: {
       tr: [
         {
-          th: '__Fixed Window__',
+          th: 'Fixed Window',
           td: ['Count requests in time windows, reset at boundary', 'Poor (2x burst at boundaries)', 'Low (one counter per key)', 'Simple quotas'],
         },
         {
-          th: '__Sliding Window Log__',
+          th: 'Sliding Window Log',
           td: ['Store timestamp of every request', 'Excellent', 'High (all timestamps)', 'Accuracy-critical, low volume'],
         },
         {
-          th: '__Sliding Window Counter__',
+          th: 'Sliding Window Counter',
           td: [
             'Weighted average of current and previous window',
             'Good',
@@ -91,11 +94,11 @@ Four algorithms dominate production rate limiting, each with different tradeoffs
           ],
         },
         {
-          th: '__Token Bucket__',
+          th: 'Token Bucket',
           td: ['Tokens added at fixed rate, consumed per request', 'Excellent (configurable burst)', 'Low', 'API rate limiting'],
         },
         {
-          th: '__Leaky Bucket__',
+          th: 'Leaky Bucket',
           td: ['Requests queue, processed at constant rate', 'Smooths all traffic', 'Medium (queue)', 'Traffic shaping'],
         },
       ],
@@ -108,61 +111,41 @@ Four algorithms dominate production rate limiting, each with different tradeoffs
   variant="check-icons-list"
   items={[
     {
-      lead: 'The fixed window approach',
+      lead: "The fixed window approach",
       text: 'is simple: count requests in minute-long (or hour-long) windows, reject when the count exceeds the limit, reset at the boundary. The problem is boundary bursts. A client can make 95 requests at 11:59:59 and 95 more at 12:00:01 - 190 requests in two seconds while staying under a "100 per minute" limit.',
     },
     {
-      lead: 'Sliding window counter',
+      lead: "Sliding window counter",
       text: "fixes this by weighting the previous window's count. At 30 seconds into the current window, you count 50% of the previous window plus 100% of the current window. This smooths the boundary problem with minimal additional state.",
     },
     {
-      lead: 'Sliding window log',
-      text: "takes accuracy further by storing the timestamp of every request and counting only those within the rolling window. It's perfectly accurate but memory-intensive—you're storing potentially thousands of timestamps per client. Use it only when accuracy is critical and request volume is low, like authentication rate limiting where you absolutely need exactly N attempts per hour.",
+      lead: "Sliding window log",
+      text: "takes accuracy further by storing the timestamp of every request and counting only those within the rolling window. It's perfectly accurate but memory-intensive — you're storing potentially thousands of timestamps per client. Use it only when accuracy is critical and request volume is low, like authentication rate limiting where you absolutely need exactly N attempts per hour.",
     },
     {
-      lead: 'Token bucket',
-      text: "is the workhorse of API rate limiting. Imagine a bucket that holds N tokens (your burst capacity). Tokens are added at rate R (your sustained RPS). Each request consumes a token if available; otherwise it's rejected. This naturally allows bursts—a client can use their full bucket immediately—while maintaining a sustained rate over time.",
+      lead: "Token bucket",
+      text: "is the workhorse of API rate limiting. Imagine a bucket that holds N tokens (your burst capacity). Tokens are added at rate R (your sustained RPS). Each request consumes a token if available; otherwise it's rejected. This naturally allows bursts — a client can use their full bucket immediately — while maintaining a sustained rate over time.",
     },
     {
-      lead: 'Leaky bucket',
-      text: "inverts the model: requests enter a queue (the bucket), and they're processed (leaked) at a constant rate. If the queue fills, new requests overflow and are rejected. This produces perfectly smooth output but adds latency—requests wait in the queue. Use it when you need constant output rate to a downstream service that can't handle bursts.",
+      lead: "Leaky bucket",
+      text: "inverts the model: requests enter a queue (the bucket), and they're processed (leaked) at a constant rate. If the queue fills, new requests overflow and are rejected. This produces perfectly smooth output but adds latency — requests wait in the queue. Use it when you need constant output rate to a downstream service that can't handle bursts.",
     },
   ]}
 />
 
-```mermaid
-graph TD
-    subgraph "Same 190 Requests in 2 Seconds"
-        INPUT[Client sends 95 at :59<br/>then 95 at :00]
-    end
-
-    subgraph "Fixed Window Result"
-        FW[All 190 allowed]
-        FWB[2x limit bypassed]
-        INPUT --> FW
-        FW --> FWB
-    end
-
-    subgraph "Token Bucket Result"
-        TB[First 10 allowed instantly]
-        TBW[Remaining 180 rejected<br/>or queued at 1 RPS]
-        INPUT --> TB
-        TB --> TBW
-    end
-
-    style FWB fill:#f99,color:#000
-    style TBW fill:#9f9,color:#000
-```
-
-Figure: Same burst traffic, different outcomes—fixed window allows 2x limit while token bucket enforces capacity.
+<Diagram
+  src={sameBurstDiagram}
+  title="Same burst traffic, different outcomes."
+  description="Top-to-bottom flowchart comparing how the same burst pattern behaves under two rate limiting algorithms. A shared input group at the top states that a client sends 95 requests at second 59 and another 95 requests at second 00, for 190 requests in 2 seconds. One branch leads to the Fixed Window Result group, where all 190 requests are allowed and the outcome notes that the client bypassed the intended limit by 2 times. The other branch leads to the Token Bucket Result group, where only the first 10 requests are allowed immediately and the remaining 180 are rejected or queued at 1 request per second. The fixed-window failure outcome is highlighted as bad, while the token bucket enforcement outcome is highlighted as controlled. The diagram demonstrates how boundary timing can exploit fixed windows while token bucket preserves burst capacity limits."
+/>
 
 <Callout type="info">
-Token bucket is the most versatile algorithm for API rate limiting. It allows bursts (good for user experience) while maintaining a sustained rate (protects backend). Most production rate limiters—including AWS API Gateway, Kong, and nginx—use token bucket or sliding window.
+Token bucket is the most versatile algorithm for API rate limiting. It allows bursts (good for user experience) while maintaining a sustained rate (protects backend). Most production rate limiters — including AWS API Gateway, Kong, and nginx — use token bucket or sliding window.
 </Callout>
 
 ## Where to Rate Limit
 
-Before choosing an algorithm, decide _where_ in your stack to enforce limits. Each layer has different tradeoffs:
+Before choosing an algorithm, decide __where__ in your stack to enforce limits. Each layer has different tradeoffs:
 
 <Table
   variant="vertical-column-delineation-table"
@@ -196,7 +179,7 @@ Before choosing an algorithm, decide _where_ in your stack to enforce limits. Ea
 
 ### Edge and CDN
 
-Edge rate limiting stops bad traffic before it reaches your infrastructure. Cloudflare, Fastly, AWS CloudFront, Google Cloud CDN, Azure Front Door, and Azure CDN all offer rate limiting rules via their respective WAF products that execute at the edge—milliseconds from the client, before your servers see the request.
+Edge rate limiting stops bad traffic before it reaches your infrastructure. Cloudflare, Fastly, AWS CloudFront, Google Cloud CDN, Azure Front Door, and Azure CDN all offer rate limiting rules via their respective WAF products that execute at the edge — milliseconds from the client, before your servers see the request.
 
 ```hcl title="cloudflare-rate-limit.tf"
 # Limit API endpoints to 100 requests per minute per IP
@@ -221,7 +204,7 @@ resource "cloudflare_rate_limit" "api_limit" {
 
 Code: Cloudflare rate limiting via Terraform.
 
-Edge limiting is coarse-grained—typically by IP or geographic region. It's your first line of defense against volumetric attacks, not your primary quota enforcement.
+Edge limiting is coarse-grained — typically by IP or geographic region. It's your first line of defense against volumetric attacks, not your primary quota enforcement.
 
 ### API Gateway
 
@@ -297,21 +280,21 @@ Code: Istio local rate limiting with token bucket.
 
 ### Application Layer
 
-Application-level rate limiting gives you the finest control—you can limit by user, by action, by context, or by any combination. Use it when gateway-level limits aren't granular enough.
+Application-level rate limiting gives you the finest control — you can limit by user, by action, by context, or by any combination. Use it when gateway-level limits aren't granular enough.
 
 The tradeoff is complexity. You're responsible for state management (usually Redis for distributed systems), failure handling, and the actual algorithm implementation. That said, sometimes you need it: per-user action limits, variable-cost operations, or business-logic-driven throttling that gateways can't express.
 
 <Callout type="warning">
-Don't implement rate limiting _only_ at the application layer. By the time requests reach your app, they've already consumed network bandwidth, TLS handshakes, and load balancer capacity. Use defense in depth: coarse limits at the edge, refined limits at the gateway, fine-grained limits in the app.
+Don't implement rate limiting __only__ at the application layer. By the time requests reach your app, they've already consumed network bandwidth, TLS handshakes, and load balancer capacity. Use defense in depth: coarse limits at the edge, refined limits at the gateway, fine-grained limits in the app.
 </Callout>
 
 ## Algorithm Deep Dives
 
-Understanding how each algorithm works helps you configure existing tools correctly and debug rate limiting issues. You rarely need to implement these from scratch—but you do need to understand their behavior.
+Understanding how each algorithm works helps you configure existing tools correctly and debug rate limiting issues. You rarely need to implement these from scratch — but you do need to understand their behavior.
 
 ### Token Bucket
 
-Token bucket has three parameters: _capacity_ (burst size), _refill rate_ (sustained throughput), and _cost per request_ (usually 1, but can vary by operation).
+Token bucket has three parameters: __capacity__ (burst size), __refill rate__ (sustained throughput), and __cost per request__ (usually 1, but can vary by operation).
 
 The algorithm: on each request, calculate tokens accumulated since last check (elapsed time × refill rate), cap at bucket capacity, then check if enough tokens exist. If yes, subtract and allow. If no, reject and calculate retry time.
 
@@ -344,7 +327,7 @@ Here's how traffic patterns play out with a 10-token bucket refilling at 1 token
       tr: [
         {
           th: 'Steady 1 RPS',
-          td: ['Every request allowed—token regenerates before next'],
+          td: ['Every request allowed — token regenerates before next'],
         },
         {
           th: 'Burst of 10',
@@ -364,7 +347,7 @@ Here's how traffic patterns play out with a 10-token bucket refilling at 1 token
   }}
 />
 
-For distributed systems, you need atomic operations. The standard pattern is a Redis Lua script that reads state, calculates refill, checks tokens, and updates—all in one atomic operation. Without atomicity, concurrent requests can race past your limits.
+For distributed systems, you need atomic operations. The standard pattern is a Redis Lua script that reads state, calculates refill, checks tokens, and updates — all in one atomic operation. Without atomicity, concurrent requests can race past your limits.
 
 <Callout type="success">
 For a complete TypeScript implementation with both in-memory and Redis-backed variants, see the [token bucket gist](https://gist.github.com/webstackdev/011a4ac858a9c379b95181798e397499).
@@ -372,7 +355,7 @@ For a complete TypeScript implementation with both in-memory and Redis-backed va
 
 ### Leaky Bucket
 
-Leaky bucket inverts the model: instead of controlling _input_ rate, it controls _output_ rate. Requests enter a queue (the bucket) and are processed at a constant rate. If the queue fills, new requests overflow.
+Leaky bucket inverts the model: instead of controlling __input__ rate, it controls __output__ rate. Requests enter a queue (the bucket) and are processed at a constant rate. If the queue fills, new requests overflow.
 
 ```python
 # Leaky bucket pseudocode
@@ -406,7 +389,7 @@ The key difference: token bucket serves bursts immediately then makes you wait. 
   ]}
 />
 
-Use leaky bucket when you need to protect a downstream service that can't handle bursts—like a payment processor with strict per-second limits. The added latency is the tradeoff for guaranteed smooth output.
+Use leaky bucket when you need to protect a downstream service that can't handle bursts — like a payment processor with strict per-second limits. The added latency is the tradeoff for guaranteed smooth output.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -472,26 +455,11 @@ Code: Sliding window counter core logic.
 
 At the 30-second mark of a 60-second window, you count 50% of the previous window plus 100% of the current window. This prevents the boundary problem where clients can make 2x the limit by timing requests around window boundaries.
 
-```mermaid
-graph TD
-    subgraph "Sliding Window Weighted Calculation"
-        T[Current time: 12:00:30]
-        PW[Previous window 11:00-12:00<br/>95 requests]
-        CW[Current window 12:00-13:00<br/>5 requests so far]
-        W[Weight = 30s / 60s = 0.5]
-        CALC["Effective = (95 × 0.5) + 5 = 52.5"]
-        RESULT[Under 100 limit<br/>Request allowed]
-        T --> W
-        PW --> CALC
-        CW --> CALC
-        W --> CALC
-        CALC --> RESULT
-    end
-
-    style RESULT fill:#9f9,color:#000
-```
-
-Figure: Sliding window weighted calculation prevents boundary exploitation.
+<Diagram
+  src={slidingWindowDiagram}
+  title="Sliding window weighted calculation prevents boundary exploitation."
+  description="Top-to-bottom flowchart showing how a sliding window counter computes an effective request count. Inside a grouped section labeled Sliding Window Weighted Calculation, the current time is 12:00:30. The previous window from 11:00 to 12:00 contains 95 requests. The current window from 12:00 to 13:00 has 5 requests so far. A separate node calculates the weight as 30 seconds divided by 60 seconds, or 0.5. The previous window count, current window count, and weight all feed into a calculation node showing Effective equals 95 times 0.5 plus 5, resulting in 52.5. That result then flows to a final node stating Under 100 limit, Request allowed, which is highlighted positively. The diagram explains how sliding window counters smooth boundary effects by partially counting the previous window instead of resetting abruptly at the time boundary."
+/>
 
 <Callout type="success">
 For a complete TypeScript implementation with Redis support, see the [sliding window gist](https://gist.github.com/webstackdev/2ad5ce11b38b097a261ec3b8e60639c0).
@@ -499,7 +467,7 @@ For a complete TypeScript implementation with Redis support, see the [sliding wi
 
 ## Client Identification
 
-The rate limiting key—how you identify who's making requests—is as important as the algorithm. Choose wrong, and you'll either punish legitimate users or fail to stop abuse.
+The rate limiting key — how you identify who's making requests — is as important as the algorithm. Choose wrong, and you'll either punish legitimate users or fail to stop abuse.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -540,19 +508,19 @@ The rate limiting key—how you identify who's making requests—is as important
   items={[
     {
       lead: 'IP address',
-      text: "requires no authentication and blocks distributed attacks, but corporate NAT can share one IP across thousands of users. I've seen legitimate customers hit rate limits because 500 employees shared a single public IP—each got 0.2 requests per minute.",
+      text: "Requires no authentication and blocks distributed attacks, but corporate NAT can share one IP across thousands of users. I've seen legitimate customers hit rate limits because 500 employees shared a single public IP — each got 0.2 requests per minute.",
     },
     {
       lead: 'API key',
-      text: 'is the standard for B2B APIs. Per-customer limits, usage tracking, revocation—all straightforward. The risk is key sharing: customers distributing their key to multiple applications, or keys getting stolen and abused.',
+      text: 'The standard for B2B APIs. Per-customer limits, usage tracking, revocation — all straightforward. The risk is key sharing: customers distributing their key to multiple applications, or keys getting stolen and abused.',
     },
     {
       lead: 'User ID',
-      text: "gives you true per-user limits that work across IPs and devices. The tradeoff is authentication overhead and the fact that it doesn't help with anonymous endpoints.",
+      text: "Gives you true per-user limits that work across IPs and devices. The tradeoff is authentication overhead and the fact that it doesn't help with anonymous endpoints.",
     },
     {
-      lead: 'Composite keys',
-      text: '(user + action, IP + endpoint) give you fine-grained control at the cost of complexity and key explosion. Useful when different operations need different limits.',
+      lead: 'Composite keys (user + action, IP + endpoint)',
+      text: 'Gives you fine-grained control at the cost of complexity and key explosion. Useful when different operations need different limits.',
     },
   ]}
 />
@@ -600,7 +568,7 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent): Promise<
 
 Code: Safe IP extraction from forwarded headers for AWS CloudFront.
 
-The header you trust depends on your infrastructure. Cloudflare sets `CF-Connecting-IP`, Akamai uses `True-Client-IP`, and nginx typically sets `X-Real-IP`. The generic `X-Forwarded-For` contains a comma-separated chain of IPs—the leftmost is the original client, but any proxy in the chain can append values. AWS CloudFront and Application Load Balancer both populate `X-Forwarded-For`, with CloudFront also offering `CloudFront-Viewer-Address` for the viewer's IP and port. For Lambda@Edge or Lambda behind API Gateway, the source IP is available in the request context without needing headers at all.
+The header you trust depends on your infrastructure. Cloudflare sets `CF-Connecting-IP`, Akamai uses `True-Client-IP`, and nginx typically sets `X-Real-IP`. The generic `X-Forwarded-For` contains a comma-separated chain of IPs — the leftmost is the original client, but any proxy in the chain can append values. AWS CloudFront and Application Load Balancer both populate `X-Forwarded-For`, with CloudFront also offering `CloudFront-Viewer-Address` for the viewer's IP and port. For Lambda@Edge or Lambda behind API Gateway, the source IP is available in the request context without needing headers at all.
 
 The safest pattern: configure your edge proxy to set a custom header (like `X-Client-IP`) that overwrites any client-supplied value, then trust only that header in downstream services.
 
@@ -641,7 +609,7 @@ async function checkRateLimits(req: Request): Promise<boolean> {
 
 Code: Layered rate limiting with multiple strategies.
 
-This is an application-level implementation—useful for fine-grained control, but it comes with operational complexity. The `ipLimiter`, `keyLimiter`, and `actionLimiter` shown here are stubs; a real implementation needs shared state across all application instances, typically Redis with atomic Lua scripts. Without shared state, each pod maintains its own counters, meaning a client hitting different pods effectively multiplies their rate limit by your replica count.
+This is an application-level implementation — useful for fine-grained control, but it comes with operational complexity. The `ipLimiter`, `keyLimiter`, and `actionLimiter` shown here are stubs; a real implementation needs shared state across all application instances, typically Redis with atomic Lua scripts. Without shared state, each pod maintains its own counters, meaning a client hitting different pods effectively multiplies their rate limit by your replica count.
 
 Sticky sessions (routing the same client to the same pod) seem like a workaround, but they introduce their own problems: uneven load distribution, session affinity breaking during deployments, and the need for session-aware load balancers. Redis-backed rate limiting is the standard solution for horizontally scaled services.
 
@@ -683,7 +651,7 @@ The IETF draft (draft-ietf-httpapi-ratelimit-headers) defines three standard hea
 
 Many APIs still use the legacy `X-RateLimit-*` prefix. Support both until the standard is finalized.
 
-For 429 responses, always include `Retry-After` (RFC 7231) telling the client when to retry. Use seconds rather than HTTP-date format—it's simpler for clients to parse.
+For 429 responses, always include `Retry-After` (RFC 7231) telling the client when to retry. Use seconds rather than HTTP-date format — it's simpler for clients to parse.
 
 ### Response Codes
 
@@ -705,7 +673,7 @@ For 429 responses, always include `Retry-After` (RFC 7231) telling the client wh
   ]}
 />
 
-The distinction between 429 and 503 matters: 429 tells clients "you specifically are sending too many requests," while 503 signals "the entire system is overloaded." Don't use 503 for per-client rate limiting—it misleads clients into thinking the service is down rather than that they need to back off.
+The distinction between `429` and `503` matters: `429` tells clients "you specifically are sending too many requests," while `503` signals "the entire system is overloaded." Don't use `503` for per-client rate limiting — it misleads clients into thinking the service is down rather than that they need to back off.
 
 ### Example Responses
 
@@ -738,12 +706,12 @@ function getRequestCost(req: Request): number {
 Code: Variable request costs.
 
 <Callout type="success">
-Always include rate limit headers on successful responses, not just 429s. This lets well-behaved clients monitor their quota and self-throttle before hitting limits.
+Always include rate limit headers on successful responses, not just `429`s. This lets well-behaved clients monitor their quota and self-throttle before hitting limits.
 </Callout>
 
 ## Testing Your Rate Limiter
 
-Rate limiters need to be tested under realistic conditions—not just unit tests, but concurrent load tests that stress the actual distributed implementation. Tools like k6, Locust, or Grafana's k6 Cloud can generate the concurrent traffic patterns you need to verify your limiter behaves correctly under pressure.
+Rate limiters need to be tested under realistic conditions — not just unit tests, but concurrent load tests that stress the actual distributed implementation. Tools like k6, Locust, or Grafana's k6 Cloud can generate the concurrent traffic patterns you need to verify your limiter behaves correctly under pressure.
 
 ### Key Test Cases
 
@@ -760,7 +728,7 @@ Rate limiters need to be tested under realistic conditions—not just unit tests
     },
     {
       lead: 'Concurrent access',
-      text: 'Multiple processes hitting the same key. Redis Lua scripts must be atomic—race conditions here mean either over-allowing or unfair rejection.',
+      text: 'Multiple processes hitting the same key. Redis Lua scripts must be atomic — race conditions here mean either over-allowing or unfair rejection.',
     },
     {
       lead: 'Retry-After accuracy',
@@ -801,18 +769,18 @@ Code: Testing atomic concurrent access.
     },
     {
       lead: 'Top rate-limited clients',
-      text: "Identify who's hitting limits—abuse or legitimate growth?",
+      text: "Identify who's hitting limits — abuse or legitimate growth?",
     },
   ]}
 />
 
 <Callout type="info">
-A high rejection rate isn't always a problem—it might mean the rate limiter is working as intended during an attack. Monitor both aggregate rejection rate and per-client patterns.
+A high rejection rate isn't always a problem — it might mean the rate limiter is working as intended during an attack. Monitor both aggregate rejection rate and per-client patterns.
 </Callout>
 
 ## Failure Handling
 
-What happens when Redis dies? This isn't hypothetical—network partitions, memory exhaustion, and maintenance windows all cause Redis outages. Your rate limiter needs a failure policy decided in advance.
+What happens when Redis dies? This isn't hypothetical — network partitions, memory exhaustion, and maintenance windows all cause Redis outages. Your rate limiter needs a failure policy decided in advance.
 
 <List
   variant="check-icons-list"
@@ -827,7 +795,7 @@ What happens when Redis dies? This isn't hypothetical—network partitions, memo
     },
     {
       lead: 'Fail with local fallback',
-      text: "uses in-memory rate limiting per instance when Redis is unavailable. It's not perfectly accurate—each pod limits independently—but it provides some protection while maintaining availability.",
+      text: "uses in-memory rate limiting per instance when Redis is unavailable. It's not perfectly accurate — each pod limits independently — but it provides some protection while maintaining availability.",
     },
   ]}
 />
@@ -850,7 +818,7 @@ Code: Fail-open rate limiting with error tracking.
 
 ## Conclusion
 
-Rate limiting is traffic shaping, not just request blocking. The best rate limiters are invisible to normal users—they only activate during abuse or overload.
+Rate limiting is traffic shaping, not just request blocking. The best rate limiters are invisible to normal users — they only activate during abuse or overload.
 
 The key insights:
 
@@ -880,7 +848,7 @@ The key insights:
   ]}
 />
 
-The goal isn't to reject requests—it's to shape traffic so rejection becomes rare. Design for legitimate bursts, communicate limits clearly, and monitor rejection rates. Rate limiting done right protects your service without punishing your users.
+The goal isn't to reject requests — it's to shape traffic so rejection becomes rare. Design for legitimate bursts, communicate limits clearly, and monitor rejection rates. Rate limiting done right protects your service without punishing your users.
 
 <Callout type="success">
 Well-designed rate limits with clear communication let clients self-regulate before hitting limits. That's the real goal.

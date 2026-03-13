@@ -9,20 +9,24 @@ tags: ["apis-and-gateways", "aws", "typescript"]
 featured: true
 ---
 
+import cdnEdgeRequestDiagram from "./diagrams/cdn-edge-request-flow-showing-cache-hit-and-miss-paths.jpg"
+import staleWhileRevalidateDiagram from "./diagrams/stale-while-revalidate-serving-stale-content-while-refreshing-in-background.jpg"
+import tagBasedPurgingDiagram from "./diagrams/tag-based-purging-invalidating-all-related-content.jpg"
+
 *[CDN]: Content Delivery Network
-*[TTL]: Time To Live
-*[PoP]: Point of Presence
+*[CHR]: Cache Hit Ratio
+*[CORS]: Cross-Origin Resource Sharing
 *[HIT]: Cache Hit
 *[MISS]: Cache Miss
-*[CHR]: Cache Hit Ratio
+*[PoP]: Point of Presence
 *[SWR]: Stale-While-Revalidate
-*[CORS]: Cross-Origin Resource Sharing
+*[TTL]: Time To Live
 
-A CDN misconfiguration once cost a client three days of incident response and an uncomfortable conversation with their legal team. The setup was straightforward: an API endpoint returning user dashboard data, fronted by CloudFront. Someone had enabled caching on the endpoint without realizing it returned personalized content. User A's dashboard—complete with their name, email, and recent transactions—got cached and served to User B, then User C, then a few thousand more users before anyone noticed.
+A CDN misconfiguration once cost a client three days of incident response and an uncomfortable conversation with their legal team. The setup was straightforward: an API endpoint returning user dashboard data, fronted by CloudFront. Someone had enabled caching on the endpoint without realizing it returned personalized content. User A's dashboard — complete with their name, email, and recent transactions — got cached and served to User B, then User C, then a few thousand more users before anyone noticed.
 
 The cache hit ratio looked fantastic. 94% of requests served from edge. Response times dropped from 200ms to 15ms. Everyone was thrilled until support tickets started arriving.
 
-This is the fundamental tension in edge caching. Aggressive caching dramatically improves performance and reduces origin load, but incorrect configuration serves wrong content to users—sometimes catastrophically. Edge caching is a _correctness_ problem first, performance problem second.
+This is the fundamental tension in edge caching. Aggressive caching dramatically improves performance and reduces origin load, but incorrect configuration serves wrong content to users — sometimes catastrophically. Edge caching is a __correctness__ problem first, performance problem second.
 
 The techniques in this article address that tension: how to design cache keys that prevent content cross-contamination, how to use Vary headers without destroying hit ratios, and how to invalidate content without leaving stale data at the edge. Get the correctness right, and you can cache aggressively. Get it wrong, and your CDN becomes a liability.
 
@@ -34,54 +38,59 @@ A cache that serves incorrect content is worse than no cache at all. Before opti
 
 ### The Request Flow
 
-When a user requests a resource, the request first hits the nearest CDN edge location—a Point of Presence (PoP). The edge server generates a cache key from the request—typically the URL—and checks if a valid cached response exists. If it does, the edge returns the cached response immediately without contacting your origin. If not, the edge forwards the request to your origin, receives the response, decides whether to cache it based on the response headers, and returns it to the user.
+When a user requests a resource, the request first hits the nearest CDN edge location — a Point of Presence (PoP). The edge server generates a cache key from the request — typically the URL — and checks if a valid cached response exists. If it does, the edge returns the cached response immediately without contacting your origin. If not, the edge forwards the request to your origin, receives the response, decides whether to cache it based on the response headers, and returns it to the user.
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant Edge as CDN Edge (PoP)
-    participant Origin
+<Diagram
+  src={cdnEdgeRequestDiagram}
+  title="CDN edge request flow showing cache hit and miss paths"
+  description="Sequence diagram showing a user request reaching a CDN edge point of presence, the edge checking the cache, returning immediately on a cache hit, or forwarding the request to the origin on a cache miss before storing the response and returning it to the user."
+/>
 
-    User->>Edge: GET /api/products
-    Edge->>Edge: Check cache (cache key lookup)
-
-    alt Cache HIT
-        Edge->>User: Return cached response
-    else Cache MISS
-        Edge->>Origin: Forward request
-        Origin->>Edge: Response + cache headers
-        Edge->>Edge: Store in cache (if cacheable)
-        Edge->>User: Return response
-    end
-```
-
-Figure: CDN edge request flow showing cache hit and miss paths.
-
-The performance difference is dramatic. A cache hit typically returns in 10-50ms regardless of where your origin is located. A cache miss adds the full round-trip to your origin plus processing time—often 200-500ms or more. At scale, improving your cache hit ratio from 70% to 90% can reduce origin load by two-thirds.
+The performance difference is dramatic. A cache hit typically returns in 10-50ms regardless of where your origin is located. A cache miss adds the full round-trip to your origin plus processing time — often 200-500ms or more. At scale, improving your cache hit ratio from 70% to 90% can reduce origin load by two-thirds.
 
 ### What Makes a Response Cacheable
 
-Not every response can be cached, and CDNs apply conservative defaults. Understanding what triggers caching—and what prevents it—is essential for both maximizing hit ratios and avoiding correctness bugs.
+Not every response can be cached, and CDNs apply conservative defaults. Understanding what triggers caching — and what prevents it — is essential for both maximizing hit ratios and avoiding correctness bugs.
 
 <Table
   variant="vertical-column-delineation-table"
   content={{
     figure: "Factors determining response cacheability at the edge.",
-    thead: { th: ["Factor", "Cacheable", "Not Cacheable"] },
+    thead: {
+      th: ["Factor", "Cacheable", "Not Cacheable"],
+    },
     tbody: {
       tr: [
-        { th: "HTTP Method", td: ["GET, HEAD", "POST, PUT, DELETE, PATCH"] },
-        { th: "Status Code", td: ["200, 301, 404 (configurable)", "500, 503"] },
-        { th: "Cache-Control", td: ["public, max-age>0", "private, no-store, no-cache"] },
-        { th: "Authorization", td: ["Without header (usually)", "With header (by default)"] },
-        { th: "Set-Cookie", td: ["Without header", "With header (by default)"] },
-        { th: "Vary", td: ["Manageable variations", "Vary: *"] },
+        {
+          th: "HTTP Method",
+          td: ["GET, HEAD", "POST, PUT, DELETE, PATCH"],
+        },
+        {
+          th: "Status Code",
+          td: ["200, 301, 404 (configurable)", "500, 503"],
+        },
+        {
+          th: "Cache-Control",
+          td: ["public, max-age>0", "private, no-store, no-cache"],
+        },
+        {
+          th: "Authorization",
+          td: ["Without header (usually)", "With header (by default)"],
+        },
+        {
+          th: "Set-Cookie",
+          td: ["Without header", "With header (by default)"],
+        },
+        {
+          th: "Vary",
+          td: ["Manageable variations", "Vary: *"],
+        },
       ],
     },
   }}
 />
 
-CDNs also support conditional requests using `If-None-Match` (with `ETag`) and `If-Modified-Since` (with `Last-Modified`) headers. When a cached response is stale, the edge can send a conditional request to the origin. If the content hasn't changed, the origin responds with `304 Not Modified` and the edge refreshes the TTL without transferring the full response body—saving bandwidth and origin processing time.
+CDNs also support conditional requests using `If-None-Match` (with `ETag`) and `If-Modified-Since` (with `Last-Modified`) headers. When a cached response is stale, the edge can send a conditional request to the origin. If the content hasn't changed, the origin responds with `304 Not Modified` and the edge refreshes the TTL without transferring the full response body — saving bandwidth and origin processing time.
 
 The `Cache-Control` header is your primary tool for controlling edge behavior. Here's a response that signals "cache this aggressively at the edge":
 
@@ -95,7 +104,7 @@ Vary: Accept-Encoding
 {"products": [...]}
 ```
 
-And here's a response that explicitly prevents edge caching—exactly what you want for personalized content:
+And here's a response that explicitly prevents edge caching — exactly what you want for personalized content:
 
 ```http title="not-cacheable-response.http"
 HTTP/1.1 200 OK
@@ -129,11 +138,11 @@ Cache key:
   "https://example.com/api/products?category=shoes"
 ```
 
-This seems straightforward, but the details matter enormously. Two requests that should return identical content but generate different cache keys create duplicate cache entries—wasting storage and reducing hit ratios. Two requests that should return different content but generate the same cache key serve wrong content to users—the correctness bug we're trying to avoid.
+This seems straightforward, but the details matter enormously. Two requests that should return identical content but generate different cache keys create duplicate cache entries — wasting storage and reducing hit ratios. Two requests that should return different content but generate the same cache key serve wrong content to users — the correctness bug we're trying to avoid.
 
 ### Cache Key Components
 
-Understanding what goes into a cache key—and what doesn't—is critical for both performance and correctness. Here's a typical breakdown:
+Understanding what goes into a cache key — and what doesn't — is critical for both performance and correctness. Here's a typical breakdown:
 
 ```yaml title="cloudfront-cache-key-policy.yaml"
 # AWS CloudFront cache key policy example
@@ -162,7 +171,7 @@ customizable:
     include: ["country_preference"]
 ```
 
-The defaults are conservative: most request attributes are excluded from the cache key. This maximizes cache sharing but can cause correctness issues if your response actually varies based on excluded attributes. The example above shows a customized policy that includes `Accept-Language` in the cache key—without that customization, users would get whatever language happened to be cached first.
+The defaults are conservative: most request attributes are excluded from the cache key. This maximizes cache sharing but can cause correctness issues if your response actually varies based on excluded attributes. The example above shows a customized policy that includes `Accept-Language` in the cache key — without that customization, users would get whatever language happened to be cached first.
 
 ### The Query String Problem
 
@@ -178,7 +187,7 @@ These are the same request but different cache keys:
 Result: Two cache entries for identical content (cache pollution)
 ```
 
-Different parameter order, different cache keys, same content—you're now storing two copies and reducing your hit ratio. Marketing teams compound this by adding tracking parameters to URLs. Every `utm_source`, `fbclid`, and `gclid` creates a unique cache key for content that's identical regardless of how the user arrived.
+Different parameter order, different cache keys, same content — you're now storing two copies and reducing your hit ratio. Marketing teams compound this by adding tracking parameters to URLs. Every `utm_source`, `fbclid`, and `gclid` creates a unique cache key for content that's identical regardless of how the user arrived.
 
 The solution is query string normalization at the edge:
 
@@ -210,7 +219,7 @@ function handler(event: any): any {
 // After:  /products?color=red&size=large
 ```
 
-Most CDNs support this natively. CloudFront lets you specify which query parameters to include in the cache key (allow-list approach). Cloudflare and Fastly support query string sorting and parameter stripping. Enable these features—they're high-impact, low-effort wins.
+Most CDNs support this natively. CloudFront lets you specify which query parameters to include in the cache key (allow-list approach). Cloudflare and Fastly support query string sorting and parameter stripping. Enable these features — they're high-impact, low-effort wins.
 
 <Callout type="warning" title="Cache Key Pollution">
 Query parameter pollution is one of the most common causes of poor cache hit ratios. Analytics and tracking parameters create millions of unique cache keys for identical content. Audit your cache key cardinality regularly.
@@ -222,7 +231,7 @@ Query parameter pollution is one of the most common causes of poor cache hit rat
 
 The `Vary` header tells caches "this response differs based on these request headers." It's the origin's way of saying "I returned different content to different clients based on header X, so you need to store separate cached versions."
 
-When a CDN sees `Vary: Accept-Language`, it doesn't just store one cached response per URL—it stores one per URL _per unique Accept-Language value_. The cache key effectively becomes URL + the values of all headers listed in Vary.
+When a CDN sees `Vary: Accept-Language`, it doesn't just store one cached response per URL — it stores one per URL __per unique Accept-Language value__. The cache key effectively becomes URL + the values of all headers listed in Vary.
 
 ```http title="vary-header-example.http"
 HTTP/1.1 200 OK
@@ -249,7 +258,7 @@ Creates cache variants:
 Each unique combination = separate cache entry
 ```
 
-This is powerful—it lets you cache content that legitimately varies by request attributes. But it's also dangerous, because Vary headers with high-cardinality values can destroy your cache effectiveness entirely.
+This is powerful — it lets you cache content that legitimately varies by request attributes. But it's also dangerous, because Vary headers with high-cardinality values can destroy your cache effectiveness entirely.
 
 ### Vary Header Best Practices
 
@@ -259,15 +268,35 @@ The rule is simple: only vary on headers with a small, known set of values. The 
   variant="vertical-column-delineation-table"
   content={{
     figure: "Vary header guidance for common headers.",
-    thead: { th: ["Vary On", "Good Idea?", "Reason"] },
+    thead: {
+      th: ["Vary On", "Good Idea?", "Reason"],
+    },
     tbody: {
       tr: [
-        { th: "Accept-Encoding", td: ["Yes", "Limited values (gzip, br, identity)"] },
-        { th: "Accept-Language", td: ["Maybe", "Can explode if not normalized"] },
-        { th: "User-Agent", td: ["No", "Thousands of unique values"] },
-        { th: "Cookie", td: ["No", "Unique per user, kills caching"] },
-        { th: "Authorization", td: ["No", "Unique per user, kills caching"] },
-        { th: "X-Custom-Header", td: ["Depends", "Control the values carefully"] },
+        {
+          th: "Accept-Encoding",
+          td: ["Yes", "Limited values (gzip, br, identity)"],
+        },
+        {
+          th: "Accept-Language",
+          td: ["Maybe", "Can explode if not normalized"],
+        },
+        {
+          th: "User-Agent",
+          td: ["No", "Thousands of unique values"],
+        },
+        {
+          th: "Cookie",
+          td: ["No", "Unique per user, kills caching"],
+        },
+        {
+          th: "Authorization",
+          td: ["No", "Unique per user, kills caching"],
+        },
+        {
+          th: "X-Custom-Header",
+          td: ["Depends", "Control the values carefully"],
+        },
       ],
     },
   }}
@@ -305,9 +334,9 @@ caching:
 
 ### The Cookie Vary Trap
 
-The most common Vary mistake is `Vary: Cookie`. It seems logical—if your response depends on cookies, tell the cache to vary on them. But cookies include session IDs, authentication tokens, and tracking identifiers that are unique per user. Even when the actual content-affecting cookie (`preferences=dark`) is the same, the unique session IDs create separate cache entries. Your cache becomes per-user, which defeats the entire purpose of edge caching.
+The most common Vary mistake is `Vary: Cookie`. It seems logical — if your response depends on cookies, tell the cache to vary on them. But cookies include session IDs, authentication tokens, and tracking identifiers that are unique per user. Even when the actual content-affecting cookie (`preferences=dark`) is the same, the unique session IDs create separate cache entries. Your cache becomes per-user, which defeats the entire purpose of edge caching.
 
-The solution is to handle cookies at the edge _before_ they reach your origin or affect the cache key:
+The solution is to handle cookies at the edge __before__ they reach your origin or affect the cache key:
 
 ```typescript title="cookie-vary-solution.ts"
 // Lambda for AWS CloudFront: normalize cookies for cache key
@@ -369,7 +398,7 @@ With this approach, you strip the high-cardinality cookie values at the edge and
 > There are only two hard things in Computer Science: cache invalidation and naming things.
 > — Phil Karlton
 
-The quote is famous for a reason. Caching is easy; knowing when to stop caching is hard. Content changes at your origin, but the CDN doesn't know about it—edges around the world continue serving stale data until something tells them to stop.
+The quote is famous for a reason. Caching is easy; knowing when to stop caching is hard. Content changes at your origin, but the CDN doesn't know about it — edges around the world continue serving stale data until something tells them to stop.
 
 You have four main options, each with different tradeoffs:
 
@@ -377,13 +406,39 @@ You have four main options, each with different tradeoffs:
   variant="vertical-column-delineation-table"
   content={{
     figure: "Cache invalidation strategies with tradeoffs.",
-    thead: { th: ["Strategy", "How it works", "Tradeoff"] },
+    thead: {
+      th: ["Strategy", "How it works", "Tradeoff"],
+    },
     tbody: {
       tr: [
-        { th: "TTL Expiration", td: ["Wait for cached content to expire naturally.", "Simple, but can serve stale content until TTL passes."] },
-        { th: "Purge API", td: ["Explicitly remove cached entries when content changes.", "Fast, but operationally complex and easy to miss URLs."] },
-        { th: "Cache Tags", td: ["Tag responses and purge by tag instead of URL.", "Flexible, but requires tagging infrastructure."] },
-        { th: "Versioned URLs", td: ["Change the URL when content changes.", "Simple, but requires URL management and propagation."] },
+        {
+          th: "TTL Expiration",
+          td: [
+            "Wait for cached content to expire naturally.",
+            "Simple, but can serve stale content until TTL passes.",
+          ],
+        },
+        {
+          th: "Purge API",
+          td: [
+            "Explicitly remove cached entries when content changes.",
+            "Fast, but operationally complex and easy to miss URLs.",
+          ],
+        },
+        {
+          th: "Cache Tags",
+          td: [
+            "Tag responses and purge by tag instead of URL.",
+            "Flexible, but requires tagging infrastructure.",
+          ],
+        },
+        {
+          th: "Versioned URLs",
+          td: [
+            "Change the URL when content changes.",
+            "Simple, but requires URL management and propagation.",
+          ],
+        },
       ],
     },
   }}
@@ -500,7 +555,7 @@ Resources:
         MinTTL: 0
 ```
 
-TTL-only invalidation works well for content that changes on predictable schedules or where brief staleness is acceptable. For content that must update immediately when changed—product prices, inventory counts, breaking news—you need explicit invalidation.
+TTL-only invalidation works well for content that changes on predictable schedules or where brief staleness is acceptable. For content that must update immediately when changed — product prices, inventory counts, breaking news — you need explicit invalidation.
 
 ### Purge-Based Invalidation
 
@@ -553,15 +608,15 @@ await purgeCache({ type: 'url', value: 'https://example.com/products/123' });
 await purgeCache({ type: 'tag', value: 'product-123' });
 ```
 
-The challenge with URL-based purging is knowing _which_ URLs to purge. If product 123 appears on `/products/123`, `/api/products/123`, `/categories/shoes`, and `/brands/nike`, you need to purge all four. Miss one and users see inconsistent data.
+The challenge with URL-based purging is knowing __which__ URLs to purge. If product 123 appears on `/products/123`, `/api/products/123`, `/categories/shoes`, and `/brands/nike`, you need to purge all four. Miss one and users see inconsistent data.
 
 <Callout type="warning" title="Purge Propagation Delay">
-Purge operations are not instant. CDN purges typically take 1-30 seconds to propagate globally. Don't assume purge completion means all edges have the new content—some users may still see stale data briefly.
+Purge operations are not instant. CDN purges typically take 1-30 seconds to propagate globally. Don't assume purge completion means all edges have the new content — some users may still see stale data briefly.
 </Callout>
 
 ### Cache Warming
 
-After a purge or deployment, your cache is cold—every request hits the origin until the cache repopulates. For high-traffic sites, this creates a "thundering herd" problem: thousands of simultaneous origin requests when cached content expires or gets purged.
+After a purge or deployment, your cache is cold — every request hits the origin until the cache repopulates. For high-traffic sites, this creates a "thundering herd" problem: thousands of simultaneous origin requests when cached content expires or gets purged.
 
 Cache warming proactively populates the cache before users need it:
 
@@ -608,20 +663,13 @@ Surrogate-Key: product-123 category-shoes brand-nike
 {"product": {...}}
 ```
 
-Now when product 123 changes, you purge the tag `product-123` and _every_ cached response with that tag gets invalidated—regardless of URL:
+Now when product 123 changes, you purge the tag `product-123` and _every_ cached response with that tag gets invalidated — regardless of URL:
 
-```mermaid
-graph TD
-    A[Product 123 Updated] --> B[Purge tag: product-123]
-    B --> C[All URLs with tag invalidated]
-
-    C --> D["/products/123"]
-    C --> E["/api/products/123"]
-    C --> F["/categories/shoes includes 123"]
-    C --> G["/brands/nike includes 123"]
-```
-
-Figure: Tag-based purging invalidating all related content.
+<Diagram
+  src={tagBasedPurgingDiagram}
+  title="Tag-based purging invalidating all related content"
+  description="Flowchart showing a product update triggering a purge of the product tag, which invalidates every cached URL associated with that tag, including the product page, API endpoint, category listing, and brand listing."
+/>
 
 Design your tagging strategy around your data relationships:
 
@@ -652,13 +700,13 @@ tagging_strategy:
   #   - All pages listing Nike products
 ```
 
-Cache tags require more setup—your origin must add the tag headers, and you need infrastructure to track which entities map to which tags. But they're dramatically more maintainable than URL-based purging for complex sites.
+Cache tags require more setup — your origin must add the tag headers, and you need infrastructure to track which entities map to which tags. But they're dramatically more maintainable than URL-based purging for complex sites.
 
 ### Stale-While-Revalidate
 
-While TTL expiration, purge APIs, and cache tags all address _when_ to invalidate, stale-while-revalidate addresses _how_ to handle the transition between stale and fresh content without sacrificing performance.
+While TTL expiration, purge APIs, and cache tags all address __when__ to invalidate, stale-while-revalidate addresses __how__ to handle the transition between stale and fresh content without sacrificing performance.
 
-Stale-while-revalidate (SWR) is a Cache-Control directive that lets you serve stale content _while_ fetching fresh content in the background. Users always get fast cached responses; the cache stays fresh through background updates.
+Stale-while-revalidate (SWR) is a Cache-Control directive that lets you serve stale content __while__ fetching fresh content in the background. Users always get fast cached responses; the cache stays fresh through background updates.
 
 ```http title="swr-headers.http"
 Cache-Control: public, max-age=60, stale-while-revalidate=300
@@ -672,28 +720,13 @@ Cache-Control: public, max-age=60, stale-while-revalidate=300
 
 Here's what happens when a request arrives during the SWR window:
 
-```mermaid
-sequenceDiagram
-    participant User1
-    participant User2
-    participant Edge
-    participant Origin
+<Diagram
+  src={staleWhileRevalidateDiagram}
+  title="Stale-while-revalidate serving stale content while refreshing in background"
+  description="Sequence diagram showing a stale cached response still inside the stale-while-revalidate window, where the first user receives the stale response immediately, the edge revalidates against the origin in the background, updates the cache, and the next user receives the refreshed response."
+/>
 
-    Note over Edge: Cache is 90 seconds old (stale but within SWR window)
-
-    User1->>Edge: GET /products
-    Edge->>User1: Return stale cached response (fast!)
-    Edge->>Origin: Background revalidation request
-    Origin->>Edge: Fresh response
-    Edge->>Edge: Update cache
-
-    User2->>Edge: GET /products
-    Edge->>User2: Return fresh cached response
-```
-
-Figure: Stale-while-revalidate serving stale content while refreshing in background.
-
-SWR is particularly valuable for content that changes unpredictably but where brief staleness is acceptable. You get the performance of long TTLs with the freshness of short TTLs—the best of both worlds.
+SWR is particularly valuable for content that changes unpredictably but where brief staleness is acceptable. You get the performance of long TTLs with the freshness of short TTLs — the best of both worlds.
 
 <Callout type="success" title="Use SWR Liberally">
 Stale-while-revalidate gives you the best of both worlds: users always get fast cached responses, while the cache stays fresh through background updates. Unless you have strict freshness requirements, add SWR to your Cache-Control headers.
@@ -703,21 +736,65 @@ Stale-while-revalidate gives you the best of both worlds: users always get fast 
 
 ### Caching Personalized Content
 
-The most dangerous cache bug—serving one user's content to another.
+The most dangerous cache bug — serving one user's content to another.
 
 <Table
   variant="vertical-column-delineation-table"
   content={{
     figure: "Dangerous and safe patterns for personalized content caching.",
-    thead: { th: ["Pattern", "Category", "Risk or Benefit", "Recommended Action"] },
+    thead: {
+      th: ["Pattern", "Category", "Risk or Benefit", "Recommended Action"],
+    },
     tbody: {
       tr: [
-        { th: "Vary on session cookie", td: ["Dangerous", "Creates entry per user, still risks cross-contamination", "Do not cache personalized content at edge"] },
-        { th: "Cache without checking auth header", td: ["Dangerous", "Unauthenticated cache serves to authenticated users", "Different cache keys or no caching for auth content"] },
-        { th: "Origin returns Cache-Control for personalized API", td: ["Dangerous", "CDN caches response, serves to wrong user", "Always return `private, no-store` for personalized responses"] },
-        { th: "Edge-side includes for personalization", td: ["Safe", "Cache page shell, personalize at edge", "Use ESI or edge compute for fragments"] },
-        { th: "Client-side personalization", td: ["Safe", "Cache generic content, personalize in browser", "Keep personalized data out of edge cache"] },
-        { th: "Separate cacheable and non-cacheable endpoints", td: ["Safe", "Clear separation of concerns", "Split endpoints by cacheability"] },
+        {
+          th: "Vary on session cookie",
+          td: [
+            "Dangerous",
+            "Creates entry per user, still risks cross-contamination",
+            "Do not cache personalized content at edge",
+          ],
+        },
+        {
+          th: "Cache without checking auth header",
+          td: [
+            "Dangerous",
+            "Unauthenticated cache serves to authenticated users",
+            "Different cache keys or no caching for auth content",
+          ],
+        },
+        {
+          th: "Origin returns Cache-Control for personalized API",
+          td: [
+            "Dangerous",
+            "CDN caches response, serves to wrong user",
+            "Always return `private, no-store` for personalized responses",
+          ],
+        },
+        {
+          th: "Edge-side includes for personalization",
+          td: [
+            "Safe",
+            "Cache page shell, personalize at edge",
+            "Use ESI or edge compute for fragments",
+          ],
+        },
+        {
+          th: "Client-side personalization",
+          td: [
+            "Safe",
+            "Cache generic content, personalize in browser",
+            "Keep personalized data out of edge cache",
+          ],
+        },
+        {
+          th: "Separate cacheable and non-cacheable endpoints",
+          td: [
+            "Safe",
+            "Clear separation of concerns",
+            "Split endpoints by cacheability",
+          ],
+        },
       ],
     },
   }}
@@ -805,7 +882,7 @@ Cache poisoning exploits the gap between what's in the cache key and what affect
 
 The attack is straightforward: send a request with a poisoned header, trick the origin into reflecting it, and let the CDN cache the result. The classic vector is `X-Forwarded-Host`—many applications trust this header to generate absolute URLs, and many CDNs don't include it in the cache key by default.
 
-This vulnerability is common because web frameworks often trust proxy headers by default. Laravel uses `X-Forwarded-Host` for `url()` helpers. Django reads `HTTP_X_FORWARDED_HOST` when `USE_X_FORWARDED_HOST=True`. Express apps using `trust proxy` will use `X-Forwarded-*` headers. These frameworks assume you've configured your reverse proxy to set these headers correctly—but CDNs often pass through whatever the client sends.
+This vulnerability is common because web frameworks often trust proxy headers by default. Laravel uses `X-Forwarded-Host` for `url()` helpers. Django reads `HTTP_X_FORWARDED_HOST` when `USE_X_FORWARDED_HOST=True`. Express apps using `trust proxy` will use `X-Forwarded-*` headers. These frameworks assume you've configured your reverse proxy to set these headers correctly — but CDNs often pass through whatever the client sends.
 
 Cache Poisoning Attack:
 
@@ -921,21 +998,35 @@ Cache poisoning can turn your CDN into an attack vector against your own users. 
 
 ### Geographic/Currency Mismatches
 
-E-commerce sites often return different content based on the user's location—different prices, currencies, shipping options, or even product availability. If your cache key doesn't account for these variations, users get the wrong content.
+E-commerce sites often return different content based on the user's location — different prices, currencies, shipping options, or even product availability. If your cache key doesn't account for these variations, users get the wrong content.
 
-This bug is insidious because it often goes unnoticed during development. Your test users are all in the same country, so everyone sees correct content. The first German user to hit a cached US response discovers the problem—usually at checkout when the currency doesn't match.
+This bug is insidious because it often goes unnoticed during development. Your test users are all in the same country, so everyone sees correct content. The first German user to hit a cached US response discovers the problem — usually at checkout when the currency doesn't match.
 
 <Table
   variant="vertical-column-delineation-table"
   content={{
     figure: "Geographic cache mismatch scenario.",
-    thead: { th: ["Step", "User A (Germany)", "User B (USA)"] },
+    thead: {
+      th: ["Step", "User A (Germany)", "User B (USA)"],
+    },
     tbody: {
       tr: [
-        { th: "1. Request", td: ["`GET /products`", "`GET /products`"] },
-        { th: "2. Cache status", td: ["MISS", "HIT (User A's response)"] },
-        { th: "3. Response", td: ["Prices in EUR ✓", "Prices in EUR ✗"] },
-        { th: "4. Outcome", td: ["Correct experience", "Checkout fails—wrong currency"] },
+        {
+          th: "1. Request",
+          td: ["`GET /products`", "`GET /products`"],
+        },
+        {
+          th: "2. Cache status",
+          td: ["MISS", "HIT (User A's response)"],
+        },
+        {
+          th: "3. Response",
+          td: ["Prices in EUR ✓", "Prices in EUR ✗"],
+        },
+        {
+          th: "4. Outcome",
+          td: ["Correct experience", "Checkout fails — wrong currency"],
+        },
       ],
     },
   }}
@@ -949,13 +1040,43 @@ No geographic variation in cache key. Both users hit the same cache entry despit
   variant="vertical-column-delineation-table"
   content={{
     figure: "Solutions for geographic and currency caching challenges.",
-    thead: { th: ["Solution", "How It Works", "Pros", "Cons"] },
+    thead: {
+      th: ["Solution", "How It Works", "Pros", "Cons"],
+    },
     tbody: {
       tr: [
-        { th: "Vary on country header", td: ["Add `CF-IPCountry` (or equivalent) to cache key", "Automatic, per-country caching", "Many cache variants, cold caches per region"] },
-        { th: "Separate endpoints", td: ["Use explicit country param: `/api/products?country=DE`", "Explicit, highly cacheable", "Client must know country"] },
-        { th: "Client-side localization", td: ["Return all currencies, JavaScript selects", "Single cache entry, maximum cacheability", "Larger response, client complexity"] },
-        { th: "Edge compute", td: ["Edge function transforms cached response per-country", "Best of both worlds", "Complexity, edge compute costs"] },
+        {
+          th: "Vary on country header",
+          td: [
+            "Add `CF-IPCountry` (or equivalent) to cache key",
+            "Automatic, per-country caching",
+            "Many cache variants, cold caches per region",
+          ],
+        },
+        {
+          th: "Separate endpoints",
+          td: [
+            "Use explicit country param: `/api/products?country=DE`",
+            "Explicit, highly cacheable",
+            "Client must know country",
+          ],
+        },
+        {
+          th: "Client-side localization",
+          td: [
+            "Return all currencies, JavaScript selects",
+            "Single cache entry, maximum cacheability",
+            "Larger response, client complexity",
+          ],
+        },
+        {
+          th: "Edge compute",
+          td: [
+            "Edge function transforms cached response per-country",
+            "Best of both worlds",
+            "Complexity, edge compute costs",
+          ],
+        },
       ],
     },
   }}
@@ -986,7 +1107,7 @@ function handler(event: any): any {
 }
 ```
 
-This pattern caches one response globally but personalizes it per-user at the edge—maximum cache efficiency with correct localized content.
+This pattern caches one response globally but personalizes it per-user at the edge — maximum cache efficiency with correct localized content.
 
 ## Performance Optimization
 
@@ -1000,13 +1121,43 @@ The strategies below are ordered by impact-to-effort ratio. Query string normali
   variant="vertical-column-delineation-table"
   content={{
     figure: "Strategies to improve Cache Hit Ratio (CHR) with estimated impact and effort.",
-    thead: { th: ["Strategy", "Impact", "Effort", "Actions"] },
+    thead: {
+      th: ["Strategy", "Impact", "Effort", "Actions"],
+    },
     tbody: {
       tr: [
-        { th: "Query string normalization", td: ["High", "Low", "Sort query parameters; remove tracking params (utm_*, fbclid, gclid); remove empty parameters"] },
-        { th: "Cache key simplification", td: ["High", "Medium", "Audit cache key components; remove unnecessary headers; normalize Vary values"] },
-        { th: "Content negotiation reduction", td: ["Medium", "Medium", "Reduce language variants; limit Accept-Encoding values; avoid User-Agent variations"] },
-        { th: "TTL extension", td: ["High", "Low", "Use immutable for versioned assets; extend TTL with stale-while-revalidate; implement proper invalidation"] },
+        {
+          th: "Query string normalization",
+          td: [
+            "High",
+            "Low",
+            "Sort query parameters; remove tracking params (utm_*, fbclid, gclid); remove empty parameters",
+          ],
+        },
+        {
+          th: "Cache key simplification",
+          td: [
+            "High",
+            "Medium",
+            "Audit cache key components; remove unnecessary headers; normalize Vary values",
+          ],
+        },
+        {
+          th: "Content negotiation reduction",
+          td: [
+            "Medium",
+            "Medium",
+            "Reduce language variants; limit Accept-Encoding values; avoid User-Agent variations",
+          ],
+        },
+        {
+          th: "TTL extension",
+          td: [
+            "High",
+            "Low",
+            "Use immutable for versioned assets; extend TTL with stale-while-revalidate; implement proper invalidation",
+          ],
+        },
       ],
     },
   }}
@@ -1014,34 +1165,63 @@ The strategies below are ordered by impact-to-effort ratio. Query string normali
 
 ### Monitoring Cache Performance
 
-You can't optimize what you don't measure. These metrics tell you whether your cache is working correctly and where to focus optimization efforts. Most CDNs expose these through dashboards and APIs—set up monitoring before you need to debug a production issue.
+You can't optimize what you don't measure. These metrics tell you whether your cache is working correctly and where to focus optimization efforts. Most CDNs expose these through dashboards and APIs — set up monitoring before you need to debug a production issue.
 
 <Table
   variant="vertical-column-delineation-table"
   content={{
     figure: "Cache performance metrics and targets.",
-    thead: { th: ["Metric", "Good", "Warning", "Action If Poor"] },
+    thead: {
+      th: ["Metric", "Good", "Warning", "Action If Poor"],
+    },
     tbody: {
       tr: [
-        { th: "Cache Hit Ratio", td: [">90%", "70-90%", "Analyze cache keys, extend TTL"] },
-        { th: "Origin Load", td: ["Low, stable", "Spiky", "Check for cache misses, warming"] },
-        { th: "TTFB (cached)", td: ["<50ms", "50-200ms", "Check PoP coverage, edge compute"] },
-        { th: "Purge Latency", td: ["<5s", "5-30s", "Consider cache tags"] },
-        { th: "Cache Fill Rate", td: ["Low", "High", "Check TTL, invalidation frequency"] },
+        {
+          th: "Cache Hit Ratio",
+          td: [">90%", "70-90%", "Analyze cache keys, extend TTL"],
+        },
+        {
+          th: "Origin Load",
+          td: ["Low, stable", "Spiky", "Check for cache misses, warming"],
+        },
+        {
+          th: "TTFB (cached)",
+          td: ["<50ms", "50-200ms", "Check PoP coverage, edge compute"],
+        },
+        {
+          th: "Purge Latency",
+          td: ["<5s", "5-30s", "Consider cache tags"],
+        },
+        {
+          th: "Cache Fill Rate",
+          td: ["Low", "High", "Check TTL, invalidation frequency"],
+        },
       ],
     },
   }}
 />
 
-**Interpreting these metrics in context:**
+__Interpreting these metrics in context:__
 
 <List
   variant="check-icons-list"
   items={[
-    { lead: "**Hit ratio varies by content type.**", text: "Static assets should exceed 95%. API responses might reasonably be 70-80% depending on query parameter diversity. Personalized endpoints will be 0% (correctly)." },
-    { lead: "**Sudden hit ratio drops**", text: "usually indicate a configuration change, new URL patterns, or cache key pollution from marketing campaigns adding tracking parameters." },
-    { lead: "**High origin load with good hit ratio**", text: "suggests your cache is working but TTLs are too short, causing frequent revalidation." },
-    { lead: "**Per-PoP analysis**", text: "reveals geographic patterns. A single PoP with poor performance might indicate regional traffic spikes overwhelming that edge's cache capacity." },
+    {
+      lead: "Hit ratio varies by content type.",
+      text: "Static assets should exceed 95%. API responses might reasonably be 70-80% depending on query parameter diversity. Personalized endpoints will be 0% (correctly).",
+    },
+    {
+      lead: "Sudden hit ratio drops",
+      text: "usually indicate a configuration change, new URL patterns, or cache key pollution from marketing campaigns adding tracking parameters.",
+    },
+    {
+      lead: "High origin load with good hit ratio",
+      text: "suggests your cache is working but TTLs are too short, causing frequent revalidation.",
+    },
+    {
+      lead: "Per-PoP analysis",
+      text: "reveals geographic patterns. A single PoP with poor performance might indicate regional traffic spikes overwhelming that edge's cache capacity.",
+    },
   ]}
 />
 
@@ -1166,15 +1346,27 @@ The key principles to remember:
 <List
   variant="check-icons-list"
   items={[
-    { lead: "**Cache keys determine correctness.**", text: "Every attribute that affects your response must be in the cache key. Miss one, and users get wrong content. Include unnecessary attributes, and your hit ratio suffers." },
-    { lead: "**Vary headers are powerful but dangerous.**", text: "They let you cache content that legitimately varies, but high-cardinality Vary values destroy cache effectiveness. Normalize headers at the edge before they reach your origin." },
-    { lead: "**Cache invalidation requires explicit strategy.**", text: "TTL expiration alone is rarely sufficient. Implement cache tags for complex content relationships, use stale-while-revalidate for graceful updates, and integrate purging into your deployment pipeline." },
-    { lead: "**Prioritize correctness over hit ratio.**", text: "A correctly-configured cache with 70% hit ratio beats an incorrectly-configured cache with 95% hit ratio. The latter is serving wrong content to 95% of users." },
+    {
+      lead: "Cache keys determine correctness.",
+      text: "Every attribute that affects your response must be in the cache key. Miss one, and users get wrong content. Include unnecessary attributes, and your hit ratio suffers.",
+    },
+    {
+      lead: "Vary headers are powerful but dangerous.",
+      text: "They let you cache content that legitimately varies, but high-cardinality Vary values destroy cache effectiveness. Normalize headers at the edge before they reach your origin.",
+    },
+    {
+      lead: "Cache invalidation requires explicit strategy.",
+      text: "TTL expiration alone is rarely sufficient. Implement cache tags for complex content relationships, use stale-while-revalidate for graceful updates, and integrate purging into your deployment pipeline.",
+    },
+    {
+      lead: "Prioritize correctness over hit ratio.",
+      text: "A correctly-configured cache with 70% hit ratio beats an incorrectly-configured cache with 95% hit ratio. The latter is serving wrong content to 95% of users.",
+    },
   ]}
 />
 
-Start with the implementation checklist above. Audit your current configuration against each item. Fix correctness issues first, then optimize for performance. Monitor continuously—cache problems often appear as gradual hit ratio degradation rather than sudden failures.
+Start with the implementation checklist above. Audit your current configuration against each item. Fix correctness issues first, then optimize for performance. Monitor continuously — cache problems often appear as gradual hit ratio degradation rather than sudden failures.
 
 <Callout type="success">
-Edge caching is one of the highest-leverage performance optimizations available, but only when configured correctly. Invest time in cache key design, Vary header normalization, and monitoring—the performance gains are dramatic and the correctness risks are real.
+Edge caching is one of the highest-leverage performance optimizations available, but only when configured correctly. Invest time in cache key design, Vary header normalization, and monitoring — the performance gains are dramatic and the correctness risks are real.
 </Callout>

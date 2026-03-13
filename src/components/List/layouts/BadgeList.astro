@@ -9,15 +9,22 @@ export type Props = {
   classes?: {
     ul?: string
     li?: string
+    titleClass?: string
+    content?: string
     em?: string
   }
 }
 
 const { items, classes }: Props = Astro.props
 
-const ulClass = ["space-y-4", classes?.ul]
-const liClass = ["flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4", classes?.li]
-const titleClass = "shrink-0 px-2 py-1 rounded bg-content text-page-base font-mono text-xs font-bold"
+const ulClass = ["space-y-4 sm:space-y-0 sm:table sm:border-separate sm:border-spacing-x-4 sm:border-spacing-y-4", classes?.ul]
+const liClass = ["flex flex-col gap-2 sm:table-row", classes?.li]
+const titleCellClass = "sm:table-cell sm:align-baseline"
+const titleClass = [
+  "inline-block px-2 py-1 rounded bg-content text-page-base font-mono text-xs font-bold",
+  classes?.titleClass,
+]
+const bodyClass = ["sm:table-cell sm:align-baseline", classes?.content]
 const emClass = ["text-content font-bold not-italic mr-2", classes?.em]
 ---
 
@@ -25,10 +32,14 @@ const emClass = ["text-content font-bold not-italic mr-2", classes?.em]
   {
     items.map((item) => (
       <li class:list={liClass}>
-        <span class:list={titleClass}>{item.title}</span>
-        <span>
-          <em class:list={emClass}>{item.lead}</em>
-          <span class="text-content-offset">{item.text}</span>
+        {item.title && (
+          <span class={titleCellClass}>
+            <span class:list={titleClass} set:html={item.title}></span>
+          </span>
+        )}
+        <span class:list={bodyClass}>
+          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
+          <span class="text-content-offset" set:html={item.text}></span>
         </span>
       </li>
     ))

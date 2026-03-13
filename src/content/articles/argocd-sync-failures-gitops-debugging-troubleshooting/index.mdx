@@ -9,18 +9,18 @@ tags: ["build-and-deploy", "argo-cd", "kubernetes", "helm"]
 featured: true
 ---
 
-*[GitOps]: Git as single source of truth for declarative infrastructure
+import argocdSyncDiagram from "./diagrams/argocd-sync-process-from-git-commit-to-healthy-application.jpg"
+
 *[ArgoCD]: Declarative GitOps continuous delivery tool for Kubernetes
 *[CRD]: Custom Resource Definition
+*[GitOps]: Git as single source of truth for declarative infrastructure
 *[HPA]: Horizontal Pod Autoscaler
-
-import Callout from '@components/Callout/index.astro'
 
 GitOps sells you on declarative simplicity: define your desired state in Git, and ArgoCD makes it so. The pitch works beautifully in demos. In production, you'll eventually stare at a sync that's been "Progressing" for 20 minutes, wondering what's actually happening inside the black box.
 
-I hit this during a production deployment that had worked flawlessly in staging for months. The sync started normally, applied the first few resources, then stopped. No error. No timeout. Just... stuck. Manual `kubectl apply` worked fine—it only hung when deployed through ArgoCD.
+I hit this during a production deployment that had worked flawlessly in staging for months. The sync started normally, applied the first few resources, then stopped. No error. No timeout. Just... stuck. Manual `kubectl apply` worked fine — it only hung when deployed through ArgoCD.
 
-The root cause was a sync wave ordering issue. A PreSync hook was waiting for a service that wouldn't exist until wave 0, but the hook was in wave -1. In staging, the service happened to exist from a previous deployment. In production, we'd just created the namespace. The dependency was always broken—we just never noticed.
+The root cause was a sync wave ordering issue. A PreSync hook was waiting for a service that wouldn't exist until wave 0, but the hook was in wave -1. In staging, the service happened to exist from a previous deployment. In production, we'd just created the namespace. The dependency was always broken — we just never noticed.
 
 This is the gap between GitOps theory and operational reality. When sync fails, you need to understand what ArgoCD is actually doing underneath the abstraction.
 
@@ -28,21 +28,17 @@ This is the gap between GitOps theory and operational reality. When sync fails, 
 
 Before debugging, you need a mental model of the sync process. When you push a commit or click "Sync," ArgoCD kicks off a multi-phase process:
 
-```mermaid
-graph LR
-    A[Detect Change] --> B[Generate Manifests]
-    B --> C[Calculate Diff]
-    C --> D[Order Resources]
-    D --> E[Apply by Wave]
-    E --> F[Wait for Health]
-```
-Figure: ArgoCD sync process from Git commit to healthy application.
+<Diagram
+  src={argocdSyncDiagram}
+  title="ArgoCD sync process from Git commit to healthy application state"
+  description="Flowchart showing ArgoCD's high-level sync lifecycle from change detection to a healthy deployment. The sequence moves left to right through six stages: Detect Change, Generate Manifests, Calculate Diff, Order Resources, Apply by Wave, and Wait for Health. The diagram emphasizes that ArgoCD does more than apply YAML. It first notices a source change, renders manifests through tools like Helm or Kustomize, compares desired and live state, determines ordering based on sync waves, applies resources in that order, and then blocks until health checks report success. This explains where failures can occur before, during, or after resource application."
+/>
 
 First, ArgoCD detects the change through polling or webhooks. It generates manifests (running Helm template or Kustomize build if needed), calculates the diff against live cluster state, orders resources by sync wave, applies them wave by wave, and waits for each to become healthy before proceeding.
 
 ### Sync Waves Control Ordering
 
-Kubernetes doesn't guarantee resource creation order. Sync waves give you explicit control—each resource can have an `argocd.argoproj.io/sync-wave` annotation with an integer value. Lower numbers go first:
+Kubernetes doesn't guarantee resource creation order. Sync waves give you explicit control — each resource can have an `argocd.argoproj.io/sync-wave` annotation with an integer value. Lower numbers go first:
 
 ```yaml title="manifests/app/resources.yaml"
 # Sync wave annotations control resource ordering.
@@ -66,19 +62,31 @@ Code: Sync wave annotations ensuring Secret exists before Deployment.
 
 Resources in the same wave apply in parallel. ArgoCD waits for all resources in a wave to be healthy before moving to the next. If your Deployment in wave 0 references that Secret, you're guaranteed it exists.
 
-The wave numbers themselves are arbitrary—what matters is the relative order. Here's a pattern that works for most applications:
+The wave numbers themselves are arbitrary — what matters is the relative order. Here's a pattern that works for most applications:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="striped-rows-table"
   content={{
     figure: "Common sync wave ordering pattern.",
     thead: { th: ["Wave", "Typical Resources", "Purpose"] },
     tbody: {
       tr: [
-        { th: "-2", td: ["Namespaces, CRDs", "Infrastructure prerequisites"] },
-        { th: "-1", td: ["Secrets, ConfigMaps", "Configuration dependencies"] },
-        { th: "0", td: ["Deployments, Services", "Main application (default)"] },
-        { th: "1", td: ["Jobs, migrations", "Post-deployment tasks"] },
+        {
+          th: "-2",
+          td: ["Namespaces, CRDs", "Infrastructure prerequisites"],
+        },
+        {
+          th: "-1",
+          td: ["Secrets, ConfigMaps", "Configuration dependencies"],
+        },
+        {
+          th: "0",
+          td: ["Deployments, Services", "Main application (default)"],
+        },
+        {
+          th: "1",
+          td: ["Jobs, migrations", "Post-deployment tasks"],
+        },
       ],
     },
   }}
@@ -88,9 +96,9 @@ The wave numbers themselves are arbitrary—what matters is the relative order. 
 
 Sync waves control ordering _within_ the apply phase. But what if you need to run something _before_ sync starts, or _after_ it completes?
 
-Hooks let you run resources _outside_ the normal apply process—before sync starts (PreSync), after it completes (PostSync), or when it fails (SyncFail). The most common use case is database migrations: run them after new code deploys but before traffic shifts.
+Hooks let you run resources _outside_ the normal apply process — before sync starts (PreSync), after it completes (PostSync), or when it fails (SyncFail). The most common use case is database migrations: run them after new code deploys but before traffic shifts.
 
-Hooks are typically Kubernetes Jobs. The critical thing to understand: ArgoCD waits for hooks to complete before proceeding. If a hook hangs, your entire sync hangs—with no timeout by default.
+Hooks are typically Kubernetes Jobs. The critical thing to understand: ArgoCD waits for hooks to complete before proceeding. If a hook hangs, your entire sync hangs — with no timeout by default.
 
 <Callout type="warning">
 Always set `activeDeadlineSeconds` on hook Jobs. Without it, ArgoCD will wait forever for a stuck hook.
@@ -121,11 +129,24 @@ Code: Commands for identifying where sync failed.
 The output tells you sync status (Synced, OutOfSync, Unknown) and health status (Healthy, Progressing, Degraded). The combination reveals the problem category:
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
+  classes={{
+    titleClass: "sm:float-right",
+    content: "sm:relative sm:-top-1",
+  }}
   items={[
-    { lead: "OutOfSync + Healthy:", text: "Drift problem—something's modifying the resource after ArgoCD applies it" },
-    { lead: "Degraded:", text: "Something failed to start—check pod events" },
-    { lead: "Progressing for a long time:", text: "Something's stuck—likely a hook or slow rollout" },
+    {
+      title: "OutOfSync + Healthy:",
+      text: "Drift problem — something's modifying the resource after ArgoCD applies it",
+    },
+    {
+      title: "Degraded:",
+      text: "Something failed to start — check pod events",
+    },
+    {
+      title: "Progressing for a long time:",
+      text: "Something's stuck — likely a hook or slow rollout",
+    },
   ]}
 />
 
@@ -166,7 +187,7 @@ kubectl get events -n myapp --sort-by='.lastTimestamp' | tail -20
 ```
 Code: Kubernetes commands for inspecting actual cluster state.
 
-The `kubectl describe` Events section is often the most useful—it shows why pods failed to schedule, failed to pull images, or failed to start. Common culprits: image pull failures, resource quota exceeded, missing secrets.
+The `kubectl describe` Events section is often the most useful — it shows why pods failed to schedule, failed to pull images, or failed to start. Common culprits: image pull failures, resource quota exceeded, missing secrets.
 
 ### Step 4: Test Your Fix
 
@@ -193,22 +214,50 @@ Use `--dry-run` to verify your fix before applying. Use `--hard-refresh` when Ar
 Once you've gathered information, match it against these common patterns:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Common ArgoCD sync failure patterns with quick fixes.",
     thead: { th: ["Pattern", "Symptom", "Likely Cause", "Quick Fix"] },
     tbody: {
       tr: [
-        { th: "Stuck on hook", td: ["\"Running PreSync hooks\" forever", "Hook Job not completing", "Check job logs, add `activeDeadlineSeconds`"] },
-        { th: "OutOfSync loop", td: ["Syncs successfully, immediately OutOfSync", "Controller modifying resource", "Add `ignoreDifferences` for that field"] },
-        { th: "Missing resource", td: ["\"secret X not found\"", "Dependency ordering", "Move dependency to earlier sync wave"] },
-        { th: "CRD not found", td: ["\"server doesn't have resource type\"", "CRD applied too late", "Put CRD in wave -5"] },
+        {
+          th: "Stuck on hook",
+          td: [
+            '"Running PreSync hooks" forever',
+            "Hook Job not completing",
+            'Check job logs, add <span class="font-mono">activeDeadlineSeconds</span>',
+          ],
+        },
+        {
+          th: "OutOfSync loop",
+          td: [
+            "Syncs successfully, immediately OutOfSync",
+            "Controller modifying resource",
+            'Add <span class="font-mono">ignoreDifferences</span> for that field',
+          ],
+        },
+        {
+          th: "Missing resource",
+          td: [
+            '"secret X not found"',
+            "Dependency ordering",
+            "Move dependency to earlier sync wave",
+          ],
+        },
+        {
+          th: "CRD not found",
+          td: [
+            '"server doesn\'t have resource type"',
+            "CRD applied too late",
+            "Put CRD in wave -5",
+          ],
+        },
       ],
     },
   }}
 />
 
-The "stuck on hook" pattern connects directly to the intro story—my production incident was exactly this. The hook was waiting for a dependency that didn't exist yet. Once you know to check hook job logs with `kubectl logs -l job-name=<hook>`, the cause usually becomes obvious.
+The "stuck on hook" pattern connects directly to the intro story — my production incident was exactly this. The hook was waiting for a dependency that didn't exist yet. Once you know to check hook job logs with `kubectl logs -l job-name=<hook>`, the cause usually becomes obvious.
 
 The OutOfSync loop deserves special mention because it can be maddening. You sync, it completes, and five seconds later it's OutOfSync again. The cause is always something modifying the resource after ArgoCD applies it. The most common culprit is HPA changing replica counts. Use `argocd app diff myapp` to see exactly which fields are changing, then add them to `ignoreDifferences` in your Application spec.
 
@@ -240,8 +289,8 @@ ArgoCD sync failures are frustrating because they break the promise of GitOps: y
   ]}
 />
 
-The workflow covered here gives you a systematic approach: identify _what_ failed by checking ArgoCD status, understand _when_ it failed by examining sync waves and hooks, verify _why_ it failed by inspecting Kubernetes state, and test your fix before committing. Most failures fall into a few recognizable categories—once you identify the pattern, the fix is usually straightforward.
+The workflow covered here gives you a systematic approach: identify _what_ failed by checking ArgoCD status, understand _when_ it failed by examining sync waves and hooks, verify _why_ it failed by inspecting Kubernetes state, and test your fix before committing. Most failures fall into a few recognizable categories — once you identify the pattern, the fix is usually straightforward.
 
 What makes this workflow valuable isn't memorizing every edge case. It's building a mental model of what ArgoCD is actually doing during sync. When you understand that sync waves control ordering, that hooks block until completion, and that health checks determine when ArgoCD considers a resource "ready," you can reason about failures even when they don't match a known pattern.
 
-GitOps isn't magic—it's automation. When the automation fails, you need to understand what it was trying to do. The declarative model abstracts away the _how_ of deployment, which is powerful until something goes wrong. Then the abstraction becomes the obstacle. The debugging skills in this article help you see through it.
+GitOps isn't magic — it's automation. When the automation fails, you need to understand what it was trying to do. The declarative model abstracts away the _how_ of deployment, which is powerful until something goes wrong. Then the abstraction becomes the obstacle. The debugging skills in this article help you see through it.

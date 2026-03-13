@@ -1,0 +1,32 @@
+---
+export type Props = {
+  color: string
+  classes?: string
+  size: number
+  accessible: boolean
+  focusable: boolean
+  isListMarker?: boolean
+  id?: string
+}
+
+const { color, classes, size, accessible, focusable, isListMarker, id } = Astro.props
+---
+
+<svg
+  id={id}
+  xmlns="http://www.w3.org/2000/svg"
+  class:list={["shrink-0", `w-${size} h-${size}`, `text-${color}`, classes, isListMarker ? "mt-0.5" : ""]}
+  fill="none"
+  stroke="currentColor"
+  viewBox="0 0 24 24"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
+>
+  {accessible && <title>Chart with Line Moving Up Icon</title>}
+  <path
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    d="M 22.800133,22.795552 H 3.1239701 c -0.6719333,0 -1.0078999,0 -1.2645333,-0.130666 -0.2256666,-0.115 -0.4092999,-0.298667 -0.5243333,-0.5243 C 1.2044369,21.883919 1.2044369,21.548019 1.2044369,20.876019 V 1.1997666 m 21.5956961,4.7990631 -6.51989,6.5198863 c -0.237667,0.237667 -0.356333,0.356333 -0.493333,0.400833 -0.120334,0.03933 -0.250334,0.03933 -0.370734,0 -0.137,-0.04467 -0.255666,-0.163333 -0.493333,-0.400833 l -2.2419,-2.241866 C 12.443276,10.039183 12.32461,9.9205162 12.18761,9.8760162 c -0.120334,-0.039333 -0.250334,-0.039333 -0.370734,0 -0.137,0.044667 -0.255666,0.1633338 -0.493333,0.4008338 L 6.00341,15.596956 M 22.800133,5.9988297 H 18.00107 m 4.799063,0 v 4.7990633"
+  ></path>
+</svg>

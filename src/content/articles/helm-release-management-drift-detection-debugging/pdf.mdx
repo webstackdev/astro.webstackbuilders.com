@@ -9,6 +9,9 @@ tags: ["cloud-platforms", "helm", "kubernetes", "python", "argo-cd", "prometheus
 featured: true
 ---
 
+import helmReleaseFailureDiagram from "./diagrams/helm-release-failure-diagnosis-workflow.jpg"
+import helmReleaseStateDiagram from "./diagrams/helm-release-state-and-drift-flow.jpg"
+
 *[YAML]: YAML Ain't Markup Language
 *[K8s]: Kubernetes
 *[CRD]: Custom Resource Definition
@@ -27,45 +30,24 @@ Here's a scenario I've seen more than once. During an incident, an engineer trie
 This article covers the operational side of Helm at scale: understanding how Helm tracks state, detecting drift before it causes incidents, maintaining a release inventory across clusters, debugging failed releases systematically, and integrating with GitOps tools for continuous reconciliation.
 
 <Callout type="warning">
-Helm tracks its own state, but the cluster is the source of truth. When these diverge—through manual edits, partial upgrades, or failed releases—Helm's model breaks down. At scale, drift isn't _if_, it's _when_.
+Helm tracks its own state, but the cluster is the source of truth. When these diverge — through manual edits, partial upgrades, or failed releases — Helm's model breaks down. At scale, drift isn't __if__, it's __when__.
 </Callout>
 
 ## Understanding Helm State
 
-Before you can fix drift, you need to understand how Helm tracks what it's deployed. This isn't just academic—when things break, knowing where Helm stores its state and how it compares against the cluster determines whether you spend 5 minutes or 50 minutes recovering.
+Before you can fix drift, you need to understand how Helm tracks what it's deployed. This isn't just academic — when things break, knowing where Helm stores its state and how it compares against the cluster determines whether you spend 5 minutes or 50 minutes recovering.
 
 ### How Helm Tracks Releases
 
 When you run `helm upgrade`, Helm doesn't just push resources to the cluster and forget about them. It maintains a history of every release revision, storing the rendered manifests, values, and metadata. By default, this state lives in Kubernetes Secrets (though ConfigMaps are an option).
 
-```mermaid
-graph TD
-    A[helm upgrade] --> B[Render templates]
-    B --> C[Compute diff against cluster]
-    C --> D[Apply changes to cluster]
-    D --> E{Success?}
+<Diagram
+  src={helmReleaseStateDiagram}
+  title="Helm release state and drift flow"
+  description="Flowchart showing Helm upgrade processing and where drift appears. The flow starts with helm upgrade, then renders templates, computes a diff against the cluster, and applies changes. A success decision stores either a successful or failed release in Kubernetes Secrets, which then form Helm release history with revisions v1, v2, and current v3. Separately, the cluster contains actual live resources. A dotted relationship indicates the current stored release should match the live cluster state. A manual kubectl edit points directly to the live cluster state to show how out-of-band changes introduce drift between Helm's stored revision history and the actual resources."
+/>
 
-    E -->|Yes| F[Store release in Secret]
-    E -->|No| G[Store failed release]
-
-    F --> H[Release History]
-    G --> H
-
-    subgraph "Helm State (Secrets)"
-        H --> I[Release v1]
-        H --> J[Release v2]
-        H --> K[Release v3 current]
-    end
-
-    subgraph "Cluster State"
-        L[Actual Resources]
-    end
-
-    K -.->|Should match| L
-    M[kubectl edit] -->|Causes drift| L
-```
-
-The release secrets follow a naming convention: `sh.helm.release.v1.<release-name>.v<revision>`. Each secret contains the complete state for that revision—chart metadata, the values used, and the fully-rendered manifests. This is what enables rollbacks: Helm can reconstruct exactly what was deployed at any point in history.
+The release secrets follow a naming convention: `sh.helm.release.v1.<release-name>.v<revision>`. Each secret contains the complete state for that revision — chart metadata, the values used, and the fully-rendered manifests. This is what enables rollbacks: Helm can reconstruct exactly what was deployed at any point in history.
 
 ```yaml title="helm-release-secret.yaml"
 # Secret name format: sh.helm.release.v1.<release-name>.v<revision>
@@ -85,7 +67,7 @@ data:
   release: H4sIAAAAAAAAA...
 ```
 
-The critical thing to understand: Helm's stored manifest represents what Helm _thinks_ is deployed. The cluster state represents what's _actually_ deployed. When these match, operations are predictable. When they diverge, you get the fun debugging sessions.
+The critical thing to understand: Helm's stored manifest represents what Helm __thinks__ is deployed. The cluster state represents what's __actually__ deployed. When these match, operations are predictable. When they diverge, you get the fun debugging sessions.
 
 ### State Inconsistency Patterns
 
@@ -112,7 +94,7 @@ Drift shows up in predictable patterns, and recognizing which pattern you're dea
     },
     {
       lead: "Three-way merge conflicts",
-      text: "are the trickiest. When Helm computes an upgrade, it compares the old manifest, new manifest, and live cluster state. If someone modified a field in the cluster that you're also changing in the new manifest, the merge can produce unexpected results—fields deleted, values unexpectedly retained, or strategic merge patches behaving counter-intuitively.",
+      text: "are the trickiest. When Helm computes an upgrade, it compares the old manifest, new manifest, and live cluster state. If someone modified a field in the cluster that you're also changing in the new manifest, the merge can produce unexpected results — fields deleted, values unexpectedly retained, or strategic merge patches behaving counter-intuitively.",
     },
   ]}
 />
@@ -151,12 +133,12 @@ Drift shows up in predictable patterns, and recognizing which pattern you're dea
 />
 
 <Callout type="info">
-Helm uses a three-way merge: old manifest, new manifest, live state. This usually works well, but manual changes to live state can create surprising merge results. When in doubt, use `--force` for a two-way merge (but understand the implications—it recreates resources rather than patching them).
+Helm uses a three-way merge: old manifest, new manifest, live state. This usually works well, but manual changes to live state can create surprising merge results. When in doubt, use `--force` for a two-way merge (but understand the implications — it recreates resources rather than patching them).
 </Callout>
 
 ## Drift Detection
 
-Knowing drift happens isn't enough—you need to catch it before it causes problems. Discovering drift during an incident is the worst possible time. The goal is continuous detection with alerting, so you fix divergence on your schedule rather than at 3 AM.
+Knowing drift happens isn't enough — you need to catch it before it causes problems. Discovering drift during an incident is the worst possible time. The goal is continuous detection with alerting, so you fix divergence on your schedule rather than at 3 AM.
 
 ### Using the Helm Diff Plugin
 
@@ -178,7 +160,7 @@ helm diff upgrade my-release ./my-chart \
   --detailed-exitcode  # Exit 2 if changes, 0 if none, 1 if error
 ```
 
-The `--detailed-exitcode` flag is useful for CI/CD pipelines. You can gate deployments on whether drift exists, or at minimum log a warning. I've seen teams add a pre-deployment drift check that fails the pipeline if unexpected changes exist—forcing engineers to investigate before proceeding.
+The `--detailed-exitcode` flag is useful for CI/CD pipelines. You can gate deployments on whether drift exists, or at minimum log a warning. I've seen teams add a pre-deployment drift check that fails the pipeline if unexpected changes exist — forcing engineers to investigate before proceeding.
 
 For scheduled drift detection, a simple loop across releases works:
 
@@ -370,7 +352,7 @@ Export Helm release metadata as Prometheus metrics. This enables dashboards show
 
 ## Upgrade Strategies
 
-Not all upgrades are equal. A minor config change to a non-critical service doesn't need the same rigor as a major version bump on your payment processing system. Having a repertoire of upgrade patterns—and knowing when to use each—reduces risk and speeds up routine deployments.
+Not all upgrades are equal. A minor config change to a non-critical service doesn't need the same rigor as a major version bump on your payment processing system. Having a repertoire of upgrade patterns — and knowing when to use each — reduces risk and speeds up routine deployments.
 
 ### Atomic Upgrades
 
@@ -385,7 +367,7 @@ helm upgrade my-release ./my-chart \
   --wait
 ```
 
-Without `--atomic`, a failed upgrade leaves you in an inconsistent state. Some resources are updated, some aren't, and the release is marked "failed." You're now stuck deciding whether to push forward, rollback manually, or debug. With `--atomic`, that decision is made for you—on any failure, Helm reverts everything.
+Without `--atomic`, a failed upgrade leaves you in an inconsistent state. Some resources are updated, some aren't, and the release is marked "failed." You're now stuck deciding whether to push forward, rollback manually, or debug. With `--atomic`, that decision is made for you — on any failure, Helm reverts everything.
 
 The `--timeout` flag is important. Set it long enough for your slowest pod to start, but not so long that you're waiting forever on a broken deployment. For most services, 5-10 minutes is reasonable.
 
@@ -395,7 +377,7 @@ Many teams use `helm upgrade --install` to handle both initial installs and subs
 
 For higher-risk changes, upgrade in stages rather than all at once.
 
-_Canary upgrades_ deploy to a subset first—typically staging, then one production namespace or cluster—and verify before continuing. This gives you a chance to catch problems before they affect all users. The process looks like:
+__Canary upgrades__ deploy to a subset first — typically staging, then one production namespace or cluster — and verify before continuing. This gives you a chance to catch problems before they affect all users. The process looks like:
 
 <List
   variant="numbered-with-background-list"
@@ -418,7 +400,7 @@ _Canary upgrades_ deploy to a subset first—typically staging, then one product
   ]}
 />
 
-_Rolling namespace upgrades_ work well for multi-tenant deployments where each namespace is isolated. Upgrade one namespace, verify, then move to the next. If something breaks, only one tenant is affected while you fix it.
+__Rolling namespace upgrades__ work well for multi-tenant deployments where each namespace is isolated. Upgrade one namespace, verify, then move to the next. If something breaks, only one tenant is affected while you fix it.
 
 ### Blue-Green with Helm
 
@@ -443,48 +425,25 @@ helm uninstall my-app-v1 --namespace production
 ```
 Code: Blue-green deployment with Helm.
 
-This is more operationally complex than in-place upgrades, but it gives you instant rollback—just switch traffic back to v1 before you uninstall it.
+This is more operationally complex than in-place upgrades, but it gives you instant rollback — just switch traffic back to v1 before you uninstall it.
 
 <Callout type="warning">
-Always use `--atomic` for production upgrades. Without it, a failed upgrade leaves you in an inconsistent state—some resources updated, some not, release marked failed. With `--atomic`, Helm automatically rolls back on any failure.
+Always use `--atomic` for production upgrades. Without it, a failed upgrade leaves you in an inconsistent state — some resources updated, some not, release marked failed. With `--atomic`, Helm automatically rolls back on any failure.
 </Callout>
 
 ## Debugging Failed Releases
 
-When an upgrade fails, you need a systematic approach to figure out why. The error message from Helm is often just the starting point—the real cause is usually buried in Kubernetes events, pod logs, or webhook rejections.
+When an upgrade fails, you need a systematic approach to figure out why. The error message from Helm is often just the starting point — the real cause is usually buried in Kubernetes events, pod logs, or webhook rejections.
 
 ### The Diagnosis Workflow
 
 Start with `helm status` to see the current release state, then `helm history` to see recent revisions. If the last revision shows "failed," you need to determine what failed: a hook, a resource, a timeout, or a validation error.
 
-```mermaid
-flowchart TD
-    A[Upgrade Failed] --> B{Check helm status}
-
-    B -->|Status: failed| C[Check helm history]
-    C --> D[Get failed revision details]
-    D --> E{What failed?}
-
-    E -->|Hook failure| F[Check hook job/pod logs]
-    E -->|Resource failure| G[Check resource events]
-    E -->|Timeout| H[Check pod status]
-    E -->|Validation error| I[Check rendered manifest]
-
-    F --> J{Hook recoverable?}
-    J -->|Yes| K[Fix hook, retry]
-    J -->|No| L[Delete hook resources, retry]
-
-    G --> M{Resource exists?}
-    M -->|Yes, wrong state| N[Check kubectl describe]
-    M -->|No, creation failed| O[Check admission webhooks]
-
-    H --> P{Pods starting?}
-    P -->|ImagePullBackOff| Q[Check image/registry]
-    P -->|CrashLoopBackOff| R[Check container logs]
-    P -->|Pending| S[Check node resources]
-
-    I --> T[helm template + kubectl apply --dry-run]
-```
+<Diagram
+  src={helmReleaseFailureDiagram}
+  title="Helm release failure diagnosis workflow"
+  description="Flowchart for troubleshooting a failed Helm upgrade. The process begins with an upgrade failure, then checks helm status, helm history, and failed revision details before branching on the failure type. Hook failures lead to hook job/pod logs and then a decision on whether the hook is recoverable, resulting in either a fix-and-retry path or deletion of hook resources before retrying. Resource failures branch to checking resource events and whether the resource exists, followed by either kubectl describe for wrong state or admission webhook investigation for creation failures. Timeouts branch to pod status and then to image/registry checks, container log review, or node resource review depending on whether pods are in ImagePullBackOff, CrashLoopBackOff, or Pending. Validation errors go to rendering templates and running a server-side `--dry-run`."
+/>
 
 The key commands you'll use repeatedly:
 
@@ -543,7 +502,7 @@ Once you've stabilized your Helm operations with the practices above, there's a 
 
 ## GitOps Integration
 
-Everything I've described so far—drift detection, inventory tracking, safe upgrades—can be done manually or with scripts. But if you're serious about eliminating drift as a category of problems, GitOps tools like Flux and ArgoCD change the game. They provide continuous reconciliation: the cluster state is constantly compared to Git and automatically corrected.
+Everything I've described so far — drift detection, inventory tracking, safe upgrades — can be done manually or with scripts. But if you're serious about eliminating drift as a category of problems, GitOps tools like Flux and ArgoCD change the game. They provide continuous reconciliation: the cluster state is constantly compared to Git and automatically corrected.
 
 ### How GitOps Solves Drift
 
@@ -590,7 +549,7 @@ spec:
 ```
 Code: Flux HelmRelease with drift detection.
 
-The `driftDetection.mode: enabled` setting is the key. Flux continuously compares the cluster state to what the HelmRelease declares and corrects any differences. The `ignore` block is important—some drift is intentional. If you're using a Horizontal Pod Autoscaler, you don't want Flux fighting it over replica counts.
+The `driftDetection.mode: enabled` setting is the key. Flux continuously compares the cluster state to what the HelmRelease declares and corrects any differences. The `ignore` block is important — some drift is intentional. If you're using a Horizontal Pod Autoscaler, you don't want Flux fighting it over replica counts.
 
 ArgoCD achieves the same with `selfHeal: true`:
 
@@ -626,16 +585,16 @@ Code: ArgoCD Application with self-healing.
 
 ### Emergency Access
 
-GitOps requires discipline. If the only way to change the cluster is through Git, what happens during an incident when you need to make a change _now_?
+GitOps requires discipline. If the only way to change the cluster is through Git, what happens during an incident when you need to make a change __now__?
 
-The answer is break-glass procedures. Create a separate ServiceAccount—something like `emergency-ops`—with elevated permissions that's only used during incidents. Gate access behind your identity provider with MFA and time-limited credentials. When someone authenticates to this account, automatically create a ticket and send an alert to your incident channel.
+The answer is break-glass procedures. Create a separate ServiceAccount — something like `emergency-ops`—with elevated permissions that's only used during incidents. Gate access behind your identity provider with MFA and time-limited credentials. When someone authenticates to this account, automatically create a ticket and send an alert to your incident channel.
 
 The key constraint: any change made via break-glass must be reconciled back to Git within 24 hours. If you bump memory limits during an incident, open a PR the next morning to make that change permanent. If the change was a temporary workaround, revert it once the root cause is fixed. Either way, the cluster returns to a state where Git is the source of truth.
 
 This gives you the best of both worlds: continuous reconciliation during normal operations, with an escape hatch for genuine emergencies that doesn't leave permanent drift.
 
 <Callout type="info">
-GitOps tools like Flux and ArgoCD provide continuous drift detection and correction. The cluster state is continuously reconciled to match Git. Manual changes are automatically reverted. This eliminates drift as a category of problems—but requires discipline to make all changes via Git.
+GitOps tools like Flux and ArgoCD provide continuous drift detection and correction. The cluster state is continuously reconciled to match Git. Manual changes are automatically reverted. This eliminates drift as a category of problems — but requires discipline to make all changes via Git.
 </Callout>
 
 ## Conclusion
@@ -674,8 +633,8 @@ The key practices that keep Helm manageable:
   ]}
 />
 
-The tools exist. The challenge is using them consistently. Build automation that enforces good practices—drift detection CronJobs, pre-deployment checks in CI, alerting on failed releases—rather than relying on manual discipline.
+The tools exist. The challenge is using them consistently. Build automation that enforces good practices — drift detection CronJobs, pre-deployment checks in CI, alerting on failed releases — rather than relying on manual discipline.
 
 <Callout type="success">
-The goal is confidence: confidence that you know what's deployed, confidence that cluster state matches Helm state, confidence that you can upgrade safely and rollback quickly. Build that confidence through automation, monitoring, and process—not heroics during incidents.
+The goal is confidence: confidence that you know what's deployed, confidence that cluster state matches Helm state, confidence that you can upgrade safely and rollback quickly. Build that confidence through automation, monitoring, and process — not heroics during incidents.
 </Callout>

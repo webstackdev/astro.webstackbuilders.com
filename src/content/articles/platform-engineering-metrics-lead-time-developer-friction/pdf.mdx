@@ -9,6 +9,9 @@ tags: ["platform-engineering", "kubernetes", "helm", "terraform", "docker", "cro
 featured: true
 ---
 
+import leadTimeDiagram from "./diagrams/lead-time-improvement-visualization-12-days-reduced-to-5-hours.png"
+import metricsDiagram from "./diagrams/metrics-data-flow-from-source-systems-to-dashboards.jpg"
+
 *[CSAT]: Customer Satisfaction Score
 *[DORA]: DevOps Research and Assessment
 *[MTTR]: Mean Time to Recovery
@@ -17,13 +20,13 @@ featured: true
 *[SLO]: Service Level Objective
 *[TOIL]: Time-consuming, manual, automatable, lacking lasting value
 
-How do you prove an internal platform creates value? Product teams measure revenue or user growth. Platform teams serve internal customers and enable outcomes rather than producing them directly. This creates a measurement gap—platform work is easy to fund when it's novel and hard to justify when it's mature.
+How do you prove an internal platform creates value? Product teams measure revenue or user growth. Platform teams serve internal customers and enable outcomes rather than producing them directly. This creates a measurement gap — platform work is easy to fund when it's novel and hard to justify when it's mature.
 
-I've watched this play out. A platform team builds an internal developer portal with self-service infrastructure provisioning. Six months in, leadership asks for success metrics. The team reports: 500 developers onboarded, 10,000 API calls per month, 99.9% uptime. Leadership responds: "That's nice, but did we save money? Are developers faster?" The team can't answer because they measured what the platform _does_, not what it _enables_.
+I've watched this play out. A platform team builds an internal developer portal with self-service infrastructure provisioning. Six months in, leadership asks for success metrics. The team reports: 500 developers onboarded, 10,000 API calls per month, 99.9% uptime. Leadership responds: "That's nice, but did we save money? Are developers faster?" The team can't answer because they measured what the platform __does__, not what it __enables__.
 
 The pivot is simple but fundamental: friction-focused metrics. Time to first deployment dropped from 2 weeks to 2 hours. Infrastructure tickets per developer dropped 80%. Developer NPS rose from -20 to +45. Now the narrative is clear: "Developers are 10x faster to get started and need 80% less support." That story justifies continued investment.
 
-Meaningful platform metrics answer one question: is the platform making developers more productive? How long do common tasks take? How often do developers need help? How much cognitive load does the platform impose? Vanity metrics—adoption counts, API calls, uptime percentages—look impressive in slide decks but don't demonstrate value.
+Meaningful platform metrics answer one question: is the platform making developers more productive? How long do common tasks take? How often do developers need help? How much cognitive load does the platform impose? Vanity metrics — adoption counts, API calls, uptime percentages — look impressive in slide decks but don't demonstrate value.
 
 <Callout type="warning">
 The most common platform metrics mistake: measuring platform activity (requests served, uptime) instead of developer outcomes (time saved, friction reduced). A platform can be highly available and completely useless.
@@ -42,19 +45,19 @@ Lead time metrics measure how long things take. They're the clearest indicators 
   items={[
     {
       lead: 'Time to first deployment',
-      text: 'is the single most revealing onboarding metric. Measure from a developer\'s start date (HR system) to their first production deployment (deployment system). This captures everything: account provisioning, access requests, documentation quality, tooling complexity. If it takes two weeks, something is broken. If it\'s under a day, your platform is doing its job.',
+      text: 'The single most revealing onboarding metric. Measure from a developer\'s start date (HR system) to their first production deployment (deployment system). This captures everything: account provisioning, access requests, documentation quality, tooling complexity. If it takes two weeks, something is broken. If it\'s under a day, your platform is doing its job.',
     },
     {
       lead: 'Time to new service',
-      text: 'measures self-service effectiveness. From service creation request (portal or ticket) to first successful health check in production—how much of this is automated versus waiting on humans? Anything over a week suggests manual provisioning steps. Under an hour means your automation is mature.',
+      text: 'Measures self-service effectiveness. From service creation request (portal or ticket) to first successful health check in production — how much of this is automated versus waiting on humans? Anything over a week suggests manual provisioning steps. Under an hour means your automation is mature.',
     },
     {
       lead: 'Deployment lead time',
-      text: 'tracks CI/CD efficiency: from code commit to running in production. This exposes approval bottlenecks, slow builds, and deployment friction. Elite teams hit under 15 minutes; struggling teams measure in days.',
+      text: 'Tracks CI/CD efficiency: from code commit to running in production. This exposes approval bottlenecks, slow builds, and deployment friction. Elite teams hit under 15 minutes; struggling teams measure in days.',
     },
     {
       lead: 'Time to new environment',
-      text: 'measures infrastructure automation maturity. From environment request to a fully functional environment passing smoke tests—this is pure platform capability. If developers wait days for a staging environment, your Terraform modules or Crossplane claims need work.',
+      text: 'Measures infrastructure automation maturity. From environment request to a fully functional environment passing smoke tests — this is pure platform capability. If developers wait days for a staging environment, your Terraform modules or Crossplane claims need work.',
     },
   ]}
 />
@@ -91,47 +94,32 @@ Lead time metrics measure how long things take. They're the clearest indicators 
 
 These metrics align with DORA's[^dora] research-backed framework.
 
-[^dora]: DORA (DevOps Research and Assessment) is a research program that identified four key metrics predicting software delivery performance: deployment frequency, lead time for changes, change failure rate, and time to restore service. Their annual State of DevOps reports provide industry benchmarks. Elite performers deploy multiple times per day with lead times under an hour. If you're measuring in weeks, you're not just slow—you're losing competitive ground.
+[^dora]: DORA (DevOps Research and Assessment) is a research program that identified four key metrics predicting software delivery performance: deployment frequency, lead time for changes, change failure rate, and time to restore service. Their annual State of DevOps reports provide industry benchmarks. Elite performers deploy multiple times per day with lead times under an hour. If you're measuring in weeks, you're not just slow — you're losing competitive ground.
 
-```mermaid
-gantt
-    title Time to First Deployment (Before vs After Platform)
-    dateFormat X
-    axisFormat %d days
-
-    section Before Platform
-    Account setup           :a1, 0, 2d
-    Request infrastructure  :a2, after a1, 3d
-    Wait for provisioning   :a3, after a2, 5d
-    Configure access        :a4, after a3, 2d
-    First deployment        :milestone, after a4, 0d
-
-    section After Platform
-    Self-service onboarding :b1, 0, 4h
-    Auto-provisioned env    :b2, after b1, 1h
-    First deployment        :milestone, after b2, 0d
-```
-
-Figure: Lead time improvement visualization—12 days reduced to 5 hours.
+<Diagram
+  src={leadTimeDiagram}
+  title="Lead time improvement visualization — 12 days reduced to 5 hours."
+  description="Gantt chart titled Time to First Deployment Before versus After Platform. The chart compares two timelines. In the Before Platform section, Account setup takes 2 days, Request infrastructure takes 3 more days, Wait for provisioning takes 5 days, Configure access takes 2 days, and then First deployment appears as a milestone, for a total of roughly 12 days. In the After Platform section, Self-service onboarding takes 4 hours, Auto-provisioned environment takes 1 more hour, and then First deployment appears as a milestone, for a total of roughly 5 hours. The diagram shows how platform automation compresses a multi-day onboarding and provisioning sequence into a same-day self-service path."
+/>
 
 ### Developer Friction Metrics
 
-Lead time tells you _how long_. Friction metrics tell you _how hard_. They measure the cognitive and operational burden the platform imposes.
+Lead time tells you __how long__. Friction metrics tell you __how hard__. They measure the cognitive and operational burden the platform imposes.
 
 <List
   variant="check-icons-list"
   items={[
     {
       lead: 'Ticket volume per developer',
-      text: 'is the baseline friction indicator. More than 2 tickets per developer per month means developers are stuck regularly. Under 0.5 means the platform is largely self-service. But raw numbers don\'t tell the whole story—segment by ticket type. "How do I" tickets indicate documentation gaps. "Access request" tickets indicate poor provisioning automation. "It\'s broken" tickets indicate reliability problems.',
+      text: 'The baseline friction indicator. More than 2 tickets per developer per month means developers are stuck regularly. Under 0.5 means the platform is largely self-service. But raw numbers don\'t tell the whole story — segment by ticket type. "How do I" tickets indicate documentation gaps. "Access request" tickets indicate poor provisioning automation. "It\'s broken" tickets indicate reliability problems.',
     },
     {
       lead: 'Self-service rate',
-      text: 'measures what percentage of common tasks developers complete without human intervention. Track portal/API completions against tickets for the same task types. If developers can provision an environment through the portal but 40% still file tickets, something\'s wrong with the self-service experience.',
+      text: 'Measures what percentage of common tasks developers complete without human intervention. Track portal/API completions against tickets for the same task types. If developers can provision an environment through the portal but 40% still file tickets, something\'s wrong with the self-service experience.',
     },
     {
       lead: 'Cognitive load',
-      text: 'is harder to quantify but equally important. Count the config files developers must understand to deploy a service, the distinct tools in the deployment path, the context switches between systems for a single workflow. A platform that requires understanding 15 config files across 8 tools isn\'t self-service—it\'s a maze. For example: Kubernetes manifests, Helm values, Terraform variables, CI workflow configs, secrets references, Dockerfile, and monitoring configs—each requiring different syntax and mental models. If deploying a simple service touches more than 5 files, look for ways to consolidate or abstract.',
+      text: 'Harder to quantify but equally important. Count the config files developers must understand to deploy a service, the distinct tools in the deployment path, the context switches between systems for a single workflow. A platform that requires understanding 15 config files across 8 tools isn\'t self-service — it\'s a maze. For example: Kubernetes manifests, Helm values, Terraform variables, CI workflow configs, secrets references, Dockerfile, and monitoring configs — each requiring different syntax and mental models. If deploying a simple service touches more than 5 files, look for ways to consolidate or abstract.',
     },
   ]}
 />
@@ -171,7 +159,7 @@ Lead time tells you _how long_. Friction metrics tell you _how hard_. They measu
 />
 
 <Callout type="info">
-Ticket volume is a lagging indicator—it tells you friction exists but not why. Combine with ticket categorization to identify which platform areas cause the most pain. "Access request" tickets indicate poor provisioning; "how do I" tickets indicate poor documentation.
+Ticket volume is a lagging indicator — it tells you friction exists but not why. Combine with ticket categorization to identify which platform areas cause the most pain. "Access request" tickets indicate poor provisioning; "how do I" tickets indicate poor documentation.
 </Callout>
 
 ## Measurement Implementation
@@ -182,46 +170,13 @@ Platform metrics come from multiple systems that don't naturally talk to each ot
 
 The collection pattern that works: event-driven ingestion into a stream (Kafka or Kinesis), enrichment with team and service metadata, aggregation into time-series storage, and visualization through dashboards. Raw events go to a data lake for historical analysis; aggregated metrics go to a time-series database for dashboards.
 
-```mermaid
-flowchart TD
-    subgraph "Data Sources"
-        A[Deployment System]
-        B[Ticketing System]
-        C[Platform Portal]
-        D[HR System]
-    end
+<Diagram
+  src={metricsDiagram}
+  title="Metrics data flow from source systems to dashboards."
+  description="Top-to-bottom flowchart with four grouped stages: Data Sources, Collection, Storage, and Presentation. The Data Sources group contains Deployment System, Ticketing System, Platform Portal, and HR System. All four sources feed into an Event Stream in the Collection group, which then feeds into Enrichment. From Enrichment, data flows to two storage targets: Raw Events and Aggregated Metrics. Aggregated Metrics then feed three presentation outputs: Dashboards, Reports, and Alerts. The diagram shows a metrics pipeline where operational and business events are collected from multiple systems, enriched with metadata, stored in both raw and summarized forms, and then exposed for visualization, reporting, and alerting."
+/>
 
-    subgraph "Collection"
-        E[Event Stream]
-        F[Enrichment]
-    end
-
-    subgraph "Storage"
-        G[Raw Events]
-        H[Aggregated Metrics]
-    end
-
-    subgraph "Presentation"
-        I[Dashboards]
-        J[Reports]
-        K[Alerts]
-    end
-
-    A --> E
-    B --> E
-    C --> E
-    D --> E
-    E --> F
-    F --> G
-    F --> H
-    H --> I
-    H --> J
-    H --> K
-```
-
-Figure: Metrics data flow from source systems to dashboards.
-
-For deployment events, capture the service name, team, environment, duration, and commit SHA. For tickets, capture category, requester team, resolution time, and first response time. For portal events, capture user, team, duration, and success/failure. The key is consistent metadata across sources so you can correlate—linking a developer's first deployment to their HR start date, for example.
+For deployment events, capture the service name, team, environment, duration, and commit SHA. For tickets, capture category, requester team, resolution time, and first response time. For portal events, capture user, team, duration, and success/failure. The key is consistent metadata across sources so you can correlate — linking a developer's first deployment to their HR start date, for example.
 
 ### Metric Calculation Examples
 
@@ -273,9 +228,9 @@ def calculate_change_failure_rate(events: list[DeploymentEvent]) -> dict:
     }
 ```
 
-Code: Core metric calculations for lead time and failure rate—run nightly via scheduled job against your data warehouse.
+Code: Core metric calculations for lead time and failure rate — run nightly via scheduled job against your data warehouse.
 
-For onboarding metrics, you need to join HR data with deployment data. This calculation is trickier because HR systems and deployment systems rarely share identifiers—you'll need a mapping table or identity service to correlate employee IDs with Git/deployment usernames:
+For onboarding metrics, you need to join HR data with deployment data. This calculation is trickier because HR systems and deployment systems rarely share identifiers — you'll need a mapping table or identity service to correlate employee IDs with Git/deployment usernames:
 
 ```python title="onboarding-metrics.py"
 @dataclass
@@ -301,9 +256,9 @@ def calculate_onboarding_metrics(onboardings: list[DeveloperOnboarding]) -> dict
     }
 ```
 
-Code: Onboarding metrics joining HR and deployment data—typically run weekly since onboarding cohorts change slowly.
+Code: Onboarding metrics joining HR and deployment data — typically run weekly since onboarding cohorts change slowly.
 
-Report median and P90 rather than averages. Averages hide outliers—a median of 2 hours with a P90 of 8 hours tells you most deployments are fast but some get stuck. That's actionable information that an average would obscure.
+Report median and P90 rather than averages. Averages hide outliers — a median of 2 hours with a P90 of 8 hours tells you most deployments are fast but some get stuck. That's actionable information that an average would obscure.
 
 <Callout type="success">
 Automate metric collection from the start. Manual metrics (surveys, spreadsheets) are valuable for qualitative insights but unsustainable for ongoing measurement. Build instrumentation into platform components.
@@ -311,7 +266,7 @@ Automate metric collection from the start. Manual metrics (surveys, spreadsheets
 
 ## Developer Experience Surveys
 
-Automated metrics tell you _what_ is happening. Surveys tell you _why_—and capture friction that doesn't show up in logs.
+Automated metrics tell you __what__ is happening. Surveys tell you __why__ — and capture friction that doesn't show up in logs.
 
 ### Survey Design
 
@@ -322,19 +277,19 @@ Three survey types cover the developer lifecycle:
   items={[
     {
       lead: 'Onboarding surveys',
-      text: "go out 30 days after a developer's start date. Ask how long it took to make their first production deployment (validates your automated metric), what was most confusing, how they'd rate the documentation, and how many times they needed help. Free-text responses here are gold—new developers see problems that veterans have normalized.",
+      text: "Goes out 30 days after a developer's start date. Ask how long it took to make their first production deployment (validates your automated metric), what was most confusing, how they'd rate the documentation, and how many times they needed help. Free-text responses here are gold — new developers see problems that veterans have normalized.",
     },
     {
       lead: 'Quarterly pulse surveys',
-      text: 'track satisfaction trends. Keep them short: how easy is it to deploy to production? How easy is it to debug production issues? Does the platform make you more productive? What\'s your biggest obstacle? End with an NPS question: "How likely are you to recommend this platform to a colleague?" Track these over time—the trend matters more than any single score.',
+      text: 'Tracks satisfaction trends. Keep them short: how easy is it to deploy to production? How easy is it to debug production issues? Does the platform make you more productive? What\'s your biggest obstacle? End with an NPS question: "How likely are you to recommend this platform to a colleague?" Track these over time — the trend matters more than any single score.',
     },
     {
       lead: 'Feature feedback',
-      text: 'triggers after someone uses a new capability. Did it solve your problem? How much time does it save per week? What would make it more useful? This validates whether your investments are paying off.',
+      text: 'Triggers after someone uses a new capability. Did it solve your problem? How much time does it save per week? What would make it more useful? This validates whether your investments are paying off.',
     },
     {
       lead: 'Annual deep-dives',
-      text: "are longer surveys (15 minutes) that explore broader themes: overall platform satisfaction, feature priorities, pain points that don't fit in pulse surveys. Run these yearly to inform roadmap planning.",
+      text: "Longer surveys (15 minutes) that explore broader themes: overall platform satisfaction, feature priorities, pain points that don't fit in pulse surveys. Run these yearly to inform roadmap planning.",
     },
   ]}
 />
@@ -369,9 +324,9 @@ Three survey types cover the developer lifecycle:
   }}
 />
 
-NPS (Net Promoter Score) deserves special attention. Scores 9-10 are promoters, 7-8 are passives, 0-6 are detractors. NPS = % Promoters - % Detractors. Above 50 is excellent for an internal platform; below 0 means you have serious problems. But the number alone doesn't help—follow up with detractors to understand why.
+NPS (Net Promoter Score) deserves special attention. Scores 9-10 are promoters, 7-8 are passives, 0-6 are detractors. NPS = % Promoters - % Detractors. Above 50 is excellent for an internal platform; below 0 means you have serious problems. But the number alone doesn't help — follow up with detractors to understand why.
 
-Implementing NPS collection is straightforward. Most survey tools (Google Forms, Typeform, SurveyMonkey, Qualtrics) support the standard 0-10 scale question. For automation, trigger surveys via your HR system (onboarding) or platform events (feature usage). The calculation itself is simple—export responses to a spreadsheet or write a quick script:
+Implementing NPS collection is straightforward. Most survey tools (Google Forms, Typeform, SurveyMonkey, Qualtrics) support the standard 0-10 scale question. For automation, trigger surveys via your HR system (onboarding) or platform events (feature usage). The calculation itself is simple — export responses to a spreadsheet or write a quick script:
 
 ```python title="nps-calculation.py"
 # NPS calculation from survey responses
@@ -392,7 +347,7 @@ def calculate_nps(scores: list[int]) -> dict:
     }
 ```
 
-Code: NPS calculation—run after each survey closes to update your dashboard.
+Code: NPS calculation — run after each survey closes to update your dashboard.
 
 ### Qualitative Analysis
 
@@ -405,12 +360,12 @@ Combine survey feedback with other qualitative sources: support ticket themes, S
 Prioritize by impact and frequency. High-frequency, high-impact issues get fixed immediately. High-frequency, low-impact issues are quick wins. Low-frequency, high-impact issues go on the roadmap. Low-frequency, low-impact issues get monitored but not prioritized.
 
 <Callout type="warning">
-Survey fatigue is real. Keep surveys short, respect developer time, and—critically—act on feedback visibly. If developers don't see changes from feedback, they stop providing it.
+Survey fatigue is real. Keep surveys short, respect developer time, and — critically — act on feedback visibly. If developers don't see changes from feedback, they stop providing it.
 </Callout>
 
 ## Avoiding Vanity Metrics
 
-Some metrics exist primarily to impress stakeholders. They show activity without indicating impact—and they're dangerously easy to optimize for while missing actual value.
+Some metrics exist primarily to impress stakeholders. They show activity without indicating impact — and they're dangerously easy to optimize for while missing actual value.
 
 ### Vanity vs Actionable Metrics
 
@@ -471,19 +426,19 @@ The test for a good metric: does it tell you what to do? "We have 1000 users" te
   items={[
     {
       lead: "Goodhart's Law",
-      text: 'is the biggest trap: when a measure becomes a target, it ceases to be a good measure. Target ticket reduction and support becomes harder to access. Target deployment frequency and deployments get artificially split. Target NPS and only happy teams get surveyed. The antidote is measuring outcomes (developer productivity) rather than activities (ticket counts).',
+      text: 'The biggest trap: when a measure becomes a target, it ceases to be a good measure. Target ticket reduction and support becomes harder to access. Target deployment frequency and deployments get artificially split. Target NPS and only happy teams get surveyed. The antidote is measuring outcomes (developer productivity) rather than activities (ticket counts).',
     },
     {
       lead: 'Survivorship bias',
-      text: 'means only measuring successful cases. If you track deployment time only for successful deploys, you miss that failed deployments might indicate UX problems. If you survey only active platform users, you miss teams that left. Include failures in your metrics; run exit surveys when teams churn.',
+      text: 'Means only measuring successful cases. If you track deployment time only for successful deploys, you miss that failed deployments might indicate UX problems. If you survey only active platform users, you miss teams that left. Include failures in your metrics; run exit surveys when teams churn.',
     },
     {
       lead: 'Attribution errors',
-      text: 'credit the platform for unrelated improvements. "Lead time improved 50% after platform launch"—but the team also grew, hired senior engineers, and changed their process. Control for variables by comparing similar teams or tracking metrics that isolate platform impact.',
+      text: 'Credit the platform for unrelated improvements. "Lead time improved 50% after platform launch"—but the team also grew, hired senior engineers, and changed their process. Control for variables by comparing similar teams or tracking metrics that isolate platform impact.',
     },
     {
       lead: 'Sampling bias',
-      text: 'measures unrepresentative subsets. Feedback from teams in office hours comes from self-selected engaged users. Random sampling and broad surveys give you the full picture.',
+      text: 'Measures unrepresentative subsets. Feedback from teams in office hours comes from self-selected engaged users. Random sampling and broad surveys give you the full picture.',
     },
   ]}
 />
@@ -509,15 +464,15 @@ Different audiences need different views of the same data. Executives want trend
   items={[
     {
       lead: 'Executive dashboards',
-      text: 'show 4-6 headline metrics with trends: developer NPS, time to first deployment, ticket volume per developer, deployment success rate. Update monthly. The goal is answering "Is the platform investment paying off?" without requiring deep dives.',
+      text: 'Shows 4-6 headline metrics with trends: developer NPS, time to first deployment, ticket volume per developer, deployment success rate. Update monthly. The goal is answering "Is the platform investment paying off?" without requiring deep dives.',
     },
     {
       lead: 'Platform team dashboards',
-      text: 'are operational: deployment success rates by team and service, self-service completion rates, error rates by component, latency percentiles, active incidents. Update in real-time. These drive daily decisions about what to fix and where to invest.',
+      text: 'Operational: deployment success rates by team and service, self-service completion rates, error rates by component, latency percentiles, active incidents. Update in real-time. These drive daily decisions about what to fix and where to invest.',
     },
     {
       lead: 'Team-specific views',
-      text: "let product teams see their own metrics: their deployment frequency, their lead time, their ticket count, their resource usage. Comparisons to org averages help teams self-identify whether they're outliers needing help.",
+      text: "Lets product teams see their own metrics: their deployment frequency, their lead time, their ticket count, their resource usage. Comparisons to org averages help teams self-identify whether they're outliers needing help.",
     },
   ]}
 />
@@ -533,19 +488,19 @@ Dashboards show state; alerts drive action. Configure alerts for metrics that re
   items={[
     {
       lead: 'Deployment success rate',
-      text: 'below 80% for 4+ hours—something is systematically broken',
+      text: 'Below 80% for 4+ hours — something is systematically broken',
     },
     {
       lead: 'Build queue time',
-      text: 'exceeding 30 minutes—capacity or configuration problems',
+      text: 'Exceeding 30 minutes — capacity or configuration problems',
     },
     {
       lead: 'Self-service completion rate',
-      text: 'dropping below baseline by 20%—recent changes broke something',
+      text: 'Dropping below baseline by 20%—recent changes broke something',
     },
     {
       lead: 'P0 tickets',
-      text: 'opened—immediate platform team attention needed',
+      text: 'Opened — immediate platform team attention needed',
     },
   ]}
 />
@@ -591,28 +546,28 @@ Not everything belongs on a real-time dashboard. Structured reports at regular i
   items={[
     {
       lead: 'Weekly digests',
-      text: "go to the platform team via Slack or email. Automate these with Grafana's reporting plugin or a custom script. Include deployment count and success rate, median lead time, tickets opened and resolved, and any notable incidents. Keep it scannable—if it takes more than 30 seconds to read, it won't get read.",
+      text: "Goes to the platform team via Slack or email. Automate these with Grafana's reporting plugin or a custom script. Include deployment count and success rate, median lead time, tickets opened and resolved, and any notable incidents. Keep it scannable — if it takes more than 30 seconds to read, it won't get read.",
     },
     {
       lead: 'Monthly reviews',
-      text: "go to engineering leadership. DORA metrics trends, developer satisfaction trends, major accomplishments, risks and blockers. This is where you add narrative: why did lead time spike in week 3? What's blocking the self-service rate improvement?",
+      text: "Goes to engineering leadership. DORA metrics trends, developer satisfaction trends, major accomplishments, risks and blockers. This is where you add narrative: why did lead time spike in week 3? What's blocking the self-service rate improvement?",
     },
     {
       lead: 'Quarterly business reviews',
-      text: 'go to executive stakeholders. Platform ROI analysis, developer productivity trends, roadmap progress, investment requests. Translate technical metrics into business impact: "Onboarding time reduction saved 200 developer-hours this quarter."',
+      text: 'Goes to executive stakeholders. Platform ROI analysis, developer productivity trends, roadmap progress, investment requests. Translate technical metrics into business impact: "Onboarding time reduction saved 200 developer-hours this quarter."',
     },
     {
       lead: 'Annual reports',
-      text: "go to the broader organization. Year in review, major milestones, impact stories, next year's vision. This is your chance to build organizational awareness and support for platform investment.",
+      text: "Goes to the broader organization. Year in review, major milestones, impact stories, next year's vision. This is your chance to build organizational awareness and support for platform investment.",
     },
   ]}
 />
 
 <Callout type="success">
-Automate reporting wherever possible. Manual reports are time-consuming and inconsistent. Use Grafana's reporting plugin, scheduled Jupyter notebooks[^jupyter], or custom scripts. Reserve manual effort for narrative and interpretation—the "why" behind the numbers.
+Automate reporting wherever possible. Manual reports are time-consuming and inconsistent. Use Grafana's reporting plugin, scheduled Jupyter notebooks[^jupyter], or custom scripts. Reserve manual effort for narrative and interpretation — the "why" behind the numbers.
 </Callout>
 
-[^jupyter]: Automating reports with Jupyter notebooks requires three components: parameterization, headless execution, and scheduling. Use Papermill to inject values (like report dates) at runtime—tag cells with "parameters" in JupyterLab's Property Inspector, then run `papermill input.ipynb output_report.ipynb -p report_date '2024-02-01'`. For simpler cases without parameters, `jupyter nbconvert --to html --execute my_report.ipynb` generates HTML output directly. Schedule either command with cron, Airflow, or your CI system.
+[^jupyter]: Automating reports with Jupyter notebooks requires three components: parameterization, headless execution, and scheduling. Use Papermill to inject values (like report dates) at runtime — tag cells with "parameters" in JupyterLab's Property Inspector, then run `papermill input.ipynb output_report.ipynb -p report_date '2024-02-01'`. For simpler cases without parameters, `jupyter nbconvert --to html --execute my_report.ipynb` generates HTML output directly. Schedule either command with cron, Airflow, or your CI system.
 
 ## Conclusion
 
@@ -623,5 +578,5 @@ If you're starting from scratch, don't try to build everything at once. Start wi
 The ultimate goal is a clear narrative: "Before the platform, onboarding took two weeks. After, it takes two hours. We saved 200 developer-hours this quarter." That story, backed by data, justifies continued investment and guides roadmap decisions.
 
 <Callout type="info">
-Metrics are a means to an end. The goal isn't impressive dashboards—it's understanding whether the platform reduces friction and enabling decisions about where to invest next. If metrics don't change behavior, they're not worth collecting.
+Metrics are a means to an end. The goal isn't impressive dashboards — it's understanding whether the platform reduces friction and enabling decisions about where to invest next. If metrics don't change behavior, they're not worth collecting.
 </Callout>

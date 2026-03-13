@@ -34,15 +34,15 @@ Kubernetes cost optimization has three levers: use cheaper compute (spot instanc
 
 ### Requests vs Limits
 
-The Kubernetes resource model trips up a lot of teams because _requests_ and _limits_ sound similar but do completely different things.
+The Kubernetes resource model trips up a lot of teams because __requests__ and __limits__ sound similar but do completely different things.
 
-_Requests_ are what the scheduler uses for placement decisions. When you set `cpu: 500m` as a request, you're telling Kubernetes "this container needs half a CPU core guaranteed." The scheduler won't place your pod on a node unless that capacity is available. Requests are promises - the node reserves that capacity for your container whether you use it or not.
+__Requests__ are what the scheduler uses for placement decisions. When you set `cpu: 500m` as a request, you're telling Kubernetes "this container needs half a CPU core guaranteed." The scheduler won't place your pod on a node unless that capacity is available. Requests are promises - the node reserves that capacity for your container whether you use it or not.
 
-_Limits_ are enforcement boundaries. CPU limits throttle - if your container tries to use more than its limit, it gets slowed down but keeps running. Memory limits kill - exceed your memory limit and the kernel OOM-kills your container. Limits can exceed what's actually available on a node (overcommit), but requests cannot.
+__Limits__ are enforcement boundaries. CPU limits throttle - if your container tries to use more than its limit, it gets slowed down but keeps running. Memory limits kill - exceed your memory limit and the kernel OOM-kills your container. Limits can exceed what's actually available on a node (overcommit), but requests cannot.
 
-This distinction matters for cost because _requests determine how many nodes you need_. If every pod requests 1 CPU but only uses 0.1, you're paying for 10x the capacity you need. The scheduler sees the cluster as full when it's actually 90% idle.
+This distinction matters for cost because __requests determine how many nodes you need__. If every pod requests 1 CPU but only uses 0.1, you're paying for 10x the capacity you need. The scheduler sees the cluster as full when it's actually 90% idle.
 
-Kubernetes assigns a QoS class based on how you set resources. _Guaranteed_ pods (requests equal limits for all resources) get the highest priority and are evicted last under pressure. _Burstable_ pods (requests less than limits) are the common case. _BestEffort_ pods (no requests or limits) are evicted first - avoid these in production. To control your pod's QoS class, set both CPU and memory requests equal to their limits for Guaranteed, or set requests lower than limits (or omit limits) for Burstable.
+Kubernetes assigns a QoS class based on how you set resources. __Guaranteed__ pods (requests equal limits for all resources) get the highest priority and are evicted last under pressure. __Burstable__ pods (requests less than limits) are the common case. __BestEffort__ pods (no requests or limits) are evicted first - avoid these in production. To control your pod's QoS class, set both CPU and memory requests equal to their limits for Guaranteed, or set requests lower than limits (or omit limits) for Burstable.
 
 <Table
   variant="vertical-column-delineation-table"
@@ -86,7 +86,7 @@ A side note on memory limits: there's an ongoing debate about whether to set the
 
 ### The Over-Provisioning Problem
 
-Understanding the request/limit distinction explains _why_ over-provisioning is so expensive - but it doesn't explain why it's so common.
+Understanding the request/limit distinction explains __why__ over-provisioning is so expensive - but it doesn't explain why it's so common.
 
 Over-provisioning happens organically. A developer sets resource requests during initial deployment, picks numbers that seem reasonable with some safety margin, and never revisits them. The service works fine, so the requests stay. Multiply this across hundreds of services and you end up with a cluster that's 30% utilized but "full" according to the scheduler.
 
@@ -182,7 +182,7 @@ Spot instances are spare cloud capacity sold at steep discounts - typically 50-9
 
 Every cloud provider has their own name for this: AWS calls them Spot Instances, GCP has Preemptible VMs and Spot VMs, Azure has Spot VMs. The mechanics differ slightly but the concept is the same: cheaper compute that might disappear.
 
-Spot works well for _stateless workloads_ (web servers, API servers, workers), _batch processing_ (data pipelines, ML training), _development environments_, and _CI/CD runners_. It's a poor fit for _databases_, _stateful services without replication_, _long-running jobs that can't checkpoint_, and _single-replica critical services_. The rule of thumb: if your workload can survive losing a node at any moment, it's a spot candidate.
+Spot works well for __stateless workloads__ (web servers, API servers, workers), __batch processing__ (data pipelines, ML training), __development environments__, and __CI/CD runners__. It's a poor fit for __databases__, __stateful services without replication__, __long-running jobs that can't checkpoint__, and __single-replica critical services__. The rule of thumb: if your workload can survive losing a node at any moment, it's a spot candidate.
 
 How often do interruptions happen? It varies by instance type and region, but in my experience, a diversified spot pool sees 1-3 interruptions per week. Popular instance types in busy regions get interrupted more frequently. The savings still outweigh the operational overhead for suitable workloads - you just need to design for it.
 
@@ -232,7 +232,7 @@ Notice the spot pool specifies multiple instance types. This is critical - if yo
 
 ### Workload Configuration for Spot
 
-A workload needs three things to run safely on spot: _multiple replicas_ spread across availability zones, _tolerations_ for the spot taint, and _graceful shutdown handling_ to drain cleanly when interrupted.
+A workload needs three things to run safely on spot: __multiple replicas__ spread across availability zones, __tolerations__ for the spot taint, and __graceful shutdown handling__ to drain cleanly when interrupted.
 
 ```yaml title="spot-tolerant-deployment.yaml"
 # Deployment configured for spot instances
@@ -358,7 +358,7 @@ Code: Namespace with cost allocation labels and resource quota.
 
 ### Cost Monitoring Dashboard
 
-The most impactful cost dashboard shows teams their _waste_, not their spend. "You spent $5,000" doesn't tell anyone what to do differently. "You're using 30% of what you requested" does.
+The most impactful cost dashboard shows teams their __waste__, not their spend. "You spent $5,000" doesn't tell anyone what to do differently. "You're using 30% of what you requested" does.
 
 Build dashboards around efficiency ratios and wasted resources. The core queries are straightforward:
 
@@ -391,7 +391,7 @@ The cluster autoscaler adds nodes when pods can't be scheduled and removes nodes
 
 The key scale-down settings are `scale-down-utilization-threshold` (nodes below this utilization are candidates for removal) and `scale-down-unneeded-time` (how long a node must be underutilized before removal). A threshold of 0.5 and unneeded time of 10 minutes is a reasonable starting point - aggressive enough to remove waste but not so aggressive that you're constantly churning nodes.
 
-The _expander_ controls which node pool the autoscaler scales when multiple pools could satisfy pending pods. For cost optimization, use `least-waste` (picks the pool that results in least idle resources) or `priority` (lets you explicitly prefer spot pools over on-demand). The `price` expander sounds ideal but requires accurate cost data that's often stale.
+The __expander__ controls which node pool the autoscaler scales when multiple pools could satisfy pending pods. For cost optimization, use `least-waste` (picks the pool that results in least idle resources) or `priority` (lets you explicitly prefer spot pools over on-demand). The `price` expander sounds ideal but requires accurate cost data that's often stale.
 
 ### Priority-Based Autoscaling
 
