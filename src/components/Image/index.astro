@@ -26,6 +26,18 @@ const allowedVariants = ['left', 'right', 'center', 'full'] as const
 const resolvedVariant = allowedVariants.includes(variant) ? variant : 'center'
 const iconBankId = `content-image-icon-bank-${Math.random().toString(36).slice(2)}`
 const openLabel = alt ? `Open expanded view for ${alt}` : 'Open expanded image'
+const hostClasses = 'my-6 block w-full'
+const figureClassesByVariant = {
+	center: 'm-0 w-full max-w-full md:mx-auto md:max-w-3xl',
+	left: 'm-0 w-full max-w-full md:mr-auto md:max-w-3xl',
+	right: 'm-0 w-full max-w-full md:ml-auto md:max-w-3xl',
+	full: 'm-0 w-full max-w-full',
+} as const
+const figureClasses = figureClassesByVariant[resolvedVariant]
+const surfaceClasses = 'relative overflow-hidden rounded-xl border border-trim bg-page-offset'
+const assetClasses = 'block h-auto w-full'
+const openButtonClasses =
+	"absolute top-2 right-2 hidden items-center justify-center border-0 bg-transparent p-1.5 text-icons transition-[color,transform] duration-150 ease-linear hover:scale-[1.03] hover:text-icons-active focus-visible:scale-[1.03] focus-visible:text-icons-active focus-visible:outline-none md:inline-flex after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
 ---
 
 {src && (
@@ -37,7 +49,7 @@ const openLabel = alt ? `Open expanded view for ${alt}` : 'Open expanded image'
 		</div>
 
 		<content-image
-			class="content-image"
+			class={hostClasses}
 			data-image-variant={resolvedVariant}
 			data-testid="content-image"
 			icon-bank-id={iconBankId}
@@ -46,13 +58,13 @@ const openLabel = alt ? `Open expanded view for ${alt}` : 'Open expanded image'
 			image-src={src.src}
 			image-width={String(src.width)}
 		>
-			<div class="content-image__figure" data-image-figure>
-				<div class="content-image__surface">
+			<div class={figureClasses} data-image-figure>
+				<div class={surfaceClasses}>
 					<AstroImage
 						src={src}
 						alt={alt}
 						loading={loading}
-						class="content-image__asset"
+						class={assetClasses}
 						widths={[480, 768, 1024, 1280, 1600]}
 						sizes="(min-width: 768px) 48rem, 100vw"
 					/>
@@ -60,7 +72,7 @@ const openLabel = alt ? `Open expanded view for ${alt}` : 'Open expanded image'
 					{/** Intentionally not using Button component. */}
 					<button
 						type="button"
-						class="content-image__open"
+						class={openButtonClasses}
 						data-image-open
 						aria-label={openLabel}
 					>
@@ -71,105 +83,6 @@ const openLabel = alt ? `Open expanded view for ${alt}` : 'Open expanded image'
 
 			<div data-image-modal-root></div>
 		</content-image>
-
-		<style>
-			.content-image {
-				display: block;
-				margin-block: 1.5rem;
-				width: 100%;
-			}
-
-			.content-image__figure {
-				margin: 0;
-				max-width: 100%;
-				width: 100%;
-			}
-
-			.content-image__surface {
-				background: var(--color-page-offset);
-				border: 1px solid var(--color-trim);
-				border-radius: 0.75rem;
-				overflow: hidden;
-				position: relative;
-			}
-
-			.content-image__asset {
-				display: block;
-				height: auto;
-				width: 100%;
-			}
-
-			.content-image__open {
-				align-items: center;
-				background: transparent;
-				border: 0;
-				border-radius: 9999px;
-				color: var(--color-icons);
-				cursor: pointer;
-				display: none;
-				justify-content: center;
-				padding: 0.4rem;
-				position: absolute;
-				right: 0.5rem;
-				top: 0.5rem;
-				transition:
-					color 150ms ease,
-					transform 150ms ease;
-			}
-
-			.content-image__open::after {
-				border: 2px solid transparent;
-				border-radius: 0;
-				content: '';
-				inset: -0.25rem;
-				opacity: 0;
-				pointer-events: none;
-				position: absolute;
-				transition:
-					opacity 150ms ease,
-					border-color 150ms ease;
-			}
-
-			.content-image__open:hover,
-			.content-image__open:focus-visible {
-				color: var(--color-icons-active);
-				outline: none;
-				transform: scale(1.03);
-			}
-
-			.content-image__open:focus-visible::after {
-				border-color: var(--color-spotlight);
-				opacity: 1;
-			}
-
-			@media (min-width: 768px) {
-				.content-image__open {
-					display: inline-flex;
-				}
-
-				.content-image[data-image-variant='center'] .content-image__figure,
-				.content-image[data-image-variant='left'] .content-image__figure,
-				.content-image[data-image-variant='right'] .content-image__figure {
-					max-width: min(100%, 48rem);
-				}
-
-				.content-image[data-image-variant='center'] .content-image__figure {
-					margin-inline: auto;
-				}
-
-				.content-image[data-image-variant='left'] .content-image__figure {
-					margin-inline-end: auto;
-				}
-
-				.content-image[data-image-variant='right'] .content-image__figure {
-					margin-inline-start: auto;
-				}
-
-				.content-image[data-image-variant='full'] .content-image__figure {
-					max-width: 100%;
-				}
-			}
-		</style>
 
 		<script>
 			import { registerImageWebComponent } from '@components/Image/client'

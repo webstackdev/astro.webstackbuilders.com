@@ -20,6 +20,14 @@ const parseDimension = (value: string | null): number | undefined => {
 }
 
 const isElement = (value: EventTarget | null): value is Element => value instanceof Element
+const dialogClasses = 'fixed inset-0 z-(--z-modal) flex items-center justify-center p-4 md:p-8'
+const backdropClasses = 'absolute inset-0 bg-content opacity-[0.72]'
+const panelClasses =
+	'relative flex w-full max-w-[min(92vw,90rem)] max-h-[calc(100vh-2rem)] items-center justify-center overflow-hidden rounded-2xl border border-trim bg-page-base px-4 pt-12 pb-4 md:max-h-[calc(100vh-4rem)] md:px-6 md:pt-14 md:pb-6'
+const closeButtonClasses =
+	"absolute right-3 top-3 inline-flex items-center justify-center border-0 bg-transparent p-1.5 text-icons transition-colors duration-150 ease-linear hover:text-icons-active focus-visible:text-icons-active focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
+const modalAssetClasses =
+	'mx-auto block h-auto max-h-[calc(100vh-6rem)] max-w-full w-auto object-contain md:max-h-[calc(100vh-8rem)]'
 
 export class ImageElement extends LitElement {
 	static registeredName = COMPONENT_TAG_NAME
@@ -127,7 +135,7 @@ export class ImageElement extends LitElement {
 			typeof document !== 'undefined'
 				? queryImageIconMarkup({
 						iconBankId: this.iconBankId,
-							iconName: 'close',
+						iconName: 'close',
 						root: document,
 					})
 				: null
@@ -135,123 +143,20 @@ export class ImageElement extends LitElement {
 		const dialogLabel = this.imageAlt ? `Expanded view for ${this.imageAlt}` : 'Expanded image'
 
 		return html`
-			<style>
-				[data-image-dialog] {
-					align-items: center;
-					display: flex;
-					inset: 0;
-					justify-content: center;
-					padding: 1rem;
-					position: fixed;
-					z-index: var(--z-modal);
-				}
-
-				[data-image-dialog][hidden] {
-					display: none;
-				}
-
-				.content-image__backdrop {
-					background: var(--color-content);
-					inset: 0;
-					opacity: 0.72;
-					position: absolute;
-				}
-
-				.content-image__panel {
-					align-items: center;
-					background: var(--color-page-base);
-					border: 1px solid var(--color-trim);
-					border-radius: 1rem;
-					display: flex;
-					justify-content: center;
-					max-height: calc(100vh - 2rem);
-					max-width: min(92vw, 90rem);
-					overflow: hidden;
-					padding: 3rem 1rem 1rem;
-					position: relative;
-					width: 100%;
-				}
-
-				.content-image__close {
-					align-items: center;
-					background: transparent;
-					border: 0;
-					border-radius: 9999px;
-					color: var(--color-icons);
-					cursor: pointer;
-					display: inline-flex;
-					justify-content: center;
-					padding: 0.35rem;
-					position: absolute;
-					right: 0.75rem;
-					top: 0.75rem;
-					transition:
-						color 150ms ease;
-				}
-
-				.content-image__close::after {
-					border: 2px solid transparent;
-					border-radius: 0;
-					content: '';
-					inset: -0.25rem;
-					opacity: 0;
-					pointer-events: none;
-					position: absolute;
-					transition:
-						opacity 150ms ease,
-						border-color 150ms ease;
-				}
-
-				.content-image__close:hover,
-				.content-image__close:focus-visible {
-					color: var(--color-icons-active);
-					outline: none;
-				}
-
-				.content-image__close:focus-visible::after {
-					border-color: var(--color-spotlight);
-					opacity: 1;
-				}
-
-				.content-image__modal-asset {
-					display: block;
-					height: auto;
-					margin: 0 auto;
-					max-height: calc(100vh - 6rem);
-					max-width: 100%;
-					object-fit: contain;
-					width: auto;
-				}
-
-				@media (min-width: 768px) {
-					[data-image-dialog] {
-						padding: 2rem;
-					}
-
-					.content-image__panel {
-						max-height: calc(100vh - 4rem);
-						padding: 3.5rem 1.5rem 1.5rem;
-					}
-
-					.content-image__modal-asset {
-						max-height: calc(100vh - 8rem);
-					}
-				}
-			</style>
-
 			<div
+				class=${dialogClasses}
 				data-image-dialog
 				role="dialog"
 				aria-modal="true"
 				aria-label=${dialogLabel}
 				?hidden=${!this.open}
 			>
-				<div class="content-image__backdrop" @click=${() => this.closeModal()}></div>
+				<div class=${backdropClasses} @click=${() => this.closeModal()}></div>
 
-				<div class="content-image__panel">
+				<div class=${panelClasses}>
 					<button
 						type="button"
-						class="content-image__close"
+						class=${closeButtonClasses}
 						data-image-close
 						aria-label="Close image dialog"
 						@click=${() => this.closeModal()}
@@ -261,7 +166,7 @@ export class ImageElement extends LitElement {
 
 					${this.open && this.imageSrc
 						? html`<img
-								class="content-image__modal-asset"
+								class=${modalAssetClasses}
 								data-image-modal-asset
 								src=${this.imageSrc}
 								alt=${this.imageAlt}
