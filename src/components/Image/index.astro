@@ -1,0 +1,180 @@
+---
+import { Image as AstroImage } from 'astro:assets'
+import Icon from '@components/Icon/index.astro'
+
+type ImageSource = {
+	src: string
+	width: number
+	height: number
+}
+
+export interface Props {
+	src?: ImageSource
+	alt?: string
+	variant?: 'left' | 'right' | 'center' | 'full'
+	loading?: 'lazy' | 'eager'
+}
+
+const {
+	src,
+	alt = '',
+	variant = 'center',
+	loading = 'lazy',
+}: Props = Astro.props
+
+const allowedVariants = ['left', 'right', 'center', 'full'] as const
+const resolvedVariant = allowedVariants.includes(variant) ? variant : 'center'
+const iconBankId = `content-image-icon-bank-${Math.random().toString(36).slice(2)}`
+const openLabel = alt ? `Open expanded view for ${alt}` : 'Open expanded image'
+---
+
+{src && (
+	<>
+		<div id={iconBankId} hidden aria-hidden="true">
+			<span data-image-icon="close">
+				<Icon icon="close" color="inherit" size={8} />
+			</span>
+		</div>
+
+		<content-image
+			class="content-image"
+			data-image-variant={resolvedVariant}
+			data-testid="content-image"
+			icon-bank-id={iconBankId}
+			image-alt={alt}
+			image-height={String(src.height)}
+			image-src={src.src}
+			image-width={String(src.width)}
+		>
+			<div class="content-image__figure" data-image-figure>
+				<div class="content-image__surface">
+					<AstroImage
+						src={src}
+						alt={alt}
+						loading={loading}
+						class="content-image__asset"
+						widths={[480, 768, 1024, 1280, 1600]}
+						sizes="(min-width: 768px) 48rem, 100vw"
+					/>
+
+					{/** Intentionally not using Button component. */}
+					<button
+						type="button"
+						class="content-image__open"
+						data-image-open
+						aria-label={openLabel}
+					>
+						<Icon icon="magnify" color="inherit" size={8} />
+					</button>
+				</div>
+			</div>
+
+			<div data-image-modal-root></div>
+		</content-image>
+
+		<style>
+			.content-image {
+				display: block;
+				margin-block: 1.5rem;
+				width: 100%;
+			}
+
+			.content-image__figure {
+				margin: 0;
+				max-width: 100%;
+				width: 100%;
+			}
+
+			.content-image__surface {
+				background: var(--color-page-offset);
+				border: 1px solid var(--color-trim);
+				border-radius: 0.75rem;
+				overflow: hidden;
+				position: relative;
+			}
+
+			.content-image__asset {
+				display: block;
+				height: auto;
+				width: 100%;
+			}
+
+			.content-image__open {
+				align-items: center;
+				background: transparent;
+				border: 0;
+				border-radius: 9999px;
+				color: var(--color-icons);
+				cursor: pointer;
+				display: none;
+				justify-content: center;
+				padding: 0.4rem;
+				position: absolute;
+				right: 0.5rem;
+				top: 0.5rem;
+				transition:
+					color 150ms ease,
+					transform 150ms ease;
+			}
+
+			.content-image__open::after {
+				border: 2px solid transparent;
+				border-radius: 0;
+				content: '';
+				inset: -0.25rem;
+				opacity: 0;
+				pointer-events: none;
+				position: absolute;
+				transition:
+					opacity 150ms ease,
+					border-color 150ms ease;
+			}
+
+			.content-image__open:hover,
+			.content-image__open:focus-visible {
+				color: var(--color-icons-active);
+				outline: none;
+				transform: scale(1.03);
+			}
+
+			.content-image__open:focus-visible::after {
+				border-color: var(--color-spotlight);
+				opacity: 1;
+			}
+
+			@media (min-width: 768px) {
+				.content-image__open {
+					display: inline-flex;
+				}
+
+				.content-image[data-image-variant='center'] .content-image__figure,
+				.content-image[data-image-variant='left'] .content-image__figure,
+				.content-image[data-image-variant='right'] .content-image__figure {
+					max-width: min(100%, 48rem);
+				}
+
+				.content-image[data-image-variant='center'] .content-image__figure {
+					margin-inline: auto;
+				}
+
+				.content-image[data-image-variant='left'] .content-image__figure {
+					margin-inline-end: auto;
+				}
+
+				.content-image[data-image-variant='right'] .content-image__figure {
+					margin-inline-start: auto;
+				}
+
+				.content-image[data-image-variant='full'] .content-image__figure {
+					max-width: 100%;
+				}
+			}
+		</style>
+
+		<script>
+			import { registerImageWebComponent } from '@components/Image/client'
+
+			registerImageWebComponent()
+		</script>
+	</>
+)}
