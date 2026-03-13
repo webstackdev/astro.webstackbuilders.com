@@ -6,21 +6,22 @@ export type Props = {
     layout?: string
     wrapper?: string
   }
+  color?: string | undefined
   size?: number
   variant: string
 }
 
-const { variant = 'default', classes } = Astro.props
+const { variant = 'default', classes, color } = Astro.props
 ---
 
 <div class:list={[classes?.wrapper ? classes.wrapper : 'mb-8']}>
   {variant === 'default' &&
     (classes?.layout !== undefined ? (
-      <DefaultInset classes={{ layout: classes.layout }}>
+      <DefaultInset classes={{ layout: classes.layout }} color={color}>
         <slot />
       </DefaultInset>
     ) : (
-      <DefaultInset>
+      <DefaultInset color={color}>
         <slot />
       </DefaultInset>
     ))}

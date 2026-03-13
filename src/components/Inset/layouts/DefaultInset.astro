@@ -3,11 +3,13 @@ export type Props = {
   classes?: {
     layout?: string
   }
+  color?: string | undefined
 }
 
-const { classes }: Props = Astro.props
+const { classes, color }: Props = Astro.props
 
-const layoutClass = "font-mono bg-content-inverse-active border-2 border-trim rounded-md px-6 pt-6"
+const backgroundClass = color ? `bg-${color}` : 'bg-content-inverse-active'
+const layoutClass = `font-mono ${backgroundClass} border-2 border-trim rounded-md px-6 pt-6`
 ---
 
 <div class:list={[layoutClass, classes?.layout]}>

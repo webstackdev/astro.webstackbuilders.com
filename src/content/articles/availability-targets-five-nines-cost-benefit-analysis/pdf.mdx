@@ -26,7 +26,7 @@ import threeNinesDiagram from "./diagrams/three-nines-architecture-with-multi-AZ
 *[SLI]: Service Level Indicator
 *[SLO]: Service Level Objective
 
-> "We need five nines."
+> We need five nines.
 
 Most of us have heard this in planning meetings. It sounds impressive—99.999% availability, only 5 minutes of downtime per year. The kind of number you put in a pitch deck. The problem is that the people asking for five nines rarely understand what it costs, and almost never have the business case to justify it.
 
@@ -34,11 +34,11 @@ I once worked with a startup that was spending 40% of their infrastructure budge
 
 The worst part? Their users couldn't tell the difference. The app was a B2B tool used primarily during business hours. Most of their "downtime" happened at 3am when nobody was logged in anyway.
 
-This is the trap: availability targeting becomes a badge of engineering honor rather than an economic decision. Every additional nine costs roughly 10x more than the previous one. Before committing to a target, you need to know exactly what you're buying and whether the business value justifies the investment.
-
 <Callout type="warning">
 This article argues that 99.9% is the right target for most services. If you're in financial trading, healthcare, or life safety systems — keep reading anyway. The cost-benefit framework still applies; your crossover point is just higher than most.
 </Callout>
+
+This is the trap: availability targeting becomes a badge of engineering honor rather than an economic decision. Every additional nine costs roughly 10x more than the previous one. Before committing to a target, you need to know exactly what you're buying and whether the business value justifies the investment.
 
 ## The Math of Nines
 
@@ -47,7 +47,7 @@ This article argues that 99.9% is the right target for most services. If you're 
 Before diving into cost analysis, let's ground the discussion in concrete numbers. Availability percentages are abstract — stakeholders need to understand what they actually mean in terms of downtime.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Availability percentages translated to actual downtime windows.",
     thead: { th: ["Availability", "Annual Downtime", "Monthly Downtime", "Weekly Downtime"] },
@@ -90,13 +90,13 @@ $$
 
 Let's say you have three services, each running at a respectable 99.9%:
 
-```text
+<Inset color="warning-inverse">
 Example: Three 99.9% components in series
 System availability = 0.999 × 0.999 × 0.999 = 0.997 (99.7%)
 
 Three 99.9% components became one 99.7% system.
 You lost almost a full "nine" just by having dependencies.
-```
+</Inset>
 
 This is why microservices architectures often have worse availability than monoliths unless carefully designed. Every network hop, every service call, every database query is another multiplicative factor dragging your availability down.
 
@@ -122,14 +122,14 @@ $$
 
 This is where the magic happens:
 
-```text
+<Inset color="success-inverse">
 Example: Two 99% servers in parallel (either can serve traffic)
 Availability = 1 - (0.01 × 0.01) = 1 - 0.0001 = 99.99%
 
 Two cheap servers achieved what one expensive server could not.
-```
+</Inset>
 
-This is the fundamental insight behind all high-availability architectures: redundancy is cheaper than perfection. Two mediocre servers behind a load balancer beat one expensive server every time. The key constraint is that the failures must be _independent_—if both servers share a network switch that fails, you don't get the parallel availability benefit.
+This is the fundamental insight behind all high-availability architectures: redundancy is cheaper than perfection. Two mediocre servers behind a load balancer beat one expensive server every time. The key constraint is that the failures must be _independent_ — if both servers share a network switch that fails, you don't get the parallel availability benefit.
 
 ## The Cost Curve
 
@@ -138,7 +138,7 @@ This is the fundamental insight behind all high-availability architectures: redu
 The "10x per nine" rule of thumb is surprisingly accurate when you look at real infrastructure costs. Each availability tier requires fundamentally different architectural approaches, not just more of the same hardware.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     figure: "Infrastructure cost multipliers by availability tier.",
     thead: { th: ["Tier", "Typical Architecture", "Relative Cost"] },
@@ -168,7 +168,6 @@ The "10x per nine" rule of thumb is surprisingly accurate when you look at real 
     },
   }}
 />
-Table: Infrastructure cost multipliers by availability tier.
 
 Here's what each tier actually looks like in practice. At **99%**, you're running single-region, single-zone infrastructure with a single database instance, manual failover, and basic uptime checks — roughly $500/month in infrastructure. At **99.9%**, you need multi-AZ deployment within a region, database replication with automated failover, and comprehensive APM — around $2,000/month.
 
@@ -181,7 +180,7 @@ Notice the jump from three nines to four nines — you go from regional redundan
 Infrastructure is the visible cost. The hidden costs are often larger.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "Hidden costs that increase with availability targets.",
     thead: { th: ["Cost Category", "Why It Scales", "Example"] },
@@ -211,8 +210,6 @@ Infrastructure is the visible cost. The hidden costs are often larger.
     },
   }}
 />
-
-Table: Hidden costs that increase with availability targets.
 
 The on-call math alone can be decisive. To maintain a sustainable 24/7 on-call rotation with reasonable response times, you need at minimum 4-5 engineers. At $150k fully loaded cost per engineer, that's $600k-$750k annually just for the humans — before you've bought a single server. For a startup, that's often more than the entire infrastructure budget at the 99.9% tier.
 
@@ -290,7 +287,7 @@ Most businesses don't have that math. E-commerce sites doing $50 million annuall
 The dirty secret of availability metrics is that they treat all minutes equally. A minute of downtime at 3am on a Sunday counts the same as a minute during Black Friday checkout rush. Your availability number doesn't distinguish between them — but your users absolutely do.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Same availability number can mean very different user experiences.",
     thead: { th: ["Downtime Type", "User Impact", "Availability Impact"] },
@@ -371,7 +368,7 @@ Notice that the user-centric targets are often _lower_ than infrastructure targe
 Here's a truth that frees you from the five nines trap: users have a tolerance threshold, and improvements beyond that threshold are invisible to them. Nobody notices the difference between 99.95% and 99.99% availability. They notice slow pages. They notice missing features. They notice clunky UX.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     figure: "Different user segments have different availability expectations.",
     thead: { th: ["User Segment", "Acceptable Unavailability", "Reason"] },
@@ -420,6 +417,7 @@ Those conversations are easier when you come prepared with specific questions.
 Before committing to an availability target, you need answers to questions that span business, technical, and organizational domains. This isn't bureaucracy — it's due diligence that prevents you from making promises you can't keep.
 
 1. **Business Questions**
+
    - [ ] What is the revenue impact of one hour of downtime?
    - [ ] What is the revenue impact of degraded performance?
    - [ ] Are there contractual SLA requirements from customers?
@@ -427,6 +425,7 @@ Before committing to an availability target, you need answers to questions that 
    - [ ] What is the reputational cost of publicized outages?
 
 2. **Technical Questions**
+
    - [ ] What is our current measured availability?
    - [ ] What are our dependencies' SLAs?
    - [ ] What is our theoretical maximum given dependencies?
@@ -434,12 +433,14 @@ Before committing to an availability target, you need answers to questions that 
    - [ ] What is the cost of each tier?
 
 3. **Organizational Questions**
+
    - [ ] Do we have the engineering expertise?
    - [ ] Can we staff 24/7 on-call if needed?
    - [ ] Is leadership willing to prioritize reliability over features?
    - [ ] Do we have budget for the tooling required?
 
 4. **Reality Check**
+
    - [ ] Is the target achievable given our dependencies?
    - [ ] Is the cost justified by the business value?
    - [ ] Are we measuring the right thing (user experience vs. uptime)?
@@ -454,7 +455,7 @@ Your availability ceiling isn't set by your ambition — it's set by your weakes
 Consider a checkout service with four dependencies:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
   items={[
     {
       lead: "Payment gateway (external):",
@@ -506,22 +507,27 @@ At 99%, you're allowed about 87 hours of downtime per year. That's generous enou
 **Characteristics:**
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
   items={[
     {
       text: "Single region, single availability zone acceptable",
+      color: "bg-success",
     },
     {
       text: "Basic load balancing (can be DNS-based)",
+      color: "bg-success",
     },
     {
       text: "Single database with backup/restore",
+      color: "bg-success",
     },
     {
       text: "Manual intervention expected during failures",
+      color: "bg-success",
     },
     {
       text: "On-call response time: hours acceptable",
+      color: "bg-success",
     },
   ]}
 />
@@ -541,22 +547,27 @@ At 99.9%, you're down to 8.77 hours of allowed downtime per year. That's still a
 **Additions from 99%:**
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
   items={[
     {
       text: "Multi-availability zone deployment",
+      color: "bg-success",
     },
     {
       text: "Database replication with automated failover",
+      color: "bg-success",
     },
     {
       text: "Health checks and automated instance replacement",
+      color: "bg-success",
     },
     {
       text: "Comprehensive monitoring and alerting",
+      color: "bg-success",
     },
     {
       text: "On-call response time: minutes required",
+      color: "bg-success",
     },
   ]}
 />
@@ -576,25 +587,31 @@ At 99.99%, you're allowed only 52 minutes of downtime per year. That's less than
 **Additions from 99.9%:**
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
   items={[
     {
       text: "Multi-region deployment",
+      color: "bg-success",
     },
     {
       text: "Global load balancing with health-based routing",
+      color: "bg-success",
     },
     {
       text: "Cross-region database replication",
+      color: "bg-success",
     },
     {
       text: "Automated regional failover",
+      color: "bg-success",
     },
     {
       text: "Zero-downtime deployments required",
+      color: "bg-success",
     },
     {
       text: "24/7 on-call with <15 minute response",
+      color: "bg-success",
     },
   ]}
 />
@@ -612,25 +629,31 @@ Five nines (5.26 minutes/year of downtime) means you cannot have a single failur
 **Requirements for 99.999%:**
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
   items={[
     {
       text: "Active-active multi-region (not failover, simultaneous)",
+      color: "bg-success",
     },
     {
       text: "No single points of failure anywhere",
+      color: "bg-success",
     },
     {
       text: "Sub-second automated recovery",
+      color: "bg-success",
     },
     {
       text: "Chaos engineering as standard practice",
+      color: "bg-success",
     },
     {
       text: "Dedicated reliability engineering team",
+      color: "bg-success",
     },
     {
       text: "Feature velocity sacrificed for stability",
+      color: "bg-success",
     },
   ]}
 />
@@ -652,7 +675,7 @@ The pattern in these cases: the cost of failure isn't measured in lost revenue, 
 Business stakeholders don't care about architecture diagrams or failure modes. They care about risk, cost, and competitive positioning. Present availability as a menu of options with business-relevant tradeoffs.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Availability options with total annual cost (infrastructure + people + tooling + opportunity cost).",
     thead: { th: ["Option", "Availability", "Annual Downtime", "Total Cost", "Best For"] },
@@ -690,7 +713,10 @@ Not every availability request deserves a "yes." Part of engineering leadership 
 **When to push back on five nines:**
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "ml-6 mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Revenue doesn't justify it",
@@ -725,27 +751,27 @@ A good availability decision record includes:
   variant="numbered-with-background-list"
   items={[
     {
-      lead: "Context:",
+      lead: "Context",
       text: "What triggered the discussion? Was it a customer request, a competitive claim, an outage, or a planning exercise?",
     },
     {
-      lead: "Business impact analysis:",
+      lead: "Business impact analysis",
       text: "What's the actual revenue at risk during downtime? What's current availability and what does that cost?",
     },
     {
-      lead: "Options considered:",
+      lead: "Options considered",
       text: "Present at least three tiers with their downtime, lost revenue, infrastructure cost, and net cost. Make the tradeoffs explicit.",
     },
     {
-      lead: "Dependency constraints:",
+      lead: "Dependency constraints",
       text: "What's the maximum achievable given external dependencies? This often eliminates options immediately.",
     },
     {
-      lead: "Decision and rationale:",
+      lead: "Decision and rationale",
       text: "State the chosen target and _why_. \"99.99% is not achievable given our payment gateway's 99.95% SLA\" is more useful than \"we chose 99.9%.\"",
     },
     {
-      lead: "Approvals:",
+      lead: "Approvals",
       text: "Get sign-off from engineering leadership, product, and ideally finance. Availability targets are business decisions, not just technical ones.",
     },
   ]}
@@ -763,8 +789,8 @@ Then ask the hard question: what's the actual business value of that additional 
 
 Measure what matters to users, not what's easy to measure. Server uptime is a vanity metric; successful user journeys are the real SLI. And remember that users have tolerance thresholds — nobody churns over 5 minutes of monthly downtime, but they absolutely churn over slow pages and missing features.
 
-For most services, 99.9% is the right answer. It's achievable with standard cloud tools, sustainable for normal-sized teams, and provides reliability that users perceive as "always works." Going beyond requires deliberate justification, not engineering ego.
-
 <Callout type="success">
 The goal is not maximum availability — it's appropriate availability. Spend your reliability budget where it creates the most value, and accept that some downtime is not just acceptable but economically rational.
 </Callout>
+
+For most services, 99.9% is the right answer. It's achievable with standard cloud tools, sustainable for normal-sized teams, and provides reliability that users perceive as "always works." Going beyond requires deliberate justification, not engineering ego.

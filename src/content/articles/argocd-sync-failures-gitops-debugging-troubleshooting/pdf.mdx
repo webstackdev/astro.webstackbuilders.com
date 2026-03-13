@@ -279,6 +279,8 @@ kubectl get events --field-selector reason=Failed --sort-by='.lastTimestamp'
 ```
 Code: Commands for debugging resource dependency failures.
 
+Once you've found the missing dependency, the fix is to assign it a lower sync wave than the resource that needs it. But be aware that sync waves only help across different waves — they don't help within a single wave.
+
 <Callout type="danger">
 ArgoCD's default sync does not guarantee ordering between resources in the same wave. If resource A depends on resource B and both are in wave 0, the sync may fail randomly depending on apply order.
 </Callout>
@@ -643,31 +645,11 @@ kubectl logs -n myapp -l job-name=<hook-job-name>
 
 ## Common Causes
 
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: "Hook script error:",
-      text: "Fix script, redeploy",
-    },
-    {
-      lead: "Missing permissions:",
-      text: "Add RBAC for hook ServiceAccount",
-    },
-    {
-      lead: "Image pull failure:",
-      text: "Check image name and pull secret",
-    },
-    {
-      lead: "Resource limits:",
-      text: "Increase memory/CPU limits",
-    },
-    {
-      lead: "External dependency:",
-      text: "Ensure dependency is available",
-    },
-  ]}
-/>
+- **Hook script error**: Fix script, redeploy
+- **Missing permissions**: Add RBAC for hook ServiceAccount
+- **Image pull failure**: Check image name and pull secret
+- **Resource limits**: Increase memory/CPU limits
+- **External dependency**: Ensure dependency is available
 
 ## Resolution
 
@@ -679,37 +661,15 @@ argocd app sync myapp --prune --force
 
 2. If hook needs to complete:
 
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      text: "Fix the underlying issue",
-    },
-    {
-      text: "Delete the stuck job",
-    },
-    {
-      text: "Trigger new sync",
-    },
-  ]}
-/>
+- Fix the underlying issue
+- Delete the stuck job
+- Trigger new sync
 
 3. To prevent recurrence:
 
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      text: "Add `activeDeadlineSeconds` to job spec",
-    },
-    {
-      text: "Add proper health checks to hook",
-    },
-    {
-      text: "Consider using `hook-delete-policy: BeforeHookCreation`",
-    },
-  ]}
-/>
+- Add `activeDeadlineSeconds` to job spec
+- Add proper health checks to hook
+- Consider using `hook-delete-policy: BeforeHookCreation`
 ````
 Code: Runbook for debugging sync stuck on hook execution.
 
@@ -751,6 +711,8 @@ spec:
 ```
 Code: Diagnosing and fixing OutOfSync loop caused by HPA replica management.
 
+Once you've identified the drifting field, add it to `ignoreDifferences` and sync again. The loop should stop immediately. If it doesn't, re-run the diff — there may be multiple fields drifting, or a mutating webhook might be adding new fields you haven't accounted for yet.
+
 <Callout type="warning">
 Never ignore differences on fields that represent actual drift you care about. Only ignore fields that are legitimately managed by other controllers (HPA replicas, cert-manager annotations, etc.).
 </Callout>
@@ -763,7 +725,7 @@ The symptom is a sync failure with an error like `the server doesn't have a reso
 
 The fix has two parts. First, put the CRD in an earlier sync wave so it's applied first. Second, add `SkipDryRunOnMissingResource=true` to the CRD because ArgoCD's dry-run will fail if the CRD doesn't exist yet:
 
-```yaml title="manifests/crds/myresource-crd.yaml" {5-6,16-17}
+```yaml title="manifests/crds/myresource-crd.yaml" {5-6,10}
 # CRD definition - must be in earlier sync wave.
 # The SkipDryRunOnMissingResource option prevents dry-run failures
 # when the CRD doesn't exist yet in the cluster.
@@ -799,19 +761,19 @@ Pruning is ArgoCD's way of deleting resources that exist in the cluster but not 
 The most common pruning accidents happen when:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
-      text: "You refactor your manifests and forget to include something",
+      lead: "You refactor your manifests and forget to include something.",
     },
     {
-      text: "You rename a resource (ArgoCD sees it as \"delete old, create new\")",
+      lead: 'You rename a resource. ArgoCD sees it as "<span class="italic">delete old, create new</span>".',
     },
     {
-      text: "A merge conflict resolution drops a file",
+      lead: "A merge conflict resolution drops a file.",
     },
     {
-      text: "You're testing changes in a branch and accidentally merge to main",
+      lead: "You're testing changes in a branch and accidentally merge to main.",
     },
   ]}
 />
@@ -849,26 +811,26 @@ Code: Prune protection for critical resources and safe prune policies.
 Beyond per-resource protection, ArgoCD offers several application-level sync options that control pruning behavior:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "ArgoCD sync options and their effects.",
     thead: { th: ["Sync Option", "Effect"] },
     tbody: {
       tr: [
         {
-          th: "`Prune=false`",
+          th: '<span class="font-mono">Prune=false</span>',
           td: ["Never prune this resource"],
         },
         {
-          th: "`PruneLast=true`",
+          th: '<span class="font-mono">PruneLast=true</span>',
           td: ["Prune after all other resources synced"],
         },
         {
-          th: "`PrunePropagationPolicy=foreground`",
+          th: '<span class="font-mono">PrunePropagationPolicy=foreground</span>',
           td: ["Wait for dependents before pruning"],
         },
         {
-          th: "`ApplyOutOfSyncOnly=true`",
+          th: '<span class="font-mono">ApplyOutOfSyncOnly=true</span>',
           td: ["Only apply resources that differ"],
         },
       ],
@@ -1024,7 +986,7 @@ The most common issue I've seen is with label selectors. If your application use
 The table below summarizes when to use each tracking method:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "ArgoCD resource identification methods.",
     thead: { th: ["Method", "How It Works", "When to Use"] },
@@ -1046,8 +1008,6 @@ The table below summarizes when to use each tracking method:
     },
   }}
 />
-
-Table: ArgoCD resource tracking methods.
 
 To change the tracking method or enable related sync options, configure them in your Application spec. The example below shows server-side apply, which is particularly useful when combined with annotation tracking for resources managed by multiple controllers:
 
@@ -1135,8 +1095,8 @@ The debugging workflow follows a clear pattern. Start with the ArgoCD UI or CLI 
 
 Most sync failures fall into a few categories: resource dependency issues (usually ordering problems), hook failures (scripts that time out or crash), health check failures (resources that don't become ready), and drift detection issues (differences between desired and live state that shouldn't exist). Once you recognize the category, the fix is usually straightforward.
 
-The prevention strategies matter as much as the debugging skills. CI validation catches manifest errors before they reach ArgoCD. Sync windows prevent deployments during high-risk periods. Alerting ensures you know about failures before users do. And runbooks mean that when things fail at 3 AM, you have a documented path to resolution.
-
 <Callout type="success">
 GitOps is not magic — it is automation. When the automation fails, you need to understand what it was trying to do. Master the sync process, and debugging becomes systematic rather than frustrating.
 </Callout>
+
+The prevention strategies matter as much as the debugging skills. CI validation catches manifest errors before they reach ArgoCD. Sync windows prevent deployments during high-risk periods. Alerting ensures you know about failures before users do. And runbooks mean that when things fail at 3 AM, you have a documented path to resolution.
