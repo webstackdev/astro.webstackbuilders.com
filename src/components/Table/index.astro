@@ -1,15 +1,15 @@
 ---
-import CriteriaHighlightTable from '@components/Table/layouts/criteria-highlight.astro'
-import GridAndAccentHeaderTable from '@components/Table/layouts/grid-and-accent-header.astro'
-import MinimalBordersTable from '@components/Table/layouts/minimal-borders.astro'
-import NumberedReviewTable from '@components/Table/layouts/numbered-review.astro'
-import ReportTable from '@components/Table/layouts/report-table.astro'
-import SemanticColoringTable from '@components/Table/layouts/semantic-coloring.astro'
-import SoftHeaderCardTable from '@components/Table/layouts/soft-header-card.astro'
-import StickyHeaderTable from '@components/Table/layouts/sticky-header.astro'
-import StripedRowsTable from '@components/Table/layouts/striped-rows.astro'
-import TimelineLabelsTable from '@components/Table/layouts/timeline-labels.astro'
-import VerticalColumnDelineationTable from '@components/Table/layouts/vertical-column-delineation.astro'
+import CriteriaHighlightTable, { type Props as CriteriaHighlightTableProps } from '@components/Table/layouts/criteria-highlight.astro'
+import GridAndAccentHeaderTable, { type Props as GridAndAccentHeaderTableProps } from '@components/Table/layouts/grid-and-accent-header.astro'
+import MinimalBordersTable, { type Props as MinimalBordersTableProps } from '@components/Table/layouts/minimal-borders.astro'
+import NumberedReviewTable, { type Props as NumberedReviewTableProps } from '@components/Table/layouts/numbered-review.astro'
+import ReportTable, { type Props as ReportTableProps } from '@components/Table/layouts/report-table.astro'
+import SemanticColoringTable, { type Props as SemanticColoringTableProps } from '@components/Table/layouts/semantic-coloring.astro'
+import SoftHeaderCardTable, { type Props as SoftHeaderCardTableProps } from '@components/Table/layouts/soft-header-card.astro'
+import StickyHeaderTable, { type Props as StickyHeaderTableProps } from '@components/Table/layouts/sticky-header.astro'
+import StripedRowsTable, { type Props as StripedRowsTableProps } from '@components/Table/layouts/striped-rows.astro'
+import TimelineLabelsTable, { type Props as TimelineLabelsTableProps } from '@components/Table/layouts/timeline-labels.astro'
+import VerticalColumnDelineationTable, { type Props as VerticalColumnDelineationTableProps } from '@components/Table/layouts/vertical-column-delineation.astro'
 
 export type Props = {
   content: {
@@ -50,7 +50,6 @@ const { content, variant = 'default', classes, fullWidth = true } = Astro.props
 
 const classesProps = classes ? { classes } : {}
 const layoutProps = { ...classesProps, fullWidth }
-const layoutContent = content as any
 const wrapperClass = [
   'overflow-x-auto rounded-md border border-trim bg-content-inverse',
   fullWidth ? 'w-full' : 'mx-auto w-fit max-w-full',
@@ -59,17 +58,17 @@ const wrapperClass = [
 
 <figure class:list={[content.figure ? 'my-4 mx-auto max-w-none' : '', classes?.figure]}>
   <div class={wrapperClass}>
-    {variant === 'criteria-highlight-table' && <CriteriaHighlightTable content={layoutContent} {...layoutProps} />}
-    {variant === 'grid-and-accent-header-table' && <GridAndAccentHeaderTable content={layoutContent} {...layoutProps} />}
-    {variant === 'minimal-borders-table' && <MinimalBordersTable content={layoutContent} {...layoutProps} />}
-    {variant === 'numbered-review-table' && <NumberedReviewTable content={layoutContent} {...layoutProps} />}
-    {variant === 'report-table' && <ReportTable content={layoutContent} {...layoutProps} />}
-    {variant === 'semantic-coloring-table' && <SemanticColoringTable content={layoutContent} {...layoutProps} />}
-    {variant === 'soft-header-card-table' && <SoftHeaderCardTable content={layoutContent} {...layoutProps} />}
-    {variant === 'sticky-header-table' && <StickyHeaderTable content={layoutContent} {...layoutProps} />}
-    {variant === 'striped-rows-table' && <StripedRowsTable content={layoutContent} {...layoutProps} />}
-    {variant === 'timeline-labels-table' && <TimelineLabelsTable content={layoutContent} {...layoutProps} />}
-    {variant === 'vertical-column-delineation-table' && <VerticalColumnDelineationTable content={layoutContent} {...layoutProps} />}
+    {variant === 'criteria-highlight-table' && <CriteriaHighlightTable content={content as CriteriaHighlightTableProps['content']} {...layoutProps} />}
+    {variant === 'grid-and-accent-header-table' && <GridAndAccentHeaderTable content={content as GridAndAccentHeaderTableProps['content']} {...layoutProps} />}
+    {variant === 'minimal-borders-table' && <MinimalBordersTable content={content as MinimalBordersTableProps['content']} {...layoutProps} />}
+    {variant === 'numbered-review-table' && <NumberedReviewTable content={content as NumberedReviewTableProps['content']} {...layoutProps} />}
+    {variant === 'report-table' && <ReportTable content={content as ReportTableProps['content']} {...layoutProps} />}
+    {variant === 'semantic-coloring-table' && <SemanticColoringTable content={content as SemanticColoringTableProps['content']} {...layoutProps} />}
+    {variant === 'soft-header-card-table' && <SoftHeaderCardTable content={content as SoftHeaderCardTableProps['content']} {...layoutProps} />}
+    {variant === 'sticky-header-table' && <StickyHeaderTable content={content as StickyHeaderTableProps['content']} {...layoutProps} />}
+    {variant === 'striped-rows-table' && <StripedRowsTable content={content as StripedRowsTableProps['content']} {...layoutProps} />}
+    {variant === 'timeline-labels-table' && <TimelineLabelsTable content={content as TimelineLabelsTableProps['content']} {...layoutProps} />}
+    {variant === 'vertical-column-delineation-table' && <VerticalColumnDelineationTable content={content as VerticalColumnDelineationTableProps['content']} {...layoutProps} />}
   </div>
   {content.figure && (
     <figcaption class="italic text-base text-center mt-3" set:html={content.figure}></figcaption>
