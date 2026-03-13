@@ -1,6 +1,6 @@
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { defineAction } from 'astro:actions'
-import { z } from 'astro:schema'
+import { z } from 'astro/zod'
 import { getPrivacyPolicyVersion } from '@actions/utils/environment/environmentActions'
 import { checkRateLimit, rateLimiters } from '@actions/utils/rateLimit'
 import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/utils/requestContext'

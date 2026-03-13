@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { z } from 'astro:content'
+import { z } from 'astro/zod'
 
 const LONG_TITLE = 'A'.repeat(61)
 const SHORT_TITLE = 'Short title'

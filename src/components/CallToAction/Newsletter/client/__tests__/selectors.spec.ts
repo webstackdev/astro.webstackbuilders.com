@@ -75,7 +75,7 @@ describe('Newsletter selector utilities', () => {
     await renderNewsletter(async ({ element }) => {
       element.querySelector(SELECTORS.emailInput)?.remove()
 
-      expect(() => getNewsletterElements(element)).toThrowError('Email input element not found')
+      expect(() => getNewsletterElements(element)).toThrow('Email input element not found')
     })
   })
 })

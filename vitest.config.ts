@@ -153,4 +153,8 @@ export default getViteConfig({
       },
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any)
+} as any, {
+  // Astro actions require server output. Override the app's static output only
+  // for Vitest so unit tests can load the Astro config without changing runtime behavior.
+  output: 'server',
+})

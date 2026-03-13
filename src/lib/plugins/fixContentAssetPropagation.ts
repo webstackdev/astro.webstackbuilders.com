@@ -32,6 +32,30 @@ type TransformFn = (
   _options?: { ssr?: boolean },
 ) => unknown
 
+type TransformHook =
+  | TransformFn
+  | {
+    filter?: unknown
+    handler: TransformFn
+  }
+
+const forceNonSsrTransform = (transform: TransformHook): TransformHook => {
+  const wrapHandler = (handler: TransformFn): TransformFn => {
+    return function (this: unknown, code: string, id: string, options?: { ssr?: boolean }) {
+      return handler.call(this, code, id, { ...options, ssr: false })
+    }
+  }
+
+  if (typeof transform === 'function') {
+    return wrapHandler(transform)
+  }
+
+  return {
+    ...transform,
+    handler: wrapHandler(transform.handler),
+  }
+}
+
 export function fixContentAssetPropagation(): PluginOption {
   return {
     name: 'fix-content-asset-propagation',
@@ -41,18 +65,8 @@ export function fixContentAssetPropagation(): PluginOption {
         (p: Plugin) => p.name === 'astro:content-asset-propagation',
       )
       if (!plugin?.transform) return
-      const originalTransform = (plugin.transform as TransformFn).bind(plugin) as TransformFn
       const pluginRecord = plugin as unknown as Record<string, unknown>
-      pluginRecord['transform'] = function (
-        this: unknown,
-        code: string,
-        id: string,
-        options?: { ssr?: boolean },
-      ) {
-        // Force non-SSR path to avoid devModuleLoader, which was contaminated
-        // by the DB integration's temp server during astro:build:setup.
-        return originalTransform.call(this, code, id, { ...options, ssr: false })
-      }
+      pluginRecord['transform'] = forceNonSsrTransform(plugin.transform as TransformHook)
     },
   }
 }

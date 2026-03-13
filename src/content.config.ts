@@ -8,8 +8,9 @@
  * The 'email' collection is included in the src/content directory, but is not handled by
  * Astro's collections systems. It is used by files in src/pages/api.
  */
-import { defineCollection, reference, z, type SchemaContext } from 'astro:content'
+import { defineCollection, reference, type SchemaContext } from 'astro:content'
 import { glob, file } from 'astro/loaders'
+import { z } from 'astro/zod'
 /**
  * Wraps a collection schema with a refinement that enforces breadcrumb title length limits
  */
@@ -52,7 +53,7 @@ const createSocialCollectionSchema = () =>
     z.object({
       network: z.string(),
       name: z.string(),
-      url: z.string().url(),
+      url: z.url(),
       order: z.number(),
     })
   )
@@ -206,7 +207,7 @@ const authorsCollection = defineCollection({
     z.object({
       id: z.string(),
       name: z.string(),
-      email: z.string().email(),
+      email: z.email(),
       avatar: z.string(),
       social: createSocialCollectionSchema(),
     }),
@@ -219,7 +220,7 @@ const contactDataCollection = defineCollection({
   loader: file('./src/content/contact.json'),
   schema: z.object({
     name: z.string(),
-    email: z.string().email(),
+    email: z.email(),
     address: z.string(),
     city: z.string(),
     state: z.string().length(2),

@@ -36,8 +36,8 @@ describe('getSiteUrl', () => {
     isGitHubMock.mockReturnValue(false)
 
     const invokeGetSiteUrl = () => getSiteUrl()
-    expect(invokeGetSiteUrl).toThrowError(BuildError)
-    expect(invokeGetSiteUrl).toThrowError(
+    expect(invokeGetSiteUrl).toThrow(BuildError)
+    expect(invokeGetSiteUrl).toThrow(
       '❌ Build runs on GitHub, so this build-time getSiteUrl() function should never be called on Vercel.'
     )
   })

@@ -1,4 +1,4 @@
-import { z } from 'astro:content'
+import type { ZodObject, ZodRawShape } from 'astro/zod'
 
 const MAX_BREADCRUMB_TITLE_LENGTH = 60
 const loggedBreadcrumbTitleWarnings = new Set<string>()
@@ -25,11 +25,11 @@ export const warnOnBreadcrumbTitleLength = (title: string, collectionName: strin
  * @param collectionName Name of the collection, used to scope warning messages
  * @returns Zod schema augmented with breadcrumb title length validation
  */
-export const withBreadcrumbTitleWarning = <T extends z.ZodRawShape>(
-  schema: z.ZodObject<T>,
+export const withBreadcrumbTitleWarning = <T extends ZodRawShape>(
+  schema: ZodObject<T>,
   collectionName: string
 ) =>
-  schema.superRefine(data => {
+  schema.superRefine((data: { title?: string }) => {
     const candidateTitle = (data as { title?: string }).title
     if (typeof candidateTitle === 'string') {
       warnOnBreadcrumbTitleLength(candidateTitle, collectionName)
