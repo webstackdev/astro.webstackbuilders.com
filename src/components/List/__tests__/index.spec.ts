@@ -68,4 +68,40 @@ describe('List (Astro)', () => {
       })
     ).rejects.toThrow('ChatBubbles: invalid size "3xl". Expected one of: lg, xl, 2xl.')
   })
+
+  test('starts numbering at the provided startNumber and applies the provided color for the numbered-with-background-list variant', async () => {
+    const List = (await import('@components/List/index.astro')).default
+
+    const renderedHtml = await container.renderToString(List, {
+      props: {
+        variant: 'numbered-with-background-list',
+        color: 'info',
+        startNumber: 4,
+        items: [
+          {
+            lead: 'Step one',
+            text: 'First item.',
+          },
+          {
+            lead: 'Step two',
+            text: 'Second item.',
+          },
+        ],
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const badges = Array.from(window.document.querySelectorAll('li > span:first-child'))
+      const leads = Array.from(window.document.querySelectorAll('li em'))
+
+      expect(badges).toHaveLength(2)
+      expect(leads).toHaveLength(2)
+      expect(badges[0]?.textContent?.trim()).toBe('4')
+      expect(badges[1]?.textContent?.trim()).toBe('5')
+      expect(badges[0]?.className).toContain('bg-info')
+      expect(leads[0]?.className).toContain('text-info')
+    })
+  })
 })

@@ -8,7 +8,7 @@ export interface Props {
   /** The image source for the diagram */
   src?: ImageSource | undefined
   /** The desktop preview max width token for the diagram image */
-  size?: '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs' | undefined
+  size?: 'full' | '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs' | undefined
   /** The magnify button corner for the preview image */
   magnifyButtonPosition?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left' | undefined
   /** The title of the diagram */
@@ -18,8 +18,9 @@ export interface Props {
 }
 
 const { src, title, description, magnifyButtonPosition = 'top-right', size } = Astro.props as Props
+const imageVariant = size === 'full' ? 'full' : 'center'
 const imageProps = {
-  ...(typeof size !== 'undefined' ? { size } : {}),
+  ...(typeof size !== 'undefined' && size !== 'full' ? { size } : {}),
   ...(typeof magnifyButtonPosition !== 'undefined' ? { magnifyButtonPosition } : {}),
 }
 const hasDefaultSlot = Astro.slots.has('default')
@@ -30,7 +31,7 @@ const hasDefaultSlot = Astro.slots.has('default')
     <Image
       src={src}
       alt={title}
-      variant="center"
+      variant={imageVariant}
       {...imageProps}
     />
   )}
