@@ -285,4 +285,22 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
 ├──
 └──
 
-jpg
+<Highlighter>
+</Highlighter>
+
+<Diagram
+  magnifyButtonPosition="bottom-right"
+  size="2xl"
+/>
+
+<List
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 sm:mb-6",
+  }}
+/>
+
+<Table
+  classes={{
+    figure: "sm:ml-8 sm:mr-12 sm:mb-6",
+  }}
+/>

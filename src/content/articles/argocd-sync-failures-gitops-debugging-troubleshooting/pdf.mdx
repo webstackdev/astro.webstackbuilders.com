@@ -231,6 +231,7 @@ These failures are frustrating because they're often intermittent. Sync works so
 
 <Diagram
   src={resourceDependencyDiagram}
+  size="xl"
   title="Resource dependency graph showing potential failure points"
   description="Flowchart showing a Deployment with several upstream dependencies. The Deployment depends on a Secret, a ConfigMap, and a ServiceAccount. The ServiceAccount in turn depends on both a Role and a RoleBinding. The Secret and the Role are visually highlighted as missing failure points. The diagram illustrates why ArgoCD syncs can fail intermittently when dependent resources are missing or applied too late. A workload might appear to be the failing resource, but the true problem can sit earlier in the dependency chain."
 />
@@ -242,7 +243,7 @@ When a dependency is missing, pods fail to start with characteristic error messa
 <List
   variant="colored-marker-list"
   classes={{
-    wrapper: "ml-6 mb-8",
+    wrapper: "sm:ml-6 sm:mb-8",
   }}
   items={[
     {
@@ -293,6 +294,9 @@ The trickiest hook failures are timeouts. ArgoCD waits for hooks to complete bef
 
 <Table
   variant="report-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-6 sm:mb-6",
+  }}
   content={{
     figure: "Common hook failure modes with symptoms and causes.",
     thead: { th: ["Failure Mode", "Symptom", "Cause"] },
@@ -352,7 +356,7 @@ The "hook not deleted" failure deserves special mention. If your previous sync l
 
 ArgoCD doesn't just apply resources — it waits for them to become healthy. "Healthy" means something different for each resource type. Deployments are healthy when their replicas are ready. Services are healthy when they have endpoints. Jobs are healthy when they complete successfully.
 
-For [built-in Kubernetes types](https://kubernetes.io/docs/concepts/workloads/), ArgoCD has hardcoded health checks that usually do the right thing. The problems start when you use Custom Resources. ArgoCD doesn't know how to assess the health of your custom CRD, so it just marks it "Healthy" immediately after creation — even if the controller hasn't reconciled it yet.
+For [built-in](https://kubernetes.io/docs/concepts/workloads/) Kubernetes types, ArgoCD has hardcoded health checks that usually do the right thing. The problems start when you use Custom Resources. ArgoCD doesn't know how to assess the health of your custom CRD, so it just marks it "Healthy" immediately after creation — even if the controller hasn't reconciled it yet.
 
 <Diagram
   src={argocdHealthDiagram}
@@ -439,7 +443,7 @@ Other common sources of drift:
 <List
   variant="chevron-list"
   classes={{
-    wrapper: "ml-6 mb-8",
+    wrapper: "sm:ml-6 sm:mb-8",
   }}
   items={[
     {
@@ -517,6 +521,9 @@ Each ArgoCD component owns a different part of the sync pipeline, so knowing whi
 
 <Table
   variant="grid-and-accent-header-table"
+  classes={{
+    figure: "sm:ml-8 sm:mr-12 sm:mb-6",
+  }}
   content={{
     figure: "ArgoCD components and their log relevance.",
     thead: { th: ["Component", "Log Location", "Failure Types"] },
@@ -683,6 +690,7 @@ The cause is always something modifying the resource after ArgoCD applies it. Ar
 
 <Diagram
   src={outofsyncLoopDiagram}
+  magnifyButtonPosition="top-left"
   title="OutOfSync loop caused by external modifications to resources"
   description="Flowchart showing a self-reinforcing drift loop. A completed sync leads to ArgoCD Checks State, which evaluates a decision point asking whether State Matches Git. If the state matches Git, the application remains Synced. If it does not, the application becomes OutOfSync, which triggers another sync and returns to the start of the cycle. A grouped section labeled Causes of Loop shows three common reasons why the live state diverges after sync: a controller modifies the resource, a defaulting webhook adds fields, or mutating admission changes the spec. All three causes feed into the OutOfSync state. The diagram explains why repeated sync attempts do not fix the problem when another system keeps rewriting the resource."
 />
@@ -812,6 +820,9 @@ Beyond per-resource protection, ArgoCD offers several application-level sync opt
 
 <Table
   variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-8 sm:mr-12 sm:mb-6",
+  }}
   content={{
     figure: "ArgoCD sync options and their effects.",
     thead: { th: ["Sync Option", "Effect"] },
@@ -967,11 +978,11 @@ Code: Prometheus alerting rules for ArgoCD sync failures.
 
 The three alerts above cover the most common failure modes: sync failures (OutOfSync + unhealthy), stuck syncs (syncing for too long), and degraded applications (healthy but degraded status). The `for` clause prevents alert noise from transient states — a brief OutOfSync during a normal deployment shouldn't page anyone.
 
-The runbook link in the annotations is critical. When an engineer gets paged at 3 AM, they shouldn't have to remember the debugging workflow — they should be able to follow a documented procedure. Link each alert to a runbook that walks through the investigation steps.
-
 <Callout type="success">
 Alert on sync failures early. A 10-minute OutOfSync alert gives you time to investigate before users notice. A 30-minute stuck sync is almost always a real problem requiring intervention.
 </Callout>
+
+The runbook link in the annotations is critical. When an engineer gets paged at 3 AM, they shouldn't have to remember the debugging workflow — they should be able to follow a documented procedure. Link each alert to a runbook that walks through the investigation steps.
 
 ## Advanced Troubleshooting
 
@@ -987,6 +998,9 @@ The table below summarizes when to use each tracking method:
 
 <Table
   variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-8 sm:mr-12 sm:mb-6",
+  }}
   content={{
     figure: "ArgoCD resource identification methods.",
     thead: { th: ["Method", "How It Works", "When to Use"] },

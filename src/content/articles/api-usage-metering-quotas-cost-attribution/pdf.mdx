@@ -30,11 +30,11 @@ Last year I watched a finance director lose his mind during a quarterly budget r
 
 This isn't a billing problem — it's a visibility problem. APIs aren't free to operate. Every request costs compute time, network transfer, and storage. Usage patterns vary wildly between consumers: one might make 100 requests per day, another 10 million. Without measurement, you're guessing at capacity planning, pricing decisions become political negotiations, and cost allocation is fiction.
 
-The pattern I've seen repeatedly: teams build APIs focused on functionality, ship them, then realize months later they can't answer basic questions. Which team is driving costs? Which endpoints are expensive? Should we charge for this feature? By then, changing the contract is organizational surgery.
-
 <Callout type="warning">
 You can't manage API costs you don't measure. Without usage metering, you're flying blind on capacity planning, pricing decisions, and cost allocation.
 </Callout>
+
+The pattern I've seen repeatedly: teams build APIs focused on functionality, ship them, then realize months later they can't answer basic questions. Which team is driving costs? Which endpoints are expensive? Should we charge for this feature? By then, changing the contract is organizational surgery.
 
 ## The Metering Foundation
 
@@ -94,11 +94,11 @@ For storage-backed APIs (document processing, media transcoding, backup systems)
 
 The first question: should metering be synchronous or asynchronous? Synchronous metering blocks the request until the usage event is recorded. It's accurate but adds latency to every request. Asynchronous metering emits the event and continues processing — it's fast but introduces eventual consistency challenges.
 
-For high-throughput APIs, async metering is usually the right call. Billing doesn't need millisecond accuracy. If a usage event takes 50ms to persist but your API target is sub-100ms latency, synchronous metering breaks your SLA. Emit events to a message queue and process them out-of-band.
-
 <Callout type="info">
 Synchronous metering adds latency to every request. For high-throughput APIs, use asynchronous metering with eventual consistency — billing doesn't need millisecond accuracy.
 </Callout>
+
+For high-throughput APIs, async metering is usually the right call. Billing doesn't need millisecond accuracy. If a usage event takes 50ms to persist but your API target is sub-100ms latency, synchronous metering breaks your SLA. Emit events to a message queue and process them out-of-band.
 
 ```yaml title="async-metering-architecture.yaml"
 # Deployed as sidecar or separate service
@@ -172,10 +172,13 @@ Key decisions:
 
 <List
   variant="card-grid-list"
+  classes={{
+    em: "text-xl",
+  }}
   items={[
     {
       lead: "Identifiers:",
-      text: "Use opaque IDs (`team_analytics`) not email addresses or names. Consumer IDs should be stable — if a team renames themselves, the ID stays constant.",
+      text: 'Use opaque IDs (<span class="font-mono">team_analytics</span>) not email addresses or names. Consumer IDs should be stable — if a team renames themselves, the ID stays constant.',
     },
     {
       lead: "Timestamps:",
@@ -183,11 +186,11 @@ Key decisions:
     },
     {
       lead: "Status codes:",
-      text: "Separate billable requests (2xx) from errors (4xx, 5xx). You probably don't want to charge for failed requests.",
+      text: 'Separate billable requests (<span class="font-mono">2xx</span>) from errors (<span class="font-mono">4xx</span>, <span class="font-mono">5xx</span>). You probably don\'t want to charge for failed requests.',
     },
     {
       lead: "Cardinality:",
-      text: "Avoid unbounded fields like IP addresses or user agents in dimensions you'll aggregate by. Route patterns (`/users/:id`) are fine, raw paths (`/users/12345`) are not.",
+      text: 'Avoid unbounded fields like IP addresses or user agents in dimensions you\'ll aggregate by. Route patterns (<span class="font-mono">/users/:id</span>) are fine, raw paths (<span class="font-mono">/users/12345</span>) are not.',
     },
   ]}
 />
@@ -491,6 +494,9 @@ Three common approaches:
 
 <List
   variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 sm:mb-8"
+  }}
   items={[
     {
       lead: "Direct attribution",
@@ -509,6 +515,7 @@ Three common approaches:
 
 <Diagram
   src={costAttributionDiagram}
+  size="lg"
   title="Cost attribution flow from infrastructure costs to consumer invoices"
   description="Flowchart showing how infrastructure spending becomes charges for consumers. Infrastructure Costs feed into a Cost Pool. That pool enters a decision point labeled Allocation Method, which branches into three pricing strategies: Direct Attribution, Proportional Allocation, and Tiered Pricing. Direct Attribution leads to Per-Request Cost, Proportional Allocation leads to Percent of Total Usage, and Tiered Pricing leads to Volume Discounts. All three calculated paths feed into a final Consumer Invoice. The diagram highlights that the same underlying operating cost can be turned into invoices through different allocation strategies depending on pricing goals, fairness, and customer behavior."
 />
@@ -693,7 +700,7 @@ There's a spectrum between "no cost visibility" and "full chargebacks." Most org
 <List
   variant="chevron-list"
   classes={{
-    wrapper: "m-12",
+    wrapper: "sm:ml-6 sm:mr-12 sm:mb-6",
   }}
   items={[
     {
@@ -761,8 +768,10 @@ def report_usage_to_stripe(
         quantity=usage_summary['billable_units'],
         timestamp=int(datetime.now().timestamp()),
         action='set'  # Use 'set' for reporting period totals
-        # action='set' replaces previous value for this period (use with scheduled aggregation jobs)
-        # action='increment' adds to previous value (use when reporting individual usage events)
+        # action='set' replaces previous value for this period
+        #  (use with scheduled aggregation jobs)
+        # action='increment' adds to previous value
+        #  (use when reporting individual usage events)
         # Most billing integrations use 'set' to report aggregated totals
     )
 
@@ -909,7 +918,8 @@ The queries you need (Prometheus examples):
 ```promql title="cost-visibility-queries.promql"
 # Prometheus/Grafana queries for cost dashboards
 # Deploy these as panels in Grafana or similar
-# Time range syntax: [30d] = last 30 days, [1d] = last 1 day, [7d:1h] = 7-day range with 1-hour resolution
+# Time range syntax: [30d] = last 30 days, [1d] = last 1 day, [7d:1h] =
+#   7-day range with 1-hour resolution
 
 # Total monthly cost across all consumers
 sum(
@@ -952,7 +962,8 @@ Set up alerts for unusual patterns:
 ```yaml title="usage-anomaly-alerts.yaml"
 # Prometheus alerting rules for usage anomalies
 # Deploy to Prometheus Alertmanager
-# Assumes metrics named 'usage_requests_total' exported from metering pipeline (see Metering Foundation section)
+# Assumes metrics named 'usage_requests_total' exported from metering pipeline
+#  (see Metering Foundation section)
 groups:
   - name: usage_anomalies
     interval: 5m
@@ -963,7 +974,11 @@ groups:
           (
             sum(rate(usage_requests_total{consumer_id=~".+"}[1h])) by (consumer_id)
             /
-            sum(avg_over_time(usage_requests_total{consumer_id=~".+"}[7d:1h])) by (consumer_id)
+            sum(
+              avg_over_time(
+                usage_requests_total{consumer_id=~".+"}[7d:1h]
+              )
+            ) by (consumer_id)
           ) > 5
         for: 15m
         labels:
@@ -1074,7 +1089,7 @@ The order matters: build metering first (you need data), then reporting (visibil
 <List
   variant="side-by-side-list"
   classes={{
-    wrapper: "mr-12 mb-8",
+    wrapper: "sm:mr-12 sm:mb-8",
     em: "pt-6",
   }}
   items={[
@@ -1102,7 +1117,7 @@ The pitch needs to frame cost attribution as an enabler, not a punitive measure:
 <List
   variant="check-icons-list"
   classes={{
-    wrapper: "ml-6 mr-12 mb-8",
+    wrapper: "sm:ml-6 sm:mr-12 sm:mb-8",
   }}
   items={[
     {
@@ -1178,7 +1193,7 @@ This gives teams actionable information and time to respond before enforcement k
 <List
   variant="numbered-with-background-list"
   classes={{
-    wrapper: "ml-6 mr-12 mb-8",
+    wrapper: "sm:ml-6 sm:mr-12 sm:mb-8",
   }}
   items={[
     {
@@ -1233,7 +1248,7 @@ The key principles:
 <List
   variant="check-icons-list"
   classes={{
-    wrapper: "ml-6 mr-12 mb-8",
+    wrapper: "sm:ml-6 sm:mr-12 sm:mb-8",
   }}
   items={[
     {

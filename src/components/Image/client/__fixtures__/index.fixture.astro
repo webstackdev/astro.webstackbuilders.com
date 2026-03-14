@@ -5,12 +5,22 @@ import backstageBackground from '@assets/images/backstage-background.jpg'
 export interface Props {
   alt?: string
   variant?: 'left' | 'right' | 'center' | 'full'
+  size?: '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs'
+  magnifyButtonPosition?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left'
 }
 
 const {
   alt = 'Backstage background test image',
   variant = 'center',
+  size,
+  magnifyButtonPosition = 'top-right',
 }: Props = Astro.props
 ---
 
-<Image src={backstageBackground} alt={alt} variant={variant} />
+<Image
+  src={backstageBackground}
+  alt={alt}
+  variant={variant}
+  size={size}
+  magnifyButtonPosition={magnifyButtonPosition}
+/>

@@ -10,18 +10,30 @@ type ImageSource = {
 export interface Props {
   /** The image source for the diagram */
   src?: ImageSource
+  /** The desktop preview max width token for the diagram image */
+  size?: '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs'
+  /** The magnify button corner for the preview image */
+  magnifyButtonPosition?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left'
   /** The title of the diagram */
   title: string
   /** A detailed description of the diagram for vision-impaired users */
   description: string
 }
 
-const { src, title, description } = Astro.props
+const { src, title, description, magnifyButtonPosition = 'top-right', size } = Astro.props as Props
 const hasDefaultSlot = Astro.slots.has('default')
 ---
 
 <figure class="my-6 mx-auto">
-  {src && <Image src={src} alt={title} variant="center" />}
+  {src && (
+    <Image
+      src={src}
+      alt={title}
+      variant="center"
+      size={size}
+      magnifyButtonPosition={magnifyButtonPosition}
+    />
+  )}
 
   {hasDefaultSlot && (
     <div class="flex justify-center">

@@ -49,8 +49,8 @@ export class HighlighterElement extends LitElement {
   private listenersAttached = false
   private contentCaptured = false
   private boundButtons = new WeakSet<HTMLButtonElement>()
-  private triggerButton: HTMLButtonElement | null = null
-  private wrapperElement: HTMLDivElement | null = null
+  private triggerButton: HTMLSpanElement | null = null
+  private wrapperElement: HTMLSpanElement | null = null
   private readonly dialogId: string
   private readonly hintId: string
   private readonly statusId: string
@@ -126,25 +126,26 @@ export class HighlighterElement extends LitElement {
 
   protected override render() {
     return html`
-      <div class="highlighter__wrapper">
-        <button
-          type="button"
+      <span class="highlighter__wrapper">
+        <span
+          role="button"
+          tabindex="0"
           class="highlighter__trigger"
           aria-describedby="${this.hintId}"
           aria-controls="${this.dialogId}"
           aria-expanded="false"
         >
           ${this.highlightContent}
-        </button>
+        </span>
         <span id="${this.hintId}" class="sr-only">${this.label}</span>
-        <div
+        <span
           id="${this.dialogId}"
           class="share-dialog"
           role="toolbar"
           aria-label="${this.label}"
           aria-hidden="true"
         >
-          <div class="share-dialog__buttons">
+          <span class="share-dialog__buttons">
             ${platforms.map(
               platform => html`
                 <button
@@ -158,9 +159,9 @@ export class HighlighterElement extends LitElement {
                 </button>
               `
             )}
-          </div>
-          <div class="share-dialog__arrow"></div>
-        </div>
+          </span>
+          <span class="share-dialog__arrow"></span>
+        </span>
 
         <span
           id="${this.statusId}"
@@ -170,7 +171,7 @@ export class HighlighterElement extends LitElement {
           aria-atomic="true"
           data-highlighter-status
         ></span>
-      </div>
+      </span>
     `
   }
 
@@ -214,14 +215,30 @@ export class HighlighterElement extends LitElement {
     if (!trigger || trigger === this.triggerButton) return
     this.triggerButton = trigger
     this.triggerButton.style.cursor = 'pointer'
-    addButtonEventListeners(
-      trigger,
-      event => {
-        event.stopPropagation()
-        this.handleComponentActivation()
-      },
-      this
-    )
+    trigger.addEventListener('click', event => {
+      event.stopPropagation()
+      this.handleComponentActivation()
+    })
+    trigger.addEventListener('touchend', event => {
+      if (event.cancelable && !event.defaultPrevented) {
+        event.preventDefault()
+      }
+      event.stopPropagation()
+      this.handleComponentActivation()
+    })
+    trigger.addEventListener('keyup', event => {
+      if (event.isComposing || event.repeat) {
+        return
+      }
+
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return
+      }
+
+      event.preventDefault()
+      event.stopPropagation()
+      this.handleComponentActivation()
+    })
   }
 
   private applyThemeStyles(): void {

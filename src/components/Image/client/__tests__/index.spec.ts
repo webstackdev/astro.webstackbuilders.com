@@ -10,6 +10,9 @@ type ImageModule = WebComponentModule<ImageElementInstance>
 const getMainImage = (element: ImageElementInstance): HTMLImageElement | null =>
 	element.querySelector('[data-image-figure] img')
 
+const getFigure = (element: ImageElementInstance): HTMLElement | null =>
+	element.querySelector('[data-image-figure]')
+
 const getOpenButton = (element: ImageElementInstance): HTMLButtonElement | null =>
 	element.querySelector('[data-image-open]')
 
@@ -30,6 +33,8 @@ describe('Image web component', () => {
 		props: {
 			alt?: string
 			variant?: 'left' | 'right' | 'center' | 'full'
+			size?: '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs'
+			magnifyButtonPosition?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left'
 		},
 		assertion: (_context: {
 			element: ImageElementInstance
@@ -50,6 +55,17 @@ describe('Image web component', () => {
 		})
 	}
 
+	const renderImageToString = (props: {
+		alt?: string
+		variant?: 'left' | 'right' | 'center' | 'full'
+		size?: '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs' | 'invalid'
+		magnifyButtonPosition?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left'
+	}) => {
+		return container.renderToString(ImageFixture, {
+			props,
+		})
+	}
+
 	test('renders centered image markup by default', async () => {
 		await renderImage({}, async ({ element }) => {
 			expect(element.getAttribute('data-image-variant')).toBe('center')
@@ -62,6 +78,25 @@ describe('Image web component', () => {
 
 			const dialog = getDialog(element)
 			expect(dialog?.hasAttribute('hidden')).toBe(true)
+		})
+	})
+
+	test('applies the requested magnify button corner', async () => {
+		await renderImage({ magnifyButtonPosition: 'bottom-left' }, async ({ element }) => {
+			const openButton = getOpenButton(element)
+			expect(openButton?.getAttribute('data-image-open-position')).toBe('bottom-left')
+			expect(openButton?.className).toContain('left-2')
+			expect(openButton?.className).toContain('bottom-2')
+		})
+	})
+
+	test('applies the requested desktop size token to centered images', async () => {
+		await renderImage({ size: 'xl' }, async ({ element }) => {
+			const figure = getFigure(element)
+			expect(figure?.className).toContain('md:max-w-xl')
+
+			const mainImage = getMainImage(element)
+			expect(mainImage?.getAttribute('sizes')).toBe('(min-width: 768px) 36rem, 100vw')
 		})
 	})
 
@@ -100,5 +135,17 @@ describe('Image web component', () => {
 			const dialog = getDialog(element)
 			expect(dialog?.hasAttribute('hidden')).toBe(true)
 		})
+	})
+
+	test('throws for an invalid size value', async () => {
+		await expect(renderImageToString({ size: 'invalid' })).rejects.toThrow(
+			'Image: invalid size "invalid". Expected one of: 3xl, 2xl, xl, lg, md, sm, xs'
+		)
+	})
+
+	test('throws when size is used with the full variant', async () => {
+		await expect(renderImageToString({ variant: 'full', size: 'lg' })).rejects.toThrow(
+			'Image: size cannot be used with variant "full". The "full" variant always renders at the full available container width on desktop. Use variant "center", "left", or "right" if you want to control the image max width with size.'
+		)
 	})
 })

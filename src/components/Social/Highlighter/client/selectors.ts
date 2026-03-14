@@ -1,6 +1,5 @@
 import {
   isButtonElement,
-  isDivElement,
   isSpanElement,
   isType1Element,
 } from '@components/scripts/assertions/elements'
@@ -16,19 +15,19 @@ export const SELECTORS = {
   status: '[data-highlighter-status]',
 } as const
 
-export const queryHighlighterWrapper = (context: Element): HTMLDivElement | null => {
+export const queryHighlighterWrapper = (context: Element): HTMLSpanElement | null => {
   const wrapper = context.querySelector(SELECTORS.wrapper)
-  return isDivElement(wrapper) ? wrapper : null
+  return isSpanElement(wrapper) ? wrapper : null
 }
 
-export const queryHighlighterTrigger = (context: Element): HTMLButtonElement | null => {
+export const queryHighlighterTrigger = (context: Element): HTMLSpanElement | null => {
   const trigger = context.querySelector(SELECTORS.trigger)
-  return isButtonElement(trigger) ? trigger : null
+  return isSpanElement(trigger) ? trigger : null
 }
 
-export const queryShareDialog = (context: Element): HTMLDivElement | null => {
+export const queryShareDialog = (context: Element): HTMLSpanElement | null => {
   const dialog = context.querySelector(SELECTORS.dialog)
-  return isDivElement(dialog) ? dialog : null
+  return isSpanElement(dialog) ? dialog : null
 }
 
 export const queryShareButtons = (context: Element): HTMLButtonElement[] => {
@@ -37,9 +36,9 @@ export const queryShareButtons = (context: Element): HTMLButtonElement[] => {
   )
 }
 
-export const queryShareDialogArrow = (context: Element): HTMLDivElement | null => {
+export const queryShareDialogArrow = (context: Element): HTMLSpanElement | null => {
   const arrow = context.querySelector(SELECTORS.dialogArrow)
-  return isDivElement(arrow) ? arrow : null
+  return isSpanElement(arrow) ? arrow : null
 }
 
 export const queryShareIcon = (context: Element): SVGSVGElement | null => {

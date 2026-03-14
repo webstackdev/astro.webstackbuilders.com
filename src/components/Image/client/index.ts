@@ -25,7 +25,7 @@ const backdropClasses = 'absolute inset-0 bg-content opacity-[0.72]'
 const panelClasses =
 	'relative flex w-full max-w-[min(92vw,90rem)] max-h-[calc(100vh-2rem)] items-center justify-center overflow-hidden rounded-2xl border border-trim bg-page-base px-4 pt-12 pb-4 md:max-h-[calc(100vh-4rem)] md:px-6 md:pt-14 md:pb-6'
 const closeButtonClasses =
-	"absolute right-3 top-3 inline-flex items-center justify-center border-0 bg-transparent p-1.5 text-icons transition-colors duration-150 ease-linear hover:text-icons-active focus-visible:text-icons-active focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
+	"absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full border-0 bg-gray-200 p-0 text-icons transition-colors duration-150 ease-linear hover:text-icons-active focus-visible:text-icons-active focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
 const modalAssetClasses =
 	'mx-auto block h-auto max-h-[calc(100vh-6rem)] max-w-full w-auto object-contain md:max-h-[calc(100vh-8rem)]'
 
