@@ -47,7 +47,8 @@ The term "chaos engineering" sounds destructive, which leads to a common misconc
 Real chaos engineering follows the scientific method. You form a hypothesis about how your system should behave under specific failure conditions, design a controlled experiment to test that hypothesis, and observe whether reality matches your expectations. The goal isn't to cause outages; it's to build confidence that your system handles failures gracefully — or to learn exactly how it doesn't.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "The distinction that separates real chaos engineering from breaking things randomly.",
     thead: {
@@ -84,6 +85,8 @@ The scientific cycle looks like this: form a hypothesis about expected behavior,
 
 <Diagram
   src={theScientificCycleDiagram}
+  magnifyButtonPosition="bottom-left"
+  size="full"
   title="The scientific cycle of chaos engineering"
   description="Flowchart showing the chaos engineering loop: form a hypothesis, define steady state, plan the experiment, contain blast radius, run the experiment, observe behavior, and learn and improve before repeating the cycle."
 />
@@ -142,6 +145,8 @@ From there, you can progress to experiments during business hours with real traf
 
 <Diagram
   src={progressiveChaosDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="Progressive chaos engineering maturity levels"
   description="Flowchart showing four maturity levels progressing from non-production experiments to low-risk production experiments, production experiments with live traffic, and finally automated chaos, with each level annotated by the kind of learning it enables."
 />
@@ -415,33 +420,33 @@ Code: LitmusChaos network latency experiment.
 The tradeoff with LitmusChaos is complexity. You need to install the LitmusChaos operator, set up service accounts with appropriate permissions, and understand the CRD-based workflow. For teams already deep in Kubernetes and GitOps, this feels natural. For teams just starting with chaos engineering, Chaos Toolkit's simpler CLI-based approach might be easier to adopt.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Comparison of free chaos engineering tools.",
     thead: {
-      th: ["Tool", "Best For", "Complexity", "Kubernetes Required"],
+      th: ["Tool", "Complexity", "Best For", "Kubernetes Required"],
     },
     tbody: {
       tr: [
         {
           th: "kubectl",
-          td: ["First experiments, simple pod/node chaos", "Low", "Yes"],
+          td: ["Low", "First experiments, simple pod/node chaos", "Yes"],
         },
         {
           th: "tc/iptables",
-          td: ["Network latency and packet loss", "Medium", "No (Linux only)"],
+          td: ["Medium", "Network latency and packet loss", "No (Linux only)"],
         },
         {
           th: "toxiproxy",
-          td: ["Surgical dependency failure injection", "Medium", "No"],
+          td: ["Medium", "Surgical dependency failure injection", "No"],
         },
         {
           th: "Chaos Toolkit",
-          td: ["Structured experiments with hypothesis validation", "Medium", "No (has K8s extension)"],
+          td: ["Medium", "Structured experiments with hypothesis validation", "No (has K8s extension)"],
         },
         {
           th: "LitmusChaos",
-          td: ["GitOps-managed, Kubernetes-native chaos", "High", "Yes"],
+          td: ["High", "GitOps-managed, Kubernetes-native chaos", "Yes"],
         },
       ],
     },
@@ -464,6 +469,7 @@ Impact limits define what customer-facing consequences you're willing to accept.
 
 <Diagram
   src={threeDimensionsDiagram}
+  magnifyButtonPosition="top-left"
   title="Three dimensions of blast radius control"
   description="Flowchart showing blast radius control divided into scope limiting, time limiting, and impact limiting, with examples such as targeting a single pod, setting maximum duration and automatic aborts, and starting with low-traffic non-critical paths."
 />
@@ -654,23 +660,22 @@ Watch for the new pod scheduling, the health check passing, and traffic resuming
 What teams commonly discover from this experiment:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
-      lead: "_Slow container startup delays recovery._",
+      lead: "Slow container startup delays recovery.",
       text: "If your container takes 45 seconds to start, that's 45 seconds of degraded capacity. Consider optimizing image size, adding startup probes, or adjusting replica counts.",
     },
     {
-      lead: "_Missing readiness probes cause traffic to unhealthy pods._",
+      lead: "Missing readiness probes cause traffic to unhealthy pods.",
       text: "Without a readiness probe, Kubernetes sends traffic to pods that aren't ready, causing errors during startup.",
     },
     {
-      lead: "_No alerts fired despite degradation._",
+      lead: "No alerts fired despite degradation.",
       text: "This is the \"aha\" moment — your monitoring gap was invisible until you tested it.",
     },
   ]}
 />
-
 
 ### Experiment 2: Dependency Latency
 
@@ -708,7 +713,7 @@ Success looks like: service remains responsive (P99 under 3 seconds), no cascadi
 What teams commonly discover:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Missing timeouts cause request pileup.",
@@ -764,18 +769,18 @@ Success criteria: service continues responding (even if slowly), fallback to dat
 What teams commonly discover:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
-      lead: "_Hard dependency on cache, no fallback._",
+      lead: "Hard dependency on cache, no fallback.",
       text: "The code assumes cache is always available and throws exceptions on connection failure instead of falling back.",
     },
     {
-      lead: "_Timeouts too long, requests queue._",
+      lead: "Timeouts too long, requests queue.",
       text: "Connection timeouts of 30 seconds mean requests pile up waiting for a cache that will never respond.",
     },
     {
-      lead: "_Cache reconnection logic is buggy._",
+      lead: "Cache reconnection logic is buggy.",
       text: "After the partition heals, the service doesn't reconnect properly and continues failing.",
     },
   ]}
@@ -821,18 +826,18 @@ Success looks like: no OOM kills, graceful degradation where the service sheds e
 What teams commonly discover:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
-      lead: "_No memory limits set._",
+      lead: "No memory limits set.",
       text: "Without limits, one pod's memory pressure affects the entire node — the classic noisy neighbor problem.",
     },
     {
-      lead: "_OOM kill with no graceful handling._",
+      lead: "OOM kill with no graceful handling.",
       text: "The application gets killed abruptly with no opportunity to drain connections or save state.",
     },
     {
-      lead: "_Memory leaks exposed under pressure._",
+      lead: "Memory leaks exposed under pressure.",
       text: "Baseline memory usage creeps up over time, and the stress test just accelerates the inevitable OOM.",
     },
   ]}
@@ -850,6 +855,7 @@ A mature chaos practice looks different. Experiments run on a regular cadence �
 
 <Diagram
   src={evolutionDiagram}
+  magnifyButtonPosition="top-left"
   title="Evolution from ad-hoc experiments to mature chaos practice"
   description="Flowchart showing a progression from ad-hoc experiments to regular experiments, then game days, and finally automated chaos, with each stage annotated by the learning or organizational capability it adds."
 />
@@ -859,42 +865,42 @@ The progression takes time — typically a year or more to go from first experim
 Here's a realistic four-quarter roadmap for building a chaos engineering practice from scratch:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Four-quarter roadmap for building a chaos engineering practice.",
     thead: {
-      th: ["Quarter", "Focus", "Activities", "Success Criteria"],
+      th: ["Focus", "Quarter", "Activities", "Success Criteria"],
     },
     tbody: {
       tr: [
         {
-          th: "Q1",
+          th: "Establish basics",
           td: [
-            "Establish basics",
+            "Q1",
             "Run first pod-kill experiments, document and fix findings, train team on experiment design (hypothesis, abort conditions, stakeholder communication)",
             "3+ experiments completed, 5+ bugs fixed",
           ],
         },
         {
-          th: "Q2",
+          th: "Expand coverage",
           td: [
-            "Expand coverage",
+            "Q2",
             "Move to latency injection and network partitions, create reusable experiment library, test all critical services",
             "Comprehensive critical path coverage, updated runbooks",
           ],
         },
         {
-          th: "Q3",
+          th: "Build team capability",
           td: [
-            "Build team capability",
+            "Q3",
             "Host first game day, enable multiple teams to run experiments independently, share learnings org-wide",
             "Successful game day, 3+ teams practicing chaos",
           ],
         },
         {
-          th: "Q4",
+          th: "Automate foundations",
           td: [
-            "Automate foundations",
+            "Q4",
             "Integrate chaos into CI/CD for staging deployments, automate steady-state verification, schedule recurring experiments",
             "Weekly automated experiments without manual intervention",
           ],
@@ -960,7 +966,8 @@ Game days build team muscle memory for incident response. The goal isn't to find
 How do you know if your chaos practice is working? You need metrics that measure both activity (are you actually running experiments?) and impact (are you finding and fixing problems?).
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Metrics for measuring chaos engineering practice effectiveness.",
     thead: {
@@ -1029,10 +1036,10 @@ Chaos engineering doesn't require expensive platforms or dedicated teams. You ca
 
 The principles are simple: form a hypothesis before you break anything, define abort conditions so experiments don't become incidents, control the blast radius so you're learning rather than causing outages, and follow through on findings by actually fixing them.
 
-Once you've mastered the four experiments in this guide, the path forward opens up. You can explore zone and region failures to test geographic redundancy. You can inject clock skew to find time-sensitive bugs. You can simulate certificate expiration, DNS failures, or cloud provider API throttling. Each new experiment type reveals a different class of bugs — and each one can be done with free tools.
-
-The barrier to starting isn't tooling or budget. It's deciding to run that first experiment. Pick a service. Form a hypothesis. Open your monitoring dashboard. Kill a pod. Watch what happens.
-
 <Callout type="success">
 You don't need an enterprise chaos platform to start chaos engineering. You need a hypothesis, a safe experiment, monitoring to observe the results, and the discipline to fix what you find. Start small, learn, and expand.
 </Callout>
+
+Once you've mastered the four experiments in this guide, the path forward opens up. You can explore zone and region failures to test geographic redundancy. You can inject clock skew to find time-sensitive bugs. You can simulate certificate expiration, DNS failures, or cloud provider API throttling. Each new experiment type reveals a different class of bugs — and each one can be done with free tools.
+
+The barrier to starting isn't tooling or budget. It's deciding to run that first experiment. Pick a service. Form a hypothesis. Open your monitoring dashboard. Kill a pod. Watch what happens.

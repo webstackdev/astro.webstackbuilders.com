@@ -288,7 +288,7 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
 
 <Diagram
   magnifyButtonPosition="bottom-right"
-  size="2xl"
+  size="full"
 />
 
 [&>span]:
@@ -301,6 +301,7 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
 />
 
 <Table
+  fullWidth={false}
   classes={{
     figure: "sm:ml-8 sm:mr-12 mb-6",
   }}
