@@ -14,21 +14,31 @@ export type Props = {
 }
 
 const { items, classes, color, startNumber = 1 }: Props = Astro.props
-const resolvedColor = typeof color === 'string' && color.trim().length > 0 ? color.trim() : 'primary-offset'
-const pillColorClass = `bg-${resolvedColor}`
+const resolvedColor = typeof color === 'string' && color.trim().length > 0 ? color.trim() : undefined
+const safeColorToken = resolvedColor && /^[-a-z0-9]+$/i.test(resolvedColor) ? resolvedColor : undefined
+const pillStyle = safeColorToken ? `background-color: var(--color-${safeColorToken});` : undefined
+const leadStyle = safeColorToken ? `color: var(--color-${safeColorToken});` : undefined
 
 const olClass = ["space-y-3", classes?.ol]
 const liClass = ["flex items-start gap-4 bg-page-offset/50 rounded-lg p-4", classes?.li]
-const emClass = [`text-${resolvedColor}`, "font-semibold not-italic", classes?.em]
+const emClass = ["font-semibold not-italic", !safeColorToken && 'text-primary-offset', classes?.em]
 ---
 
 <ol class:list={olClass}>
   {
     items.map((item, index) => (
       <li class:list={liClass}>
-        <span class:list={["mt-2 shrink-0 w-8 h-8 text-content-inverse rounded-full flex items-center justify-center text-sm font-bold", pillColorClass]}>{startNumber + index}</span>
+        <span
+          class:list={[
+            "mt-2 shrink-0 w-8 h-8 text-content-inverse rounded-full flex items-center justify-center text-sm font-bold",
+            !safeColorToken && 'bg-primary-offset',
+          ]}
+          style={pillStyle}
+        >
+          {startNumber + index}
+        </span>
         <div class="pt-1">
-          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
+          {item.lead && <em class:list={emClass} style={leadStyle} set:html={item.lead}></em>}
           <div set:html={item.text}></div>
         </div>
       </li>

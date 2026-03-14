@@ -34,6 +34,7 @@ import Table from '@components/Table/index.astro'
 import Time from '@components/Time/index.astro'
 import Testimonials from '@components/Testimonials/index.astro'
 import CodeTabs from '@components/Code/CodeTabs/index.astro'
+import '@components/Social/Highlighter/index.css'
 
 /** Export components for use in MDX */
 const Components = {
@@ -190,6 +191,19 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
 
   <!-- Mastodon sharing modal for Highlighter, hidden except on hover -->
   <MastodonModal />
+
+  <script>
+    import { registerHighlighterWebComponent } from '@components/Social/Highlighter/client'
+
+    const registerMarkdownHighlighter = () => {
+      if (document.querySelector('highlighter-element')) {
+        registerHighlighterWebComponent()
+      }
+    }
+
+    registerMarkdownHighlighter()
+    document.addEventListener('astro:page-load', registerMarkdownHighlighter)
+  </script>
 
   <!-- Registers the <code-tabs> web component for markdown-emitted markup -->
   <CodeTabs />

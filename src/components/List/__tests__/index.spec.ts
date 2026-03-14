@@ -100,8 +100,36 @@ describe('List (Astro)', () => {
       expect(leads).toHaveLength(2)
       expect(badges[0]?.textContent?.trim()).toBe('4')
       expect(badges[1]?.textContent?.trim()).toBe('5')
-      expect(badges[0]?.className).toContain('bg-info')
-      expect(leads[0]?.className).toContain('text-info')
+      expect(badges[0]?.getAttribute('style')).toContain('background-color: var(--color-info);')
+      expect(leads[0]?.getAttribute('style')).toContain('color: var(--color-info);')
+    })
+  })
+
+  test('uses the default marker color for numbered-with-background-list when no color is provided', async () => {
+    const List = (await import('@components/List/index.astro')).default
+
+    const renderedHtml = await container.renderToString(List, {
+      props: {
+        variant: 'numbered-with-background-list',
+        items: [
+          {
+            lead: 'Default step',
+            text: 'Uses the default marker color.',
+          },
+        ],
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const badge = window.document.querySelector('li > span:first-child')
+      const lead = window.document.querySelector('li em')
+
+      expect(badge?.className).toContain('bg-primary-offset')
+      expect(lead?.className).toContain('text-primary-offset')
+      expect(badge?.getAttribute('style')).toBeNull()
+      expect(lead?.getAttribute('style')).toBeNull()
     })
   })
 })
