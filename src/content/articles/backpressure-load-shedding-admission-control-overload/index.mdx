@@ -24,7 +24,7 @@ I watched an e-commerce platform collapse during a flash sale. Traffic spiked to
 
 The fix wasn't more capacity. It was teaching the system to say "no."
 
-Most systems don't fail because they can't handle load. They fail because they try to handle _all_ the load. Without explicit overload handling, a system accepts work it cannot complete, queues grow unbounded, and what starts as a traffic spike becomes a prolonged outage.
+<Highlighter>Most systems don't fail because they can't handle load.</Highlighter> They fail because they try to handle _all_ the load. Without explicit overload handling, a system accepts work it cannot complete, queues grow unbounded, and what starts as a traffic spike becomes a prolonged outage.
 
 <Callout type="warning">
 A system without backpressure will accept work until it collapses. The goal isn't handling unlimited load — it's handling your design capacity reliably and degrading gracefully beyond it.
@@ -38,6 +38,7 @@ Overload doesn't just make systems slow — it makes them _worse_. There's a vic
 
 <Diagram
   src={cascadingFailureDiagram}
+  size="2xl"
   title="The cascading failure loop where overload compounds itself through retries and resource exhaustion"
   description="Flowchart showing the feedback loop that turns overload into a full outage. A Traffic Spike leads to Queue Growth, which leads to Latency Increase. Increased latency causes Client Timeouts, which trigger Client Retries, sending more traffic back into the original spike and reinforcing the cycle. A second branch from Latency Increase leads to Resource Exhaustion, then Thread Pool Saturation, then Connection Pool Exhaustion, and finally Complete Failure. The diagram shows both the retry feedback loop and the internal resource collapse path that make overloaded systems degrade rapidly rather than recover naturally."
 />
@@ -61,7 +62,7 @@ Consider a system processing 100 RPS with 200ms latency — that's 20 requests i
 Here's a counterintuitive truth: throughput can _increase_ during overload while your system becomes effectively useless. The distinction is between throughput (work attempted) and goodput (work successfully completed).
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="report-table"
   content={{
     figure: "Throughput can increase during overload while goodput collapses.",
     thead: { th: ["Metric", "Definition", "Normal Load", "Under Overload"] },
@@ -94,6 +95,8 @@ This is the key insight: if you'd simply rejected 1,000 of those 2,000 requests 
 
 Think of admission control like a nightclub bouncer. The bouncer's job isn't to throw people out after they're inside causing trouble — it's to decide at the door who gets in. If the club is at capacity, new arrivals wait outside. The people inside have a good experience.
 
+<Newsletter />
+
 Admission control works the same way: decide _upfront_ whether to accept work, rather than accepting everything and failing later. A request rejected at the door costs almost nothing. A request that gets halfway through your system before timing out has consumed database connections, CPU cycles, and memory — resources that could have served requests you _could_ complete.
 
 Here's how that flow looks in practice:
@@ -113,7 +116,7 @@ It's better to reject 20% of requests immediately than to accept 100% and fail 4
 I've found four approaches cover most scenarios:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "Rate limiting:",
@@ -133,6 +136,8 @@ I've found four approaches cover most scenarios:
     },
   ]}
 />
+
+Of these, latency-based admission gives you the tightest feedback loop. Here's how it works as Express middleware:
 
 ```typescript title="latency-admission-middleware.ts"
 // Express middleware for latency-based admission control
@@ -225,8 +230,6 @@ Code: Priority-based routing reserves capacity for critical traffic.
 
 The key insight is that critical traffic can _borrow_ capacity from lower tiers. If the anonymous quota is exhausted but the critical quota has room, anonymous requests are rejected while payments keep flowing.
 
-<Newsletter />
-
 ## Load Shedding and Graceful Degradation
 
 ### Choosing What to Shed
@@ -234,7 +237,7 @@ The key insight is that critical traffic can _borrow_ capacity from lower tiers.
 Load shedding is the deliberate dropping of work to preserve system stability. It sounds brutal, but the alternative is worse. When you're drowning, you throw cargo overboard to keep the ship afloat.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     figure: "Load shedding strategies and their tradeoffs.",
     thead: { th: ["Strategy", "When to Use", "Tradeoff"] },

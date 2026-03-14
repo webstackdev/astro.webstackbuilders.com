@@ -90,19 +90,19 @@ Little's Law explains why overload causes latency to explode. When arrival rate 
 Here's a counterintuitive truth: throughput can _increase_ during overload while your system becomes effectively useless. The distinction is between throughput (work attempted) and goodput (work successfully completed).
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="semantic-coloring-table"
   content={{
     figure: "Throughput can increase during overload while goodput collapses.",
     thead: { th: ["Metric", "Definition", "Under Normal Load", "Under Overload"] },
     tbody: {
       tr: [
         {
-          th: "Throughput",
-          td: ["Requests processed", "1000 RPS", "1200 RPS"],
-        },
-        {
           th: "Goodput",
           td: ["Successful responses", "1000 RPS", "400 RPS"],
+        },
+        {
+          th: "Throughput",
+          td: ["Requests processed", "1000 RPS", "1200 RPS"],
         },
         {
           th: "Badput",
@@ -136,7 +136,7 @@ The key principle I keep coming back to: you can't process your way out of overl
 I've seen several ways to signal overload, each with different tradeoffs:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "Backpressure signaling techniques with pros/cons.",
     thead: { th: ["Type", "Mechanism", "Example", "Pros", "Cons"] },
@@ -187,17 +187,57 @@ TCP solved the backpressure problem decades ago. Its flow control mechanism prov
 
 **TCP Flow Control:**
 
-1. Receiver advertises window size (how much it can accept)
-2. Sender limits in-flight data to window size
-3. As receiver processes data, window opens
-4. If receiver is slow, window shrinks to zero (backpressure)
+<List
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-30 sm:mb-6",
+  }}
+  items={[
+    {
+      lead: "Receiver advertises window size:",
+      text: "It tells the sender how much data it can accept.",
+    },
+    {
+      lead: "Sender limits in-flight data:",
+      text: "It caps in-flight data at the advertised window size.",
+    },
+    {
+      lead: "As receiver processes data:",
+      text: "The available window opens again.",
+    },
+    {
+      lead: "If receiver is slow:",
+      text: "The window can shrink to zero, which creates backpressure.",
+    },
+  ]}
+/>
 
 **Application equivalent:**
 
-1. Service advertises capacity (rate limits, queue depth)
-2. Clients limit concurrent requests
-3. As service recovers, capacity opens
-4. If service is slow, clients back off
+<List
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-30 sm:mb-6",
+  }}
+  items={[
+    {
+      lead: "Service advertises capacity:",
+      text: "It communicates capacity through rate limits and queue depth.",
+    },
+    {
+      lead: "Clients limit concurrent requests:",
+      text: "They keep concurrency within that advertised capacity.",
+    },
+    {
+      lead: "As service recovers:",
+      text: "Available capacity opens back up.",
+    },
+    {
+      lead: "If service is slow:",
+      text: "Clients back off and send less work.",
+    },
+  ]}
+/>
 
 The elegance of TCP's approach is that backpressure is _automatic_. The receiver doesn't have to decide when to apply pressure — the window size naturally reflects its processing capacity. Application-level backpressure often requires more explicit coordination, but the principle is the same: consumers must be able to tell producers "slow down."
 
@@ -573,7 +613,10 @@ Load shedding is the deliberate dropping of work to preserve system stability. I
 The key insight is that _some_ work completing successfully is better than _all_ work failing. If your system can handle 1,000 RPS but 2,000 are arriving, you have a choice: accept all 2,000 and watch goodput collapse to 400 (because everything times out), or shed 1,000 immediately and successfully serve the other 1,000.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-8 sm:mr-12 sm:mb-6",
+  }}
   content={{
     figure: "Load shedding strategies and their tradeoffs.",
     thead: { th: ["Shedding Strategy", "When to Use", "Tradeoff"] },
@@ -616,18 +659,22 @@ Consider a queue with 100 requests where processing takes 100ms each:
 **FIFO shedding (traditional):**
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mb-8",
+  }}
   items={[
     {
       lead: "Request 1 (oldest):",
-      text: "waited 10 seconds, will be served",
+      text: "It waited 10 seconds and will still be served.",
     },
     {
       lead: "Request 100 (newest):",
-      text: "will wait 10+ seconds, likely timeout",
+      text: "It will wait more than 10 seconds and will likely time out.",
     },
     {
-      text: "Client already gave up on request 1, wasted work",
+      lead: "Outcome:",
+      text: "The client likely already gave up on request 1, so the work was wasted.",
     },
   ]}
 />
@@ -635,18 +682,19 @@ Consider a queue with 100 requests where processing takes 100ms each:
 **LIFO shedding (counterintuitive but effective):**
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
   items={[
     {
       lead: "Request 100 (newest):",
-      text: "rejected immediately, client can retry",
+      text: "It is rejected immediately, so the client can retry.",
     },
     {
       lead: "Request 1 (oldest):",
-      text: "served, but client may have given up",
+      text: "It is served, but the client may already have given up.",
     },
     {
-      text: "Better: CoDel-style approach that considers wait time",
+      lead: "Better:",
+      text: "A CoDel-style approach considers wait time before dropping work.",
     },
   ]}
 />
@@ -823,7 +871,11 @@ Graceful degradation requires knowing which features are expendable. Work with p
 Backpressure only works if clients understand the signal. HTTP provides specific status codes for communicating overload — use them correctly, and well-behaved clients will back off automatically.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  classes={{
+    thead: "text-center",
+    tbody: "text-center",
+  }}
   content={{
     figure: "HTTP status codes for overload and suggested client actions.",
     thead: { th: ["Status Code", "Meaning", "When to Use", "Client Action"] },
@@ -1090,6 +1142,7 @@ In software, the "current" is requests to a downstream service. When that servic
 
 <Diagram
   src={circuitBreakerDiagram}
+  size="2xl"
   title="Circuit breaker state machine for downstream protection"
   description="State diagram showing the three standard circuit breaker states. The initial state enters Closed, where normal operation allows requests through and tracks failure rate. If failures exceed the threshold, the breaker moves from Closed to Open. In Open, requests fail fast without calling the downstream dependency and typically return cached or fallback responses. After a timeout expires, the breaker moves from Open to HalfOpen, where a limited number of probe requests are allowed through to test recovery. If a probe succeeds, the breaker returns to Closed. If a probe fails, it goes back to Open. The diagram shows how circuit breakers stop repeated downstream calls during failure and only cautiously resume traffic after recovery signals."
 />
@@ -1538,17 +1591,32 @@ The key is the assertions — don't just measure throughput, explicitly verify t
 Load testing validates behavior under high request volume. Chaos engineering validates behavior under _unexpected failures_—the scenarios that trigger backpressure mechanisms in ways traffic alone can't simulate.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="timeline-labels-table"
   content={{
     figure: "Chaos experiments for validating overload handling.",
     thead: { th: ["Experiment", "Method", "Expected Behavior"] },
     tbody: {
       tr: [
-        { th: "Queue bomb", td: ["Fill queues to capacity", "System sheds load, stays responsive"] },
-        { th: "Thread starvation", td: ["Block worker threads", "Circuit breakers trip, fallbacks activate"] },
-        { th: "Memory pressure", td: ["Allocate memory in dependency", "GC pressure handled, graceful degradation"] },
-        { th: "Connection exhaustion", td: ["Hold connections open", "New requests rejected cleanly"] },
-        { th: "Cascade trigger", td: ["Fail upstream service", "Downstream services shed load appropriately"] },
+        {
+          th: { label: "Queue bomb", color: "bg-spotlight" },
+          td: ["Fill queues to capacity", "System sheds load, stays responsive"],
+        },
+        {
+          th: { label: "Thread starvation", color: "bg-info" },
+          td: ["Block worker threads", "Circuit breakers trip, fallbacks activate"],
+        },
+        {
+          th: { label: "Memory pressure", color: "bg-note" },
+          td: ["Allocate memory in dependency", "GC pressure handled, graceful degradation"],
+        },
+        {
+          th: { label: "Connection exhaustion", color: "bg-danger" },
+          td: ["Hold connections open", "New requests rejected cleanly"],
+        },
+        {
+          th: { label: "Cascade trigger", color: "bg-accent" },
+          td: ["Fail upstream service", "Downstream services shed load appropriately"],
+        },
       ],
     },
   }}
@@ -1903,26 +1971,33 @@ function trackShed(tier: string, reason: string) {
 ```
 Code: Essential metrics for overload monitoring.
 
+Those metrics matter because they tell you three different things: how close you are to overload, whether your protection mechanisms are firing, and whether users are still getting successful responses.
+
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 sm:mb-6",
+  }}
   items={[
     {
       lead: "Capacity indicators:",
-      text: "are your early warning system. When `concurrent_requests` crosses 90% of your concurrency limit, you're not in trouble yet — but you're one traffic spike away. When `queue_depth` grows faster than it drains, backpressure is about to kick in. These metrics let you see overload coming before users notice.",
+      text: 'Your early warning system. When <span class="font-mono">concurrent_requests</span> crosses 90% of your concurrency limit, you\'re not in trouble yet — but you\'re one traffic spike away. When <span class="font-mono">queue_depth</span> grows faster than it drains, backpressure is about to kick in. These metrics let you see overload coming before users notice.',
     },
     {
       lead: "Backpressure indicators:",
-      text: "tell you when protection mechanisms are active. A spike in `requests_rejected` with reason `rate_limit` means your rate limiter is doing its job. If you see rejections with reason `circuit_open`, a downstream dependency is struggling. The `shed_requests` counter broken down by tier shows which degradation level you're operating at. These metrics answer the question: \"Is the system protecting itself correctly?\"",
+      text: 'Tells you when protection mechanisms are active. A spike in <span class="font-mono">requests_rejected</span> with reason <span class="font-mono">rate_limit</span> means your rate limiter is doing its job. If you see rejections with reason <span class="font-mono">circuit_open</span>, a downstream dependency is struggling. The `shed_requests` counter broken down by tier shows which degradation level you\'re operating at. These metrics answer the question: "Is the system protecting itself correctly?"',
     },
     {
       lead: "Health indicators:",
-      text: "are the bottom line. `goodput_ratio` is the most important — it's the percentage of requests that actually succeeded. A 503 is a successful rejection (the system protected itself), but it's not goodput. If goodput drops below your SLO, users are suffering regardless of how well your backpressure mechanisms work. Latency percentiles matter too: p99 staying bounded while p50 degrades slightly is healthy backpressure; p99 exploding means something's queuing that shouldn't be.",
+      text: 'The bottom line. <span class="font-mono">goodput_ratio</span> is the most important — it\'s the percentage of requests that actually succeeded. A 503 is a successful rejection (the system protected itself), but it\'s not goodput. If goodput drops below your SLO, users are suffering regardless of how well your backpressure mechanisms work. Latency percentiles matter too: p99 staying bounded while p50 degrades slightly is healthy backpressure; p99 exploding means something\'s queuing that shouldn\'t be.',
     },
   ]}
 />
 
+Of those three categories, the rejection metrics are usually the fastest way to identify which protective layer is currently absorbing the pressure.
+
 <Callout type="info">
-The `requests_rejected` label `reason` is critical. During an incident, you need to know _which_ mechanism is rejecting — rate limiter, circuit breaker, queue full, or admission control. Different reasons point to different root causes.
+The <span class="font-mono">requests_rejected</span> label <span class="font-mono">reason</span> is critical. During an incident, you need to know _which_ mechanism is rejecting — rate limiter, circuit breaker, queue full, or admission control. Different reasons point to different root causes.
 </Callout>
 
 ### Dashboard Layout
@@ -1930,7 +2005,7 @@ The `requests_rejected` label `reason` is critical. During an incident, you need
 A good overload dashboard tells a story at a glance. When you're paged at 3 AM, you shouldn't have to hunt through 15 panels to understand what's happening. I've found a four-section layout works well:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "Dashboard sections and their panels for overload monitoring.",
     thead: { th: ["Section", "Panels", "Purpose"] },
@@ -1957,27 +2032,34 @@ A good overload dashboard tells a story at a glance. When you're paged at 3 AM, 
   }}
 />
 
+That layout works because each section answers a different on-call question, and the order mirrors how you triage an overload event in real time.
+
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    li: "[&>div]:pr-4",
+  }}
   items={[
     {
       lead: "Load & Capacity:",
-      text: "goes at the top because it's your first question: \"How much traffic are we getting, and how close are we to limits?\" Show request rate as a line with capacity threshold as a horizontal marker. Show concurrency and queue depth as gauges with red zones. At a glance, you should see whether you're at 50% capacity or 95%.",
+      text: "Goes at the top because it's your first question: \"How much traffic are we getting, and how close are we to limits?\" Show request rate as a line with capacity threshold as a horizontal marker. Show concurrency and queue depth as gauges with red zones. At a glance, you should see whether you're at 50% capacity or 95%.",
     },
     {
       lead: "Backpressure Activity:",
-      text: "answers the second question: \"Is the system protecting itself?\" Show rejection rates by type—429s (rate limiting), 503s (admission control), circuit breaker state (open/closed/half-open). If these counters are at zero, you're not in overload. If they're spiking, the system is actively shedding load. This section turns from green to yellow to red as backpressure intensifies.",
+      text: "Answers the second question: \"Is the system protecting itself?\" Show rejection rates by type—429s (rate limiting), 503s (admission control), circuit breaker state (open/closed/half-open). If these counters are at zero, you're not in overload. If they're spiking, the system is actively shedding load. This section turns from green to yellow to red as backpressure intensifies.",
     },
     {
       lead: "Health Indicators:",
-      text: "answer the critical question: \"Are users being served?\" Goodput percentage should be front and center — if it's above 95%, things are okay even if you're shedding some load. P99 latency shows whether successful requests are still fast. Error rate distinguishes between deliberate rejections (503s you sent) and unexpected failures (5xxs from bugs).",
+      text: "Answers the critical question: \"Are users being served?\" Goodput percentage should be front and center — if it's above 95%, things are okay even if you're shedding some load. P99 latency shows whether successful requests are still fast. Error rate distinguishes between deliberate rejections (503s you sent) and unexpected failures (5xxs from bugs).",
     },
     {
       lead: "Degradation State:",
-      text: "shows operational mode at a glance. If you've implemented graceful degradation tiers, show the current tier prominently — a big \"ELEVATED\" or \"CRITICAL\" badge tells the on-call engineer immediately that the system is in a degraded state. List which features are disabled so they don't waste time investigating why search isn't working.",
+      text: "Shows operational mode at a glance. If you've implemented graceful degradation tiers, show the current tier prominently — a big \"ELEVATED\" or \"CRITICAL\" badge tells the on-call engineer immediately that the system is in a degraded state. List which features are disabled so they don't waste time investigating why search isn't working.",
     },
   ]}
 />
+
+When those sections are arranged well, the dashboard stops being a wall of charts and starts reading like a short incident narrative.
 
 <Callout type="success">
 During an incident, read the dashboard top to bottom: "We're at 120% capacity (Load), rejecting 20% of requests (Backpressure), maintaining 85% goodput (Health), in ELEVATED mode with recommendations disabled (Degradation)." That's a complete situational picture in 10 seconds.
@@ -1991,6 +2073,9 @@ Here's what that looks like in practice:
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 sm:mb-6",
+  }}
   items={[
     {
       lead: "Fast rejection beats slow failure:",
