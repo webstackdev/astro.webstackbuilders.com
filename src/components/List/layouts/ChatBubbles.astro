@@ -1,0 +1,55 @@
+---
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+  }[]
+  size?: 'lg' | 'xl' | '2xl'
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+  }
+}
+
+const { items, classes, size = 'lg' }: Props = Astro.props
+
+const maxWidthClasses = {
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
+} as const
+
+if (!(size in maxWidthClasses)) {
+  throw new Error(`ChatBubbles: invalid size "${String(size)}". Expected one of: lg, xl, 2xl.`)
+}
+
+const dlClass = ['mx-auto flex w-full flex-col space-y-8', maxWidthClasses[size], classes?.ul]
+const itemClass = ['flex flex-col space-y-2', classes?.li]
+const dtClass = [
+  'max-w-[85%] self-start rounded-2xl rounded-tl-sm bg-page-offset px-6 py-3 text-lg font-medium text-content-active shadow-sm',
+  classes?.em,
+]
+const ddClass = [
+  'max-w-[85%] self-end rounded-2xl rounded-tr-sm bg-secondary px-6 py-4 text-secondary-inverse shadow-sm',
+]
+---
+
+<dl class:list={dlClass}>
+  {
+    items.map((item) => (
+      <div class:list={itemClass}>
+        {item.lead && (
+          <dt class:list={dtClass}>
+            <span class="mr-2 font-bold text-secondary" aria-hidden="true">Q:</span>
+            <span set:html={item.lead}></span>
+          </dt>
+        )}
+        <dd class:list={ddClass}>
+          <span class="mr-2 font-bold text-secondary-inverse" aria-hidden="true">A:</span>
+          <span set:html={item.text}></span>
+        </dd>
+      </div>
+    ))
+  }
+</dl>

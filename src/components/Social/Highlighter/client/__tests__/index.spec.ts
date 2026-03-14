@@ -159,11 +159,10 @@ describe('HighlighterElement', () => {
       expect(element.querySelectorAll('.share-button')).toHaveLength(mockPlatforms.length)
       expect(element.getAttribute('aria-label')).toBe(defaultProps.ariaLabel)
 
-      const trigger = element.querySelector('.highlighter__trigger') as HTMLSpanElement | null
+      const trigger = element.querySelector('.highlighter__trigger') as HTMLButtonElement | null
       expect(trigger).toBeTruthy()
       expect(trigger?.getAttribute('aria-label')).toBeNull()
-      expect(trigger?.getAttribute('role')).toBe('button')
-      expect(trigger?.getAttribute('tabindex')).toBe('0')
+      expect(trigger?.getAttribute('type')).toBe('button')
       expect(trigger?.textContent).toContain(defaultProps.content)
 
       const dialog = element.querySelector('.share-dialog') as HTMLElement | null
@@ -186,7 +185,7 @@ describe('HighlighterElement', () => {
       const dialog = element.querySelector('.share-dialog') as HTMLElement | null
       expect(dialog?.getAttribute('aria-hidden')).toBe('true')
 
-      const trigger = element.querySelector('.highlighter__trigger') as HTMLSpanElement | null
+      const trigger = element.querySelector('.highlighter__trigger') as HTMLButtonElement | null
       expect(trigger?.getAttribute('aria-expanded')).toBe('false')
 
       element.dispatchEvent(new window.MouseEvent('mouseenter', { bubbles: true }))
@@ -204,7 +203,7 @@ describe('HighlighterElement', () => {
       const dialog = element.querySelector('.share-dialog') as HTMLElement | null
       expect(dialog?.getAttribute('aria-hidden')).toBe('true')
 
-      const trigger = element.querySelector('.highlighter__trigger') as HTMLSpanElement | null
+      const trigger = element.querySelector('.highlighter__trigger') as HTMLButtonElement | null
       expect(trigger).toBeTruthy()
 
       if (!trigger) {

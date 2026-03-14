@@ -15,12 +15,16 @@ const {
   size,
   magnifyButtonPosition = 'top-right',
 }: Props = Astro.props
+
+const imageProps = {
+  ...(typeof size !== 'undefined' ? { size } : {}),
+  ...(typeof magnifyButtonPosition !== 'undefined' ? { magnifyButtonPosition } : {}),
+}
 ---
 
 <Image
   src={backstageBackground}
   alt={alt}
   variant={variant}
-  size={size}
-  magnifyButtonPosition={magnifyButtonPosition}
+  {...imageProps}
 />

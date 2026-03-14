@@ -17,7 +17,7 @@ The instinctive investigation goes like this: Who made the change? Why weren't t
 
 This feels satisfying — we found the problem and addressed it. But three months later, a _different_ engineer makes a _different_ config mistake, and we're back here again. The "solution" didn't prevent anything — it just rotated the blame to someone new.
 
-There's a better way. Instead of asking "who screwed up?" blameless postmortems ask: Why could a single engineer make that change without review? Why was there no canary deployment? Why didn't monitoring catch the error before customers did? That investigation finds five systemic improvements instead of one scapegoat.
+There's a better way. <Highlighter>Instead of asking "who screwed up?" blameless postmortems ask: Why could a single engineer make that change without review?</Highlighter> Why was there no canary deployment? Why didn't monitoring catch the error before customers did? That investigation finds five systemic improvements instead of one scapegoat.
 
 ## Why Blame Feels Right But Fails
 
@@ -26,7 +26,10 @@ Blame provides closure. We have a narrative: someone did something wrong, we ide
 But blame produces terrible outcomes. When people fear punishment for mistakes, they stop reporting near-misses. They hedge their language in postmortems. They cover their tracks. The information you need to prevent future incidents disappears into self-protective silence.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    figure: "sm:ml-12 sm:mr-12 mb-6",
+  }}
   content={{
     figure: "How blame-based and systemic approaches differ in practice and outcomes.",
     thead: { th: ["Blame-Based Approach", "Systemic Approach"] },
@@ -70,7 +73,10 @@ If you fire the engineer who made today's mistake, someone else will make a simi
 "Blameless" is frequently misunderstood. It doesn't mean no one is accountable. It doesn't mean we ignore mistakes or lower our standards. It means we hold the _right things_ accountable — and in complex systems, that's almost never an individual human making a one-off error.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-12 sm:mr-12 mb-6",
+  }}
   content={{
     figure: "Clarifying what blameless culture actually means.",
     thead: { th: ["What Blameless IS", "What Blameless IS NOT"] },
@@ -109,19 +115,19 @@ The distinction matters because different types of accountability call for diffe
 The Just Culture framework, developed in healthcare and aviation, helps distinguish between behaviors:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
   items={[
     {
-      lead: "Human error:",
-      text: "is inadvertent — a typo, a misremembered procedure. The response is system improvement.",
+      lead: "Human error",
+      text: "Inadvertent — a typo, a misremembered procedure. The response is system improvement.",
     },
     {
-      lead: "At-risk behavior:",
-      text: "involves conscious shortcuts where the person doesn't fully appreciate the risk — skipping a checklist because \"it's always fine.\" The response is coaching and removing incentives for the shortcut.",
+      lead: "At-risk behavior",
+      text: 'Involves conscious shortcuts where the person doesn\'t fully appreciate the risk — skipping a checklist because "it\'s always fine." The response is coaching and removing incentives for the shortcut.',
     },
     {
-      lead: "Reckless behavior:",
-      text: "is conscious disregard of a known substantial risk — genuinely rare in professional settings and the only category where punitive action may be appropriate.",
+      lead: "Reckless behavior",
+      text: "Conscious disregard of a known substantial risk — genuinely rare in professional settings and the only category where punitive action may be appropriate.",
     },
   ]}
 />
@@ -138,47 +144,63 @@ The phrase "root cause" implies there's one cause at the bottom of the causal ch
 
 <Diagram
   src={multipleContributingInterventionDiagram}
+  size="xl"
   title="Multiple contributing factors, each representing a potential intervention point"
   description="Flowchart showing several independent contributing factors converging on a single incident. No config validation, No canary deployment, Alert threshold too high, Runbook outdated, and On-call fatigued each point into Incident. The diagram emphasizes that complex failures typically arise from multiple interacting conditions rather than one root cause, and that each contributing factor is a possible place to intervene and reduce future risk."
 />
 
 The Five Whys technique — keep asking "why" until you reach an actionable cause — is popular but easily misused. Here's what going wrong looks like:
 
-```text title="five-whys-antipattern.txt"
-Q: Why did the system go down?
-A: Because a config change broke it.
+<List
+  variant="chat-bubbles"
+  items={[
+    {
+      lead: "Why did the system go down?",
+      text: "Because a config change broke it.",
+    },
+    {
+      lead: "Why did the config change break it?",
+      text: "Because the engineer made a mistake.",
+    },
+    {
+      lead: "Why did the engineer make a mistake?",
+      text: "Because they were careless.",
+    },
+  ]}
+/>
 
-Q: Why did the config change break it?
-A: Because the engineer made a mistake.
-
-Q: Why did the engineer make a mistake?
-A: Because they were careless.
-
-[Investigation stops at blame — nothing actionable learned]
-```
-Code: Five Whys antipattern that terminates at human blame.
+Five Whys antipattern that stops at blame — nothing actionable learned.
 
 And here's the same incident investigated properly:
 
-```text title="five-whys-systemic.txt"
-Q: Why did the system go down?
-A: Because a config change disabled authentication.
+<List
+  variant="chat-bubbles"
+  size="2xl"
+  items={[
+    {
+      lead: "Why did the system go down?",
+      text: "Because a config change disabled authentication.",
+    },
+    {
+      lead: "Why did the config change disable authentication?",
+      text: "Because the config schema changed and old values became invalid.",
+    },
+    {
+      lead: "Why did old values become invalid?",
+      text: "Because the migration script didn't update existing configs.",
+    },
+    {
+      lead: "Why didn't the migration update existing configs?",
+      text: "Because no one knew configs existed in that format.",
+    },
+    {
+      lead: "Why didn't anyone know?",
+      text: "Because documentation was outdated and there was no config inventory.",
+    },
+  ]}
+/>
 
-Q: Why did the config change disable authentication?
-A: Because the config schema changed and old values became invalid.
-
-Q: Why did old values become invalid?
-A: Because the migration script didn't update existing configs.
-
-Q: Why didn't the migration update existing configs?
-A: Because no one knew configs existed in that format.
-
-Q: Why didn't anyone know?
-A: Because documentation was outdated and there was no config inventory.
-
-[Five actionable systemic issues identified]
-```
-Code: Five Whys done well, leading to systemic improvements.
+Five Whys done well, leading to systemic improvements from actionable issues.
 
 The difference is where you choose to stop. If you reach a human attribute — careless, rushed, didn't know — that's a signal you've taken a wrong turn. Human attributes aren't fixable. But every human attribute has a system context: Why was carelessness possible? What created the rush? Why wasn't the knowledge available?
 
@@ -193,7 +215,7 @@ The analysis is only as valuable as the actions it produces. I've seen beautiful
 Good action items share specific characteristics:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="report-table"
   content={{
     figure: "Characteristics of effective action items.",
     thead: { th: ["Characteristic", "What It Means", "Example"] },
@@ -224,8 +246,13 @@ Good action items share specific characteristics:
   }}
 />
 
+Those characteristics sound straightforward in the abstract, but the difference shows up quickly when you compare action items side by side. One set points to concrete engineering changes you can implement and verify; the other just restates frustration in softer language.
+
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+    classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Good examples:",
@@ -240,11 +267,11 @@ Good action items share specific characteristics:
 
 The "bad" examples are common because they're easy to write. But "be more careful" changes nothing structural and relies on human vigilance — exactly what failed. "Engineer X needs training" is blame dressed up as remediation. "Review all configs" and "improve monitoring" lack the specificity needed to actually get done.
 
-Here's a useful test: if someone else picked up the action item, would they know exactly what to build or change? If the answer is no, refine it until they would.
-
 <Callout type="success">
 An incident without completed action items is an incident that will recur. Track actions to completion, verify they work, and close the loop in a follow-up meeting.
 </Callout>
+
+Here's a useful test: if someone else picked up the action item, would they know exactly what to build or change? If the answer is no, refine it until they would.
 
 ## The Path Forward
 
@@ -276,20 +303,20 @@ The core principles:
   variant="check-icons-list"
   items={[
     {
-      lead: "Human error is where investigation begins, not where it ends:",
-      text: "The interesting question is always: what made that action likely, possible, and undetected?",
+      lead: "Human error is where investigation begins, not where it ends",
+      text: "the interesting question is always: what made that action likely, possible, and undetected?",
     },
     {
-      lead: "Blame produces hiding; systems thinking produces learning:",
-      text: "When people fear punishment, they stop reporting. When they feel safe, they share near-misses that prevent future incidents.",
+      lead: "Blame produces hiding; systems thinking produces learning",
+      text: "when people fear punishment, they stop reporting. When they feel safe, they share near-misses that prevent future incidents.",
     },
     {
-      lead: "Incidents have contributing factors, not root causes:",
-      text: "Complex failures arise from multiple interacting conditions. Identify them all before deciding which to fix.",
+      lead: "Incidents have contributing factors, not root causes",
+      text: "complex failures arise from multiple interacting conditions. Identify them all before deciding which to fix.",
     },
     {
-      lead: "Effective remediation requires specific, systemic action items tracked to completion:",
-      text: "Vague actions don't get done. Person-focused actions don't prevent recurrence.",
+      lead: "Effective remediation requires specific, systemic action items tracked to completion",
+      text: "vague actions don't get done. Person-focused actions don't prevent recurrence.",
     },
   ]}
 />

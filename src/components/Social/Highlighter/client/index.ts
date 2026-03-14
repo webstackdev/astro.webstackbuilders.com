@@ -49,7 +49,7 @@ export class HighlighterElement extends LitElement {
   private listenersAttached = false
   private contentCaptured = false
   private boundButtons = new WeakSet<HTMLButtonElement>()
-  private triggerButton: HTMLSpanElement | null = null
+  private triggerButton: HTMLButtonElement | null = null
   private wrapperElement: HTMLSpanElement | null = null
   private readonly dialogId: string
   private readonly hintId: string
@@ -127,16 +127,15 @@ export class HighlighterElement extends LitElement {
   protected override render() {
     return html`
       <span class="highlighter__wrapper">
-        <span
-          role="button"
-          tabindex="0"
+        <button
+          type="button"
           class="highlighter__trigger"
           aria-describedby="${this.hintId}"
           aria-controls="${this.dialogId}"
           aria-expanded="false"
         >
           ${this.highlightContent}
-        </span>
+        </button>
         <span id="${this.hintId}" class="sr-only">${this.label}</span>
         <span
           id="${this.dialogId}"
@@ -215,30 +214,15 @@ export class HighlighterElement extends LitElement {
     if (!trigger || trigger === this.triggerButton) return
     this.triggerButton = trigger
     this.triggerButton.style.cursor = 'pointer'
-    trigger.addEventListener('click', event => {
-      event.stopPropagation()
-      this.handleComponentActivation()
-    })
-    trigger.addEventListener('touchend', event => {
-      if (event.cancelable && !event.defaultPrevented) {
-        event.preventDefault()
-      }
-      event.stopPropagation()
-      this.handleComponentActivation()
-    })
-    trigger.addEventListener('keyup', event => {
-      if (event.isComposing || event.repeat) {
-        return
-      }
 
-      if (event.key !== 'Enter' && event.key !== ' ') {
-        return
-      }
-
-      event.preventDefault()
-      event.stopPropagation()
-      this.handleComponentActivation()
-    })
+    addButtonEventListeners(
+      trigger,
+      event => {
+        event.stopPropagation()
+        this.handleComponentActivation()
+      },
+      this
+    )
   }
 
   private applyThemeStyles(): void {

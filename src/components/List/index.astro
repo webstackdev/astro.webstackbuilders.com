@@ -2,6 +2,7 @@
 import AccentBorderLeftList from '@components/List/layouts/AccentBorderLeftList.astro'
 import BadgeList from '@components/List/layouts/BadgeList.astro'
 import CardGridList from '@components/List/layouts/CardGridList.astro'
+import ChatBubbles from '@components/List/layouts/ChatBubbles.astro'
 import CheckIconsList from '@components/List/layouts/CheckIconsList.astro'
 import ChevronList from '@components/List/layouts/ChevronList.astro'
 import ColoredMarkerList from '@components/List/layouts/ColoredMarkerList.astro'
@@ -37,14 +38,15 @@ export type Props = {
     text?: string
     wrapper?: string
   }
-  size?: number
+  size?: number | 'lg' | 'xl' | '2xl'
   variant: string
   style?: Record<string, unknown>
 }
 
 const { items, size, variant = 'default', classes, style } = Astro.props
 const classesProps = classes ? { classes } : {}
-const sizeProps = size !== undefined ? { size } : {}
+const numericSizeProps = typeof size === 'number' ? { size } : {}
+const chatBubbleSizeProps = typeof size === 'string' ? { size } : {}
 const styleProps = style ? { style } : {}
 const itemsWithColor = items as Array<{
   title?: string
@@ -71,15 +73,16 @@ const plainIconItems = items.filter((item): item is Props['items'][number] & { i
   {variant === 'accent-border-left-list' && <AccentBorderLeftList items={items} {...classesProps} {...styleProps} />}
   {variant === 'badge-list' && <BadgeList items={items} {...classesProps} {...styleProps} />}
   {variant === 'card-grid-list' && <CardGridList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'chat-bubbles' && <ChatBubbles items={items} {...classesProps} {...chatBubbleSizeProps} />}
   {variant === 'check-icons-list' && <CheckIconsList items={items} {...classesProps} {...styleProps} />}
   {variant === 'chevron-list' && <ChevronList items={items} {...classesProps} {...styleProps} />}
-  {variant === 'colored-marker-list' && <ColoredMarkerList items={itemsWithColor} {...classesProps} {...sizeProps} {...styleProps} />}
+  {variant === 'colored-marker-list' && <ColoredMarkerList items={itemsWithColor} {...classesProps} {...numericSizeProps} {...styleProps} />}
   {variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={items} {...classesProps} {...styleProps} />}
-  {variant === 'plain-icon-list' && <PlainIconList items={plainIconItems} {...classesProps} {...sizeProps} {...styleProps} />}
+  {variant === 'plain-icon-list' && <PlainIconList items={plainIconItems} {...classesProps} {...numericSizeProps} {...styleProps} />}
   {variant === 'side-by-side-list' && <SideBySideList items={items} {...classesProps} {...styleProps} />}
   {variant === 'timeline-list' && <TimelineList items={items} {...classesProps} {...styleProps} />}
-  {variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={items} {...classesProps} {...sizeProps} {...styleProps} />}
-  {variant === 'two-column-icon-list' && <TwoColumnIconList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} {...styleProps} />}
-  {variant === 'three-column-icon-list' && <ThreeColumnIconList items={itemsWithIconAndColor} {...classesProps} {...sizeProps} {...styleProps} />}
+  {variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={items} {...classesProps} {...numericSizeProps} {...styleProps} />}
+  {variant === 'two-column-icon-list' && <TwoColumnIconList items={itemsWithIconAndColor} {...classesProps} {...numericSizeProps} {...styleProps} />}
+  {variant === 'three-column-icon-list' && <ThreeColumnIconList items={itemsWithIconAndColor} {...classesProps} {...numericSizeProps} {...styleProps} />}
   {variant === 'zebra-list' && <ZebraList items={items} {...classesProps} {...styleProps} />}
 </div>

@@ -1,19 +1,16 @@
 ---
+import type { ImageMetadata } from 'astro'
 import Image from '@components/Image/index.astro'
 
-type ImageSource = {
-  src: string
-  width: number
-  height: number
-}
+type ImageSource = ImageMetadata
 
 export interface Props {
   /** The image source for the diagram */
-  src?: ImageSource
+  src?: ImageSource | undefined
   /** The desktop preview max width token for the diagram image */
-  size?: '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs'
+  size?: '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs' | undefined
   /** The magnify button corner for the preview image */
-  magnifyButtonPosition?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left'
+  magnifyButtonPosition?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left' | undefined
   /** The title of the diagram */
   title: string
   /** A detailed description of the diagram for vision-impaired users */
@@ -21,6 +18,10 @@ export interface Props {
 }
 
 const { src, title, description, magnifyButtonPosition = 'top-right', size } = Astro.props as Props
+const imageProps = {
+  ...(typeof size !== 'undefined' ? { size } : {}),
+  ...(typeof magnifyButtonPosition !== 'undefined' ? { magnifyButtonPosition } : {}),
+}
 const hasDefaultSlot = Astro.slots.has('default')
 ---
 
@@ -30,8 +31,7 @@ const hasDefaultSlot = Astro.slots.has('default')
       src={src}
       alt={title}
       variant="center"
-      size={size}
-      magnifyButtonPosition={magnifyButtonPosition}
+      {...imageProps}
     />
   )}
 

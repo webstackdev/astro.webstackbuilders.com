@@ -39,6 +39,11 @@ const tbodyClass = ''
 const tfootClass = ''
 
 const stateClasses = {
+  accent: {
+    rowBgClass: 'bg-accent-offset/20',
+    barClass: 'bg-accent-offset',
+    textClass: 'text-accent-offset',
+  },
   note: {
     rowBgClass: 'bg-note-inverse',
     barClass: 'bg-note',
@@ -67,10 +72,42 @@ const stateClasses = {
 } as const
 
 type SemanticStateName = keyof typeof stateClasses
+const allowedSemanticStates: SemanticStateName[] = ['accent', 'note', 'success', 'warning', 'danger', 'info']
 
 const isSemanticStateName = (value: string): value is SemanticStateName => {
-  return value === 'note' || value === 'success' || value === 'warning' || value === 'danger' || value === 'info'
+  return allowedSemanticStates.includes(value as SemanticStateName)
 }
+
+const assertValidSemanticColor = (color: string | undefined, location: string) => {
+  if (!color || isSemanticStateName(color)) {
+    return
+  }
+
+  throw new Error(
+    `semantic-coloring-table: invalid color "${color}" at ${location}. ` +
+      `Expected one of: ${allowedSemanticStates.join(', ')}.`
+  )
+}
+
+content.tbody.tr.forEach((row, rowIndex) => {
+  if (typeof row.th === 'object') {
+    assertValidSemanticColor(row.th.color, `tbody row ${rowIndex + 1} header`)
+  }
+
+  row.td.forEach((cell, cellIndex) => {
+    if (typeof cell === 'object') {
+      assertValidSemanticColor(cell.color, `tbody row ${rowIndex + 1} cell ${cellIndex + 1}`)
+    }
+  })
+})
+
+content.tfoot?.tr.forEach((row, rowIndex) => {
+  row.td.forEach((cell, cellIndex) => {
+    if (typeof cell === 'object') {
+      assertValidSemanticColor(cell.color, `tfoot row ${rowIndex + 1} cell ${cellIndex + 1}`)
+    }
+  })
+})
 
 const firstBodyRow = content.tbody.tr[0]
 const hasRowHeaders = content.tbody.tr.some(row => row.th !== undefined)

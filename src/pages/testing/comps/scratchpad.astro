@@ -1,12 +1,48 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro'
+import List from '@components/List/index.astro'
 
 const pageTitle = 'Scratchpad'
 const pageDescription = 'Styling Variants'
 const path = '/testing/comps/scratchpad'
+const chatBubbleItems = [
+  {
+    lead: 'Why did the system go down?',
+    text: 'Because a config change broke it.',
+  },
+  {
+    lead: 'Why did the config change break it?',
+    text: 'Because the engineer made a mistake.',
+  },
+  {
+    lead: 'Why did the engineer make a mistake?',
+    text: 'Because they were careless.',
+  },
+]
 ---
 
 <BaseLayout pageDescription={pageDescription} noindex={true} pageTitle={pageTitle} path={path}>
   <div class="markdown-content__prose min-w-0 leading-relaxed">
+    <!-- ========== Variant 6: Chat Bubble Style ========== -->
+    <h2 class="mb-6 mt-16 text-2xl font-bold text-primary">Variant 6 — Chat Bubbles</h2>
+    <List items={chatBubbleItems} variant="chat-bubbles" />
+
+    <!-- ========== Variant 8: Elevated Hover Cards ========== -->
+    <h2 class="mb-6 mt-16 text-2xl font-bold text-primary">Variant 8 — Elevated Hover Cards</h2>
+    <dl class="grid gap-6 md:grid-cols-3">
+      <div class="group rounded-xl border border-trim-offset bg-page-base p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent hover:shadow-lg">
+        <dt class="mb-3 text-lg font-bold text-primary transition-colors group-hover:text-accent">Why did the system go down?</dt>
+        <dd class="text-content">Because a config change broke it.</dd>
+      </div>
+      <div class="group rounded-xl border border-trim-offset bg-page-base p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent hover:shadow-lg">
+        <dt class="mb-3 text-lg font-bold text-primary transition-colors group-hover:text-accent">Why did the config change break it?</dt>
+        <dd class="text-content">Because the engineer made a mistake.</dd>
+      </div>
+      <div class="group rounded-xl border border-trim-offset bg-page-base p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent hover:shadow-lg">
+        <dt class="mb-3 text-lg font-bold text-primary transition-colors group-hover:text-accent">Why did the engineer make a mistake?</dt>
+        <dd class="text-content">Because they were careless.</dd>
+      </div>
+    </dl>
+
   </div>
 </BaseLayout>

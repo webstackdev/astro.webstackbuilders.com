@@ -1,23 +1,20 @@
 ---
+import type { ImageMetadata } from 'astro'
 import { Image as AstroImage } from 'astro:assets'
 import Icon from '@components/Icon/index.astro'
 
-type ImageSource = {
-	src: string
-	width: number
-	height: number
-}
+type ImageSource = ImageMetadata
 
 type MagnifyButtonPosition = 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left'
 type ImageSize = '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs'
 
 export interface Props {
-	src?: ImageSource
-	alt?: string
-	variant?: 'left' | 'right' | 'center' | 'full'
-	size?: ImageSize
-	magnifyButtonPosition?: MagnifyButtonPosition
-	loading?: 'lazy' | 'eager'
+	src?: ImageSource | undefined
+	alt?: string | undefined
+	variant?: 'left' | 'right' | 'center' | 'full' | undefined
+	size?: ImageSize | undefined
+	magnifyButtonPosition?: MagnifyButtonPosition | undefined
+	loading?: 'lazy' | 'eager' | undefined
 }
 
 const {

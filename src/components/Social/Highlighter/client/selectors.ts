@@ -20,9 +20,9 @@ export const queryHighlighterWrapper = (context: Element): HTMLSpanElement | nul
   return isSpanElement(wrapper) ? wrapper : null
 }
 
-export const queryHighlighterTrigger = (context: Element): HTMLSpanElement | null => {
+export const queryHighlighterTrigger = (context: Element): HTMLButtonElement | null => {
   const trigger = context.querySelector(SELECTORS.trigger)
-  return isSpanElement(trigger) ? trigger : null
+  return isButtonElement(trigger) ? trigger : null
 }
 
 export const queryShareDialog = (context: Element): HTMLSpanElement | null => {
