@@ -22,42 +22,47 @@ The problem isn't the DLQ concept - it's three specific design failures that mak
 
 ## Classify Failures at Write Time
 
-Messages fail for different reasons, and those reasons determine how you should handle them. Most DLQs treat all failures the same - a message failed, it goes in the queue, someone will look at it eventually. That "eventually" often becomes "never" because manual triage doesn't scale.
+Messages fail for different reasons, and those reasons determine how you should handle them. <Highlighter>Most DLQs treat all failures the same - a message failed, it goes in the queue, someone will look at it eventually.</Highlighter> That "eventually" often becomes "never" because manual triage doesn't scale.
 
 The failure taxonomy matters because different failure types require fundamentally different responses:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
-      text: "Transient failures are temporary issues that resolve themselves: database connection timeouts, downstream service unavailability, rate limit errors, lock contention. These should succeed on retry. The right strategy is automatic replay after a cooldown period - no human intervention required if your retry policy is sound.",
+      lead: "Transient failures",
+      text: "These are temporary issues that resolve themselves: database connection timeouts, downstream service unavailability, rate limit errors, lock contention. These should succeed on retry. The right strategy is automatic replay after a cooldown period - no human intervention required if your retry policy is sound.",
     },
     {
-      text: "Permanent failures won't resolve without intervention: invalid message format, referenced entity doesn't exist, business rule violation, schema version mismatch. These will never succeed without a fix. Someone needs to look at the payload, understand what's wrong, and either fix the data or discard the message.",
+      lead: "Permanent failures",
+      text: "These won't resolve without intervention: invalid message format, referenced entity doesn't exist, business rule violation, schema version mismatch. These will never succeed without a fix. Someone needs to look at the payload, understand what's wrong, and either fix the data or discard the message.",
     },
     {
-      text: "Poison messages crash the consumer: null pointer in a required field, infinite loop triggered by specific data, memory exhaustion from an oversized payload. The consumer dies on every attempt. These are the most dangerous because they can take down your processing capacity. The strategy is to isolate immediately, fix the consumer code, then replay.",
+      lead: "Poison messages",
+      text: "These crash the consumer: null pointer in a required field, infinite loop triggered by specific data, memory exhaustion from an oversized payload. The consumer dies on every attempt. These are the most dangerous because they can take down your processing capacity. The strategy is to isolate immediately, fix the consumer code, then replay.",
     },
     {
-      text: "Ordering failures fail due to sequence issues: an update arriving before the create, a delete for a non-existent record. These may succeed if replayed in correct order. The strategy is to hold for reordering, then replay - but this often requires understanding the business context to determine the correct sequence.",
+      lead: "Poison messages",
+      text: "These fail due to sequence issues: an update arriving before the create, a delete for a non-existent record. These may succeed if replayed in correct order. The strategy is to hold for reordering, then replay - but this often requires understanding the business context to determine the correct sequence.",
     },
   ]}
 />
 
 When you classify failures at write time - the moment the message moves to the DLQ - you enable automation. Transient failures route to an auto-replay queue with a delay. Permanent failures route to a team-specific triage queue. Poison messages trigger an immediate alert. Without classification, every message requires a human to open it, read the error, and decide what to do. That's why DLQs accumulate for months.
 
-The classification should be explicit in your DLQ schema, not inferred later. Your consumer already knows why it failed - a `ValidationError` is permanent, a `ConnectionError` is transient, an unhandled exception might be poison. Map exception types to failure classifications programmatically, and use that classification to drive routing and alerting.
-
 <Callout type="info">
 If your DLQ treats all failures the same, you're forcing humans to do what software should do. Classification is the foundation that makes everything else - auto-replay, targeted alerts, efficient triage - possible.
 </Callout>
+
+The classification should be explicit in your DLQ schema, not inferred later. Your consumer already knows why it failed - a `ValidationError` is permanent, a `ConnectionError` is transient, an unhandled exception might be poison. Map exception types to failure classifications programmatically, and use that classification to drive routing and alerting.
 
 ## Capture Context Before It's Gone
 
 Traditional DLQs fail at their job because they don't capture enough context. Most give you the original message payload, a timestamp when the message was DLQ'd, and maybe the number of retries. That's it. When you're debugging a failure three weeks later, you're staring at a payload with no idea what went wrong.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Context required for a debuggable DLQ.",
     thead: { th: ["What You Need for Debugging", "Why It Matters"] },
@@ -122,13 +127,13 @@ For teams using Kafka, ecosystem tooling bridges some of this gap. Kpow and Cond
 
 Database-backed storage trades native queue features for query capability - and for most teams, it's a worthwhile trade. With DLQ messages in PostgreSQL or MongoDB, debugging becomes straightforward. Find all messages that failed with a specific error type. Filter by source queue, time range, or failure classification. Join against your application tables to enrich the view. Build operational dashboards that show failure trends over time.
 
-Several libraries make database-backed DLQ storage easy to implement. _pg-boss_ is a Node.js job queue backed by PostgreSQL with built-in retry policies and dead-lettering - failed jobs stay in Postgres tables where you can query them directly. _pgmq_ is a lightweight message queue native to Postgres supporting DLQ management. _River_ provides Go applications with Postgres-backed message persistence and sophisticated redrive policies. _Wolverine_ gives .NET teams PostgreSQL-backed messaging with integrated DLQ handling.
-
-The decision tree is relatively simple. If you're running Kafka at scale, evaluate the ecosystem tools - they'll save weeks of custom development. If you're using Postgres and a supported language, the database-backed libraries give you queryable DLQ storage essentially for free. If your needs include custom enrichment, schema validation before replay, or conditional routing based on failure type, you'll end up building a dedicated DLQ service regardless of storage choice.
+Several libraries make database-backed DLQ storage easy to implement. `pg-boss` is a Node.js job queue backed by PostgreSQL with built-in retry policies and dead-lettering - failed jobs stay in Postgres tables where you can query them directly. `pgmq` is a lightweight message queue native to Postgres supporting DLQ management. `River` provides Go applications with Postgres-backed message persistence and sophisticated redrive policies. `Wolverine` gives .NET teams PostgreSQL-backed messaging with integrated DLQ handling.
 
 <Callout type="warning">
 Queue-based DLQ storage optimizes for simplicity at the cost of visibility. Database-backed storage optimizes for understanding at the cost of complexity. For anything beyond low-volume, simple workflows, the visibility is worth it.
 </Callout>
+
+The decision tree is relatively simple. If you're running Kafka at scale, evaluate the ecosystem tools - they'll save weeks of custom development. If you're using Postgres and a supported language, the database-backed libraries give you queryable DLQ storage essentially for free. If your needs include custom enrichment, schema validation before replay, or conditional routing based on failure type, you'll end up building a dedicated DLQ service regardless of storage choice.
 
 ## The Payoff
 

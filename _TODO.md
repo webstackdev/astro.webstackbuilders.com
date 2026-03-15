@@ -325,4 +325,7 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
   classes={{
     figure: "sm:ml-8 sm:mr-12 mb-6",
   }}
+  classes={{
+    tbody: '!text-content',
+  }}
 />
