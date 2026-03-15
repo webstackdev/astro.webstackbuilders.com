@@ -213,7 +213,6 @@ export class HighlighterElement extends LitElement {
     const trigger = queryHighlighterTrigger(this)
     if (!trigger || trigger === this.triggerButton) return
     this.triggerButton = trigger
-    this.triggerButton.style.cursor = 'pointer'
 
     addButtonEventListeners(
       trigger,

@@ -21,11 +21,11 @@ I've seen this pattern more than once. A team aggressively caches everything, bu
 
 The core tension is this: caching is an optimization that trades correctness guarantees for speed. Every cache hit assumes that the cached artifact is __identical__ to what a fresh build would produce. When that assumption is wrong — and it's surprisingly easy to get wrong — you're shipping artifacts that don't match your source code.
 
-This article covers the fundamentals of CI caching (cache keys, restore keys, and correctness principles), dependency caching across language ecosystems, Docker layer caching and BuildKit features, the pitfalls that turn caching into a footgun, and how to measure whether your caching is actually working.
-
 <Callout type="warning">
 A fast build that produces incorrect artifacts is worse than a slow build. Before optimizing cache hit ratio, ensure your cache keys capture everything that affects build output.
 </Callout>
+
+This article covers the fundamentals of CI caching (cache keys, restore keys, and correctness principles), dependency caching across language ecosystems, Docker layer caching and BuildKit features, the pitfalls that turn caching into a footgun, and how to measure whether your caching is actually working.
 
 ## The Fundamentals of CI Caching
 
@@ -34,7 +34,8 @@ A fast build that produces incorrect artifacts is worse than a slow build. Befor
 Before optimizing, it helps to know where the time actually goes. Here's a breakdown of typical CI pipeline phases and their caching potential:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "CI pipeline phases with caching potential.",
     thead: {
@@ -80,19 +81,22 @@ Cache keys are the mechanism that determines when to use cached artifacts versus
 The art is in designing keys that change when (and only when) the cached content should change. A good cache key has three components:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12",
+  }}
   items={[
     {
       lead: "A static prefix",
-      text: "for namespacing and manual invalidation (e.g., `v1-deps-`)",
+      text: 'For namespacing and manual invalidation (e.g., <span class="font-mono">v1-deps-*</span>)',
     },
     {
       lead: "Dynamic components",
-      text: "that capture everything affecting the cached content (e.g., lockfile hash)",
+      text: "Captures everything affecting the cached content (e.g., lockfile hash)",
     },
     {
       lead: "Optionally, a version or OS component",
-      text: "for environment-specific caches (e.g., `runner.os`)",
+      text: 'For environment-specific caches (e.g., <span class="font-mono">runner.os</span>)',
     },
   ]}
 />
@@ -124,25 +128,27 @@ Restore keys provide fallback options when the exact cache key doesn't match. Th
 Three principles determine whether a cache is safe to use:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Completeness means the cache key includes everything that affects the output.",
-      text: "If your compiled artifact depends on the compiler version, the compiler version must be in the cache key. If it depends on source files, those file hashes must be in the key. Miss something, and you'll serve stale artifacts.",
+      text: "If your compiled artifact depends on the compiler version, the compiler version must be in the cache key. Miss something, and you'll serve stale artifacts.",
     },
     {
       lead: "Determinism means the same inputs always produce the same outputs.",
-      text: "If your build embeds timestamps, downloads \"latest\" versions of tools, or has race conditions in parallel jobs, caching becomes unsafe — the cached artifact won't match what a fresh build would produce.",
+      text: "If your build embeds timestamps or downloads \"latest\" versions of tools, caching becomes unsafe — the cached artifact won't match what a fresh build would produce.",
     },
     {
       lead: "Isolation means caches don't leak between unrelated builds.",
-      text: "PR builds shouldn't pollute the main branch cache. Different workflows should have separate cache namespaces. Without isolation, one build's experimental changes can corrupt another build's cache.",
+      text: "PR builds shouldn't pollute the main branch cache. Without isolation, one build's experimental changes can corrupt another build's cache.",
     },
   ]}
 />
 
+These three principles are easy to state but surprisingly easy to violate. The table below maps each principle to the rule it enforces and the mistake that breaks it — a useful checklist when something is caching incorrectly.
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="timeline-labels-table"
   content={{
     figure: "Cache correctness principles and common violations.",
     thead: {
@@ -151,15 +157,15 @@ Three principles determine whether a cache is safe to use:
     tbody: {
       tr: [
         {
-          th: "Completeness",
+          th: { label: "Completeness", color: "bg-info" },
           td: ["Key includes all inputs", "Forgetting compiler version in key"],
         },
         {
-          th: "Determinism",
+          th: { label: "Determinism", color: "bg-warning" },
           td: ["Same inputs → same outputs", "Build embeds current timestamp"],
         },
         {
-          th: "Isolation",
+          th: { label: "Isolation", color: "bg-danger" },
           td: ["Caches don't leak across builds", "PR pollutes main branch cache"],
         },
       ],
@@ -604,15 +610,15 @@ Caching assumes determinism: the same inputs produce the same outputs. If your b
 Common sources of non-determinism:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "Floating versions",
-      text: "Using `npm install` instead of `npm ci` allows the package manager to resolve different versions on different runs, even with the same lockfile.",
+      text: 'Using <span class="font-mono font-semibold">npm install</span> instead of <span class="font-mono font-semibold">npm ci</span> allows the package manager to resolve different versions on different runs, even with the same lockfile.',
     },
     {
       lead: "Timestamps",
-      text: "If your build embeds the current timestamp in artifacts, a cached artifact won't match a fresh build. Use `SOURCE_DATE_EPOCH` for reproducible builds.",
+      text: 'If your build embeds the current timestamp in artifacts, a cached artifact won\'t match a fresh build. Use <span class="font-mono font-semibold">SOURCE_DATE_EPOCH</span> for reproducible builds.',
     },
     {
       lead: "Parallel race conditions",
@@ -743,11 +749,11 @@ GitHub Actions shows cache hit/miss in workflow logs and provides cache manageme
 Four metrics tell you whether caching is working:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "Cache hit ratio",
-      text: "Is the percentage of builds that found a usable cache. Calculate it as `cache_hits / (cache_hits + cache_misses)`. A healthy ratio is above 80%. Below 50% for more than a day means something is wrong with your cache key design.",
+      text: 'Is the percentage of builds that found a usable cache. Calculate it as <span class="font-mono font-semibold">cache_hits / (cache_hits + cache_misses)</span>. A healthy ratio is above 80%. Below 50% for more than a day means something is wrong with your cache key design.',
     },
     {
       lead: "Time saved",
@@ -805,22 +811,22 @@ Code: Script to list cache entries via GitHub API.
 Common causes of unexpected misses:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
-      text: "Lockfile changed (intended behavior, but verify the change was intentional)",
+      lead: "Lockfile changed (intended behavior, but verify the change was intentional)",
     },
     {
-      text: "Cache key includes something volatile (like a timestamp or random value)",
+      lead: "Cache key includes something volatile (like a timestamp or random value)",
     },
     {
-      text: "Cache was evicted due to size limits or inactivity",
+      lead: "Cache was evicted due to size limits or inactivity",
     },
     {
-      text: "Restore keys aren't matching due to prefix mismatch",
+      lead: "Restore keys aren't matching due to prefix mismatch",
     },
     {
-      text: "Different runner OS or architecture than the cached build",
+      lead: "Different runner OS or architecture than the cached build",
     },
   ]}
 />
@@ -978,7 +984,10 @@ __GitLab cache gotcha__: If you're using Kubernetes executors with distributed r
 CI caching is deceptively simple on the surface: save files, restore files, skip work. But effective caching requires understanding the principles beneath the configuration.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Cache keys must capture everything that affects build output.",

@@ -24,40 +24,88 @@ I've seen this scenario play out more than once: a payment service starts respon
 
 The root cause wasn't the database. It was the retry behavior.
 
-Circuit breakers and retry budgets exist to break this cycle. A circuit breaker monitors failure rates and "opens" when a downstream service is unhealthy, failing requests immediately instead of adding load to a struggling service. A retry budget limits the total number of retries across all requests, preventing the exponential amplification that turns a minor issue into a major outage.
-
 <Callout type="warning">
 Retries without limits are a distributed denial-of-service attack against your own infrastructure. Every retry multiplies load on an already struggling service.
 </Callout>
 
+Circuit breakers and retry budgets exist to break this cycle. A circuit breaker monitors failure rates and "opens" when a downstream service is unhealthy, failing requests immediately instead of adding load to a struggling service. A retry budget limits the total number of retries across all requests, preventing the exponential amplification that turns a minor issue into a major outage.
+
 ## The Cascade Failure Pattern
 
-Understanding the mechanics of cascade failures requires tracing the path from initial symptom to system-wide collapse. The pattern is predictable, which means it's also preventable.
+<Highlighter>Understanding the mechanics of cascade failures requires tracing the path from initial symptom to system-wide collapse.</Highlighter> The pattern is predictable, which means it's also preventable.
 
 Consider a typical service chain: an API gateway calls a checkout service, which calls an inventory service, which queries a database. Each layer has timeouts and retry logic configured independently. Nobody coordinated these settings because each team was responsible for their own service.
 
 The failure starts at the bottom. A database experiences momentary slowness — maybe a long-running query, maybe garbage collection, maybe a network hiccup. What happens next follows a predictable sequence:
 
-```text
-Timeline of a cascade failure:
+Timeline of a cascade failure showing how a brief database slowdown cascades into a 10-minute outage:
 
-T+0:    Database slow (100ms → 2s response time)
-T+10s:  Service C queues grow, some requests timeout
-T+20s:  Service B sees C timeouts, starts retrying
-T+30s:  Service A sees B timeouts, starts retrying
-T+45s:  All services at maximum queue depth
-T+60s:  Database recovers, but services cannot — queues too deep
-T+2min: Manual intervention required
-T+5min: Services restarted, queues cleared
-T+10min: Full recovery
+<List
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-12",
+  }}
+  items={[
+    {
+      lead: "T+0:",
+      text: "Database slow (100ms → 2s response time)",
+    },
+    {
+      lead: "T+10s:",
+      text: "Service C queues grow, some requests timeout",
+    },
+    {
+      lead: "T+20s:",
+      text: "Service B sees C timeouts, starts retrying",
+    },
+    {
+      lead: "T+30s:",
+      text: "Service A sees B timeouts, starts retrying",
+    },
+    {
+      lead: "T+45s:",
+      text: "All services at maximum queue depth",
+    },
+    {
+      lead: "T+60s:",
+      text: "Database recovers, but services cannot — queues too deep",
+    },
+    {
+      lead: "T+2min:",
+      text: "Manual intervention required",
+    },
+    {
+      lead: "T+5min:",
+      text: "Services restarted, queues cleared",
+    },
+    {
+      lead: "T+10min:",
+      text: "Full recovery",
+    },
+  ]}
+/>
 
-Root cause: 30 second database slowdown
-Actual outage: 10 minutes
-Amplification factor: 20x
-```
-Figure: Timeline showing how a brief database slowdown cascades into a 10-minute outage.
+The timeline above shows the domino effect, but the summary tells the real story:
 
-The database recovered at T+60s, but the cascade continued for another 9 minutes. By the time the database was healthy, each upstream service had thousands of requests queued. Those queued requests kept hammering downstream services, preventing recovery. The system needed manual intervention — draining queues, restarting services — to return to normal operation.
+<List
+  variant="side-by-side-list"
+  items={[
+    {
+      lead: "Root cause:",
+      text: "30 second database slowdown",
+    },
+    {
+      lead: "Actual outage:",
+      text: "10 minutes",
+    },
+    {
+      lead: "Amplification factor:",
+      text: "20x",
+    },
+  ]}
+/>
+
+The database recovered at `T+60s`, but the cascade continued for another 9 minutes. By the time the database was healthy, each upstream service had thousands of requests queued. Those queued requests kept hammering downstream services, preventing recovery. The system needed manual intervention — draining queues, restarting services — to return to normal operation.
 
 ### Retry Amplification
 
@@ -66,7 +114,8 @@ The math behind retry amplification is straightforward, and terrifying. Each ser
 The formula is simple: $$(r + 1)^n$$ where $$r$$ is retries per service and $$n$$ is the number of services in the chain. With 3 services each retrying 3 times, that's $$4^3 = 64x$$ load amplification.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Load amplification from retries across service chains.",
     thead: {

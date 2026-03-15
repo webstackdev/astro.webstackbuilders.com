@@ -3,26 +3,35 @@ import DefaultInset from './layouts/DefaultInset.astro'
 
 export type Props = {
   classes?: {
+    figure?: string
     layout?: string
     wrapper?: string
   }
   color?: string | undefined
+  figure?: string
+  fullWidth?: boolean
   size?: number
   variant: string
 }
 
-const { variant = 'default', classes, color } = Astro.props
+const { variant = 'default', classes, color, figure, fullWidth = true } = Astro.props
+const layoutClasses: NonNullable<Pick<NonNullable<Props['classes']>, 'layout'>> = {
+  ...(classes?.layout !== undefined ? { layout: classes.layout } : {}),
+}
+const defaultInsetProps = {
+  ...(Object.keys(layoutClasses).length > 0 ? { classes: layoutClasses } : {}),
+  ...(color !== undefined ? { color } : {}),
+  fullWidth,
+}
 ---
 
-<div class:list={[classes?.wrapper ? classes.wrapper : 'mb-8']}>
-  {variant === 'default' &&
-    (classes?.layout !== undefined ? (
-      <DefaultInset classes={{ layout: classes.layout }} color={color}>
-        <slot />
-      </DefaultInset>
-    ) : (
-      <DefaultInset color={color}>
-        <slot />
-      </DefaultInset>
-    ))}
-</div>
+<figure class:list={[classes?.wrapper ? classes.wrapper : 'mb-8']}>
+  {variant === 'default' && (
+    <DefaultInset {...defaultInsetProps}>
+      <slot />
+    </DefaultInset>
+  )}
+  {figure && (
+    <figcaption class="italic text-base text-center mt-3" set:html={figure}></figcaption>
+  )}
+</figure>

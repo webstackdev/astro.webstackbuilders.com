@@ -283,6 +283,9 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
 ├──
 └──
 
+<span class="font-mono">
+</span>
+
 <Highlighter>
 </Highlighter>
 
