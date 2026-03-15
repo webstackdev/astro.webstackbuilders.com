@@ -27,12 +27,15 @@ This short article keeps only the pieces that carry the most weight:
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: "How head and tail sampling trade cost, complexity, and outcome capture",
+      lead: "How head and tail sampling trade cost, complexity, and outcome capture",
     },
     {
-      text: "How to pick a strategy at your traffic level and debug when traces go missing",
+      lead: "How to pick a strategy at your traffic level and debug when traces go missing",
     },
   ]}
 />
@@ -44,16 +47,22 @@ and that choice propagates downstream through the trace context headers, so ever
 honors the same decision. You get three benefits immediately:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    em: 'text-page-inverse',
+  }}
   items={[
     {
-      text: "Cost control is straightforward. Sample 10% and your ingest costs drop roughly 90%.",
+      lead: "Cost control is straightforward:",
+      text: "Sample 10% and your ingest costs drop roughly 90%.",
     },
     {
-      text: "The infrastructure is simple. The logic lives in the SDK you already run.",
+      lead: "The infrastructure is simple:",
+      text: "The logic lives in the SDK you already run.",
     },
     {
-      text: "Traces show up quickly. There is no buffering or delayed decision.",
+      lead: "Traces show up quickly:",
+      text: "There is no buffering or delayed decision.",
     },
   ]}
 />
@@ -73,25 +82,31 @@ completes, then evaluated against policies like "keep all errors" or "keep trace
 approach gives you powerful guarantees:
 
 <List
-  variant="check-icons-list"
+  variant="plain-icon-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-12 mb-6",
+  }}
   items={[
     {
+      icon: "error",
       text: "You can capture every error trace.",
     },
     {
+      icon: "waiting",
       text: "You can keep all slow traces tied to an SLO breach.",
     },
     {
+      icon: "funnel",
       text: "You can filter by business events and keep only the valuable transactions.",
     },
   ]}
 />
 
-<Newsletter />
-
 The cost is operational complexity. Tail sampling requires a stateful collector tier, buffer memory, and
 trace‑ID routing so that all spans for the same trace arrive at the same collector. It also adds delay:
 the traces you want are visible only after the decision wait window expires.
+
+<Newsletter />
 
 If you can absorb the complexity, tail sampling gives you the highest signal density. But it should be a
 deliberate choice, not a default. A typical policy set looks like: keep all errors and keep traces above
@@ -107,16 +122,19 @@ backpressure, and trace-ID routing, head sampling is the safer default.
 The decision is less about ideology and more about constraints. A quick framing I use:
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
   items={[
     {
-      text: "Under 1,000 RPS: do not over-optimize. Use head sampling or even full capture in limited windows.",
+      title: "Under 1,000 RPS:",
+      text: "Do not over-optimize. Use head sampling or even full capture in limited windows.",
     },
     {
-      text: "1,000 to 10,000 RPS: head sampling is usually enough, unless you must guarantee error capture.",
+      title: "1,000 to 10,000 RPS:",
+      text: "Head sampling is usually enough, unless you must guarantee error capture.",
     },
     {
-      text: "Over 10,000 RPS: head sampling for baseline cost control, tail sampling only if you can run it well.",
+      title: "Over 10,000 RPS:",
+      text: "Head sampling for baseline cost control, tail sampling only if you can run it well.",
     },
   ]}
 />
@@ -128,6 +146,9 @@ If you need both cost control and guaranteed capture, a hybrid approach is the u
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       text: "Use head sampling to reduce volume to a manageable fraction.",
@@ -148,15 +169,22 @@ workflow needs a fallback path.
 Here is the workflow I recommend in teams that sample aggressively:
 
 <List
-  variant="check-icons-list"
+  variant="accent-border-left-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    li: "min-h-12 flex items-center [&>p]:!text-content [&>p]:!text-base",
+  }}
   items={[
     {
+      color: "border-secondary",
       text: "Always log trace IDs for every request, sampled or not.",
     },
     {
+      color: "border-success",
       text: "Correlate logs, metrics, and traces. Metrics with exemplars can point to traces that were sampled.",
     },
     {
+      color: "border-orange-500",
       text: "Use on-demand sampling for reproducible issues so you can force a trace when it matters. A simple header like `X-Force-Trace: true` is often enough.",
     },
   ]}
