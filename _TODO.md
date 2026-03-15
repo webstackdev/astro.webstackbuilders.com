@@ -276,6 +276,8 @@ https://mermaid.js.org/config/directives.html
 
 - How can we handle footnotes in List components? src/content/articles/kubernetes-multi-cluster-fleet-management-configuration/pdf.mdx line 80
 
+- Need to update Case Studies with lists and tables too
+
 ### This file was badly mangled during refactoring, need to compare against original:
 
 src/content/articles/internal-developer-portal-platform-self-service-actions/pdf.mdx
@@ -318,6 +320,16 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
       color: "bg-blue-600",
     },
   ]}
+/>
+
+### Spacing out the boxes:
+
+<List
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
 />
 
 <Table

@@ -11,14 +11,11 @@ featured: true
 
 import directDependenciesDiagram from "./diagrams/direct-dependencies-hide-a-much-larger-transitive-graph.jpg"
 
+*[CVE]: Common Vulnerabilities and Exposures
 *[EOL]: End of Life
 *[LTS]: Long Term Support
-*[CVE]: Common Vulnerabilities and Exposures
-*[SLA]: Service Level Agreement
-*[API]: Application Programming Interface
 *[SDK]: Software Development Kit
-*[CI]: Continuous Integration
-*[CD]: Continuous Deployment
+*[SLA]: Service Level Agreement
 
 ## Introduction
 
@@ -30,11 +27,11 @@ An EOL runtime is not a version bump. It is a forced audit of assumptions across
 
 Here is a typical scenario. A team needs to move from .NET 6 to .NET 8. Their direct dependencies all list .NET 8 support. But a transitive dependency three levels deep pins an old NuGet package that relies on a deprecated API or an incompatible runtime behavior. They are blocked by code they do not own and have never looked at. That is why EOL upgrades feel chaotic: the failure is distributed across the dependency graph, not the app.
 
-In this article I will lay out a practical upgrade path: map the graph, identify blockers by type, then build a staged plan that gets you to a supported runtime without a multi-month freeze.
-
 <Callout type="warning">
 EOL isn't a deadline — it's a vulnerability window opening. Every day past EOL is a day your runtime won't receive security patches. The question isn't whether to upgrade, but how fast you can safely do it.
 </Callout>
+
+In this article I will lay out a practical upgrade path: map the graph, identify blockers by type, then build a staged plan that gets you to a supported runtime without a multi-month freeze.
 
 ## Understanding the Dependency Graph
 
@@ -90,7 +87,7 @@ The `npm explain` and `yarn why` commands are particularly useful when you have 
 Once you have visibility into the graph, you need to classify blockers by type. Not all incompatibilities are equal. Some require a one-line version bump. Others require replacing a core library and touching every file that imports it. The table below shows the most common blocker categories and the typical resolution path for each.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     figure: "Common dependency blocker types and strategies.",
     thead: { th: ["Blocker Type", "Example", "Resolution Strategy"] },
@@ -152,7 +149,10 @@ Most ecosystems have tooling that helps with this. The npm `npm outdated` comman
 The order matters. Some upgrades unblock others. Some create risk that you want to isolate. The general pattern I follow:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Unblock",
@@ -202,7 +202,7 @@ The .NET ecosystem has a unique challenge that Node and Python developers do not
 The breaking changes fall into three categories. _Removed APIs_ are namespaces and classes that do not exist in .NET Core at all—`System.Web` is the biggest one, but `WCF` server-side, `AppDomain.CreateDomain`, and various Windows-specific APIs are also gone. _Changed APIs_ still exist but work differently—`HttpContext` becomes `IHttpContextAccessor` with dependency injection, `ConfigurationManager` becomes `IConfiguration`, and `System.Drawing` has limited cross-platform support. _Architecture changes_ are the deepest — the entire application startup model moved from `Global.asax` to `Program.cs`, configuration moved from `Web.config` to `appsettings.json`, and dependency injection is now built into the framework rather than bolted on.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Common .NET Framework blockers and their modern replacements.",
     thead: { th: ["Blocker", "Replacement", "Migration Effort"] },
@@ -325,11 +325,11 @@ Node 17 upgraded to OpenSSL 3.0, which removed support for several legacy crypto
 
 The tempting fix is to set `NODE_OPTIONS=--openssl-legacy-provider`, which re-enables the old algorithms. This works, but it defeats the purpose of the security improvement. The algorithms were removed because they are cryptographically weak.
 
-The correct fix is to audit your crypto usage. Search your codebase and dependencies for the specific algorithm that is failing. If it is in your code, update to a modern alternative. If it is in a dependency, check for a newer version that uses updated crypto. If the dependency is abandoned, you have another item for your replacement list.
-
 <Callout type="info">
-Node 18 and 20 changed OpenSSL defaults, breaking legacy crypto. If you see ERR_OSSL_EVP_UNSUPPORTED, don't just set --openssl-legacy-provider — audit your crypto usage and update to modern algorithms.
+Node 18 and 20 changed OpenSSL defaults, breaking legacy crypto. If you see `ERR_OSSL_EVP_UNSUPPORTED`, don't just set `--openssl-legacy-provider` — audit your crypto usage and update to modern algorithms.
 </Callout>
+
+The correct fix is to audit your crypto usage. Search your codebase and dependencies for the specific algorithm that is failing. If it is in your code, update to a modern alternative. If it is in a dependency, check for a newer version that uses updated crypto. If the dependency is abandoned, you have another item for your replacement list.
 
 ### The ESM Transition
 
@@ -361,7 +361,7 @@ The third option is pinning to the last CommonJS version of the package. Check t
 Before moving on to the operating system layer, it is worth noting that the patterns we have covered for .NET and Node apply to other major frameworks as well. Rails, Django, and Spring Boot each have their own release cycles, deprecation policies, and upgrade friction points. The methodology is the same: map the dependency graph, classify blockers, sequence the work. But the specific pain points differ.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     figure: "Framework EOL patterns and common upgrade blockers.",
     thead: { th: ["Framework", "EOL Pattern", "Common Blockers", "Key Friction"] },
@@ -456,7 +456,10 @@ When you maintain images for multiple applications, consider a staged rollout: u
 For non-containerized infrastructure, OS upgrades require more coordination. The safest approach is blue-green deployment at the infrastructure level: provision new instances on the new OS, migrate traffic gradually, and keep the old instances available for rollback.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Preparation",
@@ -498,11 +501,15 @@ Check the GitHub repository (or equivalent) before concluding a package is aband
 Your options, roughly in order of preference:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: "Find a replacement.",
-      text: "Many abandoned packages have actively maintained alternatives. The `request` library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements—`node-fetch`, `axios`, `got`—are well documented and widely adopted. Search for \"[package name] alternative\" or check the npm deprecation notice for suggestions.",
+      text: 'Many abandoned packages have actively maintained alternatives. The <span class="font-mono">request</span> library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements — <span class="font-mono">node-fetch</span>, <span class="font-mono">axios</span>, <span class="font-mono">got</span> — are well documented and widely adopted. Search for "[package name] alternative" or check the npm deprecation notice for suggestions.',
     },
     {
       lead: "Upgrade to a compatible version.",
@@ -510,7 +517,7 @@ Your options, roughly in order of preference:
     },
     {
       lead: "Fork and patch.",
-      text: "If the package is abandoned and has no replacement, you can fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. Update your package.json to reference the fork:",
+      text: 'If the package is abandoned and has no replacement, you can fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. Update your <span class="font-mono">package.json</span> to reference the fork.',
     },
   ]}
 />
@@ -530,15 +537,19 @@ Code: Referencing a forked package while maintaining the original import paths.
 The `npm:` prefix lets you alias the fork to the original package name, so you do not need to update import statements throughout your codebase. The `overrides` entry ensures that transitive dependencies also use your fork.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: "Vendor the code.",
-      text: "For small packages with simple functionality, copying the source code into your repository may be simpler than maintaining a fork. Put it in a `vendor/` directory, update your imports, and apply whatever patches you need. This removes the dependency from your package.json entirely.",
+      text: 'For small packages with simple functionality, copying the source code into your repository may be simpler than maintaining a fork. Put it in a <span class="font-mono">vendor/</span> directory, update your imports, and apply whatever patches you need. This removes the dependency from your <span class="font-mono">package.json</span> entirely.',
     },
     {
       lead: "Rewrite.",
-      text: "If the package's functionality is narrow and well-defined, writing a replacement yourself may be faster than maintaining someone else's code. The infamous `left-pad` incident aside, many utility packages are just a few functions that you could implement in an afternoon.",
+      text: 'If the package\'s functionality is narrow and well-defined, writing a replacement yourself may be faster than maintaining someone else\'s code. The infamous <span class="font-mono">left-pad</span> incident aside, many utility packages are just a few functions that you could implement in an afternoon.',
     },
   ]}
 />
@@ -625,7 +636,7 @@ This example fixes the common `new Buffer()` deprecation that breaks on Node 20.
 Patches are a temporary measure, not a permanent solution. Track patched packages in your backlog. When the upstream fix is released, remove the patch and upgrade. Set calendar reminders to check quarterly.
 </Callout>
 
-<Callout type="info">
+<Callout type="success">
 Patching tools exist across ecosystems. For .NET, you can use source generators or IL weaving, but most teams simply fork and reference the fork. Bundler supports `git:` references pointing to a forked repo with your patch. pip can install from git URLs or local paths. Composer supports patching via the `cweagans/composer-patches` plugin, which applies diff files similarly to patch-package.
 </Callout>
 
@@ -703,34 +714,38 @@ Each item should be checkable, not aspirational. "Tests pass" means you have see
 Document each step with its command, expected outcome, and rollback action if it fails. For example:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-12 mb-6",
+  }}
   items={[
     {
+      lead: "Verify: pods running, health checks passing",
       text: "Deploy canary instances with the new runtime.",
-      lead: "Verify: pods running, health checks passing.",
     },
     {
+      lead: "Verify: metrics show traffic split",
       text: "Route 1% of traffic to canary.",
-      lead: "Verify: metrics show traffic split.",
     },
     {
+      lead: "Rollback: if error rate > 2x baseline or p99 latency > 2x baseline",
       text: "Monitor for 15 minutes.",
-      lead: "Rollback if: error rate > 2x baseline or p99 latency > 2x baseline.",
     },
     {
+      lead: "Monitor for 1 hour",
       text: "Expand to 10% of traffic.",
-      lead: "Monitor for 1 hour.",
     },
     {
+      lead: "Monitor for 4 hours",
       text: "Expand to 50% of traffic.",
-      lead: "Monitor for 4 hours.",
     },
     {
+      lead: "Monitor for 24 hours",
       text: "Complete rollout.",
-      lead: "Monitor for 24 hours.",
     },
     {
-      text: "Decommission old runtime instances after soak period.",
+      lead: "Decommission old runtime instances",
+      text: "Remove the previous runtime after a soak period confirms stability.",
     },
   ]}
 />
@@ -753,8 +768,8 @@ The approach that works: map the dependency graph before you start writing code.
 
 The teams that struggle with EOL upgrades are the ones who wait until the deadline is imminent, then try to do everything at once. The teams that handle them smoothly treat upgrades as continuous maintenance — small, frequent updates rather than multi-year gaps that accumulate compounding breakage.
 
-The overrides, patches, and forks described in this article are stopgaps, not destinations. They buy time for a proper fix while keeping you off EOL runtimes. If you find yourself maintaining patched dependencies for months, that is a signal to invest in proper replacement or contribute the fix upstream.
-
 <Callout type="info">
 The best time to upgrade is before EOL, when you have time to do it right. The second best time is now. Every day past EOL is a day your runtime won't receive security patches. Start small, test thoroughly, and deploy gradually.
 </Callout>
+
+The overrides, patches, and forks described in this article are stopgaps, not destinations. They buy time for a proper fix while keeping you off EOL runtimes. If you find yourself maintaining patched dependencies for months, that is a signal to invest in proper replacement or contribute the fix upstream.
