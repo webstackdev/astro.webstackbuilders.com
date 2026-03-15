@@ -1,0 +1,35 @@
+---
+import type { FileSystemNode } from '@components/FileExplorer/client/index'
+
+export type Props = {
+  data: FileSystemNode[]
+  figure?: string
+  classes?: {
+    wrapper?: string
+  }
+  fullWidth?: boolean
+}
+
+const {
+  data = [],
+  figure,
+  classes = {},
+  fullWidth = true,
+} = Astro.props
+
+const wrapperClass = [
+  'file-explorer',
+  'mb-6',
+  'block',
+  fullWidth ? 'w-full' : 'mx-auto w-fit max-w-full',
+  classes.wrapper,
+].filter(Boolean).join(' ')
+---
+
+<file-explorer class={wrapperClass} data-file-system={JSON.stringify(data)} data-figure={figure}>
+</file-explorer>
+
+<script>
+  import { registerFileExplorer } from '@components/FileExplorer/client/index'
+  registerFileExplorer()
+</script>
