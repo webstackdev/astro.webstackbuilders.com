@@ -18,7 +18,7 @@ The cache hit ratio looked fantastic. 94% of requests served from edge. Response
 
 This is the fundamental tension in edge caching. Aggressive caching dramatically improves performance and reduces origin load, but incorrect configuration serves wrong content to users — sometimes catastrophically. Edge caching is a __data integrity__ problem first, performance problem second.
 
-The good news: two concepts cause the vast majority of CDN cache bugs, and once you understand them, you can cache aggressively without fear. Those concepts are cache keys and Vary headers.
+The good news: <Highlighter>two concepts cause the vast majority of CDN cache bugs, and once you understand them, you can cache aggressively without fear.</Highlighter> Those concepts are cache keys and Vary headers.
 
 ## Cache Keys Determine Correctness
 
@@ -26,7 +26,7 @@ A cache key is the identifier the CDN uses to store and retrieve cached response
 
 By default, most CDNs use a simplified version of the URL:
 
-```text
+<Inset color="warning-inverse">
 Default cache key:
   SCHEME + HOST + PATH + QUERY_STRING
 
@@ -35,7 +35,7 @@ Example request:
 
 Cache key:
   "https://example.com/api/products?category=shoes"
-```
+</Inset>
 
 This seems straightforward, but the details matter enormously. Two requests that __should__ return identical content but generate different cache keys create duplicate cache entries — wasting storage and reducing hit ratios. Two requests that __should__ return different content but generate the same cache key serve wrong content to users — exactly the bug we opened with.
 
@@ -45,15 +45,15 @@ The rule is simple: every attribute that affects your response must be in the ca
 
 Query parameters are the most common source of cache key problems. Consider these two URLs:
 
-```text
+<Inset color="danger-inverse">
 Problem: Query parameter order
 
 These are the same request but different cache keys:
-  /products?color=red&size=large
-  /products?size=large&color=red
+&nbsp;&nbsp;&nbsp;/products?color=red&size=large
+&nbsp;&nbsp;&nbsp;/products?size=large&color=red
 
 Result: Two cache entries for identical content
-```
+</Inset>
 
 Different parameter order, different cache keys, same content — you're now storing two copies and reducing your hit ratio. Marketing teams compound this by adding tracking parameters to URLs. Every `utm_source`, `fbclid`, and `gclid` creates a unique cache key for content that's identical regardless of how the user arrived.
 
@@ -89,6 +89,8 @@ Query parameter pollution is one of the most common causes of poor cache hit rat
 
 The `Vary` header tells caches "this response differs based on these request headers." It's the origin's way of saying "I returned different content to different clients based on header X, so you need to store separate cached versions."
 
+<Newsletter />
+
 When a CDN sees `Vary: Accept-Language`, it doesn't just store one cached response per URL — it stores one per URL __per unique Accept-Language value__. The cache key effectively becomes URL + the values of all headers listed in Vary.
 
 ```http title="vary-example.http"
@@ -105,7 +107,8 @@ With two headers in Vary, you get a combinatorial explosion of cache variants. E
 The guideline: only vary on headers with a small, known set of values.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Vary header guidance for common headers.",
     thead: { th: ["Vary On", "Good Idea?", "Reason"] },
@@ -137,8 +140,6 @@ The guideline: only vary on headers with a small, known set of values.
 />
 
 `Accept-Encoding` is safe because there are only a few compression algorithms. `Accept-Language` is risky because browsers send values like `en-US, en;q=0.9, de;q=0.8`—technically unique per user's language preferences. If you vary on it, normalize the header first to extract just the primary language.
-
-<Newsletter />
 
 ### The Cookie Vary Trap
 
@@ -188,14 +189,31 @@ Understanding cache keys and Vary headers lets you avoid the two most dangerous 
 
 This is the bug from our opening story — serving one user's content to another. It happens when:
 
-- Your origin returns `Cache-Control: public` for personalized responses
-- You vary on session cookie but session IDs still contaminate the cache key
-- You cache without checking for authentication headers
+<List
+  variant="colored-marker-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      color: "bg-danger-offset",
+      text: 'Your origin returns <span class="font-mono">Cache-Control: public</span> for personalized responses',
+    },
+    {
+      color: "bg-danger-offset",
+      text: "You vary on session cookie but session IDs still contaminate the cache key",
+    },
+    {
+      color: "bg-danger-offset",
+      text: "You cache without checking for authentication headers",
+    },
+  ]}
+/>
 
 The patterns that keep you safe:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Personalized content caching patterns.",
     thead: { th: ["Pattern", "Risk Level", "Why"] },
@@ -261,6 +279,10 @@ function handler(event: any): any {
 
 With these headers normalized or stripped, your origin never sees the attack vectors that could poison your cache.
 
+## Getting It Right
+
+Both of these bugs — and most CDN issues you'll encounter — stem from the same root cause: a mismatch between what's in the cache key and what actually affects the response.
+
 <Download
   resource="cdn-edge-caching-cache-keys-vary-headers"
   title="Download the Edge Caching Guide"
@@ -280,10 +302,6 @@ With these headers normalized or stripped, your origin never sees the attack vec
     },
   ]}
 />
-
-## Getting It Right
-
-Both of these bugs — and most CDN issues you'll encounter — stem from the same root cause: a mismatch between what's in the cache key and what actually affects the response.
 
 A properly-configured cache with 70% hit ratio beats a misconfigured cache with 95% hit ratio. The latter is serving wrong content to 95% of users — or worse, leaking private data between users.
 

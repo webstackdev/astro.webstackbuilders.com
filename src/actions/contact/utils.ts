@@ -5,6 +5,12 @@ import type {
  } from '@actions/contact/@types'
 import { isAllowedTimeline } from './responder'
 
+const requiredStringError = (
+  requiredMessage: string,
+  invalidTypeMessage: string
+) => (issue: { input?: unknown }): string =>
+  issue.input === undefined ? requiredMessage : invalidTypeMessage
+
 export function escapeHtml(text: string): string {
   const map: Record<string, string> = {
     '&': '&amp;',
@@ -53,8 +59,7 @@ export const requiredString = (options: RequiredStringOptions) => {
     emptyStringToUndefined,
     z
       .string({
-        required_error: options.required_error,
-        invalid_type_error: options.invalid_type_error,
+        error: requiredStringError(options.required_error, options.invalid_type_error),
       })
       .min(options.min.value, { message: options.min.message })
       .max(options.max.value, { message: options.max.message })

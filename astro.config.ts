@@ -10,7 +10,7 @@ import vtbot from 'astro-vtbot'
 import { defineConfig } from 'astro/config'
 import type { AstroUserConfig } from 'astro'
 import { fileURLToPath } from 'node:url'
-import type { PluginOption } from 'vite'
+import { createLogger, type LogOptions, type PluginOption } from 'vite'
 /**
  * You cannot use path aliases (`@lib`, `@components`, etc.) in files that are
  * imported by astro.config.ts, because the path alias resolution happens
@@ -40,6 +40,27 @@ import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sit
 
 // Ensure Vite's HMR websocket connects through the same exposed dev server port used by Astro.
 const devServerPort = Number(process.env['DEV_SERVER_PORT'] ?? 4321)
+const viteLogger = createLogger(undefined, { allowClearScreen: false })
+
+const shouldSuppressViteWarning = (message: string): boolean => {
+  return (
+    /resolve\.alias.*customResolver option/i.test(message) ||
+    (
+      /externalized for browser compatibility/i.test(message) &&
+      /node_modules\/(?:@astrojs\/vercel|@astrojs\/internal-helpers|@vercel\/|esbuild\/lib\/main\.js|@mapbox\/node-pre-gyp|node-gyp-build|detect-libc|graceful-fs|bindings|resolve-from|file-uri-to-path|nopt)\//i.test(message)
+    )
+  )
+}
+
+const shouldSuppressRollupWarning = (warning: {
+  code?: string | undefined
+  plugin?: string | undefined
+}): boolean => {
+  return (
+    warning.code === 'SOURCEMAP_BROKEN' &&
+    warning.plugin === '@tailwindcss/vite:generate:build'
+  )
+}
 
 const standardIntegrations = [
   AstroPWA(pwaConfig),
@@ -99,8 +120,8 @@ export default defineConfig({
    * unit testing integrations.
    */
   integrations: standardIntegrations,
-  /** API routes are marked in their files for SSR */
-  output: 'static',
+  /** Astro actions require server output in Astro 6. Individual routes can still opt into prerendering. */
+  output: 'server',
   prefetch: true,
   image: {
     remotePatterns: [
@@ -115,6 +136,13 @@ export default defineConfig({
   site: getSiteUrl(),
   trailingSlash: 'never',
   vite: {
+    customLogger: {
+      ...viteLogger,
+      warn: (message: string, options?: LogOptions) => {
+        if (shouldSuppressViteWarning(message)) return
+        viteLogger.warn(message, options)
+      },
+    },
     server: {
       hmr: {
         clientPort: devServerPort,
@@ -135,6 +163,12 @@ export default defineConfig({
     build: {
       /** Source map generation must be turned on for Sentry. */
       sourcemap: true,
+      rollupOptions: {
+        onwarn(warning, warn) {
+          if (shouldSuppressRollupWarning(warning)) return
+          warn(warning)
+        },
+      },
     },
     define: {
       /**
@@ -155,11 +189,5 @@ export default defineConfig({
         fsevents: fileURLToPath(new URL('./src/shims/fsevents.ts', import.meta.url)),
       },
     },
-  },
-  experimental: {
-    /**
-     * Generate your styles and scripts in the order they are defined, instead of reversing them
-     */
-    preserveScriptOrder: true,
   },
 })

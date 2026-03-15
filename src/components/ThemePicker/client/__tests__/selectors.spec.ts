@@ -70,7 +70,7 @@ describe('ThemePicker selectors', () => {
     await renderThemePickerDom(({ element }) => {
       element.querySelector('[data-theme-modal]')?.remove()
 
-      expect(() => getThemePickerModal(element)).toThrowError(ClientScriptError)
+      expect(() => getThemePickerModal(element)).toThrow(ClientScriptError)
     })
   })
 
@@ -93,7 +93,7 @@ describe('ThemePicker selectors', () => {
     await renderThemePickerDom(() => {
       document.querySelector('[data-theme-toggle]')?.remove()
 
-      expect(() => getThemePickerToggleBtn()).toThrowError(ClientScriptError)
+      expect(() => getThemePickerToggleBtn()).toThrow(ClientScriptError)
     })
   })
 
@@ -116,7 +116,7 @@ describe('ThemePicker selectors', () => {
     await renderThemePickerDom(({ element }) => {
       element.querySelector('[data-theme-close]')?.remove()
 
-      expect(() => getThemePickerCloseBtn(element)).toThrowError(ClientScriptError)
+      expect(() => getThemePickerCloseBtn(element)).toThrow(ClientScriptError)
     })
   })
 
@@ -163,9 +163,9 @@ describe('ThemePicker selectors', () => {
       element.querySelector('[data-theme-embla-prev]')?.remove()
       element.querySelector('[data-theme-embla-next]')?.remove()
 
-      expect(() => getThemePickerEmblaViewport(element)).toThrowError(ClientScriptError)
-      expect(() => getThemePickerEmblaPrevBtn(element)).toThrowError(ClientScriptError)
-      expect(() => getThemePickerEmblaNextBtn(element)).toThrowError(ClientScriptError)
+      expect(() => getThemePickerEmblaViewport(element)).toThrow(ClientScriptError)
+      expect(() => getThemePickerEmblaPrevBtn(element)).toThrow(ClientScriptError)
+      expect(() => getThemePickerEmblaNextBtn(element)).toThrow(ClientScriptError)
     })
   })
 
@@ -184,7 +184,7 @@ describe('ThemePicker selectors', () => {
     await renderThemePickerDom(({ element }) => {
       element.querySelectorAll('[data-theme]').forEach(button => button.remove())
 
-      expect(() => getThemeSelectBtns(element)).toThrowError(ClientScriptError)
+      expect(() => getThemeSelectBtns(element)).toThrow(ClientScriptError)
     })
   })
 })

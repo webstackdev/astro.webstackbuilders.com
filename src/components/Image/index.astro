@@ -1,0 +1,153 @@
+---
+import type { ImageMetadata } from 'astro'
+import { Image as AstroImage } from 'astro:assets'
+import Icon from '@components/Icon/index.astro'
+
+type ImageSource = ImageMetadata
+
+type MagnifyButtonPosition = 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left'
+type ImageSize = '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs'
+
+export interface Props {
+	src?: ImageSource | undefined
+	alt?: string | undefined
+	variant?: 'left' | 'right' | 'center' | 'full' | undefined
+	size?: ImageSize | undefined
+	magnifyButtonPosition?: MagnifyButtonPosition | undefined
+	loading?: 'lazy' | 'eager' | undefined
+}
+
+const {
+	src,
+	alt = '',
+	variant = 'center',
+	loading = 'lazy',
+}: Omit<Props, 'magnifyButtonPosition' | 'size'> = Astro.props
+
+const requestedMagnifyButtonPosition = Astro.props.magnifyButtonPosition as string | undefined
+const requestedSize = Astro.props.size as string | undefined
+const allowedVariants = ['left', 'right', 'center', 'full'] as const
+const allowedMagnifyButtonPositions = ['top-right', 'bottom-right', 'top-left', 'bottom-left'] as const
+const allowedSizes = ['3xl', '2xl', 'xl', 'lg', 'md', 'sm', 'xs'] as const
+
+if (
+	typeof requestedMagnifyButtonPosition !== 'undefined' &&
+	!allowedMagnifyButtonPositions.includes(requestedMagnifyButtonPosition as MagnifyButtonPosition)
+) {
+	throw new Error(
+		`Image: invalid magnifyButtonPosition "${requestedMagnifyButtonPosition}". Expected one of: ${allowedMagnifyButtonPositions.join(', ')}`
+	)
+}
+
+if (typeof requestedSize !== 'undefined' && !allowedSizes.includes(requestedSize as ImageSize)) {
+	throw new Error(
+		`Image: invalid size "${requestedSize}". Expected one of: ${allowedSizes.join(', ')}`
+	)
+}
+
+const resolvedVariant = allowedVariants.includes(variant) ? variant : 'center'
+const resolvedMagnifyButtonPosition =
+	(requestedMagnifyButtonPosition as MagnifyButtonPosition | undefined) ?? 'top-right'
+const resolvedSize = (requestedSize as ImageSize | undefined) ?? '3xl'
+
+if (typeof requestedSize !== 'undefined' && resolvedVariant === 'full') {
+	throw new Error(
+		'Image: size cannot be used with variant "full". The "full" variant always renders at the full available container width on desktop. Use variant "center", "left", or "right" if you want to control the image max width with size.'
+	)
+}
+
+const iconBankId = `content-image-icon-bank-${Math.random().toString(36).slice(2)}`
+const openLabel = alt ? `Open expanded view for ${alt}` : 'Open expanded image'
+const hostClasses = 'my-6 block w-full'
+const sizeMaxWidthClasses = {
+	'xs': 'md:max-w-xs',
+	'sm': 'md:max-w-sm',
+	'md': 'md:max-w-md',
+	'lg': 'md:max-w-lg',
+	'xl': 'md:max-w-xl',
+	'2xl': 'md:max-w-2xl',
+	'3xl': 'md:max-w-3xl',
+} as const
+const sizeDesktopWidths = {
+	'xs': '20rem',
+	'sm': '24rem',
+	'md': '28rem',
+	'lg': '32rem',
+	'xl': '36rem',
+	'2xl': '42rem',
+	'3xl': '48rem',
+} as const
+const figureClassesByVariant = {
+	center: `m-0 w-full max-w-full md:mx-auto ${sizeMaxWidthClasses[resolvedSize]}`,
+	left: `m-0 w-full max-w-full md:mr-auto ${sizeMaxWidthClasses[resolvedSize]}`,
+	right: `m-0 w-full max-w-full md:ml-auto ${sizeMaxWidthClasses[resolvedSize]}`,
+	full: 'm-0 w-full max-w-full',
+} as const
+const figureClasses = figureClassesByVariant[resolvedVariant]
+const imageSizesAttr =
+	resolvedVariant === 'full' ? '100vw' : `(min-width: 768px) ${sizeDesktopWidths[resolvedSize]}, 100vw`
+const surfaceClasses = 'relative overflow-hidden rounded-xl border border-trim bg-page-offset'
+const assetClasses = 'block h-auto w-full'
+const openButtonPositionClasses = {
+	'top-right': 'top-2 right-2',
+	'bottom-right': 'right-2 bottom-2',
+	'top-left': 'top-2 left-2',
+	'bottom-left': 'left-2 bottom-2',
+} as const
+const openButtonBaseClasses =
+	"absolute hidden size-9 items-center justify-center rounded-full border-0 bg-gray-200 p-0 text-icons transition-[color,transform] duration-150 ease-linear hover:scale-[1.03] hover:text-icons-active focus-visible:scale-[1.03] focus-visible:text-icons-active focus-visible:outline-none md:inline-flex after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
+const openButtonClasses = `${openButtonBaseClasses} ${openButtonPositionClasses[resolvedMagnifyButtonPosition]}`
+---
+
+{src && (
+	<>
+		<div id={iconBankId} hidden aria-hidden="true">
+			<span data-image-icon="close">
+				<Icon icon="close" color="inherit" size={6} />
+			</span>
+		</div>
+
+		<content-image
+			class={hostClasses}
+			data-image-variant={resolvedVariant}
+			data-testid="content-image"
+			icon-bank-id={iconBankId}
+			image-alt={alt}
+			image-height={String(src.height)}
+			image-src={src.src}
+			image-width={String(src.width)}
+		>
+			<div class={figureClasses} data-image-figure>
+				<div class={surfaceClasses}>
+					<AstroImage
+						src={src}
+						alt={alt}
+						loading={loading}
+						class={assetClasses}
+						widths={[480, 768, 1024, 1280, 1600]}
+						sizes={imageSizesAttr}
+					/>
+
+					{/** Intentionally not using Button component. */}
+					<button
+						type="button"
+						class={openButtonClasses}
+						data-image-open
+						data-image-open-position={resolvedMagnifyButtonPosition}
+						aria-label={openLabel}
+					>
+						<Icon icon="magnify" color="inherit" size={5} />
+					</button>
+				</div>
+			</div>
+
+			<div data-image-modal-root></div>
+		</content-image>
+
+		<script>
+			import { registerImageWebComponent } from '@components/Image/client'
+
+			registerImageWebComponent()
+		</script>
+	</>
+)}

@@ -1,4 +1,6 @@
 ---
+export const prerender = true
+
 import { type CollectionEntry, getCollection, render } from 'astro:content'
 import { Picture } from 'astro:assets'
 import { isDev } from '@lib/config/environmentServer'
@@ -18,7 +20,7 @@ export async function getStaticPaths() {
   const allArticles = await getCollection('articles', ({ data }) => isDev() || data.isDraft !== true)
 
   const articleHasTag = (article: CollectionEntry<'articles'>, tagEntry: CollectionEntry<'tags'>) => {
-    return article.data.tags.some(tagRef => tagRef.id === tagEntry.id)
+    return article.data.tags.some((tagRef: { id: string }) => tagRef.id === tagEntry.id)
   }
 
   return allTags.map(tagEntry => {
@@ -33,7 +35,7 @@ export async function getStaticPaths() {
 }
 
 const { tag } = Astro.params
-const { content: allTagContent } = Astro.props
+const { content: allTagContent } = Astro.props as Props
 
 const [tagEntry] = await getCollection('tags', ({ data }) => data.slug === tag)
 if (!tagEntry) {

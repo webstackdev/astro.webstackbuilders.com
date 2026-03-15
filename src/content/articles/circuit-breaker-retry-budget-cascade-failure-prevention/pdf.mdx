@@ -27,11 +27,11 @@ The root cause wasn't the database. It was the retry behavior.
 
 Circuit breakers and retry budgets exist to break this cycle. A circuit breaker monitors failure rates and "opens" when a downstream service is unhealthy, failing requests immediately instead of adding load to a struggling service. A retry budget limits the total number of retries across all requests, preventing the exponential amplification that turns a minor issue into a major outage.
 
-These aren't nice-to-have resilience patterns. They're survival mechanisms for any system with service dependencies.
-
 <Callout type="warning">
 Retries without limits are a distributed denial-of-service attack against your own infrastructure. Every retry multiplies load on an already struggling service.
 </Callout>
+
+These aren't nice-to-have resilience patterns. They're survival mechanisms for any system with service dependencies.
 
 ## The Cascade Failure Pattern
 
@@ -43,23 +43,70 @@ Consider a typical service chain: an API gateway calls a checkout service, which
 
 The failure starts at the bottom. A database experiences momentary slowness — maybe a long-running query, maybe garbage collection, maybe a network hiccup. What happens next follows a depressingly predictable sequence:
 
-```text
-Timeline of a cascade failure:
+<List
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-12",
+  }}
+  items={[
+    {
+      lead: "T+0:",
+      text: "Database slow (100ms → 2s response time)",
+    },
+    {
+      lead: "T+10s:",
+      text: "Service C queues grow, some requests timeout",
+    },
+    {
+      lead: "T+20s:",
+      text: "Service B sees C timeouts, starts retrying",
+    },
+    {
+      lead: "T+30s:",
+      text: "Service A sees B timeouts, starts retrying",
+    },
+    {
+      lead: "T+45s:",
+      text: "All services at maximum queue depth",
+    },
+    {
+      lead: "T+60s:",
+      text: "Database recovers, but services cannot — queues too deep",
+    },
+    {
+      lead: "T+2min:",
+      text: "Manual intervention required",
+    },
+    {
+      lead: "T+5min:",
+      text: "Services restarted, queues cleared",
+    },
+    {
+      lead: "T+10min:",
+      text: "Full recovery",
+    },
+  ]}
+/>
 
-T+0:    Database slow (100ms → 2s response time)
-T+10s:  Service C queues grow, some requests timeout
-T+20s:  Service B sees C timeouts, starts retrying
-T+30s:  Service A sees B timeouts, starts retrying
-T+45s:  All services at maximum queue depth
-T+60s:  Database recovers, but services cannot — queues too deep
-T+2min: Manual intervention required
-T+5min: Services restarted, queues cleared
-T+10min: Full recovery
+The timeline above shows the domino effect, but the summary tells the real story:
 
-Root cause: 30 second database slowdown
-Actual outage: 10 minutes
-Amplification factor: 20x
-```
+<List
+  variant="side-by-side-list"
+  items={[
+    {
+      lead: "Root cause:",
+      text: "30 second database slowdown",
+    },
+    {
+      lead: "Actual outage:",
+      text: "10 minutes",
+    },
+    {
+      lead: "Amplification factor:",
+      text: "20x",
+    },
+  ]}
+/>
 
 The database recovered at T+60s, but the cascade continued for another 9 minutes. By the time the database was healthy, each upstream service had thousands of requests queued. Those queued requests kept hammering downstream services, preventing recovery. The system needed manual intervention — draining queues, restarting services — to return to normal operation.
 
@@ -72,7 +119,8 @@ The formula is simple: $$(r + 1)^n$$ where $$r$$ is retries per service and $$n$
 The table below shows how quickly this gets out of hand. These numbers assume every request at every layer fails and triggers full retries — a worst case, but exactly what happens during a cascade failure:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Load amplification from retries across service chains.",
     thead: {
@@ -163,19 +211,22 @@ Code: Comprehensive circuit breaker configuration
 There are three popular options for implementing circuit breakers, each with different tradeoffs.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
-      lead: "Service mesh",
-      text: "(like the Istio `DestinationRule` above) handles circuit breaking at the infrastructure layer. Your application code stays simple — it just makes HTTP calls — while Envoy sidecars handle failure detection and traffic shifting. The downside is complexity: you need a mesh deployed, and debugging \"why didn't my request go through\" now involves understanding Envoy configs and mesh telemetry. Service meshes work best when you want consistent resilience policies across many services without modifying application code.",
+      lead: 'Service mesh (like the Istio <span class="font-mono">DestinationRule</span> above)',
+      text: 'Handles circuit breaking at the infrastructure layer. Your application code stays simple — it just makes HTTP calls — while Envoy sidecars handle failure detection and traffic shifting. The downside is complexity: you need a mesh deployed, and debugging "why didn\'t my request go through" now involves understanding Envoy configs and mesh telemetry. Service meshes work best when you want consistent resilience policies across many services without modifying application code.',
     },
     {
-      lead: "Application libraries",
-      text: "like opossum (Node.js), resilience4j (Java), or gobreaker (Go) give you fine-grained control. You can configure different thresholds per endpoint, implement custom fallback logic, and emit metrics that tie directly to your application's business logic. The tradeoff is that every service needs to implement and configure the library correctly — there's no centralized policy enforcement.",
+      lead: "Application libraries like opossum (Node.js), resilience4j (Java), or gobreaker (Go)",
+      text: "Gives you fine-grained control. You can configure different thresholds per endpoint, implement custom fallback logic, and emit metrics that tie directly to your application's business logic. The tradeoff is that every service needs to implement and configure the library correctly — there's no centralized policy enforcement.",
     },
     {
-      lead: "API gateways and load balancers",
-      text: "(AWS ALB, Kong, NGINX) can implement basic circuit breaking at the edge. This protects your backend from external traffic surges but doesn't help with service-to-service calls within your infrastructure.",
+      lead: "API gateways and load balancers (like AWS ALB, Kong, NGINX)",
+      text: "Can implement basic circuit breaking at the edge. This protects your backend from external traffic surges but doesn't help with service-to-service calls within your infrastructure.",
     },
   ]}
 />
@@ -245,8 +296,11 @@ const recommendations = await productCircuit.execute(
 ```
 Code: Fallback strategy implementations for circuit breakers.
 
+Each strategy fits a different failure mode. The table below maps them to the right context and the cost you accept when using them:
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     figure: "Fallback strategies with appropriate use cases.",
     thead: {
@@ -296,16 +350,19 @@ The concept is simple: instead of allowing every request to retry N times, you a
 __Traditional Retries:__
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-18 sm:mr-36 mb-6",
+  }}
   items={[
     {
-      text: "Each request can retry up to N times",
+      lead: "Each request can retry up to N times",
     },
     {
-      text: "Problem: Under failure, ALL requests retry",
+      lead: "Problem: Under failure, ALL requests retry",
     },
     {
-      text: "Result: N+1 times the load",
+      lead: "Result: N+1 times the load",
     },
   ]}
 />
@@ -313,16 +370,19 @@ __Traditional Retries:__
 __Retry Budget:__
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-18 sm:mr-36 mb-6",
+  }}
   items={[
     {
-      text: "Total retries limited to X% of successful requests",
+      lead: "Total retries limited to X% of successful requests",
     },
     {
-      text: "Example: 10% retry budget",
+      lead: "Example: 10% retry budget",
     },
     {
-      text: "If 1000 successful requests, allow 100 retries total",
+      lead: "If 1000 successful requests, allow 100 retries total",
     },
   ]}
 />
@@ -330,13 +390,16 @@ __Retry Budget:__
 __Under failure:__
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-18 sm:mr-36 mb-6",
+  }}
   items={[
     {
-      text: "Budget depletes quickly",
+      lead: "Budget depletes quickly",
     },
     {
-      text: "Result: System stabilizes instead of amplifying",
+      lead: "Result: System stabilizes instead of amplifying",
     },
   ]}
 />
@@ -499,30 +562,38 @@ The `circuit_state` gauge tells you at a glance which circuits are open. The `ci
 
 Your circuit breaker dashboard should answer three questions at a glance: which circuits are open, why did they open, and how much traffic is being rejected?
 
-```text
-+------------------------------------------+
-| CIRCUIT STATES                           |
-| [Service A: CLOSED] [Service B: OPEN]    |
+<Inset
+  figure="Circuit Breaker Dashboard Layout"
+  fullWidth={false}
+  color="content-inverse"
+  classes={{
+    layout: "!pt-0",
+  }}
+>
+{String.raw`
++-------------------------------------------+
+| CIRCUIT STATES                            |
+| [Service A: CLOSED] [Service B: OPEN]     |
 | [Service C: HALF_OPEN] [Service D: CLOSED]|
-+------------------------------------------+
-| STATE TRANSITIONS (24h)                  |
-| Timeline showing open/closed transitions |
-+------------------------------------------+
-| FAILURE RATES BY SERVICE                 |
-| Service A: 0.1%  ████░░░░░░              |
-| Service B: 45%   ████████████████████░░  |
-| Service C: 12%   ████████░░░░░░░░░░░░░░  |
-+------------------------------------------+
-| RETRY BUDGET UTILIZATION                 |
-| Service A: 5%    ██░░░░░░░░░░            |
++-------------------------------------------+
+| STATE TRANSITIONS (24h)                   |
+| Timeline showing open/closed transitions  |
++-------------------------------------------+
+| FAILURE RATES BY SERVICE                  |
+| Service A: 0.1%  ████░░░░░░               |
+| Service B: 45%   ████████████████████░░   |
+| Service C: 12%   ████████░░░░░░░░░░░░░░   |
++-------------------------------------------+
+| RETRY BUDGET UTILIZATION                  |
+| Service A: 5%    ██░░░░░░░░░░             |
 | Service B: 100%  ████████████████████████ |
-| Service C: 35%   ██████████░░░░░░░░░░░░░ |
-+------------------------------------------+
-| REQUESTS REJECTED (Circuit Open)         |
-| [Graph showing rejected requests/min]    |
-+------------------------------------------+
-```
-Code: Circuit Breaker Dashboard Layout
+| Service C: 35%   ██████████░░░░░░░░░░░░░  |
++-------------------------------------------+
+| REQUESTS REJECTED (Circuit Open)          |
+| [Graph showing rejected requests/min]     |
++-------------------------------------------+
+`}
+</Inset>
 
 The state transition timeline is particularly useful for post-incident analysis. You can correlate circuit opens with deployment events, traffic spikes, or downstream service issues. A circuit that opened 30 seconds after a deploy is telling you something different than one that opened during peak traffic.
 
@@ -598,7 +669,10 @@ When a circuit isn't behaving as expected, the problem usually falls into one of
 __Circuit opens unexpectedly:__
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-8 sm:mr-12 mb-6",
+  }}
   content={{
     thead: {
       th: ["Cause", "Remediation"],
@@ -607,7 +681,7 @@ __Circuit opens unexpectedly:__
       tr: [
         {
           th: "Threshold too sensitive",
-          td: ["Review `failure_threshold` and `minimum_requests`"],
+          td: ['Review <span class="font-mono">failure_threshold</span> and <span class="font-mono">minimum_requests</span>'],
         },
         {
           th: "Timeouts causing false failures",
@@ -615,7 +689,7 @@ __Circuit opens unexpectedly:__
         },
         {
           th: "Window too short",
-          td: ["Increase `window_duration` for bursty traffic patterns"],
+          td: ['Increase <span class="font-mono">window_duration</span> for bursty traffic patterns'],
         },
       ],
     },
@@ -625,7 +699,10 @@ __Circuit opens unexpectedly:__
 __Circuit not opening:__
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-8 sm:mr-12 mb-6",
+  }}
   content={{
     thead: {
       th: ["Cause", "Remediation"],
@@ -634,15 +711,15 @@ __Circuit not opening:__
       tr: [
         {
           th: "Failures not counted",
-          td: ["Verify `failure_conditions` includes the error types you expect"],
+          td: ['Verify <span class="font-mono">failure_conditions</span> includes the error types you expect'],
         },
         {
-          th: "`minimum_requests` too high",
+          th: '<span class="font-mono">minimum_requests</span> too high',
           td: ["Lower it for low-traffic services"],
         },
         {
           th: "Window too long",
-          td: ["Decrease `window_duration` to detect failures faster"],
+          td: ['Decrease <span class="font-mono">window_duration</span> to detect failures faster'],
         },
       ],
     },
@@ -652,7 +729,10 @@ __Circuit not opening:__
 __Circuit not closing:__
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-8 sm:mr-12 mb-6",
+  }}
   content={{
     thead: {
       th: ["Cause", "Remediation"],
@@ -668,8 +748,8 @@ __Circuit not closing:__
           td: ["Review half-open probe behavior and endpoint health"],
         },
         {
-          th: "`success_threshold` too high",
-          td: ["Reduce `half_open.success_threshold`"],
+          th: '<span class="font-mono">success_threshold</span> too high',
+          td: ['Reduce <span class="font-mono">half_open.success_threshold</span>'],
         },
       ],
     },
@@ -770,15 +850,23 @@ When every service in a call chain uses the same timeout value, you get cascadin
 
 Timeouts should decrease as you go down the call stack. If A has a 10-second timeout, B should use 5 seconds, and C should use 2 seconds. This gives each layer time to handle failures gracefully rather than racing against the clock.
 
-```text
+<Inset
+  color="info-inverse"
+  fullWidth={false}
+  classes={{
+    layout: "!pt-0",
+  }}
+>
 // BAD: Identical timeouts
-A (timeout: 5s) → B (timeout: 5s) → C (timeout: 5s)
 // C takes 4s, B returns at 4s, but A times out at 5s total
+A (timeout: 5s) → B (timeout: 5s) → C (timeout: 5s)
 
 // GOOD: Decreasing timeouts
-A (timeout: 10s) → B (timeout: 5s) → C (timeout: 2s)
 // Each layer has headroom for retries and error handling
-```
+A (timeout: 10s) → B (timeout: 5s) → C (timeout: 2s)
+</Inset>
+
+The decreasing-timeout pattern above is necessary but not sufficient on its own — you also need to think about what happens when a downstream service is completely unreachable rather than just slow.
 
 <Callout type="warning">
 Coordinate timeout budgets across your service chain. If you don't control all services in the chain, at minimum ensure your timeout is longer than the timeout of services you call. In gRPC systems, consider propagating deadlines via metadata headers so downstream services know how much time remains and can fail fast if the budget is already exhausted.
@@ -791,23 +879,23 @@ Coordinate timeout budgets across your service chain. If you don't control all s
 Most languages have mature circuit breaker implementations. The choice usually comes down to whether you want a focused library that does one thing well, or a comprehensive resilience toolkit.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "JavaScript/TypeScript:",
-      text: "opossum is the most popular choice for Node.js. It provides a straightforward circuit breaker with built-in Prometheus metrics, event hooks for observability, and a clean promise-based API. The examples in this article use opossum. For more comprehensive needs, cockatiel bundles circuit breakers with retries, timeouts, bulkheads, and fallbacks in a single package with good TypeScript support.",
+      text: "Opossum is the most popular choice for Node.js. It provides a straightforward circuit breaker with built-in Prometheus metrics, event hooks for observability, and a clean promise-based API. The examples in this article use opossum. For more comprehensive needs, cockatiel bundles circuit breakers with retries, timeouts, bulkheads, and fallbacks in a single package with good TypeScript support.",
     },
     {
       lead: "Java:",
-      text: "resilience4j is the successor to Netflix Hystrix (now in maintenance mode). It's designed for Java 8+ with functional programming patterns and integrates well with Spring Boot. Beyond circuit breakers, it includes rate limiters, bulkheads, retries, and time limiters — all composable. If you're on the JVM and need resilience patterns, resilience4j is the default choice.",
+      text: "Resilience4j is the successor to Netflix Hystrix (now in maintenance mode). It's designed for Java 8+ with functional programming patterns and integrates well with Spring Boot. Beyond circuit breakers, it includes rate limiters, bulkheads, retries, and time limiters — all composable. If you're on the JVM and need resilience patterns, resilience4j is the default choice.",
     },
     {
       lead: "Go:",
-      text: "gobreaker from Sony is minimal and focused — just a circuit breaker, nothing else. It's easy to understand and integrate. If you need more features, hystrix-go ports Netflix's Hystrix patterns to Go, though it's less actively maintained than gobreaker.",
+      text: "Gobreaker from Sony is minimal and focused — just a circuit breaker, nothing else. It's easy to understand and integrate. If you need more features, hystrix-go ports Netflix's Hystrix patterns to Go, though it's less actively maintained than gobreaker.",
     },
     {
       lead: "Python:",
-      text: "pybreaker provides a simple circuit breaker implementation. For async Python, aiobreaker offers the same patterns for asyncio-based applications.",
+      text: "Pybreaker provides a simple circuit breaker implementation. For async Python, aiobreaker offers the same patterns for asyncio-based applications.",
     },
   ]}
 />
@@ -853,10 +941,10 @@ Circuit breakers and retry budgets address two sides of the same problem. Circui
 
 These mechanisms work together. The retry budget prevents overwhelming a service __before__ the circuit opens. The circuit breaker stops traffic __after__ sustained failures are detected. Neither alone is sufficient: circuit breakers without retry budgets still allow amplification during the detection window, and retry budgets without circuit breakers still send initial requests to a service that's clearly down.
 
-The goal isn't perfect availability — it's graceful degradation. When a dependency fails, your service should continue operating in a reduced capacity rather than collapsing entirely. Cached responses, default values, and degraded experiences are all preferable to error pages or timeouts that propagate up the stack.
-
-Observability makes the difference between "it worked" and "I understand how it worked." A circuit breaker that opens silently is better than none, but a circuit breaker with metrics, dashboards, and alerts lets you tune thresholds, correlate failures with deployments, and catch problems before users notice. Instrument from day one.
-
 <Callout type="success">
 Start with your most critical downstream dependency. Add a circuit breaker with opossum or resilience4j this week. Instrument the metrics. Watch how it behaves under normal load. Then expand to other dependencies. The best time to implement these patterns is before your first cascade failure, not after.
 </Callout>
+
+The goal isn't perfect availability — it's graceful degradation. When a dependency fails, your service should continue operating in a reduced capacity rather than collapsing entirely. Cached responses, default values, and degraded experiences are all preferable to error pages or timeouts that propagate up the stack.
+
+Observability makes the difference between "it worked" and "I understand how it worked." A circuit breaker that opens silently is better than none, but a circuit breaker with metrics, dashboards, and alerts lets you tune thresholds, correlate failures with deployments, and catch problems before users notice. Instrument from day one.

@@ -35,7 +35,9 @@ export async function GET() {
       pubDate: article.data.publishDate,
       description: article.data.description,
       link: `/articles/${article.id}`,
-      categories: (article.data.tags ?? []).map(toCategory).filter((c): c is string => Boolean(c)),
+      categories: (article.data.tags ?? [])
+        .map(toCategory)
+        .filter((category): category is string => Boolean(category)),
     })),
     customData: `<language>en-us</language>`,
   })

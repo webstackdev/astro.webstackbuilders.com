@@ -10,6 +10,9 @@ import {
   containsSpam,
 } from '@actions/contact/utils'
 
+const emailStringError = (issue: { input?: unknown }): string =>
+  issue.input === undefined ? 'Email is required' : 'Invalid email format'
+
 export const contactFormInputSchema = z
   .object({
     /** Core fields used by the action. */
@@ -23,14 +26,13 @@ export const contactFormInputSchema = z
       emptyStringToUndefined,
       z
         .string({
-          required_error: 'Email is required',
-          invalid_type_error: 'Invalid email format',
+          error: emailStringError,
         })
         .max(254, { message: 'Email must be less than 254 characters' })
         .superRefine((value, context) => {
           if (!emailValidator.validate(value)) {
             context.addIssue({
-              code: z.ZodIssueCode.custom,
+              code: 'custom',
               message: 'Invalid email address',
             })
           }
@@ -57,7 +59,7 @@ export const contactFormInputSchema = z
     consent: z.preprocess(value => (value === 'true' ? true : false), z.boolean()).optional(),
 
     /** Optional hidden field supported by the action. */
-    DataSubjectId: z.preprocess(emptyStringToUndefined, z.string().uuid().optional()),
+    DataSubjectId: z.preprocess(emptyStringToUndefined, z.uuid().optional()),
 
     /** Backwards-compatible optional fields (older contact forms). */
     service: optionalTrimmedString(100),
@@ -70,12 +72,12 @@ export const contactFormInputSchema = z
     file4: optionalFile(),
     file5: optionalFile(),
   })
-  .passthrough()
+  .catchall(z.unknown())
   .superRefine((data, context) => {
     const messageContent = `${data.name} ${data.email} ${data.message}`
     if (containsSpam(messageContent)) {
       context.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: 'Message appears to contain spam',
         path: ['message'],
       })

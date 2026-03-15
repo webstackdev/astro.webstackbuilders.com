@@ -110,7 +110,7 @@ describe('Consent Banner Selectors', () => {
     await renderConsentBanner(() => {
       document.getElementById('consent-modal-id')?.remove()
 
-      expect(() => getConsentWrapper()).toThrowError(ClientScriptError)
+      expect(() => getConsentWrapper()).toThrow(ClientScriptError)
     })
   })
 })

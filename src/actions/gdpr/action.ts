@@ -1,7 +1,7 @@
 import emailValidator from 'email-validator'
 import { validate as uuidValidate } from 'uuid'
-import { z } from 'astro:schema'
 import { defineAction } from 'astro:actions'
+import { z } from 'astro/zod'
 import {
   checkRateLimit,
   rateLimiters

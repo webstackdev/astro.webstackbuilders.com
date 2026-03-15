@@ -162,6 +162,7 @@ describe('HighlighterElement', () => {
       const trigger = element.querySelector('.highlighter__trigger') as HTMLButtonElement | null
       expect(trigger).toBeTruthy()
       expect(trigger?.getAttribute('aria-label')).toBeNull()
+      expect(trigger?.getAttribute('type')).toBe('button')
       expect(trigger?.textContent).toContain(defaultProps.content)
 
       const dialog = element.querySelector('.share-dialog') as HTMLElement | null

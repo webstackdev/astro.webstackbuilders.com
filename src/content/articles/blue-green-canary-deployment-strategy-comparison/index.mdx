@@ -21,14 +21,28 @@ Here's the uncomfortable truth most deployment strategy comparisons skip: the "b
 
 Before we dive into the database problem, let's establish baseline understanding of what these strategies actually do.
 
-__Blue/green deployment__ maintains two identical production environments. Blue runs your current version. When you're ready to release, you deploy to green, test it thoroughly, then switch all traffic at once. If something breaks, you switch back to blue.
-
-__Canary deployment__ takes the opposite approach. Instead of switching everyone simultaneously, you route a small percentage of traffic — say, 5%—to the new version. You watch metrics, gradually increase the percentage, and only complete the rollout once you're confident the new version is healthy.
+<List
+  variant="zebra-list"
+  items={[
+    {
+      lead: "Blue/green deployment",
+      text: "Maintains two identical production environments. Blue runs your current version. When you're ready to release, you deploy to green, test it thoroughly, then switch all traffic at once. If something breaks, you switch back to blue.",
+    },
+    {
+      lead: "Canary deployment",
+      text: "Takes the opposite approach. Instead of switching everyone simultaneously, you route a small percentage of traffic — say, 5% — to the new version. You watch metrics, gradually increase the percentage, and only complete the rollout once you're confident the new version is healthy.",
+    },
+  ]}
+/>
 
 The fundamental difference comes down to exposure:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: "[&_td:last-child]:text-content",
+  }}
   content={{
     figure: "Strategy comparison",
     thead: { th: ["Aspect", "Blue/Green", "Canary"] },
@@ -80,7 +94,10 @@ Adding a required column breaks old code that can't provide values. Removing a c
 The solution is to __never__ deploy schema changes and code changes together. Instead, use a multi-phase approach:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Phase 1 (Expand):",
@@ -96,9 +113,6 @@ The solution is to __never__ deploy schema changes and code changes together. In
     },
   ]}
 />
-
-
-<Newsletter />
 
 This pattern works with both strategies, but it's __mandatory__ for canary deployments. Blue/green can sometimes shortcut this with careful timing and instant cutover, but you're accepting more risk.
 
@@ -121,11 +135,13 @@ The teams that struggle with deployment strategies are usually the ones trying t
 
 Now that we've established database compatibility as the primary constraint, the decision framework becomes clearer. Here's how to choose.
 
-### Choose Blue/Green When
+### Choose Blue / Green When
 
 Your deployments frequently include database migrations that can't easily follow expand-contract patterns. Legacy systems with tightly coupled schemas often fall into this category.
 
 You need instant, complete rollback. Blue/green's traffic switch is as close to "undo" as deployments get. If your downtime tolerance is measured in seconds rather than minutes, this matters.
+
+<Newsletter />
 
 Your team is smaller or less experienced with progressive delivery. Blue/green is conceptually simpler: deploy, test, switch. There's less tooling to maintain and fewer operational scenarios to train for.
 
@@ -151,6 +167,10 @@ Many mature organizations don't choose one strategy — they use both. Schema mi
 
 The key insight is that the database constraint drives the decision __per deployment__, not as a blanket policy. A team might deploy three canary releases in a row, then switch to blue/green for a migration, then back to canary. The tooling supports both; the deployment contents determine which to use.
 
+## Conclusion
+
+The deployment strategy debate often focuses on the wrong things — rollback speed, blast radius, tooling sophistication. These matter, but they're secondary to the fundamental question: what are you actually deploying?
+
 <Download
   resource="blue-green-canary-deployment-strategy-comparison"
   title="Download the Deployment Strategies Guide"
@@ -170,10 +190,6 @@ The key insight is that the database constraint drives the decision __per deploy
     },
   ]}
 />
-
-## Conclusion
-
-The deployment strategy debate often focuses on the wrong things — rollback speed, blast radius, tooling sophistication. These matter, but they're secondary to the fundamental question: what are you actually deploying?
 
 For database schema changes, blue/green's instant cutover is often the only safe option. For application logic changes, canary's gradual rollout provides better production validation with limited risk. Most real-world systems need both approaches, selected based on what each specific deployment contains.
 
