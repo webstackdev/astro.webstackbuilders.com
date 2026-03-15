@@ -41,7 +41,7 @@ describe('HighlighterElement selectors', () => {
         expect(
           wrapper,
           'HighlighterElement should render a wrapper with .highlighter__wrapper'
-        ).toBeInstanceOf(HTMLDivElement)
+        ).toBeInstanceOf(HTMLSpanElement)
         expect(
           trigger,
           'HighlighterElement should render a trigger with .highlighter__trigger'
@@ -49,7 +49,7 @@ describe('HighlighterElement selectors', () => {
         expect(
           dialog,
           'HighlighterElement should render a share dialog with .share-dialog'
-        ).toBeInstanceOf(HTMLDivElement)
+        ).toBeInstanceOf(HTMLSpanElement)
         expect(
           status,
           'HighlighterElement should render a status element with [data-highlighter-status]'
@@ -66,6 +66,7 @@ describe('HighlighterElement selectors', () => {
 
         const describedBy = trigger.getAttribute('aria-describedby')
         expect(describedBy, 'HighlighterElement trigger should set aria-describedby').toBeTruthy()
+        expect(trigger.getAttribute('type')).toBe('button')
 
         const hint = describedBy ? queryElementById(element, describedBy) : null
         expect(

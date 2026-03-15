@@ -29,15 +29,15 @@ describe(`formatPhoneNumber helper`, () => {
   })
 
   test(`throws BuildError for invalid phone number`, () => {
-    expect(() => formatPhoneNumber('invalid')).toThrowError(BuildError)
+    expect(() => formatPhoneNumber('invalid')).toThrow(BuildError)
   })
 
   test(`throws BuildError for empty string`, () => {
-    expect(() => formatPhoneNumber('')).toThrowError(BuildError)
+    expect(() => formatPhoneNumber('')).toThrow(BuildError)
   })
 
   test(`throws BuildError for number without country code`, () => {
-    expect(() => formatPhoneNumber('2133734253')).toThrowError(BuildError)
+    expect(() => formatPhoneNumber('2133734253')).toThrow(BuildError)
   })
 
   test(`handles phone number with extra characters`, () => {

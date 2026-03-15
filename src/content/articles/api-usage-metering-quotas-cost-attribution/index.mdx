@@ -16,7 +16,7 @@ featured: true
 
 Last year I watched a finance director lose his mind during a quarterly budget review. His team's infrastructure costs had doubled, but when he asked engineering why, nobody could answer. The problem wasn't capacity — it was one internal team consuming 80% of an API's capacity while costs were split evenly across six teams. The heavy user's budget allocation: $15,000. Their actual cost: $120,000. The other five teams were subsidizing them, and nobody knew.
 
-This isn't a billing problem — it's a visibility problem. Without measurement, you're guessing at capacity planning, pricing decisions become political negotiations, and cost allocation is fiction. APIs aren't free to operate. Every request costs compute time, network transfer, and storage. Usage patterns vary wildly: one consumer might make 100 requests per day, another 10 million.
+This isn't a billing problem — it's a visibility problem. <Highlighter>Without measurement, you're guessing at capacity planning, pricing decisions become political negotiations, and cost allocation is fiction.</Highlighter> APIs aren't free to operate. Every request costs compute time, network transfer, and storage. Usage patterns vary wildly: one consumer might make 100 requests per day, another 10 million.
 
 The pattern I've seen repeatedly: teams build APIs focused on functionality, ship them, then realize months later they can't answer basic questions. Which team is driving costs? Which endpoints are expensive? Should we charge for this feature? By then, changing the contract is organizational surgery.
 
@@ -30,6 +30,9 @@ The dimensions you capture become your billable units and cost attribution keys.
 
 <List
   variant="badge-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       title: "Request count:",
@@ -139,11 +142,13 @@ INSERT INTO usage_events (
     event_id, consumer_id, timestamp,
     endpoint, compute_seconds, response_bytes
 )
+
 VALUES (
     'evt_1a2b3c4d5e', 'team-analytics',
     '2024-02-01T14:32:15.423Z', '/v2/search',
     0.142, 8192
 )
+
 ON CONFLICT (event_id) DO NOTHING;
 ```
 
@@ -151,9 +156,9 @@ Code: Idempotent insertion using unique constraint on event_id.
 
 **Time-window deduplication**: Check if the same event appeared in the last 24 hours before inserting. Simpler for time-series databases without unique constraints, but less precise. If a retry crosses the window boundary, you count it twice.
 
-Pick idempotency keys if you're using PostgreSQL or TimescaleDB — they support unique constraints natively and give you exact deduplication. Use time-window deduplication if you're on ClickHouse or Prometheus where unique constraints aren't available. The storage cost of keeping event IDs is negligible compared to the cost of billing disputes.
-
 <Newsletter />
+
+Pick idempotency keys if you're using PostgreSQL or TimescaleDB — they support unique constraints natively and give you exact deduplication. Use time-window deduplication if you're on ClickHouse or Prometheus where unique constraints aren't available. The storage cost of keeping event IDs is negligible compared to the cost of billing disputes.
 
 ## Enforcing Quotas Before Costs Explode
 
@@ -260,8 +265,6 @@ Send proactive alerts at 50%, 75%, and 90% of quota usage. At 90%, a consumer ha
 
 When the billing period ends and quotas reset to zero, requests immediately succeed again. The Redis key expires and the counter starts fresh. But watch for clock skew in distributed systems — use a grace period (2-5 minutes) where requests near the reset boundary are allowed even if the counter hasn't fully reset.
 
-Implement this in your application logic: if a request is denied due to quota but the timestamp is within 5 minutes of the period boundary, check if the next period has started. If so, allow the request and count it against the new period. This prevents frustrating "429 errors at midnight" support tickets.
-
 <Download
   resource="api-usage-metering-quotas-cost-attribution"
   title="Download the API Cost Management Guide"
@@ -282,12 +285,17 @@ Implement this in your application logic: if a request is denied due to quota bu
   ]}
 />
 
+Implement this in your application logic: if a request is denied due to quota but the timestamp is within 5 minutes of the period boundary, check if the next period has started. If so, allow the request and count it against the new period. This prevents frustrating "429 errors at midnight" support tickets.
+
 ## Getting Started: Your First 30 Days
 
 You don't need to implement everything at once. Here's the path that works:
 
 <List
   variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Week 1",

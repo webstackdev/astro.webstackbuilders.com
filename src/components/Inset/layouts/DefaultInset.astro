@@ -1,17 +1,19 @@
 ---
 export type Props = {
   classes?: {
-    layout?: string
+    layout?: string | undefined
   }
   color?: string | undefined
+  fullWidth?: boolean
 }
 
-const { classes, color }: Props = Astro.props
+const { classes, color, fullWidth = true }: Props = Astro.props
 
 const backgroundClass = color ? `bg-${color}` : 'bg-content-inverse-active'
-const layoutClass = `font-mono ${backgroundClass} border-2 border-trim rounded-md px-6 pt-6`
+const layoutClass = `font-mono whitespace-pre-wrap ${backgroundClass} border-2 border-trim rounded-md px-6 pt-6`
+const wrapperClass = fullWidth ? 'w-full' : 'mx-auto w-fit max-w-full'
 ---
 
-<div class:list={[layoutClass, classes?.layout]}>
+<div class:list={[wrapperClass, layoutClass, classes?.layout]}>
   <slot />
 </div>

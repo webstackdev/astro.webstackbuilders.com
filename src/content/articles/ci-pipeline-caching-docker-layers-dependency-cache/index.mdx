@@ -13,7 +13,7 @@ featured: true
 
 CI caching is one of those optimizations that looks straightforward until it isn't. The pitch is simple: cache dependencies and build artifacts so you don't re-download and re-compile the same code on every build. Teams routinely cut 45-minute builds down to 8 minutes. That's real productivity — more deploys per day, faster feedback loops, happier engineers.
 
-But here's what nobody mentions in the "speed up your CI" blog posts: incorrect caching produces builds that pass CI and fail in production.
+But here's what nobody mentions in the "speed up your CI" blog posts. <Highlighter>Incorrect caching produces builds that pass CI and fail in production.</Highlighter>
 
 I've seen this pattern more than once. A team aggressively caches everything, build times plummet, everyone celebrates. Three weeks later, a security patch lands in a transitive dependency. The team runs `npm audit fix`, but they're caching `node_modules` with a key that only hashes `package-lock.json`. The lockfile didn't change (the patch was already in the allowed semver range), so the cache hits and the old, vulnerable version keeps getting restored. The vulnerability makes it to production. The rollback takes longer than all the time they saved.
 
@@ -30,19 +30,22 @@ A cache key is a string that uniquely identifies a cached artifact. When your bu
 The key to effective caching is designing keys that change when (and only when) the cached content should change. A good cache key has three components:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12",
+  }}
   items={[
     {
       lead: "A static prefix",
-      text: "for namespacing and manual invalidation (e.g., `v1-deps-`",
+      text: 'For namespacing and manual invalidation (e.g., <span class="font-mono">v1-deps-*</span>)',
     },
     {
       lead: "Dynamic components",
-      text: "that capture everything affecting the cached content (e.g., lockfile hash)",
+      text: "Captures everything affecting the cached content (e.g., lockfile hash)",
     },
     {
       lead: "Optionally, a version or OS component",
-      text: "for environment-specific caches (e.g., `runner.os`)",
+      text: 'For environment-specific caches (e.g., <span class="font-mono">runner.os</span>)',
     },
   ]}
 />
@@ -67,7 +70,7 @@ The `hashFiles()` function computes a hash of the specified files — when `pack
 Three principles determine whether a cache is safe to use:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Completeness means the cache key includes everything that affects the output.",

@@ -1,4 +1,4 @@
-import { z } from 'astro:schema'
+import { z } from 'astro/zod'
 import type { ConsentRequest } from '@actions/gdpr/@types'
 
 export const consentCreateSchema = z.custom<ConsentRequest>()

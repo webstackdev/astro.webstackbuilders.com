@@ -26,10 +26,11 @@ This article covers what chaos engineering actually is (hint: it's not random de
 
 The term "chaos engineering" sounds destructive, which leads to a common misconception: that it's about randomly breaking things to see what happens. That's not chaos engineering — that's just chaos.
 
-Real chaos engineering follows the scientific method. You form a hypothesis about how your system should behave under specific failure conditions, you design a controlled experiment to test that hypothesis, and you observe whether reality matches your expectations. The goal isn't to cause outages; it's to build confidence that your system handles failures gracefully — or to learn exactly how it doesn't.
+<Highlighter>Real chaos engineering follows the scientific method.</Highlighter> You form a hypothesis about how your system should behave under specific failure conditions, you design a controlled experiment to test that hypothesis, and you observe whether reality matches your expectations. The goal isn't to cause outages; it's to build confidence that your system handles failures gracefully — or to learn exactly how it doesn't.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "The distinction that separates chaos engineering from breaking things.",
     thead: {
@@ -69,15 +70,27 @@ The simplest and most valuable first experiment is killing a pod. If you've neve
 **Prerequisites:**
 
 <List
-  variant="check-icons-list"
+  variant="three-column-icon-list"
+  classes={{
+    text: "!text-base",
+  }}
   items={[
     {
+      icon: "database",
+      color: "page-inverse",
+      bgColor: "note-inverse",
       text: "Your deployment has replicas > 1 (so traffic continues on surviving pods during recovery)",
     },
     {
+      icon: "availability",
+      color: "page-inverse",
+      bgColor: "note-inverse",
       text: "Health checks (liveness and readiness probes) are configured",
     },
     {
+      icon: "observability-and-telemetry",
+      color: "page-inverse",
+      bgColor: "note-inverse",
       text: "You have monitoring in place to observe the experiment",
     },
   ]}
@@ -107,6 +120,9 @@ The simplest and most valuable first experiment is killing a pod. If you've neve
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       text: "New pod running within 60 seconds",
@@ -139,23 +155,25 @@ Code: Simple pod termination experiment with recovery observation.
 **What teams commonly discover from this experiment:**
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
-      lead: "Slow container startup delays recovery.",
+      lead: "Slow container startup delays recovery",
       text: "If your container takes 45 seconds to start, that's 45 seconds of degraded capacity. Optimize image size, add startup probes, or adjust replica counts.",
     },
     {
-      lead: "Missing readiness probes cause traffic to unhealthy pods.",
+      lead: "Missing readiness probes cause traffic to unhealthy pods",
       text: "Without a readiness probe, Kubernetes sends traffic to pods that aren't ready to handle it, causing errors during startup.",
     },
     {
-      lead: "No alerts fired despite degradation.",
+      lead: "No alerts fired despite degradation",
       text: "This is the \"aha\" moment — your monitoring gap was invisible until you tested it.",
     },
   ]}
 />
-
 
 These findings alone justify the experiment. And you can run it in staging today, with no budget approval, no platform purchase, and no dedicated chaos team.
 

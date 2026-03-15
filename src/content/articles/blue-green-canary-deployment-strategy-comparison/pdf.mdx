@@ -1,8 +1,8 @@
 ---
-title: "Blue/Green vs Canary: Choosing Deployment Strategies"
+title: "Blue/green vs Canary: Choosing Deployment Strategies"
 description: "Tradeoffs between deployment strategies for stateless and stateful workloads, with and without service mesh."
 cover: "./cover.jpg"
-coverAlt: "Deployment strategy spectrum showing progression from simple to complex: Recreate, Rolling, Blue/Green, Canary, and Progressive deployment patterns"
+coverAlt: "Deployment strategy spectrum showing progression from simple to complex: Recreate, Rolling, Blue/green, Canary, and Progressive deployment patterns"
 author: "kevin-brown"
 publishDate: 2023-08-20
 tags: ["build-and-deploy", "kubernetes", "aws", "python", "prometheus", "typescript"]
@@ -60,7 +60,7 @@ Before diving into blue/green and canary specifically, it helps to see where the
           td: ["No*", "Minutes", "1x-1.5x", "Low"],
         },
         {
-          th: "Blue/Green",
+          th: "Blue/green",
           td: ["No", "Seconds", "2x", "Medium"],
         },
         {
@@ -76,28 +76,29 @@ Before diving into blue/green and canary specifically, it helps to see where the
   }}
 />
 
+The numbers tell part of the story, but the real differences are in how each strategy behaves when things go wrong. Here's what those tradeoffs actually look like in practice:
+
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
   items={[
     {
       lead: "Recreate:",
-      text: "is the simplest: stop old version, start new version. If you're running a batch job or an internal tool where 30 seconds of downtime doesn't matter, this is fine. Don't add complexity you don't need.",
+      text: "The simplest: stop old version, start new version. If you're running a batch job or an internal tool where 30 seconds of downtime doesn't matter, this is fine. Don't add complexity you don't need.",
     },
     {
       lead: "Rolling:",
-      text: "updates pods gradually — some run the old version while others run the new. Kubernetes does this by default. It works well for stateless workloads but creates a window where mixed versions handle traffic, and rollback means deploying the old image again (minutes, not seconds).",
+      text: "Updates pods gradually — some run the old version while others run the new. Kubernetes does this by default. It works well for stateless workloads but creates a window where mixed versions handle traffic, and rollback means deploying the old image again (minutes, not seconds).",
     },
     {
       lead: "Blue/green and canary:",
-      text: "are where most production web services land. We'll spend the rest of this article on these two.",
+      text: "Where most production web services land. We'll spend the rest of this article on these two.",
     },
     {
       lead: "Progressive delivery:",
-      text: "extends canary with automated analysis, often using machine learning to detect anomalies. Tools like Argo Rollouts and Flagger can automate promotion decisions. This is powerful but requires mature observability and operational investment.",
+      text: "Extends canary with automated analysis, often using machine learning to detect anomalies. Tools like Argo Rollouts and Flagger can automate promotion decisions. This is powerful but requires mature observability and operational investment.",
     },
   ]}
 />
-
 
 ### When Simple Wins
 
@@ -113,9 +114,9 @@ The questions that actually matter:
 
 That last question is the one teams most often ignore. If your schema migration breaks the old version, it doesn't matter whether you're doing blue/green, canary, or rolling — you've got a problem. We'll cover this in detail later.
 
-## Blue/Green Deployments
+## Blue/green Deployments
 
-### How Blue/Green Works
+### How Blue/green Works
 
 Blue/green deployment maintains two identical production environments. At any time, one is "live" (receiving traffic) and one is "idle" (ready for the next deployment). When you deploy, you update the idle environment, validate it, then switch traffic. The old live environment becomes the new idle — ready for instant rollback if needed.
 
@@ -196,30 +197,30 @@ Code: Kubernetes blue/green deployment using label selectors.
 The cutover is a single `kubectl patch` command. No pods restart, no gradual rollout — traffic shifts immediately. And because the old version keeps running, rollback is equally instant — just point traffic back.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="timeline-labels-table"
   content={{
     figure: "Blue/green deployment advantages.",
     thead: { th: ["Advantage", "Explanation"] },
     tbody: {
       tr: [
         {
-          th: "Instant rollback",
+          th: { label: "Instant rollback", color: "bg-secondary" },
           td: ["Change one selector/DNS record to revert — old version is already running"],
         },
         {
-          th: "Full environment testing",
+          th: { label: "Full environment testing", color: "bg-accent" },
           td: ["Validate the entire green stack before any production traffic"],
         },
         {
-          th: "Simple mental model",
+          th: { label: "Simple mental model", color: "bg-info" },
           td: ["Two environments, one is live, one is staging — no complex states"],
         },
         {
-          th: "No partial states",
+          th: { label: "No partial states", color: "bg-warning-offset" },
           td: ["All traffic sees the same version, always"],
         },
         {
-          th: "Clean cutover",
+          th: { label: "Clean cutover", color: "bg-success" },
           td: ["No window of mixed-version traffic during transition"],
         },
       ],
@@ -227,12 +228,13 @@ The cutover is a single `kubectl patch` command. No pods restart, no gradual rol
   }}
 />
 
-### Blue/Green Challenges
+### Blue/green Challenges
 
 Blue/green isn't free. The tradeoffs are real, and ignoring them leads to surprises.
 
 <Diagram
   src={keyChallengesDiagram}
+  size="2xl"
   title="Key challenges with blue/green deployment strategy"
   description="Flowchart with Blue-Green Challenges at the center branching to Resource Cost, Database State, Long-Running Connections, and Warmup Time. Each branch points to a concrete issue: two times infrastructure during deployment, both versions must work with the same schema, WebSockets and gRPC streams can break on cutover, and cold caches or JIT compilation can hurt performance after switching. The diagram summarizes the major operational costs that come with blue-green deployments."
 />
@@ -250,7 +252,7 @@ __Warmup time__ catches teams off guard. The green environment might be "up" but
 You can mitigate the resource cost:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="semantic-coloring-table"
   content={{
     figure: "Cost mitigation strategies for blue/green deployments.",
     thead: { th: ["Strategy", "Approach", "Savings", "Risk"] },
@@ -275,7 +277,7 @@ You can mitigate the resource cost:
 
 Most teams use a hybrid: scale the standby environment down to minimal capacity between deploys, then scale up when deployment starts. You trade deployment speed for cost savings.
 
-### Blue/Green Rollback
+### Blue/green Rollback
 
 Rollback is where blue/green shines. The old version is already running — you just redirect traffic back to it.
 
@@ -364,7 +366,8 @@ Code: Istio configuration for canary deployment with header-based override.
 The header override (`x-canary: true`) is useful for testing — you can force your requests to the canary before opening it to real users.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     figure: "Canary deployment advantages.",
     thead: { th: ["Advantage", "Explanation"] },
@@ -406,23 +409,27 @@ Flagger is an open-source progressive delivery operator for Kubernetes that simp
 Canary's gradual approach comes with significant complexity. You need infrastructure that most teams don't have out of the box.
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
   items={[
     {
-      lead: "Traffic splitting:",
-      text: "requires L7 load balancing or a service mesh. Standard L4 load balancers can't do percentage-based routing. You need Istio, Linkerd, NGINX Ingress with canary annotations, or cloud provider ALBs with weighted target groups. If you don't have this infrastructure, canary isn't an option — blue/green is more achievable.",
+      title: "Traffic splitting:",
+      lead: "Requires L7 load balancing or a service mesh.",
+      text: "Standard L4 load balancers can't do percentage-based routing. You need Istio, Linkerd, NGINX Ingress with canary annotations, or cloud provider ALBs with weighted target groups. If you don't have this infrastructure, canary isn't an option — blue/green is more achievable.",
     },
     {
-      lead: "Observability:",
-      text: "must be version-aware. Your metrics need to distinguish canary from stable so you can compare error rates and latencies. \"Overall error rate is 0.5%\" doesn't help — you need \"canary error rate is 2%, stable is 0.3%.\" This means version labels on all metrics, dashboards that compare versions side by side, and alerting that understands the traffic split.",
+      title: "Observability:<br /><br />",
+      lead: "Must be version-aware.",
+      text: "Your metrics need to distinguish canary from stable so you can compare error rates and latencies. \"Overall error rate is 0.5%\" doesn't help — you need \"canary error rate is 2%, stable is 0.3%.\" This means version labels on all metrics, dashboards that compare versions side by side, and alerting that understands the traffic split.",
     },
     {
-      lead: "Stateful requests:",
-      text: "create consistency problems. If a user's session spans multiple requests, they might hit v1.0 for the first request and v1.1 for the second. For stateless APIs this is fine, but for stateful workflows it can cause bugs that only appear in production during canary.",
+      title: "Stateful requests:",
+      lead: "Creates consistency problems.",
+      text: "If a user's session spans multiple requests, they might hit v1.0 for the first request and v1.1 for the second. For stateless APIs this is fine, but for stateful workflows it can cause bugs that only appear in production during canary.",
     },
     {
-      lead: "Database schema:",
-      text: "affects canary exactly as it affects blue/green — both versions must work with the same schema. Canary doesn't solve this problem; it just means both versions run simultaneously for longer.",
+      title: "Database schema:",
+      lead: "Affects canary exactly as it affects blue/green.",
+      text: "Both versions must work with the same schema. Canary doesn't solve this problem; it just means both versions run simultaneously for longer.",
     },
   ]}
 />
@@ -536,10 +543,14 @@ The key insight is using both absolute thresholds (error rate > 5% is always bad
 With both strategies understood, the choice comes down to your constraints and priorities. This matrix summarizes the trade-offs:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: "[&_td:last-child]:text-content",
+  }}
   content={{
     figure: "Decision matrix summarizing trade-offs.",
-    thead: { th: ["Factor", "Blue/Green", "Canary"] },
+    thead: { th: ["Factor", "Blue/green", "Canary"] },
     tbody: {
       tr: [
         {
@@ -585,12 +596,12 @@ With both strategies understood, the choice comes down to your constraints and p
 
 The "database handling" row is intentionally identical — neither strategy solves schema compatibility. That problem is orthogonal to traffic routing.
 
-### When to Choose Blue/Green
+### When to Choose Blue/green
 
 Blue/green is the right choice when you value simplicity and instant rollback over gradual validation:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Instant rollback is non-negotiable.",
@@ -620,7 +631,7 @@ Blue/green is the right choice when you value simplicity and instant rollback ov
 Canary is the right choice when you need production validation and can afford the complexity:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "You've been burned by staging-production differences.",
@@ -706,7 +717,7 @@ This is slower than a single migration, but it's safe with any deployment strate
 
 ## Hybrid Strategies
 
-### Blue/Green with Canary Validation
+### Blue/green with Canary Validation
 
 The best teams don't treat blue/green and canary as mutually exclusive — they combine them. Deploy to the green environment with zero traffic (blue/green), then shift 5% of traffic to green for validation (canary), then cut over fully if metrics look good (blue/green again).
 
@@ -769,7 +780,10 @@ Code: Feature flags providing canary — like gradual rollout without traffic sp
 This approach has real advantages over infrastructure-level canary:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "User consistency.",
@@ -790,8 +804,10 @@ This approach has real advantages over infrastructure-level canary:
   ]}
 />
 
+Here's how those advantages compare when you put canary routing, feature flags, and the combined approach side by side:
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="minimal-borders-table"
   content={{
     figure: "Comparison of canary, feature flags, and combined methods.",
     thead: { th: ["Approach", "Traffic Split", "Feature Control", "User Consistency"] },
@@ -827,32 +843,37 @@ Feature flags and deployment strategies aren't mutually exclusive. Many teams us
 Rollback speed is often the deciding factor between deployment strategies. Here's what actually happens when you need to roll back:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Blue/green rollback:",
-      text: "is the fastest. The old version is already running, warmed up, with established connection pools. You change a selector or DNS record, and traffic shifts in under a second. No pods terminate, no images pull, no health checks wait. The only users affected are those with in-flight requests at the moment of cutover — and proper connection draining handles most of those.",
+      text: "The fastest. The old version is already running, warmed up, with established connection pools. You change a selector or DNS record, and traffic shifts in under a second. No pods terminate, no images pull, no health checks wait. The only users affected are those with in-flight requests at the moment of cutover — and proper connection draining handles most of those.",
     },
     {
       lead: "Canary rollback:",
-      text: "is nearly as fast but involves more moving parts. You reconfigure traffic weights to send 100% to stable, which takes 5-30 seconds depending on your service mesh's propagation time. The canary pods keep running (useful for debugging), and stable was never affected. Users who were hitting the canary see a version change, but that's usually a small percentage.",
+      text: "Nearly as fast but involves more moving parts. You reconfigure traffic weights to send 100% to stable, which takes 5-30 seconds depending on your service mesh's propagation time. The canary pods keep running (useful for debugging), and stable was never affected. Users who were hitting the canary see a version change, but that's usually a small percentage.",
     },
     {
       lead: "Rolling update rollback:",
-      text: "is the slowest because it's actually a new deployment. You're telling Kubernetes \"deploy the old image,\" which triggers the same gradual pod replacement. During rollback, you have mixed versions — some pods running the bad new version, some running the old version you're rolling back to. This can take minutes for large deployments.",
+      text: "The slowest because it's actually a new deployment. You're telling Kubernetes \"deploy the old image,\" which triggers the same gradual pod replacement. During rollback, you have mixed versions — some pods running the bad new version, some running the old version you're rolling back to. This can take minutes for large deployments.",
     },
   ]}
 />
 
+Those qualitative differences translate into concrete numbers that matter during an incident, when seconds count and mixed-version windows create real risk:
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="minimal-borders-table"
   content={{
     figure: "Rollback characteristics by deployment strategy.",
     thead: { th: ["Strategy", "Rollback Trigger", "Time", "User Impact"] },
     tbody: {
       tr: [
         {
-          th: "Blue/Green",
+          th: "Blue/green",
           td: ["Change selector/DNS", "<1 second", "In-flight requests may fail"],
         },
         {
@@ -874,6 +895,8 @@ Here's the problem nobody wants to talk about: rollback isn't truly instant for 
 
 <Diagram
   src={dataConsistencyDiagram}
+  size="full"
+  magnifyButtonPosition="top-left"
   title="Data consistency challenges when rolling back after data has been written"
   description="Flowchart showing a rollback scenario for stateful data. Version 1.1 is deployed, users create data, a bug is discovered, and traffic rolls back to version 1.0. That leads to a data problem decision node with three causes: version 1.1 wrote a new format, version 1.1 used new columns, and version 1.1 created new records. These outcomes lead to specific failures where version 1.0 cannot read the data, ignores or overwrites it, or does not know about the records. The diagram highlights that rollback of code does not automatically roll back data shape changes."
 />
@@ -883,18 +906,24 @@ Consider a scenario: v1.1 adds a `preferences_json` column and starts writing us
 The solutions are all variations of "design for this upfront":
 
 <List
-  variant="check-icons-list"
+  variant="accent-border-left-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Forward compatibility:",
+      color: "border-primary-offset",
       text: "means the old version can handle data written by the new version. If v1.0 ignores `preferencesjson` but doesn't break when it exists, and v1.1 writes to both columns during the transition period, rollback is safe. This is the expand-contract pattern applied to application code, not just schema.",
     },
     {
       lead: "Idempotent writes:",
+      color: "border-success",
       text: "mean the same operation can be applied multiple times without changing the result. If v1.1 wrote data and you roll back to v1.0, v1.0's writes should produce correct results even if v1.1's writes are still in the database.",
     },
     {
       lead: "Compensating transactions:",
+      color: "border-accent",
       text: "mean you have a way to \"undo\" what v1.1 did. This is complex and often impractical, but for some operations (financial transactions, inventory changes) it's necessary.",
     },
   ]}
@@ -908,12 +937,12 @@ Rollback is never truly instant for stateful applications. Even with instant tra
 
 Before implementing either strategy, audit your current capabilities. These checklists help identify gaps before they become production incidents.
 
-### Blue/Green Checklist
+### Blue/green Checklist
 
 __Infrastructure readiness__:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Two identical environments that can run simultaneously.",
@@ -937,7 +966,8 @@ __Infrastructure readiness__:
 __Process readiness__:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={5}
   items={[
     {
       lead: "Automated deployment to the green environment.",
@@ -961,7 +991,8 @@ __Process readiness__:
 __Observability readiness__:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={9}
   items={[
     {
       lead: "Health checks on both environments, not just the active one.",
@@ -983,7 +1014,7 @@ __Observability readiness__:
 __Infrastructure readiness__:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Traffic splitting capability at L7.",
@@ -1003,7 +1034,8 @@ __Infrastructure readiness__:
 __Observability readiness__:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={4}
   items={[
     {
       lead: "All metrics labeled by version.",
@@ -1023,7 +1055,8 @@ __Observability readiness__:
 __Analysis readiness__:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={7}
   items={[
     {
       lead: "Promotion criteria defined before the first canary.",
@@ -1043,7 +1076,8 @@ __Analysis readiness__:
 __Operational readiness__:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={10}
   items={[
     {
       lead: "Team trained on canary-specific debugging.",
@@ -1072,10 +1106,10 @@ Neither strategy solves database schema incompatibility. If your new version req
 
 The hybrid approach — blue/green infrastructure with canary validation before cutover — gives you the best of both worlds if you have the operational capacity to manage it. Feature flags provide another layer of control, letting you separate deployment (putting code in production) from release (exposing features to users).
 
-Start simple. If you're currently doing manual deployments with downtime, rolling updates are a meaningful improvement. If rolling updates work well but you want faster rollback, blue/green is the next step. If blue/green works well but you've been burned by staging-production differences, then consider canary.
-
-The best deployment strategy is the one your team can operate reliably at 3 AM when something goes wrong.
-
 <Callout type="success">
 The goal isn't the most sophisticated deployment strategy — it's reliable deployments with fast recovery. A well-operated blue/green deployment is better than a poorly-operated canary. Choose the strategy you can do well.
 </Callout>
+
+Start simple. If you're currently doing manual deployments with downtime, rolling updates are a meaningful improvement. If rolling updates work well but you want faster rollback, blue/green is the next step. If blue/green works well but you've been burned by staging-production differences, then consider canary.
+
+The best deployment strategy is the one your team can operate reliably at 3 AM when something goes wrong.

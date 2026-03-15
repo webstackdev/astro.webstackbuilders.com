@@ -31,7 +31,7 @@ The problems compound quickly. Shared test databases accumulate garbage data fro
 When an integration test fails, debugging becomes archaeology. A failure in Service X might be caused by a change in Service Y, but the stack trace only shows where the exception was thrown, not where the problem originated. Reproducing the failure locally requires spinning up the entire environment, which often behaves differently than CI.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "Comparison of testing approaches for API compatibility.",
     thead: {
@@ -153,6 +153,7 @@ When a provider makes an incompatible change, they discover it immediately. The 
 
 <Diagram
   src={contractViolationDiagram}
+  magnifyButtonPosition="top-left"
   title="Contract violation detected at PR time, not production"
   description="Flowchart showing a provider code change triggering CI to fetch consumer contracts, then branching on verification success: successful verification leads to a successful can-i-deploy check and safe deployment, while failure breaks the build, reports that OrderService expects userId, and sends the developer to fix the change or coordinate with consumers."
 />

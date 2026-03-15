@@ -16,7 +16,7 @@ export const inputSchema = z.object({
   jobTitle: z.string().trim().min(1),
   companyName: z.string().trim().min(1),
   consent: z.boolean().optional(),
-  DataSubjectId: z.string().uuid().optional(),
+  DataSubjectId: z.uuid().optional(),
 })
 
 export type DownloadsSubmitInput = z.infer<typeof inputSchema>

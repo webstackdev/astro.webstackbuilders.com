@@ -50,7 +50,7 @@ export class HighlighterElement extends LitElement {
   private contentCaptured = false
   private boundButtons = new WeakSet<HTMLButtonElement>()
   private triggerButton: HTMLButtonElement | null = null
-  private wrapperElement: HTMLDivElement | null = null
+  private wrapperElement: HTMLSpanElement | null = null
   private readonly dialogId: string
   private readonly hintId: string
   private readonly statusId: string
@@ -126,7 +126,7 @@ export class HighlighterElement extends LitElement {
 
   protected override render() {
     return html`
-      <div class="highlighter__wrapper">
+      <span class="highlighter__wrapper">
         <button
           type="button"
           class="highlighter__trigger"
@@ -137,14 +137,14 @@ export class HighlighterElement extends LitElement {
           ${this.highlightContent}
         </button>
         <span id="${this.hintId}" class="sr-only">${this.label}</span>
-        <div
+        <span
           id="${this.dialogId}"
           class="share-dialog"
           role="toolbar"
           aria-label="${this.label}"
           aria-hidden="true"
         >
-          <div class="share-dialog__buttons">
+          <span class="share-dialog__buttons">
             ${platforms.map(
               platform => html`
                 <button
@@ -158,9 +158,9 @@ export class HighlighterElement extends LitElement {
                 </button>
               `
             )}
-          </div>
-          <div class="share-dialog__arrow"></div>
-        </div>
+          </span>
+          <span class="share-dialog__arrow"></span>
+        </span>
 
         <span
           id="${this.statusId}"
@@ -170,7 +170,7 @@ export class HighlighterElement extends LitElement {
           aria-atomic="true"
           data-highlighter-status
         ></span>
-      </div>
+      </span>
     `
   }
 
@@ -213,7 +213,7 @@ export class HighlighterElement extends LitElement {
     const trigger = queryHighlighterTrigger(this)
     if (!trigger || trigger === this.triggerButton) return
     this.triggerButton = trigger
-    this.triggerButton.style.cursor = 'pointer'
+
     addButtonEventListeners(
       trigger,
       event => {

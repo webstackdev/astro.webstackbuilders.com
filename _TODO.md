@@ -280,9 +280,32 @@ https://mermaid.js.org/config/directives.html
 
 src/content/articles/internal-developer-portal-platform-self-service-actions/pdf.mdx
 
-## Prompt for Mermaid Images
-
 ├──
 └──
 
-jpg
+<span class="font-mono">
+</span>
+
+<Highlighter>
+</Highlighter>
+
+<Diagram
+  magnifyButtonPosition="bottom-right"
+  size="full"
+/>
+
+[&>span]:
+[&>*:first-child]:
+
+<List
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+/>
+
+<Table
+  fullWidth={false}
+  classes={{
+    figure: "sm:ml-8 sm:mr-12 mb-6",
+  }}
+/>

@@ -47,7 +47,7 @@ At minimum, instrument these separately:
   variant="badge-list"
   classes={{
     titleClass: "text-right",
-    wrapper: "ml-6 mb-6",
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
   }}
   items={[
     {
@@ -115,7 +115,7 @@ When latency increases, this breakdown immediately narrows your investigation:
 <List
   variant="timeline-list"
   classes={{
-    wrapper: "ml-6 mb-6",
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
   }}
   items={[
     {
@@ -153,7 +153,7 @@ Most "gateway latency" complaints are backend latency. Instrument each phase sep
 
 ## Distributed Tracing: Connecting the Dots
 
-Metrics show aggregate health, but when something goes wrong, you need to see what happened to _specific requests_. Distributed tracing provides that request-level visibility by tracking individual requests across services.
+<Highlighter>Metrics show aggregate health, but when something goes wrong, you need to see what happened to _specific requests_.</Highlighter> Distributed tracing provides that request-level visibility by tracking individual requests across services.
 
 The gateway is the most critical point for trace context propagation. If the gateway doesn't forward trace headers to backends, your traces stop at the gateway boundary — you see the consumer-to-gateway span, but not the gateway-to-backend spans. The request flow becomes invisible exactly where you need it most.
 
@@ -330,7 +330,7 @@ Find slow traces for the affected route in your tracing UI (Jaeger, Tempo, AWS X
 <List
   variant="chevron-list"
   classes={{
-    wrapper: "ml-6 mb-6",
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
   }}
   items={[
     {
@@ -369,33 +369,34 @@ Search logs for the affected time range and route. Look for:
 <List
   variant="two-column-icon-list"
   classes={{
-    wrapper: "mx-6 mb-6",
+    wrapper: "sm:ml-6 sm:mr-6 mb-6",
     content: "pt-1",
+    text: "text-xl",
   }}
   items={[
     {
       icon: "error",
       color: "danger",
       bgColor: "note-inverse",
-      title: "Error messages from backends",
+      text: "Error messages from backends",
     },
     {
       icon: "clock",
       color: "danger",
       bgColor: "note-inverse",
-      title: "Timeout logs",
+      text: "Timeout logs",
     },
     {
       icon: "reload",
       color: "danger",
       bgColor: "note-inverse",
-      title: "Retry attempts",
+      text: "Retry attempts",
     },
     {
       icon: "link",
       color: "danger",
       bgColor: "note-inverse",
-      title: "Connection errors or exhausted connection pool warnings",
+      text: "Connection errors or exhausted connection pool warnings",
     },
   ]}
 />

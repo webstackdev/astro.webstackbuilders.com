@@ -22,7 +22,7 @@ I hit this during a production deployment that had worked flawlessly in staging 
 
 The root cause was a sync wave ordering issue. A PreSync hook was waiting for a service that wouldn't exist until wave 0, but the hook was in wave -1. In staging, the service happened to exist from a previous deployment. In production, we'd just created the namespace. The dependency was always broken — we just never noticed.
 
-This is the gap between GitOps theory and operational reality. When sync fails, you need to understand what ArgoCD is actually doing underneath the abstraction.
+This is the gap between GitOps theory and operational reality. <Highlighter>When sync fails, you need to understand what ArgoCD is actually doing underneath the abstraction.</Highlighter>
 
 ## What ArgoCD Is Actually Doing
 
@@ -96,13 +96,15 @@ The wave numbers themselves are arbitrary — what matters is the relative order
 
 Sync waves control ordering _within_ the apply phase. But what if you need to run something _before_ sync starts, or _after_ it completes?
 
-Hooks let you run resources _outside_ the normal apply process — before sync starts (PreSync), after it completes (PostSync), or when it fails (SyncFail). The most common use case is database migrations: run them after new code deploys but before traffic shifts.
+<Newsletter />
 
-Hooks are typically Kubernetes Jobs. The critical thing to understand: ArgoCD waits for hooks to complete before proceeding. If a hook hangs, your entire sync hangs — with no timeout by default.
+Hooks let you run resources _outside_ the normal apply process — before sync starts (PreSync), after it completes (PostSync), or when it fails (SyncFail). The most common use case is database migrations: run them after new code deploys but before traffic shifts.
 
 <Callout type="warning">
 Always set `activeDeadlineSeconds` on hook Jobs. Without it, ArgoCD will wait forever for a stuck hook.
 </Callout>
+
+Hooks are typically Kubernetes Jobs. The critical thing to understand is that ArgoCD waits for hooks to complete before proceeding. If a hook hangs, the entire sync hangs with it — and by default, ArgoCD won't time it out for you.
 
 ## The Four-Step Debugging Workflow
 
@@ -151,8 +153,6 @@ The output tells you sync status (Synced, OutOfSync, Unknown) and health status 
 />
 
 The `--show-operation` flag shows which phase the sync is in. "Running PreSync hooks" means a hook is stuck. "Sync error" with a message means apply failed.
-
-<Newsletter />
 
 ### Step 2: Examine ArgoCD Logs
 
@@ -215,6 +215,9 @@ Once you've gathered information, match it against these common patterns:
 
 <Table
   variant="criteria-highlight-table"
+  classes={{
+    figure: "sm:ml-8 sm:mr-12 mb-6",
+  }}
   content={{
     figure: "Common ArgoCD sync failure patterns with quick fixes.",
     thead: { th: ["Pattern", "Symptom", "Likely Cause", "Quick Fix"] },
