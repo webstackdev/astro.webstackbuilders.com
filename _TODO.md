@@ -298,9 +298,26 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
 [&>*:first-child]:
 
 <List
+  variant="numbered-with-background-list"
+  classes={{
+    li: "[&>div]:!pt-2 mb-6",
+  }}
+/>
+
+<List
   classes={{
     wrapper: "sm:ml-6 sm:mr-12 mb-6",
   }}
+/>
+
+<List
+  variant="colored-marker-list"
+  items={[
+    {
+      text: "With trusted service providers who assist in operating our website",
+      color: "bg-blue-600",
+    },
+  ]}
 />
 
 <Table
