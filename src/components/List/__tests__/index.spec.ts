@@ -162,4 +162,41 @@ describe('List (Astro)', () => {
       expect(lead?.textContent).toContain('Owner clarity matters.')
     })
   })
+
+  test('stacks lead and text vertically for the colored-marker-list variant', async () => {
+    const List = (await import('@components/List/index.astro')).default
+
+    const renderedHtml = await container.renderToString(List, {
+      props: {
+        variant: 'colored-marker-list',
+        items: [
+          {
+            lead: 'Compatibility adapters',
+            text: 'Provide a translation layer during migration.',
+            color: 'bg-success',
+          },
+        ],
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const listItem = window.document.querySelector('ul li')
+      const marker = window.document.querySelector('ul li > span:first-child')
+      const contentWrapper = window.document.querySelector('ul li > div')
+      const lead = window.document.querySelector('ul li em')
+      const text = window.document.querySelector('ul li div > span')
+
+      expect(listItem).toBeTruthy()
+      expect(marker?.className).toContain('bg-success')
+      expect(contentWrapper?.className).toContain('flex-col')
+      expect(contentWrapper?.className).not.toContain('sm:flex-row')
+      expect(contentWrapper?.className).toContain('items-start')
+      expect(contentWrapper?.className).toContain('gap-1')
+      expect(lead?.className).not.toContain('sm:mr-2')
+      expect(lead?.textContent).toContain('Compatibility adapters')
+      expect(text?.textContent).toContain('Provide a translation layer during migration.')
+    })
+  })
 })
