@@ -10,51 +10,48 @@ featured: true
 ---
 
 *[CLI]: Command Line Interface
-*[API]: Application Programming Interface
+*[DX]: Developer Experience
+*[HCL]: HashiCorp Configuration Language
+*[RBAC]: Role-Based Access Control
 *[SDK]: Software Development Kit
 *[UX]: User Experience
-*[DX]: Developer Experience
-*[RBAC]: Role-Based Access Control
-*[HCL]: HashiCorp Configuration Language
-*[CI]: Continuous Integration
-*[CD]: Continuous Deployment
 
-Platform teams love building internal CLIs. I've built several myself - wrappers around kubectl, terraform, helm, and various deployment pipelines. Some of these genuinely improved developer experience: hiding multi-step complexity, enforcing standards, preventing the kind of mistakes that page you at 3am. Others became maintenance nightmares that lagged behind upstream releases, broke in subtle ways, and required developers to learn both the wrapper __and__ the underlying tool to troubleshoot problems.
+Platform teams love building internal CLIs. I've built several myself - wrappers around kubectl, terraform, helm, and various deployment pipelines. Some of these genuinely improved developer experience: hiding multi-step complexity, enforcing standards, preventing the kind of mistakes that page you at 3am. Others became maintenance nightmares that lagged behind upstream releases, broke in subtle ways, and required developers to learn both the wrapper _and_ the underlying tool to troubleshoot problems.
 
 The pattern is predictable. A platform team builds `deploy-cli` that wraps kubectl and helm. Initially, it's simpler than raw commands - developers type `deploy-cli push myapp` instead of a 12-step sequence. Everyone's happy. Then Kubernetes releases a new feature. Helm updates its flag syntax. The CLI needs updates, but the original author moved to a different team. Developers hit cryptic errors. They start bypassing the CLI. Within a year, the wrapper is abandonware that everyone works around, but nobody removes because "someone might be using it."
-
-I've seen this cycle repeat across multiple organizations. The question isn't whether you __can__ build a wrapper - it's whether you __should__, and if you do, how to build it in a way that doesn't become a liability. This article covers when wrappers genuinely add value, how to design them for transparency and maintainability, the real cost of keeping them healthy, and how to recognize when it's time to deprecate.
 
 <Callout type="warning">
 The bar for building a wrapper CLI should be high. Every abstraction layer you add is a maintenance commitment. If the underlying tool's UX is good enough with documentation and templates, don't wrap it - improve the docs instead.
 </Callout>
+
+I've seen this cycle repeat across multiple organizations. The question isn't whether you _can_ build a wrapper - it's whether you _should_, and if you do, how to build it in a way that doesn't become a liability. This article covers when wrappers genuinely add value, how to design them for transparency and maintainability, the real cost of keeping them healthy, and how to recognize when it's time to deprecate.
 
 ## When Wrappers Add Value
 
 Not all wrappers are created equal. Some genuinely earn their maintenance cost; others are solutions looking for problems. Here's what separates the valuable from the wasteful:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Complexity hiding",
-      text: "is the strongest justification. When a workflow requires five or more manual steps with dependencies and ordering constraints, a wrapper reduces cognitive load and enforces the correct sequence. A `deploy-service` command that builds, pushes, runs helm upgrade, and executes smoke tests in the right order prevents the \"I forgot to push the image before deploying\" class of errors. The key criterion: errors in the sequence cause significant problems, not just minor inconvenience.",
+      text: 'The strongest justification. When a workflow requires five or more manual steps with dependencies and ordering constraints, a wrapper reduces cognitive load and enforces the correct sequence. A <span class="font-mono">deploy-service</span> command that builds, pushes, runs helm upgrade, and executes smoke tests in the right order prevents the "I forgot to push the image before deploying" class of errors. The key criterion: errors in the sequence cause significant problems, not just minor inconvenience.',
     },
     {
       lead: "Guard rails",
-      text: "prevent dangerous operations or enforce policies. A `kubectl-safe` wrapper that blocks `delete` in production without an approval ticket prevents the kind of outages that make the news. This works when the underlying tool allows dangerous operations with severe consequences and the policy can be codified clearly. Don't create security theater - if you can't actually prevent the dangerous operation, don't pretend you can.",
+      text: 'Prevent dangerous operations or enforce policies. A <span class="font-mono">kubectl-safe</span> wrapper that blocks <span class="font-mono">delete</span> in production without an approval ticket prevents the kind of outages that make the news. This works when the underlying tool allows dangerous operations with severe consequences and the policy can be codified clearly. Don\'t create security theater - if you can\'t actually prevent the dangerous operation, don\'t pretend you can.',
     },
     {
       lead: "Context injection",
-      text: "automatically selects environment-specific configuration. A terraform wrapper that auto-selects workspace, backend, and var files based on your git branch or directory eliminates \"I thought I was in staging\" mistakes. This is valuable when you have multiple environments with different configs and mixing them up causes real problems - data corruption, customer impact, compliance violations.",
+      text: 'Automatically selects environment-specific configuration. A <span class="font-mono">terraform</span> wrapper that auto-selects <span class="font-mono">workspace</span>, <span class="font-mono">backend</span>, and <span class="font-mono">var</span> files based on your git branch or directory eliminates "I thought I was in staging" mistakes. This is valuable when you have multiple environments with different configs and mixing them up causes real problems - data corruption, customer impact, compliance violations.',
     },
     {
       lead: "Credential management",
-      text: "handles authentication complexity transparently. A kubectl wrapper that auto-refreshes tokens and selects the correct cluster config reduces auth friction. This makes sense when auth involves multiple systems, tokens expire frequently, and manual credential management is error-prone.",
+      text: 'Handles authentication complexity transparently. A <span class="font-mono">kubectl</span> wrapper that auto-refreshes tokens and selects the correct cluster config reduces auth friction. This makes sense when auth involves multiple systems, tokens expire frequently, and manual credential management is error-prone.',
     },
     {
       lead: "Audit logging",
-      text: "captures all operations for compliance and debugging. A terraform wrapper that logs who ran what commands when helps with incident investigation and change tracking. Worth building when audit requirements exist and the underlying tool doesn't provide adequate logging.",
+      text: 'Captures all operations for compliance and debugging. A <span class="font-mono">terraform</span> wrapper that logs who ran what commands when helps with incident investigation and change tracking. Worth building when audit requirements exist and the underlying tool doesn\'t provide adequate logging.',
     },
   ]}
 />
@@ -64,19 +61,19 @@ Not all wrappers are created equal. Some genuinely earn their maintenance cost; 
 Some "wrappers" solve problems that have simpler solutions:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Alias collections",
-      text: "- just shorter names for common commands - belong in your shell config, not a distributed tool. `k` instead of `kubectl` is a shell alias, not a wrapper.",
+      text: 'Shorter names for common commands belong in your shell config, not a distributed tool. <span class="font-mono">k</span> instead of <span class="font-mono">kubectl</span> is a shell alias, not a wrapper.',
     },
     {
       lead: "Hardcoded flag defaults",
-      text: "are better handled by config files or environment variables. A wrapper that always sets `--replicas=3` is inflexible and hides what's happening.",
+      text: 'Better handled by config files or environment variables. A wrapper that always sets <span class="font-mono">--replicas=3</span> is inflexible and hides what\'s happening.',
     },
     {
       lead: "Output formatting",
-      text: "is a solved problem. Pretty-printing kubectl output? Use `kubectl` plugins, `jq`, or the many existing tools in the ecosystem.",
+      text: 'A solved problem. Pretty-printing kubectl output? Use <span class="font-mono">kubectl</span> plugins, <span class="font-mono">jq</span>, or the many existing tools in the ecosystem.',
     },
   ]}
 />
@@ -86,7 +83,11 @@ Some "wrappers" solve problems that have simpler solutions:
 Before you start writing code, run through these questions honestly. Each "no" is a signal that the simpler path - better docs, shell aliases, or lightweight scripts - will serve you better than a full wrapper. Each "yes" adds weight to the case for building, but also adds to your maintenance commitment.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     figure: "Wrapper decision criteria.",
     thead: {
@@ -366,27 +367,30 @@ Guard rails are the second high-value wrapper feature. The idea is simple: inter
 The most valuable guard rails prevent operations that are both __easy to trigger accidentally__ and __hard to recover from__. For kubectl, that means:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Namespace deletion",
-      text: "in production or staging - a single command can wipe out an entire service",
+      text: "In production or staging, a single command can wipe out an entire service",
     },
     {
       lead: "Bulk deletion",
-      text: "with `--all` flags - too easy to delete more than intended",
+      text: 'Using <span class="font-mono">--all</span> flags, it becomes too easy to delete more than intended',
     },
     {
       lead: "Direct edits",
-      text: "to deployments, statefulsets, or daemonsets - causes drift from GitOps state",
+      text: 'To <span class="font-mono">deployments</span>, <span class="font-mono">statefulsets</span>, or <span class="font-mono">daemonsets</span> causes drift from GitOps state',
     },
     {
       lead: "Interactive shells",
-      text: "in production without audit logging - compliance nightmare",
+      text: "In production without audit logging are a compliance nightmare",
     },
     {
       lead: "Scaling to zero",
-      text: "- blocks all traffic, and developers sometimes do this thinking it's a \"safe\" way to test",
+      text: "Blocks all traffic, and developers sometimes do this thinking it's a \"safe\" way to test",
     },
   ]}
 />
@@ -394,23 +398,26 @@ The most valuable guard rails prevent operations that are both __easy to trigger
 For terraform, the high-risk operations are:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Destroy",
-      text: "in production - obvious, but worth blocking anyway",
+      text: "In production - obvious, but worth blocking anyway",
     },
     {
       lead: "Auto-approve",
-      text: "in production or staging - bypasses plan review",
+      text: "In production or staging - bypasses plan review",
     },
     {
       lead: "State manipulation",
-      text: "(rm, mv, push) - can corrupt state and cause resource orphaning",
+      text: '(<span class="font-mono">rm</span>, <span class="font-mono">mv</span>, <span class="font-mono">push</span>) - can corrupt state and cause resource orphaning',
     },
     {
       lead: "Import",
-      text: "without review - can corrupt state if done wrong",
+      text: "Without review - can corrupt state if done wrong",
     },
   ]}
 />
@@ -425,25 +432,28 @@ Every blocked operation needs an override. The override should:
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Require explicit acknowledgment",
-      text: "- not just a `--force` flag, but something that makes the user stop and think",
+      text: 'Not just a <span class="font-mono">--force` flag, but something that makes the user stop and think',
     },
     {
       lead: "Create an audit trail",
-      text: "- log who overrode the rule, when, and why",
+      text: "Log who overrode the rule, when, and why",
     },
     {
       lead: "Reference external authorization",
-      text: "- a ticket number, a change management ID, or a reviewer's approval",
+      text: "A ticket number, a change management ID, or a reviewer's approval",
     },
   ]}
 />
 
 A good block message looks like this:
 
-```text
+```bash
 BLOCKED: Namespace deletion requires manual approval
 
 Command: kubectl delete namespace payments
@@ -453,14 +463,20 @@ To proceed: Use --force-delete with ticket number
 Example: kube delete namespace payments --force-delete=TICKET-123
 ```
 
-The user knows __why__ it's blocked, __how__ to proceed if necessary, and the ticket number creates accountability.
+Code: Example guard rail block message with override instructions.
+
+The user knows _why_ it's blocked, _how_ to proceed if necessary, and the ticket number creates accountability.
 
 ### Environment-Specific Rules
 
 Not every guard rail applies everywhere. Blocking `terraform destroy` in production makes sense; blocking it in dev is just friction. Design your rules with environment awareness:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     figure: "Environment-specific guard rail configuration.",
     thead: {
@@ -518,23 +534,23 @@ The most common wrapper failure mode is silent breakage. A new kubectl version c
 Your test suite needs to catch this. Use nox or tox to run your pytest suite against multiple tool versions. The key tests:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
   items={[
     {
       lead: "Passthrough verification",
-      text: "- Unknown flags should reach the underlying tool unchanged. New versions may add flags your wrapper doesn't know about, and they should work.",
+      text: "Unknown flags should reach the underlying tool unchanged. New versions may add flags your wrapper doesn't know about, and they should work.",
     },
     {
       lead: "Output preservation",
-      text: "- If kubectl's output format changes, your wrapper shouldn't break. Don't parse output unless absolutely necessary, and if you do, test against multiple versions.",
+      text: "If kubectl's output format changes, your wrapper shouldn't break. Don't parse output unless absolutely necessary, and if you do, test against multiple versions.",
     },
     {
       lead: "Complex argument handling",
-      text: "- JSONPath expressions, label selectors, and other complex arguments are easy to mangle. Test that `kube get pods -o jsonpath='{.items[*].metadata.name}'` passes through exactly as written.",
+      text: 'JSONPath expressions, label selectors, and other complex arguments are easy to mangle. Test that <span class="font-mono">kube get pods -o jsonpath=\'{ .items[*].metadata.name }\'</span> passes through exactly as written.',
     },
     {
       lead: "Guard rail accuracy",
-      text: "- Your blocked patterns should match what you intend to block, no more, no less. Test both positive cases (this should be blocked) and negative cases (this should be allowed).",
+      text: "Your blocked patterns should match what you intend to block, no more, no less. Test both positive cases (this should be blocked) and negative cases (this should be allowed).",
     },
   ]}
 />
@@ -546,7 +562,8 @@ Run this test matrix in CI on every PR, and run it against new upstream versions
 Be honest about what you're signing up for:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "Wrapper maintenance commitments.",
     thead: {
@@ -675,15 +692,15 @@ The same Markdown source generates your README, your wiki page, and your man pag
 For internal tools, you have several options depending on your organization's infrastructure:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
   items={[
     {
       lead: "Internal PyPI",
-      text: "- If you have an internal package index (Artifactory, CodeArtifact, a simple pypiserver), publish there. Users install with `pip install kube-wrapper --index-url https://pypi.internal.company.com/simple`. This works well for Python shops and handles dependencies automatically.",
+      text: 'If you have an internal package index (Artifactory, CodeArtifact, a simple pypiserver), publish there. Users install with <span class="font-mono">pip install kube-wrapper --index-url https://pypi.internal.company.com/simple</span>. This works well for Python shops and handles dependencies automatically.',
     },
     {
       lead: "Homebrew tap",
-      text: "- For macOS and Linux users, a private Homebrew tap provides a familiar installation experience. Create a tap repository with a formula that downloads your release tarball:",
+      text: "For macOS and Linux users, a private Homebrew tap provides a familiar installation experience. Create a tap repository with a formula that downloads your release tarball:",
     },
   ]}
 />
@@ -703,7 +720,7 @@ end
 ```
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
   items={[
     {
       lead: "Direct download",
@@ -711,7 +728,7 @@ end
     },
     {
       lead: "Container image",
-      text: "- For CI/CD pipelines or teams that prefer containers, publish an image with your wrapper pre-installed alongside kubectl/terraform. Users run `docker run company/kube-wrapper get pods`.",
+      text: 'For CI / CD pipelines or teams that prefer containers, publish an image with your wrapper pre-installed alongside <span class="font-mono">kubectl</span> / <span class="font-mono">terraform</span>. Users run <span class="font-mono">docker run company/kube-wrapper get pods</span>.',
     },
   ]}
 />
@@ -743,7 +760,7 @@ Here's how to recognize the warning signs early.
 ### Red Flags
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Developers bypass the wrapper.",
@@ -771,7 +788,8 @@ Here's how to recognize the warning signs early.
 If you want to be rigorous about wrapper health, track these metrics:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "Wrapper health indicators.",
     thead: {
@@ -781,19 +799,19 @@ If you want to be rigorous about wrapper health, track these metrics:
       tr: [
         {
           th: "Adoption rate",
-          td: ["&gt;80% of commands through wrapper", "50-80%", "&lt;50%"],
+          td: ["&gt; 80% of commands through wrapper", "50-80%", "&lt; 50%"],
         },
         {
           th: "Bypass rate",
-          td: ["&lt;5% use --bypass", "5-20%", "&gt;20%"],
+          td: ["&lt; 5% use --bypass", "5-20%", "&gt; 20%"],
         },
         {
           th: "Update lag",
-          td: ["Within 1 week of upstream", "1-4 weeks", "&gt;4 weeks"],
+          td: ["Within 1 week of upstream", "1-4 weeks", "&gt; 4 weeks"],
         },
         {
           th: "Bug reports",
-          td: ["&lt;1 per month", "1-4 per month", "&gt;4 per month"],
+          td: ["&lt; 1 per month", "1-4 per month", "&gt; 4 per month"],
         },
       ],
     },
@@ -823,16 +841,16 @@ When it's time to sunset a wrapper, do it gracefully. A sudden removal leaves us
 ### The Four-Phase Sunset
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Phase 1: Announcement (30 days).",
-      text: "Show a deprecation notice on every wrapper invocation. Be specific about the timeline and provide a link to migration documentation. The notice should explain _why_ you're deprecating, not just _when_.",
+      text: "Show a deprecation notice on every wrapper invocation. Be specific about the timeline and provide a link to migration documentation. The notice should explain <em>why</em>you're deprecating, not just <em>when</em>.",
     },
   ]}
 />
 
-```text
+```bash
 ╔══════════════════════════════════════════════════════════════════╗
 ║  DEPRECATION NOTICE: kube wrapper will be retired in 90 days     ║
 ║                                                                  ║
@@ -841,9 +859,11 @@ When it's time to sunset a wrapper, do it gracefully. A sudden removal leaves us
 ║  Questions: #platform-support                                    ║
 ╚══════════════════════════════════════════════════════════════════╝
 ```
+Code: Example deprecation notice shown on wrapper invocation.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={2}
   items={[
     {
       lead: "Phase 2: Migration assistance (60 days).",
@@ -851,7 +871,7 @@ When it's time to sunset a wrapper, do it gracefully. A sudden removal leaves us
     },
     {
       lead: "Phase 3: Opt-in only (30 days).",
-      text: "Flip the default. The wrapper no longer runs unless users explicitly enable it with a flag like `--use-wrapper`. Most users will have migrated by now; this phase catches the stragglers and forces anyone still dependent to acknowledge it.",
+      text: 'Flip the default. The wrapper no longer runs unless users explicitly enable it with a flag like <span class="font-mono">--use-wrapper</span>. Most users will have migrated by now; this phase catches the stragglers and forces anyone still dependent to acknowledge it.',
     },
     {
       lead: "Phase 4: Removal.",
@@ -863,7 +883,8 @@ When it's time to sunset a wrapper, do it gracefully. A sudden removal leaves us
 The migration guide is the most important artifact. For each wrapper feature, document the native alternative:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Wrapper feature alternatives.",
     thead: {
@@ -873,7 +894,7 @@ The migration guide is the most important artifact. For each wrapper feature, do
       tr: [
         {
           th: "Auto-context selection",
-          td: ["`kubectl config use-context` or kubie"],
+          td: ['<span class="font-mono">kubectl config use-context</span> or kubie'],
         },
         {
           th: "Production confirmation",
@@ -885,7 +906,7 @@ The migration guide is the most important artifact. For each wrapper feature, do
         },
         {
           th: "Command shortcuts",
-          td: ["Shell aliases in ~/.bashrc or ~/.zshrc"],
+          td: ['Shell aliases in <span class="font-mono">~/.bashrc</span> or <span class="font-mono">~/.zshrc</span>'],
         },
       ],
     },
@@ -904,8 +925,8 @@ Most internal CLI wrappers shouldn't exist. Before building one, exhaust the alt
 
 But when wrappers __are__ worth building - for genuine complexity hiding, meaningful guard rails, or critical context injection - build them well. Design for transparency: pass through unknown flags, show underlying commands, provide bypass modes. Commit to ongoing maintenance. Monitor adoption and bypass rates to catch problems early. And build with eventual deprecation in mind - the best outcome is retirement because the ecosystem caught up or your team outgrew the need.
 
-The goal isn't to build a wrapper that lasts forever. It's to build one that serves its purpose, helps your team work safely, and steps aside gracefully when it's no longer needed.
-
 <Callout type="success">
 A successful wrapper eventually gets deprecated - not because it failed, but because users learned the underlying tool and the ecosystem caught up. Build wrappers with their eventual retirement in mind. The goal is empowerment, not dependence.
 </Callout>
+
+The goal isn't to build a wrapper that lasts forever. It's to build one that serves its purpose, helps your team work safely, and steps aside gracefully when it's no longer needed.
