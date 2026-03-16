@@ -322,6 +322,14 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
   ]}
 />
 
+### Stretching the badge out to the same size and centering text:
+
+<List
+  variant="badge-list"
+  classes={{
+    titleClass: "block w-full text-center",
+  }}
+
 ### Spacing out the boxes:
 
 <List

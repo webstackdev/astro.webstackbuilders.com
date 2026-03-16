@@ -132,4 +132,34 @@ describe('List (Astro)', () => {
       expect(lead?.getAttribute('style')).toBeNull()
     })
   })
+
+  test('applies interactive card styling for the card-grid-list variant', async () => {
+    const List = (await import('@components/List/index.astro')).default
+
+    const renderedHtml = await container.renderToString(List, {
+      props: {
+        variant: 'card-grid-list',
+        items: [
+          {
+            lead: 'Owner clarity matters.',
+            text: 'Each card should clearly communicate its primary action.',
+          },
+        ],
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const card = window.document.querySelector('ul li')
+      const lead = window.document.querySelector('ul li em')
+
+      expect(card).toBeTruthy()
+      expect(card?.className).toContain('hover:-translate-y-1')
+      expect(card?.className).toContain('hover:bg-page-base')
+      expect(card?.className).toContain('hover:shadow-md')
+      expect(card?.className).toContain('focus-within:border-primary')
+      expect(lead?.textContent).toContain('Owner clarity matters.')
+    })
+  })
 })

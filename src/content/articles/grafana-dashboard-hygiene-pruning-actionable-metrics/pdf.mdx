@@ -33,7 +33,10 @@ Every dashboard you create is a promise to maintain it. Dashboards without owner
 Dashboard accumulation isn't anyone's fault — it's a natural consequence of how teams work. Every dashboard enters your inventory through a legitimate path, and almost none ever leave.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "New services get dashboards",
@@ -58,8 +61,10 @@ Dashboard accumulation isn't anyone's fault — it's a natural consequence of ho
   ]}
 />
 
+Each of these patterns has a different expected lifecycle, but they all share the same outcome: permanent residency in your Grafana instance. Understanding the intended lifespan of each type is key to building cleanup policies that make sense — you wouldn't apply the same retention rules to a service overview dashboard and an incident debug dashboard.
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Dashboard types and their lifecycle patterns.",
     thead: {
@@ -99,7 +104,10 @@ The asymmetry is stark: creating a dashboard takes minutes, deciding to delete o
 Dashboards aren't free. They consume resources even when nobody's looking at them.
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Data source pressure",
@@ -131,7 +139,7 @@ You can't make evidence-based decisions about what to keep or delete without usa
 For each dashboard, you need four categories of metrics:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "View metrics",
@@ -161,23 +169,31 @@ Raw metrics are useful but overwhelming when you have hundreds of dashboards. A 
 A reasonable weighting:
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
+  classes={{
+    titleClass: "block w-full text-center",
+    wrapper: "sm:mr-12 mb-6",
+  }}
   items={[
     {
-      lead: "Usage score (35%)",
-      text: "Based on views and unique viewers in the last 30 days. Zero views scores zero; 100+ views with 10+ unique viewers scores full marks.",
+      title: "Usage score (35%)",
+      lead: "Based on views and unique viewers in the last 30 days.",
+      text: "Zero views scores zero; 100+ views with 10+ unique viewers scores full marks.",
     },
     {
-      lead: "Freshness score (25%)",
-      text: "Based on time since last edit. Edited in the last 30 days scores 100; over a year without edits scores 0.",
+      title: "Freshness score (25%)",
+      lead: "Based on time since last edit.",
+      text: "Edited in the last 30 days scores 100; over a year without edits scores 0.",
     },
     {
-      lead: "Ownership score (25%)",
-      text: "Has an assigned owner? Has a team tag? Has any tags at all? Each adds points.",
+      title: "Ownership score (25%)",
+      lead: "Has an assigned owner?",
+      text: "Has a team tag? Has any tags at all? Each adds points.",
     },
     {
-      lead: "Quality score (15%)",
-      text: "Penalize broken panels heavily (they actively mislead), excessive complexity (30+ panels), and suspiciously simple dashboards (fewer than 3 panels might be incomplete).",
+      title: "Quality score (15%)",
+      lead: "Penalize broken panels heavily (they actively mislead),",
+      text: "excessive complexity (30+ panels), and suspiciously simple dashboards (fewer than 3 panels might be incomplete).",
     },
   ]}
 />
@@ -197,7 +213,10 @@ Grafana stores dashboard definitions in its database by default — SQLite for s
 The alternative is treating dashboards as code. Instead of editing in the browser, you define dashboards in a repository and deploy them through CI/CD.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Generation tools",
@@ -225,7 +244,10 @@ Health scores tell you which dashboards need attention. A governance process ens
 Before you can hold people accountable, you need clear expectations. Document these upfront:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Ownership requirements",
@@ -251,7 +273,10 @@ Before you can hold people accountable, you need clear expectations. Document th
 Manual hygiene doesn't scale. The goal is a system that runs itself with minimal human intervention:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Daily",
@@ -270,11 +295,11 @@ For dashboards scoring between 30 and 50, send a warning email to the owner. Giv
 
 For dashboards scoring below 30, the automation takes over. After the two-week warning period with no response, export the dashboard JSON to cold storage and delete from Grafana. Notify the owner that their dashboard was archived. If they need it back, they can claim it within 90 days. After 90 days, permanent deletion.
 
-This creates accountability. Dashboard owners either maintain their dashboards or lose them. The system is predictable and fair — everyone knows the rules, and the automation applies those rules consistently.
-
 <Callout type="warning">
 Always archive before deleting. A 90-day cold storage period catches the "but we need that during quarterly reviews!" case. Export the JSON, store it somewhere searchable, and only permanently delete after the retention period with no claims.
 </Callout>
+
+This creates accountability. Dashboard owners either maintain their dashboards or lose them. The system is predictable and fair — everyone knows the rules, and the automation applies those rules consistently.
 
 ## Actionable Dashboard Design
 
@@ -285,7 +310,10 @@ Cleaning up existing dashboards is only half the battle. Without standards for _
 Before creating or keeping a dashboard, it should pass these tests:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Does it answer a specific question?",
@@ -319,7 +347,7 @@ Before creating or keeping a dashboard, it should pass these tests:
 Four dashboard smells that signal problems:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "Vanity dashboards",
@@ -345,7 +373,7 @@ Four dashboard smells that signal problems:
 Rather than policing dashboard standards manually, encode them in templates. A well-designed service health template includes:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "SLO Status row",
@@ -385,7 +413,10 @@ With standards for new dashboards in place, let's address the existing inventory
 Start with the most important question: has anyone viewed this dashboard in the last 90 days?
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "If no",
@@ -405,7 +436,7 @@ Start with the most important question: has anyone viewed this dashboard in the 
 Five possible outcomes for every dashboard:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ["Outcome", "Criteria", "Action"],
@@ -448,7 +479,10 @@ Consolidation isn't always deletion. Sometimes the variants have useful addition
 While the automated hygiene cycle handles ongoing maintenance, a quarterly cleanup campaign creates urgency and clears the backlog.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Four weeks before",
@@ -478,7 +512,7 @@ While the automated hygiene cycle handles ongoing maintenance, a quarterly clean
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Typical cleanup campaign results.",
     thead: {
@@ -518,7 +552,10 @@ Run cleanup campaigns quarterly. A single big cleanup is less effective than reg
 Process alone won't fix dashboard rot. People hoard dashboards because deletion feels risky and there's no reward for tidiness. You need to change the incentives.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Celebrate deletion",
@@ -546,7 +583,7 @@ Maintenance is part of the job, not extra work.
 Good metrics focus on outcomes, not outputs:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "Engagement rate",
@@ -556,12 +593,6 @@ Good metrics focus on outcomes, not outputs:
       lead: "Average health score",
       text: "Tracks portfolio quality over time. Should trend upward as you clean up and maintain.",
     },
-  ]}
-/>
-
-<List
-  variant="check-icons-list"
-  items={[
     {
       lead: "Time to find the right dashboard during an incident",
       text: "The metric that actually matters. If engineers can't find the right dashboard quickly, your observability isn't helping when it counts.",
@@ -580,7 +611,7 @@ Bad metrics to avoid: total dashboard count (encourages hoarding to keep the num
 Every cleanup effort encounters the same objections. Have responses ready:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "\"I might need it someday.\"",
@@ -621,6 +652,9 @@ The core practices:
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Track usage from day one",
