@@ -12,30 +12,33 @@ featured: true
 import multiStepDiagram from "./diagrams/multi-step-service-creation-workflow.jpg"
 
 *[IDP]: Internal Developer Portal/Platform
-*[RBAC]: Role-Based Access Control
-*[SSO]: Single Sign-On
 *[K8s]: Kubernetes
 *[PR]: Pull Request
+*[RBAC]: Role-Based Access Control
 *[SLA]: Service Level Agreement
+*[SSO]: Single Sign-On
 
 Last month I watched a developer spend three days getting a PostgreSQL database. The company had a beautiful internal developer portal - Backstage, fully themed, comprehensive service catalog, scorecards showing tech debt metrics. The developer found the "Database Provisioning" page in under 30 seconds. Then he read the instructions: file a Jira ticket with the DBA team, wait for triage, attend a 15-minute review meeting to justify the request, and receive credentials via a separate ticket once provisioning completed. Three to five business days, assuming no holidays or sick leave on the DBA team.
 
 The portal worked perfectly. The developer knew exactly where to go and what to do. And yet the outcome was identical to not having a portal at all - the same tickets, the same meetings, the same waiting.
 
-That's the portal-versus-platform distinction that trips up most organizations. A portal __indexes__ things: it aggregates links, surfaces documentation, shows who owns what. A platform __does__ things: it provisions infrastructure, creates repositories, grants access. The portal tells you how to request a database. The platform gives you a database.
-
-The difference matters because it determines whether your internal developer platform actually reduces toil or just makes toil easier to find. Self-service actions are what transform a directory into a platform. Without them, you've built a prettier wiki.
+That's the portal-versus-platform distinction that trips up most organizations. A portal _indexes_ things: it aggregates links, surfaces documentation, shows who owns what. A platform _does_ things: it provisions infrastructure, creates repositories, grants access. The portal tells you how to request a database. The platform gives you a database.
 
 <Callout type="warning">
 If your "platform" requires developers to read documentation and file tickets to get things done, you've built a directory, not a platform. Platforms execute workflows. Directories point to workflows that humans execute.
 </Callout>
+
+The difference matters because it determines whether your internal developer platform actually reduces toil or just makes toil easier to find. Self-service actions are what transform a directory into a platform. Without them, you've built a prettier wiki.
 
 ## The Portal Maturity Model
 
 Most internal developer portals evolve through predictable stages. Understanding where you are helps clarify where to invest next - and where most organizations get stuck.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Level 1: Directory.",
@@ -57,7 +60,11 @@ Most internal developer portals evolve through predictable stages. Understanding
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     figure: "Portal maturity levels.",
     thead: {
@@ -179,7 +186,7 @@ The YAML is straightforward, but the design decisions matter. Notice the sensibl
 ### Action Design Guidelines
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Obvious outcomes.",
@@ -220,6 +227,7 @@ Consider what happens when a developer requests a new service. The portal valida
 
 <Diagram
   src={multiStepDiagram}
+  size="full"
   title="Multi-step service creation workflow."
   description='Sequence diagram showing a Developer submitting a "Create Service" action to the Platform, the Platform validating inputs + permissions, creating a repository and infrastructure PR through Git, receiving plan output from CI / CD, either auto-approving or waiting for approval before merging, then triggering apply, provisioning Infrastructure, storing credentials in Vault, and notifying the Developer when the service is ready.'
 />
@@ -251,27 +259,31 @@ The solution is __policy-based approval routing__: define rules that auto-approv
 Different situations warrant different approval requirements. Here are the dimensions that typically matter:
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
+  classes={{
+    titleClass: "block w-full text-center",
+    wrapper: "sm:ml-2 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      lead: "Environment-based.",
-      text: "Dev and staging requests auto-approve instantly. Production requests require team lead approval. This is the most common pattern and handles the majority of cases.",
+      title: "Environment-based:",
+      lead: "Dev and staging requests auto-approve instantly. Production requests require team lead approval. This is the most common pattern and handles the majority of cases.",
     },
     {
-      lead: "Cost-based.",
-      text: "Resources under $100/month auto-approve. Resources between $100-500 need team lead sign-off. Resources over $500 require team lead plus finance approval. Thresholds vary by organization, but the principle is consistent: more expensive means more oversight.",
+      title: "Cost-based:",
+      lead: "Resources under $100/month auto-approve. Resources between $100-500 need team lead sign-off. Resources over $500 require team lead plus finance approval. Thresholds vary by organization, but the principle is consistent: more expensive means more oversight.",
     },
     {
-      lead: "Scope-based.",
-      text: "Changes affecting only your own team auto-approve. Changes affecting multiple teams require approval from each affected team's lead. This prevents one team from unilaterally impacting another's infrastructure.",
+      title: "Scope-based:",
+      lead: "Changes affecting only your own team auto-approve. Changes affecting multiple teams require approval from each affected team's lead. This prevents one team from unilaterally impacting another's infrastructure.",
     },
     {
-      lead: "Risk-based.",
-      text: "Standard operations auto-approve. High-risk operations - deleting databases, modifying IAM permissions, changing network configs, rotating encryption keys - require security review regardless of environment.",
+      title: "Risk-based:",
+      lead: "Standard operations auto-approve. High-risk operations - deleting databases, modifying IAM permissions, changing network configs, rotating encryption keys - require security review regardless of environment.",
     },
     {
-      lead: "Time-based.",
-      text: "Normal business hours follow standard policies. Change freeze windows require explicit exception approval. This prevents well-meaning developers from deploying during critical periods.",
+      title: "Time-based:",
+      lead: "Normal business hours follow standard policies. Change freeze windows require explicit exception approval. This prevents well-meaning developers from deploying during critical periods.",
     },
   ]}
 />
@@ -281,7 +293,7 @@ These dimensions combine. A production database deletion during change freeze mi
 In Backstage, you'd implement these rules through a custom approval plugin or integrate with Open Policy Agent (OPA) for policy-as-code. The scaffolder evaluates the policy before executing steps, routing to the appropriate approval workflow or proceeding automatically based on the policy decision.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Approval types and SLAs.",
     thead: {
@@ -323,8 +335,12 @@ In Backstage, you'd implement these rules through a custom approval plugin or in
   }}
 />
 
+### Making Approvals Fast
+
+Even when manual approval is required, it shouldn't be slow. A few practices help:
+
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
   items={[
     {
       lead: "Give approvers context.",
@@ -344,36 +360,6 @@ In Backstage, you'd implement these rules through a custom approval plugin or in
     },
   ]}
 />
-
-### Making Approvals Fast
-
-Even when manual approval is required, it shouldn't be slow. A few practices help:
-
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: "Git providers",
-      text: "handle repository creation, pull request management, and team permissions. GitHub and GitLab are the common choices. The platform creates repos from templates, opens PRs for infrastructure changes, and manages who can access what. Authentication typically uses GitHub Apps or access tokens with appropriate scopes.",
-    },
-    {
-      lead: "Infrastructure provisioning",
-      text: "is where resources actually get created. Terraform Cloud (or Atlantis for self-hosted) handles the IaC workflow - creating workspaces, queuing plans and applies, reading state outputs. For direct resource creation, you need AWS/GCP/Azure SDK access via IAM roles or service accounts. Kubernetes clusters need ServiceAccount tokens for applying manifests and managing RBAC.",
-    },
-    {
-      lead: "Secrets management",
-      text: "stores and distributes credentials securely. HashiCorp Vault is the most common choice, using AppRole authentication for the platform to create secrets and generate dynamic credentials. AWS Secrets Manager is simpler if you're already AWS-native.",
-    },
-    {
-      lead: "Observability",
-      text: "integration means the platform can provision monitoring alongside infrastructure. Datadog or Prometheus for metrics, PagerDuty for alerting. When a new service is created, its dashboards and alerts should be created automatically - not added manually weeks later when someone remembers.",
-    },
-    {
-      lead: "Communication",
-      text: "enables notifications and interactive approvals. Slack integration with a bot token lets the platform send messages, create channels, and handle approval buttons directly in chat. Email provides fallback notifications.",
-    },
-  ]}
-/>
 <Callout type="info">
 Approvals should be the exception, not the rule. If most requests require manual approval, you haven't built self-service - you've built a ticket system with a nicer UI. Use policy-based auto-approval aggressively for low-risk operations.
 </Callout>
@@ -387,27 +373,27 @@ A self-service platform doesn't exist in isolation. It needs to talk to your Git
 Most platforms need integrations across five categories:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Git providers",
-      text: "handle repository creation, pull request management, and team permissions. GitHub and GitLab are the common choices. The platform creates repos from templates, opens PRs for infrastructure changes, and manages who can access what. Authentication typically uses GitHub Apps or access tokens with appropriate scopes.",
+      text: "Handles repository creation, pull request management, and team permissions. GitHub and GitLab are the common choices. The platform creates repos from templates, opens PRs for infrastructure changes, and manages who can access what. Authentication typically uses GitHub Apps or access tokens with appropriate scopes.",
     },
     {
       lead: "Infrastructure provisioning",
-      text: "is where resources actually get created. Terraform Cloud (or Atlantis for self-hosted) handles the IaC workflow - creating workspaces, queuing plans and applies, reading state outputs. For direct resource creation, you need AWS/GCP/Azure SDK access via IAM roles or service accounts. Kubernetes clusters need ServiceAccount tokens for applying manifests and managing RBAC.",
+      text: "Where resources actually get created. Terraform Cloud (or Atlantis for self-hosted) handles the IaC workflow - creating workspaces, queuing plans and applies, reading state outputs. For direct resource creation, you need AWS / GCP / Azure SDK access via IAM roles or service accounts. Kubernetes clusters need ServiceAccount tokens for applying manifests and managing RBAC.",
     },
     {
       lead: "Secrets management",
-      text: "stores and distributes credentials securely. HashiCorp Vault is the most common choice, using AppRole authentication for the platform to create secrets and generate dynamic credentials. AWS Secrets Manager is simpler if you're already AWS-native.",
+      text: "Stores and distributes credentials securely. HashiCorp Vault is the most common choice, using AppRole authentication for the platform to create secrets and generate dynamic credentials. AWS Secrets Manager is simpler if you're already AWS-native.",
     },
     {
       lead: "Observability",
-      text: "integration means the platform can provision monitoring alongside infrastructure. Datadog or Prometheus for metrics, PagerDuty for alerting. When a new service is created, its dashboards and alerts should be created automatically - not added manually weeks later when someone remembers.",
+      text: "Integration means the platform can provision monitoring alongside infrastructure. Datadog or Prometheus for metrics, PagerDuty for alerting. When a new service is created, its dashboards and alerts should be created automatically - not added manually weeks later when someone remembers.",
     },
     {
       lead: "Communication",
-      text: "enables notifications and interactive approvals. Slack integration with a bot token lets the platform send messages, create channels, and handle approval buttons directly in chat. Email provides fallback notifications.",
+      text: "Enables notifications and interactive approvals. Slack integration with a bot token lets the platform send messages, create channels, and handle approval buttons directly in chat. Email provides fallback notifications.",
     },
   ]}
 />
@@ -421,7 +407,10 @@ Each adapter declares its capabilities (what actions it can perform), implements
 This abstraction pays off when you need to swap providers. Moving from GitHub to GitLab, or from Terraform Cloud to Atlantis, becomes a configuration change rather than a rewrite of every action that touches those systems.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     figure: "Common integration patterns.",
     thead: {
@@ -480,23 +469,23 @@ Building a platform is an investment - in tooling, integrations, and ongoing mai
 ### Metric Categories
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Adoption metrics",
-      text: "tell you whether developers are actually using the platform. Track the number of self-service actions executed, the percentage of the engineering org using actions, and the coverage of common tasks available as actions. Growing adoption means the platform is solving real problems. Flat or declining adoption means something's wrong - either discoverability, trust, or the actions themselves.",
+      text: "Tell you whether developers are actually using the platform. Track the number of self-service actions executed, the percentage of the engineering org using actions, and the coverage of common tasks available as actions. Growing adoption means the platform is solving real problems. Flat or declining adoption means something's wrong - either discoverability, trust, or the actions themselves.",
     },
     {
       lead: "Efficiency metrics",
-      text: "measure time savings. Compare time-to-provision before and after the platform: how long did it take to get a database via tickets versus via self-service? Track approval wait times. Measure what percentage of requests auto-approve versus requiring manual intervention. The goal is dramatic improvement - not 20% faster, but 95% faster.",
+      text: "Measure time savings. Compare time-to-provision before and after the platform: how long did it take to get a database via tickets versus via self-service? Track approval wait times. Measure what percentage of requests auto-approve versus requiring manual intervention. The goal is dramatic improvement - not 20% faster, but 95% faster.",
     },
     {
       lead: "Quality metrics",
-      text: "track whether the platform is reliable. Action success rate should be above 95% - if actions fail frequently, developers stop trusting them. Rollback rate indicates how often workflows fail partway through and need cleanup. Support ticket reduction shows whether the platform is actually offloading work from the platform team or just creating different work.",
+      text: "Track whether the platform is reliable. Action success rate should be above 95% - if actions fail frequently, developers stop trusting them. Rollback rate indicates how often workflows fail partway through and need cleanup. Support ticket reduction shows whether the platform is actually offloading work from the platform team or just creating different work.",
     },
     {
       lead: "Satisfaction metrics",
-      text: "capture developer perception. Net Promoter Score for the platform overall, ratings for individual actions, and satisfaction when escalation is needed. High efficiency with low satisfaction means the platform works but feels bad to use - maybe the UX is confusing or errors are frustrating.",
+      text: "Capture developer perception. Net Promoter Score for the platform overall, ratings for individual actions, and satisfaction when escalation is needed. High efficiency with low satisfaction means the platform works but feels bad to use - maybe the UX is confusing or errors are frustrating.",
     },
   ]}
 />
@@ -506,23 +495,26 @@ Building a platform is an investment - in tooling, integrations, and ongoing mai
 Metrics are most useful in combination. Here's what different patterns indicate:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "High efficiency, low adoption",
-      text: "- the platform works but developers don't trust it or can't find it. Improve discoverability, add more actions for common tasks, or investigate why developers prefer the old way.",
+      text: "The platform works but developers don't trust it or can't find it. Improve discoverability, add more actions for common tasks, or investigate why developers prefer the old way.",
     },
     {
       lead: "High adoption, low efficiency",
-      text: "- developers use the platform but it's slow. Actions need optimization, approval policies are too strict, or workflows have bottlenecks.",
+      text: "Developers use the platform but it's slow. Actions need optimization, approval policies are too strict, or workflows have bottlenecks.",
     },
     {
       lead: "High adoption, high efficiency, low satisfaction",
-      text: "- the platform works and is fast, but developers don't like using it. UX problems, confusing errors, or missing features they expected.",
+      text: "The platform works and is fast, but developers don't like using it. UX problems, confusing errors, or missing features they expected.",
     },
     {
       lead: "Declining adoption with stable efficiency",
-      text: "- something changed. Maybe a competing tool emerged, a key action broke, or the platform team shipped something unpopular. Investigate quickly.",
+      text: "Something changed. Maybe a competing tool emerged, a key action broke, or the platform team shipped something unpopular. Investigate quickly.",
     },
   ]}
 />
@@ -532,7 +524,8 @@ Metrics are most useful in combination. Here's what different patterns indicate:
 If you can only track a few things, focus on these:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "Portal vs platform value comparison.",
     thead: {
@@ -596,8 +589,8 @@ That developer waiting three days for a database? In a real platform, they'd hav
 
 Getting there requires intentional design. Actions need obvious outcomes and sensible defaults. Approval policies should auto-approve aggressively and only route exceptions to humans. Workflow orchestration must handle failures gracefully and clean up after itself. Integrations should abstract away provider specifics so you can evolve the underlying systems without rewriting everything.
 
-Level 4 platform maturity isn't cheap. It requires investment in tooling, integration work, and ongoing maintenance. But the returns are proportional: developer productivity multiplied across the organization, platform team leverage instead of ticket-by-ticket toil, and the compounding benefits of standardization and automation.
-
 <Callout type="success">
 The test of a real platform: can a new developer join, need a database, and have it provisioned without asking anyone for help? If yes, you've built a platform. If no - if they need to read Confluence, file a Jira ticket, or ping someone on Slack - you've built a prettier ticket system.
 </Callout>
+
+Level 4 platform maturity isn't cheap. It requires investment in tooling, integration work, and ongoing maintenance. But the returns are proportional: developer productivity multiplied across the organization, platform team leverage instead of ticket-by-ticket toil, and the compounding benefits of standardization and automation.

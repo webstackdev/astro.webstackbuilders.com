@@ -307,6 +307,7 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
 />
 
 <List
+  startNumber={2}
   classes={{
     wrapper: "sm:ml-6 sm:mr-12 mb-6",
   }}
