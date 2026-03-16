@@ -50,7 +50,7 @@ The problems compound from there. Shared test databases accumulate garbage data 
 When an integration test fails, debugging becomes archaeology. A failure in Service X might be caused by a change in Service Y, but the stack trace only shows where the exception was thrown, not where the problem originated. Reproducing the failure locally requires spinning up the entire environment, which often behaves differently than CI.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "Comparison of testing approaches for API compatibility.",
     thead: {
@@ -152,7 +152,8 @@ A contract verifies __structure__: the request path, HTTP method, required heade
 A contract does __not__ verify business logic: it shouldn't check that user 123 has a specific email address, or that creating a user with duplicate email returns a particular error message. Those are integration test concerns. The consumer shouldn't know or care about the provider's database state.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Contract scope boundaries.",
     thead: {
@@ -211,12 +212,34 @@ __Additive changes__ (new endpoints, new optional fields) require no coordinatio
 
 __Breaking changes__ (removing fields, renaming fields, changing types) trigger a conversation. When a provider needs to make a breaking change, the workflow is:
 
-1. Provider team updates their code and runs contract verification locally
-2. Verification fails for consumers using the affected fields
-3. Pact Broker shows exactly which consumers depend on the changing contract
-4. Provider team coordinates with affected consumer teams
-5. Consumer teams update their code and contracts
-6. Once all consumers have migrated, the provider deploys
+<List
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-30 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Provider team updates their code and runs contract verification locally',
+    },
+    {
+      lead: 'Verification fails for consumers using the affected fields',
+    },
+    {
+      lead: 'Pact Broker shows exactly which consumers depend on the changing contract',
+    },
+    {
+      lead: 'Provider team coordinates with affected consumer teams',
+    },
+    {
+      lead: 'Consumer teams update their code and contracts',
+    },
+    {
+      lead: 'Once all consumers have migrated, the provider deploys',
+    },
+  ]}
+/>
+
+The diagram below shows this coordination in practice. Notice that the provider never deploys until verification passes against every affected consumer — the Pact Broker acts as the single source of truth for who depends on what.
 
 <Diagram
   src={breakingChangeDiagram}
@@ -403,7 +426,8 @@ Code: Pact matchers for flexible contract definitions.
 The table below summarizes the most commonly used matchers. In practice, `like()` handles 80% of cases — use it as your default and reach for more specific matchers when you need tighter validation.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "Common Pact matchers and their use cases.",
     thead: {
@@ -412,31 +436,31 @@ The table below summarizes the most commonly used matchers. In practice, `like()
     tbody: {
       tr: [
         {
-          th: "`like(example)`",
+          th: '<span class="font-mono">like(example)</span>',
           td: ["Most fields", "Same type as example"],
         },
         {
-          th: "`eachLike(example)`",
+          th: '<span class="font-mono">eachLike(example)</span>',
           td: ["Arrays", "Array with items of same type"],
         },
         {
-          th: "`regex(pattern, example)`",
+          th: '<span class="font-mono">regex(pattern, example)</span>',
           td: ["Enums, formats", "Must match regex"],
         },
         {
-          th: "`datetime(format)`",
+          th: '<span class="font-mono">datetime(format)</span>',
           td: ["Timestamps", "Valid datetime in format"],
         },
         {
-          th: "`integer(example)`",
+          th: '<span class="font-mono">integer(example)</span>',
           td: ["Counts, IDs", "Integer number"],
         },
         {
-          th: "`decimal(example)`",
+          th: '<span class="font-mono">decimal(example)</span>',
           td: ["Prices, rates", "Decimal number"],
         },
         {
-          th: "`uuid()`",
+          th: '<span class="font-mono">uuid()</span>',
           td: ["Identifiers", "Valid UUID format"],
         },
       ],
@@ -564,26 +588,30 @@ Not every team needs Pact. Schema-based approaches offer simpler tooling when yo
 OpenAPI-based tools flip the script: instead of consumers generating contracts, you maintain a specification and validate both sides against it. Several tools take your OpenAPI spec and generate tests automatically:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Prism (from Stoplight)",
-      text: "acts as a mock server and validation proxy. Point it at your OpenAPI spec and it validates requests/responses in real-time.",
+      text: "Acts as a mock server and validation proxy. Point it at your OpenAPI spec and it validates requests/responses in real-time.",
     },
     {
       lead: "Dredd",
-      text: "generates and runs tests from your spec, comparing actual API responses to documented examples.",
+      text: "Generates and runs tests from your spec, comparing actual API responses to documented examples.",
     },
     {
       lead: "Schemathesis",
-      text: "takes a property-based testing approach, generating hundreds of test cases from your schema to find edge cases.",
+      text: "Takes a property-based testing approach, generating hundreds of test cases from your schema to find edge cases.",
     },
   ]}
 />
 
+These tools work well when you already maintain an OpenAPI spec and want to catch drift between the spec and the implementation. But they test against the specification, not against what consumers actually depend on. The table below compares the trade-offs across approaches.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     figure: "Contract testing approaches compared.",
     thead: {
@@ -628,8 +656,11 @@ The decision tree is simpler than it looks: if you know your consumers and can c
   description="Flowchart guiding teams through contract testing choices based on the number of consumers, whether consumers are known, and whether an OpenAPI specification already exists, ending with recommendations such as Pact CDC, schema plus versioning, Prism or Dredd, or the full Pact workflow."
 />
 
+For a quick reference, the table below pairs typical architectural and team scenarios with their ideal testing approach.
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="report-table"
+  fullWidth={false}
   content={{
     figure: "Contract testing approach by scenario.",
     thead: {
@@ -822,35 +853,102 @@ As your service count grows, so does your contract test surface. A three-service
 
 Keep contract tests separate from unit tests — they serve different purposes and often have different dependencies. The recommended structure puts contract tests in their own directory with shared setup extracted into common files.
 
-```text
-Project Structure:
+__Project Structure:__
 
-consumer-service/
-├── src/
-│   └── clients/
-│       └── user-service-client.ts
-├── test/
-│   ├── unit/
-│   │   └── ...
-│   └── contract/
-│       ├── pact.setup.ts           # Shared Pact configuration
-│       ├── user-service.pact.ts    # Contracts for UserService
-│       └── order-service.pact.ts   # Contracts for OrderService
-├── pacts/                          # Generated pact files (gitignored)
-│   └── consumerservice-userservice.json
-└── pact.config.js                  # Pact configuration
-
-provider-service/
-├── src/
-│   └── ...
-├── test/
-│   ├── unit/
-│   │   └── ...
-│   └── contract/
-│       ├── provider-states.ts      # State handlers
-│       └── provider-verification.ts # Verification tests
-└── pact.config.js
-```
+<FileExplorer
+  fullWidth={false}
+  classes={{
+    wrapper: "sm:ml-24 sm:mr-24 mb-6",
+  }}
+  figure="Example project structure for consumer and provider services, showing where contract tests, provider states, Pact configuration, and generated pact files typically live."
+  data={[
+    {
+      type: 'folder',
+      name: 'consumer-service',
+      children: [
+        {
+          type: 'folder',
+          name: 'src',
+          children: [
+            {
+              type: 'folder',
+              name: 'clients',
+              children: [
+                { type: 'file', name: 'user-service-client.ts' }
+              ]
+            }
+          ]
+        },
+        {
+          type: 'folder',
+          name: 'test',
+          children: [
+            {
+              type: 'folder',
+              name: 'unit',
+              children: [
+                { type: 'file', name: '...' }
+              ]
+            },
+            {
+              type: 'folder',
+              name: 'contract',
+              children: [
+                { type: 'file', name: 'pact.setup.ts', comment: 'Shared Pact configuration' },
+                { type: 'file', name: 'user-service.pact.ts', comment: 'Contracts for UserService' },
+                { type: 'file', name: 'order-service.pact.ts', comment: 'Contracts for OrderService' }
+              ]
+            }
+          ]
+        },
+        {
+          type: 'folder',
+          name: 'pacts',
+          comment: 'Generated pact files (gitignored)',
+          children: [
+            { type: 'file', name: 'consumerservice-userservice.json' }
+          ]
+        },
+        { type: 'file', name: 'pact.config.js', comment: 'Pact configuration' }
+      ]
+    },
+    {
+      type: 'folder',
+      name: 'provider-service',
+      children: [
+        {
+          type: 'folder',
+          name: 'src',
+          children: [
+            { type: 'file', name: '...' }
+          ]
+        },
+        {
+          type: 'folder',
+          name: 'test',
+          children: [
+            {
+              type: 'folder',
+              name: 'unit',
+              children: [
+                { type: 'file', name: '...' }
+              ]
+            },
+            {
+              type: 'folder',
+              name: 'contract',
+              children: [
+                { type: 'file', name: 'provider-states.ts', comment: 'State handlers' },
+                { type: 'file', name: 'provider-verification.ts', comment: 'Verification tests' }
+              ]
+            }
+          ]
+        },
+        { type: 'file', name: 'pact.config.js' }
+      ]
+    }
+  ]}
+/>
 
 The `pacts/` directory holds generated JSON files and should be gitignored — these are build artifacts, not source code. One contract file per provider keeps things organized: `user-service.pact.ts` contains all interactions with the User Service, regardless of how many endpoints you call.
 
@@ -892,7 +990,8 @@ The `commonMatchers` object is where you'll see the biggest maintainability wins
 Contract tests accumulate technical debt like any other code. These guidelines keep the debt manageable:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Guidelines for maintainable contract tests.",
     thead: {
@@ -991,7 +1090,6 @@ Happy path tunnel vision is the second most common pitfall. Consumers parse erro
 ```typescript title="error-case-contracts.ts"
 // Don't just test happy paths!
 // Consumers depend on error response shapes too
-
 describe('Error contracts', () => {
   it('handles 400 Bad Request', async () => {
     await provider
@@ -1026,25 +1124,52 @@ At minimum, test 400 (validation errors), 401 (authentication), 404 (not found),
 Provider states should be the simplest possible setup that satisfies the contract. When state handlers grow complex — spinning up elaborate fixtures, seeding production-like data, managing cleanup — you've drifted into integration test territory.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    figure: "sm:ml-24 sm:mr-24 mb-6",
+  }}
   content={{
     figure: "Provider state complexity pitfalls.",
     thead: {
-      th: ["State Description", "Problem / Implementation"],
+      th: ["", "State Description", "Problem / Implementation"],
     },
     tbody: {
       tr: [
         {
-          th: "❌ \"production-like database with 1000 users\"",
-          td: ["Slow, brittle, not what contract tests are for"],
+          th: '❌',
+          td: [
+            '"production-like database with 1000 users"',
+            "Slow, brittle, not what contract tests are for",
+          ],
         },
         {
-          th: "❌ \"user 123 with orders 456, 789 and payment method ending 4242\"",
-          td: ["Too specific, couples consumer to provider data model"],
+          th: '❌',
+          td: [
+            '"user 123 with orders 456, 789 and payment method ending 4242"',
+            "Too specific, couples consumer to provider data model",
+          ],
         },
-        { th: "✅ \"a user exists\"", td: ["Create one user with auto-generated data"] },
-        { th: "✅ \"user has orders\"", td: ["Create user with 2 generic orders"] },
-        { th: "✅ \"unauthorized\"", td: ["No setup needed, just don't auth"] },
+        {
+          th: '✅',
+          td: [
+            '"a user exists"',
+            "Create one user with auto-generated data",
+          ],
+        },
+        {
+          th: '✅',
+          td: [
+            '"user has orders"',
+            "Create user with 2 generic orders",
+          ],
+        },
+        {
+          th: '✅',
+          td: [
+            '"unauthorized"',
+            "No setup needed, just don't auth",
+          ],
+        },
       ],
     },
   }}
@@ -1062,6 +1187,7 @@ The Pact Broker becomes your central nervous system for contract management. It 
 
 <Diagram
   src={contractTestingAtScaleDiagram}
+  size="2xl"
   title="Contract testing at scale with Pact Broker as central registry"
   description="Flowchart showing multiple consumer services publishing contracts into a central Pact Broker registry, which then serves those contracts to multiple provider services for verification and compatibility tracking."
 />
@@ -1069,7 +1195,7 @@ The Pact Broker becomes your central nervous system for contract management. It 
 As services multiply, you'll need these scaling strategies:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "Strategies for scaling contract testing.",
     thead: {
@@ -1080,7 +1206,7 @@ As services multiply, you'll need these scaling strategies:
         {
           th: "Environment management",
           td: [
-            "`record-deployment` tracks which versions run where, so `can-i-deploy` knows what to check against",
+            '<span class="font-mono">record-deployment</span> tracks which versions run where, so <span class="font-mono">can-i-deploy</span> knows what to check against',
           ],
         },
         {
@@ -1093,7 +1219,10 @@ As services multiply, you'll need these scaling strategies:
           th: "Pending pacts",
           td: ["New contracts don't fail provider builds until providers explicitly support them"],
         },
-        { th: "WIP pacts", td: ["Include work-in-progress contracts in verification for early feedback"] },
+        {
+          th: "WIP pacts",
+          td: ["Include work-in-progress contracts in verification for early feedback"],
+        },
         {
           th: "Matrix view",
           td: ["Pact Broker UI visualizes compatibility across all services at a glance"],
@@ -1195,7 +1324,10 @@ Consumer-driven contract testing solves the coordination problem that plagues mi
 The key insights:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Contracts capture what consumers actually use",
@@ -1203,7 +1335,7 @@ The key insights:
     },
     {
       lead: "The Pact Broker is your safety net.",
-      text: "The `can-i-deploy` command answers \"will this deployment break anything?\" with certainty, not hope.",
+      text: 'The <span class="font-mono">can-i-deploy</span> command answers "will this deployment break anything?" with certainty, not hope.',
     },
     {
       lead: "Contract tests verify structure, not business logic.",
@@ -1251,8 +1383,8 @@ Getting started is straightforward:
 
 Once that first pair is working, expanding to other services follows the same pattern.
 
-The team that renamed `userId` to `user_id` would have caught that breaking change in their PR checks. The deployment would have failed `can-i-deploy`, the compatibility matrix would have shown exactly which consumers depended on the old field name, and Friday afternoon would have stayed quiet.
-
 <Callout type="success">
 Contract tests are fast, reliable, and catch breaking changes at PR time. They don't replace integration tests entirely, but they eliminate the majority of "works on my machine, breaks in production" API compatibility issues.
 </Callout>
+
+The team that renamed `userId` to `user_id` would have caught that breaking change in their PR checks. The deployment would have failed `can-i-deploy`, the compatibility matrix would have shown exactly which consumers depended on the old field name, and Friday afternoon would have stayed quiet.

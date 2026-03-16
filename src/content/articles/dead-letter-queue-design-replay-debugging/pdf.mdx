@@ -39,7 +39,10 @@ A DLQ that you can't debug and can't replay isn't a safety mechanism — it's a 
 Messages fail for different reasons, and those reasons determine how you should handle them. Understanding the failure taxonomy is the first step toward building a DLQ you can actually drain.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Transient failures are temporary issues that resolve themselves:",
@@ -62,6 +65,7 @@ Messages fail for different reasons, and those reasons determine how you should 
 
 <Diagram
   src={messageProcessingDiagram}
+  size="full"
   title="Message processing flow with DLQ routing by failure type."
   description="Flowchart showing how message processing routes successes and failures. A message starts at Message Received and moves to a Processing Attempt decision. Success leads to Acknowledge. Failure goes to a Retry Policy decision. If retries remain, the message is sent to Requeue with Backoff and then returns to Processing Attempt. If maximum retries are exceeded, the message moves to DLQ. From there, a Failure Type decision routes the message by classification: Transient goes to Auto-Replay Queue, Permanent goes to Manual Review Queue, and Poison goes to Quarantine Queue. The diagram shows that the DLQ is not a single sink for every failure, but a routing point where failure type determines the next operational action."
 />
@@ -139,7 +143,7 @@ The schema you choose for your DLQ messages determines what you can do with them
 ### Design Principles
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Preserve the original message exactly.",
@@ -257,14 +261,17 @@ Code: Background worker that writes DLQ envelopes.
 Where you store your DLQ messages affects what operations you can perform on them:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="timeline-labels-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     figure: "DLQ storage options comparison.",
     thead: { th: ["Storage Type", "Pros", "Cons", "Best For"] },
     tbody: {
       tr: [
         {
-          th: "Same queue system (SQS, RabbitMQ)",
+          th: { label: "Same queue system (SQS, RabbitMQ)", color: "secondary" },
           td: [
             "Simple setup, native tooling",
             "Limited querying, no analytics",
@@ -272,7 +279,7 @@ Where you store your DLQ messages affects what operations you can perform on the
           ],
         },
         {
-          th: "Database (PostgreSQL)",
+          th: { label: "Database (PostgreSQL)", color: "success" },
           td: [
             "Full querying, transactions",
             "Need to build tooling",
@@ -280,7 +287,7 @@ Where you store your DLQ messages affects what operations you can perform on the
           ],
         },
         {
-          th: "Document store (MongoDB)",
+          th: { label: "Document store (MongoDB)", color: "info" },
           td: [
             "Flexible schema, good querying",
             "Another system to manage",
@@ -288,7 +295,7 @@ Where you store your DLQ messages affects what operations you can perform on the
           ],
         },
         {
-          th: "Time-series (Elasticsearch)",
+          th: { label: "Time-series (Elasticsearch)", color: "warning" },
           td: [
             "Great analytics, dashboards",
             "Overkill for small volumes",
@@ -311,7 +318,7 @@ Using a database for DLQ storage trades simplicity for capability. You lose nati
 The schema only matters if you populate it correctly, and the window for capturing context is narrow. Once a message moves to the DLQ, the processing context — trace spans, in-memory state, the specific consumer instance — is gone. You can't reconstruct it later. This means the DLQ write path needs to be a core part of your consumer implementation, not an afterthought.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Enrich synchronously, not asynchronously.",
@@ -343,7 +350,10 @@ The tooling landscape for DLQ management splits into three categories: broker-na
 If you're keeping dead letters in the broker itself (SQS DLQs, RabbitMQ dead letter exchanges, Kafka error topics), several tools provide inspection and redrive capabilities without additional infrastructure.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Kafka ecosystems",
@@ -367,7 +377,10 @@ The limitation of broker-native tools is query capability. You can't easily answ
 Moving failed messages to a database unlocks SQL queries, which changes the operational model entirely. Several libraries make this straightforward.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "pg-boss",
@@ -397,7 +410,10 @@ When your messages use structured schemas (Protobuf, Avro, JSON Schema), inspect
 The challenge is that most DLQ tooling treats messages as opaque blobs. You can see the bytes, but understanding what they mean requires external knowledge of your schema versions. For teams with strict schema evolution policies, this becomes a significant operational burden — you might have messages in the DLQ that were written against three different schema versions, and each requires different handling.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Conduktor and Kpow_(mentioned earlier for Kafka)",
@@ -419,7 +435,10 @@ For complex needs — schema validation, enrichment from external services, cond
 This is where the Python worker from the schema design section fits in. That script runs as a Lambda function triggered by new DLQ entries, or as a containerized worker polling your database. The deployment model depends on volume and latency requirements:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Serverless (AWS Lambda, Azure Functions)",
@@ -457,7 +476,7 @@ The triage process starts with classification. If your consumer classified the f
 For messages that weren't classified — either because the consumer didn't capture enough context or because the failure mode was unexpected — you need a manual triage step. Someone looks at the error message, checks the payload, and decides: is this fixable, and if so, how?
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "DLQ triage routing by failure classification.",
     thead: { th: ["Classification", "Auto-Handling", "Human Action Required"] },
@@ -509,7 +528,10 @@ The fix itself falls into three categories. _Data fixes_ mean correcting the pay
 When you get paged for a DLQ alert, resist the urge to immediately start replaying messages. The first few minutes should be assessment, not action.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Check the trend, not just the number.",
@@ -535,11 +557,11 @@ The escalation triggers should be automatic, not judgment calls. Page the respon
 The metrics you track should answer operational questions, not just populate dashboards. Every metric should have an associated action: if this number goes up (or down), what do I do?
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
   items={[
     {
       lead: "DLQ depth by classification",
-      text: "Is your primary operational metric. Track it per queue and per failure type, because \"500 messages in the DLQ\" means different things depending on composition. 500 transient failures after a brief outage will auto-resolve. 500 validation failures means something is generating bad data upstream. Alert when depth exceeds thresholds, but set different thresholds for different classifications — transient failures can accumulate briefly without concern, but poison messages should alert immediately.",
+      text: "Your primary operational metric. Track it per queue and per failure type, because \"500 messages in the DLQ\" means different things depending on composition. 500 transient failures after a brief outage will auto-resolve. 500 validation failures means something is generating bad data upstream. Alert when depth exceeds thresholds, but set different thresholds for different classifications — transient failures can accumulate briefly without concern, but poison messages should alert immediately.",
     },
     {
       lead: "Inflow rate",
@@ -557,7 +579,10 @@ The metrics you track should answer operational questions, not just populate das
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     figure: "DLQ alerting thresholds and responses.",
     thead: { th: ["Metric", "Warning Threshold", "Critical Threshold", "Response"] },
@@ -624,8 +649,8 @@ The investment required isn't enormous. Enrich messages at failure time with the
 
 Most of this work is one-time infrastructure that pays dividends every time something goes wrong. The alternative — deleting 50,000 messages because nobody knows what they are or whether they're safe to replay — is a data loss event dressed up as operational hygiene.
 
-Start with the basics: capture full context at write time, classify failures so transient issues auto-resolve, and give your team tools to investigate permanent failures. You can add sophistication later — multi-tier DLQs, automated enrichment, schema validation on replay — but the fundamentals matter more than the advanced features.
-
 <Callout type="success">
 The measure of a good DLQ system isn't how few messages end up there — it's how quickly you can understand why they failed and how confidently you can replay them. Design for debugging and recovery, not just storage.
 </Callout>
+
+Start with the basics: capture full context at write time, classify failures so transient issues auto-resolve, and give your team tools to investigate permanent failures. You can add sophistication later — multi-tier DLQs, automated enrichment, schema validation on replay — but the fundamentals matter more than the advanced features.

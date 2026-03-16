@@ -35,8 +35,10 @@ Not quite. Naive sampling creates its own problems. You'll miss errors because e
 The real goal of sampling isn't cost reduction - it's signal improvement. You want to keep traces that teach you something: errors, latency outliers, unusual patterns, important business transactions. You want to discard traces that teach you nothing: the millions of identical successful requests that look exactly like each other. Intelligent sampling keeps the interesting traces and drops the boring ones, giving you better visibility at lower cost than either full sampling or random sampling.
 
 <Callout type="info">
-The goal of sampling isn't to reduce costs (though it does). The goal is to increase signal - keeping the traces that teach you something while discarding the identical successful requests that teach you nothing.
+Think of sampling as editorial judgment, not data loss. A newspaper doesn't print every press release it receives - it selects for newsworthiness. Your sampling strategy selects for operational value.
 </Callout>
+
+The challenge is building that editorial judgment into an automated system. The strategies that follow - head sampling, tail sampling, and hybrid approaches - each make different tradeoffs between simplicity, completeness, and operational cost that are worth understanding before you pick one.
 
 ## The Sampling Problem Space
 
@@ -45,7 +47,12 @@ The goal of sampling isn't to reduce costs (though it does). The goal is to incr
 The problems with full sampling compound in ways that aren't immediately obvious. Storage cost is the most visible, but it's not the only issue - and often not even the most painful one.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    thead: "text-center",
+    tbody: "!text-content",
+  }}
   content={{
     figure: "Problems with 100% sampling at scale.",
     thead: { th: ["Problem", "Impact", "Scale Factor"] },
@@ -97,7 +104,7 @@ When I say "sampling" from here on, I mean keeping less than 100% of traces - ma
 />
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "What sampling preserves:",
@@ -125,7 +132,10 @@ Before diving into sampling strategies, it helps to understand where sampling fi
 The backend is where your traces live after collection. You have several options depending on whether you want managed services or self-hosted infrastructure.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Jaeger",
@@ -172,6 +182,7 @@ The sequence is straightforward. A request arrives at your entry point - let's s
 
 <Diagram
   src={headBasedDiagram}
+  size="full"
   title="Head-based sampling decision flow."
   description="Sequence diagram showing how a head-sampling decision made at the start of a request propagates across services. A Client sends a Request to an API Gateway. At the gateway, a note indicates a sample decision of YES with a 10% chance. The gateway generates a trace ID, sets sampled=true, and forwards the request plus trace context to Service A. Service A creates spans that will be exported, forwards the request plus the same sampled=true trace context to Service B, and Service B also creates exportable spans. Service B, Service A, and the Gateway each export spans to the Collector. A final note emphasizes that all services respect the original head decision. The diagram shows that head sampling makes one early decision and then keeps the whole trace consistent across downstream services."
 />
@@ -246,7 +257,10 @@ The key property here is determinism: the same trace ID produces the same decisi
 The probability sampler above is the simplest approach, but it's not the only one. Different strategies optimize for different constraints.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     figure: "Head sampling strategy comparison.",
     thead: { th: ["Strategy", "How It Works", "Best For", "Limitation"] },
@@ -290,7 +304,7 @@ The probability sampler above is the simplest approach, but it's not the only on
 />
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
   items={[
     {
       lead: "Fixed probability",
@@ -449,7 +463,7 @@ The critical insight is that the collector sees the complete trace before decidi
 Tail sampling doesn't happen in your application code - it happens in dedicated infrastructure. The most common options are:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "OpenTelemetry Collector",
@@ -471,7 +485,7 @@ The deployment pattern matters because tail sampling is stateful. The collector 
 For simple deployments, you can run the collector as a sidecar in your application pod. This works if your traces stay within a single pod - but that's rare in microservices architectures. For production, you typically need a two-tier setup:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
   items={[
     {
       lead: "Tier 1 (Agents)",
@@ -561,7 +575,7 @@ The policies themselves are declarative. The `status_code` policy matches traces
 Tail sampling solves the "incomplete information" problem of head sampling, but it introduces operational challenges you need to plan for.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
   items={[
     {
       lead: "Memory pressure",
@@ -598,6 +612,8 @@ Start with your traffic volume. At low scale (under 1,000 RPS), the economics of
 
 <Diagram
   src={samplingStrategyDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="Sampling strategy decision tree."
   description="Flowchart showing how to choose a sampling approach based on traffic volume and operational constraints. The process starts at Choose Sampling Strategy and asks about Traffic Volume. For less than 1,000 RPS, the recommendation is 100% or Simple Head, which leads to Simple Implementation. For 1,000 to 10,000 RPS, the next question is Need Error Capture? If yes, the result is Tail Sampling; if statistical error rate is acceptable, the result is Head Sampling. For more than 10,000 RPS, the next question is Budget for Tail Infrastructure? If yes, choose Tail Sampling; if no, choose Aggressive Head Sampling. Tail Sampling leads to OTel Collector + Tail Processor, while Head Sampling and Aggressive Head Sampling lead to SDK-level Sampler. The diagram emphasizes that the right choice depends on both scale and the team's ability to operate sampling infrastructure."
 />
@@ -605,7 +621,7 @@ Start with your traffic volume. At low scale (under 1,000 RPS), the economics of
 The decision isn't just about what you want - it's about what you can operate. Tail sampling requires stateful infrastructure that needs monitoring, scaling, and maintenance. If your team is small or your ops capacity is limited, the operational overhead of tail sampling may outweigh its benefits.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "Head vs tail sampling comparison.",
     thead: { th: ["Factor", "Head Sampling", "Tail Sampling"] },
@@ -649,7 +665,10 @@ The decision isn't just about what you want - it's about what you can operate. T
 />
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mt-12 mb-6",
+  }}
   items={[
     {
       lead: "Choose head sampling when:",
@@ -798,7 +817,10 @@ But budget isn't the only constraint. You also need enough samples to make stati
 Different metrics require different sample sizes for valid estimation.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Error rate estimation",
@@ -808,11 +830,6 @@ Different metrics require different sample sizes for valid estimation.
       lead: "Latency percentiles",
       text: "Need more samples than you might expect. The rule of thumb is that you need roughly 100/p samples to estimate the Pth percentile, where p is the tail probability. For P99 (p = 0.01), you need about 10,000 samples. For P99.9, you need 100,000 samples. If you're sampling at 1% and need P99.9 estimates, you need 10 million total requests in your analysis window to have enough samples.",
     },
-  ]}
-/>
-<List
-  variant="check-icons-list"
-  items={[
     {
       lead: "Rare event detection",
       text: "Where sampling hurts most. If an event occurs once per 10,000 requests and you're sampling at 1%, you need 1 million total requests just to expect to see one occurrence. Rare bugs, edge cases, and unusual failure modes may never appear in your sampled data at all.",
@@ -821,7 +838,7 @@ Different metrics require different sample sizes for valid estimation.
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Sample requirements for statistically valid metrics.",
     thead: { th: ["Metric", "Minimum Samples", "At 1% Sampling", "At 10% Sampling"] },
@@ -887,19 +904,19 @@ The scenario happens regularly: a customer reports an error, includes a trace ID
 The first instinct is to increase your sample rate, but that's treating the symptom. The better approach is building systems that give you debugging capability even when specific traces are missing.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
-      lead: "Always log trace IDs, even for unsampled requests.",
+      lead: "Always log trace IDs, even for unsampled requests",
       text: "Your application creates a trace ID for every request, regardless of whether that request is sampled. Include the trace ID in your structured logs. When a trace isn't sampled, you can still find the logs for that request - and logs often contain enough context to diagnose the issue without the trace.",
     },
     {
-      lead: "Correlate trace IDs with request IDs and user IDs.",
-      text: "If you can't find trace `abc123`, but you know it was for user `user456` at 14:32 UTC, you can search for other traces from that user around that time. Sampled traces are statistically representative - a similar trace from the same user, endpoint, and time window often shows the same issue.",
+      lead: "Correlate trace IDs with request IDs and user IDs",
+      text: 'If you can\'t find trace <span class="font-mono">abc123</span>, but you know it was for user <span class="font-mono">user456</span> at <span class="font-mono">14:32 UTC</span>, you can search for other traces from that user around that time. Sampled traces are statistically representative - a similar trace from the same user, endpoint, and time window often shows the same issue.',
     },
     {
-      lead: "Use your trace backend's attribute search.",
-      text: "Jaeger, Tempo, and commercial APM tools let you search traces by attributes, not just trace ID. Search for traces with the same `http.route`, same `error.type`, same `user.id`, same time window. You may not have _that_ trace, but you'll have similar ones.",
+      lead: "Use your trace backend's attribute search",
+      text: 'Jaeger, Tempo, and commercial APM tools let you search traces by attributes, not just trace ID. Search for traces with the same <span class="font-mono">http.route</span>, same <span class="font-mono">error.type</span>, same <span class="font-mono">user.id</span>, same time window. You may not have <span class="italic">that</span> trace, but you\'ll have similar ones.',
     },
   ]}
 />
@@ -909,7 +926,7 @@ The first instinct is to increase your sample rate, but that's treating the symp
 Traces are one leg of the observability triad; logs and metrics are the others. When traces are sampled, logs and metrics become your fallback - and they should be designed for that role.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Structure your logs for trace correlation.",
@@ -936,12 +953,18 @@ Traces are one leg of the observability triad; logs and metrics are the others. 
 Notice the `sampled: false` field. This tells you the trace wasn't sampled, so don't bother searching for it in your trace backend. But the log entry itself contains the error code, user ID, and order ID - often enough to diagnose the issue.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Use metrics with exemplars.",
       text: "Modern metrics systems (Prometheus with exemplar support, Grafana Mimir) can attach trace IDs to metric data points. When you see a latency spike on your P99 dashboard, you can click through to an exemplar trace that represents that spike. This is a form of retroactive trace discovery - the metric tells you something interesting happened, and links you to a trace that was sampled.",
     },
+  ]}
+/>
+
+<List
+  variant="zebra-list"
+  items={[
     {
       lead: "Build dashboards that connect the three signals.",
       text: "Your Grafana dashboard should let you go from a metric anomaly → to logs from that time window → to traces matching those logs. Tempo's integration with Loki is designed for exactly this workflow: search logs, find trace IDs in log entries, click through to traces.",
@@ -1020,7 +1043,10 @@ On-demand sampling is powerful for debugging but can be abused. Rate-limit force
 During active incidents, you often want more traces than your normal rate provides. The question is how to increase the rate quickly without redeploying.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Feature flags for sample rates.",
@@ -1042,15 +1068,18 @@ During active incidents, you often want more traces than your normal rate provid
 When you can't find a specific trace, find similar ones. The workflow varies by trace backend:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "In Jaeger:",
-      text: "Use the search panel to filter by service, operation (endpoint), tags, and time range. If you're looking for traces where `/api/checkout` returned a 500 error, search for `service=checkout-service`, `http.status_code=500`, `operation=POST /api/checkout`, time range around when the error occurred. You won't find the exact trace the customer hit, but you'll find recent traces with the same characteristics.",
+      text: 'Use the search panel to filter by service, operation (endpoint), tags, and time range. If you\'re looking for traces where <span class="font-mono">/api/checkout</span> returned a 500 error, search for <span class="font-mono">service=checkout-service</span>, <span class="font-mono">http.status_code=500</span>, <span class="font-mono">operation=POST /api/checkout</span>, time range around when the error occurred. You won\'t find the exact trace the customer hit, but you\'ll find recent traces with the same characteristics.',
     },
     {
       lead: "In Grafana Tempo:",
-      text: "Tempo's TraceQL query language lets you search by attributes. The query `{ resource.service.name=\"checkout-service\" && span.http.status_code=500 && span.http.route=\"/api/checkout\" }` finds error traces from checkout. Combine with Tempo's integration with Loki: search logs for the trace ID, find related log entries, discover other trace IDs in those logs that _were_ sampled.",
+      text: 'Tempo\'s TraceQL query language lets you search by attributes. The query <span class="font-mono">{ resource.service.name="checkout-service" && span.http.status_code=500 && span.http.route="/api/checkout" }</span> finds error traces from checkout. Combine with Tempo\'s integration with <span class="font-mono">Loki: search</span> logs for the trace ID, find related log entries, discover other trace IDs in those logs that <span class="italic">were</span> sampled.',
     },
     {
       lead: "In commercial APM (Datadog, New Relic, Honeycomb):",
@@ -1149,8 +1178,8 @@ Hybrid approaches give you the best of both - cost control from head sampling, i
 
 Whatever strategy you choose, remember that sampling changes how you debug. You won't always have the specific trace you need. Build systems that compensate: correlate trace IDs with logs, use metrics with exemplars, implement on-demand sampling for reproducing issues. The teams that struggle with sampling are the ones that treat traces as the only source of truth. The teams that succeed treat traces as one signal among many.
 
-The goal of distributed tracing isn't to capture every request. It's to capture enough requests to understand your system's behavior, diagnose problems when they occur, and improve reliability over time. With thoughtful sampling, a 1% sample can teach you more than 100% ever could - because you'll actually be able to query it.
-
 <Callout type="info">
 Start with simple head-based sampling. Add tail sampling when you need guaranteed capture of errors or slow requests. Graduate to hybrid approaches when you need both cost control and intelligent filtering. But always start simple - complexity has its own costs.
 </Callout>
+
+The goal of distributed tracing isn't to capture every request. It's to capture enough requests to understand your system's behavior, diagnose problems when they occur, and improve reliability over time. With thoughtful sampling, a 1% sample can teach you more than 100% ever could - because you'll actually be able to query it.

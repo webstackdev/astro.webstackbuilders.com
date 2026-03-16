@@ -15,7 +15,7 @@ import sharedVsDedicatedDiagram from "./diagrams/shared-vs-dedicated-resource-co
 *[TTL]: Time To Live
 *[RDS]: Relational Database Service
 
-Preview environments for every PR sound like a developer experience win until someone notices the cloud bill. I've seen this pattern play out multiple times: a team enables preview deployments, developers love the fast feedback loops, and six weeks later finance is asking why infrastructure costs tripled.
+<Highlighter>Preview environments for every PR sound like a developer experience win until someone notices the cloud bill.</Highlighter> I've seen this pattern play out multiple times: a team enables preview deployments, developers love the fast feedback loops, and six weeks later finance is asking why infrastructure costs tripled.
 
 The math is straightforward but easy to ignore. A 50-developer team with an average of 40 open PRs, each spawning a full stack with database, Redis, and object storage, is running 40 duplicate environments around the clock. Most sit idle — the PR author pushed code, tested for an hour, then moved on. But the database is still running. The load balancer is still running. The persistent volumes are still allocated.
 
@@ -32,7 +32,12 @@ A good TTL policy has three layers. First, a hard maximum lifetime — environme
 The defaults should be aggressive. A 72-hour maximum lifetime and an 8-hour idle timeout cover the vast majority of legitimate use cases. PRs that need longer — demo environments, long-running feature branches — can request an extension via a label or approval workflow.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    figure: "mt-8 mb-8",
+    tbody: '!text-content',
+  }}
   content={{
     figure: "TTL policy tiers for different use cases.",
     thead: { th: ["Policy", "Max Lifetime", "Idle Timeout", "Use Case"] },
@@ -93,6 +98,7 @@ The most impactful cost optimization is using shared infrastructure with logical
 
 <Diagram
   src={sharedVsDedicatedDiagram}
+  magnifyButtonPosition="top-left"
   title="Shared vs dedicated resource cost comparison."
   description="Flowchart comparing dedicated preview databases with a shared database model. In the Dedicated (Expensive) group are three separate databases labeled PR-123 DB, PR-124 DB, and PR-125 DB. In the Shared (Cost-Effective) group, one Shared DB branches into three isolated schemas: schema_pr_123, schema_pr_124, and schema_pr_125. A third group labeled Cost Comparison (db.t3.small) shows that three dedicated databases cost 3 x $30/mo = $90/mo, while one shared database costs 1 x $30/mo = $30/mo. Dotted arrows connect the dedicated databases to the higher cost and the shared database to the lower cost. The diagram demonstrates that logical isolation within a shared service can preserve separation while dramatically lowering per-preview infrastructure cost."
 />
@@ -116,23 +122,24 @@ Deleting an environment when its TTL expires works, but sometimes you want a mid
 Hibernation works well for environments that are idle but might be needed again. A developer working on a feature for two weeks doesn't want their environment destroyed every night — they want it to stop costing money overnight and wake up when they need it.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "Hibernation triggers and their cost impact.",
-    thead: { th: ["Trigger", "Use Case", "Typical Savings"] },
+    thead: { th: ["Trigger", "Typical Savings", "Use Case"] },
     tbody: {
       tr: [
         {
           th: "Hibernation timeout (4h idle)",
-          td: ["Pause before TTL deletion", "40-60%"],
+          td: ["40-60%", "Pause before TTL deletion"],
         },
         {
           th: "Schedule (nights/weekends)",
-          td: ["Known non-working hours", "50-70%"],
+          td: ["50-70%", "Known non-working hours"],
         },
         {
           th: "Budget pressure",
-          td: ["Team approaching limit", "Variable"],
+          td: ["Variable", "Team approaching limit"],
         },
       ],
     },
@@ -143,30 +150,33 @@ Note the difference from TTL idle timeout: hibernation kicks in earlier (4 hours
 
 The best hibernation UX is transparent to developers. When someone visits a hibernated environment URL, the system automatically wakes it. Show a loading page while resources start up, then redirect to the now-running environment. KEDA (Kubernetes Event-Driven Autoscaling) provides the scaling primitives — it can scale deployments to zero based on custom metrics (like HTTP request rate), then scale back up when traffic arrives. Custom ingress annotations or a lightweight proxy can intercept the initial request and trigger the wake.
 
-The tradeoff is cold start time. Waking a hibernated environment takes 30-60 seconds for Kubernetes deployments to scale up, longer if databases need to start. For environments with dedicated RDS instances, AWS allows you to stop the instance (saving compute costs) while retaining storage — starting it again takes a few minutes. The inverse also applies: the loading page should be informative about this tradeoff. Explain that the environment was hibernated to save costs, show the PR number, and indicate expected wake time. Auto-refresh every few seconds so developers don't have to manually reload.
-
 <Callout type="success">
 Hibernation with wake-on-access gives you the best of both worlds: environments are always "available" from the developer's perspective, but only incur costs when actively used. A 4-hour idle timeout with scheduled nights/weekends hibernation can reduce preview environment costs by 60%+.
 </Callout>
+
+The tradeoff is cold start time. Waking a hibernated environment takes 30-60 seconds for Kubernetes deployments to scale up, longer if databases need to start. For environments with dedicated RDS instances, AWS allows you to stop the instance (saving compute costs) while retaining storage — starting it again takes a few minutes. The inverse also applies: the loading page should be informative about this tradeoff. Explain that the environment was hibernated to save costs, show the PR number, and indicate expected wake time. Auto-refresh every few seconds so developers don't have to manually reload.
 
 ## Putting It Together
 
 These three strategies address the biggest cost drivers without requiring complex tooling:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: "**TTL enforcement** catches abandoned environments automatically.",
-      lead: "Start here — it's the highest-impact change with the lowest implementation effort.",
+      lead: "TTL enforcement catches abandoned environments automatically",
+      text: "Start here — it's the highest-impact change with the lowest implementation effort.",
     },
     {
-      text: "**Shared infrastructure** turns per-environment database costs into marginal schema costs.",
-      lead: "The savings compound as your PR volume grows.",
+      lead: "Shared infrastructure turns per-environment database costs into marginal schema costs",
+      text: "The savings compound as your PR volume grows.",
     },
     {
-      text: "**Hibernation** eliminates idle compute costs while preserving developer experience.",
-      lead: "Wake-on-access makes the cost savings invisible to users.",
+      lead: "Hibernation eliminates idle compute costs while preserving developer experience",
+      text: "Wake-on-access makes the cost savings invisible to users.",
     },
   ]}
 />

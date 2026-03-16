@@ -9,13 +9,11 @@ tags: ["reliability-and-testing", "typescript"]
 featured: true
 ---
 
-*[E2E]: End-to-End
-*[CI]: Continuous Integration
 *[DOM]: Document Object Model
-*[API]: Application Programming Interface
+*[E2E]: End-to-End
 *[SPA]: Single Page Application
 
-A single test with a 5% flake rate will block CI once every 20 runs. That sounds manageable. But a suite of 100 tests where each has just a 1% flake rate? That suite will fail 63% of builds. The probability compounds: $$(1 - 0.01)^{100} \approx 0.37$$, meaning only 37% of builds pass cleanly.
+A single test with a 5% flake rate will block CI once every 20 runs. That sounds manageable. <Highlighter>A suite of 100 tests where each has just a 1% flake rate? That suite will fail 63% of builds.</Highlighter> The probability compounds: $$(1 - 0.01)^{100} \approx 0.37$$, meaning only 37% of builds pass cleanly.
 
 I've watched this pattern destroy teams' ability to ship. A few random failures appear. The first response is always the same: "just retry and merge." Within a few months, nobody trusts red builds anymore. Developers stop investigating failures because it's faster to retry than debug. Then a real regression ships because the failure was dismissed as "probably flaky." That's when teams lose the ability to distinguish signal from noise.
 
@@ -44,7 +42,7 @@ await expect(page.locator('.success-message')).toBeVisible();
 ```
 Code: Form submission race — wait for the API response before asserting.
 
-The flaky version assumes the success message will appear immediately after click. The stable version explicitly waits for the API response, __then__ checks the DOM. The key insight: wait for the __event__ that causes the state change, not the state change itself.
+The flaky version assumes the success message will appear immediately after click. The stable version explicitly waits for the API response, _then_ checks the DOM. The key insight: wait for the _event_ that causes the state change, not the state change itself.
 
 ### The Debounced Search Race
 
@@ -94,9 +92,9 @@ Race conditions are the biggest category, but they're not the only one. The seco
 
 Environment issues cause roughly 25% of flakes. The test itself is often correct — it's the environment that's unstable. Tests depend on external state that varies between runs: cookies from previous tests, database records that weren't cleaned up, system time that behaves differently in different timezones.
 
-The solution is isolation: each test should run in a pristine environment with no pollution from previous tests or external factors.
-
 <Newsletter />
+
+The solution is isolation: each test should run in a pristine environment with no pollution from previous tests or external factors.
 
 ### Browser State and Animations
 
@@ -129,7 +127,12 @@ Starting fresh is more reliable than cleaning up. Cleanup can fail silently (a c
 Database pollution is trickier. Three common approaches, each with tradeoffs:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: "Transaction rollback",
@@ -170,11 +173,11 @@ Tests that work on your machine but fail in CI at specific hours often have time
 
 For unit and integration tests, use your test framework's built-in time mocking. Vitest provides `vi.useFakeTimers()` which lets you control Date.now(), setTimeout, and other time-dependent APIs. For E2E tests running in the browser, you'll need to inject a fixed date via `page.addInitScript()` or use a library that patches the browser's Date object.
 
-The simpler alternative is making assertions timezone-agnostic: compare timestamps rather than formatted date strings, and avoid assertions that depend on "today" or "this month."
-
 <Callout type="info">
 If your test fails at midnight UTC, around month boundaries, or in different timezones, you have a time-dependent test. Either freeze time or make assertions timezone-agnostic.
 </Callout>
+
+The simpler alternative is making assertions timezone-agnostic: compare timestamps rather than formatted date strings, and avoid assertions that depend on "today" or "this month."
 
 ## The Path Forward
 
@@ -203,21 +206,24 @@ Race conditions and environment issues cause 85% of flakes. Fixing these two cat
 The approach is systematic:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
-      lead: "Replace them with waits for specific conditions — network responses, DOM elements, URL changes.",
-      text: "For race conditions, find every place your test uses `waitForTimeout()` or assumes immediate state changes after actions.",
+      lead: 'For race conditions, find every place your test uses <span class="font-mono">waitForTimeout()</span> or assumes immediate state changes after actions.',
+      text: "Replace them with waits for specific conditions — network responses, DOM elements, URL changes.",
     },
     {
-      lead: "Clear browser state between tests. Isolate database state through transactions, per-test databases, or seed scripts. Freeze time or use timezone-agnostic assertions. Disable animations.",
-      text: "For environment issues, audit your test setup.",
+      lead: "For environment issues, audit your test setup.",
+      text: "Clear browser state between tests. Isolate database state through transactions, per-test databases, or seed scripts. Freeze time or use timezone-agnostic assertions. Disable animations.",
     },
   ]}
 />
 
-The deeper lesson is that flaky tests are symptoms. They reveal race conditions in your tests, instability in your application, or inconsistency in your environments. Fixing flakes often uncovers real bugs — an API that's slower under load, a component that renders before its data arrives, a cleanup process that doesn't handle edge cases.
-
 <Callout type="success">
 Start small: pick your three worst flakes (highest impact, not necessarily highest flake rate), fix them this sprint, and measure CI pass rate before and after. A 10% improvement in CI reliability often translates to hours saved per week across the team.
 </Callout>
+
+The deeper lesson is that flaky tests are symptoms. They reveal race conditions in your tests, instability in your application, or inconsistency in your environments. Fixing flakes often uncovers real bugs — an API that's slower under load, a component that renders before its data arrives, a cleanup process that doesn't handle edge cases.

@@ -20,7 +20,7 @@ Application code can roll back in seconds. Schema changes can take hours to reve
 
 The core tension: CD assumes stateless, independent deployments. Databases are stateful and shared. Your application runs across multiple pods that can be replaced atomically, but every instance talks to the same database. A migration that takes 200ms on your development dataset can lock tables for four minutes against 50 million production rows. During that window, writes queue up, connection pools exhaust, timeouts cascade, and users see errors.
 
-I've watched teams debate mid-incident: do we wait out the lock, or roll back and make things worse? Neither option is good once you're in that situation. The answer is to never get there — to treat migrations as a distinct deployment concern with their own safety patterns.
+I've watched teams debate mid-incident: do we wait out the lock, or roll back and make things worse? Neither option is good once you're in that situation. The answer is to never get there — to <Highlighter>treat migrations as a distinct deployment concern with their own safety patterns.</Highlighter>
 
 ## Why Migrations Break Deployments
 
@@ -28,12 +28,13 @@ I've watched teams debate mid-incident: do we wait out the lock, or roll back an
 
 Most DDL operations acquire exclusive locks. While you hold that lock, every other query on that table waits — reads, writes, everything. On a small table, nobody notices. On a table with tens of millions of rows, the lock can persist for minutes while the database rewrites data or rebuilds indexes.
 
-Here's what happens when you run `ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'` on older PostgreSQL (pre-11): the database acquires an ACCESS EXCLUSIVE lock, rewrites the entire table to add the column with the default value, rebuilds indexes, then finally releases the lock. During that rewrite, every application thread trying to touch that table blocks. Connection pools fill up with waiting queries. Those queries eventually timeout. The timeouts cascade through your application as dependent operations fail.
+Here's what happens when you run `ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'` on older PostgreSQL (pre-v11): the database acquires an ACCESS EXCLUSIVE lock, rewrites the entire table to add the column with the default value, rebuilds indexes, then finally releases the lock. During that rewrite, every application thread trying to touch that table blocks. Connection pools fill up with waiting queries. Those queries eventually timeout. The timeouts cascade through your application as dependent operations fail.
 
-Modern PostgreSQL (11+) made some operations instant — adding a nullable column or a column with a default no longer rewrites the table. But plenty of operations still require rewrites: changing column types, adding NOT NULL constraints to existing columns, certain index operations. Here's how that blocking cascade looks:
+Modern PostgreSQL (v11+) made some operations instant — adding a nullable column or a column with a default no longer rewrites the table. But plenty of operations still require rewrites: changing column types, adding NOT NULL constraints to existing columns, certain index operations. Here's how that blocking cascade looks:
 
 <Diagram
   src={tableLockDiagram}
+  magnifyButtonPosition="top-left"
   title="Table lock during migration blocks all application threads."
   description="Flowchart showing a migration lifecycle and the application impact of a table lock. The main sequence runs from Migration Starts to Acquire Table Lock, then Rewrite Table Data, Rebuild Indexes, and finally Release Lock. A separate grouped region labeled Blocked Application Threads contains four representative threads: Thread 1: Waiting..., Thread 2: Waiting..., Thread 3: Timeout, and Thread 4: Timeout. A dotted arrow labeled blocks points from Acquire Table Lock to that grouped region. The diagram illustrates that once an exclusive table lock is taken, normal application work stalls behind it, some requests remain queued, and others eventually fail with timeouts before the migration completes and the lock is released."
 />
@@ -51,31 +52,31 @@ The solution is that every schema change must be backward-compatible. The schema
 These failure modes appear repeatedly across teams:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     figure: "Common migration failures and their prevention.",
     thead: { th: ["Failure Mode", "Cause", "Prevention"] },
     tbody: {
       tr: [
         {
-          th: "Table lock timeout",
-          td: ["Long-running ALTER", "Non-locking DDL or live schema tools"],
+          th: 'Table lock timeout',
+          td: ['Long-running <span class="font-mono">ALTER</span>', 'Non-locking <span class="font-mono">DDL</span> or live schema tools'],
         },
         {
-          th: "Column not found",
-          td: ["Code deployed before migration", "Deploy migration first"],
+          th: 'Column not found',
+          td: ['Code deployed before migration', 'Deploy migration first'],
         },
         {
-          th: "NOT NULL violation",
-          td: ["Old code doesn't provide new column", "Add column as nullable first"],
+          th: 'NOT NULL violation',
+          td: ["Old code doesn't provide new column", 'Add column as <span class="font-mono">nullable</span> first'],
         },
         {
-          th: "Foreign key violation",
-          td: ["Data violates new constraint", "Clean data before constraint"],
+          th: 'Foreign key violation',
+          td: ['Data violates new constraint', 'Clean data before constraint'],
         },
         {
-          th: "Rollback impossible",
-          td: ["Destructive migration ran", "Always write reversible migrations"],
+          th: 'Rollback impossible',
+          td: ['Destructive migration ran', 'Always write reversible migrations'],
         },
       ],
     },
@@ -89,6 +90,13 @@ The theme across all of these: migrations fail when they assume atomic, instanta
 The expand-contract pattern (sometimes called parallel change) is the fundamental technique for zero-downtime schema changes. Instead of making one risky change, you decompose it into multiple safe changes that maintain backward compatibility at every step.
 
 The pattern has three phases:
+
+<Diagram
+  src={expandContractDiagram}
+  size="2xl"
+  title="Expand-contract pattern phases."
+  description="Flowchart showing the three phases of a zero-downtime schema change. In Phase 1: Expand, Add new column leads to Deploy dual-write code, which leads to Backfill existing data. The flow then continues into Phase 2: Migrate, where All data in new column leads to Deploy code reading from new, then to Stop writing to old column. From there the process moves into Phase 3: Contract, where Old column unused leads to Remove old column. Connecting arrows between phases show that each stage depends on the previous one being completed safely. The diagram emphasizes that schema changes are broken into compatible, sequential phases rather than performed as one destructive operation."
+/>
 
 <List
   variant="numbered-with-background-list"
@@ -108,37 +116,34 @@ The pattern has three phases:
   ]}
 />
 
-<Diagram
-  src={expandContractDiagram}
-  title="Expand-contract pattern phases."
-  description="Flowchart showing the three phases of a zero-downtime schema change. In Phase 1: Expand, Add new column leads to Deploy dual-write code, which leads to Backfill existing data. The flow then continues into Phase 2: Migrate, where All data in new column leads to Deploy code reading from new, then to Stop writing to old column. From there the process moves into Phase 3: Contract, where Old column unused leads to Remove old column. Connecting arrows between phases show that each stage depends on the previous one being completed safely. The diagram emphasizes that schema changes are broken into compatible, sequential phases rather than performed as one destructive operation."
-/>
-
 ### A Concrete Example
 
 Let's trace through renaming a column from `email` to `email_address`. A direct `ALTER TABLE RENAME COLUMN` would break every query referencing the old name instantly. Here's the expand-contract approach:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12",
+  }}
   items={[
     {
       lead: "Week 1 (Expand):",
-      text: "Run a migration to add the `emailaddress` column. Deploy code that writes to both columns on every insert and update, but still reads from `email`. At this point, new rows have both columns populated; old rows only have `email`.",
+      text: 'Run a migration to add the <span class="font-mono">emailaddress</span> column. Deploy code that writes to both columns on every insert and update, but still reads from <span class="font-mono">email</span>. At this point, new rows have both columns populated; old rows only have <span class="font-mono">email</span>.',
     },
     {
       lead: "Week 2 (Migrate):",
-      text: "Run a backfill job to copy `email` values to `email_address` for existing rows. Once complete, deploy code that reads from `email_address` instead of `email`. Keep writing to both columns — old pods might still be running.",
+      text:'Run a backfill job to copy <span class="font-mono">email</span> values to <span class="font-mono">email_address</span> for existing rows. Once complete, deploy code that reads from <span class="font-mono">email_address</span> instead of <span class="font-mono">email</span>. Keep writing to both columns — old pods might still be running.',
     },
     {
       lead: "Week 3 (Contract):",
-      text: "After all old pods are gone and you've verified nothing reads `email`, deploy code that only uses `email_address`. Then run a migration to drop the `email` column.",
+      text: 'After all old pods are gone and you\'ve verified nothing reads <span class="font-mono">email</span>, deploy code that only uses <span class="font-mono">email_address</span>. Then run a migration to drop the <span class="font-mono">email</span> column.',
     },
   ]}
 />
 
-<Newsletter />
-
 Total time: 2-3 weeks for a "simple" rename. This is why you think carefully before renaming columns in production.
+
+<Newsletter />
 
 Here's the application code during the expand phase — the dual-write pattern:
 
@@ -177,9 +182,9 @@ Now that you understand the fundamental pattern, here's a quick reference for co
 
 ### Adding Columns
 
-Modern PostgreSQL (11+) makes this easy. Adding a nullable column or a column with a default is instant — the default is stored in the catalog, not written to every row. The danger is adding NOT NULL without a default, which requires a table scan.
+Modern PostgreSQL (v11+) makes this easy. Adding a `nullable` column or a column with a default is instant — the default is stored in the catalog, not written to every row. The danger is adding `NOT NULL` without a default, which requires a table scan.
 
-Safe approach: add nullable first, backfill values, then add the NOT NULL constraint.
+Safe approach: add `nullable` first, backfill values, then add the `NOT NULL` constraint.
 
 ### Removing Columns
 

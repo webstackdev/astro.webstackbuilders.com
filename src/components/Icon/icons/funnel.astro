@@ -1,0 +1,32 @@
+---
+export type Props = {
+  color: string
+  classes?: string
+  size: number
+  accessible: boolean
+  focusable: boolean
+  isListMarker?: boolean
+  id?: string
+}
+
+const { color, classes, size, accessible, focusable, isListMarker, id } = Astro.props
+---
+
+<svg
+  id={id}
+  xmlns="http://www.w3.org/2000/svg"
+  class:list={["shrink-0", `w-${size} h-${size}`, `text-${color}`, classes, isListMarker ? "mt-0.5" : ""]}
+  fill="none"
+  stroke="currentColor"
+  viewBox="0 0 24 24"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
+>
+  {accessible && <title>Funnel Icon</title>}
+  <path
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    d="M 20,4 H 4 v 2 l 6,6 v 8.5 L 14,18 v -6 l 6,-6 z"
+  ></path>
+</svg>

@@ -10,8 +10,6 @@ featured: true
 ---
 
 *[EOL]: End of Life
-*[API]: Application Programming Interface
-*[CI]: Continuous Integration
 
 ## Introduction
 
@@ -19,7 +17,7 @@ The runtime hits EOL, the calendar says upgrade now, and you try to bump the ver
 
 Here's the uncomfortable truth: the blocker is almost never your code. It's the packages you don't call directly — three or four levels deep in the dependency tree — that stall your upgrade. Your direct dependencies all claim Node 20 support, but somewhere in that transitive graph, a package ships a native binary compiled against Node 16 headers. You're blocked by code you don't own and have never looked at.
 
-An EOL runtime upgrade isn't a version bump. It's a forced audit of your entire dependency graph. The longer the gap between your current runtime and the supported version, the more compounding breakage you inherit: abandoned libraries, renamed packages, removed APIs, and binaries that no longer compile. Every day past EOL is a day your runtime won't receive security patches. The question isn't __whether__ to upgrade, but how fast you can safely do it.
+<Highlighter>An EOL runtime upgrade isn't a version bump. It's a forced audit of your entire dependency graph.</Highlighter> The longer the gap between your current runtime and the supported version, the more compounding breakage you inherit: abandoned libraries, renamed packages, removed APIs, and binaries that no longer compile. Every day past EOL is a day your runtime won't receive security patches. The question isn't __whether__ to upgrade, but how fast you can safely do it.
 
 This article is about finding the real blockers, dealing with packages no one maintains anymore, and forcing resolution when upstream can't help you.
 
@@ -42,7 +40,7 @@ The order matters. The general pattern I follow:
   items={[
     {
       lead: "Unblock first.",
-      text: "Eliminate packages that have no path forward on the new runtime. If you're stuck on Node 16 because of `node-sass`, replacing it with Dart Sass is the first step — not because it's the most important change, but because everything else depends on it. These blockers sit at the bottom of your dependency graph, and until they're gone, you cannot move.",
+      text: 'Eliminate packages that have no path forward on the new runtime. If you\'re stuck on Node 16 because of <span class="font-mono">node-sass</span>, replacing it with Dart Sass is the first step — not because it\'s the most important change, but because everything else depends on it. These blockers sit at the bottom of your dependency graph, and until they\'re gone, you cannot move.',
     },
     {
       lead: "Upgrade core dependencies.",
@@ -70,11 +68,11 @@ Not every old package is abandoned. Some packages are simply stable — they do 
 Your options, roughly in order of preference:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Find a replacement.",
-      text: "Many abandoned packages have actively maintained alternatives. The `request` library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements—`node-fetch`, `axios`, `got`—are well documented and widely adopted. Search for \"[package name] alternative\" or check the npm deprecation notice for suggestions.",
+      text: 'Many abandoned packages have actively maintained alternatives. The <span class="font-mono">request</span> library, which powered half the Node ecosystem for years, was deprecated in 2020. Its replacements — <span class="font-mono">node-fetch</span>, <span class="font-mono">axios</span>, <span class="font-mono">got</span> — are well documented and widely adopted. Search for "[package name] alternative" or check the npm deprecation notice for suggestions.',
     },
     {
       lead: "Upgrade to a compatible version.",
@@ -82,11 +80,11 @@ Your options, roughly in order of preference:
     },
     {
       lead: "Fork and patch.",
-      text: "If the package is abandoned and has no replacement, fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. The `npm:` prefix lets you alias the fork to the original package name, so you don't need to update import statements throughout your codebase.",
+      text: 'If the package is abandoned and has no replacement, fork it to your organization, apply the minimal fixes needed for runtime compatibility, and publish it under your own scope. The <span class="font-mono">npm:</span> prefix lets you alias the fork to the original package name, so you don\'t need to update import statements throughout your codebase.',
     },
     {
       lead: "Vendor the code.",
-      text: "For small packages with simple functionality, copying the source into your repository may be simpler than maintaining a fork. Put it in a `vendor/` directory and apply whatever patches you need.",
+      text: 'For small packages with simple functionality, copying the source into your repository may be simpler than maintaining a fork. Put it in a <span class="font-mono">vendor/</span> directory and apply whatever patches you need.',
     },
     {
       lead: "Rewrite.",
