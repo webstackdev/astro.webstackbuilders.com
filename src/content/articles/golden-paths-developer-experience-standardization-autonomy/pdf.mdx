@@ -23,11 +23,11 @@ Platform teams want standardization for maintainability, security, and operation
 
 Here's the scenario I've seen play out too many times: a platform team mandates a specific deployment pipeline. Teams with legitimate edge cases — ML workloads that need GPU nodes, regulated data that requires specific isolation, real-time systems that can't tolerate the standard rollout strategy — face a choice. They can fight for exceptions (slow, political), work around the mandate (shadow infrastructure), or shoe-horn their use case into an ill-fitting solution (technical debt, operational risk).
 
-Morale drops. Shadow platforms emerge. The "standard" becomes optional in practice because enough teams have found workarounds that enforcement is impossible. The mandate failed because it was a golden handcuff, not a golden path.
-
 <Callout type="warning">
 Mandates breed workarounds. When developers can't use the standard path for legitimate reasons and have no sanctioned escape hatch, they'll build shadow infrastructure. You end up with __less__ standardization than if you'd designed for autonomy from the start.
 </Callout>
+
+Morale drops. Shadow platforms emerge. The "standard" becomes optional in practice because enough teams have found workarounds that enforcement is impossible. The mandate failed because it was a golden handcuff, not a golden path.
 
 ## The Philosophy of Golden Paths
 
@@ -36,7 +36,10 @@ Mandates breed workarounds. When developers can't use the standard path for legi
 A golden path is a supported, well-documented way to accomplish a common task that the platform team actively maintains and improves. That definition has several important implications.
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Opinionated but not mandatory",
@@ -66,7 +69,10 @@ A golden path is a supported, well-documented way to accomplish a common task th
 Three failure modes kill golden paths:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Golden handcuffs",
@@ -88,7 +94,7 @@ Three failure modes kill golden paths:
 Standardization approaches exist on a spectrum from mandates to full self-service, with golden paths in the middle. The table below compares these approaches across four dimensions: how much consistency you achieve, how fast teams can move, how much the platform team invests, and what use cases each approach fits best.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Comparing standardization approaches.",
     thead: {
@@ -114,19 +120,19 @@ Standardization approaches exist on a spectrum from mandates to full self-servic
 />
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
-      lead: "Mandated standards work for security-critical controls, legal and compliance requirements, and cross-cutting concerns like observability where inconsistency creates real operational risk",
-      text: "The tradeoff is high adoption friction and stifled innovation. Use mandates sparingly.",
+      lead: "Mandated standards suit high-stakes controls.",
+      text: "They work for security-critical requirements, legal compliance, and cross-cutting concerns like observability where inconsistency creates real operational risk. The tradeoff is high adoption friction and stifled innovation. Use mandates sparingly.",
     },
     {
-      lead: "Golden paths work for common patterns like service creation and deployment, best practices like testing and monitoring, and productivity tooling",
-      text: "The tradeoff is that escape hatches can become the primary path if you're not careful, and paths can become outdated if you under-invest in maintenance.",
+      lead: "Golden paths suit common, repeatable patterns.",
+      text: "They work for service creation and deployment, best practices like testing and monitoring, and productivity tooling. The tradeoff is that escape hatches can become the primary path if you're not careful, and paths can become outdated if you under-invest in maintenance.",
     },
     {
-      lead: "Full self-service works for early-stage companies where standardization would slow down finding product-market fit, R&D and experimental work where the whole point is trying new things, and highly heterogeneous tech landscapes where no single path could cover the diversity",
-      text: "The tradeoff is duplication of effort, knowledge silos, and operational burden distributed across every team.",
+      lead: "Full self-service suits exploration and diversity.",
+      text: "It works for early-stage companies where standardization would slow down finding product-market fit, R&D work where the whole point is trying new things, and heterogeneous tech landscapes where no single path could cover the diversity. The tradeoff is duplication of effort, knowledge silos, and operational burden distributed across every team.",
     },
   ]}
 />
@@ -144,10 +150,11 @@ A well-designed golden path has five components: an entrypoint, a core journey, 
 The best golden path is useless if developers don't know it exists or can't figure out which one applies to their situation. Path discovery is the zero-th step that makes everything else possible.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
-      text: "A service catalog (Backstage, Port, or similar) gives developers a searchable, browsable home for all paths. Each path has a card with a description, use cases, getting-started link, and owner contact. Developers searching for \"create a new service\" or \"set up monitoring\" find the relevant path immediately.",
+      lead: "A service catalog gives developers a browsable home for all paths.",
+      text: "Tools like Backstage or Port let each path have a card with a description, use cases, getting-started link, and owner contact. Developers searching for \"create a new service\" or \"set up monitoring\" find the relevant path immediately.",
     },
     {
       lead: "Decision trees help when multiple paths might apply",
@@ -171,16 +178,22 @@ Path discovery also means knowing when __not__ to use a path. Decision trees sho
 The __entrypoint__ is how developers discover and start using the path. This could be a CLI command (`platform create service`), a template catalog in Backstage, or a GitHub template repository. The entrypoint should be obvious and frictionless — if developers can't find the path or the first step is confusing, they won't use it.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:mr-6 mb-6",
+  }}
   items={[
     {
-      text: "The core journey is the sequence of steps that gets developers from \"I need a thing\" to \"I have a working thing.\" For a service creation path, this might be: scaffold the service skeleton, configure service-specific values, provision infrastructure, and verify everything works. The core journey should be fast (10 minutes or less for common cases) and should handle the common case without requiring decisions the developer isn't equipped to make.",
+      lead: "The core journey takes developers from need to working artifact.",
+      text: "For a service creation path, this might be: scaffold the service skeleton, configure service-specific values, provision infrastructure, and verify everything works. The core journey should be fast (10 minutes or less for common cases) and should handle the common case without requiring decisions the developer isn't equipped to make.",
     },
     {
-      text: "Extension points are places where teams can customize the path without forking it. These might be pre/post hooks in a pipeline, config overrides, or plugin systems. Good extension points let teams add behavior without modifying the core path.",
+      lead: "Extension points let teams customize without forking.",
+      text: "These might be pre/post hooks in a pipeline, config overrides, or plugin systems. Good extension points let teams add behavior without modifying the core path.",
     },
     {
-      text: "Escape hatches are documented ways to leave the path entirely when it doesn't fit. These should be visible (not hidden), have clear processes, and ideally include a migration path back to the golden path later.",
+      lead: "Escape hatches provide a documented way off the path.",
+      text: "They should be visible (not hidden), have clear processes, and ideally include a migration path back to the golden path later.",
     },
   ]}
 />
@@ -286,7 +299,7 @@ Escape hatches are how teams leave the golden path when they have a legitimate r
 Four principles guide escape hatch design:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
   items={[
     {
       lead: "Documented, not hidden",
@@ -312,7 +325,7 @@ Four principles guide escape hatch design:
 Not all deviations are equal. A tiered system helps teams understand the implications:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     figure: "Escape hatch tiers with escalating process and decreasing support.",
     thead: {
@@ -321,19 +334,19 @@ Not all deviations are equal. A tiered system helps teams understand the implica
     tbody: {
       tr: [
         {
-          th: "1: Extension",
+          th: "Extension",
           td: ["Custom CI steps, extra K8s annotations", "Self-service, no approval", "Full support"],
         },
         {
-          th: "2: Override",
+          th: "Override",
           td: ["Custom Dockerfile, alternative test framework", "Document in README, async review", "Best-effort"],
         },
         {
-          th: "3: Exception",
+          th: "Exception",
           td: ["Alternative deployment target, custom networking", "Architecture review required", "Self-maintained"],
         },
         {
-          th: "4: Off-platform",
+          th: "Off-platform",
           td: ["Custom infrastructure, third-party managed service", "VP approval, convergence plan", "None"],
         },
       ],
@@ -394,7 +407,10 @@ The best golden paths don't need enforcement. Developers choose them because the
 Four incentive strategies drive sustainable adoption:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:mr-6 mb-6",
+  }}
   items={[
     {
       lead: "Intrinsic value",
@@ -406,7 +422,11 @@ Four incentive strategies drive sustainable adoption:
 Measure this by comparing time-to-first-deployment for path users vs. manual setup, tracking developer satisfaction surveys, and monitoring support ticket volume.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={2}
+  classes={{
+    wrapper: "sm:mr-6 mb-6",
+  }}
   items={[
     {
       lead: "Network effects",
@@ -422,7 +442,11 @@ Measure this by comparing time-to-first-deployment for path users vs. manual set
 The operational benefits are particularly powerful because they compound over time. A team that's been on the path for a year has gotten dozens of automatic security patches, while a team off the path has been doing that work manually (or not at all).
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={4}
+  classes={{
+    wrapper: "sm:mr-6 mb-6",
+  }}
   items={[
     {
       lead: "Organizational recognition",
@@ -436,7 +460,7 @@ The operational benefits are particularly powerful because they compound over ti
 Some tactics look like they'd drive adoption but actually backfire:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Shame dashboards",
@@ -466,7 +490,7 @@ Some tactics look like they'd drive adoption but actually backfire:
 There are legitimate ways to encourage adoption without coercion:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Opportunity cost visibility",
@@ -496,7 +520,10 @@ Remember the autonomy spectrum: we're aiming for high consistency __and__ high t
 ### Four Categories of Path Metrics
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Adoption metrics",
@@ -520,7 +547,7 @@ Remember the autonomy spectrum: we're aiming for high consistency __and__ high t
 ### Leading vs Lagging Indicators
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Leading and lagging indicators for path health.",
     thead: {
@@ -578,7 +605,7 @@ Golden paths aren't static. They have lifecycles — they're born, mature, and e
 Every path moves through four stages:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Incubation",
@@ -604,7 +631,10 @@ Every path moves through four stages:
 Deprecation announcements need to be comprehensive and actionable. A good deprecation communication includes several elements:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "The what and why",
@@ -666,7 +696,10 @@ A healthy platform team needs several distinct roles, though in smaller organiza
 How platform teams interact with product teams determines whether paths feel like services or mandates:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Regular touchpoints",
@@ -731,10 +764,10 @@ The key principles are straightforward: design escape hatches as first-class fea
 
 The platform team's job is to make standardization the path of least resistance. When you succeed, shadow infrastructure disappears because there's no reason to build it. Teams adopt standards voluntarily because the alternative is more work. Maintenance burden shifts from every team to the platform team, who can invest deeply in getting it right.
 
-This approach requires more upfront investment than mandates. You have to build something worth using, not just declare what's required. You have to listen to feedback and iterate, not just enforce compliance. You have to prove value with data, not just assert it with authority.
-
-But the payoff is a platform that developers trust and willingly adopt. And that voluntary adoption is both the goal and the measure of success.
-
 <Callout type="success">
 A successful golden path doesn't need enforcement. When developers voluntarily choose your path because it's faster, easier, and better supported, you've built something valuable. That voluntary adoption is sustainable in a way that mandates never are.
 </Callout>
+
+This approach requires more upfront investment than mandates. You have to build something worth using, not just declare what's required. You have to listen to feedback and iterate, not just enforce compliance. You have to prove value with data, not just assert it with authority.
+
+But the payoff is a platform that developers trust and willingly adopt. And that voluntary adoption is both the goal and the measure of success.
