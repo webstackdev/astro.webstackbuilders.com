@@ -12,16 +12,16 @@ featured: true
 import idempotencyFlowDiagram from "./diagrams/idempotency-flow-second-delivery-skips-processing-entirely.jpg"
 
 *[ACK]: Acknowledgment
-*[UUID]: Universally Unique Identifier
-*[ULID]: Universally Unique Lexicographically Sortable Identifier
-*[TTL]: Time To Live
 *[DLQ]: Dead Letter Queue
+*[TTL]: Time To Live
+*[ULID]: Universally Unique Lexicographically Sortable Identifier
+*[UUID]: Universally Unique Identifier
 
 Your payment service receives a charge message, successfully charges the customer's card, and then the process crashes before it can acknowledge the message back to the queue. The queue sees no acknowledgment, assumes failure, and redelivers. Without idempotency, that's a double charge. With a properly designed idempotent handler, the second delivery is recognized as a duplicate and returns success without touching the payment gateway again.
 
 This isn't a hypothetical edge case. I've seen it happen in production - payment services that charged customers twice, inventory systems where stock counts drifted negative from duplicate decrements, and welcome emails that arrived in triplicate. The common thread? Handlers that assumed each message would arrive exactly once.
 
-Every production queue operates on at-least-once delivery - "probably more than once." The question isn't __if__ duplicates arrive, it's when.
+Every production queue operates on at-least-once delivery - "_probably more than once_." The question isn't _if_ duplicates arrive, it's when.
 
 This article covers the two foundational patterns for building idempotent handlers: designing idempotency keys that reliably identify duplicates, and choosing the right storage strategy for your deduplication state.
 
@@ -32,23 +32,26 @@ The idempotency key is the identifier your handler uses to recognize duplicate m
 There are four common strategies, each with distinct tradeoffs:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Producer-supplied message ID",
-      text: "is the cleanest approach. The producer generates a UUID or ULID when creating the message and includes it in the payload. This key survives redeliveries because it's part of the message content, not queue metadata. The downside is that it requires producer discipline - every producer must generate and include a unique ID.",
+      text: "The cleanest approach. The producer generates a UUID or ULID when creating the message and includes it in the payload. This key survives redeliveries because it's part of the message content, not queue metadata. The downside is that it requires producer discipline - every producer must generate and include a unique ID.",
     },
     {
       lead: "Content hash",
-      text: "works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content should be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
+      text: "Works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content should be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
     },
     {
       lead: "Business key composite",
-      text: "combines entity identifiers with operation context: `order:12345:payment:v3`. This approach has semantic meaning, making debugging easier, but requires careful thought about what constitutes a unique operation.",
+      text: 'Combines entity identifiers with operation context: <span class="font-mono">order:12345:payment:v3</span>. This approach has semantic meaning, making debugging easier, but requires careful thought about what constitutes a unique operation.',
     },
     {
       lead: "Queue message ID",
-      text: "- avoid this approach. SQS assigns a new MessageId on each redelivery. RabbitMQ's delivery tag changes. This approach only deduplicates within a single delivery attempt, which defeats the purpose entirely.",
+      text: 'Avoid this approach. SQS assigns a new <span class="font-mono">MessageId</span> on each redelivery. RabbitMQ\'s delivery tag changes. This approach only deduplicates within a single delivery attempt, which defeats the purpose entirely.',
     },
   ]}
 />
@@ -74,9 +77,9 @@ Once you have a stable idempotency key, you need somewhere to store the record o
 
 A dedicated idempotency store sits between your handler and your business logic. Before processing, the handler checks the store. If the key exists and shows "completed," return the cached result. If the key exists and shows "processing," another instance is handling it - either wait or fail fast. If the key doesn't exist, acquire a lock and proceed.
 
-Redis works well for high-throughput scenarios where you need sub-millisecond latency. The critical detail is the `NX` flag on the SET command - it only sets the key if it doesn't already exist, making the check-and-lock operation atomic.
-
 <Newsletter />
+
+Redis works well for high-throughput scenarios where you need sub-millisecond latency. The critical detail is the `NX` flag on the SET command - it only sets the key if it doesn't already exist, making the check-and-lock operation atomic.
 
 ### Database-Level Deduplication
 
@@ -112,6 +115,7 @@ The sequence diagram below shows the full flow. Notice that on the second delive
 
 <Diagram
   src={idempotencyFlowDiagram}
+  size="full"
   title="Idempotency flow - second delivery skips processing entirely."
   description="Sequence diagram showing how an idempotent message handler processes a first delivery and short-circuits a duplicate. A queue delivers a message to the handler, which checks the idempotency store for key order:123:pay. The store reports the key is not found and grants the lock. The handler processes the payment through the database, receives success, marks the idempotency key as completed with a cached result, and acknowledges the message back to the queue. Later, after a note indicating the consumer crashed and the message was redelivered, the queue sends the same message again. The handler checks the same idempotency key, the store reports it is already completed with a cached result, and the handler immediately acknowledges the message without processing the payment again."
 />
@@ -119,7 +123,8 @@ The sequence diagram below shows the full flow. Notice that on the second delive
 Which storage should you use? It depends on your consistency requirements and latency budget:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "Idempotency store options comparison.",
     thead: {
