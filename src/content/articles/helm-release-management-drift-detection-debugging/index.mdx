@@ -11,7 +11,7 @@ featured: true
 
 It's 3 AM. Your pager goes off. A critical service is down, and you need to roll back to the previous version. You run `helm rollback myapp 42` with confidence - Helm keeps track of every release, so this should be straightforward. But instead of a clean rollback, you get cryptic errors about resources that don't match, conflicts with existing objects, and a rollback that makes things __worse__.
 
-I've been in this situation more times than I'd like to admit. What I learned is that the rollback wasn't the problem - the problem started days or weeks earlier when the cluster state quietly drifted away from what Helm thought it was managing.
+I've been in this situation more times than I'd like to admit. <Highlighter>What I learned is that the rollback wasn't the problem - the problem started days or weeks earlier when the cluster state quietly drifted away from what Helm thought it was managing.</Highlighter>
 
 This article explains where that drift comes from, how to catch it before it becomes an incident, and what to do when you're staring at a failed release at 3 AM.
 
@@ -45,7 +45,7 @@ The problem is that Helm only knows about changes made __through Helm__. Any mod
 Drift doesn't usually happen through malice. It happens through the normal operations of running production systems:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "Manual patches",
@@ -177,7 +177,7 @@ This command retrieves what Helm thinks it deployed and compares it against the 
 ### The Three Most Common Failure Patterns
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
   items={[
     {
       lead: "Resource conflicts",
@@ -202,6 +202,8 @@ Before deleting any resources to fix a failed release, always check if there are
 
 Drift is inevitable in any cluster where humans and automation coexist. The goal isn't to eliminate it entirely but to detect it early and have clear remediation procedures when it causes problems.
 
+The key practices are straightforward: run `helm diff` before every upgrade (automate this in CI), schedule regular drift detection across your fleet, and when failures happen, follow a systematic diagnosis workflow instead of making changes blindly.
+
 <Download
   resource="helm-release-management-drift-detection-debugging"
   title="Download the Helm Operations Guide"
@@ -221,7 +223,5 @@ Drift is inevitable in any cluster where humans and automation coexist. The goal
     },
   ]}
 />
-
-The key practices are straightforward: run `helm diff` before every upgrade (automate this in CI), schedule regular drift detection across your fleet, and when failures happen, follow a systematic diagnosis workflow instead of making changes blindly.
 
 For teams running dozens or hundreds of Helm releases, GitOps tools like Flux and Argo CD can enforce desired state continuously, but they come with their own complexity. The fundamentals of understanding Helm state and detecting drift remain essential regardless of what tooling you use.
