@@ -258,6 +258,13 @@ https://mermaid.js.org/config/directives.html
 
 - Need to update Case Studies with lists and tables too
 
+17:15:36 [200] /articles/kubernetes-pod-disruption-budget-autoscaler-node-rotation 414ms
+[WebMentions] Failed to fetch mentions for https://www.webstackbuilders.com/articles/kubernetes-pod-disruption-budget-autoscaler-node-rotation. Will retry in 60s. DOMException [TimeoutError]: The operation was aborted due to timeout
+    at node:internal/deps/undici/undici:15445:13
+    at async requestWebmentions (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/components/WebMentions/server/index.ts:199:20)
+    at async eval (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/components/WebMentions/index.astro:27:18)
+17:15:46 [200] /_vtbot_inspection_chamber.js 1ms
+
 ### Snippets
 
 <span class="font-mono">
@@ -331,4 +338,12 @@ https://mermaid.js.org/config/directives.html
   fullWidth={false}
   classes={{
     tbody: "[&_tr>td:nth-of-type(2)]:!font-normal",
+  }}
+
+<Table
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-green [&_td:nth-child(3)]:text-warning [&_td:nth-child(4)]:text-danger',
   }}
