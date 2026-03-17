@@ -30,11 +30,11 @@ That single configuration option, the default in every Kubernetes cluster, cause
 
 I've seen this pattern repeatedly. Mysterious application failures, latency spikes, and "works sometimes" bugs that trace back to DNS. The Kubernetes DNS system adds layers of complexity that catch even experienced engineers off guard. When your application can't reach a service, DNS should be your first suspect.
 
-This article covers the DNS internals you need to debug production issues: how `resolv.conf` and search domains work, why `ndots` creates overhead for external lookups, how to tune CoreDNS, and a systematic workflow for diagnosing DNS problems.
-
 <Callout type="warning" title="The First Rule of Kubernetes Debugging">
 When something is slow or broken and you don't know why, check DNS first. Not because DNS is always the problem, but because it's the problem often enough that ruling it out early saves hours of debugging in the wrong direction.
 </Callout>
+
+This article covers the DNS internals you need to debug production issues: how `resolv.conf` and search domains work, why `ndots` creates overhead for external lookups, how to tune CoreDNS, and a systematic workflow for diagnosing DNS problems.
 
 ## Kubernetes DNS Architecture
 
@@ -92,7 +92,7 @@ Code: Examining pod DNS configuration.
 The options in `resolv.conf` control DNS behavior in ways that matter for debugging and performance tuning.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['DNS Option', 'Default', 'Purpose', 'Impact'],
@@ -358,6 +358,7 @@ The diagram below shows how CoreDNS processes queries. Notice that cache hits re
 
 <Diagram
   src={corednsQueryDiagram}
+  size="full"
   title="CoreDNS query processing flow."
   description="Flowchart showing the decision path CoreDNS follows when handling a DNS query. The chart is grouped under the heading CoreDNS Query Flow. A query first enters at Query Received, then moves to a decision asking In Cache. If yes, the flow goes directly to Return Cached Response. If no, it moves to a second decision asking whether the query is for cluster.local. If yes, the flow goes to Kubernetes Plugin, then to a decision asking Service Exists. A yes result returns Return Service IP, while a no result returns NXDOMAIN. If the query is not for cluster.local, the flow goes to a decision asking Custom Zone. A yes result forwards the query to Zone Server, while a no result forwards it to Upstream. The outcomes Return Service IP, NXDOMAIN, Forward to Zone Server, and Forward to Upstream all converge on Cache Response. The diagram emphasizes that cached answers are returned immediately, internal cluster names are handled by the Kubernetes plugin, and everything else is forwarded externally or to a custom zone handler before being cached."
 />
@@ -450,6 +451,7 @@ Most DNS problems fall into a few categories. The decision tree below helps you 
 
 <Diagram
   src={dnsDebuggingDiagram}
+  size="full"
   title="DNS debugging decision tree."
   description="Flowchart showing a step-by-step DNS troubleshooting path in Kubernetes. The process starts at DNS Problem Reported and first asks whether the pod can reach the CoreDNS IP. If no, the issue is categorized as Network issue and the next step is Check CNI, NetworkPolicy. If yes, the chart asks whether internal DNS is working. If no, the issue is categorized as CoreDNS issue and the next step is Check CoreDNS pods, logs, config. If internal DNS is working, the chart asks whether external DNS is working. If no, the issue is categorized as Upstream or forward issue and the next step is Check CoreDNS forward config, upstream DNS. If external DNS is working but slow, the chart asks whether lookups are faster with a trailing dot. If yes, the issue is categorized as ndots issue and the recommended action is Reduce ndots or use FQDNs. If no, the issue is categorized as Upstream DNS slow and the recommended action is Change upstream DNS or increase cache. The diagram is intended to guide the reader from symptom to likely cause in a fixed order that rules out the most common DNS failure modes."
 />
@@ -457,7 +459,12 @@ Most DNS problems fall into a few categories. The decision tree below helps you 
 Here's what to check for each common scenario:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: "DNS timeouts or intermittent failures",
@@ -542,7 +549,7 @@ Now `legacy-db.production.svc.cluster.local` resolves to both IP addresses, and 
 The `dnsPolicy` field on a pod controls which DNS server the pod uses. Most pods use the default (`ClusterFirst`), but certain scenarios require different configurations.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Policy', 'CoreDNS Used', 'Use Case'],
@@ -550,20 +557,20 @@ The `dnsPolicy` field on a pod controls which DNS server the pod uses. Most pods
     tbody: {
       tr: [
         {
-          th: '`ClusterFirst`',
+          th: '<span class="font-mono">ClusterFirst</span>',
           td: ['Yes', 'Default for standard workloads'],
         },
         {
-          th: '`Default`',
+          th: '<span class="font-mono">Default</span>',
           td: ["No", "Pod needs the node's DNS, not cluster DNS"],
         },
         {
-          th: '`ClusterFirstWithHostNet`',
+          th: '<span class="font-mono">ClusterFirstWithHostNet</span>',
           td: ['Yes', 'Pods with `hostNetwork: true` that still need cluster DNS'],
         },
         {
-          th: '`None`',
-          td: ['No', 'Fully custom DNS configuration via `dnsConfig`'],
+          th: '<span class="font-mono">None</span>',
+          td: ['No', 'Fully custom DNS configuration via <span class="font-mono">dnsConfig</span>'],
         },
       ],
     },
@@ -665,27 +672,31 @@ For production clusters, the optimizations that matter most are negative caching
 When connectivity issues arise, run through this checklist:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-0",
+    icon: "!bg-info-inverse",
+  }}
   items={[
     {
       lead: "Is CoreDNS running?",
-      text: "`kubectl get pods -n kube-system -l k8s-app=kube-dns`",
+      text: '<span class="font-mono">kubectl get pods -n kube-system -l k8s-app=kube-dns</span>',
     },
     {
       lead: "Can you resolve internal names?",
-      text: "`nslookup kubernetes.default` from inside a pod",
+      text: '<span class="font-mono">nslookup kubernetes.default</span> from inside a pod',
     },
     {
       lead: "Can you resolve external names?",
-      text: "`nslookup google.com` from inside a pod",
+      text: '<span class="font-mono">nslookup google.com</span> from inside a pod',
     },
     {
       lead: "Is it an ndots issue?",
-      text: "Compare `time nslookup api.example.com` vs `time nslookup api.example.com.`",
+      text: 'Compare <span class="font-mono">time nslookup api.example.com</span> vs `time nslookup api.example.com.`',
     },
     {
       lead: "Check CoreDNS logs",
-      text: "for errors: `kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50`",
+      text: 'for errors: <span class="font-mono">kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50</span>',
     },
   ]}
 />
