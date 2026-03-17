@@ -16,28 +16,33 @@ featured: true
 
 It's 3 AM and your pager goes off. A production cluster with 10 nodes is experiencing random pod evictions. Investigation reveals memory pressure on several nodes—60% of pods have no memory limits, so a few memory-hungry pods consumed all available RAM. But here's the twist: the pods being evicted aren't the resource hogs. They're the well-behaved ones that set requests but no limits.
 
-Those pods followed what seemed like best practice — they declared what they needed. Yet Kubernetes marked them as "Burstable" QoS, and the eviction algorithm measures Burstable pods against their own declared requests. The pods with no resource specs? They're "BestEffort"—technically lower priority, but with no declared baseline, there's nothing to measure them against. The well-behaved pods created a measuring stick that was used against them.
+Those pods followed what seemed like best practice — they declared what they needed. Yet Kubernetes marked them as "Burstable" QoS, and the eviction algorithm measures Burstable pods against their own declared requests. The pods with no resource specs? They're "BestEffort" — technically lower priority, but with no declared baseline, there's nothing to measure them against. The well-behaved pods created a measuring stick that was used against them.
 
-The lesson most teams learn too late: QoS class determines eviction order, and you don't realize what class your pods belong to until you're debugging an outage. The answer lies in a system most teams don't know exists.
+The lesson most teams learn too late: <Highlighter>QoS class determines eviction order, and you don't realize what class your pods belong to until you're debugging an outage.</Highlighter> The answer lies in a system most teams don't know exists.
 
 ## The QoS Contract You Didn't Know You Signed
 
 Every pod in Kubernetes gets assigned a Quality of Service class automatically. You don't set it directly — it's derived from how you configure requests and limits. This class determines who dies first when nodes run low on resources.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Guaranteed',
-      text: 'is the highest priority. Every container must have requests and limits set for both CPU and memory, and requests must equal limits. These pods are evicted last.',
+      text: 'The highest priority. Every container must have requests and limits set for both CPU and memory, and requests must equal limits. These pods are evicted last.',
     },
     {
       lead: 'Burstable',
-      text: 'is the middle tier. Any pod with at least one resource request or limit that doesn\'t qualify for Guaranteed lands here. This includes pods with requests only, limits only, or requests that don\'t match limits. Most production workloads end up Burstable.',
+      text: 'The middle tier. Any pod with at least one resource request or limit that doesn\'t qualify for Guaranteed lands here. This includes pods with requests only, limits only, or requests that don\'t match limits. Most production workloads end up Burstable.',
     },
     {
       lead: 'BestEffort',
-      text: 'is the lowest priority. Pods with no resource specifications at all — no requests, no limits on any container — get this class. They\'re evicted first under pressure.',
+      text: 'The lowest priority. Pods with no resource specifications at all — no requests, no limits on any container — get this class. They\'re evicted first under pressure.',
     },
   ]}
 />
@@ -45,7 +50,8 @@ Every pod in Kubernetes gets assigned a Quality of Service class automatically. 
 The rules are straightforward, but the implications aren't. A pod with carefully tuned requests and limits is Burstable. A pod with only a CPU request and nothing else is also Burstable. Same QoS class, very different behavior.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['QoS Class', 'Eviction Priority', 'Configuration'],
@@ -83,19 +89,22 @@ Burstable pods with requests but no limits can be evicted before BestEffort pods
 I've seen the same resource misconfigurations across dozens of clusters. Here are the patterns that cause the most operational pain.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Requests only, no limits',
-      text: 'is what killed those 3 AM pods. It creates Burstable pods that can consume unbounded memory or CPU. A memory leak in one pod can starve its neighbors or trigger node-level OOM. The pod gets scheduled based on its request, but nothing stops it from using 10x that amount — and when eviction starts, usage relative to request determines who dies first.',
+      text: 'This is what killed those 3 AM pods. It creates Burstable pods that can consume unbounded memory or CPU. A memory leak in one pod can starve its neighbors or trigger node-level OOM. The pod gets scheduled based on its request, but nothing stops it from using 10x that amount — and when eviction starts, usage relative to request determines who dies first.',
     },
     {
       lead: 'No resources at all',
-      text: 'is the default trap. Pods without any resource specs get BestEffort QoS — first to be evicted by class priority, no scheduling guarantees, and they can consume unlimited node resources. This is what happens if you don\'t specify anything, which is why so many teams accidentally run BestEffort pods in production.',
+      text: 'This is the default trap. Pods without any resource specs get BestEffort QoS — first to be evicted by class priority, no scheduling guarantees, and they can consume unlimited node resources. This is what happens if you don\'t specify anything, which is why so many teams accidentally run BestEffort pods in production.',
     },
     {
       lead: 'Limits only, no requests',
-      text: 'seems harmless, but Kubernetes helpfully sets requests equal to limits when you only specify limits. The result is Guaranteed QoS, but you\'re probably over-reserving. The pod reserves its peak capacity even when it only needs a fraction of it, wasting cluster capacity and increasing costs.',
+      text: 'This seems harmless, but Kubernetes helpfully sets requests equal to limits when you only specify limits. The result is Guaranteed QoS, but you\'re probably over-reserving. The pod reserves its peak capacity even when it only needs a fraction of it, wasting cluster capacity and increasing costs.',
     },
   ]}
 />
@@ -152,7 +161,7 @@ spec:
 
 Code: Burstable QoS with headroom — limits higher than requests for burst capacity.
 
-For variable workloads like web servers, use Burstable with headroom. Set limits higher than requests to allow bursting during traffic spikes while keeping baseline reservation efficient. One gotcha: for multi-container pods, the QoS is determined by __all__ containers. If your main container has requests equal to limits but your sidecar doesn't, the whole pod is Burstable. Size sidecars explicitly.
+For variable workloads like web servers, use Burstable with headroom. Set limits higher than requests to allow bursting during traffic spikes while keeping baseline reservation efficient. One gotcha: for multi-container pods, the QoS is determined by _all_ containers. If your main container has requests equal to limits but your sidecar doesn't, the whole pod is Burstable. Size sidecars explicitly.
 
 <Callout type="success">
 The rule of thumb: set CPU limits 2-4x requests (allows bursting), set memory limits 1.5-2x requests (headroom without waste). Monitor actual usage for two weeks, then right-size based on P95 metrics.
@@ -163,7 +172,10 @@ The rule of thumb: set CPU limits 2-4x requests (allows bursting), set memory li
 If you do nothing else, do these three things:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Set both requests and limits on every container.',
@@ -171,7 +183,7 @@ If you do nothing else, do these three things:
     },
     {
       lead: 'Check your QoS classes.',
-      text: 'Run `kubectl get pods -o custom-columns="NAME:.metadata.name,QOS:.status.qosClass"` across your namespaces. If you see BestEffort on anything that matters, you have work to do.',
+      text: 'Run <span class="font-mono">kubectl get pods -o custom-columns="NAME:.metadata.name, QOS:.status.qosClass"</span> across your namespaces. If you see BestEffort on anything that matters, you have work to do.',
     },
     {
       lead: 'Size memory limits with 50% headroom above peak.',
