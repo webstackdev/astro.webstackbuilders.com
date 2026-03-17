@@ -18,7 +18,7 @@ An application works perfectly in development. You deploy it to Kubernetes, and 
 
 That single configuration option — the default in every Kubernetes cluster — causes every lookup like `api.stripe.com` to first try `api.stripe.com.default.svc.cluster.local`, then `api.stripe.com.svc.cluster.local`, then `api.stripe.com.cluster.local`, before finally trying the actual hostname. Three failed lookups, each potentially timing out, equals mysterious latency.
 
-I've watched teams lose days to this problem. The symptoms look like network issues, timeout misconfigurations, or flaky external services. But most Kubernetes DNS latency traces back to one misunderstood setting. The good news: once you know what to look for, you can diagnose the problem in 30 seconds and fix it in another 30.
+I've watched teams lose days to this problem. The symptoms look like network issues, timeout misconfigurations, or flaky external services. <Highlighter>But most Kubernetes DNS latency traces back to one misunderstood setting.</Highlighter> The good news: once you know what to look for, you can diagnose the problem in 30 seconds and fix it in another 30.
 
 ## Understanding the ndots Problem
 
@@ -28,6 +28,7 @@ Here's what happens when your application looks up `api.stripe.com`. The resolve
 
 <Diagram
   src={externalDnsDiagram}
+  size="full"
   title="External DNS lookup showing failed search domain queries before success."
   description="Sequence diagram showing how Kubernetes DNS resolution slows an external lookup when ndots is set to 5. An Application Pod sends a lookup for api.stripe.com to /etc/resolv.conf. A note over the resolver explains that the hostname has 2 dots and that ndots:5 causes search domains to be tried first. The resolver then sends three queries to CoreDNS in order: api.stripe.com.default.svc.cluster.local, api.stripe.com.svc.cluster.local, and api.stripe.com.cluster.local. CoreDNS returns NXDOMAIN for each of those internal-style names. After those failures, the resolver finally sends api.stripe.com as a fully qualified domain name to CoreDNS. CoreDNS forwards that final query to an upstream DNS server, receives the A record 93.184.216.34, and returns the successful answer back to the application. The diagram emphasizes that the delay comes from the three failed search-domain lookups that happen before the real external hostname is attempted."
 />
@@ -125,7 +126,11 @@ For most teams, I recommend starting with trailing dots for immediate relief, th
 To make this concrete, here's what the fix looks like in practice. Before applying either fix, a simple HTTP request to an external API:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Metric', 'Before Fix', 'After Fix'],
@@ -158,14 +163,17 @@ When connectivity issues arise and you suspect DNS, here's the fastest path to c
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Launch a debug pod",
-      text: "`kubectl run dns-debug --image=nicolaka/netshoot --rm -it --restart=Never -- bash`",
+      text: '<span class="font-mono">kubectl run dns-debug --image=nicolaka/netshoot --rm -it --restart=Never -- bash</span>',
     },
     {
       lead: "Run the ndots test",
-      text: "Compare `time nslookup api.example.com` vs `time nslookup api.example.com.`",
+      text: 'Compare <span class="font-mono">time nslookup api.example.com</span> vs <span class="font-mono">time nslookup api.example.com.</span>',
     },
     {
       lead: "Interpret the results",

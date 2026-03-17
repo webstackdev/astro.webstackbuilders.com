@@ -12,14 +12,14 @@ featured: true
 import ingressDiagram from "./diagrams/ingress-uses-flat-resources-gateway-api-uses-shared-gateway.jpg"
 import roleBasedDiagram from "./diagrams/role-based-ownership-with-gateway-api.jpg"
 
-*[GA]: General Availability
-*[TLS]: Transport Layer Security
-*[TCP]: Transmission Control Protocol
-*[UDP]: User Datagram Protocol
-*[gRPC]: Google Remote Procedure Call
-*[SNI]: Server Name Indication
 *[CRD]: Custom Resource Definition
+*[GA]: General Availability
+*[gRPC]: Google Remote Procedure Call
 *[RBAC]: Role-Based Access Control
+*[SNI]: Server Name Indication
+*[TCP]: Transmission Control Protocol
+*[TLS]: Transport Layer Security
+*[UDP]: User Datagram Protocol
 
 Kubernetes Ingress has been the standard for HTTP routing since 2015, but its limitations led to every ingress controller implementing different annotations and behaviors. If you've ever tried to port an Ingress configuration from NGINX to Traefik, you've felt this pain — annotations that worked perfectly on one controller are silently ignored by another. Gateway API, which launched in 2020 and reached GA in 2023, addresses these limitations with a more expressive, portable, and role-oriented design.
 
@@ -27,11 +27,11 @@ But more powerful doesn't always mean better for your use case.
 
 I've seen this play out both ways. A team running NGINX Ingress Controller decided to migrate to Gateway API because "it's the future." They spent two weeks converting resources, only to discover that their simple host-based routing with TLS termination worked perfectly with Ingress — Gateway API added complexity without new capabilities. Meanwhile, another team I worked with was managing a multi-tenant platform with complex traffic splitting and cross-namespace routing. They'd accumulated a mess of hacky Ingress annotations to work around limitations. For them, Gateway API solved real problems and simplified their configuration.
 
-The lesson: evaluate based on your actual requirements, not industry hype. The choice between Ingress and Gateway API depends on your current tooling, team structure, and routing complexity — not on which technology is newer.
-
 <Callout type="info">
 There's no deprecation timeline for Ingress. The Kubernetes networking SIG has stated both APIs will be supported indefinitely. Plan your technology choices assuming Ingress remains viable for at least the next 5-10 years.
 </Callout>
+
+The lesson: evaluate based on your actual requirements, not industry hype. The choice between Ingress and Gateway API depends on your current tooling, team structure, and routing complexity — not on which technology is newer.
 
 ## Understanding the Models
 
@@ -39,7 +39,7 @@ Before diving into features and migration, it helps to understand how these two 
 
 ### Ingress Model
 
-Ingress uses a single resource type that combines routing rules, TLS configuration, and backend references. Everything lives in one YAML file, which makes simple cases easy but complex cases awkward. The catch is that Ingress itself only defines the __interface__ — the actual behavior depends entirely on which controller you're running. NGINX Ingress Controller interprets annotations one way; Traefik interprets them differently; some controllers ignore certain annotations entirely.
+Ingress uses a single resource type that combines routing rules, TLS configuration, and backend references. Everything lives in one YAML file, which makes simple cases easy but complex cases awkward. The catch is that Ingress itself only defines the _interface_ — the actual behavior depends entirely on which controller you're running. NGINX Ingress Controller interprets annotations one way; Traefik interprets them differently; some controllers ignore certain annotations entirely.
 
 ```yaml title="ingress-example.yaml"
 # Single Ingress resource handles routing, TLS, and backend config
@@ -161,6 +161,7 @@ Notice how the HTTPRoute in the `production` namespace can reference a Gateway i
 
 <Diagram
   src={ingressDiagram}
+  size="full"
   title="Ingress uses flat resources - Gateway API uses a shared Gateway."
   description="Flowchart comparing the structural models of Ingress and Gateway API. On the left, a grouped section labeled Ingress Model: Single Resource shows three separate Ingress resources, each pointing to a single Controller, and that Controller pointing to a Service. This illustrates that Ingress resources are flat and controller behavior is centralized behind one implementation. On the right, a grouped section labeled Gateway API: Layered Resources shows GatewayClass pointing to Gateway, then Gateway pointing to three route resources: HTTPRoute Team A, HTTPRoute Team B, and GRPCRoute Team C. Each route then points to its own backend service: Service A, Service B, and Service C. The diagram emphasizes that Gateway API splits responsibilities into layers and allows multiple teams and route types to share a common Gateway while still routing to separate services."
 />
@@ -168,7 +169,11 @@ Notice how the HTTPRoute in the `production` namespace can reference a Gateway i
 The table below summarizes the key differences. If you're scanning for a quick answer: Ingress is simpler when you don't need the advanced features, Gateway API is more capable when you do.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
+  classes={{
+    tbody: "[&_tr>td:nth-of-type(2)]:!font-normal",
+  }}
   content={{
     thead: {
       th: ['Aspect', 'Ingress', 'Gateway API'],
@@ -220,7 +225,10 @@ Gateway API's layered model adds complexity. If you don't need cross-namespace r
 Beyond basic host and path matching, modern routing often requires matching on headers, query parameters, or HTTP methods. Ingress provides limited support for these patterns — you're dependent on controller-specific annotations that may or may not exist. Gateway API makes advanced matching a first-class feature.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    tbody: "[&_tr>td:nth-of-type(2)]:!font-normal",
+  }}
   content={{
     thead: {
       th: ['Capability', 'Ingress', 'Gateway API'],
@@ -380,7 +388,11 @@ Code: gRPC routing with method-level matching in Gateway API.
 The table below summarizes protocol support across both APIs. For HTTP workloads, either option works. For anything else, Gateway API is your only portable choice.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Protocol', 'Ingress', 'Gateway API', 'Status'],
@@ -389,27 +401,27 @@ The table below summarizes protocol support across both APIs. For HTTP workloads
       tr: [
         {
           th: 'HTTP',
-          td: ['✓ Native', '✓ HTTPRoute', 'GA'],
+          td: ['<span class="text-success">✓</span> Native', '<span class="text-success">✓</span> HTTPRoute', 'GA'],
         },
         {
           th: 'HTTPS (terminate)',
-          td: ['✓ Native', '✓ HTTPRoute + TLS', 'GA'],
+          td: ['<span class="text-success">✓</span> Native', '<span class="text-success">✓</span> HTTPRoute + TLS', 'GA'],
         },
         {
           th: 'HTTPS (passthrough)',
-          td: ['Annotation-dependent', '✓ TLSRoute', 'GA'],
+          td: ['Annotation-dependent', '<span class="text-success">✓</span> TLSRoute', 'GA'],
         },
         {
           th: 'TCP',
-          td: ['Not supported', '✓ TCPRoute', 'Beta'],
+          td: ['Not supported', '<span class="text-success">✓</span> TCPRoute', 'Beta'],
         },
         {
           th: 'UDP',
-          td: ['Not supported', '✓ UDPRoute', 'Alpha'],
+          td: ['Not supported', '<span class="text-success">✓</span> UDPRoute', 'Alpha'],
         },
         {
           th: 'gRPC',
-          td: ['Annotation-dependent', '✓ GRPCRoute', 'GA'],
+          td: ['Annotation-dependent', '<span class="text-success">✓</span> GRPCRoute', 'GA'],
         },
       ],
     },
@@ -420,7 +432,7 @@ The table below summarizes protocol support across both APIs. For HTTP workloads
 
 ## Role-Based Ownership
 
-In organizations with multiple teams, the question of __who manages what__ becomes critical. With Ingress, there's no natural separation — anyone with permission to create Ingress resources in a namespace can affect cluster-wide routing behavior. This leads to either overly permissive access (risky) or centralized bottlenecks where a platform team manages all routing (slow).
+In organizations with multiple teams, the question of _who manages what_ becomes critical. With Ingress, there's no natural separation — anyone with permission to create Ingress resources in a namespace can affect cluster-wide routing behavior. This leads to either overly permissive access (risky) or centralized bottlenecks where a platform team manages all routing (slow).
 
 Gateway API's layered architecture maps naturally to organizational boundaries. Each layer corresponds to a different team with different responsibilities and different access levels.
 
@@ -429,19 +441,22 @@ Gateway API's layered architecture maps naturally to organizational boundaries. 
 The three-layer model creates clear ownership:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Infrastructure team',
-      text: 'manages GatewayClass resources. They select and configure the controller, set cluster-wide policies, and typically have cluster-admin access. This layer changes rarely — maybe during major upgrades or when adding new controller capabilities.',
+      text: 'Manages GatewayClass resources. They select and configure the controller, set cluster-wide policies, and typically have cluster-admin access. This layer changes rarely — maybe during major upgrades or when adding new controller capabilities.',
     },
     {
       lead: 'Platform team',
-      text: 'manages Gateway resources. They configure listeners, TLS certificates, and crucially, which namespaces can attach routes. They control the blast radius of application team changes through the `allowedRoutes` configuration.',
+      text: 'Manages Gateway resources. They configure listeners, TLS certificates, and crucially, which namespaces can attach routes. They control the blast radius of application team changes through the `allowedRoutes` configuration.',
     },
     {
       lead: 'Application teams',
-      text: 'manage HTTPRoute resources in their own namespaces. They define their routing rules, but can only attach to Gateways that explicitly allow their namespace. They can\'t affect other teams\' traffic.',
+      text: 'Manage HTTPRoute resources in their own namespaces. They define their routing rules, but can only attach to Gateways that explicitly allow their namespace. They can\'t affect other teams\' traffic.',
     },
   ]}
 />
@@ -504,6 +519,7 @@ This separation is enforced at the Kubernetes API level, not just by convention.
 
 <Diagram
   src={roleBasedDiagram}
+  size="full"
   title="Role-based ownership with Gateway API."
   description="Flowchart showing how Gateway API maps routing resources to different team responsibilities. A grouped section labeled Infrastructure Team contains GatewayClass pointing to Gateway Controller through a controllerName relationship. A grouped section labeled Platform Team contains Gateway pointing back to GatewayClass through gatewayClassName and also pointing to a Namespace Selector through allowedRoutes. A grouped section labeled App Team A contains HTTPRoute A pointing to Gateway through parentRef and also pointing to Service A. A grouped section labeled App Team B contains HTTPRoute B pointing to Gateway through parentRef and also pointing to Service B. The Namespace Selector points to HTTPRoute A and HTTPRoute B through label match relationships. The diagram shows that infrastructure teams choose the controller, platform teams manage the shared Gateway and define which namespaces may attach, and application teams manage their own routes and services only when their namespaces satisfy the selector rules."
 />
@@ -525,22 +541,25 @@ Assuming you've already decided Gateway API is the right fit (see the Decision F
 __Timing signals that suggest waiting:__
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'You\'re in the middle of a major release or incident stabilization period',
+      lead: 'You\'re in the middle of a major release or incident stabilization period',
     },
     {
-      text: 'The team responsible for routing config doesn\'t have capacity for learning and testing',
+      lead: 'The team responsible for routing config doesn\'t have capacity for learning and testing',
     },
     {
-      text: 'Your controller\'s Gateway API support is still in beta or missing route types you need',
+      lead: 'Your controller\'s Gateway API support is still in beta or missing route types you need',
     },
     {
-      text: 'You have a complex `configuration-snippet` annotation that doesn\'t have a clear Gateway API equivalent',
+      lead: 'You have a complex <span class="font-mono">configuration-snippet</span> annotation that doesn\'t have a clear Gateway API equivalent',
     },
     {
-      text: 'Your CI/CD pipeline doesn\'t have good staging coverage for routing changes',
+      lead: 'Your CI / CD pipeline doesn\'t have good staging coverage for routing changes',
     },
   ]}
 />
@@ -548,25 +567,28 @@ __Timing signals that suggest waiting:__
 __Prerequisite checklist before starting:__
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Controller supports Gateway API at GA level for the route types you need — most major controllers (NGINX Gateway Fabric, Envoy Gateway, Istio, Contour, Kong, Traefik) have GA support',
+      lead: 'Controller supports Gateway API at GA level for the route types you need — most major controllers (NGINX Gateway Fabric, Envoy Gateway, Istio, Contour, Kong, Traefik) have GA support',
     },
     {
-      text: 'Team has read the official Gateway API getting started guide',
+      lead: 'Team has read the official Gateway API getting started guide',
     },
     {
-      text: 'Staging environment can run parallel Ingress and Gateway API resources',
+      lead: 'Staging environment can run parallel Ingress and Gateway API resources',
     },
     {
-      text: 'Rollback plan documented (typically: delete HTTPRoute, traffic returns to Ingress)',
+      lead: 'Rollback plan documented (typically: delete HTTPRoute, traffic returns to Ingress)',
     },
     {
-      text: 'Monitoring covers both Ingress and Gateway API traffic paths',
+      lead: 'Monitoring covers both Ingress and Gateway API traffic paths',
     },
     {
-      text: 'At least one low-risk service identified for initial migration',
+      lead: 'At least one low-risk service identified for initial migration',
     },
   ]}
 />
@@ -579,9 +601,15 @@ Migration timelines depend heavily on annotation complexity. If your Ingress res
 
 The safest migration runs both APIs in parallel, migrating routes one at a time with the ability to roll back each change independently.
 
-__Phase 1: Parallel operation (2-4 weeks)__
-
-Deploy the GatewayClass and Gateway resources, but only create HTTPRoutes for __new__ services. Your existing Ingress resources continue to handle existing traffic. This phase validates that your Gateway setup works without risking existing routes.
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: 'Phase 1: Parallel operation (2-4 weeks)',
+      text: 'Deploy the GatewayClass and Gateway resources, but only create HTTPRoutes for new services. Your existing Ingress resources continue to handle existing traffic. This phase validates that your Gateway setup works without risking existing routes.',
+    },
+  ]}
+/>
 
 ```yaml title="parallel-operation.yaml"
 # New API version uses Gateway API
@@ -612,7 +640,8 @@ Code: New routes use Gateway API while existing Ingress handles legacy paths.
 This coexistence works because Ingress and Gateway API are separate resource types that controllers watch independently. When a request arrives, the controller checks both APIs and routes based on the matching rules. Requests to `/v2` match the HTTPRoute; requests to `/v1` match the Ingress. There's no conflict because they handle different paths. If you need to migrate an existing path, create the HTTPRoute first with a different hostname for testing, then update DNS or the hostname field to cut over.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={2}
   items={[
     {
       lead: 'Phase 2: Migrate routes (4-8 weeks)',
@@ -636,7 +665,8 @@ The key insight is that rollback is easy in phases 1-3. If an HTTPRoute causes p
 Converting an Ingress resource to an HTTPRoute is mostly mechanical, but there are gotchas. The path matching types have different names: Ingress `Prefix` becomes HTTPRoute `PathPrefix`. Ingress `ImplementationSpecific` has no direct equivalent — you'll need to understand what your controller actually did with it and pick the appropriate HTTPRoute match type.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Ingress pathType', 'HTTPRoute path.type', 'Notes'],
@@ -664,22 +694,22 @@ Converting an Ingress resource to an HTTPRoute is mostly mechanical, but there a
 The harder part is annotations. Each annotation that your Ingress uses for non-standard behavior needs to be converted to Gateway API's native features or policy attachments. Common conversions:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
   items={[
     {
-      lead: 'Rewrite annotations',
+      lead: 'Rewrite annotations:',
       text: 'URLRewrite filter',
     },
     {
-      lead: 'Header add/remove annotations',
+      lead: 'Header add/remove annotations:',
       text: 'RequestHeaderModifier / ResponseHeaderModifier filters',
     },
     {
-      lead: 'Rate limiting annotations',
+      lead: 'Rate limiting annotations:',
       text: 'Policy attachment (controller-specific)',
     },
     {
-      lead: 'Authentication annotations',
+      lead: 'Authentication annotations:',
       text: 'Policy attachment or external auth service',
     },
   ]}
@@ -700,8 +730,9 @@ Gateway API is newer, which means less community content and less battle-tested 
 All major ingress controllers now support Gateway API at some level. The implementations vary in completeness:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
+    figure: 'Controller Gateway API support.',
     thead: {
       th: ['Controller', 'Gateway API Status', 'Route Types', 'Notes'],
     },
@@ -737,7 +768,6 @@ All major ingress controllers now support Gateway API at some level. The impleme
         },
       ],
     },
-    figure: 'Controller Gateway API support.',
   }}
 />
 
@@ -749,7 +779,7 @@ Ingress has an 8-year head start. You'll find more blog posts, more examples, an
 
 Debugging tools are similar in capability but different in approach. Gateway API resources have richer status conditions that tell you exactly why a route isn't working. Run `kubectl describe httproute <name>` and look at the `conditions` section:
 
-```text
+```bash
 Status:
   Parents:
     Conditions:
@@ -766,7 +796,7 @@ This structured feedback beats digging through controller logs — you can see i
 For GitOps workflows (ArgoCD, Flux), both work natively. The main gotcha with Gateway API is that you need the CRDs installed before ArgoCD tries to sync resources that use them — plan your sync waves accordingly.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Aspect', 'Ingress', 'Gateway API'],
@@ -812,22 +842,25 @@ After all the feature comparisons and migration details, the decision comes down
 Stick with Ingress if:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Your routing needs are simple: host-based routing, path prefixes, TLS termination',
+      lead: 'Your routing needs are simple: host-based routing, path prefixes, TLS termination',
     },
     {
-      text: 'Everything lives in one namespace (or a small number of namespaces managed by one team)',
+      lead: 'Everything lives in one namespace (or a small number of namespaces managed by one team)',
     },
     {
-      text: 'Your current setup works and you don\'t have concrete problems to solve',
+      lead: 'Your current setup works and you don\'t have concrete problems to solve',
     },
     {
-      text: 'Your team doesn\'t have capacity to learn a new API right now',
+      lead: 'Your team doesn\'t have capacity to learn a new API right now',
     },
     {
-      text: 'Your controller doesn\'t support Gateway API yet',
+      lead: 'Your controller doesn\'t support Gateway API yet',
     },
   ]}
 />
@@ -839,25 +872,28 @@ Example scenarios: a single application with a few endpoints, internal tools wit
 Choose Gateway API if:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'You need cross-namespace routing (app teams routing to a shared Gateway)',
+      lead: 'You need cross-namespace routing (app teams routing to a shared Gateway)',
     },
     {
-      text: 'You need native traffic splitting for canary or blue-green deployments',
+      lead: 'You need native traffic splitting for canary or blue-green deployments',
     },
     {
-      text: 'You need TCP, UDP, or gRPC routing',
+      lead: 'You need TCP, UDP, or gRPC routing',
     },
     {
-      text: 'You\'re building a multi-team platform with self-service routing',
+      lead: 'You\'re building a multi-team platform with self-service routing',
     },
     {
-      text: 'You\'re planning a controller migration anyway',
+      lead: 'You\'re planning a controller migration anyway',
     },
     {
-      text: 'It\'s a greenfield project and you want to start with the more portable option',
+      lead: 'It\'s a greenfield project and you want to start with the more portable option',
     },
   ]}
 />
@@ -869,7 +905,10 @@ Example scenarios: multi-tenant platforms, deployment pipelines with canary stag
 You don't have to choose one or the other. Many organizations run both:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Ingress',
@@ -894,8 +933,8 @@ Ingress is simpler, more mature, and has years of battle-tested operational patt
 
 Gateway API is more powerful and more portable. Its layered architecture enables multi-team self-service with guardrails. Native support for traffic splitting, header manipulation, and non-HTTP protocols eliminates the annotation sprawl that makes Ingress configurations fragile. If you need these capabilities, Gateway API delivers them in a standardized way that works across controllers.
 
-Both APIs will coexist for years — the Kubernetes networking SIG has confirmed there's no deprecation timeline for Ingress. Migrating purely because Gateway API is "the future" is a poor use of engineering time. Migrate when you have concrete requirements that Gateway API solves better: cross-namespace routing, native traffic splitting, protocol support, or role separation. For greenfield projects where you don't have strong opinions, Gateway API is a reasonable default — it's mature enough for production, and starting there avoids a future migration.
-
 <Callout type="success">
 The best choice is the one that solves your actual problems with acceptable complexity. If Ingress works for you, keep using it. If you need Gateway API's capabilities, it's mature enough for production. Make the decision based on requirements, not hype.
 </Callout>
+
+Both APIs will coexist for years — the Kubernetes networking SIG has confirmed there's no deprecation timeline for Ingress. Migrating purely because Gateway API is "the future" is a poor use of engineering time. Migrate when you have concrete requirements that Gateway API solves better: cross-namespace routing, native traffic splitting, protocol support, or role separation. For greenfield projects where you don't have strong opinions, Gateway API is a reasonable default — it's mature enough for production, and starting there avoids a future migration.

@@ -181,13 +181,7 @@ Need a tooltip component for consistency. List to add tooltips to:
 
 ## Downloads / Gated Content
 
-- We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading. If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should go directly to the HTML version of the deep dive, and it should have a PDF download button.
-
-- Make `/deep-dive/` SSR loaded so we can check if they've given their e-mail address.
-
-- If they haven't and they get to the path from sharing a link or something, we should use the `index.astro` file in that directory to explain that they've accessed gated content, and ask for their e-mail address. Then redirect to the content they want when they give it.
-
-- If they've given their email link, the content switcher button to switch should be enabled.
+- We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading. If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should show the PDF download button instead of trying to collect email addresses again.
 
 - We had this copyright statement for articles, it should be in the front matter of PDFs:
 
@@ -196,8 +190,6 @@ Copyright © 2025 Webstack Builders, Inc.
 The text, diagrams, and images in this work are licensed under CC BY-NC 4.0
 All code samples in this article are licensed under the MIT License. Feel free to use, modify, and distribute them in any project.
 ```
-
-- When someone's already given their email address, the Download CTA should just have a download button - not require them to sign up again
 
 ## Search
 
@@ -218,8 +210,6 @@ https://mermaid.js.org/config/directives.html
 
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
 
-- Add Inset component and convert `text` code blocks to use it.
-
 - Focus-visible / active handling on ToC nav items
 
 - Style "Share to Mastodon" modal in src/components/Social/Mastodon/client/index.ts
@@ -236,11 +226,7 @@ https://mermaid.js.org/config/directives.html
 
 - Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
-- Service worker isn't caching favicon
-
-- Image component with zoom + and -, and magnify glass. Modal to expand full size.
-
-- Don't lazy load hero image
+- Moving the scroll bar up quickly with the mouse seems to make the header logic break - the Switcher component and Breadcrumbs are hidden under the header
 
 ## List Component
 
@@ -256,17 +242,11 @@ https://mermaid.js.org/config/directives.html
 
 ## Content Issues
 
-- "### Geographic/Currency Mismatches" in deep-dive/cdn-edge-caching-cache-keys-vary-headers has a table -> callout -> table back to back
-
 - Need an article on OpenStack
 
 - Add a Social Share on some compelling text in each article
 
 - Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
-
-- Determine if any of the python code blocks should have `#!/bin/python` added
-
-- Need a Q & A format to use in `blameless-postmortem-incident-analysis-systemic-causes`. Might be one of the list formats.
 
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
 
@@ -278,12 +258,7 @@ https://mermaid.js.org/config/directives.html
 
 - Need to update Case Studies with lists and tables too
 
-### This file was badly mangled during refactoring, need to compare against original:
-
-src/content/articles/internal-developer-portal-platform-self-service-actions/pdf.mdx
-
-├──
-└──
+### Snippets
 
 <span class="font-mono">
 </span>
@@ -307,6 +282,7 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
 />
 
 <List
+  startNumber={2}
   classes={{
     wrapper: "sm:ml-6 sm:mr-12 mb-6",
   }}
@@ -322,7 +298,15 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
   ]}
 />
 
-### Spacing out the boxes:
+#### Stretching the badge out to the same size and centering text:
+
+<List
+  variant="badge-list"
+  classes={{
+    titleClass: "block w-full text-center",
+  }}
+
+#### Spacing out the boxes:
 
 <List
   variant="zebra-list"
@@ -341,3 +325,10 @@ src/content/articles/internal-developer-portal-platform-self-service-actions/pdf
     tbody: '!text-content',
   }}
 />
+
+<Table
+  variant="numbered-review-table"
+  fullWidth={false}
+  classes={{
+    tbody: "[&_tr>td:nth-of-type(2)]:!font-normal",
+  }}

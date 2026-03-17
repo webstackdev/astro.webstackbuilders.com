@@ -9,17 +9,17 @@ tags: ["cloud-platforms","kubernetes"]
 featured: true
 ---
 
-*[GA]: General Availability
-*[TLS]: Transport Layer Security
-*[TCP]: Transmission Control Protocol
-*[UDP]: User Datagram Protocol
-*[gRPC]: Google Remote Procedure Call
 *[CRD]: Custom Resource Definition
+*[GA]: General Availability
+*[gRPC]: Google Remote Procedure Call
 *[RBAC]: Role-Based Access Control
+*[TCP]: Transmission Control Protocol
+*[TLS]: Transport Layer Security
+*[UDP]: User Datagram Protocol
 
 You've spent months perfecting your NGINX Ingress configuration. The annotations are just right, traffic flows smoothly, and you've documented every quirk. Then someone decides you're switching to Traefik. Or Contour. Or migrating to a service mesh that uses Gateway API. Suddenly, none of your annotations work. Some are silently ignored, others cause validation errors, and you're left wondering why Kubernetes made this so hard.
 
-The answer: Ingress was designed in 2015 as a minimal abstraction. It defines __what__ you want (route traffic to services) but leaves __how__ entirely to the controller. Every controller filled that gap differently, creating the annotation mess you're now untangling.
+The answer: <Highlighter>Ingress was designed in 2015 as a minimal abstraction. It defines _what_ you want (route traffic to services) but leaves _how_ entirely to the controller.</Highlighter> Every controller filled that gap differently, creating the annotation mess you're now untangling.
 
 Gateway API, which reached GA in 2023, takes a different approach. It's more expressive, more portable, and designed for multi-team environments. But more powerful doesn't always mean better for your use case. I've seen teams migrate to Gateway API because "it's the future," only to discover that their simple routing requirements worked perfectly with Ingress — they just added complexity without new capabilities.
 
@@ -90,7 +90,11 @@ Code: HTTPRoute with cross-namespace reference to a shared Gateway.
 The critical difference: HTTPRoute uses native fields for routing configuration, not annotations. These fields work identically across any Gateway API implementation — Envoy Gateway, Istio, Contour, Kong, NGINX Gateway Fabric. Portability is built in, not bolted on.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
+  classes={{
+    tbody: "[&_tr>td:nth-of-type(2)]:!font-normal",
+  }}
   content={{
     thead: {
       th: ['Aspect', 'Ingress', 'Gateway API'],
@@ -133,11 +137,11 @@ Gateway API's layered architecture also enables something Ingress can't: applica
 
 The decision depends on your current situation, not abstract feature comparisons.
 
-<Newsletter />
-
 ### When to Stick with Ingress
 
 Your routing needs are simple — host-based routing, path prefixes, TLS termination. If everything lives in one namespace (or a small number managed by one team) and your current setup works without friction, Ingress is fine. There's no deprecation timeline. The Kubernetes networking SIG has confirmed both APIs will coexist indefinitely.
+
+<Newsletter />
 
 Migrating because Gateway API is "the future" wastes engineering time. I've watched teams spend weeks converting resources, only to end up with equivalent functionality in a more complex setup. They'd have been better served improving their deployment pipeline or writing better runbooks.
 

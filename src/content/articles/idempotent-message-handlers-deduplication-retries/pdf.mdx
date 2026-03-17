@@ -13,14 +13,14 @@ import idempotencyFlowDiagram from "./diagrams/idempotency-flow-second-delivery-
 import messageDeliveryDiagram from "./diagrams/message-delivery-semantics.jpg"
 import transactionalOutboxDiagram from "./diagrams/transactional-outbox.jpg"
 
-*[UUID]: Universally Unique Identifier
-*[ULID]: Universally Unique Lexicographically Sortable Identifier
-*[TTL]: Time To Live
-*[DLQ]: Dead Letter Queue
-*[SQS]: Simple Queue Service
-*[FIFO]: First In First Out
 *[ACK]: Acknowledgment
+*[DLQ]: Dead Letter Queue
+*[FIFO]: First In First Out
 *[NACK]: Negative Acknowledgment
+*[SQS]: Simple Queue Service
+*[TTL]: Time To Live
+*[ULID]: Universally Unique Lexicographically Sortable Identifier
+*[UUID]: Universally Unique Identifier
 
 Every message queue you'll work with in production operates on a simple principle: at-least-once delivery. Networks partition, consumers crash, timeouts expire, and when any of those things happen, the queue does the only safe thing it can do - it redelivers the message. This isn't a bug or a misconfiguration. It's the fundamental contract.
 
@@ -28,11 +28,11 @@ The problem hits when your handler isn't ready for it. I've seen payment service
 
 Here's the scenario that makes this concrete: your payment service receives a charge message, successfully charges the customer's card, and then the process crashes before it can acknowledge the message back to the queue. The queue sees no acknowledgment, assumes failure, and redelivers. Without idempotency, that's a double charge. With a properly designed idempotent handler, the second delivery is recognized as a duplicate and returns success without touching the payment gateway again.
 
-This article walks through the patterns that make handlers survive retries: understanding delivery guarantees, designing idempotency keys, implementing deduplication stores, and building handlers that produce the same result regardless of how many times they receive the same message.
-
 <Callout type="warning">
 "At-least-once" means "probably more than once." Design every handler assuming the message has already been processed. The question isn't __if__ duplicates arrive - it's when and how often.
 </Callout>
+
+This article walks through the patterns that make handlers survive retries: understanding delivery guarantees, designing idempotency keys, implementing deduplication stores, and building handlers that produce the same result regardless of how many times they receive the same message.
 
 ## Delivery Guarantees
 
@@ -41,7 +41,10 @@ Before diving into implementation, it's worth understanding why duplicates are i
 ### Understanding Message Delivery Semantics
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "At-most-once",
@@ -67,7 +70,8 @@ Before diving into implementation, it's worth understanding why duplicates are i
 The table below summarizes when to use each guarantee:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "Delivery guarantee comparison.",
     thead: {
@@ -103,23 +107,26 @@ The idempotency key is the identifier your handler uses to recognize duplicate m
 There are four common strategies, each with distinct tradeoffs:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Producer-supplied message ID",
-      text: "is the cleanest approach. The producer generates a UUID or ULID when creating the message and includes it in the payload. This key survives redeliveries because it's part of the message content, not queue metadata. The downside is that it requires producer discipline - every producer must generate and include a unique ID.",
+      text: "The cleanest approach. The producer generates a UUID or ULID when creating the message and includes it in the payload. This key survives redeliveries because it's part of the message content, not queue metadata. The downside is that it requires producer discipline - every producer must generate and include a unique ID.",
     },
     {
       lead: "Content hash",
-      text: "works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content should be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
+      text: "Works when you can't control producers. Hash the message payload with SHA-256 and use that as the key. Identical content produces identical keys automatically. The risk is that sometimes identical content should be processed multiple times (two separate orders for the same product), and a content hash would incorrectly dedupe them.",
     },
     {
       lead: "Business key composite",
-      text: "combines entity identifiers with operation context: `order:12345:payment:v3`. This approach has semantic meaning, making debugging easier, but requires careful thought about what constitutes a unique operation. Does a payment retry get a new version, or should it reuse the same key?",
+      text: 'Combines entity identifiers with operation context: <span class="font-mono">order:12345:payment:v3</span>. This approach has semantic meaning, making debugging easier, but requires careful thought about what constitutes a unique operation. Does a payment retry get a new version, or should it reuse the same key?',
     },
     {
       lead: "Queue message ID",
-      text: "- don't use this. SQS assigns a new MessageId on each redelivery. RabbitMQ's delivery tag changes. This approach only deduplicates within a single delivery attempt, which defeats the purpose entirely.",
+      text: "Don't use this. SQS assigns a new MessageId on each redelivery. RabbitMQ's delivery tag changes. This approach only deduplicates within a single delivery attempt, which defeats the purpose entirely.",
     },
   ]}
 />
@@ -152,19 +159,19 @@ Code: Recommended idempotency key pattern combining producer ID with business co
 Beyond the key format, you need to decide how long to remember processed keys and at what scope.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Global scope",
-      text: "means any service can check whether a message ID was already processed. This requires a centralized idempotency store (typically Redis or a shared database) and makes sense when the same message might be consumed by multiple services.",
+      text: "Means any service can check whether a message ID was already processed. This requires a centralized idempotency store (typically Redis or a shared database) and makes sense when the same message might be consumed by multiple services.",
     },
     {
       lead: "Entity scope",
-      text: "limits deduplication to a specific business entity. The key `order:12345:payment` only needs to be unique within the context of order 12345. This allows storing idempotency state alongside the entity itself, eliminating the need for a separate store.",
+      text: "Limits deduplication to a specific business entity. The key `order:12345:payment` only needs to be unique within the context of order 12345. This allows storing idempotency state alongside the entity itself, eliminating the need for a separate store.",
     },
     {
       lead: "Time-windowed scope",
-      text: "partitions keys by time period: `metric:cpu:host-789:2024-01-15T10:00`. This bounds storage growth for high-volume systems where eventual consistency is acceptable.",
+      text: "Partitions keys by time period: `metric:cpu:host-789:2024-01-15T10:00`. This bounds storage growth for high-volume systems where eventual consistency is acceptable.",
     },
   ]}
 />
@@ -271,6 +278,7 @@ The sequence diagram below shows the full flow. Notice that on the second delive
 
 <Diagram
   src={idempotencyFlowDiagram}
+  size="full"
   title="Idempotency flow - second delivery skips processing entirely."
   description="Sequence diagram showing idempotent message handling across two deliveries. A queue delivers a message to the handler for the first time. The handler checks the idempotency store using key order:123:pay, the store replies that the key is not found and the lock is acquired, the handler processes the payment through the database, the database returns success, the handler marks the key as completed with a cached result, and then acknowledges the message to the queue. A note indicates the consumer crashes and the message is redelivered. On the second delivery, the handler checks the same key again, the idempotency store reports the key is already completed with a cached result, and the handler immediately acknowledges the message without processing the payment again."
 />
@@ -278,7 +286,7 @@ The sequence diagram below shows the full flow. Notice that on the second delive
 Which storage should you use? It depends on your consistency requirements and latency budget:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     figure: "Idempotency store options comparison.",
     thead: {
@@ -370,45 +378,48 @@ Code: Idempotent handler base class separating deduplication from business logic
 Not every operation needs explicit deduplication. Some operations are _naturally idempotent_ - executing them multiple times produces the same result as executing once.
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "Set operations",
-      text: "are naturally idempotent. `user.email = 'new@example.com'` produces the same state whether you run it once or ten times. Same with `UPDATE users SET email = $1 WHERE id = $2`.",
+      text: 'Naturally idempotent. <span class="font-mono">user.email = \'new@example.com\'</span> produces the same state whether you run it once or ten times. Same with <span class="font-mono">UPDATE users SET email = $1 WHERE id = $2</span>.',
     },
     {
       lead: "Upserts",
-      text: "are naturally idempotent. `INSERT ... ON CONFLICT UPDATE` converges to the same final state regardless of how many times you execute it.",
+      text: 'Naturally idempotent. <span class="font-mono">INSERT ... ON CONFLICT UPDATE</span> converges to the same final state regardless of how many times you execute it.',
     },
     {
       lead: "Deletes by ID",
-      text: "are naturally idempotent. `DELETE FROM orders WHERE id = 123` succeeds once and becomes a no-op on subsequent executions.",
+      text: 'Naturally idempotent. <span class="font-mono">DELETE FROM orders WHERE id = 123</span> succeeds once and becomes a no-op on subsequent executions.',
     },
     {
       lead: "Absolute state sets",
-      text: "are naturally idempotent. `inventory.setQuantity(sku, 5)` sets the quantity to 5, not \"adds 5.\" Running it twice still leaves the quantity at 5.",
+      text: 'Naturally idempotent. <span class="font-mono">inventory.setQuantity(sku, 5)</span> sets the quantity to 5, not "adds 5." Running it twice still leaves the quantity at 5.',
     },
   ]}
 />
 
 ### Operations That Require Deduplication
 
-The operations that __aren't__ naturally idempotent are the ones that accumulate:
+The operations that _aren't_ naturally idempotent are the ones that accumulate:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Increments",
-      text: "compound on each execution. `balance += 100` adds 100 every time. The fix is to track which operations have been applied: `applyDeposit(depositId, 100)` can check whether `depositId` was already applied.",
+      text: 'Compound on each execution. <span class="font-mono">balance += 100</span> adds 100 every time. The fix is to track which operations have been applied: <span class="font-mono">applyDeposit(depositId, 100)</span> can check whether <span class="font-mono">depositId</span> was already applied.',
     },
     {
       lead: "Appends",
-      text: "grow the collection. `items.push(newItem)` adds another entry each time. The fix is to include an item ID and check before appending: `if (!items.some(i => i.id === newItem.id)) items.push(newItem)`.",
+      text: 'Grow the collection. <span class="font-mono">items.push(newItem)</span> adds another entry each time. The fix is to include an item ID and check before appending: <span class="font-mono">if (!items.some(i => i.id === newItem.id)) items.push(newItem)</span>.',
     },
     {
       lead: "External side effects",
-      text: "like sending emails or notifications aren't naturally idempotent. The user receives the email on each execution. Track sent notifications by key to prevent duplicates.",
+      text: "Like sending emails or notifications aren't naturally idempotent. The user receives the email on each execution. Track sent notifications by key to prevent duplicates.",
     },
   ]}
 />
@@ -429,6 +440,7 @@ This guarantees that if the state change commits, the event will eventually be p
 
 <Diagram
   src={transactionalOutboxDiagram}
+  size="xl"
   title="Transactional outbox."
   description="Flowchart showing the transactional outbox pattern. Inside a Single Transaction subgraph, a handler writes both an Update Business State action and an Insert Outbox Record action. Both outputs point to the same database, indicating they are committed together. Separately, an Outbox Publisher reads from the database and sends messages to a Message Queue. A Downstream Consumer receives messages from that queue. The diagram shows that business state and outbox event are written atomically first, and event publication happens afterward by polling the outbox."
 />
@@ -730,7 +742,8 @@ Code: Kafka idempotent consumer with database-backed deduplication.
 The table below summarizes what each major queue provides out of the box. The pattern is consistent: every queue requires handler-side idempotency for production workloads. Built-in deduplication helps at the margins but doesn't eliminate the need for application-level duplicate detection.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="timeline-labels-table"
+  fullWidth={false}
   content={{
     figure: "Queue deduplication capabilities - all require handler-side idempotency.",
     thead: {
@@ -739,23 +752,23 @@ The table below summarizes what each major queue provides out of the box. The pa
     tbody: {
       tr: [
         {
-          th: "SQS Standard",
+          th: { label: "SQS Standard", color: "bg-note" },
           td: ["None", "N/A", "Yes"],
         },
         {
-          th: "SQS FIFO",
+          th: { label: "SQS FIFO", color: "bg-success" },
           td: ["MessageDeduplicationId", "5 minutes", "Yes (for longer)"],
         },
         {
-          th: "Kafka",
+          th: { label: "Kafka", color: "bg-accent" },
           td: ["Idempotent producer", "Producer session", "Yes (consumer side)"],
         },
         {
-          th: "RabbitMQ",
+          th: { label: "RabbitMQ", color: "bg-warning" },
           td: ["None", "N/A", "Yes"],
         },
         {
-          th: "Azure Service Bus",
+          th: { label: "Azure Service Bus", color: "bg-info" },
           td: ["MessageId", "Session/window", "Yes"],
         },
       ],

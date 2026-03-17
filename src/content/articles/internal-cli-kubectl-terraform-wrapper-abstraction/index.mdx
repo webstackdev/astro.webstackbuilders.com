@@ -17,32 +17,35 @@ Last year, a routine deploy took down production for two hours. An engineer ran 
 
 The postmortem was predictable: "improve the wrapper's context handling." But here's the uncomfortable truth - that wrapper shouldn't have existed in its current form. It was solving a problem that didn't warrant the complexity, and the abstraction itself became the attack surface.
 
-This isn't an isolated story. Platform teams love building internal CLIs, and I've built several myself. Some genuinely improved developer experience: hiding multi-step complexity, enforcing standards, preventing the kind of mistakes that page you at 3am. Others became maintenance nightmares that lagged behind upstream releases, broke in subtle ways, and required developers to learn both the wrapper __and__ the underlying tool to troubleshoot problems.
+This isn't an isolated story. Platform teams love building internal CLIs, and I've built several myself. Some genuinely improved developer experience: hiding multi-step complexity, enforcing standards, preventing the kind of mistakes that page you at 3am. Others became maintenance nightmares that lagged behind upstream releases, broke in subtle ways, and required developers to learn both the wrapper _and_ the underlying tool to troubleshoot problems.
 
-The question isn't whether you __can__ build a wrapper - it's whether you __should__. And if you do, how do you build it in a way that doesn't become a liability?
+<Highlighter>The question isn't whether you _can_ build a wrapper - it's whether you _should_.</Highlighter> And if you do, how do you build it in a way that doesn't become a liability?
 
 ## When Wrappers Genuinely Add Value
 
 Not all wrappers are created equal. Some genuinely earn their maintenance cost; others are solutions looking for problems. Here's what separates the valuable from the wasteful:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Complexity hiding",
-      text: "is the strongest justification. When a workflow requires five or more manual steps with dependencies and ordering constraints, a wrapper reduces cognitive load and enforces the correct sequence. A `deploy-service` command that builds, pushes, runs helm upgrade, and executes smoke tests in the right order prevents the \"I forgot to push the image before deploying\" class of errors.",
+      text: "The strongest justification. When a workflow requires five or more manual steps with dependencies and ordering constraints, a wrapper reduces cognitive load and enforces the correct sequence. A `deploy-service` command that builds, pushes, runs helm upgrade, and executes smoke tests in the right order prevents the \"I forgot to push the image before deploying\" class of errors.",
     },
     {
       lead: "Guard rails",
-      text: "prevent dangerous operations. A `kubectl-safe` wrapper that blocks `delete` in production without an approval ticket prevents the kind of outages that make the news. This works when the underlying tool allows dangerous operations with severe consequences and the policy can be codified clearly.",
+      text: "Prevents dangerous operations. A `kubectl-safe` wrapper that blocks `delete` in production without an approval ticket prevents the kind of outages that make the news. This works when the underlying tool allows dangerous operations with severe consequences and the policy can be codified clearly.",
     },
     {
       lead: "Context injection",
-      text: "automatically selects environment-specific configuration. A terraform wrapper that auto-selects workspace, backend, and var files based on your git branch eliminates \"I thought I was in staging\" mistakes - but only if it shows you what it detected. Silent context switching is how you get production outages.",
+      text: "Automatically selects environment-specific configuration. A terraform wrapper that auto-selects workspace, backend, and var files based on your git branch eliminates \"I thought I was in staging\" mistakes - but only if it shows you what it detected. Silent context switching is how you get production outages.",
     },
     {
       lead: "Credential management",
-      text: "handles authentication complexity transparently. A kubectl wrapper that auto-refreshes tokens and selects the correct cluster config reduces auth friction when tokens expire frequently and manual credential management is error-prone.",
+      text: "Handles authentication complexity transparently. A kubectl wrapper that auto-refreshes tokens and selects the correct cluster config reduces auth friction when tokens expire frequently and manual credential management is error-prone.",
     },
   ]}
 />
@@ -54,7 +57,8 @@ Some "problems" have simpler solutions. Alias collections - just shorter names f
 Before building, ask these questions honestly:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "Wrapper decision criteria.",
     thead: {
@@ -89,6 +93,8 @@ Each "no" is a signal that better docs, shell aliases, or lightweight scripts wi
 
 If you've decided a wrapper is worth building, the core principle is __transparency__: your wrapper should add value without hiding what's happening. Developers should always be able to see the underlying commands, bypass the wrapper when needed, and use their existing tool knowledge.
 
+<Newsletter />
+
 The transparent wrapper pattern treats the underlying tool as the source of truth. The wrapper adds hooks for context injection, guard rails, and logging, but everything it doesn't explicitly handle passes through unchanged. Unknown flags? Pass them through. New subcommands? Pass them through. The wrapper should __never__ be the reason a valid command fails.
 
 <Callout type="info">
@@ -99,15 +105,13 @@ Two features are essential. First, `--wrapper-debug` shows exactly what command 
 
 Notice what a transparent wrapper __doesn't__ do: it doesn't parse kubectl's output, it doesn't assume specific flag formats, and it doesn't try to interpret what the user is doing beyond the minimum needed for guard rails. This restraint is what makes it maintainable. When kubectl adds a new flag in version 1.32, the wrapper doesn't need to change - the flag passes through automatically.
 
-<Newsletter />
-
 ### Context Injection Done Right
 
 Earlier I mentioned context injection as a legitimate use case - auto-selecting environment configs based on git branch or directory. But this is also where wrappers most often go wrong. Remember the `tf-deploy` incident? The rule is simple: __always show the injected context, never hide it__.
 
 A kubectl wrapper that silently switches to production because you're on the `main` branch is a disaster waiting to happen. A wrapper that __shows__ you it detected production context and asks for confirmation? That's genuinely useful.
 
-```text title="context-display-example.txt"
+```bash
 ┌─────────────────────────────────────┐
 │ Environment: production             │
 │ Cluster:     prod-us-east-1         │
@@ -120,22 +124,30 @@ Output: Context display before destructive operations.
 The detection hierarchy should be predictable and documented:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: "Explicit flags (`--context=prod`)",
+      lead: 'Explicit flags',
+      text: '<span class="font-mono">--context=prod</span>',
     },
     {
-      text: "Environment variables (`DEPLOY_ENV=staging`)",
+      lead: 'Environment variables',
+      text: '<span class="font-mono">DEPLOY_ENV=staging</span>',
     },
     {
-      text: "Git branch detection (`main` → production)",
+      lead: 'Git branch detection',
+      text: '<span class="font-mono">main</span> → production',
     },
     {
-      text: "Directory structure (`/environments/dev/`)",
+      lead: 'Directory structure',
+      text: '<span class="font-mono">/environments/dev/</span>',
     },
     {
-      text: "Default fallback (usually dev)",
+      lead: 'Default fallback',
+      text: 'Usually dev',
     },
   ]}
 />
@@ -147,27 +159,30 @@ And when context is injected automatically, don't override explicit user flags -
 Wrappers often fail gradually. Usage stays high because it's in deployment scripts, but developers increasingly bypass it for anything complex. Here's how to catch the decline early:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Bypass rate above 20%",
-      text: "means developers don't trust the wrapper for real work. They're using the \"safe\" path for routine operations but dropping to raw tools when it matters.",
+      text: "Means developers don't trust the wrapper for real work. They're using the \"safe\" path for routine operations but dropping to raw tools when it matters.",
     },
     {
       lead: "Support tickets mention the wrapper",
-      text: "more than the underlying tool. If \"tf-deploy\" appears in more tickets than \"terraform,\" your abstraction is creating problems instead of solving them.",
+      text: "More than the underlying tool. If \"tf-deploy\" appears in more tickets than \"terraform,\" your abstraction is creating problems instead of solving them.",
     },
     {
       lead: "Developers ask \"what command is this actually running?\"",
-      text: "for basic operations. Transparency has failed - they can't predict what the wrapper does.",
+      text: "For basic operations. Transparency has failed - they can't predict what the wrapper does.",
     },
     {
       lead: "You're more than one major version behind",
-      text: "the upstream tool. You can't track releases, and the gap will only widen.",
+      text: "The upstream tool. You can't track releases, and the gap will only widen.",
     },
     {
       lead: "New team members learn the raw tool first",
-      text: "because the wrapper's behavior is too unpredictable. Your \"simplification\" made things more complex.",
+      text: "Because the wrapper's behavior is too unpredictable. Your \"simplification\" made things more complex.",
     },
   ]}
 />
@@ -177,7 +192,8 @@ Wrappers often fail gradually. Usage stays high because it's in deployment scrip
 Set up tracking before problems become crises:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "Wrapper health indicators.",
     thead: {

@@ -9,45 +9,45 @@ tags: ["cloud-platforms","kubernetes","aws","azure"]
 featured: true
 ---
 
-*[K8s]: Kubernetes
-*[API]: Application Programming Interface
-*[CRD]: Custom Resource Definition
 *[CNI]: Container Network Interface
+*[CRD]: Custom Resource Definition
 *[CSI]: Container Storage Interface
 *[etcd]: Distributed key-value store used by Kubernetes
+*[K8s]: Kubernetes
 
-I watched a company avoid Kubernetes upgrades for 18 months. When they finally __had__ to upgrade for security compliance, they faced a five-version jump. Deprecated APIs were everywhere. Custom controllers broke. Workloads failed in ways nobody expected. What should have been four routine 2-hour maintenance windows became a three-week crisis involving weekend war rooms and executive escalations.
+I watched a company avoid Kubernetes upgrades for 18 months. When they finally _had_ to upgrade for security compliance, they faced a five-version jump. Deprecated APIs were everywhere. Custom controllers broke. Workloads failed in ways nobody expected. What should have been four routine 2-hour maintenance windows became a three-week crisis involving weekend war rooms and executive escalations.
 
-The lesson is counterintuitive but consistent: frequent, incremental upgrades are __less__ risky than infrequent large jumps. Kubernetes releases new versions roughly every four months, so each version you skip accumulates deprecated APIs, changed behaviors, and incompatible add-ons. A cluster three or more versions behind isn't technical debt - it's an emergency waiting to happen. The goal of this playbook is to make upgrades boring: predictable procedures that happen quarterly without drama.
+The lesson is counterintuitive but consistent: frequent, incremental upgrades are _less_ risky than infrequent large jumps. Kubernetes releases new versions roughly every four months, so each version you skip accumulates deprecated APIs, changed behaviors, and incompatible add-ons. <Highlighter>A cluster three or more versions behind isn't technical debt - it's an emergency waiting to happen.</Highlighter> The goal of this playbook is to make upgrades boring: predictable procedures that happen quarterly without drama.
 
 ## The Pre-Upgrade Checklist
 
 Most upgrade failures trace back to skipped preparation. Before touching the cluster, work through four categories of readiness checks.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Timing and planning",
-      text: "comes first. Review the release notes for your target version - not just the highlights, but the deprecations and breaking changes. Kubernetes only supports upgrading one minor version at a time (1.28 to 1.29 is fine, 1.28 to 1.30 isn't), so verify your upgrade path. Schedule a maintenance window with buffer time.",
+      text: "Comes first. Review the release notes for your target version - not just the highlights, but the deprecations and breaking changes. Kubernetes only supports upgrading one minor version at a time (1.28 to 1.29 is fine, 1.28 to 1.30 isn't), so verify your upgrade path. Schedule a maintenance window with buffer time.",
     },
     {
       lead: "Cluster health",
-      text: "establishes your baseline. All nodes should show Ready status. There shouldn't be unexpected pending pods. Control plane components and etcd should be healthy. Resource utilization should be below 70% - upgrades temporarily reduce capacity as nodes drain and restart.",
+      text: "Establishes your baseline. All nodes should show Ready status. There shouldn't be unexpected pending pods. Control plane components and etcd should be healthy. Resource utilization should be below 70% - upgrades temporarily reduce capacity as nodes drain and restart.",
     },
     {
       lead: "Backup and recovery",
-      text: "is your safety net. Take an etcd snapshot before starting. Document current cluster state. Most importantly, document and test your rollback procedure in a non-production environment before you need it.",
+      text: "These are your safety net. Take an etcd snapshot before starting. Document current cluster state. Most importantly, document and test your rollback procedure in a non-production environment before you need it.",
     },
     {
       lead: "Compatibility verification",
-      text: "catches the issues that break workloads. Check that your add-ons - CNI plugin, CSI drivers, ingress controller, cert-manager, monitoring stack - are compatible with the target version. Validate workload manifests for deprecated APIs.",
+      text: "Catches the issues that break workloads. Check that your add-ons - CNI plugin, CSI drivers, ingress controller, cert-manager, monitoring stack - are compatible with the target version. Validate workload manifests for deprecated APIs.",
     },
   ]}
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Pre-upgrade checklist summary.",
     thead: {
@@ -110,7 +110,10 @@ Kubernetes components have strict version compatibility requirements. The API se
 This is by design. Kubernetes explicitly allows version skew during upgrades. If you're upgrading from 1.28 to 1.29, you'll temporarily have 1.29 API servers serving requests alongside 1.28 kubelets - and that's fine.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Phase 1: Preparation (30 minutes).",
@@ -136,7 +139,8 @@ This is by design. Kubernetes explicitly allows version skew during upgrades. If
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     figure: "Upgrade phases with risk assessment.",
     thead: {
@@ -207,19 +211,22 @@ __Control plane rollback__ is the nuclear option. For self-managed clusters, rol
 Managed Kubernetes rollback options are limited:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "EKS",
-      text: "doesn't support control plane downgrades - your options are restoring from Terraform state or creating a new cluster",
+      text: "Doesn't support control plane downgrades - your options are restoring from Terraform state or creating a new cluster",
     },
     {
       lead: "GKE",
-      text: "supports rollback within the maintenance window",
+      text: "Supports rollback within the maintenance window",
     },
     {
       lead: "AKS",
-      text: "doesn't support downgrades either",
+      text: "Doesn't support downgrades either",
     },
   ]}
 />
@@ -229,7 +236,8 @@ If you're on managed Kubernetes, test what "rollback" actually means for your pr
 __Worker node rollback__ is much simpler. If a node is misbehaving after upgrade, you can downgrade its kubelet without affecting the rest of the cluster: cordon, drain, downgrade, uncordon. Some teams use a blue-green node pool strategy - creating new nodes at the target version, then draining old nodes. With this approach, rollback is trivial: uncordon the old pool and delete the new one.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Rollback scenario risk assessment.",
     thead: {

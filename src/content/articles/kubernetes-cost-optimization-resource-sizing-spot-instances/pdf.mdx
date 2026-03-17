@@ -9,26 +9,26 @@ tags: ["cloud-platforms","kubernetes","prometheus","aws","azure"]
 featured: true
 ---
 
-*[K8s]: Kubernetes
-*[VPA]: Vertical Pod Autoscaler
-*[HPA]: Horizontal Pod Autoscaler
-*[QoS]: Quality of Service
-*[OOM]: Out of Memory
-*[EC2]: Elastic Compute Cloud
-*[GCE]: Google Compute Engine
 *[AKS]: Azure Kubernetes Service
+*[EC2]: Elastic Compute Cloud
 *[EKS]: Elastic Kubernetes Service
+*[GCE]: Google Compute Engine
 *[GKE]: Google Kubernetes Engine
+*[HPA]: Horizontal Pod Autoscaler
+*[K8s]: Kubernetes
+*[OOM]: Out of Memory
+*[QoS]: Quality of Service
+*[VPA]: Vertical Pod Autoscaler
 
 Compute is typically 60-80% of Kubernetes spend, yet most teams have no visibility into whether their resource requests match actual usage. The default behavior - developers requesting "enough" resources with generous padding - leads to clusters running at 20-30% utilization while paying for 100%.
 
 I worked with a team running 50 nodes who'd never looked at their actual resource utilization. When we finally checked, average CPU usage was 15% and memory was 25%. Resource requests were 3-4x what workloads actually used. Right-sizing those requests and enabling the cluster autoscaler dropped them to 20 nodes - a 60% cost reduction with zero performance impact. The workloads didn't notice because they were never using the resources they'd requested.
 
-Cost optimization isn't about penny-pinching. It's about eliminating waste that funds nothing. The savings can fund actual improvements: better observability, more environments, faster CI runners, or simply budget for the next project.
-
 <Callout type="info">
 Kubernetes cost optimization has three levers: use cheaper compute (spot instances), use less compute (right-sizing), and use compute more efficiently (bin packing). Most savings come from the boring work of accurate resource requests, not clever architecture.
 </Callout>
+
+Cost optimization isn't about penny-pinching. It's about eliminating waste that funds nothing. The savings can fund actual improvements: better observability, more environments, faster CI runners, or simply budget for the next project.
 
 ## Understanding Kubernetes Resource Model
 
@@ -45,7 +45,8 @@ This distinction matters for cost because __requests determine how many nodes yo
 Kubernetes assigns a QoS class based on how you set resources. __Guaranteed__ pods (requests equal limits for all resources) get the highest priority and are evicted last under pressure. __Burstable__ pods (requests less than limits) are the common case. __BestEffort__ pods (no requests or limits) are evicted first - avoid these in production. To control your pod's QoS class, set both CPU and memory requests equal to their limits for Guaranteed, or set requests lower than limits (or omit limits) for Burstable.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Aspect', 'Request', 'Limit'],
@@ -86,7 +87,7 @@ A side note on memory limits: there's an ongoing debate about whether to set the
 
 ### The Over-Provisioning Problem
 
-Understanding the request/limit distinction explains __why__ over-provisioning is so expensive - but it doesn't explain why it's so common.
+Understanding the request/limit distinction explains _why_ over-provisioning is so expensive - but it doesn't explain why it's so common.
 
 Over-provisioning happens organically. A developer sets resource requests during initial deployment, picks numbers that seem reasonable with some safety margin, and never revisits them. The service works fine, so the requests stay. Multiply this across hundreds of services and you end up with a cluster that's 30% utilized but "full" according to the scheduler.
 
@@ -168,11 +169,11 @@ After deploying the VPA, wait 24-48 hours for it to collect enough data, then ch
 
 The workflow I use: deploy VPAs in recommendation mode for all deployments, review recommendations weekly, apply changes through the normal deployment process (not via VPA auto-apply), and validate that workloads remain healthy after the change. This keeps humans in the loop while still automating the analysis.
 
-VPA has other update modes - "Initial" applies recommendations only when pods are created, and "Recreate" evicts pods to apply new resource values. These work, but they remove the verification step. For production workloads, I prefer explicit control over when resource changes roll out.
-
 <Callout type="success">
 Start VPA in "Off" mode to get recommendations without automatic changes. Review recommendations weekly, apply them through your normal deployment process, and validate that workloads remain healthy. Automatic modes work but remove the human verification step.
 </Callout>
+
+VPA has other update modes - "Initial" applies recommendations only when pods are created, and "Recreate" evicts pods to apply new resource values. These work, but they remove the verification step. For production workloads, I prefer explicit control over when resource changes roll out.
 
 ## Spot and Preemptible Instances
 
@@ -293,7 +294,8 @@ When a spot instance is about to be reclaimed, something needs to cordon the nod
 On AWS, deploy the `aws-node-termination-handler` as a DaemonSet on spot nodes. It monitors the instance metadata service for interruption warnings and triggers a drain when one arrives. GKE has built-in handling. AKS requires a separate node drain handler.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Provider', 'Warning Time', 'Detection Method', 'Handler'],
@@ -391,7 +393,7 @@ The cluster autoscaler adds nodes when pods can't be scheduled and removes nodes
 
 The key scale-down settings are `scale-down-utilization-threshold` (nodes below this utilization are candidates for removal) and `scale-down-unneeded-time` (how long a node must be underutilized before removal). A threshold of 0.5 and unneeded time of 10 minutes is a reasonable starting point - aggressive enough to remove waste but not so aggressive that you're constantly churning nodes.
 
-The __expander__ controls which node pool the autoscaler scales when multiple pools could satisfy pending pods. For cost optimization, use `least-waste` (picks the pool that results in least idle resources) or `priority` (lets you explicitly prefer spot pools over on-demand). The `price` expander sounds ideal but requires accurate cost data that's often stale.
+The _expander_ controls which node pool the autoscaler scales when multiple pools could satisfy pending pods. For cost optimization, use `least-waste` (picks the pool that results in least idle resources) or `priority` (lets you explicitly prefer spot pools over on-demand). The `price` expander sounds ideal but requires accurate cost data that's often stale.
 
 ### Priority-Based Autoscaling
 
@@ -419,7 +421,7 @@ Code: Priority expander configuration for preferring spot instances.
 With this configuration, the autoscaler first tries to scale spot pools. If spot capacity isn't available (the cloud provider is out of that instance type), it falls back to general on-demand. The critical on-demand pool only gets used when everything else fails. Add `--expander=priority` and `--expanderConfigMap=cluster-autoscaler-priority-expander` to the autoscaler command to enable it.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Setting', 'Cost Optimization', 'Stability', 'Recommendation'],
@@ -454,10 +456,10 @@ Kubernetes cost optimization comes down to a few straightforward practices: meas
 
 The biggest wins come from fixing over-provisioned resources - the boring work of adjusting requests to match actual usage. Teams that invest in cost visibility and right-sizing typically reduce spend by 40-60% without any architectural changes. No new services, no migration projects, just better numbers in existing deployment manifests.
 
-Start with visibility. Deploy VPA in recommendation mode across your workloads and let it collect data for a week. Query efficiency ratios to find your worst offenders - the deployments requesting 4x what they use - and fix those first. The Pareto principle applies: 20% of your workloads probably account for 80% of your waste. Once you've addressed the obvious outliers, build a dashboard that tracks efficiency by namespace so teams can self-service.
-
-Then look at spot instances. Any workload that can tolerate losing a node - web servers, API servers, workers, CI runners - is a spot candidate. With proper interruption handling (multiple replicas, zone spreading, graceful shutdown), spot instances deliver 50-70% savings on compute with minimal operational overhead.
-
 <Callout type="warning">
 Cost optimization is continuous, not a one-time project. Usage patterns change, new services deploy with default resources, and spot savings vary. Build cost review into your regular operations - a monthly meeting that reviews efficiency dashboards and identifies right-sizing opportunities keeps savings compounding.
 </Callout>
+
+Start with visibility. Deploy VPA in recommendation mode across your workloads and let it collect data for a week. Query efficiency ratios to find your worst offenders - the deployments requesting 4x what they use - and fix those first. The Pareto principle applies: 20% of your workloads probably account for 80% of your waste. Once you've addressed the obvious outliers, build a dashboard that tracks efficiency by namespace so teams can self-service.
+
+Then look at spot instances. Any workload that can tolerate losing a node - web servers, API servers, workers, CI runners - is a spot candidate. With proper interruption handling (multiple replicas, zone spreading, graceful shutdown), spot instances deliver 50-70% savings on compute with minimal operational overhead.

@@ -13,17 +13,17 @@ featured: true
 *[GitOps]: Git Operations
 *[K8s]: Kubernetes
 
-A platform team I worked with managed 15 Kubernetes clusters across dev, staging, and three production regions. They'd started with infrastructure-as-code, consistent tooling, and documented architecture. Two years later, hotfixes had been applied to some clusters and not others. "Temporary" manual changes became permanent. Someone upgraded the service mesh in US-East but forgot US-West. The clusters that started identical had become 15 unique configurations — and nobody could confidently say what was __intentionally__ different versus what had __accidentally__ drifted.
+A platform team I worked with managed 15 Kubernetes clusters across dev, staging, and three production regions. They'd started with infrastructure-as-code, consistent tooling, and documented architecture. Two years later, hotfixes had been applied to some clusters and not others. "Temporary" manual changes became permanent. Someone upgraded the service mesh in US-East but forgot US-West. The clusters that started identical had become 15 unique configurations — and nobody could confidently say what was _intentionally_ different versus what had _accidentally_ drifted.
 
-This is the core multi-cluster problem: not deployment (that's straightforward), but __consistency__. How do you know what's supposed to be the same across clusters? How do you detect when drift occurs? The answer is GitOps-based fleet management with automated drift detection. The practical questions are which tools to use — and how to prevent drift once you've deployed them.
+<Highlighter>This is the core multi-cluster problem: not deployment (that's straightforward), but _consistency_.</Highlighter> How do you know what's supposed to be the same across clusters? How do you detect when drift occurs? The answer is GitOps-based fleet management with automated drift detection. The practical questions are which tools to use — and how to prevent drift once you've deployed them.
 
 ## ArgoCD vs Flux: Two Models for Multi-Cluster
 
-The two dominant GitOps tools for multi-cluster management are ArgoCD (with ApplicationSets) and Flux. Both store desired state in Git and reconcile clusters toward that state. They differ fundamentally in __how__ they handle multi-cluster targeting. Let's start with ArgoCD's centralized approach, then contrast it with Flux's distributed model.
+The two dominant GitOps tools for multi-cluster management are ArgoCD (with ApplicationSets) and Flux. Both store desired state in Git and reconcile clusters toward that state. They differ fundamentally in _how_ they handle multi-cluster targeting. Let's start with ArgoCD's centralized approach, then contrast it with Flux's distributed model.
 
 ### ArgoCD ApplicationSets: Centralized Generation
 
-ArgoCD ApplicationSets use a centralized model. A single ApplicationSet controller generates multiple ArgoCD Applications — one per target cluster — from a template. The __generator__ produces parameters (cluster names, environments, regions), and the __template__ stamps out Applications using those parameters.
+ArgoCD ApplicationSets use a centralized model. A single ApplicationSet controller generates multiple ArgoCD Applications — one per target cluster — from a template. The _generator_ produces parameters (cluster names, environments, regions), and the _template_ stamps out Applications using those parameters.
 
 The cluster generator is the most common pattern. It queries ArgoCD's registered clusters, filters by labels, and creates one Application per matching cluster:
 
@@ -71,26 +71,66 @@ Flux takes the opposite approach. Instead of a central controller generating App
 
 The typical pattern uses three layers: base configurations (shared across all clusters), environment overlays (dev/staging/production), and cluster-specific directories. Each cluster's Flux installation points to its own path in the repo:
 
-```text
-platform-config/
-├── base/
-│   └── platform/
-│       ├── kustomization.yaml
-│       ├── deployment.yaml
-│       └── service.yaml
-├── overlays/
-│   ├── development/
-│   ├── staging/
-│   └── production/
-│       └── kustomization.yaml
-└── clusters/
-    ├── us-east-prod/
-    ├── us-west-prod/
-    └── eu-west-prod/
-        └── kustomization.yaml
-```
-
-Figure: Repository structure for Flux multi-cluster configuration.
+<FileExplorer
+  fullWidth={false}
+  classes={{
+    wrapper: "sm:ml-24 sm:mr-24 mb-6",
+  }}
+  figure="Repository structure for Flux multi-cluster configuration."
+  data={[
+    {
+      type: 'folder',
+      name: 'platform-config',
+      children: [
+        {
+          type: 'folder',
+          name: 'base',
+          children: [
+            {
+              type: 'folder',
+              name: 'platform',
+              children: [
+                { type: 'file', name: 'kustomization.yaml', comment: 'Assembles shared platform manifests' },
+                { type: 'file', name: 'deployment.yaml', comment: 'Defines platform service deployment' },
+                { type: 'file', name: 'service.yaml', comment: 'Exposes platform service internally' },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'overlays',
+          children: [
+            { type: 'folder', name: 'development' },
+            { type: 'folder', name: 'staging' },
+            {
+              type: 'folder',
+              name: 'production',
+              children: [
+                { type: 'file', name: 'kustomization.yaml', comment: 'Applies production-specific overrides' },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'clusters',
+          children: [
+            { type: 'folder', name: 'us-east-prod' },
+            { type: 'folder', name: 'us-west-prod' },
+            {
+              type: 'folder',
+              name: 'eu-west-prod',
+              children: [
+                { type: 'file', name: 'kustomization.yaml', comment: 'Sets cluster-specific resources' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
 Flux Kustomizations (not to be confused with Kustomize's kustomization.yaml) define dependencies between layers. Base configs apply first, then environment overlays, then cluster-specific configs:
 
@@ -117,9 +157,9 @@ Code: Flux Kustomization with cluster-specific value substitution.
 
 The `postBuild.substituteFrom` feature injects cluster-specific values from ConfigMaps at reconciliation time — each cluster maintains its own `cluster-values` ConfigMap with region, replica counts, and other parameters.
 
-Flux's model works well when you think in terms of "configuration layers that build on each other." It scales better than ArgoCD for very large fleets (1000+ clusters) because there's no central controller bottleneck. The trade-off is less centralized visibility — there's no built-in UI showing fleet-wide status.
-
 <Newsletter />
+
+Flux's model works well when you think in terms of "configuration layers that build on each other." It scales better than ArgoCD for very large fleets (1000+ clusters) because there's no central controller bottleneck. The trade-off is less centralized visibility — there's no built-in UI showing fleet-wide status.
 
 ### Which to Choose?
 
@@ -154,7 +194,7 @@ Auto-remediation is powerful but dangerous. If someone made a legitimate emergen
 
 ### Prevention with Admission Control
 
-Detection tells you __that__ drift happens. Prevention stops it from happening. Kubernetes admission controllers can intercept API requests before resources are created or modified, rejecting changes that violate fleet policies.
+Detection tells you _that_ drift happens. Prevention stops it from happening. Kubernetes admission controllers can intercept API requests before resources are created or modified, rejecting changes that violate fleet policies.
 
 The two main policy engines are OPA/Gatekeeper[^opa-gatekeeper] and Kyverno[^kyverno]. Here's a Kyverno policy that rejects changes to production resources without GitOps annotations:
 
@@ -193,7 +233,10 @@ Drift prevention through admission control is powerful but can block emergency c
 The tools only work if you've done the organizational groundwork:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Document your fleet topology first.',

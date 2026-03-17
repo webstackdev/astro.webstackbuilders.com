@@ -10,19 +10,19 @@ featured: true
 ---
 
 *[K8s]: Kubernetes
-*[VPA]: Vertical Pod Autoscaler
-*[QoS]: Quality of Service
 *[OOM]: Out of Memory
+*[QoS]: Quality of Service
+*[VPA]: Vertical Pod Autoscaler
 
 I worked with a team running 50 nodes who'd never looked at their actual resource utilization. When we finally checked, average CPU usage was 15% and memory was 25%. Resource requests were 3-4x what workloads actually used. Right-sizing those requests and enabling the cluster autoscaler dropped them to 20 nodes - a 60% cost reduction with zero performance impact.
 
 This isn't unusual. Compute is typically 60-80% of Kubernetes spend, yet most teams have no visibility into whether their resource requests match actual usage. The default behavior - developers requesting "enough" resources with generous padding - leads to clusters running at 20-30% utilization while paying for 100%.
 
-The good news: Kubernetes cost optimization has three levers, and two of them deliver 80% of the savings. Use cheaper compute (spot instances), use less compute (right-sizing), and use compute more efficiently (bin packing). This article focuses on right-sizing and spot - the changes you can make this week that will actually move your bill.
+The good news: <Highlighter>Kubernetes cost optimization has three levers, and two of them deliver 80% of the savings.</Highlighter> Use cheaper compute (spot instances), use less compute (right-sizing), and use compute more efficiently (bin packing). This article focuses on right-sizing and spot - the changes you can make this week that will actually move your bill.
 
 ## The Resource Model That Costs You Money
 
-The Kubernetes resource model trips up a lot of teams because __requests__ and __limits__ sound similar but do completely different things.
+The Kubernetes resource model trips up a lot of teams because _requests_ and _limits_ sound similar but do completely different things.
 
 __Requests__ are what the scheduler uses for placement decisions. When you set `cpu: 500m` as a request, you're telling Kubernetes "this container needs half a CPU core guaranteed." The scheduler won't place your pod on a node unless that capacity is available. Requests are promises - the node reserves that capacity for your container whether you use it or not.
 
@@ -31,7 +31,8 @@ __Limits__ are enforcement boundaries. CPU limits throttle - if your container t
 This distinction matters for cost because __requests determine how many nodes you need__. If every pod requests 1 CPU but only uses 0.1, you're paying for 10x the capacity you need. The scheduler sees the cluster as full when it's actually 90% idle. Here's how they compare:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     figure: "Requests vs limits comparison.",
     thead: {
@@ -126,18 +127,22 @@ The workflow I use:
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    li: "[&>div]:!pt-3 mb-6",
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: "Deploy VPAs in recommendation mode for all deployments",
+      lead: "Deploy VPAs in recommendation mode for all deployments",
     },
     {
-      text: "Review recommendations weekly",
+      lead: "Review recommendations weekly",
     },
     {
-      text: "Apply changes through the normal deployment process (not via VPA auto-apply)",
+      lead: "Apply changes through the normal deployment process (not via VPA auto-apply)",
     },
     {
-      text: "Validate that workloads remain healthy after the change",
+      lead: "Validate that workloads remain healthy after the change",
     },
   ]}
 />

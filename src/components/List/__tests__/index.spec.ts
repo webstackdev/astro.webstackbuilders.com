@@ -132,4 +132,104 @@ describe('List (Astro)', () => {
       expect(lead?.getAttribute('style')).toBeNull()
     })
   })
+
+  test('applies interactive card styling for the card-grid-list variant', async () => {
+    const List = (await import('@components/List/index.astro')).default
+
+    const renderedHtml = await container.renderToString(List, {
+      props: {
+        variant: 'card-grid-list',
+        items: [
+          {
+            lead: 'Owner clarity matters.',
+            text: 'Each card should clearly communicate its primary action.',
+          },
+        ],
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const card = window.document.querySelector('ul li')
+      const lead = window.document.querySelector('ul li em')
+
+      expect(card).toBeTruthy()
+      expect(card?.className).toContain('hover:-translate-y-1')
+      expect(card?.className).toContain('hover:bg-page-base')
+      expect(card?.className).toContain('hover:shadow-md')
+      expect(card?.className).toContain('focus-within:border-primary')
+      expect(lead?.textContent).toContain('Owner clarity matters.')
+    })
+  })
+
+  test('stacks lead and text vertically for the colored-marker-list variant', async () => {
+    const List = (await import('@components/List/index.astro')).default
+
+    const renderedHtml = await container.renderToString(List, {
+      props: {
+        variant: 'colored-marker-list',
+        items: [
+          {
+            lead: 'Compatibility adapters',
+            text: 'Provide a translation layer during migration.',
+            color: 'bg-success',
+          },
+        ],
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const listItem = window.document.querySelector('ul li')
+      const marker = window.document.querySelector('ul li > span:first-child')
+      const contentWrapper = window.document.querySelector('ul li > div')
+      const lead = window.document.querySelector('ul li em')
+      const text = window.document.querySelector('ul li div > span')
+
+      expect(listItem).toBeTruthy()
+      expect(marker?.className).toContain('bg-success')
+      expect(contentWrapper?.className).toContain('flex-col')
+      expect(contentWrapper?.className).not.toContain('sm:flex-row')
+      expect(contentWrapper?.className).toContain('items-start')
+      expect(contentWrapper?.className).toContain('gap-1')
+      expect(lead?.className).not.toContain('sm:mr-2')
+      expect(lead?.textContent).toContain('Compatibility adapters')
+      expect(text?.textContent).toContain('Provide a translation layer during migration.')
+    })
+  })
+
+  test('applies hover styling for the three-column-icon-list variant', async () => {
+    const List = (await import('@components/List/index.astro')).default
+
+    const renderedHtml = await container.renderToString(List, {
+      props: {
+        variant: 'three-column-icon-list',
+        items: [
+          {
+            title: 'Resource metrics',
+            text: 'Built-in via Metrics Server.',
+            icon: 'graph',
+            color: 'page-inverse',
+            bgColor: 'info-inverse',
+          },
+        ],
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const card = window.document.querySelector('ul li')
+      const title = window.document.querySelector('ul li h3')
+
+      expect(card).toBeTruthy()
+      expect(card?.className).toContain('transition-all')
+      expect(card?.className).toContain('duration-200')
+      expect(card?.className).toContain('hover:-translate-y-1')
+      expect(card?.className).toContain('hover:shadow-lg')
+      expect(title?.textContent).toContain('Resource metrics')
+    })
+  })
 })

@@ -12,14 +12,12 @@ featured: true
 import helmReleaseFailureDiagram from "./diagrams/helm-release-failure-diagnosis-workflow.jpg"
 import helmReleaseStateDiagram from "./diagrams/helm-release-state-and-drift-flow.jpg"
 
-*[YAML]: YAML Ain't Markup Language
-*[K8s]: Kubernetes
+*[ConfigMap]: Kubernetes ConfigMap resource
 *[CRD]: Custom Resource Definition
-*[CI]: Continuous Integration
-*[CD]: Continuous Deployment
+*[K8s]: Kubernetes
 *[OCI]: Open Container Initiative
 *[RBAC]: Role-Based Access Control
-*[ConfigMap]: Kubernetes ConfigMap resource
+*[YAML]: YAML Ain't Markup Language
 
 Helm makes deploying applications to Kubernetes straightforward. Write a chart, run `helm install`, and your app materializes in the cluster. But that simplicity doesn't scale. When you're managing dozens of services across multiple clusters, you lose track of which chart versions are deployed where, which releases are drifting from their declared state, and why that upgrade failed at 2 AM.
 
@@ -27,11 +25,11 @@ I've spent time untangling Helm state in production clusters, and the pattern is
 
 Here's a scenario I've seen more than once. During an incident, an engineer tries to rollback a Helm release to a known-good state. The rollback fails. Turns out someone ran `kubectl edit` on the deployment three weeks ago to bump memory limits. Helm's stored manifest doesn't match what's in the cluster, so the three-way merge produces unexpected results. The team spends 45 minutes reconciling state instead of fixing the actual problem.
 
-This article covers the operational side of Helm at scale: understanding how Helm tracks state, detecting drift before it causes incidents, maintaining a release inventory across clusters, debugging failed releases systematically, and integrating with GitOps tools for continuous reconciliation.
-
 <Callout type="warning">
 Helm tracks its own state, but the cluster is the source of truth. When these diverge — through manual edits, partial upgrades, or failed releases — Helm's model breaks down. At scale, drift isn't __if__, it's __when__.
 </Callout>
+
+This article covers the operational side of Helm at scale: understanding how Helm tracks state, detecting drift before it causes incidents, maintaining a release inventory across clusters, debugging failed releases systematically, and integrating with GitOps tools for continuous reconciliation.
 
 ## Understanding Helm State
 
@@ -43,6 +41,7 @@ When you run `helm upgrade`, Helm doesn't just push resources to the cluster and
 
 <Diagram
   src={helmReleaseStateDiagram}
+  size="full"
   title="Helm release state and drift flow"
   description="Flowchart showing Helm upgrade processing and where drift appears. The flow starts with helm upgrade, then renders templates, computes a diff against the cluster, and applies changes. A success decision stores either a successful or failed release in Kubernetes Secrets, which then form Helm release history with revisions v1, v2, and current v3. Separately, the cluster contains actual live resources. A dotted relationship indicates the current stored release should match the live cluster state. A manual kubectl edit points directly to the live cluster state to show how out-of-band changes introduce drift between Helm's stored revision history and the actual resources."
 />
@@ -73,35 +72,11 @@ The critical thing to understand: Helm's stored manifest represents what Helm __
 
 Drift shows up in predictable patterns, and recognizing which pattern you're dealing with speeds up recovery.
 
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: "Manual kubectl edits",
-      text: "are the most common source. Someone runs `kubectl edit deployment` to bump resource limits during an incident, or `kubectl patch` to add an annotation. The cluster state changes, but Helm doesn't know. The next `helm upgrade` may revert those changes unexpectedly, or the three-way merge may produce surprising results.",
-    },
-    {
-      lead: "Partial upgrade failures",
-      text: "leave you in limbo. If Helm times out or hits an error mid-upgrade, some resources may be updated while others aren't. You'll see pods running different versions, ConfigMaps updated but Deployments not, and a release status of \"failed\" that blocks further operations.",
-    },
-    {
-      lead: "Secret storage corruption",
-      text: "is less common but more painful. If cleanup scripts, namespace recreation, or manual deletion removes Helm's release secrets, the cluster still has the resources but Helm has no record of them. `helm list` shows nothing, but `helm install` fails with \"already exists.\"",
-    },
-    {
-      lead: "Hook failures",
-      text: "create orphaned state. Pre-upgrade or post-upgrade hooks that fail can leave partial resources. The release is marked failed, but the hook's job or pod may still exist, and main resources may or may not have been deployed depending on when the hook failed.",
-    },
-    {
-      lead: "Three-way merge conflicts",
-      text: "are the trickiest. When Helm computes an upgrade, it compares the old manifest, new manifest, and live cluster state. If someone modified a field in the cluster that you're also changing in the new manifest, the merge can produce unexpected results — fields deleted, values unexpectedly retained, or strategic merge patches behaving counter-intuitively.",
-    },
-  ]}
-/>
-
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
+    figure: "Common Helm drift patterns, their frequency, severity, and recovery difficulty.",
     thead: {
       th: ["Drift Type", "Frequency", "Severity", "Recovery Difficulty"],
     },
@@ -130,6 +105,32 @@ Drift shows up in predictable patterns, and recognizing which pattern you're dea
       ],
     },
   }}
+/>
+
+<List
+  variant="zebra-list"
+  items={[
+    {
+      lead: "Manual kubectl edits",
+      text: 'The most common source. Someone runs <span class="font-mono">kubectl edit deployment</span> to bump resource limits during an incident, or <span class="font-mono">kubectl patch</span> to add an annotation. The cluster state changes, but Helm doesn\'t know. The next <span class="font-mono">helm upgrade</span> may revert those changes unexpectedly, or the three-way merge may produce surprising results.',
+    },
+    {
+      lead: "Partial upgrade failures",
+      text: 'These leave you in limbo. If Helm times out or hits an error mid-upgrade, some resources may be updated while others aren\'t. You\'ll see pods running different versions, <span class="font-mono">ConfigMaps</span> updated but <span class="font-mono">Deployments</span> not, and a release status of "failed" that blocks further operations.',
+    },
+    {
+      lead: "Secret storage corruption",
+      text: 'Less common but more painful. If cleanup scripts, namespace recreation, or manual deletion removes Helm\'s release secrets, the cluster still has the resources but Helm has no record of them. <span class="font-mono">helm list</span> shows nothing, but <span class="font-mono">helm install</span> fails with "already exists."',
+    },
+    {
+      lead: "Hook failures",
+      text: "Creates orphaned state. Pre-upgrade or post-upgrade hooks that fail can leave partial resources. The release is marked failed, but the hook's job or pod may still exist, and main resources may or may not have been deployed depending on when the hook failed.",
+    },
+    {
+      lead: "Three-way merge conflicts",
+      text: "The trickiest. When Helm computes an upgrade, it compares the old manifest, new manifest, and live cluster state. If someone modified a field in the cluster that you're also changing in the new manifest, the merge can produce unexpected results — fields deleted, values unexpectedly retained, or strategic merge patches behaving counter-intuitively.",
+    },
+  ]}
 />
 
 <Callout type="info">
@@ -262,16 +263,22 @@ helm list --all-namespaces --output json
 The output includes release name, namespace, chart name and version, app version, status, and last deployment timestamp. Aggregate this across clusters and you can answer questions like:
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
+      color: "bg-secondary",
       text: "Which releases are using chart version X vs Y?",
     },
     {
-      text: "Are there any failed releases that need attention?",
+      color: "bg-orange-500",
+      text: "Which services haven't been deployed in over 30 days?",
     },
     {
-      text: "Which services haven't been deployed in over 30 days?",
+      color: "bg-danger-offset",
+      text: "Are there any failed releases that need attention?",
     },
   ]}
 />
@@ -318,7 +325,8 @@ groups:
 The version inconsistency alert is particularly useful during rollouts. If you're upgrading a chart across clusters, you can see at a glance which clusters are done and which are still pending.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ["Metric", "Purpose", "Alert Threshold"],
@@ -380,7 +388,10 @@ For higher-risk changes, upgrade in stages rather than all at once.
 __Canary upgrades__ deploy to a subset first — typically staging, then one production namespace or cluster — and verify before continuing. This gives you a chance to catch problems before they affect all users. The process looks like:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       text: "Upgrade in staging, run smoke tests, verify metrics",
@@ -441,6 +452,8 @@ Start with `helm status` to see the current release state, then `helm history` t
 
 <Diagram
   src={helmReleaseFailureDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="Helm release failure diagnosis workflow"
   description="Flowchart for troubleshooting a failed Helm upgrade. The process begins with an upgrade failure, then checks helm status, helm history, and failed revision details before branching on the failure type. Hook failures lead to hook job/pod logs and then a decision on whether the hook is recoverable, resulting in either a fix-and-retry path or deletion of hook resources before retrying. Resource failures branch to checking resource events and whether the resource exists, followed by either kubectl describe for wrong state or admission webhook investigation for creation failures. Timeouts branch to pod status and then to image/registry checks, container log review, or node resource review depending on whether pods are in ImagePullBackOff, CrashLoopBackOff, or Pending. Validation errors go to rendering templates and running a server-side `--dry-run`."
 />
@@ -469,7 +482,10 @@ helm template my-release ./my-chart -f values.yaml | kubectl apply --dry-run=ser
 ### Common Failure Patterns
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Hook timeouts",
@@ -585,7 +601,7 @@ Code: ArgoCD Application with self-healing.
 
 ### Emergency Access
 
-GitOps requires discipline. If the only way to change the cluster is through Git, what happens during an incident when you need to make a change __now__?
+GitOps requires discipline. If the only way to change the cluster is through Git, what happens during an incident when you need to make a change _now_?
 
 The answer is break-glass procedures. Create a separate ServiceAccount — something like `emergency-ops`—with elevated permissions that's only used during incidents. Gate access behind your identity provider with MFA and time-limited credentials. When someone authenticates to this account, automatically create a ticket and send an alert to your incident channel.
 
@@ -604,7 +620,10 @@ Helm's simplicity at small scale becomes operational complexity at large scale. 
 The key practices that keep Helm manageable:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Understand Helm state",

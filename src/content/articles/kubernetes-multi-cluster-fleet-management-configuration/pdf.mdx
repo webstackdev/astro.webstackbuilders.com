@@ -13,29 +13,29 @@ import argocdDiagram from "./diagrams/argocd-generates-applications-centrally-fl
 import configurationLayeringDiagram from "./diagrams/configuration-layering-from-fleet-wide-to-cluster-specific.jpg"
 import multiClusterDiagram from "./diagrams/multi-cluster-topology-patterns.jpg"
 
-*[K8s]: Kubernetes
-*[GitOps]: Git Operations
-*[CRD]: Custom Resource Definition
-*[RBAC]: Role-Based Access Control
-*[GKE]: Google Kubernetes Engine
-*[EKS]: Elastic Kubernetes Service
 *[AKS]: Azure Kubernetes Service
+*[CRD]: Custom Resource Definition
+*[EKS]: Elastic Kubernetes Service
+*[GitOps]: Git Operations
+*[GKE]: Google Kubernetes Engine
+*[K8s]: Kubernetes
+*[RBAC]: Role-Based Access Control
 
 Running multiple Kubernetes clusters is easy. Keeping them consistent is hard.
 
-As organizations grow, they accumulate clusters: dev, staging, production, regional deployments, edge locations, disaster recovery. Each cluster starts as a copy of the others, templated from the same base configuration. A platform team I worked with managed 15 clusters across dev, staging, and three production regions. They'd done everything right at the start: infrastructure-as-code, consistent tooling, documented architecture. But two years later, hotfixes had been applied to some clusters and not others, "temporary" manual changes became permanent, and someone upgraded the service mesh in US-East but forgot US-West. The clusters that started identical had become 15 unique configurations — and nobody could tell you what was __intentionally__ different versus what had __accidentally__ drifted.
-
-The multi-cluster management problem isn't primarily about tools. It's about the operating model: how you balance consistency with environment-specific flexibility, how you detect when drift occurs, and how you maintain clarity about what's __supposed__ to be the same versus what's __supposed__ to be different. This article covers the patterns and tools that make fleet management tractable: configuration templating strategies, GitOps-based deployment, drift detection, and progressive rollout across clusters.
+As organizations grow, they accumulate clusters: dev, staging, production, regional deployments, edge locations, disaster recovery. Each cluster starts as a copy of the others, templated from the same base configuration. A platform team I worked with managed 15 clusters across dev, staging, and three production regions. They'd done everything right at the start: infrastructure-as-code, consistent tooling, documented architecture. But two years later, hotfixes had been applied to some clusters and not others, "temporary" manual changes became permanent, and someone upgraded the service mesh in US-East but forgot US-West. The clusters that started identical had become 15 unique configurations — and nobody could tell you what was _intentionally_ different versus what had _accidentally_ drifted.
 
 <Callout type="warning">
 The hardest part of multi-cluster isn't deploying to many clusters — it's knowing what's supposed to be the same vs. different, and detecting when drift occurs. Without this clarity, you're managing independent configurations, not a fleet.
 </Callout>
 
+The multi-cluster management problem isn't primarily about tools. It's about the operating model: how you balance consistency with environment-specific flexibility, how you detect when drift occurs, and how you maintain clarity about what's _supposed_ to be the same versus what's _supposed_ to be different. This article covers the patterns and tools that make fleet management tractable: configuration templating strategies, GitOps-based deployment, drift detection, and progressive rollout across clusters.
+
 ## A Brief History: Why Not Federation?
 
 Kubernetes Federation (KubeFed) was the original attempt to solve multi-cluster management. The idea was appealing: a control plane that could deploy resources across multiple clusters from a single API. You'd create a "FederatedDeployment" and it would propagate to member clusters automatically.
 
-In practice, Federation never gained traction. The v1 implementation was deprecated in 2018, and KubeFed v2 saw limited adoption before being archived in 2022. The problems were fundamental: Federation tried to abstract away cluster differences, but real-world multi-cluster deployments __need__ those differences. A one-size-fits-all API couldn't handle the nuanced configuration variations between dev and production, between AWS and on-prem, between US-East and EU-West.
+In practice, Federation never gained traction. The v1 implementation was deprecated in 2018, and KubeFed v2 saw limited adoption before being archived in 2022. The problems were fundamental: Federation tried to abstract away cluster differences, but real-world multi-cluster deployments _need_ those differences. A one-size-fits-all API couldn't handle the nuanced configuration variations between dev and production, between AWS and on-prem, between US-East and EU-West.
 
 The industry moved toward a different model: GitOps-based fleet management. Instead of a control plane pushing identical configs everywhere, each cluster pulls its configuration from Git, with templating systems handling the variations. This approach — implemented by tools like ArgoCD ApplicationSets, Flux, and Rancher Fleet — provides the consistency benefits Federation promised while preserving the flexibility real deployments require.
 
@@ -43,32 +43,33 @@ The industry moved toward a different model: GitOps-based fleet management. Inst
 
 ### Common Patterns
 
-Organizations arrive at multi-cluster architectures for different reasons, and the reason shapes the configuration strategy. Understanding __why__ you have multiple clusters determines what should be consistent versus different across them.
+Organizations arrive at multi-cluster architectures for different reasons, and the reason shapes the configuration strategy. Understanding _why_ you have multiple clusters determines what should be consistent versus different across them.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Environment-based",
-      text: "clusters are the most common pattern: dev, staging, and production running as separate clusters. The configuration model here is straightforward — core add-ons, security policies, and RBAC structure should be identical, while resource quotas, replica counts, and feature flags differ by environment. You want staging to behave like production, just smaller.",
+      text: "Clusters are the most common pattern: dev, staging, and production running as separate clusters. The configuration model here is straightforward — core add-ons, security policies, and RBAC structure should be identical, while resource quotas, replica counts, and feature flags differ by environment. You want staging to behave like production, just smaller.",
     },
     {
       lead: "Regional",
-      text: "clusters serve global applications or data sovereignty requirements. US-East, US-West, EU-West, and AP-Southeast might all run the same application versions and security policies, but with region-specific endpoints, compliance settings, and capacity. The challenge here is keeping application deployments synchronized while allowing regional customization.",
+      text: "Clusters serve global applications or data sovereignty requirements. US-East, US-West, EU-West, and AP-Southeast might all run the same application versions and security policies, but with region-specific endpoints, compliance settings, and capacity. The challenge here is keeping application deployments synchronized while allowing regional customization.",
     },
     {
       lead: "Workload isolation",
-      text: "clusters separate concerns by team or workload type: frontend, backend, data platform, ML training. Each cluster shares network policies and security baselines, but node types, add-ons, and resource profiles differ dramatically. An ML training cluster needs GPUs and tolerates batch job failures; a frontend cluster needs fast scaling and zero-downtime deployments.",
+      text: "Clusters separate concerns by team or workload type: frontend, backend, data platform, ML training. Each cluster shares network policies and security baselines, but node types, add-ons, and resource profiles differ dramatically. An ML training cluster needs GPUs and tolerates batch job failures; a frontend cluster needs fast scaling and zero-downtime deployments.",
     },
     {
       lead: "Hybrid cloud",
-      text: "clusters span providers: AWS primary, GCP disaster recovery, Azure edge, on-premises for sensitive workloads. Application manifests and security policies stay consistent, but cloud-specific integrations (load balancers, storage classes, IAM bindings) differ by necessity.",
+      text: "Clusters span providers: AWS primary, GCP disaster recovery, Azure edge, on-premises for sensitive workloads. Application manifests and security policies stay consistent, but cloud-specific integrations (load balancers, storage classes, IAM bindings) differ by necessity.",
     },
   ]}
 />
 
 <Diagram
   src={multiClusterDiagram}
+  size="full"
   title="Multi-cluster topology patterns."
   description="Flowchart showing three common multi-cluster topology patterns. In the first grouped section, labeled Environment-Based, a Git Repository points to three clusters: dev-cluster, staging-cluster, and prod-cluster. In the second grouped section, labeled Regional, a Git Repository points to four regional clusters: us-east, us-west, eu-west, and ap-southeast. In the third grouped section, labeled Hybrid, a Git Repository points to four infrastructure targets: AWS, GCP, Azure, and On-Prem. The diagram emphasizes that the same GitOps source model can support different organizational reasons for multi-cluster deployment: separate environments, geographic regions, or mixed cloud and on-premises platforms."
 />
@@ -78,7 +79,7 @@ Organizations arrive at multi-cluster architectures for different reasons, and t
 Every multi-cluster strategy sits somewhere on a spectrum from "all clusters are identical" to "each cluster is independent." Neither extreme works well in practice.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "Fully consistent",
@@ -104,8 +105,10 @@ Every multi-cluster strategy sits somewhere on a spectrum from "all clusters are
 [^kyverno]: Kyverno is a Kubernetes-native policy engine. Unlike Gatekeeper, it doesn't require learning Rego; policies are written in standard YAML. It can validate, mutate (modify), and generate resources, as well as verify container image signatures.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
+    figure: "Consistency vs flexibility tradeoffs.",
     thead: {
       th: ["Approach", "Consistency", "Flexibility", "Operational Overhead", "Best For"],
     },
@@ -129,7 +132,6 @@ Every multi-cluster strategy sits somewhere on a spectrum from "all clusters are
         },
       ],
     },
-    figure: "Consistency vs flexibility tradeoffs.",
   }}
 />
 
@@ -144,33 +146,37 @@ The fleet management landscape has matured around a few dominant approaches. All
 ### Tool Comparison
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "ArgoCD ApplicationSets",
-      text: "extend ArgoCD's Application concept with generators that create Applications dynamically based on clusters, Git directories, or custom lists. If you're already running ArgoCD, ApplicationSets are the natural choice. The generator patterns (cluster, list, git, matrix, merge) handle most multi-cluster scenarios elegantly. The limitation is scale: beyond 500 clusters, the ApplicationSet controller can struggle, and you'll need sharding or multiple ArgoCD instances.",
+      text: "Extends ArgoCD's Application concept with generators that create Applications dynamically based on clusters, Git directories, or custom lists. If you're already running ArgoCD, ApplicationSets are the natural choice. The generator patterns (cluster, list, git, matrix, merge) handle most multi-cluster scenarios elegantly. The limitation is scale: beyond 500 clusters, the ApplicationSet controller can struggle, and you'll need sharding or multiple ArgoCD instances.",
     },
     {
       lead: "Flux",
-      text: "takes a different approach, building multi-cluster support into its Kustomization hierarchy. Each cluster runs its own Flux controllers pulling from Git, with dependencies between Kustomizations enabling layered configuration. Flux excels at lightweight, distributed deployments where each cluster is fairly autonomous. The trade-off is less centralized visibility — there's no built-in UI showing fleet-wide status.",
+      text: "Takes a different approach, building multi-cluster support into its Kustomization hierarchy. Each cluster runs its own Flux controllers pulling from Git, with dependencies between Kustomizations enabling layered configuration. Flux excels at lightweight, distributed deployments where each cluster is fairly autonomous. The trade-off is less centralized visibility — there's no built-in UI showing fleet-wide status.",
     },
     {
       lead: "Rancher Fleet",
-      text: `provides centralized multi-cluster GitOps with a strong UI for fleet visibility. The "bundle" concept groups related resources for deployment across cluster groups. It's pull-based (clusters pull their configs), but the Rancher UI gives operators a single pane of glass. The downside is ecosystem lock-in — Fleet integrates deeply with Rancher's cluster management.`,
+      text: "Provides centralized multi-cluster GitOps with a strong UI for fleet visibility. The \"bundle\" concept groups related resources for deployment across cluster groups. It's pull-based (clusters pull their configs), but the Rancher UI gives operators a single pane of glass. The downside is ecosystem lock-in — Fleet integrates deeply with Rancher's cluster management.",
     },
     {
-      lead: "Google Config Sync",
-      text: "(part of Anthos) offers deep GKE integration with built-in policy controller and namespace hierarchy management. If your fleet is GKE-centric, Config Sync provides tight integration with Google Cloud's IAM and audit logging. For multi-cloud or on-prem clusters, it's less flexible.",
+      lead: "Google Config Sync (part of Anthos)",
+      text: "Offers deep GKE integration with built-in policy controller and namespace hierarchy management. If your fleet is GKE-centric, Config Sync provides tight integration with Google Cloud's IAM and audit logging. For multi-cloud or on-prem clusters, it's less flexible.",
     },
     {
       lead: "Crossplane",
-      text: "approaches fleet management differently — as a Kubernetes-native control plane extension for both infrastructure and configuration. You define Compositions that abstract cluster provisioning and configuration together. This is powerful for platform teams building internal developer platforms, but the learning curve is steep.",
+      text: "Approaches fleet management differently — as a Kubernetes-native control plane extension for both infrastructure and configuration. You define Compositions that abstract cluster provisioning and configuration together. This is powerful for platform teams building internal developer platforms, but the learning curve is steep.",
     },
   ]}
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="report-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ["Tool", "Model", "Best For", "Scale Ceiling", "Learning Curve"],
@@ -357,30 +363,71 @@ Code: Flux Kustomization hierarchy with base, overlay, and cluster-specific laye
 
 The repository structure mirrors the Kustomization hierarchy. Base configurations define the canonical resources. Environment overlays patch those resources for dev/staging/production. Cluster-specific directories handle the last-mile customization — things like cluster-specific ingress hostnames or region-specific resource limits. The `postBuild.substituteFrom` feature lets you inject cluster-specific values from ConfigMaps or Secrets at reconciliation time, avoiding the need to duplicate paths for every cluster.
 
-```text
-platform-config/
-├── base/
-│   └── platform/
-│       ├── kustomization.yaml
-│       ├── namespace.yaml
-│       ├── deployment.yaml
-│       └── service.yaml
-├── overlays/
-│   ├── development/
-│   ├── staging/
-│   └── production/
-│       └── kustomization.yaml
-└── clusters/
-    ├── us-east-prod/
-    ├── us-west-prod/
-    └── eu-west-prod/
-        └── kustomization.yaml
-```
-
-Figure: Repository structure for Flux multi-cluster configuration.
+<FileExplorer
+  fullWidth={false}
+  classes={{
+    wrapper: "sm:ml-24 sm:mr-24 mb-6",
+  }}
+  figure="Repository structure for Flux multi-cluster configuration."
+  data={[
+    {
+      type: 'folder',
+      name: 'platform-config',
+      children: [
+        {
+          type: 'folder',
+          name: 'base',
+          children: [
+            {
+              type: 'folder',
+              name: 'platform',
+              children: [
+                { type: 'file', name: 'kustomization.yaml', comment: 'Assembles shared platform manifests' },
+                { type: 'file', name: 'namespace.yaml', comment: 'Creates shared target namespace' },
+                { type: 'file', name: 'deployment.yaml', comment: 'Defines platform service deployment' },
+                { type: 'file', name: 'service.yaml', comment: 'Exposes platform service internally' },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'overlays',
+          children: [
+            { type: 'folder', name: 'development' },
+            { type: 'folder', name: 'staging' },
+            {
+              type: 'folder',
+              name: 'production',
+              children: [
+                { type: 'file', name: 'kustomization.yaml', comment: 'Applies production-specific overrides' },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'clusters',
+          children: [
+            { type: 'folder', name: 'us-east-prod' },
+            { type: 'folder', name: 'us-west-prod' },
+            {
+              type: 'folder',
+              name: 'eu-west-prod',
+              children: [
+                { type: 'file', name: 'kustomization.yaml', comment: 'Sets cluster-specific resources' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
 <Diagram
   src={argocdDiagram}
+  size="full"
   title="ArgoCD generates Applications centrally - Flux controllers pull independently."
   description="Flowchart comparing the ArgoCD and Flux multi-cluster operating models. In the grouped section labeled ArgoCD Model, ApplicationSet points to Generator, which then fans out to Cluster 1 App, Cluster 2 App, and Cluster 3 App. Each of those generated applications points to a corresponding cluster: Cluster 1, Cluster 2, and Cluster 3. In the grouped section labeled Flux Model, a shared Git Repository points directly to Cluster 1 Flux, Cluster 2 Flux, and Cluster 3 Flux. Each cluster-specific Flux controller then points to its own layered configuration composed of base plus overlay plus cluster-specific settings. The diagram highlights that ArgoCD centralizes application generation before deployment, while Flux distributes reconciliation to controllers running inside each cluster, all pulling from the same repository."
 />
@@ -391,7 +438,7 @@ ArgoCD ApplicationSets excel at generating many similar applications with cluste
 
 ## Configuration Templating
 
-Once you've chosen a fleet management tool, the next decision is how to generate cluster-specific configurations from shared definitions. The fleet tool handles __where__ configs deploy; the templating strategy handles __what__ varies between clusters.
+Once you've chosen a fleet management tool, the next decision is how to generate cluster-specific configurations from shared definitions. The fleet tool handles _where_ configs deploy; the templating strategy handles _what_ varies between clusters.
 
 The two dominant approaches are Kustomize (patch-based) and Helm (template-based), though alternatives like Jsonnet[^jsonnet] and CUE[^cue] exist for organizations with more complex needs.
 
@@ -401,6 +448,7 @@ The two dominant approaches are Kustomize (patch-based) and Helm (template-based
 
 <Diagram
   src={configurationLayeringDiagram}
+  size="full"
   title="Configuration layering from fleet-wide to cluster-specific."
   description="Flowchart showing a three-layer configuration model for multi-cluster fleets. Inside a grouped section labeled Configuration Layering, Base Config points to Security policies, Monitoring stack, and Core add-ons. Environment Overlay points to Replica counts, Resource limits, and Feature flags. Cluster-Specific points to Regional endpoints, Cloud integrations, and Compliance settings. Outside those branch relationships, Base Config points to Environment Overlay, and Environment Overlay points to Cluster-Specific, showing that the layers build on one another from shared fleet-wide defaults to environment-level overrides and finally to per-cluster customization. The diagram illustrates how organizations can preserve consistency while still allowing necessary differences between environments and individual clusters."
 />
@@ -425,6 +473,8 @@ commonLabels:
 ```
 
 Code: Base kustomization with shared resources.
+
+The production overlay references the base and layers on deployment-specific settings — replica counts, pinned image tags, resource requests and limits, and merged ConfigMap values. Kustomize's `patches` field uses JSON Patch operations to surgically modify individual fields without rewriting the entire manifest.
 
 ```yaml title="kustomize-production-overlay.yaml"
 # Production overlay (overlays/production/kustomization.yaml)
@@ -462,6 +512,8 @@ configMapGenerator:
 ```
 
 Code: Production overlay with resource limits and config.
+
+The final layer targets a specific cluster. It references the production overlay and adds region-aware patches — injecting the correct database endpoint and constraining pod scheduling to the matching availability zone via `nodeSelector`.
 
 ```yaml title="kustomize-cluster-overlay.yaml"
 # Cluster-specific (clusters/us-east-prod/kustomization.yaml)
@@ -516,6 +568,8 @@ config:
 
 Code: Base Helm values for all environments.
 
+The production values file overrides the base defaults with deployment-grade settings — higher replica counts, a pinned image tag, explicit resource limits, and a PodDisruptionBudget to maintain availability during rolling updates.
+
 ```yaml title="helm-production-values.yaml"
 # Production values (values/production.yaml)
 replicaCount: 5
@@ -539,6 +593,8 @@ podDisruptionBudget:
 
 Code: Production values with higher resources and PDB.
 
+The cluster-specific file adds the final layer of customization — scaling replicas for a high-traffic region, wiring in the regional database endpoint, and using `nodeSelector` and `tolerations` to pin workloads to dedicated node pools.
+
 ```yaml title="helm-cluster-values.yaml"
 # Cluster-specific values (values/clusters/us-east-prod.yaml)
 replicaCount: 8  # Higher traffic region
@@ -556,7 +612,7 @@ tolerations:
 
 Code: Cluster-specific values for high-traffic region.
 
-Helmfile orchestrates this layering, merging values files in order and injecting environment variables for cluster-specific paths:
+Helmfile orchestrates this layering, merging values files in order and injecting environment variables for cluster-specific paths.
 
 ```yaml title="helmfile.yaml"
 environments:
@@ -582,8 +638,10 @@ releases:
 
 Code: Helmfile for multi-cluster deployment orchestration.
 
+The key thing to get right with layered values is merge order. Helm performs a shallow merge by default, so nested maps in a later values file replace — rather than merge with — the same key from an earlier file. If your base defines `resources.requests.cpu` and a cluster file only sets `resources.requests.memory`, you lose the CPU request entirely. Use Helmfile's `mergeStrategy: strategic` or restructure values to keep overrides at leaf keys to avoid silent misconfigurations that only surface under load.
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     thead: {
       th: ['Approach', 'Pros', 'Cons', 'Best For'],
@@ -905,7 +963,8 @@ The key principles are:
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Operation Type', 'Strategy', 'Verification', 'Rollback'],
@@ -940,7 +999,7 @@ Progressive rollout is essential for production fleet operations. Start with a c
 
 ## Conclusion
 
-The shift from Kubernetes Federation to GitOps-based fleet management reflects a fundamental insight: multi-cluster consistency isn't about making clusters identical, it's about making differences __intentional and documented__. Federation failed because it tried to abstract away cluster variations. Modern fleet tools succeed because they embrace variations while providing guardrails.
+The shift from Kubernetes Federation to GitOps-based fleet management reflects a fundamental insight: multi-cluster consistency isn't about making clusters identical, it's about making differences _intentional_ and _documented_. Federation failed because it tried to abstract away cluster variations. Modern fleet tools succeed because they embrace variations while providing guardrails.
 
 The practical path forward has four components. First, document your fleet topology explicitly — which clusters exist, what each serves, what should be shared versus different. This documentation becomes the foundation for your templating strategy, whether you choose Kustomize overlays or Helm values hierarchies.
 
@@ -950,8 +1009,8 @@ Third, implement drift detection from day one, before clusters have had time to 
 
 Finally, treat fleet-wide changes as first-class operations with their own patterns: progressive rollout through canary clusters, automated verification between waves, and clear rollback procedures. The overhead of wave-based deployment pays for itself the first time it catches a bad change before it reaches your primary production clusters.
 
-One area this article hasn't covered in depth is secrets management across clusters — synchronizing credentials, certificates, and API keys while maintaining proper access controls. Tools like External Secrets Operator, Sealed Secrets, and HashiCorp Vault each solve this differently. That's a topic for its own deep dive.
-
 <Callout type="info">
 Fleet management maturity is measured by how confidently you can answer: "What's different between these clusters, and is that difference intentional?" If you can't answer quickly, start with documentation. Tools amplify good processes; they can't substitute for them.
 </Callout>
+
+One area this article hasn't covered in depth is secrets management across clusters — synchronizing credentials, certificates, and API keys while maintaining proper access controls. Tools like External Secrets Operator, Sealed Secrets, and HashiCorp Vault each solve this differently. That's a topic for its own deep dive.
