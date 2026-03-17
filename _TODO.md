@@ -226,6 +226,8 @@ https://mermaid.js.org/config/directives.html
 
 - Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
+- Moving the scroll bar up quickly with the mouse seems to make the header logic break - the Switcher component and Breadcrumbs are hidden under the header
+
 ## List Component
 
 - Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
@@ -323,3 +325,10 @@ https://mermaid.js.org/config/directives.html
     tbody: '!text-content',
   }}
 />
+
+<Table
+  variant="numbered-review-table"
+  fullWidth={false}
+  classes={{
+    tbody: "[&_tr>td:nth-of-type(2)]:!font-normal",
+  }}
