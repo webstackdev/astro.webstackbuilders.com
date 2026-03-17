@@ -24,11 +24,11 @@ I've seen this play out the hard way. A three-person team copies the on-call set
 
 They rebuilt from scratch. Daily rotations instead of weekly, so a bad night didn't compound into a bad week. Aggressive alert suppression for anything that auto-resolved within five minutes. A hard policy that nothing non-critical pages outside business hours. Pages dropped to 2-3 per week. The team started sleeping again.
 
-The lesson: small team on-call isn't about copying enterprise playbooks with fewer people. It's about ruthless prioritization of what actually needs human attention at 3 AM versus what can wait until morning. When you have three people, you can't afford to wake someone up for something that could wait 8 hours.
-
 <Callout type="warning">
 The most dangerous on-call mistake for small teams is treating every alert as equally urgent. Not everything is a 3 AM problem — and pretending otherwise burns out your team in weeks.
 </Callout>
+
+The lesson: small team on-call isn't about copying enterprise playbooks with fewer people. It's about ruthless prioritization of what actually needs human attention at 3 AM versus what can wait until morning. When you have three people, you can't afford to wake someone up for something that could wait 8 hours.
 
 ## Rotation Design for Small Teams
 
@@ -37,19 +37,22 @@ The most dangerous on-call mistake for small teams is treating every alert as eq
 The rotation length question seems simple — weekly or daily?—but the answer depends on your page volume and how predictable it is.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Weekly rotations',
-      text: 'work when pages are infrequent (fewer than five per week on average). One person owns the entire week, which means clear accountability and no context lost during handoffs. The downside is brutal: if you get paged six times on Monday night, you still have six more days to go. A bad week compounds. For a three-person team, weekly rotations also mean each person is "on" for a full third of the year.',
+      text: 'Works when pages are infrequent (fewer than five per week on average). One person owns the entire week, which means clear accountability and no context lost during handoffs. The downside is brutal: if you get paged six times on Monday night, you still have six more days to go. A bad week compounds. For a three-person team, weekly rotations also mean each person is "on" for a full third of the year.',
     },
     {
       lead: 'Daily rotations',
-      text: 'spread the pain more evenly. A rough night doesn\'t turn into a rough week — you hand off in the morning and recover. The tradeoff is more handoffs, which means more context loss. If an incident spans multiple days, the person who started it may not be the one who finishes it. Daily rotations work better when page volume is higher or more variable.',
+      text: 'Spreads the pain more evenly. A rough night doesn\'t turn into a rough week — you hand off in the morning and recover. The tradeoff is more handoffs, which means more context loss. If an incident spans multiple days, the person who started it may not be the one who finishes it. Daily rotations work better when page volume is higher or more variable.',
     },
     {
       lead: 'Business-hours-only coverage',
-      text: 'is underrated. If your service can tolerate delayed response to overnight incidents — many internal tools can — this model is indefinitely sustainable. No night pages, normal sleep schedules. The honest conversation is whether your SLAs actually require 24/7 response or whether that\'s an assumption nobody has questioned.',
+      text: 'Underrated. If your service can tolerate delayed response to overnight incidents — many internal tools can — this model is indefinitely sustainable. No night pages, normal sleep schedules. The honest conversation is whether your SLAs actually require 24 / 7 response or whether that\'s an assumption nobody has questioned.',
     },
   ]}
 />
@@ -59,7 +62,8 @@ The hybrid approach combines these: full coverage during business hours, but aft
 For a three-person team, I recommend this structure regardless of rotation length:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Role', 'Responsibility'],
@@ -90,7 +94,7 @@ The "off" person being truly off is critical. If everyone is always a potential 
 
 Vacations, illness, and conferences create coverage gaps. With three people, one absence means the remaining two split everything. Two absences leaves one person alone — which is unsustainable for more than a day or two.
 
-The hard rule: __never allow overlapping vacations that leave one person covering alone__. This isn't about being inflexible; it's about preventing burnout. A single person handling all on-call for a week will be exhausted and resentful, and you'll pay for it in turnover.
+The hard rule: _never allow overlapping vacations that leave one person covering alone_. This isn't about being inflexible; it's about preventing burnout. A single person handling all on-call for a week will be exhausted and resentful, and you'll pay for it in turnover.
 
 When one person is out, the remaining two can alternate days or split the week. Whoever covers extra should get compensating time off afterward — not as a favor, but as policy.
 
@@ -98,15 +102,19 @@ If two people need to be out simultaneously (it happens), you have three options
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    li: "[&>div]:!pt-2 mb-6",
+  }}
   items={[
     {
-      text: 'Borrow someone from an adjacent team',
+      lead: 'Borrow someone from an adjacent team',
     },
     {
-      text: 'Hire a contractor for acknowledge-and-escalate coverage',
+      lead: 'Hire a contractor for acknowledge-and-escalate coverage',
     },
     {
-      text: 'Temporarily reduce alerting sensitivity and accept slower response times',
+      lead: 'Temporarily reduce alerting sensitivity and accept slower response times',
     },
   ]}
 />
@@ -128,23 +136,23 @@ Alert quality makes or breaks small team on-call. You can have perfect rotation 
 Every alert needs a severity level, and that level determines whether it pages, when it pages, and how fast you need to respond. For small teams, I use four levels:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: 'P1 (Critical)',
-      text: 'means the service is down or severely degraded for users. Homepage returning 500s, payment processing failing, database unreachable. These page immediately, any time of day. Target response is under 15 minutes. If you\'re getting more than one P1 per week on average, something is fundamentally broken.',
+      text: 'Means the service is down or severely degraded for users. Homepage returning 500s, payment processing failing, database unreachable. These page immediately, any time of day. Target response is under 15 minutes. If you\'re getting more than one P1 per week on average, something is fundamentally broken.',
     },
     {
       lead: 'P2 (High)',
-      text: 'is significant degradation but the service is still functional. Elevated error rates, one replica down out of three, performance degraded 2x from baseline. These page during business hours but only notify (no phone call) after hours. Target response is under an hour during business hours.',
+      text: 'Significant degradation but the service is still functional. Elevated error rates, one replica down out of three, performance degraded 2x from baseline. These page during business hours but only notify (no phone call) after hours. Target response is under an hour during business hours.',
     },
     {
       lead: 'P3 (Medium)',
-      text: 'needs attention but isn\'t urgent. Disk usage at 80%, certificate expiring in 14 days, elevated but stable error rate. These create tickets and get addressed the next business day. They never page.',
+      text: 'Needs attention but isn\'t urgent. Disk usage at 80%, certificate expiring in 14 days, elevated but stable error rate. These create tickets and get addressed the next business day. They never page.',
     },
     {
       lead: 'P4 (Low)',
-      text: 'is informational. Traffic 20% above normal, new warning in logs, dependency updated. Log these for weekly review. No notification at all.',
+      text: 'Informational. Traffic 20% above normal, new warning in logs, dependency updated. Log these for weekly review. No notification at all.',
     },
   ]}
 />
@@ -158,22 +166,37 @@ Signal-to-noise ratio is the percentage of alerts that actually required human a
 Here's an example from a real team audit:
 
 <List
-  variant="check-icons-list"
+  variant="plain-icon-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    li: "[&>span]:!font-semibold [&>span]:ml-2 mb-4",
+  }}
+  size={7}
   items={[
     {
       text: '60 total pages this month',
+      icon: "alarm-clock",
+      color: "page-inverse",
     },
     {
       text: '35 required action',
+      icon: "gear",
+      color: "page-inverse",
     },
     {
       text: '20 auto-resolved before anyone could respond',
+      icon: "clock",
+      color: "page-inverse",
     },
     {
       text: '5 were false positives',
+      icon: "error",
+      color: "page-inverse",
     },
     {
       text: 'SNR: 58%—concerning, needs work',
+      icon: "graph",
+      color: "page-inverse",
     },
   ]}
 />
@@ -184,21 +207,25 @@ Every week during on-call handoff, review every page from the past week and ask 
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    li: "[&>div]:!pt-2 mb-6",
+  }}
   items={[
     {
-      text: 'Did this require human action?',
+      lead: 'Did this require human action?',
     },
     {
-      text: 'Could it have been prevented?',
+      lead: 'Could it have been prevented?',
     },
     {
-      text: 'Could it have waited until morning?',
+      lead: 'Could it have waited until morning?',
     },
     {
-      text: 'Was the runbook sufficient?',
+      lead: 'Was the runbook sufficient?',
     },
     {
-      text: 'Should this alert exist at all?',
+      lead: 'Should this alert exist at all?',
     },
   ]}
 />
@@ -210,7 +237,8 @@ The most common noise sources are predictable. __Flapping alerts__ fire and reso
 [^hysteresis]: Hysteresis means the alert threshold differs depending on direction. An alert might fire when CPU exceeds 90% but only resolve when it drops below 80%. This 10% gap prevents the alert from flapping when CPU hovers around a single threshold value.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Alert Outcome', 'Target', 'Action If Exceeded'],
@@ -252,19 +280,22 @@ Escalation policies determine what happens when the primary on-call doesn't resp
 A three-person team needs exactly three escalation tiers:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
-      lead: 'Tier 1',
-      text: 'is the primary on-call. They get the initial page via push notification and phone call. The expectation is acknowledgment within 10-15 minutes and beginning investigation.',
+      lead: 'Tier 1:',
+      text: 'The primary on-call. They get the initial page via push notification and phone call. The expectation is acknowledgment within 10-15 minutes and beginning investigation.',
     },
     {
-      lead: 'Tier 2',
-      text: 'is the secondary on-call. If the primary doesn\'t acknowledge within the timeout, the secondary gets paged. Same notification method — push plus phone call. Their job is to take over if the primary is unavailable.',
+      lead: 'Tier 2:',
+      text: 'The secondary on-call. If the primary doesn\'t acknowledge within the timeout, the secondary gets paged. Same notification method — push plus phone call. Their job is to take over if the primary is unavailable.',
     },
     {
-      lead: 'Tier 3',
-      text: 'is the engineering manager or team lead. If neither primary nor secondary responds within 30 minutes total, escalate to management. At this point, the goal isn\'t necessarily for the manager to fix the problem — it\'s to coordinate a response and call in additional help if needed.',
+      lead: 'Tier 3:',
+      text: 'The engineering manager or team lead. If neither primary nor secondary responds within 30 minutes total, escalate to management. At this point, the goal isn\'t necessarily for the manager to fix the problem — it\'s to coordinate a response and call in additional help if needed.',
     },
   ]}
 />
@@ -278,7 +309,8 @@ There are a few escalation anti-patterns to avoid. __Paging everyone simultaneou
 Time-based routing is what makes small team on-call sustainable. The idea is simple: during business hours, page for P1 and P2 incidents. After hours, page only for P1.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Severity', 'Business Hours', 'After Hours', 'Weekends'],
@@ -320,7 +352,10 @@ Large teams have incident commanders, communication leads, and subject matter ex
 The incident flow has six steps, and the first three happen in the first 20 minutes:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Step 1: Acknowledge within 15 minutes.',
@@ -367,24 +402,28 @@ A good runbook covers six things:
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    li: "[&>div]:!pt-2 mb-6",
+  }}
   items={[
     {
-      text: 'What this alert means in plain English',
+      lead: 'What this alert means in plain English',
     },
     {
-      text: 'Why we alert on this (what\'s the user impact)',
+      lead: 'Why we alert on this (what\'s the user impact)',
     },
     {
-      text: 'The first three things to check',
+      lead: 'The first three things to check',
     },
     {
-      text: 'How to mitigate if known',
+      lead: 'How to mitigate if known',
     },
     {
-      text: 'When to escalate',
+      lead: 'When to escalate',
     },
     {
-      text: 'Who owns this system',
+      lead: 'Who owns this system',
     },
   ]}
 />
@@ -394,23 +433,26 @@ The most important section is "First Response"—the first three things to check
 Common runbook anti-patterns:
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
+  classes={{
+    titleClass: "block w-full text-center",
+  }}
   items={[
     {
-      lead: 'Empty runbooks',
-      text: 'where the alert exists but there\'s no documentation. Rule: no alert goes live without a runbook.',
+      title: 'Empty runbooks:',
+      lead: 'Alerts that exist but there\'s no documentation. Rule: no alert goes live without a runbook.',
     },
     {
-      lead: 'Outdated runbooks',
-      text: 'with commands that reference old systems or defunct processes — review runbooks quarterly.',
+      title: 'Outdated runbooks:',
+      lead: 'Commands that reference old systems or defunct processes — review runbooks quarterly.',
     },
     {
-      lead: 'Novel-length runbooks',
-      text: 'that are too long to read at 3 AM — people skip them and make mistakes.',
+      title: 'Novel-length runbooks:',
+      lead: 'Too long to read at 3 AM — people skip them and make mistakes.',
     },
     {
-      lead: 'Expert-assumed runbooks',
-      text: 'that only make sense if you already know the system — write for someone who\'s never seen this before.',
+      title: 'Expert-assumed runbooks:',
+      lead: 'Only makes sense if you already know the system — write for someone who\'s never seen this before.',
     },
   ]}
 />
@@ -434,7 +476,12 @@ At the team level, watch for increasing alert suppression (people silencing thin
 The numbers tell a story too. These thresholds are rough guidelines, but they're useful:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-success [&_td:nth-child(3)]:text-warning [&_td:nth-child(4)]:text-danger',
+  }}
   content={{
     thead: {
       th: ['Metric', 'Healthy', 'Concerning', 'Unsustainable'],
@@ -465,7 +512,7 @@ If you're consistently in the "concerning" column, you have time to fix things. 
 
 Sustainability comes from three areas: compensation, boundaries, and continuous improvement.
 
-__Compensation__ acknowledges that on-call is real work. Options include flex time (30 minutes per page, used however the person wants), late starts after night pages (come in at 11 AM instead of 9 AM), recovery days after high-page rotations, and financial compensation (stipend per week on rotation, bonus per after-hours page). The specific amounts matter less than having __something__—it signals that the organization recognizes the burden.
+__Compensation__ acknowledges that on-call is real work. Options include flex time (30 minutes per page, used however the person wants), late starts after night pages (come in at 11 AM instead of 9 AM), recovery days after high-page rotations, and financial compensation (stipend per week on rotation, bonus per after-hours page). The specific amounts matter less than having _something_ — it signals that the organization recognizes the burden.
 
 But compensation doesn't fix bad alerting. If you're paying people extra to endure an unsustainable page volume, you're treating the symptom while ignoring the disease. Fix the alerts first, then set reasonable compensation for the remaining load.
 
@@ -476,7 +523,8 @@ Critically, escalating or calling for help should never be seen as failure. Mana
 __Continuous improvement__ means treating on-call quality as a first-class priority. Weekly reviews during handoff—30 minutes reviewing every page from the past week, generating action items. Quarterly deep dives looking at trends, checking for burnout, and reviewing policies. And the nuclear option: if the page budget is consistently exceeded, stop feature work until alerting is fixed. Reliability debt is real debt.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Practice', 'Implementation', 'Impact'],
@@ -518,23 +566,26 @@ The right tooling makes small team on-call sustainable. The wrong tooling — or
 PagerDuty, Opsgenie, and similar platforms all work for small teams. The specific platform matters less than the configuration. Here's what you need:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Two schedules',
-      text: 'primary and secondary. The secondary schedule should be offset by one position — if Alice is primary this week, Bob is secondary. This ensures the secondary is always a different person than the primary.',
+      text: 'Primary and secondary. The secondary schedule should be offset by one position — if Alice is primary this week, Bob is secondary. This ensures the secondary is always a different person than the primary.',
     },
     {
       lead: 'Support hours',
-      text: 'on each service, defining when business hours are. This enables different urgency rules during and outside business hours.',
+      text: 'On each service, defining when business hours are. This enables different urgency rules during and outside business hours.',
     },
     {
       lead: 'Event rules',
-      text: 'to route alerts by severity. P1 (critical) alerts should always be high urgency regardless of time. P2 (warning) alerts should be high urgency during business hours, low urgency after hours. Low urgency means push notification only — no phone call.',
+      text: 'To route alerts by severity. P1 (critical) alerts should always be high urgency regardless of time. P2 (warning) alerts should be high urgency during business hours, low urgency after hours. Low urgency means push notification only — no phone call.',
     },
     {
       lead: 'Suppression rules',
-      text: 'for known noisy alerts. If you have an alert that\'s flaky and you haven\'t fixed it yet, suppress it rather than training your team to ignore pages. (Then actually fix it — see the Alert Hygiene section for how to systematically address noise sources.)',
+      text: 'For known noisy alerts. If you have an alert that\'s flaky and you haven\'t fixed it yet, suppress it rather than training your team to ignore pages. (Then actually fix it — see the Alert Hygiene section for how to systematically address noise sources.)',
     },
   ]}
 />
@@ -546,7 +597,10 @@ Every alert that can be auto-remediated should be. Human attention is the scarce
 Common candidates for auto-remediation:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Disk space alerts',
@@ -578,8 +632,10 @@ Automate everything with a known fix. If the remediation is "restart the service
 You can't improve what you don't measure. Build a simple dashboard that tracks six key metrics:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
+    figure: 'Core metrics and thresholds for an on-call health dashboard.',
     thead: {
       th: ['Metric', 'Target', 'Alert threshold'],
     },
@@ -614,24 +670,26 @@ You can't improve what you don't measure. Build a simple dashboard that tracks s
   }}
 />
 
+Raw numbers alone don't tell the story. A team averaging four pages per week looks healthy by the volume metric, but if three of those four are false positives that wake someone at 4 AM, the on-call experience is miserable. Each metric below adds a dimension that the table above can't capture — the _why_ behind the numbers and the corrective action each one points to.
+
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: 'Page volume',
-      text: 'is your primary health indicator. More than 10 pages per person per week is unsustainable — that\'s two pages per day, every day, on top of regular work.',
+      text: 'Your primary health indicator. More than 10 pages per person per week is unsustainable — that\'s two pages per day, every day, on top of regular work.',
     },
     {
       lead: 'Response time',
-      text: 'measures team engagement. If P95 acknowledgment time is creeping up, people are either overwhelmed or checked out. Either way, it\'s a warning sign.',
+      text: 'Measures team engagement. If P95 acknowledgment time is creeping up, people are either overwhelmed or checked out. Either way, it\'s a warning sign.',
     },
     {
       lead: 'After-hours pages',
-      text: 'deserve special tracking because they\'re disproportionately costly. One 3am page has more impact on a person than three 2pm pages.',
+      text: 'Deserve special tracking because they\'re disproportionately costly. One 3am page has more impact on a person than three 2pm pages.',
     },
     {
       lead: 'Auto-resolve rate',
-      text: 'is counterintuitive — you want it low. If more than 30% of your alerts resolve before anyone acknowledges them, your thresholds are too sensitive. You\'re paging people for things that fix themselves.',
+      text: 'Counterintuitive — you want it low. If more than 30% of your alerts resolve before anyone acknowledges them, your thresholds are too sensitive. You\'re paging people for things that fix themselves.',
     },
   ]}
 />
@@ -645,7 +703,10 @@ __Incident management data__ requires an exporter. For PagerDuty, the [pagerduty
 Run the exporter as a sidecar or standalone service that scrapes your incident management API on a schedule (typically every 60 seconds). The exporter authenticates with a read-only API token and exposes metrics on a `/metrics` endpoint that Prometheus scrapes.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Signal-to-noise ratio',
@@ -713,6 +774,7 @@ The __quarterly review__ takes longer — about two hours — and looks at bigge
 
 <Diagram
   src={continuousImprovementDiagram}
+  size="full"
   title="Continuous improvement cycle."
   description="Left-to-right flowchart showing a repeating on-call improvement loop. It starts with Alert Fires,
   then moves to Incident Handled, then Weekly Review. The review asks a decision question: Was alert good?
@@ -743,21 +805,25 @@ If you're rebuilding your on-call from scratch, here's where to begin:
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    li: "[&>div]:!pt-2 mb-6",
+  }}
   items={[
     {
-      text: 'Calculate your current signal-to-noise ratio. What percentage of pages required action?',
+      lead: 'Calculate your current signal-to-noise ratio. What percentage of pages required action?',
     },
     {
-      text: 'Implement after-hours filtering: P1 pages anytime, P2 during business hours only',
+      lead: 'Implement after-hours filtering: P1 pages anytime, P2 during business hours only',
     },
     {
-      text: 'Schedule your first weekly review during the next on-call handoff',
+      lead: 'Schedule your first weekly review during the next on-call handoff',
     },
     {
-      text: 'Pick one high-volume alert and either tune it, automate it, or delete it',
+      lead: 'Pick one high-volume alert and either tune it, automate it, or delete it',
     },
     {
-      text: 'Set up basic metrics: page volume per person per week, auto-resolve rate',
+      lead: 'Set up basic metrics: page volume per person per week, auto-resolve rate',
     },
   ]}
 />
