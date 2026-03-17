@@ -22,7 +22,7 @@ Here's a scenario I've seen play out more times than I'd like. A team deploys th
 
 It turns out `proxy_read_timeout` defaults to 60 seconds, which sounds generous until you realize a few slow endpoints occasionally take 65 seconds. Database queries, external API calls, report generation — any of these can push response times past that threshold. Meanwhile, the team is chasing ghosts in their application code.
 
-Nginx and HAProxy ship with defaults optimized for getting started quickly, not for handling production traffic. Default timeouts assume fast backends. Default buffer sizes assume small requests. When real load arrives — slow clients on mobile networks, large authentication headers, backends that occasionally need extra time — these defaults fail in ways that are hard to diagnose.
+<Highlighter>Nginx and HAProxy ship with defaults optimized for getting started quickly, not for handling production traffic.</Highlighter> Default timeouts assume fast backends. Default buffer sizes assume small requests. When real load arrives — slow clients on mobile networks, large authentication headers, backends that occasionally need extra time — these defaults fail in ways that are hard to diagnose.
 
 The good news: two configuration areas account for most proxy-related outages. Fix your timeouts and buffers, and you'll eliminate the majority of mysterious 502s and 400s. Let's start with the more common culprit.
 
@@ -63,7 +63,7 @@ The per-location overrides are essential. A monolithic timeout configuration for
 
 ### HAProxy's Total-Time Semantics
 
-HAProxy's timeout model differs in one critical way: `timeout client` and `timeout server` cover the __entire__ request or response, not per-read operations. If you set `timeout server 60s` and the backend takes 30 seconds to send the first byte, then another 35 seconds to send the body, the connection times out — even though data was flowing the whole time.
+HAProxy's timeout model differs in one critical way: `timeout client` and `timeout server` cover the _entire_ request or response, not per-read operations. If you set `timeout server 60s` and the backend takes 30 seconds to send the first byte, then another 35 seconds to send the body, the connection times out — even though data was flowing the whole time.
 
 ```haproxy title="haproxy-timeouts.cfg"
 defaults
@@ -87,8 +87,13 @@ The `timeout queue` setting deserves attention. When all backend servers reach t
 When translating configurations between Nginx and HAProxy, the following table maps the key timeout settings. They're not exact equivalents — Nginx's per-read semantics differ from HAProxy's total-time semantics — but this helps when translating configurations.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
+  classes={{
+    tbody: "[&_tr>td:nth-of-type(2)]:!font-normal",
+  }}
   content={{
+    figure: 'Nginx and HAProxy timeout comparison with recommended production values.',
     thead: {
       th: ['Phase', 'Nginx', 'HAProxy', 'Recommended'],
     },
@@ -116,7 +121,6 @@ When translating configurations between Nginx and HAProxy, the following table m
         },
       ],
     },
-    figure: 'Nginx and HAProxy timeout comparison with recommended production values.',
   }}
 />
 
@@ -178,7 +182,11 @@ If you're seeing 400 errors in HAProxy specifically, check whether `tune.bufsize
 The following table summarizes buffer settings by scenario. Note that the directive names are Nginx-specific; for HAProxy, adjust `tune.bufsize` to accommodate larger headers or bodies.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
+  classes={{
+    tbody: "[&_tr>td:nth-of-type(2)]:!font-normal",
+  }}
   content={{
     thead: {
       th: ['Scenario', 'Nginx Setting', 'Recommendation'],
