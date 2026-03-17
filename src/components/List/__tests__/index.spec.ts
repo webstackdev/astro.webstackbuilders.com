@@ -199,4 +199,37 @@ describe('List (Astro)', () => {
       expect(text?.textContent).toContain('Provide a translation layer during migration.')
     })
   })
+
+  test('applies hover styling for the three-column-icon-list variant', async () => {
+    const List = (await import('@components/List/index.astro')).default
+
+    const renderedHtml = await container.renderToString(List, {
+      props: {
+        variant: 'three-column-icon-list',
+        items: [
+          {
+            title: 'Resource metrics',
+            text: 'Built-in via Metrics Server.',
+            icon: 'graph',
+            color: 'page-inverse',
+            bgColor: 'info-inverse',
+          },
+        ],
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const card = window.document.querySelector('ul li')
+      const title = window.document.querySelector('ul li h3')
+
+      expect(card).toBeTruthy()
+      expect(card?.className).toContain('transition-all')
+      expect(card?.className).toContain('duration-200')
+      expect(card?.className).toContain('hover:-translate-y-1')
+      expect(card?.className).toContain('hover:shadow-lg')
+      expect(title?.textContent).toContain('Resource metrics')
+    })
+  })
 })

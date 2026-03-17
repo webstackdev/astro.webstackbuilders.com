@@ -9,18 +9,19 @@ tags: ["cloud-platforms","kubernetes","prometheus"]
 featured: true
 ---
 
-An e-commerce team configures HPA with a 50% CPU target. During a flash sale, traffic spikes 10x in 30 seconds. HPA takes 15 seconds to detect the load, another 15 seconds for its evaluation cycle, then the stabilization window kicks in. Meanwhile, new pods need scheduling, image pulls, and readiness probes. By the time capacity catches up—3+ minutes later — frustrated users have already left.
+An e-commerce team configures HPA with a 50% CPU target. During a flash sale, traffic spikes 10x in 30 seconds. HPA takes 15 seconds to detect the load, another 15 seconds for its evaluation cycle, then the stabilization window kicks in. Meanwhile, new pods need scheduling, image pulls, and readiness probes. By the time capacity catches up — 3+ minutes later — frustrated users have already left.
 
 I've watched this play out repeatedly. The Horizontal Pod Autoscaler looks deceptively simple: set a target CPU percentage, and Kubernetes scales your pods automatically. In practice, teams discover that HPA reacts too slowly to traffic spikes, oscillates between scaling up and down, or scales on entirely the wrong signals.
 
-The problem is that HPA is __reactive__, not predictive. By the time it decides to scale, your workload is already under stress. Tuning HPA means understanding where delays come from, choosing metrics that respond quickly, and configuring behavior that matches your traffic patterns.
+<Highlighter>The problem is that HPA is _reactive_, not predictive.</Highlighter> By the time it decides to scale, your workload is already under stress. Tuning HPA means understanding where delays come from, choosing metrics that respond quickly, and configuring behavior that matches your traffic patterns.
 
 ## The Delay Problem
 
 The HPA controller runs every 15 seconds by default, querying the metrics server and calculating how many replicas are needed. That sounds fast, but the total time from "traffic spike begins" to "new capacity receives traffic" is much longer. Every step in the pipeline adds latency.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Delay Component', 'Typical Duration', 'Notes'],
@@ -62,7 +63,10 @@ These delays stack. The metrics scrape and HPA sync cycles run independently —
 With aggressive tuning and cached images, the timeline improves but still isn't instant. Here's a typical tuned scenario:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "T+0s",
@@ -104,7 +108,8 @@ Most teams start with CPU utilization because it's built-in. But CPU is a __lagg
 __Leading indicators__ like requests per second and queue depth increase the moment traffic arrives — before your system shows stress. __Lagging indicators__ like CPU utilization and response latency rise only after work is already backing up. When possible, scale on what's coming, not what's already hurting.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="timeline-labels-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Metric', 'Type', 'Best For'],
@@ -112,19 +117,31 @@ __Leading indicators__ like requests per second and queue depth increase the mom
     tbody: {
       tr: [
         {
-          th: 'Requests per second',
+          th: {
+            label: 'Requests per second',
+            color: 'bg-success',
+          },
           td: ['Leading', 'Web APIs, high-traffic services'],
         },
         {
-          th: 'Queue depth',
+          th: {
+            label: 'Queue depth',
+            color: 'bg-info',
+          },
           td: ['Leading', 'Async workers, background job processors'],
         },
         {
-          th: 'CPU utilization',
+          th: {
+            label: 'CPU utilization',
+            color: 'bg-warning',
+          },
           td: ['Lagging', 'Compute-bound workloads, synchronous processing'],
         },
         {
-          th: 'Response latency',
+          th: {
+            label: 'Response latency',
+            color: 'bg-danger',
+          },
           td: ['Lagging', 'SLO-driven scaling, user-facing services'],
         },
       ],
@@ -223,7 +240,7 @@ HPA tuning comes down to three things: understanding delays so you know what's r
   ]}
 />
 
-If your traffic is predictable — business hours, scheduled events, marketing campaigns — don't rely on HPA to catch up. Pre-scale ahead of time using KEDA cron triggers or simple CronJobs. HPA's job is handling __unexpected__ variance around your baseline, not scrambling to meet traffic you knew was coming.
+If your traffic is predictable — business hours, scheduled events, marketing campaigns — don't rely on HPA to catch up. Pre-scale ahead of time using KEDA cron triggers or simple CronJobs. HPA's job is handling _unexpected_ variance around your baseline, not scrambling to meet traffic you knew was coming.
 
 Start with defaults, observe behavior under real load, and tune based on what you see. If you're scaling too slowly, reduce stabilization windows and increase policy percentages. If you're oscillating, increase stabilization and lower your target utilization. There's no universal "best" configuration — only the configuration that matches your traffic pattern.
 
