@@ -343,5 +343,5 @@ https://mermaid.js.org/config/directives.html
   fullWidth={false}
   classes={{
     tbody:
-      '[&_td:nth-child(2)]:text-green [&_td:nth-child(3)]:text-warning [&_td:nth-child(4)]:text-danger',
+      '[&_td:nth-child(2)]:text-success [&_td:nth-child(3)]:text-warning [&_td:nth-child(4)]:text-danger',
   }}
