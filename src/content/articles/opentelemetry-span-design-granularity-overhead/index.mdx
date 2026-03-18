@@ -15,22 +15,26 @@ A team I worked with instrumented a new service with spans for every function ca
 
 They refactored to instrument only service boundaries, significant I/O operations, and error paths. Instrumented service boundaries, significant I/O operations, and error paths. Span count dropped to 15-20 per request. Traces became readable. The critical path was obvious at a glance. Storage costs dropped 90%. Debugging time went from minutes to seconds.
 
-The lesson: granularity without readability is noise, not observability. More spans don't mean better visibility — they often mean worse. The goal is __enough__ spans to debug problems, not so many that you create new ones.
+<Highlighter>The lesson: granularity without readability is noise, not observability.</Highlighter> More spans don't mean better visibility — they often mean worse. The goal is _enough_ spans to debug problems, not so many that you create new ones.
 
 ## What to Instrument
 
 The question "should this operation have a span?" comes up constantly. Here's how I think about it.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Always instrument service boundaries.',
-      text: 'Incoming HTTP/gRPC requests, outgoing HTTP/gRPC calls, message queue publish/consume — these are the spans that stitch your distributed trace together. Without them, your trace stops at service boundaries and you lose visibility into cross-service latency.',
+      text: 'Incoming HTTP / gRPC requests, outgoing HTTP / gRPC calls, message queue publish / consume — these are the spans that stitch your distributed trace together. Without them, your trace stops at service boundaries and you lose visibility into cross-service latency.',
     },
     {
       lead: 'Always instrument I/O operations.',
-      text: 'Database queries, cache reads/writes, file system operations. I/O is where latency lives. A trace that doesn\'t show database time is a trace that can\'t explain why a request was slow.',
+      text: 'Database queries, cache reads / writes, file system operations. I/O is where latency lives. A trace that doesn\'t show database time is a trace that can\'t explain why a request was slow.',
     },
     {
       lead: 'Always instrument external dependencies.',
@@ -46,7 +50,11 @@ The question "should this operation have a span?" comes up constantly. Here's ho
 Some operations need judgment. For loops with external calls, wrap the loop, not each iteration — a batch that processes 100 items should create one span for the batch, not 100 spans. For retry logic, one span per attempt can be useful for debugging retry storms, but link them together so you can see the full retry sequence. And on the other end of the spectrum, there are operations you should actively avoid instrumenting.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Avoid instrumenting pure computation.',
@@ -60,7 +68,10 @@ Some operations need judgment. For loops with external calls, wrap the loop, not
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Operation', 'Span?', 'Alternative', 'Why'],
@@ -69,11 +80,11 @@ Some operations need judgment. For loops with external calls, wrap the loop, not
       tr: [
         {
           th: 'HTTP request handler',
-          td: ['Yes', '-', 'Service boundary; stitches distributed trace together'],
+          td: ['Yes', '---', 'Service boundary; stitches distributed trace together'],
         },
         {
           th: 'Database query',
-          td: ['Yes', '-', 'I/O operation; where latency typically lives'],
+          td: ['Yes', '---', 'I/O operation; where latency typically lives'],
         },
         {
           th: 'JSON parsing',
@@ -85,7 +96,7 @@ Some operations need judgment. For loops with external calls, wrap the loop, not
         },
         {
           th: 'External API call',
-          td: ['Yes', '-', 'Dependency visibility; external services cause most incidents'],
+          td: ['Yes', '---', 'Dependency visibility; external services cause most incidents'],
         },
         {
           th: 'Field validation',
@@ -106,19 +117,22 @@ Some operations need judgment. For loops with external calls, wrap the loop, not
 Once you've decided something deserves visibility in a trace, you have three options: span, event, or attribute. Each has different costs and use cases.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Spans',
-      text: 'represent operations with duration. They have start and end times, can have child spans, and appear as bars in your waterfall. Use them for I/O operations and significant boundaries. Cost: highest (memory allocation, context propagation, serialization).',
+      text: 'Represents operations with duration. They have start and end times, can have child spans, and appear as bars in your waterfall. Use them for I/O operations and significant boundaries. Cost: highest (memory allocation, context propagation, serialization).',
     },
     {
       lead: 'Events',
-      text: 'are timestamped points within a span\'s lifetime. They don\'t have duration — they mark moments. Use them for milestones: "validation started," "cache miss," "retry attempted." Cost: moderate (stored with parent span, but no separate context).',
+      text: 'Timestamped points within a span\'s lifetime. They don\'t have duration — they mark moments. Use them for milestones: "validation started," "cache miss," "retry attempted." Cost: moderate (stored with parent span, but no separate context).',
     },
     {
       lead: 'Attributes',
-      text: 'are key-value metadata attached to a span. They describe the operation: IDs, counts, flags, outcomes. Use them for context that helps you understand the span. Cost: lowest (just map entries).',
+      text: 'Key-value metadata attached to a span. They describe the operation: IDs, counts, flags, outcomes. Use them for context that helps you understand the span. Cost: lowest (just map entries).',
     },
   ]}
 />
@@ -173,7 +187,10 @@ A trace is only useful if you can read it. I've seen traces that technically con
 Most readability problems fall into a few common anti-patterns:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Wall of spans.',
@@ -181,7 +198,7 @@ Most readability problems fall into a few common anti-patterns:
     },
     {
       lead: 'Flat hierarchy.',
-      text: 'All spans at the same level, no nesting. You can\'t tell which operations are contained within others, or whether operations ran sequentially or in parallel. The fix is ensuring child spans inherit from their parents using `startActiveSpan`.',
+      text: 'All spans at the same level, no nesting. You can\'t tell which operations are contained within others, or whether operations ran sequentially or in parallel. The fix is ensuring child spans inherit from their parents using <span class="font-mono">startActiveSpan</span>.',
     },
     {
       lead: 'Missing gaps.',
@@ -189,7 +206,7 @@ Most readability problems fall into a few common anti-patterns:
     },
     {
       lead: 'Cryptic names.',
-      text: 'Span names like "span," "operation," "handler," or "process" that don\'t explain what\'s happening. Auto-instrumentation often produces these. The fix is customizing span names to follow the pattern "operation resource" (`HTTP GET /api/orders`, `db.query orders`).',
+      text: 'Span names like "span," "operation," "handler," or "process" that don\'t explain what\'s happening. Auto-instrumentation often produces these. The fix is customizing span names to follow the pattern "operation resource" (<span class="font-mono">HTTP GET /api/orders</span>, <span class="font-mono">db.query orders</span>).',
     },
     {
       lead: 'Attribute explosion.',
@@ -205,7 +222,7 @@ A good trace has 10-30 spans per request, 3-5 levels of nesting, clear names tha
 Naming is particularly important for quick scanning. Span names should answer "what operation on what resource?" without requiring you to read the code. The OpenTelemetry semantic conventions provide a good starting point, and the table below shows common patterns and pitfalls.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     thead: {
       th: ['Context', 'Good Name', 'Bad Name', 'Problem with Bad Name'],
@@ -214,23 +231,23 @@ Naming is particularly important for quick scanning. Span names should answer "w
       tr: [
         {
           th: 'HTTP handler',
-          td: ['`HTTP GET /api/orders/{id}`', '`handler`', 'No indication of method or resource'],
+          td: ['<span class="font-mono">HTTP GET /api/orders/{id}</span>', '<span class="font-mono">handler</span>', 'No indication of method or resource'],
         },
         {
           th: 'Database',
-          td: ['`db.query orders`', '`SELECT * FROM...`', 'SQL syntax noise, potential sensitive data'],
+          td: ['<span class="font-mono">db.query orders</span>', '<span class="font-mono">SELECT * FROM...</span>', 'SQL syntax noise, potential sensitive data'],
         },
         {
           th: 'Cache',
-          td: ['`cache.get`', '`redis`', 'Technology not operation — what did you do?'],
+          td: ['<span class="font-mono">cache.get</span>', '<span class="font-mono">redis</span>', 'Technology not operation — what did you do?'],
         },
         {
           th: 'Business logic',
-          td: ['`order.validate`', '`validateOrder`', 'Function name leaks implementation detail'],
+          td: ['<span class="font-mono">order.validate</span>', '<span class="font-mono">validateOrder</span>', 'Function name leaks implementation detail'],
         },
         {
           th: 'External API',
-          td: ['`HTTP POST`', '`API call`', 'No method, no way to distinguish calls'],
+          td: ['<span class="font-mono">HTTP POST</span>', '<span class="font-mono">API call</span>', 'No method, no way to distinguish calls'],
         },
       ],
     },
@@ -256,8 +273,8 @@ Span design is an engineering tradeoff: visibility versus overhead, granularity 
 
 Instrument service boundaries, I/O operations, and significant business logic. Use events for milestones within spans. Use attributes for metadata that helps filtering and debugging. The best traces answer three questions: what happened, where time was spent, and what failed.
 
-Audit your current traces: pick a typical request, count the spans, and ask whether you could identify the slow operation in under 10 seconds. If not, you've found your first refactoring target.
-
 <Callout type="info">
 Start with minimal instrumentation — auto-instrumentation plus key business operations — then add spans only when you can't debug a specific problem. You can always add granularity; removing it requires code changes. Let debugging needs drive instrumentation, not the quest for "complete" visibility.
 </Callout>
+
+Audit your current traces: pick a typical request, count the spans, and ask whether you could identify the slow operation in under 10 seconds. If not, you've found your first refactoring target.
