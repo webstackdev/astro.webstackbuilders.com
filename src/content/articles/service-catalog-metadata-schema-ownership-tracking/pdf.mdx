@@ -25,15 +25,17 @@ The failure isn't discipline or tooling — it's schema design and enforcement. 
 
 ## The Service Catalog Problem
 
-Every service catalog I've inherited has been partially abandoned. The enthusiastic launch gave way to gradual neglect, until what should have been an asset turned into a liability. Understanding __why__ catalogs fail is the first step toward building one that doesn't.
+Every service catalog I've inherited has been partially abandoned. The enthusiastic launch gave way to gradual neglect, until what should have been an asset turned into a liability. Understanding _why_ catalogs fail is the first step toward building one that doesn't.
 
 ### Catalog Failure Modes
 
 The decay follows a predictable timeline. Month one sees high coverage and enthusiasm — everyone's entering their services because the initiative has leadership attention. By month three, new services are being deployed without catalog entries because it's not in the critical path. Month six brings the ownership rot: reorgs happen, people leave, but the catalog still points to teams that no longer exist. By year one, engineers have learned they can't trust the data, so they ask in Slack instead. Year two? The catalog is a punchline in onboarding jokes.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
+    figure: 'Catalog trust decay over time.',
     thead: {
       th: ['Time', 'Coverage', 'Accuracy', 'Team trust'],
     },
@@ -61,15 +63,19 @@ The decay follows a predictable timeline. Month one sees high coverage and enthu
         },
       ],
     },
-    figure: 'Catalog trust decay over time.',
   }}
 />
 
 Here's the thing that makes this worse: a catalog with 80% accurate data is more dangerous than no catalog at all. It gives you false confidence. You page the listed owner at 3 AM, confident you've got the right team, and waste twenty minutes before discovering they handed off the service six months ago.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: 'Common catalog failure modes and their root causes.',
     thead: {
       th: ['Failure Mode', 'Symptom', 'Root Cause'],
     },
@@ -97,7 +103,6 @@ Here's the thing that makes this worse: a catalog with 80% accurate data is more
         },
       ],
     },
-    figure: 'Common catalog failure modes and their root causes.',
   }}
 />
 
@@ -106,40 +111,40 @@ Here's the thing that makes this worse: a catalog with 80% accurate data is more
 Before designing a schema, you need to know what questions the catalog should answer. I've found that catalogs justify their maintenance cost when they enable specific workflows that would otherwise require manual investigation. Each workflow has different accuracy requirements, and getting this wrong means either over-engineering (requiring fields nobody uses) or under-engineering (missing data when it matters).
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
+    figure: 'Accuracy requirements by use case.',
     thead: {
-      th: ['Use Case', 'Required Fields', 'Accuracy Needed', 'Why It Matters'],
+      th: ['Use Case', 'Accuracy Needed', 'Required Fields', 'Why It Matters'],
     },
     tbody: {
       tr: [
         {
           th: 'Incident response',
           td: [
-            'owner, oncall, runbook, dependencies',
             '98%+',
+            'owner, oncall, runbook, dependencies',
             'Wrong owner during incident extends MTTR by 15-30 minutes',
           ],
         },
         {
           th: 'Security scanning',
-          td: ['repository, runtime, data classification', '95%', 'Missing services mean unscanned attack surface'],
+          td: ['95%', 'repository, runtime, data classification', 'Missing services mean unscanned attack surface'],
         },
         {
           th: 'Cost attribution',
-          td: ['owner, cost center, environment', '90%', '10% error in cloud bills is acceptable for most orgs'],
+          td: ['90%', 'owner, cost center, environment', '10% error in cloud bills is acceptable for most orgs'],
         },
         {
           th: 'Dependency analysis',
-          td: ['dependencies, consumers, API endpoints', '85%', 'Used for planning, not emergencies'],
+          td: ['85%', 'dependencies, consumers, API endpoints', 'Used for planning, not emergencies'],
         },
         {
           th: 'Developer onboarding',
-          td: ['description, documentation, owner', '80%', "Stale docs annoy but don't cause outages"],
+          td: ['80%', 'description, documentation, owner', "Stale docs annoy but don't cause outages"],
         },
       ],
     },
-    figure: 'Accuracy requirements by use case.',
   }}
 />
 
@@ -155,11 +160,15 @@ Service catalogs often get confused with CMDBs or service mesh observability. Th
 
 A CMDB is an IT operations tool, typically focused on hardware and infrastructure components with manual entry and periodic audits. CMDBs excel at tracking physical assets and their relationships but struggle with the pace of change in microservices environments. A service catalog is developer-facing: it tracks logical services, their ownership, and how they relate to each other.
 
-Service mesh observability (from tools like Istio or Linkerd) provides real-time traffic data but doesn't know about ownership, business context, or services that aren't currently receiving traffic. It tells you __what's calling what__ right now, not __who's responsible__ or __what should be calling what__.
+Service mesh observability (from tools like Istio or Linkerd) provides real-time traffic data but doesn't know about ownership, business context, or services that aren't currently receiving traffic. It tells you _what's calling what_ right now, not _who's responsible_ or _what should be calling what_.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: 'Catalog vs CMDB vs service mesh.',
     thead: {
       th: ['Aspect', 'Service Catalog', 'CMDB', 'Service Mesh'],
     },
@@ -191,7 +200,6 @@ Service mesh observability (from tools like Istio or Linkerd) provides real-time
         },
       ],
     },
-    figure: 'Catalog vs CMDB vs service mesh.',
   }}
 />
 
@@ -206,8 +214,9 @@ Schema design is where most catalog initiatives go wrong. Teams either start wit
 A service catalog schema centers on the __service__ as the primary entity, with relationships to teams, other services, repositories, and runtime environments. The relationships matter as much as the entities themselves.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Core catalog entities and relationships.',
     thead: {
       th: ['Entity', 'Key relationships'],
     },
@@ -231,15 +240,15 @@ A service catalog schema centers on the __service__ as the primary entity, with 
         },
       ],
     },
-    figure: 'Core catalog entities and relationships.',
   }}
 />
 
 The service entity needs several categories of fields:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Service entity field categories.',
     thead: {
       th: ['Category', 'Fields', 'Purpose'],
     },
@@ -267,7 +276,6 @@ The service entity needs several categories of fields:
         },
       ],
     },
-    figure: 'Service entity field categories.',
   }}
 />
 
@@ -308,7 +316,7 @@ The biggest adoption killer is requiring too many fields upfront. I've seen cata
 For incident routing (the most common primary use case), you need exactly five required fields:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
   items={[
     {
       lead: '<span class="font-mono">owner</span>:',
@@ -336,8 +344,13 @@ For incident routing (the most common primary use case), you need exactly five r
 Everything else can be recommended or optional at launch. Once you hit 90%+ coverage on those five fields, you can start requiring additional fields like runbooks for tier-1 services or dependency declarations.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="sticky-header-table"
+  classes={{
+    tbody:
+      '!text-content',
+  }}
   content={{
+    figure: 'Field requirements with enforcement points.',
     thead: {
       th: ['Field', 'Requirement Level', 'Enforcement Point', 'Rationale'],
     },
@@ -377,7 +390,6 @@ Everything else can be recommended or optional at launch. Once you hit 90%+ cove
         },
       ],
     },
-    figure: 'Field requirements with enforcement points.',
   }}
 />
 
@@ -434,8 +446,9 @@ But "ownership" is deceptively simple. A service might have a development team t
 The ownership model needs to distinguish between different types of responsibility. I've found that a two-tier approach works well: a __primary owner__ who's responsible for the service's existence and development, plus __role-specific contacts__ for specialized functions.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Ownership roles and their triggers.',
     thead: {
       th: ['Role', 'Responsibility', "When they're contacted"],
     },
@@ -463,7 +476,6 @@ The ownership model needs to distinguish between different types of responsibili
         },
       ],
     },
-    figure: 'Ownership roles and their triggers.',
   }}
 />
 
@@ -504,19 +516,22 @@ Services change hands. Teams get reorganized, people leave, priorities shift. Wi
 The transfer workflow needs to ensure that:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-2",
+  }}
   items={[
     {
-      text: 'The current owner explicitly releases responsibility',
+      lead: 'The current owner explicitly releases responsibility',
     },
     {
-      text: 'The new owner explicitly accepts it',
+      lead: 'The new owner explicitly accepts it',
     },
     {
-      text: 'Critical knowledge transfers before the handoff completes',
+      lead: 'Critical knowledge transfers before the handoff completes',
     },
     {
-      text: 'Both teams are on the escalation path during transition',
+      lead: 'Both teams are on the escalation path during transition',
     },
   ]}
 />
@@ -524,8 +539,12 @@ The transfer workflow needs to ensure that:
 A two-week transition period where both teams receive pages has saved me more than once. The new team gets exposure to real incidents while the old team is still available to help. It surfaces knowledge gaps before they become 3 AM surprises.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: 'Ownership transfer phases.',
     thead: {
       th: ['Transfer phase', 'Duration', "Who's on-call", 'What happens'],
     },
@@ -545,19 +564,19 @@ A two-week transition period where both teams receive pages has saved me more th
         },
         {
           th: 'Complete',
-          td: ['—', 'New team only', 'Old team removed, catalog updated'],
+          td: ['---', 'New team only', 'Old team removed, catalog updated'],
         },
       ],
     },
-    figure: 'Ownership transfer phases.',
   }}
 />
 
 The knowledge transfer checklist should cover:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Knowledge transfer checklist.',
     thead: {
       th: ['Item', 'Details', 'Automatable?'],
     },
@@ -589,7 +608,6 @@ The knowledge transfer checklist should cover:
         },
       ],
     },
-    figure: 'Knowledge transfer checklist.',
   }}
 />
 
@@ -602,7 +620,10 @@ Services become orphaned when their owning team dissolves, empties out, or goes 
 Run orphan detection weekly. The rules should catch:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-12 mb-12",
+  }}
   items={[
     {
       lead: 'Dissolved teams:',
@@ -618,7 +639,7 @@ Run orphan detection weekly. The rules should catch:
     },
     {
       lead: 'Missing oncall:',
-      text: 'tier-1/tier-2 services without a valid oncall schedule',
+      text: 'tier-1 / tier-2 services without a valid oncall schedule',
     },
   ]}
 />
@@ -665,11 +686,12 @@ Dependencies are the second most valuable data in a service catalog, after owner
 
 ### Dependency Types and Metadata
 
-Not all dependencies are equal. A service that can't function without its database has a __critical__ dependency. A service that falls back to cached data when a recommendation engine is down has an __optional__ dependency. Capturing this distinction matters for incident response and maintenance planning.
+Not all dependencies are equal. A service that can't function without its database has a _critical_ dependency. A service that falls back to cached data when a recommendation engine is down has an _optional_ dependency. Capturing this distinction matters for incident response and maintenance planning.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Dependency types by criticality.',
     thead: {
       th: ['Dependency type', 'Description', 'Example'],
     },
@@ -697,7 +719,6 @@ Not all dependencies are equal. A service that can't function without its databa
         },
       ],
     },
-    figure: 'Dependency types by criticality.',
   }}
 />
 
@@ -738,8 +759,12 @@ Declared dependencies are only half the picture. Services add dependencies all t
 The best approach combines multiple data sources:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: 'Dependency discovery sources and their tradeoffs.',
     thead: {
       th: ['Source', 'What it catches', 'Confidence', 'Limitations'],
     },
@@ -767,7 +792,6 @@ The best approach combines multiple data sources:
         },
       ],
     },
-    figure: 'Dependency discovery sources and their tradeoffs.',
   }}
 />
 
@@ -776,7 +800,10 @@ The best approach combines multiple data sources:
 The reconciliation logic compares declared dependencies against observed traffic. Four outcomes are possible:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-12 mb-12",
+  }}
   items={[
     {
       lead: 'Validated:',
@@ -797,7 +824,7 @@ The reconciliation logic compares declared dependencies against observed traffic
   ]}
 />
 
-Undeclared dependencies are the dangerous ones. They represent hidden coupling that won't show up in impact analysis. When you're planning maintenance on a service, you need to know __everything__ that depends on it, not just what's documented.
+Undeclared dependencies are the dangerous ones. They represent hidden coupling that won't show up in impact analysis. When you're planning maintenance on a service, you need to know _everything_ that depends on it, not just what's documented.
 
 ```yaml title="prometheus-dependency-alert.yaml"
 # Alert on undeclared dependencies detected via service mesh
@@ -823,24 +850,25 @@ Code: Prometheus alert for undeclared dependencies.
 Once you have dependency data, the catalog needs to answer questions about it. The most common queries:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      lead: 'What does service X depend on?',
-      text: '(direct and transitive)',
+      lead: 'What does service X depend on? (direct and transitive)',
     },
     {
-      lead: 'What depends on service X?',
-      text: '(consumers/reverse dependencies)',
+      lead: 'What depends on service X? (consumers/reverse dependencies)',
     },
     {
-      text: "What's the blast radius if service X fails?",
+      lead: "What's the blast radius if service X fails?",
     },
     {
-      text: 'Are there circular dependencies?',
+      lead: 'Are there circular dependencies?',
     },
     {
-      text: "What's the critical path between service A and service B?",
+      lead: "What's the critical path between service A and service B?",
     },
   ]}
 />
@@ -848,8 +876,9 @@ Once you have dependency data, the catalog needs to answer questions about it. T
 Blast radius is particularly useful for incident response and maintenance planning. When a tier-1 database goes down, you want to immediately know how many services are affected and which teams need to be notified.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="striped-rows-table"
   content={{
+    figure: 'Common dependency graph queries.',
     thead: {
       th: ['Query', 'Use case', 'Output'],
     },
@@ -877,7 +906,6 @@ Blast radius is particularly useful for incident response and maintenance planni
         },
       ],
     },
-    figure: 'Common dependency graph queries.',
   }}
 />
 
@@ -926,7 +954,10 @@ Code: Catalog entry in the service repository.
 The benefits of catalog-as-code:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-12 mb-12",
+  }}
   items={[
     {
       lead: 'Audit trail:',
@@ -993,8 +1024,9 @@ Code: GitHub Action for catalog validation on PRs.
 For tier-1 and tier-2 services, make validation failures blocking. For tier-3 and tier-4, warn but allow the PR to merge — you want to reduce friction for less critical services while maintaining strict standards for critical ones.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Validation enforcement by tier.',
     thead: {
       th: ['Service tier', 'Missing owner', 'Missing runbook', 'Missing dependencies'],
     },
@@ -1018,7 +1050,6 @@ For tier-1 and tier-2 services, make validation failures blocking. For tier-3 an
         },
       ],
     },
-    figure: 'Validation enforcement by tier.',
   }}
 />
 
@@ -1029,7 +1060,10 @@ Even with CI validation, catalog entries go stale. A service's dependencies chan
 Run freshness checks weekly. The rules should enforce:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-12 mb-12",
+  }}
   items={[
     {
       lead: 'Ownership verification:',
@@ -1081,8 +1115,13 @@ The verification workflow should be low-friction. Send a Slack message to the ow
 Drift detection compares catalog declarations against actual system state. It catches discrepancies that validation can't: a service that exists in Kubernetes but not in the catalog, a team that was deleted from the identity provider, an oncall schedule that was removed from PagerDuty.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: 'Drift detection types and data sources.',
     thead: {
       th: ['Drift type', 'What it catches', 'Data sources'],
     },
@@ -1110,7 +1149,6 @@ Drift detection compares catalog declarations against actual system state. It ca
         },
       ],
     },
-    figure: 'Drift detection types and data sources.',
   }}
 />
 
@@ -1129,8 +1167,13 @@ A catalog that exists in isolation is just a document repository. The catalog be
 Backstage provides a catalog API out of the box, but understanding the API surface helps whether you're using Backstage or building something custom. The core operations fall into three categories: entity CRUD, relationship queries, and search.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: 'Catalog API operation categories.',
     thead: {
       th: ['API category', 'Operations', 'Primary consumers'],
     },
@@ -1150,7 +1193,6 @@ Backstage provides a catalog API out of the box, but understanding the API surfa
         },
       ],
     },
-    figure: 'Catalog API operation categories.',
   }}
 />
 
@@ -1326,9 +1368,13 @@ dashboard.new(
 
 Code: Complete Grafonnet template for catalog-driven dashboards.
 
+In practice, each of these integrations solves a different problem and operates on a different cadence. PagerDuty needs real-time accuracy — a stale on-call mapping at 2 AM is worse than no mapping at all. Datadog and Grafana are more forgiving; a daily or on-change sync keeps dashboards and monitors aligned without hammering either API. Terraform tagging is the easiest to get right because it runs in your deploy pipeline, where the catalog data is already available. Slack is the wild card: it's where engineers actually _discover_ ownership, so even a simple bot that resolves "who owns this?" queries pays for itself fast. The table below summarizes the trade-offs.
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
+    figure: 'Common catalog integrations.',
     thead: {
       th: ['Integration', 'Sync frequency', 'Primary benefit'],
     },
@@ -1356,7 +1402,6 @@ Code: Complete Grafonnet template for catalog-driven dashboards.
         },
       ],
     },
-    figure: 'Common catalog integrations.',
   }}
 />
 
@@ -1366,7 +1411,7 @@ A catalog without health metrics will silently decay. You'll assume coverage is 
 
 ### Catalog Coverage Metrics
 
-Coverage measures how much of your infrastructure exists in the catalog. Start by defining the denominator — what __should__ be cataloged. For services, the Kubernetes API or your deployment system provides ground truth. Compare that against what's actually in the catalog.
+Coverage measures how much of your infrastructure exists in the catalog. Start by defining the denominator — what _should_ be cataloged. For services, the Kubernetes API or your deployment system provides ground truth. Compare that against what's actually in the catalog.
 
 ```yaml
 # Prometheus recording rules for catalog coverage
@@ -1385,11 +1430,13 @@ groups:
 
 Code: Prometheus recording rules for coverage metrics.
 
-Beyond simple counts, measure _completeness_—what percentage of cataloged services have all required fields populated. A service that exists in the catalog but lacks an owner isn't really cataloged for incident response purposes.
+Beyond simple counts, measure _completeness_ — what percentage of cataloged services have all required fields populated. A service that exists in the catalog but lacks an owner isn't really cataloged for incident response purposes.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
+    figure: 'Core catalog health metrics.',
     thead: {
       th: ['Metric', 'Formula', 'Target'],
     },
@@ -1417,7 +1464,6 @@ Beyond simple counts, measure _completeness_—what percentage of cataloged serv
         },
       ],
     },
-    figure: 'Core catalog health metrics.',
   }}
 />
 
