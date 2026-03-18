@@ -26,7 +26,7 @@ Rate limiting is a double-edged sword. Done right, it protects your systems from
 
 I watched this play out at a company that implemented per-IP rate limiting at 100 requests per minute to prevent scraping. Seemed reasonable. Then a customer behind corporate NAT reported they couldn't use the service. Five hundred employees sharing one public IP meant each person got 0.2 requests per minute. They switched to API key-based limiting with per-key quotas. Problem solved — until a viral moment hit and legitimate traffic spiked 10x. Their fixed-window rate limiting rejected 90% of requests at minute boundaries. Users hammering refresh made it worse. They switched to a __sliding window counter__ to track request counts (eliminating the boundary problem) combined with __token bucket__ for burst control (allowing legitimate traffic spikes while maintaining sustained rate limits). Same traffic spike: requests distributed smoothly, everyone got served, the backend hummed along at capacity without falling over.
 
-The naive approach—"block anything over N requests"—fails because it treats rate limiting as a wall instead of a valve. The algorithms matter: token bucket, leaky bucket, sliding window, and fixed window each behave differently during bursts. The implementation matters more: __where__ you limit, __how__ you identify clients, __what__ happens when limits are hit, and __how__ you communicate constraints to callers.
+The naive approach—"block anything over N requests"—fails because it treats rate limiting as a wall instead of a valve. The algorithms matter: token bucket, leaky bucket, sliding window, and fixed window each behave differently during bursts. The implementation matters more: _where_ you limit, _how_ you identify clients, _what_ happens when limits are hit, and _how_ you communicate constraints to callers.
 
 Rate limiting isn't about saying "no." It's about saying "not yet" in a way that maintains service quality for everyone.
 
@@ -41,35 +41,38 @@ Rate limits that work fine under normal load often become the bottleneck during 
 Rate limiting serves four distinct purposes, and conflating them leads to misconfigured systems.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Resource protection',
-      text: "prevents individual clients from monopolizing shared resources. Without limits, one customer's bulk export can exhaust your database connection pool, causing errors for everyone else. CPU-intensive endpoints, memory-heavy operations, and database-bound queries all need protection from unbounded consumption.",
+      text: "Prevents individual clients from monopolizing shared resources. Without limits, one customer's bulk export can exhaust your database connection pool, causing errors for everyone else. CPU-intensive endpoints, memory-heavy operations, and database-bound queries all need protection from unbounded consumption.",
     },
     {
       lead: 'Fairness',
-      text: "ensures equitable access across clients. Large customers shouldn't crowd out small ones. Free-tier users shouldn't impact paying customers. Rate limits enforce the allocation you've decided is appropriate for each tier.",
+      text: "Ensures equitable access across clients. Large customers shouldn't crowd out small ones. Free-tier users shouldn't impact paying customers. Rate limits enforce the allocation you've decided is appropriate for each tier.",
     },
     {
       lead: 'Abuse prevention',
-      text: 'stops malicious or buggy clients. Credential stuffing attacks, scraping attempts, and runaway retry loops all look like excessive request volume. Rate limiting slows these down enough to make attacks expensive and gives you time to respond.',
+      text: 'Stops malicious or buggy clients. Credential stuffing attacks, scraping attempts, and runaway retry loops all look like excessive request volume. Rate limiting slows these down enough to make attacks expensive and gives you time to respond.',
     },
     {
       lead: 'Cost control',
-      text: 'caps expensive operations. Third-party API calls, ML inference requests, and storage operations have real costs. Without limits, a compromised API key or buggy client can generate surprise bills within hours.',
+      text: 'Caps expensive operations. Third-party API calls, ML inference requests, and storage operations have real costs. Without limits, a compromised API key or buggy client can generate surprise bills within hours.',
     },
   ]}
 />
 
-But rate limiting has limits. It __slows__ attacks; it doesn't prevent them. Determined attackers distribute across IPs and rotate credentials. Rate limiting buys time — authentication, authorization, and WAF rules provide actual security. Similarly, rate limiting __sheds__ load; it doesn't handle it. You still need scaling for legitimate traffic. And rate limiting __helps__ availability; it doesn't guarantee it. Backend failures still cause errors regardless of how well you've throttled incoming requests.
+But rate limiting has limits. It _slows_ attacks; it doesn't prevent them. Determined attackers distribute across IPs and rotate credentials. Rate limiting buys time — authentication, authorization, and WAF rules provide actual security. Similarly, rate limiting _sheds_ load; it doesn't handle it. You still need scaling for legitimate traffic. And rate limiting _helps_ availability; it doesn't guarantee it. Backend failures still cause errors regardless of how well you've throttled incoming requests.
 
 ### Algorithm Overview
 
 Four algorithms dominate production rate limiting, each with different tradeoffs:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Algorithm', 'Mechanism', 'Burst Handling', 'Memory', 'Best For'],
@@ -108,33 +111,34 @@ Four algorithms dominate production rate limiting, each with different tradeoffs
 />
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: "The fixed window approach",
-      text: 'is simple: count requests in minute-long (or hour-long) windows, reject when the count exceeds the limit, reset at the boundary. The problem is boundary bursts. A client can make 95 requests at 11:59:59 and 95 more at 12:00:01 - 190 requests in two seconds while staying under a "100 per minute" limit.',
+      text: 'This is simple: count requests in minute-long (or hour-long) windows, reject when the count exceeds the limit, reset at the boundary. The problem is boundary bursts. A client can make 95 requests at 11:59:59 and 95 more at 12:00:01 - 190 requests in two seconds while staying under a "100 per minute" limit.',
     },
     {
       lead: "Sliding window counter",
-      text: "fixes this by weighting the previous window's count. At 30 seconds into the current window, you count 50% of the previous window plus 100% of the current window. This smooths the boundary problem with minimal additional state.",
+      text: "Fixes this by weighting the previous window's count. At 30 seconds into the current window, you count 50% of the previous window plus 100% of the current window. This smooths the boundary problem with minimal additional state.",
     },
     {
       lead: "Sliding window log",
-      text: "takes accuracy further by storing the timestamp of every request and counting only those within the rolling window. It's perfectly accurate but memory-intensive — you're storing potentially thousands of timestamps per client. Use it only when accuracy is critical and request volume is low, like authentication rate limiting where you absolutely need exactly N attempts per hour.",
+      text: "Takes accuracy further by storing the timestamp of every request and counting only those within the rolling window. It's perfectly accurate but memory-intensive — you're storing potentially thousands of timestamps per client. Use it only when accuracy is critical and request volume is low, like authentication rate limiting where you absolutely need exactly N attempts per hour.",
     },
     {
       lead: "Token bucket",
-      text: "is the workhorse of API rate limiting. Imagine a bucket that holds N tokens (your burst capacity). Tokens are added at rate R (your sustained RPS). Each request consumes a token if available; otherwise it's rejected. This naturally allows bursts — a client can use their full bucket immediately — while maintaining a sustained rate over time.",
+      text: "The workhorse of API rate limiting. Imagine a bucket that holds N tokens (your burst capacity). Tokens are added at rate R (your sustained RPS). Each request consumes a token if available; otherwise it's rejected. This naturally allows bursts — a client can use their full bucket immediately — while maintaining a sustained rate over time.",
     },
     {
       lead: "Leaky bucket",
-      text: "inverts the model: requests enter a queue (the bucket), and they're processed (leaked) at a constant rate. If the queue fills, new requests overflow and are rejected. This produces perfectly smooth output but adds latency — requests wait in the queue. Use it when you need constant output rate to a downstream service that can't handle bursts.",
+      text: "Inverts the model: requests enter a queue (the bucket), and they're processed (leaked) at a constant rate. If the queue fills, new requests overflow and are rejected. This produces perfectly smooth output but adds latency — requests wait in the queue. Use it when you need constant output rate to a downstream service that can't handle bursts.",
     },
   ]}
 />
 
 <Diagram
   src={sameBurstDiagram}
+  magnifyButtonPosition="top-left"
   title="Same burst traffic, different outcomes."
   description="Top-to-bottom flowchart comparing how the same burst pattern behaves under two rate limiting algorithms. A shared input group at the top states that a client sends 95 requests at second 59 and another 95 requests at second 00, for 190 requests in 2 seconds. One branch leads to the Fixed Window Result group, where all 190 requests are allowed and the outcome notes that the client bypassed the intended limit by 2 times. The other branch leads to the Token Bucket Result group, where only the first 10 requests are allowed immediately and the remaining 180 are rejected or queued at 1 request per second. The fixed-window failure outcome is highlighted as bad, while the token bucket enforcement outcome is highlighted as controlled. The diagram demonstrates how boundary timing can exploit fixed windows while token bucket preserves burst capacity limits."
 />
@@ -145,35 +149,39 @@ Token bucket is the most versatile algorithm for API rate limiting. It allows bu
 
 ## Where to Rate Limit
 
-Before choosing an algorithm, decide __where__ in your stack to enforce limits. Each layer has different tradeoffs:
+Before choosing an algorithm, decide _where_ in your stack to enforce limits. Each layer has different tradeoffs:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-center',
+  }}
   content={{
+    figure: 'Rate limiting layers comparison.',
     thead: {
-      th: ['Layer', 'Tools', 'Latency', 'Granularity', 'Best For'],
+      th: ['Layer', 'Latency', 'Tools', 'Granularity', 'Best For'],
     },
     tbody: {
       tr: [
         {
           th: 'Edge/CDN',
-          td: ['Cloudflare, CloudFront, Fastly', 'Lowest', 'IP, geography', 'DDoS, bot protection'],
+          td: ['Lowest', 'Cloudflare, CloudFront, Fastly', 'IP, geography', 'DDoS, bot protection'],
         },
         {
           th: 'API Gateway',
-          td: ['AWS API Gateway, Kong, nginx', 'Low', 'API key, route', 'API quotas, tiered plans'],
+          td: ['Low', 'AWS API Gateway, Kong, nginx', 'API key, route', 'API quotas, tiered plans'],
         },
         {
           th: 'Service Mesh',
-          td: ['Istio, Envoy, Linkerd', 'Low', 'Service identity', 'Service-to-service limits'],
+          td: ['Low', 'Istio, Envoy, Linkerd', 'Service identity', 'Service-to-service limits'],
         },
         {
           th: 'Application',
-          td: ['Custom middleware', 'Higher', 'User, action, context', 'Fine-grained business logic'],
+          td: ['Higher', 'Custom middleware', 'User, action, context', 'Fine-grained business logic'],
         },
       ],
     },
-    figure: 'Rate limiting layers comparison.',
   }}
 />
 
@@ -318,7 +326,8 @@ Code: Token bucket core logic.
 Here's how traffic patterns play out with a 10-token bucket refilling at 1 token per second:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Traffic Pattern', 'What Happens'],
@@ -378,13 +387,18 @@ Code: Leaky bucket core logic.
 The key difference: token bucket serves bursts immediately then makes you wait. Leaky bucket queues everything and serves at constant rate. With a burst of 10 requests:
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Token bucket (10 tokens, 1/s refill): All 10 served instantly, ~0ms latency each',
+      lead: 'Token bucket (10 tokens, 1/s refill): All 10 served instantly, ~0ms latency each',
+      color: "bg-page-inverse",
     },
     {
-      text: 'Leaky bucket (10 queue, 1/s leak): Queued, served over 10 seconds—0ms, 1s, 2s, ... 9s latency',
+      lead: 'Leaky bucket (10 queue, 1/s leak): Queued, served over 10 seconds—0ms, 1s, 2s, ... 9s latency',
+      color: "bg-page-inverse",
     },
   ]}
 />
@@ -392,7 +406,8 @@ The key difference: token bucket serves bursts immediately then makes you wait. 
 Use leaky bucket when you need to protect a downstream service that can't handle bursts — like a payment processor with strict per-second limits. The added latency is the tradeoff for guaranteed smooth output.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Characteristic', 'Token Bucket', 'Leaky Bucket'],
@@ -457,6 +472,7 @@ At the 30-second mark of a 60-second window, you count 50% of the previous windo
 
 <Diagram
   src={slidingWindowDiagram}
+  magnifyButtonPosition="top-left"
   title="Sliding window weighted calculation prevents boundary exploitation."
   description="Top-to-bottom flowchart showing how a sliding window counter computes an effective request count. Inside a grouped section labeled Sliding Window Weighted Calculation, the current time is 12:00:30. The previous window from 11:00 to 12:00 contains 95 requests. The current window from 12:00 to 13:00 has 5 requests so far. A separate node calculates the weight as 30 seconds divided by 60 seconds, or 0.5. The previous window count, current window count, and weight all feed into a calculation node showing Effective equals 95 times 0.5 plus 5, resulting in 52.5. That result then flows to a final node stating Under 100 limit, Request allowed, which is highlighted positively. The diagram explains how sliding window counters smooth boundary effects by partially counting the previous window instead of resetting abruptly at the time boundary."
 />
@@ -470,7 +486,8 @@ For a complete TypeScript implementation with Redis support, see the [sliding wi
 The rate limiting key — how you identify who's making requests — is as important as the algorithm. Choose wrong, and you'll either punish legitimate users or fail to stop abuse.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Strategy', 'Best For', 'Watch Out For'],
@@ -504,7 +521,7 @@ The rate limiting key — how you identify who's making requests — is as impor
 />
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'IP address',
@@ -624,28 +641,29 @@ Good rate limiting is invisible to clients until they approach the limit. The ke
 The IETF draft (draft-ietf-httpapi-ratelimit-headers) defines three standard headers:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
+    figure: 'IETF rate limit headers.',
     thead: {
       th: ['Header', 'Meaning', 'Example'],
     },
     tbody: {
       tr: [
         {
-          th: '`RateLimit-Limit`',
-          td: ['Maximum requests allowed', '`100`'],
+          th: '<span class="font-mono">RateLimit-Limit</span>',
+          td: ['Maximum requests allowed', '<span class="font-mono">100</span>'],
         },
         {
-          th: '`RateLimit-Remaining`',
-          td: ['Requests left in window', '`47`'],
+          th: '<span class="font-mono">RateLimit-Remaining</span>',
+          td: ['Requests left in window', '<span class="font-mono">47</span>'],
         },
         {
-          th: '`RateLimit-Reset`',
-          td: ['Seconds until reset', '`30`'],
+          th: '<span class="font-mono">RateLimit-Reset</span>',
+          td: ['Seconds until reset', '<span class="font-mono">30</span>'],
         },
       ],
     },
-    figure: 'IETF rate limit headers.',
   }}
 />
 
@@ -656,7 +674,10 @@ For 429 responses, always include `Retry-After` (RFC 7231) telling the client wh
 ### Response Codes
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: '429 Too Many Requests',
@@ -716,7 +737,10 @@ Rate limiters need to be tested under realistic conditions — not just unit tes
 ### Key Test Cases
 
 <List
-  variant="numbered-with-background-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Burst handling',
@@ -753,7 +777,10 @@ Code: Testing atomic concurrent access.
 ### What to Monitor
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Rejection rate',
@@ -783,7 +810,10 @@ A high rejection rate isn't always a problem — it might mean the rate limiter 
 What happens when Redis dies? This isn't hypothetical — network partitions, memory exhaustion, and maintenance windows all cause Redis outages. Your rate limiter needs a failure policy decided in advance.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Fail open',
@@ -823,7 +853,10 @@ Rate limiting is traffic shaping, not just request blocking. The best rate limit
 The key insights:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Layer appropriately',
