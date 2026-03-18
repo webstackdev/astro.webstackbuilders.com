@@ -23,7 +23,7 @@ import conftestDiagram from "./diagrams/conftest-evaluation-flow.jpg"
 
 A developer opens a pull request for a Terraform change. Sixteen hours later, a security review rejects it: the S3 bucket lacks encryption. The developer fixes it, waits another day for re-review. This cycle — write, wait, reject, fix, wait — drains velocity and breeds resentment toward security processes.
 
-Shift-left advocates say to check policies earlier. But "earlier" often means CI, which still means waiting for pipelines after pushing code. Real shift-left means __before the commit__ — policy checks that run in seconds during `git add`, catching violations while the context is fresh and the fix is trivial.
+Shift-left advocates say to check policies earlier. But "earlier" often means CI, which still means waiting for pipelines after pushing code. Real shift-left means _before the commit_ — policy checks that run in seconds during `git add`, catching violations while the context is fresh and the fix is trivial.
 
 This article covers building infrastructure guardrails with OPA (Open Policy Agent) and Conftest. The focus is on speed: pre-commit hooks that run in under two seconds, CI checks that parallelize across hundreds of policies, and feedback loops that make compliance a developer experience issue rather than a security bottleneck.
 
@@ -42,7 +42,10 @@ OPA is a general-purpose policy engine that decouples policy decisions from poli
 Three deployment modes serve different use cases:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Library mode',
@@ -81,7 +84,7 @@ conftest test tfplan.json --policy ./policies/terraform
 
 ### Rego Fundamentals
 
-Rego is a declarative language designed for querying nested data structures. If you've used SQL, the mental model is similar: you describe __what__ you want, not __how__ to compute it. Unlike SQL, Rego operates on hierarchical JSON rather than relational tables.
+Rego is a declarative language designed for querying nested data structures. If you've used SQL, the mental model is similar: you describe _what_ you want, not _how_ to compute it. Unlike SQL, Rego operates on hierarchical JSON rather than relational tables.
 
 __Rules generate values.__ A rule with no conditions always produces its value. A rule with conditions only produces its value when all conditions succeed:
 
@@ -142,8 +145,9 @@ With these fundamentals in place — rules, iteration, sets, and data — you ha
 ### Common Rego Patterns
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Common Rego validation patterns and representative examples.',
     thead: {
       th: ['Pattern', 'Use Case', 'Example'],
     },
@@ -151,27 +155,27 @@ With these fundamentals in place — rules, iteration, sets, and data — you ha
       tr: [
         {
           th: 'Required field',
-          td: ['Ensure configuration exists', '`not input.spec.selector`'],
+          td: ['Ensure configuration exists', '<span class="font-mono">not input.spec.selector</span>'],
         },
         {
           th: 'Allowed values',
-          td: ['Whitelist valid options', '`input.type in {"ClusterIP", "NodePort"}`'],
+          td: ['Whitelist valid options', '<span class="font-mono">input.type in {"ClusterIP", "NodePort"}</span>'],
         },
         {
           th: 'Regex matching',
-          td: ['Pattern validation', '`regex.match("^[a-z][a-z0-9-]*$", name)`'],
+          td: ['Pattern validation', '<span class="font-mono">regex.match("^[a-z][a-z0-9-]*$", name)</span>'],
         },
         {
           th: 'Numeric constraints',
-          td: ['Range validation', '`input.replicas > 0; input.replicas <= 10`'],
+          td: ['Range validation', '<span class="font-mono">input.replicas > 0; input.replicas <= 10</span>'],
         },
         {
           th: 'Cross-resource',
-          td: ['Reference related objects', '`data.namespaces[input.metadata.namespace]`'],
+          td: ['Reference related objects', '<span class="font-mono">data.namespaces[input.metadata.namespace]</span>'],
         },
         {
           th: 'Conditional',
-          td: ['Environment-specific rules', '`is_production; ... production-only rule ...`'],
+          td: ['Environment-specific rules', '<span class="font-mono">is_production; ... production-only rule ...</span>'],
         },
       ],
     },
@@ -217,15 +221,18 @@ Rego's learning curve is real but bounded. Most infrastructure policies use a sm
 Four principles separate policies that get adopted from policies that get bypassed:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Single responsibility.',
-      text: 'Each rule should check one thing. A 50-line rule that validates images, resources, and labels produces confusing violations and resists modification. Split concerns into separate rules: `deny_unauthorized_image`, `deny_missing_resources`, `deny_missing_labels`. When a violation fires, developers know exactly what to fix.',
+      text: 'Each rule should check one thing. A 50-line rule that validates images, resources, and labels produces confusing violations and resists modification. Split concerns into separate rules: <span class="font-mono">deny_unauthorized_image</span>, <span class="font-mono">deny_missing_resources</span>, <span class="font-mono">deny_missing_labels</span>. When a violation fires, developers know exactly what to fix.',
     },
     {
       lead: 'Actionable messages.',
-      text: '"Policy violation" tells the developer nothing. "Container missing resource limits" is better. "Container \'nginx\' missing resource limits. Add `spec.containers[].resources.limits.cpu` and `memory`" is what they actually need. Include the resource name, the violation, and the fix path.',
+      text: '"Policy violation" tells the developer nothing. "Container missing resource limits" is better. "Container \'nginx\' missing resource limits. Add <span class="font-mono">spec.containers[].resources.limits.cpu</span> and <span class="font-mono">memory</span>" is what they actually need. Include the resource name, the violation, and the fix path.',
     },
     {
       lead: 'Minimal false positives.',
@@ -240,7 +247,7 @@ Four principles separate policies that get adopted from policies that get bypass
 
 Structure violation messages consistently:
 
-```text
+```markdown
 [Resource Type] [Resource Name]: [Violation].
 Fix: [Specific remediation]
 ```
@@ -249,13 +256,19 @@ Code: Violation message template.
 Examples:
 
 <List
-  variant="check-icons-list"
+  variant="accent-border-left-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    em: "!font-normal !text-content text-base",
+  }}
   items={[
     {
-      text: "`Deployment 'api-server': Missing required label 'team'. Fix: Add metadata.labels.team with your team name.`",
+      lead: '<span class="font-mono">Deployment \'api-server\': Missing required label \'team\'. Fix: Add metadata.labels.team with your team name.</span>',
+      color: "border-danger",
     },
     {
-      text: "`Pod 'worker': Container 'app' uses image from unauthorized registry 'docker.io'. Fix: Use images from 'gcr.io/company-project' or 'artifactory.company.com'.`",
+      lead: '<span class="font-mono">Pod \'worker\': Container \'app\' uses image from unauthorized registry \'docker.io\'. Fix: Use images from \'gcr.io/company-project\' or \'artifactory.company.com\'.</span>',
+      color: "border-danger",
     },
   ]}
 />
@@ -264,40 +277,102 @@ Examples:
 
 Organize policies by technology, then resource type, then concern. This structure makes policies discoverable and enables selective evaluation — run only Terraform policies on Terraform files.
 
-```text
-policies/
-├── kubernetes/
-│   ├── pods/
-│   │   ├── privileged.rego
-│   │   ├── resources.rego
-│   │   └── images.rego
-│   ├── deployments/
-│   │   ├── replicas.rego
-│   │   └── labels.rego
-│   ├── services/
-│   │   └── types.rego
-│   └── common/
-│       ├── labels.rego
-│       └── helpers.rego
-├── terraform/
-│   ├── aws/
-│   │   ├── s3.rego
-│   │   ├── iam.rego
-│   │   └── security_groups.rego
-│   └── common/
-│       └── tags.rego
-├── docker/
-│   ├── base_images.rego
-│   └── best_practices.rego
-├── data/
-│   ├── allowed_registries.json
-│   ├── required_labels.json
-│   └── team_mappings.json
-└── lib/
-    ├── helpers.rego
-    └── constants.rego
-```
-Code: Policy directory structure.
+<FileExplorer
+  figure="Policy directory structure."
+  data={[
+    {
+      type: 'folder',
+      name: 'policies',
+      children: [
+        {
+          type: 'folder',
+          name: 'kubernetes',
+          children: [
+            {
+              type: 'folder',
+              name: 'pods',
+              children: [
+                { type: 'file', name: 'privileged.rego', comment: 'Blocks privileged pod settings' },
+                { type: 'file', name: 'resources.rego', comment: 'Checks pod resource requirements' },
+                { type: 'file', name: 'images.rego', comment: 'Restricts approved image registries' },
+              ],
+            },
+            {
+              type: 'folder',
+              name: 'deployments',
+              children: [
+                { type: 'file', name: 'replicas.rego', comment: 'Validates deployment replica counts' },
+                { type: 'file', name: 'labels.rego', comment: 'Requires deployment metadata labels' },
+              ],
+            },
+            {
+              type: 'folder',
+              name: 'services',
+              children: [
+                { type: 'file', name: 'types.rego', comment: 'Restricts allowed service types' },
+              ],
+            },
+            {
+              type: 'folder',
+              name: 'common',
+              children: [
+                { type: 'file', name: 'labels.rego', comment: 'Shared label validation rules' },
+                { type: 'file', name: 'helpers.rego', comment: 'Shared helpers for policy reuse' },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'terraform',
+          children: [
+            {
+              type: 'folder',
+              name: 'aws',
+              children: [
+                { type: 'file', name: 's3.rego', comment: 'Checks S3 bucket guardrails' },
+                { type: 'file', name: 'iam.rego', comment: 'Checks unsafe IAM permissions' },
+                { type: 'file', name: 'security_groups.rego', comment: 'Checks security group exposure' },
+              ],
+            },
+            {
+              type: 'folder',
+              name: 'common',
+              children: [
+                { type: 'file', name: 'tags.rego', comment: 'Requires standard resource tags' },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'docker',
+          children: [
+            { type: 'file', name: 'base_images.rego', comment: 'Restricts approved base images' },
+            { type: 'file', name: 'best_practices.rego', comment: 'Checks Dockerfile best practices' },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'data',
+          children: [
+            { type: 'file', name: 'allowed_registries.json', comment: 'Approved container registry allowlist' },
+            { type: 'file', name: 'required_labels.json', comment: 'Required metadata label definitions' },
+            { type: 'file', name: 'team_mappings.json', comment: 'Maps teams to ownership data' },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'lib',
+          children: [
+            { type: 'file', name: 'helpers.rego', comment: 'Reusable utility policy functions' },
+            { type: 'file', name: 'constants.rego', comment: 'Shared policy constants' },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
 Rego packages map to this directory structure. Use namespacing to group related policies and enable selective evaluation:
 
@@ -534,8 +609,10 @@ Pre-commit only runs against staged files by default, which keeps evaluation fas
 The [pre-commit framework](https://pre-commit.com/) shown above is language-agnostic and works across ecosystems, but each stack has its canonical approach:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
+    figure: 'Pre-commit tools by ecosystem.',
     thead: {
       th: ['Ecosystem', 'Pre-commit Tool', 'Installation'],
     },
@@ -543,31 +620,30 @@ The [pre-commit framework](https://pre-commit.com/) shown above is language-agno
       tr: [
         {
           th: 'Python',
-          td: ['pre-commit', '`pip install pre-commit && pre-commit install`'],
+          td: ['pre-commit', '<span class="font-mono">pip install pre-commit && pre-commit install</span>'],
         },
         {
           th: 'Node.js',
-          td: ['Husky + lint-staged', '`npx husky init` (works for any project with package.json)'],
+          td: ['Husky + lint-staged', '<span class="font-mono">npx husky init</span>'],
         },
         {
           th: 'Ruby/Rails',
-          td: ['Overcommit', '`gem install overcommit && overcommit --install`'],
+          td: ['Overcommit', '<span class="font-mono">gem install overcommit && overcommit --install</span>'],
         },
         {
           th: 'PHP/Laravel',
-          td: ['GrumPHP', '`composer require --dev phpro/grumphp`'],
+          td: ['GrumPHP', '<span class="font-mono">composer require --dev phpro/grumphp</span>'],
         },
         {
           th: '.NET/C#',
-          td: ['Husky.Net', '`dotnet tool install husky`'],
+          td: ['Husky.Net', '<span class="font-mono">dotnet tool install husky</span>'],
         },
         {
           th: 'Go',
-          td: ['pre-commit or lefthook', '`go install github.com/evilmartians/lefthook`'],
+          td: ['pre-commit or lefthook', '<span class="font-mono">go install github.com/evilmartians/lefthook</span>'],
         },
       ],
     },
-    figure: 'Pre-commit tools by ecosystem.',
   }}
 />
 
@@ -651,7 +727,7 @@ __Branch protection is required for enforcement.__ Without it, developers can me
 Other platforms have equivalent mechanisms:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     thead: {
       th: ['Platform', 'Protection Mechanism', 'Configuration Location'],
@@ -727,7 +803,11 @@ __CI caching.__ Cache policy bundles between runs:
 Code: GitHub Actions cache configuration.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
+  classes={{
+    tbody: '[&_td:nth-child(2)]:text-center [&_td:nth-child(3)]:text-center [&_td:nth-child(4)]:text-center',
+  }}
   content={{
     thead: {
       th: ['Optimization', 'Speedup', 'Example (50 policies, 100 files)', 'Complexity'],
@@ -905,7 +985,11 @@ Code: Required tagging policy.
 Two approaches exist for evaluating Terraform configurations, each with tradeoffs. HCL (HashiCorp Configuration Language) is Terraform's native syntax — the `.tf` files developers write. Plan JSON is the output of `terraform show -json`, containing the fully resolved execution plan with all variables interpolated and modules expanded.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Aspect', 'HCL Parsing', 'Plan JSON'],
@@ -914,7 +998,7 @@ Two approaches exist for evaluating Terraform configurations, each with tradeoff
       tr: [
         {
           th: 'Speed',
-          td: ['Fast (< 1 second)', 'Slow (requires `terraform plan`)'],
+          td: ['Fast (< 1 second)', 'Slow (requires <span class="font-mono">terraform plan</span>)'],
         },
         {
           th: 'Credentials',
@@ -943,7 +1027,11 @@ HCL parsing is best for syntax checks and naming conventions where speed matters
 HCL parsing (`conftest test *.tf --parser hcl2`) catches static violations without cloud access. Plan JSON evaluation sees the complete resolved configuration. Use both at different stages:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Stage', 'Check', 'Time'],
@@ -1150,7 +1238,8 @@ Code: Image tag and registry policies.
 Conftest supports three severity levels: `deny` (blocks deployment), `warn` (allows with warning), and `violation` (informational). Map severity to policy type and environment:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Policy Type', 'Production', 'Non-Production'],
@@ -1289,21 +1378,25 @@ Exceptions without governance accumulate indefinitely. A structured process keep
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    li: "[&>div]:!pt-2 mb-6",
+  }}
   items={[
     {
-      text: 'Developer adds exception annotation with reason',
+      lead: 'Developer adds exception annotation with reason',
     },
     {
-      text: 'PR triggers policy check — warns about exception usage',
+      lead: 'PR triggers policy check — warns about exception usage',
     },
     {
-      text: 'Security team reviews exception request',
+      lead: 'Security team reviews exception request',
     },
     {
-      text: 'If approved, merge with exception and expiration date',
+      lead: 'If approved, merge with exception and expiration date',
     },
     {
-      text: 'Exception logged in audit system',
+      lead: 'Exception logged in audit system',
     },
   ]}
 />
@@ -1323,7 +1416,8 @@ Code: Exception annotation format.
 Different exception types warrant different governance levels:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Exception Type', 'Max Duration', 'Review Frequency', 'Approval Required'],
@@ -1366,8 +1460,8 @@ Exceptions are a feature, not a bug. Legitimate use cases exist for most securit
 
 Effective infrastructure guardrails require more than comprehensive policies — they require fast feedback, clear messages, appropriate severity levels, and pragmatic exception handling. Policies that run in pre-commit catch violations before they become PRs. Policies with actionable messages get fixed instead of ignored. Policies with exception mechanisms accommodate legitimate edge cases.
 
-The goal is policies that developers trust: fast enough to not slow them down, accurate enough to not cry wolf, and flexible enough to handle real-world complexity. The measure of success isn't how many violations you block — it's how few violations reach production combined with how little friction developers experience. Both matter.
-
 <Callout type="success">
 Start with five critical policies that run in under two seconds. Get adoption. Add coverage. The fastest path to comprehensive guardrails runs through developer trust.
 </Callout>
+
+The goal is policies that developers trust: fast enough to not slow them down, accurate enough to not cry wolf, and flexible enough to handle real-world complexity. The measure of success isn't how many violations you block — it's how few violations reach production combined with how little friction developers experience. Both matter.

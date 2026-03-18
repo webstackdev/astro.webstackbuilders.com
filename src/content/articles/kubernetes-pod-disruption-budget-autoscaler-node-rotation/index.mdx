@@ -25,7 +25,7 @@ A PodDisruptionBudget (PDB) is a native Kubernetes resource that limits how many
 
 Here's a scenario I've seen more than once: a platform team schedules node rotation for security patching. The rotation begins at 2 AM. By 6 AM, the on-call engineer is paged — half the nodes are stuck in "draining" state.
 
-Investigation reveals a critical service with `minAvailable: 3` and 3 replicas, but all 3 pods landed on nodes scheduled for rotation. The PDB that was supposed to protect availability is now __preventing__ the security patch that protects availability. The lesson: PDBs require thinking about both directions — protecting from disruption __and__ allowing necessary operations.
+Investigation reveals a critical service with `minAvailable: 3` and 3 replicas, but all 3 pods landed on nodes scheduled for rotation. The PDB that was supposed to protect availability is now __preventing__ the security patch that protects availability. The lesson: <Highlighter>PDBs require thinking about both directions — protecting from disruption __and__ allowing necessary operations.</Highlighter>
 
 <Callout type="warning">
 A PDB that blocks all disruptions doesn't protect your service — it protects it from getting security patches, upgrades, and capacity optimization. The goal is controlled disruption, not zero disruption.
@@ -68,6 +68,7 @@ The eviction flow works like this: when a drain or autoscaler attempts to evict 
 
 <Diagram
   src={pdbEvictionDiagram}
+  size="full"
   title="PDB eviction decision flow."
   description="Sequence diagram showing how a PodDisruptionBudget affects a node drain eviction. The participants are Cluster Operator, Node Drain, API Server, PDB Controller, and Target Pod. The flow starts when the Cluster Operator runs kubectl drain node-1. Node Drain then sends a request to the API Server to create an Eviction for pod-1. The API Server checks the disruption budget with the PDB Controller. In the allowed path, the PDB Controller responds that disruptionsAllowed is greater than 0, the API Server evicts pod-1, the Target Pod terminates, and the drain process continues to the next pod. In the blocked path, the PDB Controller responds that disruptionsAllowed equals 0, the API Server returns a 429 Too Many Requests response to Node Drain, and the drain process retries or times out. The diagram emphasizes that voluntary pod evictions succeed or fail based on the current PDB budget at the moment the eviction request reaches the API server."
 />
@@ -77,15 +78,19 @@ The eviction flow works like this: when a drain or autoscaler attempts to evict 
 Choosing the wrong mode is one of the most common causes of autoscaler deadlocks. The two PDB modes look similar but behave differently as your replica count changes. Consider a 5-replica deployment:
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-12 mb-6",
+    titleClass: "block w-full text-center",
+  }}
   items={[
     {
-      lead: 'minAvailable: 2',
-      text: 'means at least 2 must stay up, so 3 can be disrupted simultaneously',
+      title: 'minAvailable: 2',
+      lead: 'Means at least 2 must stay up, so 3 can be disrupted simultaneously',
     },
     {
-      lead: 'maxUnavailable: 1',
-      text: 'means at most 1 can be down, so only 1 can be disrupted at a time',
+      title: 'maxUnavailable: 1',
+      lead: 'Means at most 1 can be down, so only 1 can be disrupted at a time',
     },
   ]}
 />
@@ -93,7 +98,8 @@ Choosing the wrong mode is one of the most common causes of autoscaler deadlocks
 The math gets interesting with percentages. `minAvailable: 80%` on 5 replicas means ceil(5 × 0.8) = 4 must stay up, allowing only 1 disruption. `maxUnavailable: 25%` means floor(5 × 0.25) = 1 can be down. Same result, but the behavior diverges as you scale.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Configuration', '5 Replicas', '10 Replicas', 'Behavior'],
@@ -180,7 +186,10 @@ Node rotations happen for many reasons: security patches, Kubernetes version upg
 The recommended approach is surge-then-drain: add new nodes first, then drain old ones sequentially. This maintains capacity throughout the rotation and gives PDBs room to work.
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Add new nodes',
@@ -230,25 +239,30 @@ kubectl get pods -A --field-selector spec.nodeName=node-1
 
 Code: Diagnosing a stuck drain.
 
-You're looking for PDBs where the `ALLOWED DISRUPTIONS` column shows `0`—those are the ones blocking your drain. Cross-reference with the pods still on the node to identify the culprit.
+You're looking for PDBs where the `ALLOWED DISRUPTIONS` column shows `0` — those are the ones blocking your drain. Cross-reference with the pods still on the node to identify the culprit.
 
 <Newsletter />
 
 Once you've identified the blocking PDB, you have several options depending on the situation:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
-      lead: 'Wait for pods to become healthy.',
-      text: 'If `disruptionsAllowed` is zero because pods are failing health checks, fix the health issue. Once pods are healthy, the PDB will allow disruptions again.',
+      lead: 'Wait for pods to become healthy',
+      text: 'If <span class="font-mono">disruptionsAllowed</span> is zero because pods are failing health checks, fix the health issue. Once pods are healthy, the PDB will allow disruptions again.',
     },
     {
-      lead: 'Scale up the deployment.',
-      text: 'If you have `minAvailable: 3` but only 3 replicas and one is unhealthy, add a fourth replica. Once it\'s ready, you\'ll have headroom to drain.',
+      lead: 'Scale up the deployment',
+      text: 'If you have <span class="font-mono">minAvailable: 3</span> but only 3 replicas and one is unhealthy, add a fourth replica. Once it\'s ready, you\'ll have headroom to drain.',
     },
     {
-      lead: 'Temporarily relax the PDB.',
+      lead: 'Temporarily relax the PDB',
       text: 'For planned maintenance windows, you can patch the PDB to be less strict:',
     },
   ]}
@@ -270,17 +284,21 @@ kubectl patch pdb my-service-pdb -p '{"spec":{"minAvailable":2}}'
 Code: Temporarily relaxing a PDB for maintenance.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      lead: 'Force delete as last resort.',
-      text: 'If you\'re in an emergency and need the node drained now, you can bypass the eviction API entirely with `kubectl delete pod --force --grace-period=0`. This ignores PDBs completely — the pod just disappears.',
+      lead: 'Force delete as last resort',
+      text: 'If you\'re in an emergency and need the node drained now, you can bypass the eviction API entirely with <span class="font-mono">kubectl delete pod --force --grace-period=0</span>. This ignores PDBs completely — the pod just disappears.',
     },
   ]}
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Symptom', 'Likely Cause', 'Resolution'],
@@ -374,15 +392,15 @@ Code: PDB for a logging DaemonSet.
 The right percentage depends on your tolerance for gaps. For logging agents like Fluentd, 10% means brief log gaps during rotation — usually acceptable. For monitoring agents or security daemons where gaps are more problematic, use 5%. For non-critical DaemonSets, 20-25% speeds up rotations significantly.
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
-      lead: 'Batch jobs and CronJobs',
-      text: 'generally shouldn\'t have PDBs. Jobs should be restartable by design, and a PDB on a job creates operational headaches without providing real protection.',
+      lead: 'Single-replica deployments',
+      text: 'These are a judgment call. A PDB with <span class="font-mono">maxUnavailable: 1</span> doesn\'t prevent disruption — it just makes the eviction use the eviction API instead of direct deletion. This can be useful for visibility and for systems that watch eviction events, but it doesn\'t provide availability protection. If you need zero downtime, run more replicas.',
     },
     {
-      lead: 'Single-replica deployments',
-      text: 'are a judgment call. A PDB with `maxUnavailable: 1` doesn\'t prevent disruption — it just makes the eviction use the eviction API instead of direct deletion. This can be useful for visibility and for systems that watch eviction events, but it doesn\'t provide availability protection. If you need zero downtime, run more replicas.',
+      lead: 'Batch jobs and CronJobs',
+      text: 'Generally shouldn\'t have PDBs. Jobs should be restartable by design, and a PDB on a job creates operational headaches without providing real protection.',
     },
   ]}
 />
@@ -392,25 +410,30 @@ The right percentage depends on your tolerance for gaps. For logging agents like
 Several PDB configurations look reasonable but cause problems:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'minAvailable equals replica count.',
-      text: 'If you have 3 replicas and `minAvailable: 3`, nothing can ever be evicted. This is the most common PDB misconfiguration.',
+      text: 'If you have 3 replicas and <span class="font-mono">minAvailable: 3</span>, nothing can ever be evicted. This is the most common PDB misconfiguration.',
     },
     {
       lead: 'Percentages that round badly.',
-      text: '`minAvailable: 90%` with 3 replicas means ceil(2.7) = 3 pods required — blocking all evictions. Use absolute numbers for small deployments.',
+      text: '<span class="font-mono">minAvailable: 90%</span> with 3 replicas means <span class="font-mono">ceil(2.7)</span> = 3 pods required — blocking all evictions. Use absolute numbers for small deployments.',
     },
     {
       lead: 'Multiple overlapping PDBs.',
-      text: 'If a pod matches two PDBs, both must allow the disruption. This is stricter than either PDB alone and often catches teams by surprise. For example: Team A creates a PDB for `app: payments` allowing 1 disruption, Team B creates a PDB for `tier: critical` allowing 2 disruptions. Pods with both labels need both PDBs to allow eviction simultaneously — effectively the stricter of the two.',
+      text: 'If a pod matches two PDBs, both must allow the disruption. This is stricter than either PDB alone and often catches teams by surprise. For example: Team A creates a PDB for <span class="font-mono">app: payments</span> allowing 1 disruption, Team B creates a PDB for <span class="font-mono">tier: critical</span> allowing 2 disruptions. Pods with both labels need both PDBs to allow eviction simultaneously — effectively the stricter of the two.',
     },
   ]}
 />
 
 <Diagram
   src={pdbConfigDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="PDB configuration decision tree."
   description="Flowchart guiding the reader through common PodDisruptionBudget choices and validation checks. The chart starts at Define PDB and asks for the replica count. If there is 1 replica, it asks whether a PDB is needed. If yes, for awareness, it leads to maxUnavailable: 1. If no, it leads to Skip PDB. If there are 2 to 3 replicas, the chart recommends Use absolute numbers and then maxUnavailable: 1. If there are 4 or more replicas, it asks whether the workload is quorum-based. If yes, it recommends minAvailable: quorum size. If no, it recommends maxUnavailable: 25%. Separately, a validation path starts at Validate and asks whether disruptionsAllowed is greater than 0. If no, the result is PDB too strict. If yes, it asks whether the allowed disruptions are at least as large as pods per node. If no, the result is May block autoscaler. If yes, the result is Good configuration. The diagram highlights that PDB choices should be based on replica count, quorum needs, and whether the resulting disruption budget still leaves enough room for node drains and autoscaler operations."
 />
@@ -428,19 +451,22 @@ PDBs fail silently. A misconfigured PDB doesn't cause an immediate outage — it
 The kube-state-metrics project exposes PDB status as Prometheus metrics (ensure kube-state-metrics is deployed and scraped by Prometheus — it's included in most monitoring stacks like kube-prometheus-stack). The key metrics to watch:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      lead: 'kube_poddisruptionbudget_status_pod_disruptions_allowed',
-      text: 'how many pods can currently be evicted',
+      lead: '<span class="font-mono">kube_poddisruptionbudget_status_pod_disruptions_allowed</span>',
+      text: 'How many pods can currently be evicted',
     },
     {
-      lead: 'kube_poddisruptionbudget_status_current_healthy',
-      text: 'pods currently passing health checks',
+      lead: '<span class="font-mono">kube_poddisruptionbudget_status_current_healthy</span>',
+      text: 'Pods currently passing health checks',
     },
     {
-      lead: 'kube_poddisruptionbudget_status_desired_healthy',
-      text: 'minimum required by the PDB',
+      lead: '<span class="font-mono">kube_poddisruptionbudget_status_desired_healthy</span>',
+      text: 'Minimum required by the PDB',
     },
   ]}
 />
@@ -488,7 +514,12 @@ The `PDBViolated` alert is more urgent — it means you're already below your av
 Use these thresholds to assess PDB health at a glance:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-success [&_td:nth-child(3)]:text-warning [&_td:nth-child(4)]:text-danger [&_td:nth-child(2)]:text-center [&_td:nth-child(3)]:text-center [&_td:nth-child(4)]:text-center',
+  }}
   content={{
     thead: {
       th: ['Metric', 'Healthy', 'Warning', 'Critical'],
@@ -496,12 +527,12 @@ Use these thresholds to assess PDB health at a glance:
     tbody: {
       tr: [
         {
-          th: 'disruptionsAllowed',
+          th: '<span class="font-mono">disruptionsAllowed</span>',
           td: ['> 20% of pods', '1-20% of pods', '0'],
         },
         {
-          th: 'currentHealthy vs desired',
-          td: ['Equal', '-', 'Below'],
+          th: '<span class="font-mono">currentHealthy</span> vs <span class="font-mono">desired</span>',
+          td: ['Equal', '---', 'Below'],
         },
         {
           th: 'Blocking duration',
@@ -529,8 +560,8 @@ PDBs are contracts between workload owners and platform operators. The goal is c
 
 Configure PDBs to allow at least enough disruptions for single-node drains — that's the minimum for cluster operations to work. Monitor for PDBs that block disruptions, and have clear procedures for resolving stuck drains when they happen.
 
-A cluster that can't be maintained isn't a reliable cluster. PDBs that block security patches, version upgrades, and capacity optimization aren't protecting availability — they're trading one kind of risk for another. The best PDB configuration is invisible: it protects your workloads during operations without anyone noticing. That 6 AM page about stuck nodes? With proper PDB configuration, it doesn't happen.
-
 <Callout type="success">
 If your platform team is constantly battling PDBs during node rotations, the PDBs are misconfigured — not too loose, but too strict.
 </Callout>
+
+A cluster that can't be maintained isn't a reliable cluster. PDBs that block security patches, version upgrades, and capacity optimization aren't protecting availability — they're trading one kind of risk for another. The best PDB configuration is invisible: it protects your workloads during operations without anyone noticing. That 6 AM page about stuck nodes? With proper PDB configuration, it doesn't happen.

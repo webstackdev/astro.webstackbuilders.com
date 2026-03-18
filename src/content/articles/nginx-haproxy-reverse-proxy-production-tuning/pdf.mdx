@@ -60,6 +60,7 @@ Finally, the proxy __forwards the request__, __receives the response__, and __de
 
 <Diagram
   src={requestFlowDiagram}
+  size="full"
   title="Request flow through reverse proxy."
   description="Sequence diagram with three participants: Client, Proxy, and Backend. Phase 1 is Client Connection, where the client performs a TCP handshake with the proxy and then a TLS handshake. Phase 2 is Request Receipt, where the client sends HTTP request headers followed by the HTTP request body to the proxy. Phase 3 is Backend Connection, where the proxy opens or reuses a TCP connection to the backend. Phase 4 is Request Forward, where the proxy sends the HTTP request to the backend. Phase 5 is Response Receipt, where the backend returns the HTTP response to the proxy. Phase 6 is Response Delivery, where the proxy sends the HTTP response back to the client. A final note indicates that the client connection may remain open for keep-alive reuse. The diagram maps the full path of a proxied request and highlights where connection, timeout, and buffering settings influence behavior."
 />
@@ -70,9 +71,9 @@ Nginx and HAProxy handle connections differently, and understanding these models
 
 Nginx uses an __event-driven, single-threaded worker__ model. Each worker process handles thousands of connections using non-blocking I/O, but each connection — whether from a client or to a backend — uses one slot from the `worker_connections` pool. Since a proxied request needs both a client connection and a backend connection, each request consumes at least two slots. The formula for maximum concurrent requests is roughly:
 
-```text
-max concurrent requests = (worker_processes × worker_connections) / 2
-```
+<Inset color="page-offset">
+`max concurrent requests = (worker_processes × worker_connections) / 2`
+</Inset>
 
 With 4 workers and 4096 connections each, you get approximately 8,192 concurrent requests. Keep-alives complicate this — idle connections still consume slots, so you may hit connection limits before CPU or memory becomes a bottleneck.
 
@@ -236,7 +237,11 @@ The `timeout queue` setting deserves special attention. When all backend servers
 The following table maps Nginx and HAProxy timeout settings to each other. They're not exact equivalents — Nginx's per-read semantics differ from HAProxy's total-time semantics — but this helps when translating configurations between the two.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
+  classes={{
+    tbody: "[&_tr>td:nth-of-type(2)]:!font-normal",
+  }}
   content={{
     thead: {
       th: ['Timeout', 'Nginx', 'HAProxy', 'Recommended'],
@@ -411,7 +416,11 @@ backend api
 The `http-request deny if { req.body_size gt 104857600 }` line is worth noting: it rejects oversized requests __before__ buffering them. Without this, HAProxy would accept a 10GB upload attempt before rejecting it — wasting bandwidth and potentially filling disk.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Scenario', 'Buffer Setting', 'Recommendation'],
@@ -581,6 +590,7 @@ The `slowstart` option is valuable when bringing new servers online. Without it,
 
 <Diagram
   src={connectionPoolingDiagram}
+  size="full"
   title="Connection pooling to backends."
   description="Top-down flowchart with three grouped sections. The first section, Client Connections, contains three separate clients labeled Client 1, Client 2, and Client 3. All three connect to a central proxy component labeled HAProxy or Nginx in the second section, Proxy keepalive pool. That proxy feeds into a highlighted Keep-alive Pool node labeled 32 connections. The keep-alive pool then connects to two backend servers in the third section, Backend Servers, labeled Backend 1 and Backend 2, each with maxconn 500. The diagram shows that many client connections can be funneled through a smaller reusable pool of backend connections, which reduces repeated TCP or TLS handshake overhead and lowers backend connection churn."
 />
@@ -714,7 +724,8 @@ backend canary
 The canary deployment example shows a common pattern: routing 5% of traffic to a new version while 95% goes to the stable version. If the canary starts failing health checks or returning errors, you can quickly shift traffic back to stable by adjusting weights or marking the canary server as `disabled`.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Algorithm', 'Use Case', 'Session Affinity', 'Even Distribution'],
@@ -882,7 +893,8 @@ frontend tcp_passthrough
 The TCP passthrough frontend (`mode tcp`) is useful when you need to route encrypted traffic without terminating TLS. HAProxy inspects just the SNI hostname in the TLS handshake to make routing decisions, then passes the encrypted connection directly to the backend. This preserves end-to-end encryption when required.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Optimization', 'Impact', 'Trade-off'],
@@ -1286,7 +1298,8 @@ http {
 Note the `buffer=16k flush=2m` on the access log — this buffers log writes to reduce disk I/O, flushing every 2 minutes or when the buffer fills. At high request rates, unbuffered logging becomes a bottleneck.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Category', 'Default', 'Production', 'Why'],

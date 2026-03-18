@@ -15,7 +15,7 @@ The instinct is to throw hardware at it — faster runners, more parallelism, bi
 
 The real solution is building less.
 
-Two techniques make this possible. __Affected-based builds__ analyze the dependency graph to identify which packages need to rebuild when specific files change. __Remote caching__ stores build outputs so identical work never runs twice, regardless of which developer or CI runner needs it. Together, they transform CI from a bottleneck into a fast feedback loop — turning that 45-minute build into a 4-minute one.
+Two techniques make this possible. __Affected-based builds__ analyze the dependency graph to identify which packages need to rebuild when specific files change. __Remote caching__ stores build outputs so identical work never runs twice, regardless of which developer or CI runner needs it. <Highlighter>Together, they transform CI from a bottleneck into a fast feedback loop — turning that 45-minute build into a 4-minute one.</Highlighter>
 
 <Callout type="warning">
 The biggest monorepo CI mistake: trying to make full builds faster instead of building less. Parallelization and faster machines provide linear improvements. Affected builds with caching provide order-of-magnitude improvements.
@@ -32,19 +32,22 @@ The impact of a change depends on where it lands in the graph. Change a widely-u
 The key insight for calculating affected packages is that you need to __reverse__ the dependency graph. Instead of asking "what does this package depend on," you ask "what depends on this package." The algorithm is straightforward:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Map each changed file to its containing package',
+      lead: 'Map each changed file to its containing package',
     },
     {
-      text: 'Build a reversed dependency graph (dependents instead of dependencies)',
+      lead: 'Build a reversed dependency graph (dependents instead of dependencies)',
     },
     {
-      text: 'Walk the graph from each changed package, collecting everything reachable',
+      lead: 'Walk the graph from each changed package, collecting everything reachable',
     },
     {
-      text: 'Everything not in the affected set can be skipped',
+      lead: 'Everything not in the affected set can be skipped',
     },
   ]}
 />
@@ -58,8 +61,13 @@ Affected calculation compares the current state against a __base reference__ —
 A PR that branched from main two weeks ago will have many more affected packages than one that branched yesterday, simply because main has moved. Long-lived feature branches accumulate affected packages. This is one reason teams prefer short-lived branches and frequent rebasing — it keeps the affected set small.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: 'Base reference strategies by CI scenario.',
     thead: {
       th: ['Scenario', 'Base Reference', 'What Gets Rebuilt'],
     },
@@ -67,11 +75,11 @@ A PR that branched from main two weeks ago will have many more affected packages
       tr: [
         {
           th: 'PR to main',
-          td: ['`origin/main`', 'All changes in the PR'],
+          td: ['<span class="font-mono">origin/main</span>', 'All changes in the PR'],
         },
         {
           th: 'Push to main',
-          td: ['`HEAD~1` or last successful CI', 'Just the pushed commit(s)'],
+          td: ['<span class="font-mono">HEAD~1</span> or last successful CI', 'Just the pushed commit(s)'],
         },
         {
           th: 'Release build',
@@ -83,7 +91,6 @@ A PR that branched from main two weeks ago will have many more affected packages
         },
       ],
     },
-    figure: 'Base reference strategies by CI scenario.',
   }}
 />
 
@@ -91,11 +98,11 @@ A PR that branched from main two weeks ago will have many more affected packages
 
 Affected builds reduce what needs to run, but remote caching eliminates redundant work entirely. The idea is simple: if someone already built a package with identical inputs, download their output instead of rebuilding. This works across developers, CI runners, and even different branches — anyone who's built the same code contributes to and benefits from the shared cache.
 
+<Newsletter />
+
 A build cache works by hashing all inputs to a task — source files, configuration, dependency outputs, environment variables, runtime versions — into a single cache key. Before executing a task, the build system checks whether outputs for that cache key exist. Cache hit means download and skip; cache miss means run and upload.
 
 The cache key composition matters. It must include everything that affects the output: task name, package name, input file hashes, dependency output hashes, relevant environment variables, runtime versions, and command arguments. Miss any of these, and you risk cache poisoning — returning outputs that don't match what a fresh build would produce. Include too much, and you get unnecessary cache misses.
-
-<Newsletter />
 
 ### Setting Up Remote Caching
 
@@ -125,7 +132,8 @@ Code: Turborepo remote cache with signature verification.
 Both tools offer self-hosted options for organizations that can't use external services. Nx Cloud supports Docker/Kubernetes deployment with S3, Azure Blob, or GCS backends. Turborepo works with the community-maintained `ducktors/turborepo-remote-cache` Docker image.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Provider', 'Setup Complexity', 'Cost', 'Self-Hosted Option'],

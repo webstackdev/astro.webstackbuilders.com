@@ -23,11 +23,11 @@ The instinct is to throw hardware at the problem — faster runners, more parall
 
 Two techniques make this possible. __Affected-based builds__ analyze the dependency graph to identify which packages need to rebuild when specific files change. __Remote caching__ stores build outputs so identical work never runs twice, regardless of which developer or CI runner needs it. Together, they transform CI from a bottleneck into a fast feedback loop.
 
-The impact is dramatic. Cache hit rates reach 85%. Build times drop by an order of magnitude. But the improvement isn't just faster — it changes how developers work. They run CI before grabbing coffee, not before leaving for the day. They iterate in small increments instead of batching changes to minimize CI waits. The monorepo becomes an asset again.
-
 <Callout type="warning">
 The biggest monorepo CI mistake: trying to make full builds faster instead of building less. Parallelization and faster machines provide linear improvements. Affected builds with caching provide order-of-magnitude improvements.
 </Callout>
+
+The impact is dramatic. Cache hit rates reach 85%. Build times drop by an order of magnitude. But the improvement isn't just faster — it changes how developers work. They run CI before grabbing coffee, not before leaving for the day. They iterate in small increments instead of batching changes to minimize CI waits. The monorepo becomes an asset again.
 
 ## Understanding Dependency Graphs
 
@@ -123,8 +123,13 @@ For PR builds, the natural base is the target branch (usually `main`). This capt
 The base reference choice has practical implications. A PR that branched from main two weeks ago will have many more affected packages than one that branched yesterday, simply because main has moved. Long-lived feature branches accumulate affected packages. This is one reason teams prefer short-lived branches and frequent rebasing — it keeps the affected set small.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: 'Base reference strategies by CI scenario.',
     thead: {
       th: ['Scenario', 'Base Reference', 'What Gets Rebuilt'],
     },
@@ -132,11 +137,11 @@ The base reference choice has practical implications. A PR that branched from ma
       tr: [
         {
           th: 'PR to main',
-          td: ['`origin/main`', 'All changes in the PR'],
+          td: ['<span class="font-mono">origin/main</span>', 'All changes in the PR'],
         },
         {
           th: 'Push to main',
-          td: ['`HEAD~1` or last successful CI', 'Just the pushed commit(s)'],
+          td: ['<span class="font-mono">HEAD~1</span> or last successful CI', 'Just the pushed commit(s)'],
         },
         {
           th: 'Release build',
@@ -148,7 +153,6 @@ The base reference choice has practical implications. A PR that branched from ma
         },
       ],
     },
-    figure: 'Base reference strategies by CI scenario.',
   }}
 />
 
@@ -286,25 +290,28 @@ A build cache works by hashing all inputs to a task — source files, configurat
 The cache key composition matters. It must include everything that affects the output:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-0",
+  }}
   items={[
     {
-      text: 'Task name and package name',
+      lead: 'Task name and package name',
     },
     {
-      text: 'Hash of all input files',
+      lead: 'Hash of all input files',
     },
     {
-      text: 'Hash of dependency outputs (transitive)',
+      lead: 'Hash of dependency outputs (transitive)',
     },
     {
-    text: 'Relevant environment variables',
+      lead: 'Relevant environment variables',
     },
     {
-      text: 'Runtime versions (Node, Ruby, Python, JDK, .NET SDK)',
+      lead: 'Runtime versions (Node, Ruby, Python, JDK, .NET SDK)',
     },
     {
-      text: 'Command arguments',
+      lead: 'Command arguments',
     },
   ]}
 />
@@ -414,7 +421,8 @@ Code: Turborepo self-hosted cache configuration.
 The choice between managed and self-hosted caching comes down to operational overhead versus control. Managed services (Nx Cloud, Vercel) handle infrastructure, scaling, and availability — you just configure a token. Self-hosted options require maintaining servers and storage, but keep all build artifacts within your infrastructure and avoid per-seat pricing at scale.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Provider', 'Setup Complexity', 'Cost', 'Self-Hosted Option'],
@@ -586,6 +594,7 @@ The optimization levels stack. First, skip unaffected packages entirely. Second,
 
 <Diagram
   src={ciOptimizationDiagram}
+  size="full"
   title="CI optimization progression from sequential to distributed execution."
   description="Flowchart comparing three stages of CI optimization in a monorepo. In the grouped section labeled Traditional CI, a single Runner performs Build pkg1, then Build pkg2, then Build pkg3, then Test all, ending at 60 min total. In the grouped section labeled Affected plus Cache, a Runner first checks a decision node labeled Affected. One branch indicates pkg1 only, leading to Build pkg1 and then Test pkg1, ending at 5 min total. Another branch indicates a Cache hit, leading to Skip pkg2, pkg3. In the grouped section labeled Distributed, a Coordinator dispatches work to Agent 1 for pkg1, Agent 2 for pkg2, and Agent 3 for pkg3, and all three converge on 3 min total. The diagram shows the progression from slow sequential execution, to skipping unaffected or cached work, to coordinating parallel work across multiple agents for the fastest feedback."
 />
@@ -603,23 +612,26 @@ Remote caching is only useful if the cache actually gets hit. A cache that misse
 Cache invalidation happens automatically when inputs change — that's the whole point. But understanding the different invalidation triggers helps you configure inputs correctly and debug unexpected misses.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Input hash changes',
-      text: 'are the primary invalidation mechanism. When any file included in a target\'s inputs changes, the hash changes, and the cache misses. This is usually what you want: source code changed, so rebuild. The configuration challenge is ensuring only _relevant_ files are included in inputs.',
+      text: 'The primary invalidation mechanism. When any file included in a target\'s inputs changes, the hash changes, and the cache misses. This is usually what you want: source code changed, so rebuild. The configuration challenge is ensuring only relevant files are included in inputs.',
     },
     {
       lead: 'Dependency updates',
-      text: 'cascade through the graph. When you update a package in `package.json` or change the lock file, packages that depend on that change need to rebuild. Both Nx and Turborepo handle this automatically through their global dependencies configuration.',
+      text: 'Cascades through the graph. When you update a package in <span class="font-mono">package.json</span> or change the lock file, packages that depend on that change need to rebuild. Both Nx and Turborepo handle this automatically through their global dependencies configuration.',
     },
     {
       lead: 'Manual invalidation',
-      text: 'is occasionally necessary when something outside the tracked inputs changes — a CI environment update, a bug in the caching system, or when you need to verify that builds still work without caching. In Nx, `npx nx reset` clears the local cache. Adding `--skip-nx-cache` bypasses caching for a single run. In Turborepo, `--force` achieves the same.',
+      text: 'Occasionally necessary when something outside the tracked inputs changes — a CI environment update, a bug in the caching system, or when you need to verify that builds still work without caching. In Nx, <span class="font-mono">npx nx reset</span> clears the local cache. Adding <span class="font-mono">--skip-nx-cache</span> bypasses caching for a single run. In Turborepo, <span class="font-mono">--force</span> achieves the same.',
     },
     {
       lead: 'Time-based expiration (TTL)',
-      text: 'prevents caches from growing unboundedly and ensures stale artifacts eventually get cleaned up. Most remote cache providers let you configure retention periods—7 to 30 days is typical for active projects.',
+      text: 'Prevents caches from growing unboundedly and ensures stale artifacts eventually get cleaned up. Most remote cache providers let you configure retention periods—7 to 30 days is typical for active projects.',
     },
   ]}
 />
@@ -649,23 +661,26 @@ Code: Cache debugging and manual invalidation commands.
 Low cache hit rates usually trace back to a few common issues. Fixing them can take a 40% hit rate to 85% or higher.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Environment inconsistency',
-      text: 'is the most common culprit. If your CI runners use Node 20.10 and developers use Node 20.11, the hashes won\'t match. Pin exact versions everywhere: `.nvmrc` or `.node-version` for Node, `Gemfile.lock` with `.ruby-version` for Ruby, `packages.lock.json` for NuGet, `composer.lock` for PHP, `requirements.txt` with pinned versions (or `pip-tools`) for Python. Ensure CI reads these version files, and consider Docker images with fixed runtimes for complete consistency.',
+      text: 'The most common culprit. If your CI runners use Node 20.10 and developers use Node 20.11, the hashes won\'t match. Pin exact versions everywhere: <span class="font-mono">.nvmrc</span> or <span class="font-mono">.node-version</span> for Node, <span class="font-mono">Gemfile.lock</span> with <span class="font-mono">.ruby-version</span> for Ruby, <span class="font-mono">packages.lock.json</span> for NuGet, <span class="font-mono">composer.lock</span> for PHP, <span class="font-mono">requirements.txt</span> with pinned versions (or <span class="font-mono">pip-tools</span>) for Python. Ensure CI reads these version files, and consider Docker images with fixed runtimes for complete consistency.',
     },
     {
-      lead: 'Non-deterministic outputs',
-      text: 'poison the cache silently. If your build includes a timestamp, a random identifier, or output that varies based on execution order, the outputs will differ even with identical inputs. Look for build timestamps in generated files, unsorted imports or exports, and random IDs in bundles. The `SOURCE_DATE_EPOCH` environment variable helps with timestamp-based non-determinism.',
+      lead: 'Non-deterministic output',
+      text: 'Poisons the cache silently. If your build includes a timestamp, a random identifier, or output that varies based on execution order, the outputs will differ even with identical inputs. Look for build timestamps in generated files, unsorted imports or exports, and random IDs in bundles. The <span class="font-mono">SOURCE_DATE_EPOCH</span> environment variable helps with timestamp-based non-determinism.',
     },
     {
       lead: 'Overly broad input specifications',
-      text: 'cause unnecessary invalidation. If your build target includes `{projectRoot}/**/*` as inputs, then changing a test file invalidates the production build cache — even though tests don\'t affect the build output. Use named input sets (like Nx\'s "production" pattern) that exclude test files, documentation, and other non-production artifacts.',
+      text: 'Causes unnecessary invalidation. If your build target includes <span class="font-mono">{projectRoot}/**/*</span> as inputs, then changing a test file invalidates the production build cache — even though tests don\'t affect the build output. Use named input sets (like Nx\'s "production" pattern) that exclude test files, documentation, and other non-production artifacts.',
     },
     {
       lead: 'Global dependencies included incorrectly',
-      text: 'cause cascading invalidation. If you list `package-lock.json` in every target\'s inputs, then every dependency update invalidates every cache. Be selective: only include lock files in inputs for targets that actually care about dependency versions (usually everything, but some lint tasks might not).',
+      text: 'Causes cascading invalidation. If you list <span class="font-mono">package-lock.json</span> in every target\'s inputs, then every dependency update invalidates every cache. Be selective: only include lock files in inputs for targets that actually care about dependency versions (usually everything, but some lint tasks might not).',
     },
   ]}
 />
@@ -673,7 +688,11 @@ Low cache hit rates usually trace back to a few common issues. Fixing them can t
 This is where the named inputs configuration from earlier pays off. The "production" input set we defined in `nx.json` excludes test files, stories, and test configuration. When your build target uses `"inputs": ["production", "^production"]`, changing a test file doesn't invalidate the build cache. The `^production` syntax extends this to dependencies — a dependency's test changes don't invalidate your build either.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Issue', 'Symptom', 'Solution'],
@@ -682,7 +701,7 @@ This is where the named inputs configuration from earlier pays off. The "product
       tr: [
         {
           th: 'Node version mismatch',
-          td: ['0% cache hits in CI', 'Pin exact version with .nvmrc'],
+          td: ['0% cache hits in CI', 'Pin exact version with <span class="font-mono">.nvmrc</span>'],
         },
         {
           th: 'Test files in build inputs',
@@ -690,7 +709,7 @@ This is where the named inputs configuration from earlier pays off. The "product
         },
         {
           th: 'Timestamps in output',
-          td: ['Cache never hits twice', 'Set SOURCE_DATE_EPOCH'],
+          td: ['Cache never hits twice', 'Set <span class="font-mono">SOURCE_DATE_EPOCH</span>'],
         },
         {
           th: 'Lock file in all inputs',
@@ -783,7 +802,8 @@ For __main branch builds__, target under 5 minutes with an 85%+ cache hit rate. 
 For __release builds__, targets depend on your release strategy. If you're rebuilding from a tag that's far behind main, expect lower cache hit rates and longer durations. For frequent releases close to main, you should still see good caching.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Scenario', 'Target Duration', 'Target Cache Hit Rate', 'Typical Affected %'],
@@ -824,8 +844,8 @@ The implementation path is straightforward. Start with affected builds — confi
 
 Monitor your metrics. Track cache hit rates, build durations, and affected percentages over time. When something changes — a new global dependency, environment drift, misconfigured inputs — you'll see it in the data before developers start complaining about slow CI.
 
-The best time to implement these optimizations is before your CI becomes a bottleneck. The second best time is now. Start with affected builds, add caching, and iterate from there. Your future self — and your team — will thank you.
-
 <Callout type="info">
 The goal isn't the fastest possible full build — it's the fastest possible feedback for typical changes. Optimize for the common case (small, focused changes) while ensuring full builds remain tractable for major changes.
 </Callout>
+
+The best time to implement these optimizations is before your CI becomes a bottleneck. The second best time is now. Start with affected builds, add caching, and iterate from there. Your future self — and your team — will thank you.

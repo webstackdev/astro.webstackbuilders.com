@@ -18,16 +18,17 @@ import patternDecisionDiagram from "./diagrams/pattern-decision-tree.jpg"
 
 It's 3 AM and Vault is down. Your on-call engineer gets paged because deployments are failing — pods stuck in ContainerCreating, blocking a critical hotfix. Meanwhile, another team's services keep humming along despite the same outage. The difference isn't luck. It's how secrets get into pods.
 
-Both teams use Vault. Both followed the documentation. But one team chose External Secrets Operator, which syncs secrets periodically and caches them as native Kubernetes secrets. The other chose the Secrets Store CSI Driver, which fetches secrets on-demand when pods start. When Vault went down, ESO's cached secrets kept working. CSI's synchronous fetches failed, and pods couldn't start. This isn't about which tool is better — it's about understanding the failure mode you've chosen __before__ it matters.
+Both teams use Vault. Both followed the documentation. But one team chose External Secrets Operator, which syncs secrets periodically and caches them as native Kubernetes secrets. The other chose the Secrets Store CSI Driver, which fetches secrets on-demand when pods start. When Vault went down, ESO's cached secrets kept working. CSI's synchronous fetches failed, and pods couldn't start. This isn't about which tool is better — it's about understanding the failure mode you've chosen _before_ it matters.
 
 ## The Two Patterns That Matter
 
-External secrets management in Kubernetes has consolidated around two dominant patterns. External Secrets Operator runs as a controller in your cluster, periodically syncing secrets from Vault (or AWS Secrets Manager, Azure Key Vault, etc.) into native Kubernetes Secret objects. The Secrets Store CSI Driver takes a different approach: it mounts secrets directly into pods as volumes, fetching them from the external manager when pods start.
+<Highlighter>External secrets management in Kubernetes has consolidated around two dominant patterns.</Highlighter> External Secrets Operator runs as a controller in your cluster, periodically syncing secrets from Vault (or AWS Secrets Manager, Azure Key Vault, etc.) into native Kubernetes Secret objects. The Secrets Store CSI Driver takes a different approach: it mounts secrets directly into pods as volumes, fetching them from the external manager when pods start.
 
 Both work fine when your secret manager is healthy. The difference is what happens when it isn't. ESO decouples secret fetching from pod lifecycle — the controller syncs independently, and pods consume cached Kubernetes Secrets. CSI couples them tightly — pods can't start until secrets are fetched. This architectural difference determines everything about how your applications behave during an outage.
 
 <Table
   variant="vertical-column-delineation-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Pattern', 'Existing Pods', 'New Pods', 'Recovery'],
@@ -77,7 +78,10 @@ The pod __cannot start__ until this volume mount succeeds. If Vault is unavailab
 This has cascading implications that aren't obvious until you experience them:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       text: 'New deployments block entirely — no pods can start',
@@ -108,6 +112,7 @@ The decision between ESO and CSI comes down to two questions: Can your applicati
 
 <Diagram
   src={patternDecisionDiagram}
+  size="full"
   title="Pattern decision tree."
   description="Flowchart guiding the choice between Kubernetes secret injection patterns based on failure tolerance. The process starts at Choose Secret Pattern and asks whether the application can tolerate minutes of staleness. If yes, the recommendation is ESO. If no, the chart asks whether the team accepts pod failures when the secret manager is down. If yes, the recommendation is CSI Driver. If no, the chart asks whether custom fallback logic is needed. If yes, the recommendation is Init Container. If no, the recommendation is ESO plus a short refresh interval. The diagram highlights that the main decision criteria are tolerance for stale secrets, tolerance for blocked pod startup during secret-manager outages, and whether the team is willing to build custom fallback behavior."
 />
@@ -130,8 +135,8 @@ For most organizations, ESO is the right default. It's operationally simpler, Gi
 
 The mistake isn't choosing either pattern. It's not understanding which failure mode you've chosen. The team that slept through the 3 AM Vault outage didn't get lucky — they understood that ESO's cached secrets would keep their services running. The team that got paged made a valid choice too; for their payment system, blocking on fresh credentials was the right call. Their runbooks reflected it.
 
-Whatever you choose, document it. When the next outage happens, your incident responders shouldn't be learning your secret injection architecture for the first time.
-
 <Callout type="success">
 Start with ESO for the majority of workloads, with a 15-minute refresh interval, and monitor sync status with alerts on stale ExternalSecrets. Add CSI for specific high-security applications where staleness is unacceptable. This gives you operational simplicity with escape hatches for edge cases.
 </Callout>
+
+Whatever you choose, document it. When the next outage happens, your incident responders shouldn't be learning your secret injection architecture for the first time.

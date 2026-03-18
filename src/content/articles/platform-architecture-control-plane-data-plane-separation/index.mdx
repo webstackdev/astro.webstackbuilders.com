@@ -16,9 +16,9 @@ import controlPlaneDiagram from "./diagrams/control-plane-pushes-desired-state-t
 *[RBAC]: Role-Based Access Control
 *[VPC]: Virtual Private Cloud
 
-A platform team I worked with hit a wall at fifty teams. Their internal Kubernetes platform had grown organically — API server, controllers, etcd, worker nodes all running together because it was simpler that way. Then Monday mornings started hurting. Everyone deploying at once slowed the API server enough that running workloads couldn't get their service endpoints updated. A bug in a custom controller caused repeated panics that prevented all controllers from reconciling — deployments wouldn't scale, services wouldn't update, affecting __all__ tenants. Control plane upgrades required scheduling maintenance windows across every team.
+A platform team I worked with hit a wall at fifty teams. Their internal Kubernetes platform had grown organically — API server, controllers, etcd, worker nodes all running together because it was simpler that way. Then Monday mornings started hurting. Everyone deploying at once slowed the API server enough that running workloads couldn't get their service endpoints updated. A bug in a custom controller caused repeated panics that prevented all controllers from reconciling — deployments wouldn't scale, services wouldn't update, affecting _all_ tenants. Control plane upgrades required scheduling maintenance windows across every team.
 
-The fix wasn't more hardware. It was architectural: dedicated control plane cluster, separate data plane clusters per environment, GitOps for configuration sync. The pattern that made this possible comes from networking, where routers have long separated the control plane (where routing decisions happen) from the data plane (where packets actually flow). Platform engineering borrowed this separation because it solves the same fundamental problem — scaling decision-making independently from execution.
+<Highlighter>The fix wasn't more hardware. It was architectural: dedicated control plane cluster, separate data plane clusters per environment, GitOps for configuration sync.</Highlighter> The pattern that made this possible comes from networking, where routers have long separated the control plane (where routing decisions happen) from the data plane (where packets actually flow). Platform engineering borrowed this separation because it solves the same fundamental problem — scaling decision-making independently from execution.
 
 ## The Separation That Scales
 
@@ -31,7 +31,7 @@ The __data plane__ is where actual work happens. It executes workloads, routes t
 The characteristics differ in ways that matter for architecture:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Aspect', 'Control Plane', 'Data Plane'],
@@ -64,6 +64,8 @@ The failure impact row is the critical insight: when the control plane goes down
 
 <Diagram
   src={controlPlaneDiagram}
+  magnifyButtonPosition="bottom-left"
+  size="full"
   title="Control plane pushes desired state to data plane - data plane reports actual state back."
   description="Top-to-bottom flowchart with two grouped sections labeled Control Plane and Data Plane, separated by a node labeled Isolation Boundary. In the Control Plane, API Server connects to State Store and Controllers. Controllers send Desired State to the Isolation Boundary. The Isolation Boundary then fans out to Worker Node 1, Worker Node 2, and Worker Node 3 in the Data Plane. Each worker node sends Actual State back to the Isolation Boundary, which then returns that state to Controllers. The diagram emphasizes that orchestration logic and source-of-truth state live in the control plane, workload execution lives in the data plane, and communication between them crosses an explicit separation boundary."
 />
@@ -77,7 +79,10 @@ Control plane and data plane separation exists to serve multi-tenancy. Without m
 The fundamental question: how much isolation do tenants need, and what are you willing to pay for it?
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Namespace per tenant',
@@ -99,7 +104,8 @@ The fundamental question: how much isolation do tenants need, and what are you w
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Pattern', 'Isolation', 'Cost', 'Operations Complexity'],
@@ -139,7 +145,11 @@ Regardless of which pattern you choose, multiple isolation mechanisms layer toge
 Separating control plane from data plane creates natural failure boundaries, but you need to design explicitly for how failures propagate — or don't — across those boundaries. The goal is __blast radius containment__: ensuring that failures in one part of the system don't cascade into others.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Control plane failures',
@@ -159,7 +169,8 @@ Separating control plane from data plane creates natural failure boundaries, but
 The containment hierarchy: namespaces provide logical isolation (cheapest, weakest). Node pools provide compute isolation — tenant workloads run on separate nodes. Separate clusters provide complete isolation — no shared infrastructure at all.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Failure', 'Impact', 'Mitigation', 'Recovery Time'],
