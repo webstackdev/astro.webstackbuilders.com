@@ -20,17 +20,17 @@ import singleUnboundedLabelDiagram from "./diagrams/a-single-unbounded-label-tra
 *[UUID]: Universally Unique Identifier
 *[WAL]: Write-Ahead Log
 
-"Just add a label for debugging" is the most dangerous sentence in observability.
+_"Just add a label for debugging"_ is the most dangerous sentence in observability.
 
 Every unique combination of metric name and label values creates a separate time series in Prometheus. A metric with three labels — each having 100 possible values — creates up to one million time series (100 × 100 × 100). Prometheus stores each time series independently, keeping recent data in memory. Cardinality isn't about the number of metrics you have; it's about the combinatorial explosion of label values.
 
 I watched a team learn this the hard way. They instrumented their API with response time histograms and added labels for endpoint, status code, and `user_id` "for debugging." With 50 endpoints, 10 status codes, and 100,000 users, they'd created 50 million potential time series. Initially, only active users generated metrics — maybe 10,000 series. Prometheus hummed along. Over months, more users became active. Memory usage crept up. Then a marketing campaign drove a traffic spike. Memory usage jumped. Prometheus OOM'd. Monitoring went dark during the incident.
 
-The fix took five minutes: remove `user_id` from the metric labels, add it to traces instead, implement cardinality limits. Prometheus stabilized at 50,000 series. The lesson took three days of firefighting to learn: labels are multiplicative, not additive.
-
 <Callout type="warning">
 A single unbounded label can destroy your Prometheus deployment. User IDs, request IDs, email addresses, IP addresses — any label that grows with your data will eventually exhaust memory. Design labels for known, bounded sets of values.
 </Callout>
+
+The fix took five minutes: remove `user_id` from the metric labels, add it to traces instead, implement cardinality limits. Prometheus stabilized at 50,000 series. The lesson took three days of firefighting to learn: labels are multiplicative, not additive.
 
 ## Understanding Cardinality
 
@@ -53,7 +53,8 @@ Three series. Now multiply: 5 HTTP methods × 20 endpoints × 10 status codes = 
 The math is straightforward but the implications aren't intuitive. Here's how quickly things escalate:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Design', 'Labels', 'Values per Label', 'Total Series', 'Approx. Memory'],
@@ -84,6 +85,8 @@ Memory estimation follows a rough formula: each active series consumes 1-3 KB fo
 
 <Diagram
   src={singleUnboundedLabelDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="A single unbounded label transforms manageable metrics into infrastructure-killing cardinality."
   description="Top-to-bottom flowchart showing how metric cardinality multiplies across labels. In the grouped section Label Multiplication, a metric named http_requests is followed by labels method with 4 values, endpoint with 10 values, status with 5 values, and user_id with 100 thousand values. One path stops before user_id and enters the grouped section Without user_id, producing 200 series from 4 times 10 times 5 and an estimated memory cost of about 2 megabytes. A second path continues through the unbounded user_id label into the grouped section With user_id, producing 20 million series from 4 times 10 times 5 times 100 thousand and an estimated memory cost of about 200 gigabytes. The manageable series count and memory estimate are highlighted positively, while the exploded series count and memory estimate are highlighted negatively. The diagram illustrates how adding a single high-cardinality label can turn a safe metric design into one that overwhelms Prometheus memory."
 />
@@ -101,7 +104,7 @@ Queries compound the problem. A query like `sum(rate(http_requests_total[5m])) b
 The failure modes are predictable once you understand the architecture:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="report-table"
   content={{
     thead: {
       th: ['Failure Mode', 'Symptoms', 'Root Cause'],
@@ -146,23 +149,28 @@ The difference between a good label and a bad one comes down to one question: ca
 Good labels share four characteristics: bounded cardinality (you know the finite set of values), meaningful for aggregation (you'll actually `group by` or `sum by` this dimension), stable over time (values don't churn constantly), and shared across many series (the label adds structure, not just uniqueness).
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    tbody:
+      '[&_td:nth-child(4)]:text-center',
+  }}
   content={{
+    figure: 'Good label examples with bounded cardinality.',
     thead: {
       th: ['Label', 'Values', 'Cardinality', 'Why It Works'],
     },
     tbody: {
       tr: [
         {
-          th: '<span class="font-mono">http_method`',
+          th: '<span class="font-mono">http_method</span>',
           td: [
-            '<span class="font-mono">GET, POST, PUT, DELETE, PATCH',
+            '<span class="font-mono">GET</span>, <span class="font-mono">POST</span>, <span class="font-mono">PUT</span>, <span class="font-mono">DELETE</span>, <span class="font-mono">PATCH</span>',
             '~7',
             'Fixed set defined by HTTP spec',
           ],
         },
         {
-          th: '<span class="font-mono">environment`',
+          th: '<span class="font-mono">environment</span>',
           td: [
             '<span class="font-mono">production</span>, <span class="font-mono">staging</span>, <span class="font-mono">development</span>',
             '3',
@@ -170,14 +178,14 @@ Good labels share four characteristics: bounded cardinality (you know the finite
           ],
         },
         {
-          th: '<span class="font-mono">status_class`',
+          th: '<span class="font-mono">status_class</span>',
           td: ['<span class="font-mono">2xx</span>, <span class="font-mono">3xx</span>, <span class="font-mono">4xx</span>, <span class="font-mono">5xx</span>',
           '4',
           'Bucketed from individual codes',
           ],
         },
         {
-          th: '`region`',
+          th: '<span class="font-mono">region</span>',
           td: [
             '<span class="font-mono">us-east-1</span>, <span class="font-mono">us-west-2</span>, <span class="font-mono">eu-west-1</span>',
             '~10',
@@ -185,7 +193,7 @@ Good labels share four characteristics: bounded cardinality (you know the finite
           ],
         },
         {
-          th: '`service`',
+          th: '<span class="font-mono">service</span>',
           td: [
             '<span class="font-mono">api</span>, <span class="font-mono">worker</span>, <span class="font-mono">scheduler</span>',
             '~20',
@@ -194,15 +202,15 @@ Good labels share four characteristics: bounded cardinality (you know the finite
         },
       ],
     },
-    figure: 'Good label examples with bounded cardinality.',
   }}
 />
 
 Bad labels grow without bound. User IDs scale with your user base. Request IDs are unique per request — literally infinite cardinality. IP addresses span billions of possibilities. Error messages are free-form strings. Any of these as labels will eventually kill your Prometheus instance.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Bad label examples to avoid.',
     thead: {
       th: ['Label', 'Problem', 'Cardinality', 'Alternative'],
     },
@@ -234,7 +242,6 @@ Bad labels grow without bound. User IDs scale with your user base. Request IDs a
         },
       ],
     },
-    figure: 'Bad label examples to avoid.',
   }}
 />
 
@@ -480,7 +487,10 @@ The raw-data approach has trade-offs. You're storing higher cardinality in Prome
 [^relabel-storage]: This statement requires nuance. If you use `metric_relabel_configs` to transform labels (rather than recording rules), Prometheus applies the relabeling __before__ writing to the TSDB — only the normalized version hits disk. However, the high-cardinality data still creates operational issues during ingestion. For the duration of each scrape, Prometheus must hold the raw, un-normalized data in memory to process the relabeling rules. If thousands of targets send hundreds of unique status codes, this transient data can spike memory and CPU usage during the scrape phase. Complex regex patterns across millions of samples per second are CPU-intensive; if normalization logic is too complex, Prometheus may struggle to keep up, causing scrape gaps. The key distinction: __persistent storage__ sees only normalized data, but __ingestion memory__ briefly sees everything.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Approach', 'Pros', 'Cons'],
@@ -722,7 +732,6 @@ Consider HTTP request metrics with handler, method, status_class, and instance l
 
 ```yaml title="recording-rules-aggregation.yaml"
 # Recording rules to reduce query-time cardinality
-
 groups:
   - name: cardinality_reduction
     interval: 30s
@@ -839,7 +848,11 @@ Code: Remote write config with cardinality filtering.
 This gives you the best of both worlds: full detail locally for troubleshooting recent issues, aggregated data in long-term storage for capacity planning and historical trends. The cost savings on long-term storage can be substantial — you're storing orders of magnitude fewer series.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Strategy', 'Use Case', 'Cardinality Impact'],
@@ -988,30 +1001,30 @@ After the crisis, conduct a proper root cause analysis. The questions that matte
 Prevent recurrence with process changes:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
-      lead: 'Code review',
+      lead: '1. Code review',
       text: 'Add cardinality review to your PR checklist. Require justification for every new label: "what bounded set of values will this have?"',
     },
     {
-      lead: 'CI/CD gates',
+      lead: '2. CI/CD gates',
       text: 'Lint metric definitions for unbounded patterns. Flag any label that looks like an ID, UUID, email, or IP address.',
     },
     {
-      lead: 'Metric unit testing',
+      lead: '3. Metric unit testing',
       text: 'Write unit tests that exercise metric instrumentation. If a test generates label combinations in a loop, fail the build when unique series exceed a threshold. This catches cardinality bugs before they reach production.',
     },
     {
-      lead: 'Staging validation',
+      lead: '4. Staging validation',
       text: 'Deploy to staging first and check cardinality growth before promoting to production.',
     },
     {
-      lead: 'Monitoring',
+      lead: '5. Monitoring',
       text: 'Alert on series count approaching limits _and_ on growth rate. A 10% hourly increase that goes unnoticed for a day means you\'ve doubled.',
     },
     {
-      lead: 'Documentation',
+      lead: '6. Documentation',
       text: 'Maintain an approved label schema. Document cardinality budgets per service.',
     },
   ]}

@@ -12,13 +12,15 @@ featured: true
 *[OOM]: Out of Memory
 *[TSDB]: Time Series Database
 
-> Just add a label for debugging.
+> Just add a label for debugging
+>
+> — A senior engineer during sprint planning
 
 Those five words killed our monitoring during the worst possible moment. A team I worked with instrumented their API with response time histograms and added labels for endpoint, status code, and `user_id` — that last one "for debugging." With 50 endpoints, 10 status codes, and 100,000 users, they'd created 50 million potential time series.
 
 Initially, only active users generated metrics. Maybe 10,000 series. Prometheus hummed along. Over months, more users became active. Memory usage crept up until a marketing campaign drove a traffic spike. Memory jumped. Prometheus OOM'd. Monitoring went dark during the incident they needed to debug.
 
-The fix took five minutes: remove `user_id` from labels, add it to traces instead. The lesson took three days of firefighting to learn.
+<Highlighter>The fix took five minutes: remove <span class="font-mono">user_id</span> from labels, add it to traces instead.</Highlighter> The lesson took three days of firefighting to learn.
 
 <Callout type="warning">
 A single unbounded label can destroy your Prometheus deployment. User IDs, request IDs, email addresses, IP addresses — any label that grows with your data will eventually exhaust memory. Design labels for known, bounded sets of values.
@@ -26,12 +28,16 @@ A single unbounded label can destroy your Prometheus deployment. User IDs, reque
 
 ## The Math That Kills Your Prometheus
 
-Every unique combination of metric name and label values creates a separate time series. Labels don't add — they __multiply__.
+Every unique combination of metric name and label values creates a separate time series. Labels don't add — they _multiply_.
 
 Consider a basic HTTP metrics setup: 5 HTTP methods × 20 endpoints × 10 status codes = 1,000 series. Manageable. Add a `user_id` label with 100,000 possible values? Now you're looking at 10 billion potential series. The following table shows how quickly labels multiply:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody:
+      '!text-content [&_td:nth-child(3)]:text-center [&_td:nth-child(4)]:text-center [&_td:nth-child(5)]:text-center',
+  }}
   content={{
     thead: {
       th: ['Design', 'Labels', 'Values per Label', 'Total Series', 'Approx. Memory'],
@@ -69,23 +75,28 @@ The difference between a good label and a bad one comes down to one question: __
 If you can list them exhaustively, it's probably safe. If the value set grows with your data — users, requests, sessions — it's toxic.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    tbody:
+      '[&_td:nth-child(4)]:text-center',
+  }}
   content={{
+    figure: 'Good label examples with bounded cardinality.',
     thead: {
       th: ['Label', 'Values', 'Cardinality', 'Why It Works'],
     },
     tbody: {
       tr: [
         {
-          th: '<span class="font-mono">http_method`',
+          th: '<span class="font-mono">http_method</span>',
           td: [
-            '<span class="font-mono">GET, POST, PUT, DELETE, PATCH',
+            '<span class="font-mono">GET</span>, <span class="font-mono">POST</span>, <span class="font-mono">PUT</span>, <span class="font-mono">DELETE</span>, <span class="font-mono">PATCH</span>',
             '~7',
             'Fixed set defined by HTTP spec',
           ],
         },
         {
-          th: '<span class="font-mono">environment`',
+          th: '<span class="font-mono">environment</span>',
           td: [
             '<span class="font-mono">production</span>, <span class="font-mono">staging</span>, <span class="font-mono">development</span>',
             '3',
@@ -93,14 +104,14 @@ If you can list them exhaustively, it's probably safe. If the value set grows wi
           ],
         },
         {
-          th: '<span class="font-mono">status_class`',
+          th: '<span class="font-mono">status_class</span>',
           td: ['<span class="font-mono">2xx</span>, <span class="font-mono">3xx</span>, <span class="font-mono">4xx</span>, <span class="font-mono">5xx</span>',
           '4',
           'Bucketed from individual codes',
           ],
         },
         {
-          th: '`region`',
+          th: '<span class="font-mono">region</span>',
           td: [
             '<span class="font-mono">us-east-1</span>, <span class="font-mono">us-west-2</span>, <span class="font-mono">eu-west-1</span>',
             '~10',
@@ -108,7 +119,7 @@ If you can list them exhaustively, it's probably safe. If the value set grows wi
           ],
         },
         {
-          th: '`service`',
+          th: '<span class="font-mono">service</span>',
           td: [
             '<span class="font-mono">api</span>, <span class="font-mono">worker</span>, <span class="font-mono">scheduler</span>',
             '~20',
@@ -117,15 +128,15 @@ If you can list them exhaustively, it's probably safe. If the value set grows wi
         },
       ],
     },
-    figure: 'Good label examples with bounded cardinality.',
   }}
 />
 
 Bad labels grow without bound:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Bad label examples to avoid.',
     thead: {
       th: ['Label', 'Problem', 'Cardinality', 'Alternative'],
     },
@@ -153,7 +164,6 @@ Bad labels grow without bound:
         },
       ],
     },
-    figure: 'Bad label examples to avoid.',
   }}
 />
 
