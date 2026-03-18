@@ -11,6 +11,7 @@ featured: true
 
 import dnsResolutionDiagram from "./diagrams/dns-resolution-flow.jpg"
 import tlsHandshakeDiagram from "./diagrams/tls-handshake-with-failure-points.jpg"
+import ListItem from "@components/List/ListItem.astro"
 
 *[ARP]: Address Resolution Protocol
 *[BGP]: Border Gateway Protocol
@@ -31,7 +32,9 @@ import tlsHandshakeDiagram from "./diagrams/tls-handshake-with-failure-points.jp
 *[VPC]: Virtual Private Cloud
 *[VPN]: Virtual Private Network
 
-> This article assumes familiarity with cloud networking fundamentals: VPCs, subnets, route tables, and basic Linux command-line tools.
+<Callout type="info">
+This article assumes familiarity with cloud networking fundamentals: VPCs, subnets, route tables, and basic Linux command-line tools.
+</Callout>
 
 Moving workloads to private networks makes sense from a security perspective — no public IPs, no internet exposure, traffic stays within your cloud provider's boundaries. But private networking introduces failure modes that don't exist with public connectivity. DNS resolution that worked fine over the internet fails with private endpoints. Routing that seemed automatic now requires explicit configuration. TLS certificates that validated publicly get rejected privately.
 
@@ -54,7 +57,10 @@ Kubernetes adds another layer. CoreDNS intercepts queries and applies search dom
 The most common private DNS failures:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Symptom', 'Likely Cause', 'Fix'],
@@ -89,6 +95,8 @@ The most common private DNS failures:
 
 <Diagram
   src={dnsResolutionDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="DNS resolution flow."
   description="Top-to-bottom flowchart with three grouped sections: Application, Resolution Chain, and Results. In Application, an app requests the hostname database.internal. The request enters the Resolution Chain, starting with a decision on whether the name exists in /etc/hosts. If it is found there, the flow goes directly to a successful result showing the private IP 10.0.1.50. If it is not found, the flow continues to the System Resolver, then to a Local Cache decision. If the answer is cached, it again returns the private IP. If it is not cached, the query goes to the VPC DNS Resolver, then to a Private Zone decision. If the private zone exists, the result is the private IP 10.0.1.50. If no private zone exists, the query falls through to Public DNS. Public DNS either returns a public IP 203.0.113.50 or returns NXDOMAIN if the name is not found. The diagram highlights the private IP result as the intended safe outcome, the public IP as a warning state, and NXDOMAIN as a failure state."
 />
@@ -110,7 +118,8 @@ VPC endpoints add another wrinkle. When you create an interface endpoint for an 
 For hybrid environments connecting AWS to on-premises networks, Route 53 Resolver endpoints bridge the gap. Inbound endpoints let on-premises DNS servers forward queries to AWS. Outbound endpoints let AWS workloads resolve on-premises DNS names. The configuration involves security groups, subnet placement, and forwarding rules — each a potential failure point.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['DNS Pattern', 'Use Case', 'Configuration'],
@@ -155,11 +164,23 @@ Every VPC route table starts with an implicit local route that can't be removed.
 
 The common route targets:
 
-__Internet Gateway__: Routes `0.0.0.0/0` to the internet (requires public IP or NAT)
-__NAT Gateway__: Outbound internet from private subnets (the NAT gateway itself must be in a public subnet)
-__VPC Peering__: Direct connection to another VPC's CIDR (requires routes on both sides, no CIDR overlap)[^peering]
-__Transit Gateway__: Hub-and-spoke for multiple VPCs (handles transitive routing)[^tgw]
-__VPC Endpoint__: Routes to AWS services via prefix lists[^prefix]
+<List variant="check-icons-list">
+  <ListItem lead="Internet Gateway:">
+    Routes <span class="font-mono">0.0.0.0/0</span> to the internet (requires public IP or NAT)
+  </ListItem>
+  <ListItem lead="NAT Gateway:">
+    Outbound internet from private subnets (the NAT gateway itself must be in a public subnet)
+  </ListItem>
+  <ListItem lead="VPC Peering:">
+    Direct connection to another VPC's CIDR (requires routes on both sides, no CIDR overlap)[^peering]
+  </ListItem>
+  <ListItem lead="Transit Gateway:">
+    Hub-and-spoke for multiple VPCs (handles transitive routing)[^tgw]
+  </ListItem>
+  <ListItem lead="VPC Endpoint:">
+    Routes to AWS services via prefix lists[^prefix]
+  </ListItem>
+</List>
 
 [^peering]: VPC Peering creates a direct point-to-point connection between two VPCs. If you have 4 VPCs and want them all to communicate, you must create 6 separate peering connections (a full mesh). Critically, peering does _not_ support transitive routing — if VPC A peers with B, and B peers with C, A cannot reach C through B. Each pair needs its own peering connection. For 10 VPCs, you'd need 45 peering links; for 100 VPCs, nearly 5,000.
 
@@ -172,30 +193,31 @@ Route selection follows the "most specific route wins" principle. If you have ro
 Routing failures in private networks present differently than on traditional networks. You won't see clear error messages — timeouts look identical whether the cause is a missing route, a security group block, or a service that's down. This ambiguity makes systematic debugging essential. These are the patterns you'll encounter:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="timeline-labels-table"
   content={{
+    figure: 'Routing failure modes.',
     thead: {
       th: ['Symptom', 'Cause', 'Fix'],
     },
     tbody: {
       tr: [
         {
-          th: 'Timeout (no error)',
+          th: { label: 'Timeout (no error)', color: 'warning' },
           td: ['No route to destination', 'Add route for destination CIDR'],
         },
         {
-          th: 'Connection reset, packets dropped',
+          th: { label: 'Connection reset, packets dropped', color: 'warning' },
           td: [
             'Asymmetric routing (return path differs from forward path)',
             'Ensure symmetric routing',
           ],
         },
         {
-          th: 'Packets silently dropped',
+          th: { label: 'Packets silently dropped', color: 'danger' },
           td: ['Blackhole route (target deleted but route remains)', 'Remove stale routes'],
         },
         {
-          th: 'Traffic goes to wrong destination',
+          th: { label: 'Traffic goes to wrong destination', color: 'danger' },
           td: [
             'Overlapping CIDRs across connected networks',
             'Redesign addressing to avoid overlaps',
@@ -203,7 +225,6 @@ Routing failures in private networks present differently than on traditional net
         },
       ],
     },
-    figure: 'Routing failure modes.',
   }}
 />
 
@@ -216,7 +237,8 @@ One gotcha that catches people: MTU issues. VPNs and tunnels often have lower MT
 I work through connectivity issues in a fixed order — each layer must pass before moving to the next:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Layer', 'Check', 'Command', 'If Fails'],
@@ -280,7 +302,11 @@ Security groups are stateful and operate at the instance (ENI[^eni]) level. You 
 NACLs are stateless and operate at the subnet level. You can define both allow and deny rules, evaluated in order (lowest rule number first). Because they're stateless, you must explicitly allow return traffic on ephemeral ports (1024-65535). The default NACL allows everything; custom NACLs start with deny-all. The classic NACL mistake: allowing outbound traffic but forgetting to allow inbound on ephemeral ports for the response. Connection times out, and you spend an hour checking security groups.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Check', 'Security Group', 'NACL'],
@@ -330,29 +356,32 @@ The TLS handshake follows a specific sequence, and failures at each stage produc
 Private networking introduces specific failure patterns:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Hostname mismatch',
-      text: "is the most common. Your certificate was issued for `api.example.com` (the public name), but you're connecting to `api.internal.example.com` (the private endpoint). The certificate's SAN doesn't include the private name, so verification fails. Solutions: add the private name to the certificate's SAN, use the public name even for private connections, or configure the client to verify against a different hostname.",
+      text: "The most common. Your certificate was issued for `api.example.com` (the public name), but you're connecting to `api.internal.example.com` (the private endpoint). The certificate's SAN doesn't include the private name, so verification fails. Solutions: add the private name to the certificate's SAN, use the public name even for private connections, or configure the client to verify against a different hostname.",
     },
     {
       lead: 'Untrusted private CA',
-      text: 'happens when internal services use certificates from a private CA that clients don\'t trust. You\'ll see "unable to get local issuer certificate" or "self signed certificate in certificate chain." The fix is adding the CA certificate to the client\'s trust store — but every language and framework has its own way of doing this.',
+      text: 'Happens when internal services use certificates from a private CA that clients don\'t trust. You\'ll see "unable to get local issuer certificate" or "self signed certificate in certificate chain." The fix is adding the CA certificate to the client\'s trust store — but every language and framework has its own way of doing this.',
     },
     {
       lead: 'SNI issues',
-      text: 'occur when multiple services share a load balancer IP. The server uses SNI to decide which certificate to return. If SNI isn\'t sent (older clients, misconfigured tools), you get the default certificate, which might not match the hostname you requested.',
+      text: 'Occurs when multiple services share a load balancer IP. The server uses SNI to decide which certificate to return. If SNI isn\'t sent (older clients, misconfigured tools), you get the default certificate, which might not match the hostname you requested.',
     },
     {
       lead: 'Expired certificates',
-      text: "hit internal services harder than public ones. Let's Encrypt certificates auto-renew. Internal certificates often don't, and they're not monitored as closely. A certificate expires at 2am, and suddenly half your services are down.",
+      text: "Hits internal services harder than public ones. Let's Encrypt certificates auto-renew. Internal certificates often don't, and they're not monitored as closely. A certificate expires at 2am, and suddenly half your services are down.",
     },
   ]}
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     thead: {
       th: ['Issue', 'Error Message', 'Solution'],
@@ -399,6 +428,7 @@ Always include `-servername` to send SNI. Without it, you might get a different 
 
 <Diagram
   src={tlsHandshakeDiagram}
+  size="full"
   title="TLS handshake with failure points."
   description="Sequence diagram with two participants: Client and Server. A note marks the TLS Handshake. The client first sends ClientHello containing supported versions, cipher suites, and SNI. One alternate branch shows an SNI mismatch: the server returns the wrong certificate because no SNI match was found, the client performs hostname verification, and that verification fails with a hostname mismatch error. In the normal path, the server responds with ServerHello plus Certificate. Another alternate branch then shows certificate issues: the client verifies the certificate and checks whether the CA is trusted, whether the certificate is expired, and whether the hostname appears in the SAN list. If any of those checks fail, the client sends an alert indicating certificate_unknown. If verification succeeds, the client sends Key Exchange, the server sends Finished, the client sends Finished, and a note marks that the TLS session is established. Finally, the client sends encrypted application data to the server. The diagram shows both the successful handshake sequence and the common failure points around SNI and certificate validation."
 />
@@ -416,8 +446,9 @@ __Private CAs__ (AWS Private CA, HashiCorp Vault, step-ca, CFSSL[^cfssl]) issue 
 [^privateca]: Public CAs like Let's Encrypt will not issue certificates with the `Basic Constraints: CA:TRUE` flag to third parties. This flag indicates that the certificate can sign other certificates — giving you the power to issue publicly trusted certificates for any domain. Allowing this would completely bypass their security controls. Private CAs exist precisely because you need this capability for internal certificate management.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="sticky-header-table"
   content={{
+    figure: 'CA trust configuration by runtime.',
     thead: {
       th: ['Runtime', 'Configuration'],
     },
@@ -425,35 +456,34 @@ __Private CAs__ (AWS Private CA, HashiCorp Vault, step-ca, CFSSL[^cfssl]) issue 
       tr: [
         {
           th: 'Linux system',
-          td: ['Copy to `/etc/ssl/certs/` and run `update-ca-certificates`'],
+          td: ['Copy to <span class="font-mono">/etc/ssl/certs/</span> and run `update-ca-certificates</span>'],
         },
         {
           th: 'macOS',
           td: [
-            'Run `security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ca.crt`',
+            'Run <span class="font-mono">security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ca.crt</span>',
           ],
         },
         {
           th: 'Node.js',
-          td: ['Set `NODE_EXTRA_CA_CERTS=/path/to/ca.crt`'],
+          td: ['Set <span class="font-mono">NODE_EXTRA_CA_CERTS=/path/to/ca.crt</span>'],
         },
         {
           th: 'Python',
-          td: ['Set `REQUESTS_CA_BUNDLE=/path/to/ca.crt`'],
+          td: ['Set <span class="font-mono">REQUESTS_CA_BUNDLE=/path/to/ca.crt</span>'],
         },
         {
           th: 'Java',
           td: [
-            'Import with `keytool -import -trustcacerts -file ca.crt -keystore truststore.jks`',
+            'Import with <span class="font-mono">keytool -import -trustcacerts -file ca.crt -keystore truststore.jks</span>',
           ],
         },
         {
           th: 'Go',
-          td: ['Set `SSL_CERT_FILE=/path/to/ca-bundle.crt`'],
+          td: ['Set <span class="font-mono">SSL_CERT_FILE=/path/to/ca-bundle.crt</span>'],
         },
       ],
     },
-    figure: 'CA trust configuration by runtime.',
   }}
 />
 
@@ -472,7 +502,10 @@ The previous sections covered individual failure modes. This section puts them t
 Every private networking issue follows the same debugging sequence. Each layer depends on the previous one working correctly — there's no point checking TLS if packets aren't reaching the server.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Step 1: DNS',
@@ -518,7 +551,7 @@ Moving from a public endpoint to a private one requires coordination across DNS,
 __Pre-migration checklist:__
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'DNS',
@@ -542,7 +575,7 @@ __Pre-migration checklist:__
 __Migration patterns:__
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: 'DNS cutover',
@@ -562,22 +595,26 @@ __Migration patterns:__
 __Post-migration verification:__
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={5}
+  classes={{
+    li: "[&>div]:!pt-2 mb-6",
+  }}
   items={[
     {
-      text: 'Confirm all source IPs can reach the private endpoint',
+      lead: 'Confirm all source IPs can reach the private endpoint',
     },
     {
-      text: 'Check that latency improved (it should — no internet hops)',
+      lead: 'Check that latency improved (it should — no internet hops)',
     },
     {
-      text: 'Verify VPC flow logs show no public IP traffic to the service',
+      lead: 'Verify VPC flow logs show no public IP traffic to the service',
     },
     {
-      text: 'Disable or restrict the public endpoint',
+      lead: 'Disable or restrict the public endpoint',
     },
     {
-      text: 'Update monitoring and runbooks for the new architecture',
+      lead: 'Update monitoring and runbooks for the new architecture',
     },
   ]}
 />
@@ -586,18 +623,52 @@ __Post-migration verification:__
 
 When services span multiple VPCs, you have three main options: peering, transit gateway, or Private Link. The choice depends on your topology and constraints.
 
-__VPC Peering__ works for simple topologies with 2-3 VPCs. It's a direct connection — fast and cheap. The limitations: no transitive routing (if A peers with B and B peers with C, A can't reach C through B), CIDRs can't overlap, and cross-region peering adds latency. Both sides need routes added to their route tables. For DNS, enable resolution in the peering connection settings and associate private hosted zones with both VPCs.
-
-__Transit Gateway__ is the right choice when you have many VPCs or need transitive routing. Each VPC connects once to the gateway, which acts as a central router. You can also attach VPN connections or Direct Connect[^directconnect], giving on-premises networks access to all VPCs. The complexity is in route table management — transit gateway has its own route tables separate from VPC route tables, and misconfiguration causes blackholes.
+<List
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+>
+  <ListItem lead="VPC Peering">
+    Works for simple topologies with 2-3 VPCs. It's a direct connection — fast and cheap. The
+    limitations: no transitive routing (if A peers with B and B peers with C, A can't reach C
+    through B), CIDRs can't overlap, and cross-region peering adds latency. Both sides need routes
+    added to their route tables. For DNS, enable resolution in the peering connection settings and
+    associate private hosted zones with both VPCs.
+  </ListItem>
+  <ListItem lead="Transit Gateway">
+    Is the right choice when you have many VPCs or need transitive routing. Each VPC connects once
+    to the gateway, which acts as a central router. You can also attach VPN connections or Direct
+    Connect[^directconnect], giving on-premises networks access to all VPCs. The complexity is in
+    route table management — transit gateway has its own route tables separate from VPC route
+    tables, and misconfiguration causes blackholes.
+  </ListItem>
+  <ListItem lead="Private Link">
+    (AWS PrivateLink or equivalent) exposes a specific service to other VPCs without any routing
+    changes. The provider creates a Network Load Balancer and an endpoint service. Consumers create
+    interface endpoints that appear as ENIs for AWS or the equivalent on other cloud providers in
+    their VPC. This approach handles CIDR overlaps gracefully — the consumer never sees the
+    provider's IP space. The tradeoff: it's service-by-service rather than network-wide
+    connectivity.
+  </ListItem>
+  <ListItem lead="VPN">
+    Provides encrypted connectivity over the public internet — useful when dedicated connections
+    aren't available or cost-justified. Site-to-site VPN connects on-premises networks to cloud
+    VPCs; client VPN gives individual users access. VPN's main drawbacks are latency (traffic still
+    traverses the internet) and bandwidth limits. Whether VPN supports transitive routing depends on
+    your setup: a VPN attached to a transit gateway gets transitive access to all attached VPCs,
+    but a VPN attached directly to a single VPC doesn't.
+  </ListItem>
+</List>
 
 [^directconnect]: Direct Connect is AWS's dedicated physical network connection between your data center and AWS, bypassing the public internet for lower latency and more consistent bandwidth. Other providers offer equivalents: Google Cloud has Cloud Interconnect (Dedicated or Partner), Azure has ExpressRoute, and OpenStack environments typically use provider-specific solutions or MPLS circuits configured through the network operator.
 
-__Private Link__ (AWS PrivateLink or equivalent) exposes a specific service to other VPCs without any routing changes. The provider creates a Network Load Balancer and an endpoint service. Consumers create interface endpoints that appear as ENIs for AWS or the equivalent on other cloud providers in their VPC. This approach handles CIDR overlaps gracefully — the consumer never sees the provider's IP space. The tradeoff: it's service-by-service rather than network-wide connectivity.
-
-__VPN__ provides encrypted connectivity over the public internet — useful when dedicated connections aren't available or cost-justified. Site-to-site VPN connects on-premises networks to cloud VPCs; client VPN gives individual users access. VPN's main drawbacks are latency (traffic still traverses the internet) and bandwidth limits. Whether VPN supports transitive routing depends on your setup: a VPN attached to a transit gateway gets transitive access to all attached VPCs, but a VPN attached directly to a single VPC doesn't.
-
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-center [&_td:nth-child(3)]:text-center [&_td:nth-child(4)]:text-center',
+  }}
   content={{
     thead: {
       th: ['Pattern', 'CIDR Overlap', 'Transitive', 'DNS Complexity', 'Use When'],
@@ -629,19 +700,22 @@ __VPN__ provides encrypted connectivity over the public internet — useful when
 Common debugging issues by pattern:
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
+  classes={{
+    titleClass: "block w-full text-center",
+  }}
   items={[
     {
-      lead: 'Peering',
-      text: 'Routes missing on one side, DNS resolution not enabled, zone not associated with both VPCs',
+      title: 'Peering:',
+      lead: 'Routes missing on one side, DNS resolution not enabled, zone not associated with both VPCs',
     },
     {
-      lead: 'Transit Gateway',
-      text: 'Blackhole routes (attachment deleted but route remains), wrong route table association, asymmetric routing on return path',
+      title: 'Transit Gateway:',
+      lead: 'Blackhole routes (attachment deleted but route remains), wrong route table association, asymmetric routing on return path',
     },
     {
-      lead: 'Private Link',
-      text: 'Connection stuck in "pending" (provider must accept), endpoint unavailable (check NLB health targets), private DNS not working (verify it\'s enabled on the endpoint)',
+      title: 'Private Link:',
+      lead: 'Connection stuck in "pending" (provider must accept), endpoint unavailable (check NLB health targets), private DNS not working (verify it\'s enabled on the endpoint)',
     },
   ]}
 />
