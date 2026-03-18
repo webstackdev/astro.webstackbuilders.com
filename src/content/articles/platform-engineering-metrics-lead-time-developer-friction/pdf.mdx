@@ -22,15 +22,15 @@ import metricsDiagram from "./diagrams/metrics-data-flow-from-source-systems-to-
 
 How do you prove an internal platform creates value? Product teams measure revenue or user growth. Platform teams serve internal customers and enable outcomes rather than producing them directly. This creates a measurement gap — platform work is easy to fund when it's novel and hard to justify when it's mature.
 
-I've watched this play out. A platform team builds an internal developer portal with self-service infrastructure provisioning. Six months in, leadership asks for success metrics. The team reports: 500 developers onboarded, 10,000 API calls per month, 99.9% uptime. Leadership responds: "That's nice, but did we save money? Are developers faster?" The team can't answer because they measured what the platform __does__, not what it __enables__.
+I've watched this play out. A platform team builds an internal developer portal with self-service infrastructure provisioning. Six months in, leadership asks for success metrics. The team reports: 500 developers onboarded, 10,000 API calls per month, 99.9% uptime. Leadership responds: "That's nice, but did we save money? Are developers faster?" The team can't answer because they measured what the platform _does_, not what it _enables_.
 
 The pivot is simple but fundamental: friction-focused metrics. Time to first deployment dropped from 2 weeks to 2 hours. Infrastructure tickets per developer dropped 80%. Developer NPS rose from -20 to +45. Now the narrative is clear: "Developers are 10x faster to get started and need 80% less support." That story justifies continued investment.
-
-Meaningful platform metrics answer one question: is the platform making developers more productive? How long do common tasks take? How often do developers need help? How much cognitive load does the platform impose? Vanity metrics — adoption counts, API calls, uptime percentages — look impressive in slide decks but don't demonstrate value.
 
 <Callout type="warning">
 The most common platform metrics mistake: measuring platform activity (requests served, uptime) instead of developer outcomes (time saved, friction reduced). A platform can be highly available and completely useless.
 </Callout>
+
+Meaningful platform metrics answer one question: is the platform making developers more productive? How long do common tasks take? How often do developers need help? How much cognitive load does the platform impose? Vanity metrics — adoption counts, API calls, uptime percentages — look impressive in slide decks but don't demonstrate value.
 
 Let's look at the metrics that actually demonstrate platform value.
 
@@ -41,7 +41,10 @@ Let's look at the metrics that actually demonstrate platform value.
 Lead time metrics measure how long things take. They're the clearest indicators of platform friction because they directly answer "how fast can developers move?"
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Time to first deployment',
@@ -63,7 +66,12 @@ Lead time metrics measure how long things take. They're the clearest indicators 
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-success [&_td:nth-child(3)]:text-warning [&_td:nth-child(4)]:text-danger',
+  }}
   content={{
     thead: {
       th: ['Metric', 'Poor', 'Acceptable', 'Excellent'],
@@ -92,22 +100,26 @@ Lead time metrics measure how long things take. They're the clearest indicators 
   }}
 />
 
-These metrics align with DORA's[^dora] research-backed framework.
+These metrics align with DORA's[^dora] research-backed framework, which identified deployment frequency, lead time for changes, change failure rate, and time to restore service as the four key predictors of software delivery performance. DORA's annual State of DevOps reports consistently show that elite performers deploy multiple times per day with lead times under an hour — putting concrete numbers behind what "good" looks like at each maturity level.
 
 [^dora]: DORA (DevOps Research and Assessment) is a research program that identified four key metrics predicting software delivery performance: deployment frequency, lead time for changes, change failure rate, and time to restore service. Their annual State of DevOps reports provide industry benchmarks. Elite performers deploy multiple times per day with lead times under an hour. If you're measuring in weeks, you're not just slow — you're losing competitive ground.
 
 <Diagram
   src={leadTimeDiagram}
+  size="full"
   title="Lead time improvement visualization — 12 days reduced to 5 hours."
   description="Gantt chart titled Time to First Deployment Before versus After Platform. The chart compares two timelines. In the Before Platform section, Account setup takes 2 days, Request infrastructure takes 3 more days, Wait for provisioning takes 5 days, Configure access takes 2 days, and then First deployment appears as a milestone, for a total of roughly 12 days. In the After Platform section, Self-service onboarding takes 4 hours, Auto-provisioned environment takes 1 more hour, and then First deployment appears as a milestone, for a total of roughly 5 hours. The diagram shows how platform automation compresses a multi-day onboarding and provisioning sequence into a same-day self-service path."
 />
 
 ### Developer Friction Metrics
 
-Lead time tells you __how long__. Friction metrics tell you __how hard__. They measure the cognitive and operational burden the platform imposes.
+Lead time tells you _how long_. Friction metrics tell you _how hard_. They measure the cognitive and operational burden the platform imposes.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Ticket volume per developer',
@@ -125,7 +137,8 @@ Lead time tells you __how long__. Friction metrics tell you __how hard__. They m
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Metric', 'What It Indicates', 'Data Source'],
@@ -172,6 +185,7 @@ The collection pattern that works: event-driven ingestion into a stream (Kafka o
 
 <Diagram
   src={metricsDiagram}
+  size="full"
   title="Metrics data flow from source systems to dashboards."
   description="Top-to-bottom flowchart with four grouped stages: Data Sources, Collection, Storage, and Presentation. The Data Sources group contains Deployment System, Ticketing System, Platform Portal, and HR System. All four sources feed into an Event Stream in the Collection group, which then feeds into Enrichment. From Enrichment, data flows to two storage targets: Raw Events and Aggregated Metrics. Aggregated Metrics then feed three presentation outputs: Dashboards, Reports, and Alerts. The diagram shows a metrics pipeline where operational and business events are collected from multiple systems, enriched with metadata, stored in both raw and summarized forms, and then exposed for visualization, reporting, and alerting."
 />
@@ -273,7 +287,11 @@ Automated metrics tell you __what__ is happening. Surveys tell you __why__ — a
 Three survey types cover the developer lifecycle:
 
 <List
-  variant="ordered-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Onboarding surveys',
@@ -295,7 +313,11 @@ Three survey types cover the developer lifecycle:
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
+  classes={{
+    thead: "text-primary-offset",
+  }}
   content={{
     thead: {
       th: ['Survey Type', 'Frequency', 'Length', 'Response Goal'],
@@ -372,7 +394,7 @@ Some metrics exist primarily to impress stakeholders. They show activity without
 Here's how common platform metrics break down:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Vanity Metric', "Why It's Misleading", 'Actionable Alternative'],
@@ -422,7 +444,11 @@ The test for a good metric: does it tell you what to do? "We have 1000 users" te
 ### Metric Pitfalls
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: "Goodhart's Law",
@@ -460,7 +486,10 @@ Different audiences need different views of the same data. Executives want trend
 ### Dashboard Design
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Executive dashboards',
@@ -484,7 +513,7 @@ For executive dashboards in Grafana, structure with headline stats at the top (s
 Dashboards show state; alerts drive action. Configure alerts for metrics that require immediate attention:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: 'Deployment success rate',
@@ -512,7 +541,8 @@ Resist the urge to alert on everything. Alert fatigue leads to ignored alerts. R
 Not everything belongs on a real-time dashboard. Structured reports at regular intervals provide narrative and context that dashboards can't.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Report', 'Audience', 'Frequency', 'Key Question'],
@@ -542,7 +572,7 @@ Not everything belongs on a real-time dashboard. Structured reports at regular i
 />
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Weekly digests',
@@ -575,8 +605,8 @@ Without metrics focused on developer friction, platforms can't prove value, prio
 
 If you're starting from scratch, don't try to build everything at once. Start with four baseline metrics you can measure today, even imperfectly: time to first deployment (ask new hires), tickets per developer (query your ticketing system), deployment frequency (check your CI logs), and a simple quarterly NPS survey. Instrument as you go, automate what you can, and add sophistication over time. A spreadsheet tracking the right metrics beats a sophisticated dashboard tracking the wrong ones.
 
-The ultimate goal is a clear narrative: "Before the platform, onboarding took two weeks. After, it takes two hours. We saved 200 developer-hours this quarter." That story, backed by data, justifies continued investment and guides roadmap decisions.
-
 <Callout type="info">
 Metrics are a means to an end. The goal isn't impressive dashboards — it's understanding whether the platform reduces friction and enabling decisions about where to invest next. If metrics don't change behavior, they're not worth collecting.
 </Callout>
+
+The ultimate goal is a clear narrative: "Before the platform, onboarding took two weeks. After, it takes two hours. We saved 200 developer-hours this quarter." That story, backed by data, justifies continued investment and guides roadmap decisions.
