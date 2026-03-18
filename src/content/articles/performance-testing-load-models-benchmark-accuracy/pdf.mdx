@@ -31,17 +31,17 @@ The benchmark used uniform request distribution; production has bursty traffic. 
 
 The team rebuilt their performance suite. They captured production traffic patterns and replayed them. They matched environment specifications. They ran long enough to see GC behavior stabilize. Now their benchmarks predict production within 15%.
 
-The lesson: a benchmark is a model of reality. If the model is wrong, the predictions are worthless. A "fast" benchmark that doesn't reflect reality is worse than no benchmark — it creates false confidence that leads to production incidents.
-
-Getting useful numbers requires realistic load models that match production traffic, proper warmup to reach steady state, environment parity with production infrastructure, and statistical rigor to interpret results correctly. This article covers each of those requirements.
-
 <Callout type="warning">
 The most common performance testing mistake: measuring throughput without realistic load patterns. Synthetic load (constant RPS, uniform distribution) produces numbers that have no relationship to production performance.
 </Callout>
 
+The lesson: a benchmark is a model of reality. If the model is wrong, the predictions are worthless. A "fast" benchmark that doesn't reflect reality is worse than no benchmark — it creates false confidence that leads to production incidents.
+
+Getting useful numbers requires realistic load models that match production traffic, proper warmup to reach steady state, environment parity with production infrastructure, and statistical rigor to interpret results correctly. This article covers each of those requirements.
+
 ## Load Model Fundamentals
 
-A load model defines __what__ you're testing. It's the specification that turns "test our API" into something concrete and reproducible. Without a well-defined load model, you're just throwing requests at a server and hoping the numbers mean something.
+A load model defines _what_ you're testing. It's the specification that turns "test our API" into something concrete and reproducible. Without a well-defined load model, you're just throwing requests at a server and hoping the numbers mean something.
 
 Before diving into load model design, a quick note on tooling. I use k6 for load testing, integrated into CI/CD pipelines. k6 scripts are JavaScript/TypeScript, which makes them easy to version control and review alongside application code. For alternatives, Locust (Python) and Gatling (Scala) are solid choices with their own ecosystems. Artillery is another JavaScript option with good AWS integration.
 
@@ -52,29 +52,33 @@ The bigger question is where to run these tests. Quick regression checks (2-5 mi
 A complete load model has four components: throughput (how much load), distribution (when requests arrive), workload mix (what operations), and user behavior (how users interact).
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Throughput",
-      text: "is the simplest dimension — how many requests per second. But even this has nuance. Constant RPS is useful for baseline capacity testing but unrealistic. Ramping load helps find breaking points. Stepped increases identify specific thresholds. Variable patterns that follow time-of-day curves match production reality.",
+      text: "The simplest dimension — how many requests per second. But even this has nuance. Constant RPS is useful for baseline capacity testing but unrealistic. Ramping load helps find breaking points. Stepped increases identify specific thresholds. Variable patterns that follow time-of-day curves match production reality.",
     },
     {
       lead: "Distribution",
-      text: "determines how requests arrive within each second. Uniform distribution spaces requests evenly — one request every 10ms at 100 RPS. Real traffic doesn't work that way. Production traffic follows Poisson distributions with random arrivals, or bursty patterns where requests cluster together. A system that handles 1,000 evenly-spaced RPS might fall over when those same 1,000 requests arrive in bursts of 50.",
+      text: "Determines how requests arrive within each second. Uniform distribution spaces requests evenly — one request every 10ms at 100 RPS. Real traffic doesn't work that way. Production traffic follows Poisson distributions with random arrivals, or bursty patterns where requests cluster together. A system that handles 1,000 evenly-spaced RPS might fall over when those same 1,000 requests arrive in bursts of 50.",
     },
     {
       lead: "Workload mix",
-      text: "specifies what operations you're testing. Most APIs have a power-law distribution: a few endpoints handle most traffic. E-commerce sites see 80% of requests on product browsing, 15% on cart operations, and 5% on checkout. If your benchmark hits the checkout endpoint at 100% weight, you're testing a scenario that never happens.",
+      text: "Specifies what operations you're testing. Most APIs have a power-law distribution: a few endpoints handle most traffic. E-commerce sites see 80% of requests on product browsing, 15% on cart operations, and 5% on checkout. If your benchmark hits the checkout endpoint at 100% weight, you're testing a scenario that never happens.",
     },
     {
       lead: "User behavior",
-      text: "is often overlooked but critical. Real users have think time — they read content, fill out forms, compare options. A benchmark that fires requests as fast as possible tests maximum theoretical throughput, not realistic capacity. Think time also affects connection pooling, session state, and resource contention.",
+      text: "Often overlooked but critical. Real users have think time — they read content, fill out forms, compare options. A benchmark that fires requests as fast as possible tests maximum theoretical throughput, not realistic capacity. Think time also affects connection pooling, session state, and resource contention.",
     },
   ]}
 />
 
 <Diagram
   src={theFourComponentsDiagram}
+  size="xl"
   title="The four components of a complete load model."
   description="Left-to-right flowchart showing four inputs that combine into a realistic load model. Throughput, Distribution, Workload Mix, and User Behavior each feed into a central node labeled Realistic Load. That central node then flows into Accurate Predictions. The diagram communicates that no single metric defines a useful benchmark: accurate performance predictions come only when request rate, arrival distribution, workload composition, and human interaction patterns are modeled together."
 />
@@ -182,8 +186,10 @@ Code: Test harness with weighted endpoint selection and realistic think time.
 Different load patterns serve different purposes. Choose based on what you're trying to learn.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
+    figure: 'Load patterns and their use cases.',
     thead: {
       th: ['Pattern', 'Description', 'When to Use'],
     },
@@ -211,7 +217,6 @@ Different load patterns serve different purposes. Choose based on what you're tr
         },
       ],
     },
-    figure: 'Load patterns and their use cases.',
   }}
 />
 
@@ -228,7 +233,10 @@ A cold system behaves nothing like a warm one. If you measure performance during
 Several systems need time to reach optimal performance:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'JIT compilation',
@@ -307,11 +315,11 @@ The warmup function deliberately hits all code paths — not just the hot ones. 
 
 For JVM services, you can accelerate warmup with specific flags. The `-XX:+AlwaysPreTouch` flag pre-faults heap memory at startup, avoiding page faults during the test. Lower compilation thresholds trigger JIT earlier at the cost of less optimal code.
 
-How long should warmup run? The honest answer is "until metrics stabilize." Watch P99 latency over time — when it stops improving and variance drops below 5%, you've reached steady state. For simple services, 30-60 seconds often suffices. Complex services with many code paths and large caches may need 2-5 minutes. When in doubt, run longer and look at the metrics.
-
 <Callout type="warning">
 Never include warmup data in your results. Tag phases separately and apply thresholds only to the measurement phase. Warmup latencies can be 10-100x higher than steady-state and will completely skew your statistics.
 </Callout>
+
+How long should warmup run? The honest answer is "until metrics stabilize." Watch P99 latency over time — when it stops improving and variance drops below 5%, you've reached steady state. For simple services, 30-60 seconds often suffices. Complex services with many code paths and large caches may need 2-5 minutes. When in doubt, run longer and look at the metrics.
 
 ## Statistical Rigor
 
@@ -324,7 +332,11 @@ An average latency of 100ms might mean all requests completed in roughly 100ms. 
 Averages also collapse under outliers. A single 10-second timeout in a thousand requests shifts the average dramatically, even though 99.9% of users had a good experience. Conversely, if that timeout represents a real failure mode that will hit 1% of users in production, the average masks it.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Percentiles',
@@ -399,8 +411,9 @@ The comparison works on raw latency arrays — not pre-computed percentiles. Pre
 Here's what to watch for in your metrics:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Key performance metrics and interpretation.',
     thead: {
       th: ['Metric', 'What It Tells You', 'Watch For'],
     },
@@ -432,7 +445,6 @@ Here's what to watch for in your metrics:
         },
       ],
     },
-    figure: 'Key performance metrics and interpretation.',
   }}
 />
 
@@ -451,30 +463,35 @@ The gap between test and production environments creates systematic errors that 
 Four categories of factors determine whether your test environment will produce representative results:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      lead: 'Compute resources',
-      text: 'Directly affects capacity and saturation points. CPU type matters — an Intel Xeon and an AMD EPYC at the same core count have different single-thread performance, different cache hierarchies, and different memory bandwidth. Instance types in cloud environments bundle CPU, memory, and network in specific ratios. A memory-bound workload on an undersized test instance will saturate at a completely different point than production.',
+      lead: 'Compute resources:',
+      text: 'Directly affect capacity and saturation points. CPU type matters — an Intel Xeon and an AMD EPYC at the same core count have different single-thread performance, different cache hierarchies, and different memory bandwidth. Instance types in cloud environments bundle CPU, memory, and network in specific ratios. A memory-bound workload on an undersized test instance will saturate at a completely different point than production.',
     },
     {
-      lead: 'Data characteristics',
+      lead: 'Data characteristics:',
       text: 'Changes query behavior. Database query planners make decisions based on table statistics — row counts, value distributions, index selectivity. A test database with uniform data distribution might use different execution plans than production with skewed data. Cache hit rates depend on working set size relative to cache capacity. If your test data fits entirely in the buffer pool but production doesn\'t, you\'re measuring a different system.',
     },
     {
-      lead: 'Network topology',
+      lead: 'Network topology:',
       text: 'Affects latency distributions. Production might have services spread across availability zones with 1-2ms inter-zone latency. A test environment with everything in one zone or on localhost eliminates that latency entirely. Load balancer configuration, connection limits, and DNS resolution all contribute to real-world behavior that tests often skip.',
     },
     {
-      lead: 'Dependencies',
+      lead: 'Dependencies:',
       text: 'Frequently mocked or simplified. External API calls get stubbed with instant responses. Rate limits don\'t exist in test. Third-party services behave predictably instead of having their own performance characteristics. Every mocked dependency is a place where your benchmark diverges from reality.',
     },
   ]}
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
+    figure: 'Common environment differences and their impact.',
     thead: {
       th: ['Factor', 'Test Environment Difference', 'Impact on Results'],
     },
@@ -502,7 +519,6 @@ Four categories of factors determine whether your test environment will produce 
         },
       ],
     },
-    figure: 'Common environment differences and their impact.',
   }}
 />
 
@@ -511,7 +527,7 @@ Four categories of factors determine whether your test environment will produce 
 Perfect parity is expensive — a full production replica for testing might double your infrastructure costs. The goal is sufficient parity: matching the factors that actually affect your specific workload's performance characteristics.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Infrastructure as Code',
@@ -531,7 +547,8 @@ Perfect parity is expensive — a full production replica for testing might doub
 If you don't have traffic capture set up, you can derive endpoint distributions from existing data sources: APM tools like Datadog or New Relic report endpoint hit rates, load balancer access logs contain request paths and timing, and OpenTelemetry traces show request patterns across services. Even approximate distributions from these sources are better than synthetic 50/50 splits.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={4}
   items={[
     {
       lead: "Shadow traffic",
@@ -551,7 +568,10 @@ If you don't have traffic capture set up, you can derive endpoint distributions 
 Databases deserve special attention because they"re often the primary bottleneck — and the hardest to replicate accurately.
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: "Data volume",
@@ -669,7 +689,7 @@ Percentiles are easy to get wrong. The most common mistake: averaging percentile
 Similarly, calculating P99.9 from 1,000 samples gives you exactly one data point at that percentile — statistically meaningless. You need at least 10,000 samples for stable P99, and 100,000 for meaningful P99.9.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     thead: {
       th: ['Issue', 'Symptom', 'Fix'],
@@ -921,10 +941,10 @@ The mistakes that undermine benchmarks follow predictable patterns. Open-loop lo
 
 Build your performance testing infrastructure incrementally. Start with quick PR checks that catch obvious regressions—2 minutes, moderate load, comparison against baseline with statistical significance. Add nightly full-suite runs on dedicated hardware that match production specs. Store historical data to detect gradual degradation. Invest in production traffic capture and replay for maximum realism.
 
-What does "production-equivalent infrastructure" cost? For a typical web service, expect to spend $500-2,000/month on a dedicated performance testing environment — matching your production instance types, database size, and cache configuration. This sounds expensive until you compare it to the cost of a performance-related outage: lost revenue, engineering time debugging in production, and customer trust. A single incident that a proper benchmark would have caught easily justifies a year of testing infrastructure.
-
-The cost of a misleading benchmark — false confidence followed by production incidents — far exceeds the cost of building proper infrastructure. A "fast" benchmark that doesn't reflect reality is worse than no benchmark at all.
-
 <Callout type="success">
 The question isn't "how fast is my system?" but "how will my system behave under production conditions?" Build tests that answer the second question, even if the numbers are less impressive than synthetic benchmarks.
 </Callout>
+
+What does "production-equivalent infrastructure" cost? For a typical web service, expect to spend $500-2,000/month on a dedicated performance testing environment — matching your production instance types, database size, and cache configuration. This sounds expensive until you compare it to the cost of a performance-related outage: lost revenue, engineering time debugging in production, and customer trust. A single incident that a proper benchmark would have caught easily justifies a year of testing infrastructure.
+
+The cost of a misleading benchmark — false confidence followed by production incidents — far exceeds the cost of building proper infrastructure. A "fast" benchmark that doesn't reflect reality is worse than no benchmark at all.

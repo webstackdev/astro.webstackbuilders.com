@@ -15,25 +15,31 @@ A three-person team I worked with had 47 pages in a single week. Most were trans
 
 They didn't fix this by hiring more people. They fixed it by deleting alerts.
 
-Within two months, pages dropped to 2-3 per week. The team started sleeping again. The counterintuitive lesson: on-call sustainability isn't about headcount or rotation schedules. It's about the quality of the alerts that wake people up.
+Within two months, pages dropped to 2-3 per week. The team started sleeping again. The counterintuitive lesson: <Highlighter>on-call sustainability isn't about headcount or rotation schedules. It's about the quality of the alerts that wake people up.</Highlighter>
 
 One metric predicts whether your on-call will burn out your team: signal-to-noise ratio. Here's how to measure it, recognize when it's killing you, and fix it before someone quits.
 
 ## What Signal-to-Noise Ratio Actually Measures
 
-Signal-to-noise ratio is the percentage of pages that required human action. Calculate it monthly: pages that required someone to __do something__ divided by total pages.
+Signal-to-noise ratio is the percentage of pages that required human action. Calculate it monthly: pages that required someone to _do something_ divided by total pages.
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Greater than 80%: healthy',
+      lead: 'Greater than 80%:&nbsp;&nbsp;<span class="font-normal">Healthy</span>',
+      color: "bg-success",
     },
     {
-      text: '50-80%: concerning',
+      lead: '50-80%:&nbsp;&nbsp;<span class="font-normal">Concerning</span>',
+      color: "bg-warning-offset",
     },
     {
-      text: 'Below 50%: your alerting is broken',
+      lead: 'Below 50%:&nbsp;&nbsp;<span class="font-normal">Your alerting is broken</span>',
+      color: "bg-danger",
     },
   ]}
 />
@@ -43,22 +49,37 @@ The math is simple but brutal. A three-person team can sustainably handle maybe 
 Here's an example from a real team audit:
 
 <List
-  variant="check-icons-list"
+  variant="plain-icon-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    li: "[&>span]:!font-semibold [&>span]:ml-2 mb-4",
+  }}
+  size={7}
   items={[
     {
       text: '60 total pages this month',
+      icon: "alarm-clock",
+      color: "page-inverse",
     },
     {
       text: '35 required action',
+      icon: "gear",
+      color: "page-inverse",
     },
     {
       text: '20 auto-resolved before anyone could respond',
+      icon: "clock",
+      color: "page-inverse",
     },
     {
       text: '5 were false positives',
+      icon: "error",
+      color: "page-inverse",
     },
     {
       text: 'SNR: 58%—concerning, needs work',
+      icon: "graph",
+      color: "page-inverse",
     },
   ]}
 />
@@ -68,7 +89,8 @@ That 20 auto-resolved pages is the killer. If an alert fires and resolves before
 Every alert outcome falls into one of four categories, each with a target:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Alert Outcome', 'Target', 'Action If Exceeded'],
@@ -100,7 +122,8 @@ Every alert outcome falls into one of four categories, each with a target:
 The weekly review ritual makes this actionable. During every on-call handoff, spend 30 minutes reviewing every page from the past week:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Question', 'What "No" Reveals'],
@@ -135,13 +158,13 @@ The weekly review ritual makes this actionable. During every on-call handoff, sp
 
 The answers drive improvements. Alert too sensitive? Tune the threshold. Could be automated? Build auto-remediation. Provided no value? Delete it. The goal is for every alert to earn its place in the rotation.
 
-<Newsletter />
-
 ## Recognizing Burnout Before It's Too Late
 
 The insidious thing about on-call burnout is that it accumulates slowly. By the time it's obvious, someone is already job hunting.
 
 Individual burnout shows up in behavior first. Someone starts acknowledging alerts but not actually investigating them. Response times gradually increase. They snooze alerts instead of addressing them. There's resentment in handoff meetings — subtle comments about the unfairness of the rotation or the quality of alerts.
+
+<Newsletter />
 
 Emotional signs follow: dread when an on-call shift approaches, anxiety about phone notifications even when off rotation, the feeling that you can never truly disconnect. Eventually physical symptoms emerge — sleep disruption that persists even off rotation, exhaustion that doesn't recover between shifts.
 
@@ -150,7 +173,12 @@ At the team level, watch for alerts being suppressed rather than fixed, runbooks
 The numbers tell a story too:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(3)]:text-success [&_td:nth-child(4)]:text-warning [&_td:nth-child(5)]:text-danger',
+  }}
   content={{
     thead: {
       th: ['Metric', 'Healthy', 'Concerning', 'Unsustainable'],
@@ -192,19 +220,22 @@ Every alert must earn its place in the rotation. If it doesn't require immediate
 For each problematic alert, you have three options:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
-      lead: 'Delete it',
-      text: 'if the alert never leads to action. This sounds scary, but an alert that nobody acts on is worse than no alert — it trains your team to ignore pages. If you\'re nervous, demote it to a Slack notification for a month and see if anyone notices.',
+      lead: 'Delete it:',
+      text: 'If the alert never leads to action. This sounds scary, but an alert that nobody acts on is worse than no alert — it trains your team to ignore pages. If you\'re nervous, demote it to a Slack notification for a month and see if anyone notices.',
     },
     {
-      lead: 'Tune it',
-      text: 'if the alert fires too often or at the wrong times. Add a duration requirement so transient spikes don\'t page (require the condition to persist for 5 minutes instead of firing immediately). Add hysteresis so alerts don\'t flap (fire at 90%, resolve at 80%). Adjust thresholds based on actual behavior rather than theoretical limits.',
+      lead: 'Tune it:',
+      text: 'If the alert fires too often or at the wrong times. Add a duration requirement so transient spikes don\'t page (require the condition to persist for 5 minutes instead of firing immediately). Add hysteresis so alerts don\'t flap (fire at 90%, resolve at 80%). Adjust thresholds based on actual behavior rather than theoretical limits.',
     },
     {
-      lead: 'Automate it',
-      text: 'if the fix is always the same. If every disk space alert ends with "clear /tmp and rotate logs," that\'s not a human problem — that\'s a script. Auto-remediate the common case, only escalate to a human if automation fails.',
+      lead: 'Automate it:',
+      text: 'If the fix is always the same. If every disk space alert ends with "clear /tmp and rotate logs," that\'s not a human problem — that\'s a script. Auto-remediate the common case, only escalate to a human if automation fails.',
     },
   ]}
 />
@@ -213,11 +244,11 @@ The biggest win for most teams is after-hours filtering. Not everything needs to
 
 This isn't ignoring problems — it's acknowledging that "one replica down out of three" at 2 AM doesn't justify waking someone up when the service is still functional. The on-call person can check in the morning.
 
-If your page budget is consistently exceeded despite these efforts, there's a nuclear option: stop feature work until alerting is fixed. This sounds dramatic, but reliability debt is real debt. A team that can't sleep can't ship features either. Sometimes you need to stop digging before you can climb out.
-
 <Callout type="success">
 The weekly review is the highest-leverage practice for on-call sustainability. Thirty minutes per week of deliberate improvement compounds into dramatically better on-call within a quarter.
 </Callout>
+
+If your page budget is consistently exceeded despite these efforts, there's a nuclear option: stop feature work until alerting is fixed. This sounds dramatic, but reliability debt is real debt. A team that can't sleep can't ship features either. Sometimes you need to stop digging before you can climb out.
 
 ## Start Here
 
@@ -241,15 +272,19 @@ Start this week:
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    li: "[&>div]:!pt-2",
+  }}
   items={[
     {
-      text: 'Calculate your signal-to-noise ratio. If it\'s below 80%, you have work to do.',
+      lead: 'Calculate your signal-to-noise ratio. If it\'s below 80%, you have work to do.',
     },
     {
-      text: 'Schedule your first weekly review during the next on-call handoff.',
+      lead: 'Schedule your first weekly review during the next on-call handoff.',
     },
     {
-      text: 'Pick one high-volume alert and either tune it, automate it, or delete it.',
+      lead: 'Pick one high-volume alert and either tune it, automate it, or delete it.',
     },
   ]}
 />

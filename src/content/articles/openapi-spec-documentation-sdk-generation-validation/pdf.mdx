@@ -32,19 +32,19 @@ If you've worked with OpenAPI specs before, you know they can get unwieldy fast.
 An OpenAPI spec has four top-level sections that matter:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
-      text: '`info` for metadata',
+      lead: '<span class="font-mono">info</span> for metadata',
     },
     {
-      text: '`servers` for environment URLs',
+      lead: '<span class="font-mono">servers</span> for environment URLs',
     },
     {
-      text: '`paths` for your actual endpoints',
+      lead: '<span class="font-mono">paths</span> for your actual endpoints',
     },
     {
-      text: '`components` for reusable definitions',
+      lead: '<span class="font-mono">components</span> for reusable definitions',
     },
   ]}
 />
@@ -184,8 +184,9 @@ Code: Using allOf to compose shared base properties into entity schemas.
 For polymorphic types — where a field can be one of several shapes — use `oneOf` with a discriminator. Payment methods are the classic example: credit cards have `last4` and `expiryMonth`, bank transfers have `routingNumber` and `accountNumber`, PayPal has `email`. The discriminator tells parsers which schema applies based on a `type` field.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'OpenAPI schema design patterns and when to use them',
     thead: {
       th: ['Pattern', 'When to Use'],
     },
@@ -196,11 +197,11 @@ For polymorphic types — where a field can be one of several shapes — use `on
           td: ['Create/update/read operations have different field requirements'],
         },
         {
-          th: '`allOf` composition',
+          th: '<span class="font-mono">allOf</span> composition',
           td: ['Multiple entities share identical base fields (audit timestamps, IDs)'],
         },
         {
-          th: '`oneOf` polymorphism',
+          th: '<span class="font-mono">oneOf</span> polymorphism',
           td: ['A field can be one of several distinct types with different structures'],
         },
       ],
@@ -261,7 +262,7 @@ The workflow looks like this: design the API in your spec editor, review with st
 You'll want a decent editor for spec-first work. Here are the main options:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     thead: {
       th: ['Editor', 'Best For'],
@@ -361,19 +362,22 @@ Once you have an OpenAPI spec, generating documentation is almost trivially easy
 The three main options cover different use cases:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-8",
+  }}
   items={[
     {
       lead: 'Redoc',
-      text: 'generates static HTML from your spec. You get a three-panel layout (navigation, content, code samples), search, and nested schema expansion. It\'s a single HTML file you can host anywhere — GitHub Pages, S3, your CDN. No backend required. This is my default choice for most projects because it\'s zero-maintenance once deployed.',
+      text: 'Generates static HTML from your spec. You get a three-panel layout (navigation, content, code samples), search, and nested schema expansion. It\'s a single HTML file you can host anywhere — GitHub Pages, S3, your CDN. No backend required. This is my default choice for most projects because it\'s zero-maintenance once deployed.',
     },
     {
       lead: 'Swagger UI',
-      text: 'provides interactive documentation where developers can make live requests against your API. The "Try it out" button is genuinely useful for exploration and debugging. The tradeoff: you need to think about authentication, CORS, and whether you want people hitting your production API from the docs.',
+      text: 'Provides interactive documentation where developers can make live requests against your API. The "Try it out" button is genuinely useful for exploration and debugging. The tradeoff: you need to think about authentication, CORS, and whether you want people hitting your production API from the docs.',
     },
     {
       lead: 'Stoplight Elements',
-      text: 'is a React component library for embedding documentation in an existing portal or documentation site. If you\'re building a developer portal with tutorials, guides, and API reference together, Elements lets you integrate the API docs natively rather than linking out to a separate site.',
+      text: 'A React component library for embedding documentation in an existing portal or documentation site. If you\'re building a developer portal with tutorials, guides, and API reference together, Elements lets you integrate the API docs natively rather than linking out to a separate site.',
     },
   ]}
 />
@@ -443,9 +447,13 @@ responses:
 ```
 Code: Named examples for different order states.
 
+These individual techniques — rich descriptions, multiple examples, error scenarios — compound when applied consistently across your spec. The table below summarizes which documentation elements to prioritize and what each should contain, so you can audit an existing spec or build a new one with the right coverage from the start.
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
+    figure: 'Documentation elements that improve developer experience.',
     thead: {
       th: ['Documentation Element', 'What to Include'],
     },
@@ -469,7 +477,6 @@ Code: Named examples for different order states.
         },
       ],
     },
-    figure: 'Documentation elements that improve developer experience.',
   }}
 />
 
@@ -490,25 +497,35 @@ The good news is that SDK generation has matured significantly. With the right g
 The SDK generator landscape breaks down into three categories: comprehensive multi-language tools, language-specific tools with better output, and types-only generators.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
-      lead: 'OpenAPI Generator',
-      text: '(the open-source fork of Swagger Codegen) supports 50+ languages and is the default choice for teams that need SDKs in multiple languages from the same spec. The TypeScript output is decent, the Python output is usable, and you get consistent behavior across languages. The tradeoff is that "decent" and "usable" aren\'t "great"—the generated code tends toward verbosity and doesn\'t always follow language idioms.',
+      lead: 'OpenAPI Generator (the open-source fork of Swagger Codegen)',
+      text: 'Supports 50+ languages and is the default choice for teams that need SDKs in multiple languages from the same spec. The TypeScript output is decent, the Python output is usable, and you get consistent behavior across languages. The tradeoff is that "decent" and "usable" aren\'t "great"—the generated code tends toward verbosity and doesn\'t always follow language idioms.',
     },
     {
       lead: 'Orval',
-      text: 'focuses exclusively on TypeScript but produces notably better output. It generates React Query hooks, Zod validation schemas, and MSW mock handlers out of the box. If your consumers are React developers, Orval\'s output feels like code they\'d actually write.',
+      text: 'Focuses exclusively on TypeScript but produces notably better output. It generates React Query hooks, Zod validation schemas, and MSW mock handlers out of the box. If your consumers are React developers, Orval\'s output feels like code they\'d actually write.',
     },
     {
-      lead: 'openapi-typescript',
-      text: 'takes a different approach: it generates only TypeScript types, no runtime code. You get interfaces for your request/response bodies and use your own HTTP client. This is the lightest-weight option and works well when you want type safety without adopting a generated SDK wholesale.',
+      lead: '<span class="font-mono">openapi-typescript</span>',
+      text: 'Takes a different approach: it generates only TypeScript types, no runtime code. You get interfaces for your request/response bodies and use your own HTTP client. This is the lightest-weight option and works well when you want type safety without adopting a generated SDK wholesale.',
     },
   ]}
 />
 
+These tools solve different problems, so the right choice depends less on raw feature count and more on who will consume the generated code. A frontend-heavy team may prioritize React Query integration and ergonomic TypeScript output, while a platform team supporting multiple languages may accept less idiomatic clients in exchange for broader coverage. The comparison below makes those tradeoffs explicit.
+
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Generator', 'Languages', 'Best For'],
@@ -636,7 +653,7 @@ For Python, FastAPI handles this automatically if you're using Pydantic models. 
 Other ecosystems have their own solutions:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     thead: {
       th: ['Framework', 'Library', 'Approach'],
@@ -645,23 +662,23 @@ Other ecosystems have their own solutions:
       tr: [
         {
           th: 'Rails',
-          td: ['`committee`', 'Rack middleware that validates against OpenAPI specs'],
+          td: ['<span class="font-mono">committee</span>', 'Rack middleware that validates against OpenAPI specs'],
         },
         {
           th: 'Laravel',
-          td: ['`spectator`', 'Request/response validation with PHPUnit integration'],
+          td: ['<span class="font-mono">spectator</span>', 'Request/response validation with PHPUnit integration'],
         },
         {
           th: '.NET',
-          td: ['`Microsoft.AspNetCore.OpenApi`', 'Built-in validation in ASP.NET Core 9+; earlier versions use `NSwag`'],
+          td: ['<span class="font-mono">Microsoft.AspNetCore.OpenApi</span>', 'Built-in validation in ASP.NET Core 9+; earlier versions use <span class="font-mono">NSwag</span>'],
         },
         {
           th: 'Go',
-          td: ['`kin-openapi`', 'Middleware for Echo, Chi, Gin; validates requests and responses'],
+          td: ['<span class="font-mono">kin-openapi</span>', 'Middleware for Echo, Chi, Gin; validates requests and responses'],
         },
         {
           th: 'Spring Boot',
-          td: ['`springdoc-openapi`', 'Code-first with automatic spec generation and validation'],
+          td: ['<span class="font-mono">springdoc-openapi</span>', 'Code-first with automatic spec generation and validation'],
         },
       ],
     },
@@ -714,7 +731,8 @@ Code: Error handler that transforms technical validation errors into readable me
 It's important to understand the boundaries of schema validation:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Validation Catches', 'Validation Misses'],
@@ -854,22 +872,32 @@ Breaking changes are the silent killer of API reliability. Someone adds a requir
 `openapi-diff` compares two spec versions and flags incompatible changes:
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
+  size={3}
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    text: "pt-1",
+  }}
   items={[
     {
       text: 'Removed endpoints',
+      color: "bg-danger-offset",
     },
     {
       text: 'Removed or renamed fields',
+      color: "bg-danger-offset",
     },
     {
       text: 'New required fields in request bodies',
+      color: "bg-danger-offset",
     },
     {
       text: 'Changed field types',
+      color: "bg-danger-offset",
     },
     {
       text: 'Narrowed enum values',
+      color: "bg-danger-offset",
     },
   ]}
 />
@@ -881,15 +909,18 @@ Run it in PR checks with `--fail-on-incompatible` to block merges that would bre
 Contract tests verify your implementation actually matches your spec. Dredd and Schemathesis are the main tools:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Dredd',
-      text: 'reads your spec, generates requests for each endpoint, hits your running server, and validates responses against the schema. It\'s deterministic — same spec produces same tests.',
+      text: 'Reads your spec, generates requests for each endpoint, hits your running server, and validates responses against the schema. It\'s deterministic — same spec produces same tests.',
     },
     {
       lead: 'Schemathesis',
-      text: 'takes a property-based testing approach. It generates random valid inputs based on your schemas and looks for edge cases that break your implementation. It\'s better at finding bugs but less predictable.',
+      text: 'Takes a property-based testing approach. It generates random valid inputs based on your schemas and looks for edge cases that break your implementation. It\'s better at finding bugs but less predictable.',
     },
   ]}
 />

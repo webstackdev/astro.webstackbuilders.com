@@ -34,7 +34,7 @@ The goal isn't 100% coverage — it's getting enough safety net to make changes 
 
 ## Characterization Tests
 
-Traditional unit tests verify that code does what it __should__ do — you write a test based on a specification, and the test fails if the code doesn't match. Characterization tests flip this: they capture what the code __actually__ does, regardless of intent. You're not testing against a spec; you're documenting observed behavior.
+Traditional unit tests verify that code does what it _should_ do — you write a test based on a specification, and the test fails if the code doesn't match. Characterization tests flip this: they capture what the code _actually_ does, regardless of intent. You're not testing against a spec; you're documenting observed behavior.
 
 The distinction matters for legacy code. You don't have a spec. The original authors are gone. The code has undocumented edge cases, implicit business rules buried in conditionals, and behaviors that might be bugs or might be features — you can't tell. Characterization tests don't try to answer "is this correct?" They answer "what does this do?" and lock it in.
 
@@ -284,7 +284,8 @@ Code: Types of seams.
 The __object seam__ is the most common and usually the cleanest. You pass a dependency through a constructor or method parameter, and the enabling point is the call site where you can pass a different implementation. Ruby makes this trivially easy with default arguments — existing callers get production behavior, tests pass doubles. The same pattern works across many different frameworks.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Language/Framework', 'Object Seam Technique'],
@@ -293,7 +294,7 @@ The __object seam__ is the most common and usually the cleanest. You pass a depe
       tr: [
         {
           th: 'Ruby',
-          td: ['Default arguments in `initialize`'],
+          td: ['Default arguments in <span class="font-mono">initialize</span>'],
         },
         {
           th: 'C# / Java',
@@ -305,19 +306,19 @@ The __object seam__ is the most common and usually the cleanest. You pass a depe
         },
         {
           th: 'TypeScript',
-          td: ['Optional parameters with nullish coalescing (`??`)'],
+          td: ['Optional parameters with nullish coalescing (<span class="font-mono">??</span>)'],
         },
         {
           th: 'Spring Boot',
-          td: ['`@Autowired` with test `@Configuration` bindings'],
+          td: ['<span class="font-mono">@Autowired</span> with test <span class="font-mono">@Configuration</span> bindings'],
         },
         {
           th: 'Laravel',
-          td: ['Service container with `$this->app->bind()` in tests'],
+          td: ['Service container with <span class="font-mono">$this->app->bind()</span> in tests'],
         },
         {
           th: '.NET',
-          td: ['`IServiceCollection` with test service registration'],
+          td: ['<span class="font-mono">IServiceCollection</span> with test service registration'],
         },
       ],
     },
@@ -398,12 +399,14 @@ end
 ```
 Code: Identifying seams in legacy code.
 
-The sensing variable pattern deserves special attention. Sometimes you can't easily intercept a dependency, but you __can__ add a field that captures what happened. It's ugly — test-specific code in production — but it's a temporary scaffold. Add the sensing variable, write your characterization tests, then refactor toward proper seams and remove the sensing code. The tests survive because they now use better seams.
+The sensing variable pattern deserves special attention. Sometimes you can't easily intercept a dependency, but you _can_ add a field that captures what happened. It's ugly — test-specific code in production — but it's a temporary scaffold. Add the sensing variable, write your characterization tests, then refactor toward proper seams and remove the sensing code. The tests survive because they now use better seams.
 
-When choosing which seam type to use, prefer object seams for long-term maintainability. They make dependencies explicit and support proper dependency injection. But when you need tests __now__ and can't change constructor signatures (maybe there are 50 call sites), link seams or subclass seams get you there faster. You can always refactor later — once you have tests.
+When choosing which seam type to use, prefer object seams for long-term maintainability. They make dependencies explicit and support proper dependency injection. But when you need tests _now_ and can't change constructor signatures (maybe there are 50 call sites), link seams or subclass seams get you there faster. You can always refactor later — once you have tests.
 
 <Diagram
   src={seamTypeDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="Seam type decision."
   description="Flowchart showing three seam categories and how to choose between them for legacy code testing. In the grouped section labeled Seam Types, Object Seam branches to Inject via constructor, Inject via setter, and Inject via method parameter. Link Seam branches to Module mocking and Import substitution. Subclass Seam branches to Extract to protected method and Override in test class. In a separate grouped section labeled Decision, a decision node asks Which seam to use. The Cleanest path points to Object Seam, the Quick fix path points to Link Seam, and the No constructor access path points to Subclass Seam. The diagram summarizes both the available seam types and the practical decision logic for choosing the most suitable one based on constraints in the legacy codebase."
 />
@@ -650,7 +653,11 @@ Code: Instance delegator technique.
 The alternative approach — injecting the validator classes themselves rather than wrapping their calls — produces cleaner code long-term. You can pass mock classes in tests that respond to `.validate` however you need. This is effectively Parameterize Constructor applied to class method dependencies.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    tbody:
+      '[&_td:nth-child(4)]:text-success [&_td:nth-child(5)]:text-danger',
+  }}
   content={{
     thead: {
       th: ['Technique', 'When to Use', 'Pros', 'Cons'],
@@ -689,7 +696,7 @@ The techniques above work well for individual classes with a few dependencies. B
 
 ## The Strangler Fig Approach
 
-The dependency-breaking techniques get you tests around individual classes. But what about the 3,000-line monolith that does everything? You can't test it as a unit — it __is__ the unit. The Strangler Fig pattern, named after the tropical vines that gradually envelop and replace their host trees, offers a path forward.
+The dependency-breaking techniques get you tests around individual classes. But what about the 3,000-line monolith that does everything? You can't test it as a unit — it _is_ the unit. The Strangler Fig pattern, named after the tropical vines that gradually envelop and replace their host trees, offers a path forward.
 
 The idea: wrap the legacy system with a facade that has a clean interface. Write characterization tests against the facade. Then, one responsibility at a time, extract logic from the legacy system into new, tested components. The facade orchestrates both old and new code. Eventually, the legacy system is hollow — all real work happens in the new components — and you remove it entirely.
 
@@ -793,7 +800,7 @@ Some legacy systems produce outputs so complex that writing assertions for each 
 
 The technique: run the system against a representative sample of inputs and capture the outputs. This becomes your "golden master"—the canonical record of what the system does. Future test runs compare against this baseline. Any difference triggers investigation: did we change something intentionally, or did we break something?
 
-Golden master tests trade precision for coverage. You're not asserting __why__ the output is correct — you're asserting that it hasn't changed. This makes them perfect for legacy systems where understanding every nuance would take months. They're also framework-agnostic: any language can serialize outputs and compare them later.
+Golden master tests trade precision for coverage. You're not asserting _why_ the output is correct — you're asserting that it hasn't changed. This makes them perfect for legacy systems where understanding every nuance would take months. They're also framework-agnostic: any language can serialize outputs and compare them later.
 
 ```ruby title="golden_master_spec.rb"
 # Golden Master: Capture comprehensive output for complex systems
@@ -937,7 +944,7 @@ Code: Handling static cling.
 
 ### Hidden Dependencies
 
-Singletons and global state create invisible coupling. The code __looks__ like it has no dependencies — the constructor takes no arguments, the method signature is clean. But inside, it reaches into global state: `Configuration.instance`, `Logger.global`, `ServiceLocator.resolve()`. You can't see the dependencies from the API, but they're there, and they'll sabotage your tests.
+Singletons and global state create invisible coupling. The code _looks_ like it has no dependencies — the constructor takes no arguments, the method signature is clean. But inside, it reaches into global state: `Configuration.instance`, `Logger.global`, `ServiceLocator.resolve()`. You can't see the dependencies from the API, but they're there, and they'll sabotage your tests.
 
 Every framework has its version. Java has the classic Singleton pattern. PHP has facades that hide service container lookups. Node.js has module-level singletons. Rails has `Rails.application.config`. The symptom is always the same: tests pass in isolation but fail when run together, because they're sharing state through these hidden channels.
 
@@ -1005,7 +1012,7 @@ Code: Handling hidden dependencies.
 
 ### Monster Methods
 
-Every legacy codebase has them: methods that span hundreds of lines, doing everything from validation to database access to email sending. They're impossible to test as units because they __aren't__ units — they're entire subsystems crammed into a single method signature.
+Every legacy codebase has them: methods that span hundreds of lines, doing everything from validation to database access to email sending. They're impossible to test as units because they _aren't_ units — they're entire subsystems crammed into a single method signature.
 
 Don't try to test monster methods directly. Don't try to refactor them all at once. Instead, use "sprout" techniques to grow tested code alongside the monster — this is the Strangler Fig philosophy applied at method level. Need to add a feature? Write it in a new, tested method, then call it from the monster. Need to fix a bug? Extract that logic into a tested class, then delegate to it.
 
@@ -1092,7 +1099,7 @@ Think of coverage as insurance. You buy more insurance for valuable, at-risk ass
 
 ### Incremental Coverage Strategy
 
-Prioritize based on three factors: change frequency (code that changes often needs more coverage), bug history (code that breaks often needs more coverage), and planned work (code you'll modify soon needs coverage __before__ you touch it). Stable, boring code that just works? Leave it alone.
+Prioritize based on three factors: change frequency (code that changes often needs more coverage), bug history (code that breaks often needs more coverage), and planned work (code you'll modify soon needs coverage _before_ you touch it). Stable, boring code that just works? Leave it alone.
 
 This isn't about reaching arbitrary coverage numbers. It's about building confidence where you need it. 80% coverage on code you're actively refactoring is more valuable than 20% coverage spread across the entire codebase.
 
@@ -1137,7 +1144,7 @@ Code: Coverage prioritization strategy.
 
 Legacy test suites need structure that standard test organization doesn't provide. You have characterization tests (documenting existing behavior), golden masters (complex output snapshots), regression tests (bug fixes), and unit tests for newly extracted code. Mixing them together creates confusion about what each test means and when it should change.
 
-Separate tests by purpose. Characterization tests should be clearly marked — these document what the system __does__, not what it __should do__, and changing them requires investigation. Regression tests should reference bug tracker IDs so future developers understand the history. Unit tests for extracted code follow normal conventions.
+Separate tests by purpose. Characterization tests should be clearly marked — these document what the system _does_, not what it _should do_, and changing them requires investigation. Regression tests should reference bug tracker IDs so future developers understand the history. Unit tests for extracted code follow normal conventions.
 
 Naming matters too. A prefix like `[CHAR]` for characterization tests or `[BUG-1234]` for regressions makes intent scannable. When a test fails, the name tells you whether you broke something or whether you're seeing expected change from intentional refactoring.
 
@@ -1194,6 +1201,8 @@ Code: Test organization for legacy code.
 
 <Diagram
   src={legacyTestingDiagram}
+  magnifyButtonPosition="bottom-left"
+  size="full"
   title="Legacy testing strategy."
   description="Flowchart summarizing three aspects of a legacy testing strategy. In the grouped section labeled Test Pyramid for Legacy, Golden Master Tests flow to Integration Tests with the label Broad coverage, Integration Tests flow to Characterization Tests with the label Critical paths, and Characterization Tests flow to Unit Tests with the label Extracted code. In the grouped section labeled Coverage Priority, Code changing soon points to 80%+ coverage with the label High, Bug-prone code points to 60%+ coverage with the label Medium, and Stable, untouched code points to Characterization only with the label Low. In the grouped section labeled Test Types by Purpose, Characterization points to Safety net for refactoring with the label Document behavior, Golden Master points to Catch regressions with the label Complex outputs, and Unit Tests point to Design feedback with the label New code. The diagram shows that legacy code testing starts with broad behavior-capturing tests and gradually grows more targeted unit coverage as code is extracted and refactored."
 />
@@ -1214,10 +1223,10 @@ Find seams where you can alter behavior without modifying code. Object seams let
 
 Break dependencies incrementally. Extract and Override gets you started with minimal change. Parameterize Constructor creates explicit dependency graphs. Instance Delegator handles static cling. Each technique trades design improvement against change risk — choose based on your context.
 
-Use the Strangler Fig pattern for larger extractions. Wrap legacy in a facade, extract one responsibility at a time into tested components, gradually hollow out the legacy code until it's gone. Every step is deployable. No big-bang rewrites.
-
-Prioritize ruthlessly. Test code that's changing, code that's breaking, code that's critical. Leave stable legacy code alone — characterization tests catch accidental changes, but comprehensive testing of code that won't change is waste.
-
 <Callout type="success">
 The key insight: you don't need to understand legacy code to test it. Characterization tests capture behavior you can observe. Seams let you isolate without understanding. The myth of "untestable" code usually means "code that's hard to test with conventional techniques." With these patterns, almost any code becomes testable — the question is whether the investment is worth it for code that may never change.
 </Callout>
+
+Use the Strangler Fig pattern for larger extractions. Wrap legacy in a facade, extract one responsibility at a time into tested components, gradually hollow out the legacy code until it's gone. Every step is deployable. No big-bang rewrites.
+
+Prioritize ruthlessly. Test code that's changing, code that's breaking, code that's critical. Leave stable legacy code alone — characterization tests catch accidental changes, but comprehensive testing of code that won't change is waste.

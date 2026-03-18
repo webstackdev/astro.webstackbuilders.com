@@ -250,13 +250,18 @@ https://mermaid.js.org/config/directives.html
 
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
 
-- deep-dive/kubernetes-pod-resource-requests-limits-qos-classes is showing the Download hero image
-
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
 
 - How can we handle footnotes in List components? src/content/articles/kubernetes-multi-cluster-fleet-management-configuration/pdf.mdx line 80
 
 - Need to update Case Studies with lists and tables too
+
+17:15:36 [200] /articles/kubernetes-pod-disruption-budget-autoscaler-node-rotation 414ms
+[WebMentions] Failed to fetch mentions for https://www.webstackbuilders.com/articles/kubernetes-pod-disruption-budget-autoscaler-node-rotation. Will retry in 60s. DOMException [TimeoutError]: The operation was aborted due to timeout
+    at node:internal/deps/undici/undici:15445:13
+    at async requestWebmentions (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/components/WebMentions/server/index.ts:199:20)
+    at async eval (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/components/WebMentions/index.astro:27:18)
+17:15:46 [200] /_vtbot_inspection_chamber.js 1ms
 
 ### Snippets
 
@@ -267,7 +272,7 @@ https://mermaid.js.org/config/directives.html
 </Highlighter>
 
 <Diagram
-  magnifyButtonPosition="bottom-right"
+  magnifyButtonPosition="top-left"
   size="full"
 />
 
@@ -331,4 +336,12 @@ https://mermaid.js.org/config/directives.html
   fullWidth={false}
   classes={{
     tbody: "[&_tr>td:nth-of-type(2)]:!font-normal",
+  }}
+
+<Table
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-success [&_td:nth-child(3)]:text-warning [&_td:nth-child(4)]:text-danger',
   }}

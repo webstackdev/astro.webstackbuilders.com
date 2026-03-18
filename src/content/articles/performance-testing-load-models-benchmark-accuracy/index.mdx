@@ -18,11 +18,11 @@ import fourRequestsDiagram from "./diagrams/four-requests-averaging-100ms-but-on
 
 The post-mortem was awkward. A team had spent three weeks building a performance test suite for their new API gateway. The benchmark showed 50,000 RPS with 2ms P99 latency. Leadership signed off on the deployment. Production fell over at 5,000 RPS.
 
-The engineers weren't incompetent — they were victims of performance testing's hidden traps. Their benchmark measured __something__, just not anything useful for predicting production behavior. The load generator backed off when the system struggled (coordinated omission). The dashboards showed averages that hid catastrophic tail latency. The test environment bore no resemblance to production.
+The engineers weren't incompetent — they were victims of performance testing's hidden traps. Their benchmark measured _something_, just not anything useful for predicting production behavior. The load generator backed off when the system struggled (coordinated omission). The dashboards showed averages that hid catastrophic tail latency. The test environment bore no resemblance to production.
 
 This pattern repeats constantly. Teams run benchmarks, get impressive numbers, deploy with confidence, and watch production burn. The numbers were accurate; they just didn't answer the right question.
 
-Two mistakes cause most of the damage: __coordinated omission__ and __misusing averages__. Understanding these will save you from benchmarks that create false confidence before production incidents.
+<Highlighter>Two mistakes cause most of the damage: _coordinated omission_ and _misusing averages_.</Highlighter> Understanding these will save you from benchmarks that create false confidence before production incidents.
 
 ## The Coordinated Omission Trap
 
@@ -86,7 +86,8 @@ Averages collapse under outliers in both directions. A single 10-second timeout 
 __Percentiles__ tell a more honest story:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Metric', 'What It Shows', 'Why It Matters'],
@@ -119,6 +120,7 @@ Distribution shape matters too. Latency is never normally distributed — it's r
 
 <Diagram
   src={fourRequestsDiagram}
+  size="xl"
   title="Four requests averaging 100ms, but one user waited 11x longer."
   description="Left-to-right flowchart inside a grouped section labeled What Average Hides. Three separate requests with latencies of 50 milliseconds each and one request with a latency of 550 milliseconds all feed into a single node labeled 100 milliseconds average. The diagram shows that the same arithmetic mean can represent a very uneven experience, where most requests are fast but one request is dramatically slower. It illustrates why average latency hides tail pain and why percentile metrics are more informative for understanding real user experience."
 />
@@ -134,7 +136,7 @@ Report percentiles, not averages. Show distributions, not just summary statistic
 Coordinated omission and average-worship are the most common problems, but they're not the only ones. A few other factors regularly invalidate benchmarks:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: 'Test duration matters.',
@@ -151,7 +153,7 @@ Coordinated omission and average-worship are the most common problems, but they'
   ]}
 />
 
-Each of these deserves deeper treatment than space allows here. The point is that performance testing has many failure modes, and getting impressive numbers is easy — getting __meaningful__ numbers requires understanding all the ways benchmarks can mislead.
+Each of these deserves deeper treatment than space allows here. The point is that performance testing has many failure modes, and getting impressive numbers is easy — getting _meaningful_ numbers requires understanding all the ways benchmarks can mislead.
 
 <Download
   resource="performance-testing-load-models-benchmark-accuracy"

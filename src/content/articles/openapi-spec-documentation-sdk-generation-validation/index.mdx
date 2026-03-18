@@ -13,7 +13,7 @@ featured: true
 
 Most teams I work with treat OpenAPI specs as __output__ — something you generate from existing code and call "documentation." That's archaeology, not specification. Meanwhile, their hand-written docs in Confluence are perpetually out of date, their manually coded SDKs break when the API changes, and validation logic differs between the gateway and the backend.
 
-The real value of OpenAPI emerges when you flip the relationship. The spec becomes the source of truth that drives your code, not the other way around. When the spec drives everything — validation middleware, CI checks, generated clients — consistency becomes automatic. The spec can't disagree with your validation because your validation __reads__ the spec. Documentation can't drift because it's generated from the same source.
+The real value of OpenAPI emerges when you flip the relationship. The spec becomes the source of truth that drives your code, not the other way around. When the spec drives everything — validation middleware, CI checks, generated clients — consistency becomes automatic. The spec can't disagree with your validation because your validation _reads_ the spec. Documentation can't drift because it's generated from the same source.
 
 That's the theory. Here's how it works in practice, starting with the two areas that pay off immediately: request validation and CI automation.
 
@@ -21,7 +21,7 @@ That's the theory. Here's how it works in practice, starting with the two areas 
 
 Validation is where OpenAPI specs prove their worth. Instead of writing validation logic by hand — checking types, verifying formats, ensuring required fields exist — you derive it directly from the spec. The same schema that defines your API contract also enforces it at runtime.
 
-The key is understanding what schema validation actually does. It handles __structural__ correctness: rejecting requests where `quantity` is a string instead of an integer, where `email` doesn't match email format, where required fields are missing. It won't reject a request where `customerId` is a valid UUID that doesn't exist in your database. That's business validation, and you still need it.
+The key is understanding what schema validation actually does. It handles _structural_ correctness: rejecting requests where `quantity` is a string instead of an integer, where `email` doesn't match email format, where required fields are missing. It won't reject a request where `customerId` is a valid UUID that doesn't exist in your database. That's business validation, and you still need it.
 
 In Node.js/Express, `express-openapi-validator` is the standard choice. Point it at your spec file, and it automatically validates request bodies, query parameters, path parameters, and headers against your schemas:
 
@@ -54,10 +54,11 @@ Code: Express middleware that validates requests against your OpenAPI spec.
 
 The `validateResponses: true` option deserves attention. Enable it in development and staging — it catches cases where your implementation returns data that doesn't match your spec. That's an early warning that spec and code have drifted apart. You might disable it in production for performance, but keeping it on during development catches bugs before you ship.
 
-Other frameworks have equivalent solutions. If you're in Python, FastAPI handles this automatically — your Pydantic type hints __are__ your validation schema, and FastAPI generates an OpenAPI spec from them. You get validation and documentation from the same source without any additional configuration. Rails has `committee` (Rack middleware that validates against a spec file), Laravel has `spectator`, Go has `kin-openapi` for Echo, Chi, and Gin. The pattern is the same across all of them: point middleware at your spec, let it reject malformed requests before they hit your business logic.
+Other frameworks have equivalent solutions. If you're in Python, FastAPI handles this automatically — your Pydantic type hints _are_ your validation schema, and FastAPI generates an OpenAPI spec from them. You get validation and documentation from the same source without any additional configuration. Rails has `committee` (Rack middleware that validates against a spec file), Laravel has `spectator`, Go has `kin-openapi` for Echo, Chi, and Gin. The pattern is the same across all of them: point middleware at your spec, let it reject malformed requests before they hit your business logic.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Framework', 'Library', 'Approach'],
@@ -66,7 +67,7 @@ Other frameworks have equivalent solutions. If you're in Python, FastAPI handles
       tr: [
         {
           th: 'Express/Node',
-          td: ['`express-openapi-validator`', 'Middleware validates against spec file'],
+          td: ['<span class="font-mono">express-openapi-validator</span>', 'Middleware validates against spec file'],
         },
         {
           th: 'FastAPI/Python',
@@ -74,11 +75,11 @@ Other frameworks have equivalent solutions. If you're in Python, FastAPI handles
         },
         {
           th: 'Rails',
-          td: ['`committee`', 'Rack middleware validates against spec'],
+          td: ['<span class="font-mono">committee</span>', 'Rack middleware validates against spec'],
         },
         {
           th: 'Go',
-          td: ['`kin-openapi`', 'Middleware for Echo, Chi, Gin'],
+          td: ['<span class="font-mono">kin-openapi</span>', 'Middleware for Echo, Chi, Gin'],
         },
       ],
     },

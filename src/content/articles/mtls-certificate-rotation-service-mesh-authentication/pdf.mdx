@@ -53,6 +53,7 @@ This is what makes mTLS attractive for service-to-service communication — iden
 
 <Diagram
   src={mtlsHandshakeDiagram}
+  size="full"
   title="mTLS handshake between client and server services."
   description="Sequence diagram with two participants: Client Service and Server Service. A note marks the beginning of the mTLS handshake. The client sends ClientHello to the server. The server responds with ServerHello plus its server certificate. The client validates the server certificate against its trust store. The server then sends a CertificateRequest asking for the client certificate. The client sends its certificate to the server, and the server validates the client certificate against its trust store. After mutual identity validation, the client sends ClientKeyExchange plus Finished, and the server replies with Finished. A second note marks that the encrypted channel is established. Finally, both sides exchange encrypted application data in both directions. The diagram shows that mTLS adds client certificate validation on top of the standard TLS handshake before application traffic is allowed."
 />
@@ -60,7 +61,11 @@ This is what makes mTLS attractive for service-to-service communication — iden
 The operational cost difference is significant. With standard TLS, you manage certificates for servers — maybe dozens or hundreds. With mTLS, __every__ service needs a certificate, and every service needs to validate certificates from every other service it communicates with. In a 100-service mesh, that's potentially thousands of certificate validation paths to maintain.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Aspect', 'Standard TLS', 'Mutual TLS'],
@@ -104,8 +109,14 @@ The __validity__ period defines when the certificate is valid. For mTLS workload
 
 The __Extended Key Usage__ extension is a common source of mTLS failures. For a certificate to work in both client and server roles (which is what mTLS requires), it must include both `serverAuth` and `clientAuth`. A certificate issued for server use only will fail when the service tries to act as a client.
 
-```text
-# Decoded certificate showing fields relevant to mTLS
+<Inset
+  figure="Decoded certificate showing fields relevant to mTLS"
+  fullWidth={false}
+  color="note"
+  classes={{
+    layout: "text-note-inverse",
+  }}
+>
 Certificate:
   Subject: CN=service-a
   Issuer: CN=cluster-intermediate-ca
@@ -118,7 +129,7 @@ Certificate:
   X509v3 Extended Key Usage:
     TLS Web Server Authentication  # serverAuth
     TLS Web Client Authentication  # clientAuth - required for mTLS
-```
+</Inset>
 
 <Callout type="info">
 For mTLS, the Extended Key Usage must include both `serverAuth` and `clientAuth`. A certificate with only `serverAuth` can't be used as a client certificate, and vice versa. This is one of the most common misconfigurations when setting up mTLS outside of a service mesh.
@@ -140,6 +151,7 @@ A __three-tier hierarchy__ adds an intermediate layer between root and issuing C
 
 <Diagram
   src={threeTierDiagram}
+  size="full"
   title="Three-tier certificate authority hierarchy for mTLS."
   description="Flowchart showing a three-tier certificate authority hierarchy inside a grouped section labeled Three-Tier Hierarchy. At the top is Root CA with labels for 20-year validity and offline or HSM storage. The root signs two intermediate certificate authorities: one for Production and one for Staging, each labeled with 5-year validity. The production intermediate signs two issuing certificate authorities for Cluster-1 and Cluster-2, each labeled with 1-year validity. The staging intermediate signs one issuing certificate authority for Staging, also labeled with 1-year validity. Each issuing certificate authority then signs a set of workload certificates labeled 24-hour TTL. The diagram shows how a single root anchors trust, intermediates create isolation boundaries between environments, issuing CAs handle cluster-level signing, and short-lived workload certificates sit at the bottom of the chain."
 />
@@ -149,7 +161,8 @@ The tradeoff is complexity. Longer certificate chains mean more validation steps
 For cross-cluster mTLS, you have two options. A __shared root__ means all clusters can communicate automatically — any certificate signed by any issuing CA validates back to the same root. Simple, but a root compromise affects everything. __Federated trust__ means each cluster has its own root, and you explicitly configure which clusters trust each other by distributing trust bundles. More work to set up, but you get selective trust and blast radius containment.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Hierarchy', 'Complexity', 'Isolation', 'Best For'],
@@ -184,8 +197,9 @@ A SPIFFE ID looks like `spiffe://cluster.local/ns/default/sa/service-a`. The __t
 The identity document containing this SPIFFE ID is called an SVID (SPIFFE Verifiable Identity Document). For mTLS, this is usually an X.509 certificate with the SPIFFE ID in the URI SAN. Service meshes generate these automatically.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="soft-header-card-table"
   content={{
+    figure: 'SPIFFE identity formats and certificate issuers across service meshes.',
     thead: {
       th: ['Service Mesh', 'SPIFFE ID Format', 'Issuer'],
     },
@@ -193,15 +207,15 @@ The identity document containing this SPIFFE ID is called an SVID (SPIFFE Verifi
       tr: [
         {
           th: 'Istio',
-          td: ['`spiffe://cluster.local/ns/{namespace}/sa/{service-account}`', 'istiod'],
+          td: ['<span class="font-mono">spiffe://cluster.local/ns/{namespace}/sa/{service-account}</span>', 'istiod'],
         },
         {
           th: 'Linkerd',
-          td: ['`spiffe://identity.linkerd.cluster.local/...`', 'linkerd-identity'],
+          td: ['<span class="font-mono">spiffe://identity.linkerd.cluster.local/...</span>', 'linkerd-identity'],
         },
         {
           th: 'Consul Connect',
-          td: ['`spiffe://cluster.consul/ns/{namespace}/dc/{datacenter}/svc/{service}`', 'Consul CA or Vault'],
+          td: ['<span class="font-mono">spiffe://cluster.consul/ns/{namespace}/dc/{datacenter}/svc/{service}</span>', 'Consul CA or Vault'],
         },
       ],
     },
@@ -266,28 +280,32 @@ __CA rotation__ is harder. When you rotate an intermediate or root CA, you're ch
 The safe order for CA rotation:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Add the new CA to all trust bundles (services now trust both old and new)',
+      lead: 'Add the new CA to all trust bundles (services now trust both old and new)',
     },
     {
-      text: 'Verify all services have received the updated trust bundle',
+      lead: 'Verify all services have received the updated trust bundle',
     },
     {
-      text: 'Start issuing certificates from the new CA',
+      lead: 'Start issuing certificates from the new CA',
     },
     {
-      text: 'Wait for all workload certificates to rotate to the new CA',
+      lead: 'Wait for all workload certificates to rotate to the new CA',
     },
     {
-      text: 'Remove the old CA from trust bundles',
+      lead: 'Remove the old CA from trust bundles',
     },
   ]}
 />
 
 <Diagram
   src={caRotationDiagram}
+  size="full"
   title="CA rotation sequence showing the safe order of operations."
   description="Sequence diagram with three participants: Workload, Certificate Authority, and Trust Store. In Step 1, Add New CA to Trust, the Certificate Authority adds the new CA certificate to the Trust Store, and the Trust Store updates the Workload with a bundle that trusts both the old and new CA. In Step 2, Verify Distribution, the Workload confirms it has received the updated trust bundle. In Step 3, Issue New Certs, the Workload sends a CSR for a new certificate to the Certificate Authority, which returns a certificate signed by the new CA. In Step 4, Wait for Full Rotation, the Workload indicates that all workloads are now using new certificates. In Step 5, Remove Old CA, the Trust Store removes the old CA and sends the Workload an updated bundle containing only the new CA. The diagram emphasizes the required order: distribute trust first, rotate certificates second, and remove the old trust anchor last."
 />
@@ -333,7 +351,12 @@ groups:
 Different certificate levels need different alert thresholds:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-success [&_td:nth-child(3)]:text-warning [&_td:nth-child(4)]:text-danger',
+  }}
   content={{
     thead: {
       th: ['Certificate Type', 'Typical TTL', 'Warning', 'Critical'],
@@ -374,19 +397,23 @@ Istio controls mTLS through two resource types: `PeerAuthentication` for incomin
 `PeerAuthentication` defines how a workload handles incoming connections. The mode determines behavior:
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    titleClass: "block w-full text-center",
+  }}
   items={[
     {
-      lead: 'STRICT',
-      text: 'Require mTLS. Reject any plaintext connection.',
+      title: 'STRICT:',
+      lead: 'Require mTLS. Reject any plaintext connection.',
     },
     {
-      lead: 'PERMISSIVE',
-      text: 'Accept both mTLS and plaintext. Useful during migration.',
+      title: 'PERMISSIVE:',
+      lead: 'Accept both mTLS and plaintext. Useful during migration.',
     },
     {
-      lead: 'DISABLE',
-      text: 'No mTLS requirement (not recommended for production).',
+      title: 'DISABLE:',
+      lead: 'No mTLS requirement (not recommended for production).',
     },
   ]}
 />
@@ -517,29 +544,33 @@ I once spent two hours debugging a "connection reset by peer" that turned out to
 Knowing the common failure modes helps narrow down the problem quickly.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Certificate expired',
-      text: 'The most common cause of mTLS outages. Error messages include `x509: certificate has expired` or `TLS handshake error: certificate verify failed`. Check expiration with `openssl x509 -enddate -noout -in cert.pem`. Fix by forcing rotation or restarting the workload to trigger certificate renewal.',
+      text: 'The most common cause of mTLS outages. Error messages include <span class="font-mono">x509: certificate has expired</span> or <span class="font-mono">TLS handshake error: certificate verify failed</span>. Check expiration with <span class="font-mono">openssl x509 -enddate -noout -in cert.pem</span>. Fix by forcing rotation or restarting the workload to trigger certificate renewal.',
     },
     {
       lead: 'Trust chain broken',
-      text: 'The certificate is valid but the CA that signed it isn\'t in the trust store. You\'ll see `x509: certificate signed by unknown authority`. This happens during CA rotation if trust bundles aren\'t updated before new certificates are issued. Verify the chain with `openssl verify -CAfile root.pem cert.pem`.',
+      text: 'The certificate is valid but the CA that signed it isn\'t in the trust store. You\'ll see <span class="font-mono">x509: certificate signed by unknown authority</span>. This happens during CA rotation if trust bundles aren\'t updated before new certificates are issued. Verify the chain with <span class="font-mono">openssl verify -CAfile root.pem cert.pem</span>.',
     },
     {
       lead: 'SAN mismatch',
-      text: 'The certificate is valid but doesn\'t include the hostname being used. Error: `x509: certificate is valid for X, not Y`. Check SANs with `openssl x509 -text -noout | grep -A1 \'Subject Alternative\'`. This commonly happens when DNS names change or when certificates are issued with incomplete SAN lists.',
+      text: 'The certificate is valid but doesn\'t include the hostname being used. Error: <span class="font-mono">x509: certificate is valid for X, not Y</span>. Check SANs with <span class="font-mono">openssl x509 -text -noout | grep -A1 \'Subject Alternative\'</span>. This commonly happens when DNS names change or when certificates are issued with incomplete SAN lists.',
     },
     {
       lead: 'Wrong key usage',
-      text: 'The certificate exists but wasn\'t issued for mTLS. If it only has `serverAuth` in Extended Key Usage, it can\'t be used as a client certificate. Error: `x509: certificate specifies an incompatible key usage`. Reissue with both `serverAuth` and `clientAuth`.',
+      text: 'The certificate exists but wasn\'t issued for mTLS. If it only has <span class="font-mono">serverAuth</span> in Extended Key Usage, it can\'t be used as a client certificate. Error: <span class="font-mono">x509: certificate specifies an incompatible key usage</span>. Reissue with both <span class="font-mono">serverAuth</span> and <span class="font-mono">clientAuth</span>.',
     },
   ]}
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Symptom', 'Likely Cause', 'First Check'],
@@ -548,15 +579,15 @@ Knowing the common failure modes helps narrow down the problem quickly.
       tr: [
         {
           th: 'Connection refused',
-          td: ['Service not listening', '`netstat -tlnp`'],
+          td: ['Service not listening', '<span class="font-mono">netstat -tlnp</span>'],
         },
         {
           th: 'Connection reset',
-          td: ['TLS version mismatch or expired cert', '`openssl x509 -enddate`'],
+          td: ['TLS version mismatch or expired cert', '<span class="font-mono">openssl x509 -enddate</span>'],
         },
         {
           th: '"Unknown authority"',
-          td: ['Trust bundle missing CA', '`openssl verify -CAfile`'],
+          td: ['Trust bundle missing CA', '<span class="font-mono">openssl verify -CAfile</span>'],
         },
         {
           th: '"Valid for X, not Y"',
@@ -638,9 +669,12 @@ Before touching certificates, verify the mesh is healthy. Rotating during an exi
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    li: "[&>div]:!pt-3 mb-6",
+  }}
   items={[
     {
-      text: 'Verify current certificate status — all certificates should be Ready:',
+      lead: 'Verify current certificate status — all certificates should be Ready:',
     },
   ]}
 />
@@ -651,9 +685,13 @@ kubectl get certificates -A | grep -v 'True'
 
 <List
   variant="numbered-with-background-list"
+  startNumber={2}
+  classes={{
+    li: "[&>div]:!pt-3 mb-6",
+  }}
   items={[
     {
-      text: 'Confirm trust bundle is distributed:',
+      lead: 'Confirm trust bundle is distributed:',
     },
   ]}
 />
@@ -664,9 +702,13 @@ kubectl get configmap -n istio-system istio-ca-root-cert -o yaml
 
 <List
   variant="numbered-with-background-list"
+  startNumber={3}
+  classes={{
+    li: "[&>div]:!pt-3 mb-6",
+  }}
   items={[
     {
-      text: 'Check for ongoing incidents (don\'t rotate during an outage).',
+      lead: 'Check for ongoing incidents (don\'t rotate during an outage).',
     },
   ]}
 />
@@ -675,10 +717,13 @@ __Execution:__
 
 <List
   variant="numbered-with-background-list"
+  startNumber={4}
+  classes={{
+    li: "[&>div]:!pt-3 mb-6",
+  }}
   items={[
     {
       lead: 'Backup current certificates',
-      text: '',
     },
   ]}
 />
@@ -690,6 +735,7 @@ kubectl get secret -n istio-system istio-ca-secret -o yaml > ca-secret-backup.ya
 
 <List
   variant="numbered-with-background-list"
+  startNumber={5}
   items={[
     {
       lead: 'Trigger rotation',
@@ -704,10 +750,13 @@ kubectl rollout restart deployment/istiod -n istio-system
 
 <List
   variant="numbered-with-background-list"
+  startNumber={6}
+  classes={{
+    li: "[&>div]:!pt-3 mb-6",
+  }}
   items={[
     {
       lead: 'Verify workload certificates rotated',
-      text: '',
     },
   ]}
 />
@@ -723,6 +772,7 @@ done
 
 <List
   variant="numbered-with-background-list"
+  startNumber={7}
   items={[
     {
       lead: 'Validate mTLS connectivity',
@@ -734,16 +784,20 @@ done
 __Post-checks:__
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={8}
+  classes={{
+    li: "[&>div]:!pt-3 mb-6",
+  }}
   items={[
     {
-      text: 'All services report healthy',
+      lead: 'All services report healthy',
     },
     {
-      text: 'No TLS errors in logs',
+      lead: 'No TLS errors in logs',
     },
     {
-      text: 'Monitor error rates for 30 minutes',
+      lead: 'Monitor error rates for 30 minutes',
     },
   ]}
 />
@@ -754,9 +808,23 @@ __Rollback__ (if mTLS failures occur): Apply backup certificates, restart istiod
 
 When mTLS fails across the mesh — multiple services reporting TLS handshake failures, error rates spiking, certificates expired — you need to restore communication first, then fix the root cause. The instinct to immediately fix the certificate issue is wrong; restoring service is the priority. That's why step 2 exists.
 
-__Step 1: Assess scope.__ Is it all services or a subset? Check pod status and Istio telemetry.
-
-__Step 2: Enable permissive mode (if needed).__ This is the emergency valve — it allows plaintext traffic so services can communicate while you fix the underlying issue:
+<List
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
+  items={[
+    {
+      lead: 'Step 1: Assess scope.',
+      text: 'Determine whether the failure affects the entire mesh or only a subset of services. Check pod status and Istio telemetry before changing policy.',
+    },
+    {
+      lead: 'Step 2: Enable permissive mode (if needed).',
+      text: 'Use this only as the emergency valve. It allows plaintext traffic so services can communicate while you fix the underlying issue.',
+    },
+  ]}
+/>
 
 ```yaml title="emergency-permissive.yaml"
 apiVersion: security.istio.io/v1beta1
@@ -771,12 +839,28 @@ spec:
 
 Apply with `kubectl apply -f emergency-permissive.yaml`.
 
-__Step 3: Diagnose root cause.__ Check certificate expiry, CA chain validity, and istiod logs.
-
-__Step 4: Apply fix based on diagnosis:__
+<List
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
+  items={[
+    {
+      lead: 'Step 3: Diagnose root cause.',
+      text: 'Check certificate expiry, CA chain validity, and istiod logs before deciding on remediation.',
+    },
+    {
+      lead: 'Step 4: Apply fix based on diagnosis:',
+    },
+  ]}
+/>
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Expired workload certs',
@@ -793,7 +877,14 @@ __Step 4: Apply fix based on diagnosis:__
   ]}
 />
 
-__Step 5: Restore strict mode:__
+<List
+  variant="zebra-list"
+  items={[
+    {
+      lead: 'Step 5: Restore strict mode:',
+    },
+  ]}
+/>
 
 ```bash
 kubectl delete peerauthentication emergency-permissive -n istio-system
@@ -801,7 +892,15 @@ kubectl delete peerauthentication emergency-permissive -n istio-system
 
 Verify all services are using mTLS before closing the incident.
 
-__Post-incident:__ Document the timeline, add monitoring for this failure mode, update automation, schedule a post-mortem.
+<List
+  variant="zebra-list"
+  items={[
+    {
+      lead: 'Post-incident:',
+      text: 'Document the timeline, add monitoring for this failure mode, update automation, and schedule a post-mortem.',
+    },
+  ]}
+/>
 
 <Callout type="danger">
 Switching to PERMISSIVE mode during an incident allows plaintext traffic, which bypasses mTLS security. Document this clearly in your incident timeline and switch back to STRICT as soon as the underlying issue is resolved.
@@ -815,10 +914,8 @@ The trust hierarchy you choose affects everything downstream. Two-tier is simple
 
 Certificate TTLs are a tradeoff. Short-lived certificates (24 hours) limit the damage from a compromised certificate but require robust automation. Longer certificates (7 days) are more forgiving of automation failures but increase your exposure window.
 
-The goal is automation so complete that certificate rotation becomes invisible — happening continuously in the background without human intervention or service disruption. When your certificates rotate and nobody notices, you've built a mature mTLS operation.
-
 <Callout type="info">
 Start with permissive mode, add monitoring before enforcement, and run a rotation drill before you need it for real. The worst time to learn your mTLS automation is broken is during an incident.
 </Callout>
 
----
+The goal is automation so complete that certificate rotation becomes invisible — happening continuously in the background without human intervention or service disruption. When your certificates rotate and nobody notices, you've built a mature mTLS operation.

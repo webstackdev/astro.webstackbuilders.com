@@ -15,13 +15,13 @@ featured: true
 
 A developer opens a pull request for a Terraform change. Sixteen hours later, a security review rejects it: the S3 bucket lacks encryption. The developer fixes it, waits another day for re-review. This cycle — write, wait, reject, fix, wait — drains velocity and breeds resentment toward security processes.
 
-Shift-left advocates say to check policies earlier. But "earlier" often means CI, which still means waiting for pipelines after pushing code. Real shift-left means __before the commit__ — policy checks that run in seconds during `git commit`, catching violations while the context is fresh and the fix is trivial.
-
-OPA (Open Policy Agent) and Conftest make this possible. OPA is a general-purpose policy engine that evaluates structured data against policies written in Rego. Conftest wraps OPA with ergonomic defaults for infrastructure files — it parses Terraform, Kubernetes YAML, and Dockerfiles into JSON that OPA can evaluate. Together, they provide fast, local policy enforcement that doesn't require cloud credentials or pipeline execution.
+Shift-left advocates say to check policies earlier. But "earlier" often means CI, which still means waiting for pipelines after pushing code. Real shift-left means _before the commit_ — policy checks that run in seconds during `git commit`, catching violations while the context is fresh and the fix is trivial.
 
 <Callout type="warning">
 Policy adoption paradox: comprehensive policies with slow feedback get disabled. Minimal policies with fast feedback get expanded. Start with five critical policies — encryption enabled, no public access, resource limits, no privileged containers, no `:latest` tags — that run in under two seconds. Get adoption first, then add coverage.
 </Callout>
+
+OPA (Open Policy Agent) and Conftest make this possible. OPA is a general-purpose policy engine that evaluates structured data against policies written in Rego. Conftest wraps OPA with ergonomic defaults for infrastructure files — it parses Terraform, Kubernetes YAML, and Dockerfiles into JSON that OPA can evaluate. Together, they provide fast, local policy enforcement that doesn't require cloud credentials or pipeline execution.
 
 ## Pre-commit Hooks for Instant Feedback
 
@@ -57,8 +57,10 @@ Pre-commit only runs against staged files by default, which keeps evaluation fas
 The pre-commit framework shown above is language-agnostic, but each ecosystem has its canonical approach:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
+    figure: 'Pre-commit tools by ecosystem.',
     thead: {
       th: ['Ecosystem', 'Pre-commit Tool', 'Installation'],
     },
@@ -66,23 +68,22 @@ The pre-commit framework shown above is language-agnostic, but each ecosystem ha
       tr: [
         {
           th: 'Python',
-          td: ['pre-commit', '`pip install pre-commit && pre-commit install`'],
+          td: ['pre-commit', '<span class="font-mono">pip install pre-commit && pre-commit install</span>'],
         },
         {
           th: 'Node.js',
-          td: ['Husky + lint-staged', '`npx husky init`'],
+          td: ['Husky + lint-staged', '<span class="font-mono">npx husky init</span>'],
         },
         {
           th: 'Ruby/Rails',
-          td: ['Overcommit', '`gem install overcommit && overcommit --install`'],
+          td: ['Overcommit', '<span class="font-mono">gem install overcommit && overcommit --install</span>'],
         },
         {
           th: 'Go',
-          td: ['Lefthook', '`go install github.com/evilmartians/lefthook`'],
+          td: ['Lefthook', '<span class="font-mono">go install github.com/evilmartians/lefthook</span>'],
         },
       ],
     },
-    figure: 'Pre-commit tools by ecosystem.',
   }}
 />
 
@@ -95,15 +96,18 @@ Speed is non-negotiable: if policy checks take more than a few seconds, develope
 Four principles separate policies that get adopted from policies that get bypassed:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Single responsibility.',
-      text: 'Each rule should check one thing. A 50-line rule that validates images, resources, and labels produces confusing violations and resists modification. Split concerns into separate rules: `deny_unauthorized_image`, `deny_missing_resources`, `deny_missing_labels`. When a violation fires, developers know exactly what to fix.',
+      text: 'Each rule should check one thing. A 50-line rule that validates images, resources, and labels produces confusing violations and resists modification. Split concerns into separate rules: <span class="font-mono">deny_unauthorized_image</span>, <span class="font-mono">deny_missing_resources</span>, <span class="font-mono">deny_missing_labels</span>. When a violation fires, developers know exactly what to fix.',
     },
     {
       lead: 'Actionable messages.',
-      text: '"Policy violation" tells the developer nothing. "Container missing resource limits" is better. "Container \'nginx\' missing resource limits. Add `spec.containers[].resources.limits.cpu` and `memory`" is what they actually need. Include the resource name, the violation, and the fix path.',
+      text: '"Policy violation" tells the developer nothing. "Container missing resource limits" is better. "Container \'nginx\' missing resource limits. Add <span class="font-mono">spec.containers[].resources.limits.cpu</span> and <span class="font-mono">memory</span>" is what they actually need. Include the resource name, the violation, and the fix path.',
     },
     {
       lead: 'Minimal false positives.',
@@ -130,24 +134,61 @@ Examples: "Deployment 'api-server': Missing required label 'team'. Fix: Add meta
 
 Organize policies by technology, then resource type, then concern. This structure makes policies discoverable and enables selective evaluation:
 
-```text
-policies/
-├── kubernetes/
-│   ├── pods/
-│   │   ├── privileged.rego
-│   │   ├── resources.rego
-│   │   └── images.rego
-│   └── common/
-│       └── helpers.rego
-├── terraform/
-│   └── aws/
-│       ├── s3.rego
-│       ├── iam.rego
-│       └── security_groups.rego
-└── data/
-    └── allowed_registries.json
-```
-Code: Policy directory structure.
+<FileExplorer
+  figure="Policy directory structure."
+  data={[
+    {
+      type: 'folder',
+      name: 'policies',
+      children: [
+        {
+          type: 'folder',
+          name: 'kubernetes',
+          children: [
+            {
+              type: 'folder',
+              name: 'pods',
+              children: [
+                { type: 'file', name: 'privileged.rego', comment: 'Blocks privileged pod configurations' },
+                { type: 'file', name: 'resources.rego', comment: 'Requires pod resource settings' },
+                { type: 'file', name: 'images.rego', comment: 'Restricts approved container registries' },
+              ],
+            },
+            {
+              type: 'folder',
+              name: 'common',
+              children: [
+                { type: 'file', name: 'helpers.rego', comment: 'Shared helpers for policy reuse' },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'terraform',
+          children: [
+            {
+              type: 'folder',
+              name: 'aws',
+              children: [
+                { type: 'file', name: 's3.rego', comment: 'Checks S3 bucket guardrails' },
+                { type: 'file', name: 'iam.rego', comment: 'Checks unsafe IAM permissions' },
+                { type: 'file', name: 'security_groups.rego', comment: 'Checks security group exposure' },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'data',
+          children: [
+            { type: 'file', name: 'allowed_registries.json', comment: 'Approved container registry allowlist' },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
 Conftest uses the `--namespace` flag to selectively evaluate policies. Run only Kubernetes policies on YAML files with `conftest test deployment.yaml --namespace kubernetes`. Run only Terraform AWS policies with `conftest test tfplan.json --namespace terraform.aws`. This is how namespace organization pays off — you can run subsets of policies based on context.
 
