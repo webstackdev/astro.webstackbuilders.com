@@ -11,9 +11,9 @@ featured: true
 
 *[ADR]: Architecture Decision Record
 
-You've inherited a system with a README that was last updated three years ago. The architecture diagrams reference services that no longer exist. The wiki has seventeen conflicting pages about deployment, and no one's sure which ones are current. The original architects left two reorganizations ago.
+You've inherited a system with a `README` that was last updated three years ago. The architecture diagrams reference services that no longer exist. The wiki has seventeen conflicting pages about deployment, and no one's sure which ones are current. The original architects left two reorganizations ago.
 
-Here's the uncomfortable truth: outdated documentation isn't just unhelpful — it's actively harmful. When a new team member reads that architecture diagram and forms a mental model of how the system works, they're building on outdated assumptions that will take months to unlearn. When an on-call engineer follows a runbook during an incident, they might make things worse by following steps that no longer apply.
+<Highlighter>Here's the uncomfortable truth: outdated documentation isn't just unhelpful — it's actively harmful.</Highlighter> When a new team member reads that architecture diagram and forms a mental model of how the system works, they're building on outdated assumptions that will take months to unlearn. When an on-call engineer follows a runbook during an incident, they might make things worse by following steps that no longer apply.
 
 But there's good news. The codebase itself contains more reliable documentation than any wiki page ever will. Git history records what changed, when, and often why. Tests that pass demonstrate working behavior that prose documentation might get wrong. And the engineers who've kept the system alive hold knowledge that's never been written down.
 
@@ -161,16 +161,29 @@ This knowledge has an expiration date: when the person leaves. Extracting it req
 For __architectural knowledge__:
 
 <List
-  variant="check-icons-list"
+  variant="three-column-icon-list"
+  size={7}
+  classes={{
+    text: "italic font-semibold",
+  }}
   items={[
     {
       text: '"What happens when a user places an order?"',
+      icon: "paper-and-pen",
+      color: "info",
+      bgColor: "info-inverse",
     },
     {
       text: '"What breaks if the payment service goes down?"',
+      icon: "dollar",
+      color: "warning",
+      bgColor: "warning-inverse",
     },
     {
       text: '"What\'s the scariest part of this codebase to change?"',
+      icon: "git",
+      color: "danger",
+      bgColor: "danger-inverse",
     },
   ]}
 />
@@ -178,16 +191,29 @@ For __architectural knowledge__:
 For __operational knowledge__:
 
 <List
-  variant="check-icons-list"
+  variant="three-column-icon-list"
+  size={7}
+  classes={{
+    text: "italic font-semibold",
+  }}
   items={[
     {
       text: '"What pages you most often at night?"',
+      icon: "on-call",
+      color: "secondary",
+      bgColor: "blue-100",
     },
     {
       text: '"What manual steps do deployments require?"',
+      icon: "wrench",
+      color: "success",
+      bgColor: "success-inverse",
     },
     {
       text: '"Where do you look first when API responses slow down?"',
+      icon: "api",
+      color: "primary-offset",
+      bgColor: "gray-200",
     },
   ]}
 />
@@ -195,22 +221,39 @@ For __operational knowledge__:
 For __business rules encoded in code__:
 
 <List
-  variant="check-icons-list"
+  variant="three-column-icon-list"
+  size={7}
+  classes={{
+    text: "italic font-semibold",
+  }}
   items={[
     {
       text: '"What business rules live in code but not in any document?"',
+      icon: "gear",
+      color: "accent",
+      bgColor: "purple-100",
     },
     {
       text: '"What edge cases have special handling?"',
+      icon: "external",
+      color: "orange-700",
+      bgColor: "orange-100",
     },
     {
       text: '"What compliance requirements shaped this code?"',
+      icon: "shield",
+      color: "success",
+      bgColor: "green-100",
     },
   ]}
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="minimal-borders-table"
+  fullWidth={false}
+  classes={{
+    figure: "mt-18 mb-6",
+  }}
   content={{
     thead: {
       th: ['Interview Focus', 'Best Participants', 'Knowledge Domain'],
@@ -250,7 +293,10 @@ Capture tribal knowledge __before__ someone announces they're leaving. By the ti
 With git history mined, tests written, and interviews conducted, the question becomes: what do you document first? You can't cover everything, and you shouldn't try. Focus on three categories:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'The dangerous parts',

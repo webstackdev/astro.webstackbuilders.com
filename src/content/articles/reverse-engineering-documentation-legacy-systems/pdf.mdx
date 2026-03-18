@@ -54,7 +54,7 @@ The inflection point where documentation becomes harmful rather than helpful typ
 Not all documentation problems are the same, and the remediation approach differs for each type:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Missing documentation',
@@ -80,7 +80,7 @@ Not all documentation problems are the same, and the remediation approach differ
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Category', 'Risk Level', 'Remediation Approach'],
@@ -122,7 +122,10 @@ The trust score formula I use weights two factors: how recently the documentatio
 For each documentation artifact, I track:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Location',
@@ -159,7 +162,7 @@ Documentation without an owner is documentation that will rot. Every doc artifac
 
 ## Code Archaeology: Reading the Codebase
 
-When documentation fails, the codebase becomes your primary source of truth. The challenge is that code tells you __what__ the system does, but rarely __why__. Code archaeology is the practice of extracting architectural understanding through systematic analysis — static analysis for structure, git history for evolution and context, and careful reading for business intent.
+When documentation fails, the codebase becomes your primary source of truth. The challenge is that code tells you _what_ the system does, but rarely _why_. Code archaeology is the practice of extracting architectural understanding through systematic analysis — static analysis for structure, git history for evolution and context, and careful reading for business intent.
 
 ### Static Analysis for Structure Discovery
 
@@ -183,19 +186,26 @@ Code: Generating dependency visualizations with Madge and dependency-cruiser.
 For larger codebases, I focus on specific questions rather than trying to graph everything:
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-12 mb-6",
+  }}
   items={[
     {
       text: 'What depends on this module I\'m about to change?',
+      color: 'bg-secondary',
     },
     {
       text: 'Which modules have the most inbound dependencies (likely core abstractions)?',
+      color: 'bg-accent',
     },
     {
       text: 'Which modules have the most outbound dependencies (likely orchestration layers)?',
+      color: 'bg-info',
     },
     {
       text: 'Are there unexpected dependencies between domains that should be isolated?',
+      color: 'bg-warning-offset',
     },
   ]}
 />
@@ -280,7 +290,7 @@ Magic numbers are another signal. When you see `if (daysOverdue > 30)` or `const
 
 ## Runtime Observation: Watching the System
 
-Static analysis tells you what the code __could__ do. Runtime observation tells you what it __actually__ does. The difference matters more than you'd expect — dead code paths, unused endpoints, and theoretical integrations that never fire in production. Observing the running system reveals the real architecture.
+Static analysis tells you what the code _could_ do. Runtime observation tells you what it _actually_ does. The difference matters more than you'd expect — dead code paths, unused endpoints, and theoretical integrations that never fire in production. Observing the running system reveals the real architecture.
 
 ### Traffic Analysis and Request Mapping
 
@@ -316,7 +326,7 @@ The analysis doesn't need to be sophisticated. Even a simple log of method, path
 What you're looking for:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: 'Endpoint inventory',
@@ -398,6 +408,8 @@ The goal is to build a producer-consumer map: for each topic or queue, which ser
 
 <Diagram
   src={eventFlowDiagram}
+  magnifyButtonPosition="bottom-left"
+  size="full"
   title="Event flow topology discovered through runtime observation."
   description="Left-to-right flowchart with three groups: Producers, Topics, and Consumers. In Producers, Order Service and Payment Service appear as separate source systems. In Topics, there are two event channels named order-events and payment-events. In Consumers, there are three downstream services: Notification Service, Analytics Service, and Fulfillment Service. Order Service publishes to order-events. Payment Service publishes to payment-events. The order-events topic is consumed by Notification Service, Analytics Service, and Fulfillment Service. The payment-events topic is consumed by Notification Service and Analytics Service. The diagram shows how runtime observation can reveal which services publish events, which topics carry them, and which downstream services depend on each stream."
 />
@@ -485,6 +497,7 @@ For systems without distributed tracing, service mesh telemetry (Istio, Linkerd)
 
 <Diagram
   src={serviceTopologyDiagram}
+  magnifyButtonPosition="top-left"
   title="Service topology diagram generated from tracing data."
   description="Top-to-bottom flowchart divided into three groups: External, Services, and Data. In External, a Load Balancer sits at the entry point. In Services, the Load Balancer sends traffic to an API Gateway. The API Gateway then calls Auth Service, Order Service, and Inventory Service. In Data, PostgreSQL, Redis, and Kafka appear as shared infrastructure components. Order Service writes to PostgreSQL and Kafka. Inventory Service writes to PostgreSQL and Redis. Auth Service uses Redis. Kafka delivers events to Notification Service. The diagram represents a service topology reconstructed from tracing data, showing both synchronous service-to-service calls from the gateway and downstream dependencies on databases, caches, and messaging infrastructure."
 />
@@ -497,7 +510,7 @@ Documentation rots. Tests break. That asymmetry makes tests the most reliable fo
 
 ### Characterization Tests
 
-Characterization tests capture what the system __actually does__, without making judgments about whether that behavior is correct. They're particularly valuable when you're inheriting code and don't know whether observed behavior is intentional or accidental.
+Characterization tests capture what the system _actually does_, without making judgments about whether that behavior is correct. They're particularly valuable when you're inheriting code and don't know whether observed behavior is intentional or accidental.
 
 The pattern is simple: poke the system with inputs, record the outputs, then assert that future runs produce the same outputs. You're not testing that the code is right — you're testing that it hasn't changed.
 
@@ -659,19 +672,23 @@ Unstructured conversations yield unstructured results. I use targeted question t
 For __architectural knowledge__, I ask questions that reveal how components interact:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    em: "!font-normal !italic",
+  }}
   items={[
     {
-      text: '"Walk me through what happens when a user places an order."',
+      lead: '"Walk me through what happens when a user places an order."',
     },
     {
-      text: '"What would break if the payment service went down?"',
+      lead: '"What would break if the payment service went down?"',
     },
     {
-      text: '"What\'s the scariest part of this codebase to change?"',
+      lead: '"What\'s the scariest part of this codebase to change?"',
     },
     {
-      text: '"Why did we choose Kafka instead of SQS?"',
+      lead: '"Why did we choose Kafka instead of SQS?"',
     },
   ]}
 />
@@ -679,19 +696,23 @@ For __architectural knowledge__, I ask questions that reveal how components inte
 For __operational knowledge__, I focus on failure modes and recovery:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    em: "!font-normal !italic",
+  }}
   items={[
     {
-      text: '"What\'s the most common thing that pages you at night?"',
+      lead: '"What\'s the most common thing that pages you at night?"',
     },
     {
-      text: '"What manual steps are required for deployments?"',
+      lead: '"What manual steps are required for deployments?"',
     },
     {
-      text: '"What\'s the recovery procedure when the database fills up?"',
+      lead: '"What\'s the recovery procedure when the database fills up?"',
     },
     {
-      text: '"Where do you look first when debugging slow API responses?"',
+      lead: '"Where do you look first when debugging slow API responses?"',
     },
   ]}
 />
@@ -699,19 +720,23 @@ For __operational knowledge__, I focus on failure modes and recovery:
 For __historical knowledge__, I dig into decisions and evolution:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    em: "!font-normal !italic",
+  }}
   items={[
     {
-      text: '"What major changes happened in the last two years?"',
+      lead: '"What major changes happened in the last two years?"',
     },
     {
-      text: '"Why does that weird retry loop exist in the payment handler?"',
+      lead: '"Why does that weird retry loop exist in the payment handler?"',
     },
     {
-      text: '"What features were removed, and why?"',
+      lead: '"What features were removed, and why?"',
     },
     {
-      text: '"What\'s the oldest code that\'s still running in production?"',
+      lead: '"What\'s the oldest code that\'s still running in production?"',
     },
   ]}
 />
@@ -719,22 +744,26 @@ For __historical knowledge__, I dig into decisions and evolution:
 For __business rules__, I look for logic encoded in code but not in requirements:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    em: "!font-normal !italic",
+  }}
   items={[
     {
-      text: '"What business rules are in the code that aren\'t written anywhere?"',
+      lead: '"What business rules are in the code that aren\'t written anywhere?"',
     },
     {
-      text: '"What edge cases have special handling?"',
+      lead: '"What edge cases have special handling?"',
     },
     {
-      text: '"What compliance requirements affect this code?"',
+      lead: '"What compliance requirements affect this code?"',
     },
   ]}
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Interview Focus', 'Best Participants', 'Artifacts to Request'],
@@ -773,7 +802,7 @@ One-on-one interviews capture single viewpoints. Knowledge mapping sessions brin
 I run these as facilitated whiteboard sessions, typically two hours maximum. The structure:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Preparation (before the session)',
@@ -807,7 +836,7 @@ Tribal knowledge is the informal understanding that accumulates over years of op
 I capture this systematically using a simple template:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: 'Topic',
@@ -838,17 +867,21 @@ I capture this systematically using a simple template:
 
 Here's an example entry:
 
-> __Topic__: Order sync timing dependency
->
-> __Category__: Gotcha
->
-> __Description__: Orders must be synced to the warehouse management system before 11:59 PM EST for same-day processing. The sync job runs at 11:45 PM but can take up to 20 minutes during high volume periods. If orders aren't in WMS by midnight, they get pushed to the next business day regardless of the promised delivery date. This has caused customer complaints when Black Friday orders arrived late.
->
-> __Source__: Jane Smith (Operations), January 2024
->
-> __Affected components__: order-service, wms-sync-job
->
-> __Related tickets__: OPS-1234, INCIDENT-567
+```markdown
+# ADR
+
+## Topic: Order sync timing dependency
+
+## Category: Gotcha
+
+## Description: Orders must be synced to the warehouse management system before 11:59 PM EST for same-day processing. The sync job runs at 11:45 PM but can take up to 20 minutes during high volume periods. If orders aren't in WMS by midnight, they get pushed to the next business day regardless of the promised delivery date. This has caused customer complaints when Black Friday orders arrived late.
+
+## Source: Jane Smith (Operations), January 2024
+
+## Affected components: order-service, wms-sync-job
+
+## Related tickets: OPS-1234, INCIDENT-567
+```
 
 The verification status matters. Tribal knowledge can be outdated — someone "knows" something that was true three years ago but changed since. Verify before relying on captured knowledge, and update the status when you do.
 
@@ -858,7 +891,7 @@ The documentation you create during reverse-engineering needs to stay accurate a
 
 ### Architecture Decision Records
 
-ADRs capture the __why__ behind decisions — the context, constraints, and alternatives considered. They're invaluable when someone asks "why did we do it this way?" two years later, and everyone who remembers has moved on.
+ADRs capture the _why_ behind decisions — the context, constraints, and alternatives considered. They're invaluable when someone asks "why did we do it this way?" two years later, and everyone who remembers has moved on.
 
 The format is simple: Status, Context, Decision, Consequences, Alternatives Considered. Keep them in the repository alongside the code they describe, usually in a `docs/adr` directory.
 
@@ -907,7 +940,7 @@ Risks:
 
 Code: Architecture Decision Record documenting API technology choice.
 
-The key is capturing the decision __when it's made__, while context is fresh. Retroactive ADRs are better than nothing, but they're reconstructed history rather than primary sources.
+The key is capturing the decision _when it's made_, while context is fresh. Retroactive ADRs are better than nothing, but they're reconstructed history rather than primary sources.
 
 ### Documentation-as-Code Patterns
 
@@ -989,6 +1022,9 @@ The goal isn't comprehensive documentation of everything. That's neither achieva
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'The dangerous parts',
