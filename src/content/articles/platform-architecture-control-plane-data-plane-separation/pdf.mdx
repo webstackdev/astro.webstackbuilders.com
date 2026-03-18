@@ -36,11 +36,11 @@ Problems emerge. A control plane upgrade requires scheduling maintenance windows
 
 The team refactors: dedicated control plane cluster, separate data plane clusters per environment, GitOps for configuration sync. Now control plane upgrades happen independently. Data plane issues are isolated. Each plane scales according to its specific needs.
 
-The lesson isn't that separation is always necessary from day one — it's that separation should be _designed for_ from day one. The abstractions matter more than the deployment topology. You can deploy together initially, but the APIs, resource boundaries, and tenancy models need to support eventual separation. This matters most for multi-tenancy: once you're supporting multiple teams, the separation enables isolation patterns that would be impossible with tightly coupled planes.
-
 <Callout type="warning">
 The most common platform architecture mistake: building for single-tenant simplicity, then retrofitting multi-tenancy. Design separation into your abstractions from the start, even if you deploy everything together initially.
 </Callout>
+
+The lesson isn't that separation is always necessary from day one — it's that separation should be _designed for_ from day one. The abstractions matter more than the deployment topology. You can deploy together initially, but the APIs, resource boundaries, and tenancy models need to support eventual separation. This matters most for multi-tenancy: once you're supporting multiple teams, the separation enables isolation patterns that would be impossible with tightly coupled planes.
 
 ## Architectural Concepts
 
@@ -53,7 +53,7 @@ The data plane is where actual work happens. It executes workloads, routes traff
 The characteristics differ in ways that matter for architecture:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     thead: {
       th: ['Aspect', 'Control Plane', 'Data Plane'],
@@ -102,34 +102,11 @@ The failure impact row is the critical insight. When the control plane goes down
 
 Platforms aren't monolithic — they're layered, and each layer has different characteristics. Understanding which layers are control plane vs data plane helps you make better architectural decisions.
 
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: 'The infrastructure layer',
-      text: 'Mostly data plane: compute, storage, and network resources that workloads consume. Cloud providers or on-premise hardware live here. Changes are slow (provisioning new capacity) and the scaling factor is raw capacity needs.',
-    },
-    {
-      lead: 'The orchestration layer',
-      text: 'Spans both planes. Kubernetes is the obvious example: the API server and controllers are control plane, while kubelets and container runtimes are data plane. This layer changes at medium velocity — cluster upgrades, new node pools — and scales with cluster count.',
-    },
-    {
-      lead: 'The platform services layer',
-      text: 'Primarily control plane: service mesh control planes, secrets management, certificate management, observability backends, CI/CD orchestration. These services manage configuration and policy for the layers below. Changes are slow (new platform capabilities) and scaling tracks team and tenant count.',
-    },
-    {
-      lead: 'The developer interface layer',
-      text: 'Pure control plane: the platform portal, self-service APIs, GitOps repositories, documentation and service catalogs. This is where developers interact with the platform. Changes are fast (feature velocity) and scaling depends on developer experience improvements.',
-    },
-    {
-      lead: 'The application layer',
-      text: 'Pure data plane: the actual workloads, databases, caches, message queues, and user-facing services that your platform exists to run. Changes are constant (deployments) and scaling tracks traffic and users.',
-    },
-  ]}
-/>
-
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   content={{
     thead: {
       th: ['Layer', 'Primary Plane', 'Change Velocity', 'Scaling Factor'],
@@ -162,6 +139,37 @@ Platforms aren't monolithic — they're layered, and each layer has different ch
   }}
 />
 
+<List
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
+  items={[
+    {
+      lead: 'The infrastructure layer',
+      text: 'Mostly data plane: compute, storage, and network resources that workloads consume. Cloud providers or on-premise hardware live here. Changes are slow (provisioning new capacity) and the scaling factor is raw capacity needs.',
+    },
+    {
+      lead: 'The orchestration layer',
+      text: 'Spans both planes. Kubernetes is the obvious example: the API server and controllers are control plane, while kubelets and container runtimes are data plane. This layer changes at medium velocity — cluster upgrades, new node pools — and scales with cluster count.',
+    },
+    {
+      lead: 'The platform services layer',
+      text: 'Primarily control plane: service mesh control planes, secrets management, certificate management, observability backends, CI/CD orchestration. These services manage configuration and policy for the layers below. Changes are slow (new platform capabilities) and scaling tracks team and tenant count.',
+    },
+    {
+      lead: 'The developer interface layer',
+      text: 'Pure control plane: the platform portal, self-service APIs, GitOps repositories, documentation and service catalogs. This is where developers interact with the platform. Changes are fast (feature velocity) and scaling depends on developer experience improvements.',
+    },
+    {
+      lead: 'The application layer',
+      text: 'Pure data plane: the actual workloads, databases, caches, message queues, and user-facing services that your platform exists to run. Changes are constant (deployments) and scaling tracks traffic and users.',
+    },
+  ]}
+/>
+
 The boundaries between layers matter. Infrastructure-to-orchestration uses cloud APIs and Terraform — loose coupling means infrastructure can be replaced. Orchestration-to-platform uses Kubernetes APIs and CRDs — medium coupling since most platforms depend on Kubernetes primitives. Platform-to-developer uses platform APIs and GitOps — loose coupling keeps developers insulated from internals.
 
 <Callout type="info">
@@ -179,7 +187,7 @@ The fundamental question: how much isolation do tenants need, and what are you w
 Four patterns cover most platforms, each trading isolation strength against cost and operational complexity.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Namespace per tenant',
@@ -193,7 +201,8 @@ This pattern is resource-efficient and operationally simple. Tenant onboarding i
 Namespace-per-tenant works well for internal teams who trust each other, cost-sensitive deployments where efficiency matters more than isolation, and platforms with relatively homogeneous workloads.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={2}
   items={[
     {
       lead: 'Cluster per tenant',
@@ -207,7 +216,8 @@ This pattern provides strong isolation and per-tenant customization. Tenants can
 Cluster-per-tenant works well for enterprise customers with compliance requirements, large tenants who justify dedicated resources, and situations where customization or isolation requirements preclude sharing.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={3}
   items={[
     {
       lead: 'Virtual clusters',
@@ -221,7 +231,8 @@ The tenant experience is strong — they can install their own CRDs, run cluster
 Virtual clusters work well for platform-as-a-service offerings, ephemeral CI/CD environments where teams need cluster-admin for testing, and situations balancing isolation needs against infrastructure costs.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={4}
   items={[
     {
       lead: 'Node pool per tenant',
@@ -231,7 +242,8 @@ Virtual clusters work well for platform-as-a-service offerings, ephemeral CI/CD 
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Pattern', 'Isolation', 'Cost', 'Operations Complexity'],
@@ -267,26 +279,36 @@ To put concrete numbers on "cost": a dedicated Kubernetes control plane (managed
 Regardless of which pattern you choose, multiple mechanisms layer together to enforce isolation.
 
 <List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: 'Network isolation',
-      text: 'Prevents tenants from communicating unless explicitly allowed. Network policies default-deny cross-namespace traffic. Service mesh mTLS ensures traffic is encrypted and authenticated. For stronger isolation, separate VPCs[^vpc] or subnets provide network-level boundaries that don\'t depend on Kubernetes enforcement.',
-    },
-    {
-      lead: 'Compute isolation',
-      text: 'Prevents resource contention. Resource quotas limit how much CPU, memory, and storage a tenant can consume. For stronger isolation, dedicated node pools with taints ensure tenant workloads only run on designated nodes. At the extreme, dedicated clusters eliminate any compute sharing.',
-    },
-    {
-      lead: 'Storage isolation',
-      text: 'Protects data. Per-tenant storage classes can enforce encryption and access controls. Per-tenant encryption keys mean one tenant\'s compromise doesn\'t expose another\'s data. For the strongest isolation, completely separate storage backends.',
-    },
-    {
-      lead: 'Identity isolation',
-      text: 'Controls who can do what. RBAC rules scope permissions to specific namespaces. Service accounts are namespace-scoped by default. Integration with external identity providers (OIDC, LDAP) enables per-tenant authentication policies.',
-    },
-  ]}
-/>
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
+>
+  <ListItem lead="Network isolation">
+    Prevents tenants from communicating unless explicitly allowed. Network policies default-deny
+    cross-namespace traffic. Service mesh mTLS ensures traffic is encrypted and authenticated. For
+    stronger isolation, separate VPCs[^vpc] or subnets provide network-level boundaries that don't
+    depend on Kubernetes enforcement.
+  </ListItem>
+
+  <ListItem lead="Compute isolation">
+    Prevents resource contention. Resource quotas limit how much CPU, memory, and storage a tenant can
+    consume. For stronger isolation, dedicated node pools with taints ensure tenant workloads only run
+    on designated nodes. At the extreme, dedicated clusters eliminate any compute sharing.
+  </ListItem>
+
+  <ListItem lead="Storage isolation">
+    Protects data. Per-tenant storage classes can enforce encryption and access controls. Per-tenant
+    encryption keys mean one tenant's compromise doesn't expose another's data. For the strongest
+    isolation, completely separate storage backends.
+  </ListItem>
+
+  <ListItem lead="Identity isolation">
+    Controls who can do what. RBAC rules scope permissions to specific namespaces. Service accounts are
+    namespace-scoped by default. Integration with external identity providers (OIDC, LDAP) enables
+    per-tenant authentication policies.
+  </ListItem>
+</List>
 
 [^vpc]: A Virtual Private Cloud (VPC) is an isolated section within a public cloud where you define your own virtual network. You control the IP address ranges, subnets, route tables, and network gateways — effectively a private data center's network topology with cloud scalability. Placing tenant workloads in separate VPCs provides network isolation at the cloud provider level, independent of Kubernetes. This matters because VPC isolation is enforced by the cloud provider's network fabric, not by software running in the cluster. A misconfigured NetworkPolicy can't accidentally expose cross-tenant traffic when tenants are in separate VPCs. The tradeoff is complexity: cross-VPC communication requires VPC peering or transit gateways, adding latency and configuration overhead.
 
@@ -351,7 +373,7 @@ Tenant count introduces overhead beyond the resources tenants create. Each tenan
 The architectural response depends on scale:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     thead: {
       th: ['Scale', 'Tenants', 'Resources', 'Architecture'],
@@ -398,6 +420,7 @@ At medium scale, the data plane stays in a single cluster but segments into mult
 
 <Diagram
   src={scalingProgressionDiagram}
+  size="full"
   title="Scaling progression from shared infrastructure to regional fleets."
   description="Top-to-bottom flowchart showing three scaling stages. In the Small Scale group, a Shared Control Plane connects to a Shared Data Plane, representing a single combined environment. In the Medium Scale group, a Dedicated Control Plane connects to two separate node pools, showing how a single control layer can manage a segmented data plane within one cluster. In the Large Scale group, Regional Control Plane 1 manages Data Plane Cluster 1 and Data Plane Cluster 2, while Regional Control Plane 2 manages Data Plane Cluster 3 and Data Plane Cluster 4. The diagram shows an architectural progression from simple shared infrastructure, to segmented node pools, to multiple regional control planes managing separate fleets of data plane clusters as scale and geographic distribution increase."
 />
@@ -415,7 +438,7 @@ Scaling decisions affect failure domains — a single large cluster has differen
 Different failure types have different blast radii. Understanding each helps you design appropriate containment.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Control plane failures',
@@ -427,7 +450,8 @@ Different failure types have different blast radii. Understanding each helps you
 Containment strategies for control plane: run redundant API server replicas behind a load balancer. Spread etcd across three availability zones with automatic leader election. Cache credentials and configurations in the data plane so nodes don't need constant control plane contact. Design controllers for graceful degradation — if they can't reach the API server, they should retry with backoff rather than crash.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={2}
   items={[
     {
       lead: 'Data plane failures',
@@ -439,7 +463,8 @@ Containment strategies for control plane: run redundant API server replicas behi
 Containment strategies for data plane: spread replicas across availability zones using pod anti-affinity rules. Run at least two replicas of critical services. Implement circuit breakers in service-to-service communication so one failing service doesn't cascade into others. Configure pod disruption budgets to prevent maintenance operations from taking down too many replicas simultaneously.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={3}
   items={[
     {
       lead: 'Tenant failures',
@@ -471,7 +496,8 @@ Cached reads provide continuity during control plane outages. Platform services 
 Per-tenant rate limiting protects the control plane from abuse and ensures fair access. Different tenant tiers might get different limits — enterprise customers get higher quotas than standard tiers. When a tenant exceeds their limit, return 429 responses rather than letting them degrade the platform for everyone.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Failure', 'Impact', 'Mitigation', 'Recovery Time'],
@@ -648,7 +674,8 @@ The downside: Backstage is a separate system to operate. The catalog can drift f
 The choice isn't binary — many platforms use both. Custom controllers handle the infrastructure automation layer (what happens when you create a resource), while Backstage provides the developer experience layer (how teams discover, understand, and manage their services).
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Factor', 'Custom Controllers', 'Backstage'],

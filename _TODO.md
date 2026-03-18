@@ -226,8 +226,6 @@ https://mermaid.js.org/config/directives.html
 
 - Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
-- Moving the scroll bar up quickly with the mouse seems to make the header logic break - the Switcher component and Breadcrumbs are hidden under the header
-
 ## List Component
 
 - Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
@@ -239,6 +237,8 @@ https://mermaid.js.org/config/directives.html
 ## Header
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
+
+- Moving the scroll bar up quickly with the mouse seems to make the header logic break - the Switcher component and Breadcrumbs are hidden under the header
 
 ## Content Issues
 
@@ -252,7 +252,7 @@ https://mermaid.js.org/config/directives.html
 
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
 
-- How can we handle footnotes in List components? src/content/articles/kubernetes-multi-cluster-fleet-management-configuration/pdf.mdx line 80
+- Tags should break more evenly across two lines when there's a lot of them, instead of forcing the author name and date to break across two lines: platform-engineering-metrics-lead-time-developer-friction/index.mdx
 
 - Need to update Case Studies with lists and tables too
 

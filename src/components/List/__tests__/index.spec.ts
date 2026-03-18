@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
+import MixedApiFixture from '@components/List/__fixtures__/mixedApi.fixture.astro'
+import RichItemsFixture from '@components/List/__fixtures__/richItems.fixture.astro'
 
 describe('List (Astro)', () => {
   let container: AstroContainer
@@ -231,5 +233,26 @@ describe('List (Astro)', () => {
       expect(card?.className).toContain('hover:shadow-lg')
       expect(title?.textContent).toContain('Resource metrics')
     })
+  })
+
+  test('renders rich ListItem children through the existing layout item API', async () => {
+    const renderedHtml = await container.renderToString(RichItemsFixture)
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const items = Array.from(window.document.querySelectorAll('ul > li'))
+      expect(items).toHaveLength(2)
+      expect(items[0]?.querySelector('em')?.textContent).toContain('Network isolation')
+      expect(items[0]?.querySelector('sup[data-footnote-ref="slot-demo"]')?.textContent).toBe('1')
+      expect(items[1]?.textContent).toContain('Dedicated node pools reduce resource contention.')
+      expect(window.document.querySelector('wsb-list-item')).toBeNull()
+    })
+  })
+
+  test('throws a BuildError when items and ListItem children are both provided', async () => {
+    await expect(container.renderToString(MixedApiFixture)).rejects.toThrow(
+      'List: received both the `items` prop and ListItem children. Use one API or the other.'
+    )
   })
 })
