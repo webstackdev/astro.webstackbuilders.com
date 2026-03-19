@@ -28,38 +28,17 @@ export function getListItemsFromSlotMarkup(markup: string, variant: string): Lis
   }
 
   const document = new JSDOM(`<!doctype html><html><body>${markup}</body></html>`).window.document
-  const meaningfulNodes = Array.from(document.body.childNodes).filter((node) => {
-    if (node.nodeType === node.TEXT_NODE) {
-      return node.textContent?.trim().length
-    }
+  const listItemElements = Array.from(document.body.querySelectorAll('wsb-list-item'))
 
-    return node.nodeType === node.ELEMENT_NODE
-  })
-
-  if (meaningfulNodes.length === 0) {
+  if (listItemElements.length === 0) {
     throw new BuildError(
       'List: expected one or more ListItem children when using rich slot content.',
       buildErrorContext
     )
   }
 
-  const invalidNode = meaningfulNodes.find((node) => {
-    return node.nodeType !== node.ELEMENT_NODE || (node as Element).tagName.toLowerCase() !== 'wsb-list-item'
-  })
-
-  if (invalidNode) {
-    throw new BuildError(
-      'List: rich slot content must contain only ListItem children. Use either the `items` prop or `<ListItem>` children.',
-      buildErrorContext
-    )
-  }
-
-  return meaningfulNodes.map((node) => {
-    const element = node as Element
-
-    return {
-      lead: element.getAttribute('data-lead') ?? undefined,
-      text: element.innerHTML.trim(),
-    }
-  })
+  return listItemElements.map((element) => ({
+    lead: element.getAttribute('data-lead') ?? undefined,
+    text: element.innerHTML.trim(),
+  }))
 }
