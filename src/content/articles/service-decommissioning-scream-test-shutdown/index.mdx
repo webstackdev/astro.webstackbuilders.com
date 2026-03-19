@@ -9,16 +9,19 @@ tags: ["system-modernization","aws","kubernetes"]
 featured: true
 ---
 
-Creating a new service has bounded risk — it either works or it doesn't. Deleting one has unbounded risk — you won't know what breaks until it breaks. This asymmetry explains why every organization accumulates zombie services that nobody's sure about. They __might__ be dead. They receive occasional traffic that could be health checks or could be production workloads. The owning team dissolved in a reorg, but surely someone took over.
+Creating a new service has bounded risk — it either works or it doesn't. Deleting one has unbounded risk — you won't know what breaks until it breaks. This asymmetry explains why every organization accumulates zombie services that nobody's sure about. They _might_ be dead. They receive occasional traffic that could be health checks or could be production workloads. The owning team dissolved in a reorg, but surely someone took over.
 
-The default is always "leave it running" because turning something off requires courage and knowledge that leaving it alone doesn't. And everyone remembers the one time someone deleted a "dead" service that turned out to power a VP's quarterly dashboard. The scream test is how you get that knowledge: degrade a service in controlled phases, wait for someone to scream, and by the time you flip the switch you've already discovered every consumer that matters.
+The default is always "leave it running" because turning something off requires courage and knowledge that leaving it alone doesn't. <Highlighter>And everyone remembers the one time someone deleted a "dead" service that turned out to power a VP's quarterly dashboard. The scream test is how you get that knowledge</Highlighter>: degrade a service in controlled phases, wait for someone to scream, and by the time you flip the switch you've already discovered every consumer that matters.
 
 ## The Scream Test
 
 A well-designed scream test has four phases, each lasting about a week. The goal is progressive degradation that surfaces dependencies without causing lasting damage.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Phase 1: Soft degradation.',
@@ -64,7 +67,7 @@ Your access logs and service mesh telemetry already contain the information you 
 For each caller, classify the traffic pattern. This tells you what kind of dependency you're dealing with:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Pattern', 'Characteristics', 'Implication'],
@@ -97,9 +100,9 @@ Skip callers with fewer than one request per day — those are usually health ch
 
 ### Distributed Tracing for Hidden Dependencies
 
-If you have distributed tracing (Jaeger, Zipkin, or AWS X-Ray), you can discover dependencies you'd never find through traffic analysis alone. Traces show you __who calls you__ (upstream) and __who you call__ (downstream).
+If you have distributed tracing (Jaeger, Zipkin, or AWS X-Ray), you can discover dependencies you'd never find through traffic analysis alone. Traces show you _who calls you_ (upstream) and _who you call_ (downstream).
 
-Query any traces that include your service over a 30-day window. Walk the trace tree in both directions. The parent span tells you who initiated the call. This matters because your service might be a transitive dependency — ServiceA calls ServiceB calls your service — and ServiceA's team has no idea they depend on you.
+Query any traces that include your service over a 30-day window. Walk the trace tree in both directions. The parent span tells you who initiated the call. This matters because your service might be a transitive dependency — `ServiceA` calls `ServiceB` calls your service — and ServiceA's team has no idea they depend on you.
 
 <Callout type="warning">
 Trace sampling can miss low-volume callers. If you sample at 1%, a consumer that calls you 50 times per day might not appear in your trace data at all. Supplement tracing with access logs for complete coverage.
@@ -110,7 +113,10 @@ Trace sampling can miss low-volume callers. If you sample at 1%, a consumer that
 With consumers identified and the scream test complete, you're ready for the actual shutdown. A checklist prevents the "oh no, we forgot to revoke the service account credentials" moment three weeks later.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Pre-shutdown:',
@@ -138,7 +144,11 @@ Always run shutdown scripts with dry-run mode first. The few minutes this adds i
 The checklist exists because every item on it has bitten someone. The most common mistakes I've seen:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Forgetting cron jobs.',
