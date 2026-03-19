@@ -13,7 +13,7 @@ import shadowTrafficDiagram from "./diagrams/shadow-traffic-architecture-for-par
 
 Big-bang migrations fail at alarming rates. Large IT transformation projects routinely exceed budgets and timelines - McKinsey research found that large projects run 45% over budget and 7% over time while delivering 56% less value than predicted. The fundamental problem isn't the new technology or the team's capabilities - it's the validation gap. Teams build entire replacement systems in isolation, then discover on cutover day that their assumptions about the legacy system's behavior were wrong.
 
-The strangler fig pattern offers a different approach: incremental replacement with continuous validation. But the pattern alone isn't enough. The real power comes from treating migration as an observability problem first and a development problem second. When you can prove that your new service behaves identically to the legacy system __before__ any traffic shifts, migration becomes a series of low-risk deployments rather than a high-stakes gamble.
+The strangler fig pattern offers a different approach: incremental replacement with continuous validation. But the pattern alone isn't enough. <Highlighter>The real power comes from treating migration as an observability problem first and a development problem second.</Highlighter> When you can prove that your new service behaves identically to the legacy system _before_ any traffic shifts, migration becomes a series of low-risk deployments rather than a high-stakes gamble.
 
 ## Why the Strangler Fig Pattern Works
 
@@ -22,8 +22,13 @@ The strangler fig pattern, named after tropical fig trees that gradually envelop
 This approach succeeds where big-bang rewrites fail because it maintains continuous validation against production reality. You're not guessing whether your new authentication service handles edge cases correctly - you're proving it with real requests.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: 'Migration approach comparison',
     thead: {
       th: ['Aspect', 'Big-Bang Rewrite', 'Strangler Fig Migration'],
     },
@@ -51,7 +56,6 @@ This approach succeeds where big-bang rewrites fail because it maintains continu
         },
       ],
     },
-    figure: 'Migration approach comparison',
   }}
 />
 
@@ -123,7 +127,12 @@ Once shadow testing proves your new service matches legacy behavior, you're read
 A progressive traffic shift schedule balances validation time against migration velocity. Moving too fast risks missing problems that only appear under sustained load. Moving too slowly extends the period where you're maintaining two systems.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-center',
+  }}
   content={{
     thead: {
       th: ['Phase', 'New Service Traffic', 'Duration', 'Success Criteria'],
@@ -161,7 +170,8 @@ The automation layer monitors these criteria continuously and triggers rollback 
 Effective rollback triggers balance sensitivity against false positives:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Trigger', 'Threshold', 'Rationale'],
