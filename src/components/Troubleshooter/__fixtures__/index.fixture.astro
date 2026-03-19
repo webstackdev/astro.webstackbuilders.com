@@ -1,0 +1,42 @@
+---
+import Troubleshooter from '@components/Troubleshooter/index.astro'
+---
+
+<Troubleshooter
+  items={{
+    symptoms: {
+      items: [
+        {
+          text: 'Build verification fails in CI.',
+        },
+      ],
+    },
+    causes: {
+      items: [
+        {
+          text: 'The signing identity no longer matches the policy.',
+        },
+      ],
+    },
+    diagnosis: {
+      lead: 'Compare the policy with the identity embedded in the certificate.',
+      items: [
+        {
+          text: 'Check whether the branch or workflow path changed.',
+        },
+        {
+          text: 'Verify the certificate identity matches the expected issuer.',
+        },
+      ],
+    },
+    fixes: {
+      items: [
+        {
+          text: 'Update either the signing workflow or the verification policy so they agree.',
+        },
+      ],
+    },
+  }}
+>
+  <h3>Verification failed in CI</h3>
+</Troubleshooter>
