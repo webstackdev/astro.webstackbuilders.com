@@ -20,7 +20,7 @@ import fromSliDiagram from "./diagrams/from-SLI-measurement-to-error-budget-deci
 
 Every deployment becomes a political negotiation. "Is this change safe enough?" gets answered by whoever argues loudest or has more organizational capital. Product wants to ship. Engineering wants to experiment. Operations — or SRE, as the discipline has evolved — wants stability. Without a shared framework, these conversations become battles of opinion where the most senior person in the room wins — not the most informed decision.
 
-Error budgets change the game. Instead of "should we ship this risky change?" the question becomes "do we have budget to spend on this risk?" The answer is a number, not an opinion. And that number creates alignment where politics used to create friction.
+Error budgets change the game. <Highlighter>Instead of "should we ship this risky change?" the question becomes "do we have budget to spend on this risk?" The answer is a number, not an opinion.</Highlighter> And that number creates alignment where politics used to create friction.
 
 <Callout type="info">
 100% reliability is neither achievable nor desirable. Every additional nine costs exponentially more than the last, while providing diminishing returns to users. The question isn't "how do we prevent all failures?" but "how much unreliability can we tolerate?"
@@ -33,16 +33,22 @@ The hierarchy works like this: SLIs measure what matters to users. SLOs set targ
 The math is straightforward. If your SLO is 99.9% availability over a 30-day window (using a simplified month for easy calculation):
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
+  classes={{
+    wrapper: "sm:ml-12 mb-6",
+  }}
   items={[
     {
       text: 'Error budget = 100% - 99.9% = 0.1%',
+      color: 'bg-secondary',
     },
     {
       text: 'Minutes in month = 30 days × 24 hours × 60 minutes = 43,200',
+      color: 'bg-info',
     },
     {
       text: 'Allowed downtime = 43,200 × 0.001 = 43.2 minutes',
+      color: 'bg-warning-offset',
     },
   ]}
 />
@@ -53,6 +59,8 @@ The mental shift matters more than the math: you're not trying to prevent all fa
 
 <Diagram
   src={fromSliDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="From SLI measurement to error budget decision flow."
   description="A left-to-right flowchart showing how teams turn service measurements into a delivery decision. SLI: Actual Measurements feed into SLO: Target Level. That target defines the Error Budget as 100 percent minus the SLO. Actual errors consume that budget, leading to a decision point labeled Budget Remaining? If budget remains, the flow continues to Ship Features. If no budget remains, the flow moves to Focus on Reliability. The diagram shows how remaining budget determines whether teams prioritize delivery or reliability work."
 />
@@ -72,8 +80,10 @@ Poor investments include untested deployments (unpredictable budget impact), Fri
 This is where error budgets prove their worth. Product wants to launch a new payment flow next week. Engineering estimates the change is medium-risk — it touches the checkout path and historically similar changes cause 5-10 minutes of elevated errors during rollout. SRE checks the dashboard: 25 minutes of budget remaining this month.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
+    figure: 'Error budget deployment decisions.',
     thead: {
       th: ['Without Error Budgets', 'With Error Budgets'],
     },
@@ -97,7 +107,6 @@ This is where error budgets prove their worth. Product wants to launch a new pay
         },
       ],
     },
-    figure: 'Error budget deployment decisions.',
   }}
 />
 
@@ -105,11 +114,13 @@ The answer might still be yes — but now it's an informed yes, with shared unde
 
 ## When Budget Gets Low
 
-An error budget without a policy is just a dashboard. The policy defines what happens when budget gets low — and critically, it defines this __before__ you're in crisis mode making decisions under pressure.
+An error budget without a policy is just a dashboard. The policy defines what happens when budget gets low — and critically, it defines this _before_ you're in crisis mode making decisions under pressure.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
+    figure: 'Error budget policy thresholds.',
     thead: {
       th: ['Budget Remaining', 'Status', 'What Changes'],
     },
@@ -133,7 +144,6 @@ An error budget without a policy is just a dashboard. The policy defines what ha
         },
       ],
     },
-    figure: 'Error budget policy thresholds.',
   }}
 />
 
