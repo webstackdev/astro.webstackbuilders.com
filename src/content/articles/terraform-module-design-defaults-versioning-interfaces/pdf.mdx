@@ -33,7 +33,7 @@ A module's interface is everything a consumer can observe or depend on. That's m
 Think of a module interface in five layers:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Input variables',
@@ -41,7 +41,7 @@ Think of a module interface in five layers:
     },
     {
       lead: 'Output values',
-      text: "The data consumers reference. When someone writes `module.vpc.private_subnet_ids[0]`, they're depending on that output existing, being a list, and having at least one element. Change the output name or type and their code breaks.",
+      text: 'The data consumers reference. When someone writes <span class="font-mono">module.vpc.private_subnet_ids[0]</span>, they\'re depending on that output existing, being a list, and having at least one element. Change the output name or type and their code breaks.',
     },
     {
       lead: 'Resource behavior',
@@ -53,13 +53,15 @@ Think of a module interface in five layers:
     },
     {
       lead: 'Implicit contracts',
-      text: 'The undocumented assumptions. Maybe your module names resources with a specific pattern (`{environment}-{name}-{resource_type}`), applies a standard set of tags, or assumes the VPC has DNS hostnames enabled. Perhaps it expects certain IAM permissions to exist, or assumes subnets have internet access through a NAT gateway. These are the trickiest because they\'re easy to break without realizing it — you rename your tagging convention and suddenly a downstream cost allocation dashboard stops working.',
+      text: 'The undocumented assumptions. Maybe your module names resources with a specific pattern (<span class="font-mono">{environment}-{name}-{resource_type}</span>), applies a standard set of tags, or assumes the VPC has DNS hostnames enabled. Perhaps it expects certain IAM permissions to exist, or assumes subnets have internet access through a NAT gateway. These are the trickiest because they\'re easy to break without realizing it — you rename your tagging convention and suddenly a downstream cost allocation dashboard stops working.',
     },
   ]}
 />
 
 <Diagram
   src={moduleInterfaceDiagram}
+  magnifyButtonPosition="bottom-right"
+  size="full"
   title="Module interface separates what consumers depend on from implementation details."
   description="Top-to-bottom flowchart with three grouped sections: Module Consumer, Interface Contract, and Implementation not part of contract. In Module Consumer, one node shows a sample module block calling the vpc module with source company slash vpc slash aws, version approximately greater than 2.0, cidr_block 10.0.0.0 slash 16, and environment production. A second consumer node shows downstream usage where subnet_id is assigned from module.vpc.private_subnet_ids[0]. The consumer group connects to the Interface Contract group, which contains three contract elements: Inputs cidr_block and environment, Outputs vpc_id and private_subnet_ids, and Behavior creates VPC, subnets, and NAT. The Interface Contract group then connects to the Implementation group, which contains details such as how subnets are calculated, which availability zones are used, and internal resource naming. The diagram shows that consumers should depend on the published contract layer rather than on internal implementation details, allowing the module to evolve safely behind a stable interface."
 />
@@ -69,7 +71,7 @@ Think of a module interface in five layers:
 Not all changes are equal. Some are safe to make in a minor version; others require a major version bump and migration guidance.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
     thead: {
       th: ['Change Type', 'Breaking?', 'Example', 'Migration Path'],
@@ -138,7 +140,7 @@ The first decision for every variable: should the consumer be forced to provide 
 
 Make a variable required when the module genuinely cannot guess. VPC ID is a classic example — the module has no way to know which VPC you want to deploy into. Environment is another; deploying to production with a default of "development" would be a disaster.
 
-Make a variable optional when there's a reasonable starting point. Instance type can default to t3.medium because it works for most workloads initially and is easy to change later. Backup retention can default to 7 days because __some__ retention is almost always better than none.
+Make a variable optional when there's a reasonable starting point. Instance type can default to t3.medium because it works for most workloads initially and is easy to change later. Backup retention can default to 7 days because _some_ retention is almost always better than none.
 
 Use `null` as a default when a feature is opt-in. Custom KMS keys, custom domains, advanced monitoring configurations — these are things most users don't need, and `null` signals "use the platform default" or "skip this feature."
 
@@ -192,7 +194,12 @@ Code: Variable definitions showing required, optional with default, and opt-in p
 Choosing good defaults is harder than it looks. A few principles help:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Default to the safer option.',
@@ -477,7 +484,7 @@ The heredoc description appears in `terraform output` and in documentation gener
 
 ## Versioning Strategy
 
-Modules evolve. Requirements change, providers release new features, and you learn better patterns. Semantic versioning provides the framework for managing this evolution, but applying it to infrastructure requires understanding what constitutes a breaking change — and many changes that __feel__ minor are technically breaking.
+Modules evolve. Requirements change, providers release new features, and you learn better patterns. Semantic versioning provides the framework for managing this evolution, but applying it to infrastructure requires understanding what constitutes a breaking change — and many changes that _feel_ minor are technically breaking.
 
 ### Semantic Versioning for Modules
 
@@ -486,45 +493,51 @@ SemVer's core principle applies directly to Terraform modules: major versions fo
 __Major version bumps__ are required when you change the interface contract in ways that could break existing consumers:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Remove or rename an input variable',
+      lead: 'Remove or rename an input variable',
     },
     {
-      text: "Change an input variable's type",
+      lead: "Change an input variable's type",
     },
     {
-      text: 'Remove an output',
+      lead: 'Remove an output',
     },
     {
-      text: "Change an output's type or structure",
+      lead: "Change an output's type or structure",
     },
     {
-      text: 'Remove a resource (causes state issues for consumers)',
+      lead: 'Remove a resource (causes state issues for consumers)',
     },
     {
-      text: 'Bump a provider minimum version that has breaking changes',
+      lead: 'Bump a provider minimum version that has breaking changes',
     },
   ]}
 />
 
-_Minor version bumps_ are for backward-compatible additions:
+__Minor version bumps__ are for backward-compatible additions:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Add a new input variable with a default value',
+      lead: 'Add a new input variable with a default value',
     },
     {
-      text: 'Add a new output',
+      lead: 'Add a new output',
     },
     {
-      text: 'Add a new resource (assuming no side effects)',
+      lead: 'Add a new resource (assuming no side effects)',
     },
     {
-      text: 'Deprecate (but not remove) an input or output',
+      lead: 'Deprecate (but not remove) an input or output',
     },
   ]}
 />
@@ -532,19 +545,22 @@ _Minor version bumps_ are for backward-compatible additions:
 __Patch version bumps__ are for fixes that don't touch the interface:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: "Fix a bug without changing behavior consumers depend on",
+      lead: "Fix a bug without changing behavior consumers depend on",
     },
     {
-      text: 'Update documentation',
+      lead: 'Update documentation',
     },
     {
-      text: "Internal refactoring that doesn't affect state",
+      lead: "Internal refactoring that doesn't affect state",
     },
     {
-      text: 'Update provider constraints within compatible ranges',
+      lead: 'Update provider constraints within compatible ranges',
     },
   ]}
 />
@@ -570,7 +586,8 @@ Code: Pessimistic constraint for most modules, exact pinning for critical infras
 The pessimistic constraint (`~>`) is the sweet spot for most use cases. It accepts patch and minor updates but stops at the next major version, giving you bug fixes without breaking changes. For critical infrastructure like databases, exact pinning provides maximum stability at the cost of manual updates.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Strategy', 'Constraint', 'Use Case', 'Trade-off'],
@@ -647,31 +664,31 @@ Code: Changelog with migration instructions for breaking changes.
 A good changelog tells consumers exactly what changed and what they need to do about it. Follow the [Keep a Changelog](https://keepachangelog.com/) format:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
   items={[
     {
       lead: 'Added',
-      text: 'for new features',
+      text: 'Side-by-side-list new features',
     },
     {
       lead: 'Changed',
-      text: 'for changes in existing functionality',
+      text: 'For changes in existing functionality',
     },
     {
       lead: 'Deprecated',
-      text: 'for soon-to-be removed features',
+      text: 'For soon-to-be removed features',
     },
     {
       lead: 'Removed',
-      text: 'for removed features',
+      text: 'For removed features',
     },
     {
       lead: 'Fixed',
-      text: 'for bug fixes',
+      text: 'For bug fixes',
     },
     {
       lead: 'Security',
-      text: 'for vulnerability fixes',
+      text: 'For vulnerability fixes',
     },
   ]}
 />
@@ -946,26 +963,45 @@ Run upgrade tests as part of your release process. If you support multiple major
 
 A well-organized module repository makes tests discoverable and examples easy to find. This structure works for most modules:
 
-```text
-├── main.tf              # Primary resource logic
-├── variables.tf         # Input variable definitions
-├── outputs.tf           # Output declarations
-├── versions.tf          # Terraform and provider version constraints
-├── README.md            # Usage documentation
-├── CHANGELOG.md         # Version history and migration guides
-├── examples/            # Working usage examples
-│   ├── simple/          # Minimal configuration
-│   └── complete/        # All features demonstrated
-├── modules/             # Internal sub-modules (if needed)
-│   └── networking/      # Encapsulated sub-component
-└── tests/               # Test files
-    ├── contract.tftest.hcl      # Input/output contract tests
-    ├── validation.tftest.hcl    # Validation rule tests
-    ├── defaults.tftest.hcl      # Default value tests
-    └── upgrade_v1_to_v2.tftest.hcl # Version migration tests
-```
-
-Code: Recommended module repository structure.
+<FileExplorer
+  figure="Recommended module repository structure."
+  data={[
+    { type: 'file', name: 'main.tf', comment: 'Primary resource logic' },
+    { type: 'file', name: 'variables.tf', comment: 'Input variable definitions' },
+    { type: 'file', name: 'outputs.tf', comment: 'Output declarations' },
+    { type: 'file', name: 'versions.tf', comment: 'Terraform and provider version constraints' },
+    { type: 'file', name: 'README.md', comment: 'Usage documentation' },
+    { type: 'file', name: 'CHANGELOG.md', comment: 'Version history and migration guides' },
+    {
+      type: 'folder',
+      name: 'examples',
+      comment: 'Working usage examples',
+      children: [
+        { type: 'folder', name: 'simple', comment: 'Minimal configuration' },
+        { type: 'folder', name: 'complete', comment: 'All features demonstrated' },
+      ],
+    },
+    {
+      type: 'folder',
+      name: 'modules',
+      comment: 'Internal sub-modules (if needed)',
+      children: [
+        { type: 'folder', name: 'networking', comment: 'Encapsulated sub-component' },
+      ],
+    },
+    {
+      type: 'folder',
+      name: 'tests',
+      comment: 'Test files',
+      children: [
+        { type: 'file', name: 'contract.tftest.hcl', comment: 'Input/output contract tests' },
+        { type: 'file', name: 'validation.tftest.hcl', comment: 'Validation rule tests' },
+        { type: 'file', name: 'defaults.tftest.hcl', comment: 'Default value tests' },
+        { type: 'file', name: 'upgrade_v1_to_v2.tftest.hcl', comment: 'Version migration tests' },
+      ],
+    },
+  ]}
+/>
 
 The `examples/` directory serves double duty: it provides documentation for consumers and test fixtures for integration tests. Point your `README.md` at these examples so consumers can see working configurations, not just variable descriptions.
 

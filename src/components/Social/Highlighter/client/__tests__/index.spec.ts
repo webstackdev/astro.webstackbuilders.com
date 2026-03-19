@@ -167,6 +167,7 @@ describe('HighlighterElement', () => {
 
       const dialog = element.querySelector('.share-dialog') as HTMLElement | null
       expect(dialog?.getAttribute('role')).toBe('toolbar')
+      expect(dialog?.querySelector('.share-dialog__text')?.textContent).toBe('Share Selection')
 
       const describedBy = trigger?.getAttribute('aria-describedby')
       expect(describedBy).toBeTruthy()

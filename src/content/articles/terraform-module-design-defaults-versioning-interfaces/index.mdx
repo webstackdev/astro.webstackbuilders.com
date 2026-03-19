@@ -15,7 +15,7 @@ featured: true
 
 I've seen production modules with 47 required variables — modules where using them meant copying a wall of configuration from the README and hoping you didn't miss anything. I've also inherited the opposite: modules with opaque defaults that worked great until someone deployed to production and discovered deletion protection was off by default.
 
-The difference between modules that teams love and modules that teams fork-and-forget comes down to interface design. Specifically, how you handle defaults and what you consider a breaking change. Get these right, and your module becomes the obvious choice. Get them wrong, and you'll spend more time fielding support questions than writing infrastructure.
+<Highlighter>The difference between modules that teams love and modules that teams fork-and-forget comes down to interface design.</Highlighter> Specifically, how you handle defaults and what you consider a breaking change. Get these right, and your module becomes the obvious choice. Get them wrong, and you'll spend more time fielding support questions than writing infrastructure.
 
 ## Required vs Optional: The 80% Rule
 
@@ -28,7 +28,7 @@ Think of it this way: if 80% of your consumers will use the same value, make it 
 I organize variables into three categories based on what consumers need to provide:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Required variables',
@@ -124,7 +124,8 @@ Users can opt out for development environments; they shouldn't have to opt __in_
 Here's where module maintenance gets tricky. You want to improve your module — fix bugs, add features, clean up technical debt. But every change risks breaking someone's deployment. Understanding which changes are safe and which require a major version bump saves you from angry Slack messages.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Change Type', 'Breaking?', 'Migration Action'],
@@ -179,7 +180,10 @@ moved {
 Semantic versioning tells consumers what to expect:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Major version (2.0.0 → 3.0.0):',
