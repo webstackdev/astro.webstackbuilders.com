@@ -28,7 +28,7 @@ import schemaQueryDiagram from "./diagrams/schema-query-coverage-comparison.jpg"
 
 At 3 AM, I'm grepping through logs from twelve services trying to trace a single user request. One service logs `user_id=12345`, another logs `{"user":"12345"}`, a third logs `User 12345 logged in`. Same user, three different patterns. I write five regex queries, hit enter, and watch results scroll by — but something's wrong. The inventory service is silent. After twenty minutes, I discover it uses `customer_id` instead of `user_id`. My queries missed it entirely.
 
-That's when I understood: logging JSON isn't the same as having a log __schema__.
+That's when I understood: logging JSON isn't the same as having a log _schema_.
 
 ## Why Structured Logging Matters
 
@@ -39,7 +39,10 @@ The transition from `printf`-style logging to JSON is just the first step. Witho
 Consider what happens when five services each log authentication events their own way:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Service A:',
@@ -64,7 +67,7 @@ Consider what happens when five services each log authentication events their ow
   ]}
 />
 
-Finding all logins for user 12345 now requires five different search patterns. Worse, you __don't know what you're missing__. Did you account for the service that uses `customer` instead of `user`? The one that logs to a different index? The one with the typo in the field name?
+Finding all logins for user 12345 now requires five different search patterns. Worse, you _don't know what you're missing_. Did you account for the service that uses `customer` instead of `user`? The one that logs to a different index? The one with the typo in the field name?
 
 <Diagram
   src={schemaQueryDiagram}
@@ -77,7 +80,12 @@ Finding all logins for user 12345 now requires five different search patterns. W
 The difference between ad-hoc logging and schema-based logging shows up in every metric that matters during incidents.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-center [&_td:nth-child(3)]:text-center',
+  }}
   content={{
     thead: {
       th: ['Metric', 'Ad-hoc Logging', 'Schema-based Logging', 'Impact'],
@@ -114,10 +122,10 @@ The difference between ad-hoc logging and schema-based logging shows up in every
   }}
 />
 
-The storage savings come from better compression — consistent field names compress dramatically better than arbitrary strings. The query accuracy improvement comes from knowing __exactly__ which field to search. The time savings compound: every query, every dashboard, every alert benefits from the consistency.
+The storage savings come from better compression — consistent field names compress dramatically better than arbitrary strings. The query accuracy improvement comes from knowing _exactly_ which field to search. The time savings compound: every query, every dashboard, every alert benefits from the consistency.
 
 <Callout type="info">
-JSON is a format, not a schema. Two services can emit valid JSON logs with completely incompatible field names. Structured logging requires both: a machine-readable format __and__ a shared vocabulary.
+JSON is a format, not a schema. Two services can emit valid JSON logs with completely incompatible field names. Structured logging requires both: a machine-readable format _and_ a shared vocabulary.
 </Callout>
 
 So how do you design a schema that actually sticks?
@@ -131,7 +139,7 @@ Every schema decision you make in month one will constrain your queries for year
 Six rules that prevent the most common schema regrets:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Principle', 'Rationale', 'Good', 'Bad'],
@@ -168,7 +176,7 @@ Six rules that prevent the most common schema regrets:
   }}
 />
 
-The flat-over-nested rule surprises people. Dot notation like `http.request.method` __looks__ nested but stores flat in Elasticsearch. Actual nested JSON objects require special nested field mappings, slow down queries, and complicate aggregations. Use dots in field names, not actual object nesting.
+The flat-over-nested rule surprises people. Dot notation like `http.request.method` _looks_ nested but stores flat in Elasticsearch. Actual nested JSON objects require special nested field mappings, slow down queries, and complicate aggregations. Use dots in field names, not actual object nesting.
 
 ### Adopting Elastic Common Schema (ECS)
 
@@ -223,40 +231,40 @@ Code: ECS request logging example.
 The key ECS namespaces you'll use most often:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
+    figure: 'Common ECS namespaces.',
     thead: {
       th: ['Namespace', 'Purpose', 'Common Fields'],
     },
     tbody: {
       tr: [
         {
-          th: '`service.*`',
-          td: ['Service identification', '`service.name`, `service.version`, `service.environment`'],
+          th: '<span class="font-mono">service.*</span>',
+          td: ['Service identification', '<span class="font-mono">service.name</span>, <span class="font-mono">service.version</span>, <span class="font-mono">service.environment</span>'],
         },
         {
-          th: '`http.*`',
-          td: ['HTTP request/response', '`http.request.method`, `http.response.status_code`'],
+          th: '<span class="font-mono">http.*</span>',
+          td: ['HTTP request/response', '<span class="font-mono">http.request.method</span>, <span class="font-mono">http.response.status_code</span>'],
         },
         {
-          th: '`error.*`',
-          td: ['Error details', '`error.type`, `error.message`, `error.stack_trace`'],
+          th: '<span class="font-mono">error.*</span>',
+          td: ['Error details', '<span class="font-mono">error.type</span>, <span class="font-mono">error.message</span>, <span class="font-mono">error.stack_trace</span>'],
         },
         {
-          th: '`user.*`',
-          td: ['User context', '`user.id`, `user.name`, `user.roles`'],
+          th: '<span class="font-mono">user.*</span>',
+          td: ['User context', '<span class="font-mono">user.id</span>, <span class="font-mono">user.name</span>, <span class="font-mono">user.roles</span>'],
         },
         {
-          th: '`trace.*`',
-          td: ['Distributed tracing', '`trace.id`, `span.id`'],
+          th: '<span class="font-mono">trace.*</span>',
+          td: ['Distributed tracing', '<span class="font-mono">trace.id</span>, <span class="font-mono">span.id</span>'],
         },
         {
-          th: '`event.*`',
-          td: ['Event categorization', '`event.action`, `event.outcome`, `event.category`'],
+          th: '<span class="font-mono">event.*</span>',
+          td: ['Event categorization', '<span class="font-mono">event.action</span>, <span class="font-mono">event.outcome</span>, <span class="font-mono">event.category</span>'],
         },
       ],
     },
-    figure: 'Common ECS namespaces.',
   }}
 />
 
@@ -287,9 +295,9 @@ Custom namespaces should be rare. Before adding `order.shipping_method`, check i
 
 ## Correlation ID Implementation
 
-A schema gets you consistent field names. But when a request fails, you need more than consistency — you need to see __every log from every service__ that touched that request. That's where correlation IDs come in.
+A schema gets you consistent field names. But when a request fails, you need more than consistency — you need to see _every log from every service_ that touched that request. That's where correlation IDs come in.
 
-A single user action — placing an order, uploading a file, logging in — touches multiple services: API gateways, business logic services, payment processors, notification systems, databases. Without correlation IDs, each service's logs are islands. You know __something__ failed, but stitching together the sequence of events across service boundaries requires manual timestamp correlation and guesswork.
+A single user action — placing an order, uploading a file, logging in — touches multiple services: API gateways, business logic services, payment processors, notification systems, databases. Without correlation IDs, each service's logs are islands. You know _something_ failed, but stitching together the sequence of events across service boundaries requires manual timestamp correlation and guesswork.
 
 Correlation IDs solve this by threading a common identifier through every log entry related to a single logical operation. Query by that ID, and you get the complete story — regardless of how many services participated.
 
@@ -298,7 +306,7 @@ Correlation IDs solve this by threading a common identifier through every log en
 Not all correlation happens at the same scope. A single user session might span hundreds of requests, each request might fan out to dozens of service calls, and async operations might continue long after the original request completes. Different ID types address different correlation needs:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['ID Type', 'Scope', 'Generated By', 'Lifespan', 'Use Case'],
@@ -306,27 +314,27 @@ Not all correlation happens at the same scope. A single user session might span 
     tbody: {
       tr: [
         {
-          th: '`trace.id`',
+          th: '<span class="font-mono">trace.id</span>',
           td: ['Distributed trace', 'Edge/first service', 'Single request tree', 'Debugging request flow'],
         },
         {
-          th: '`span.id`',
+          th: '<span class="font-mono">span.id</span>',
           td: ['Single operation', 'Each service', 'One operation', 'Identifying service involvement'],
         },
         {
-          th: '`request.id`',
+          th: '<span class="font-mono">request.id</span>',
           td: ['HTTP request', 'API gateway', 'Single HTTP request', 'Correlating gateway with downstream'],
         },
         {
-          th: '`session.id`',
+          th: '<span class="font-mono">session.id</span>',
           td: ['User session', 'Auth system', 'Session duration', 'Tracking user activity across requests'],
         },
         {
-          th: '`transaction.id`',
+          th: '<span class="font-mono">transaction.id</span>',
           td: ['Business operation', 'Domain service', 'Until completion', 'Tracking sagas and workflows'],
         },
         {
-          th: '`causation.id`',
+          th: '<span class="font-mono">causation.id</span>',
           td: ['Event chain', 'Message producer', 'One hop', 'Understanding event triggers'],
         },
       ],
@@ -393,11 +401,13 @@ When a user places an order, the request flows through multiple services. Each s
 
 <Diagram
   src={correlationIdDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="Correlation ID flow across services."
   description='A top-to-bottom flowchart showing how correlation identifiers move through an order placement request. The first subgraph, "User Request," shows a browser sending POST /orders to an API Gateway. The next subgraph, "API Gateway," shows the gateway generating request.id req_abc123, extracting session.id sess_xyz789, and starting trace.id 4bf92f... . The gateway then forwards the request to the "Order Service" subgraph, where span.id 00f067... creates transaction.id order-12345 and publishes an OrderCreated Event. That event fans out to two downstream services: Payment Service and Inventory Service. Each downstream service creates a new span.id while keeping the same trace.id and the same transaction.id, and each records a causation_id pointing back to the event. The diagram emphasizes that trace.id is the stable identifier across the full request tree, span.id changes at each hop, and transaction.id follows the business workflow across services.'
 />
 
-The key insight: `trace.id` stays constant across all services for a single request tree. Query `trace.id:4bf92f*` and you see __every__ log from __every__ service involved in that order placement — API gateway, order service, payment service, inventory service, notification service.
+The key insight: `trace.id` stays constant across all services for a single request tree. Query `trace.id:4bf92f*` and you see _every_ log from _every_ service involved in that order placement — API gateway, order service, payment service, inventory service, notification service.
 
 <Callout type="info">
 The W3C Trace Context standard defines how to propagate trace and span IDs in HTTP headers via the `traceparent` header. Use it — it's supported by OpenTelemetry, Jaeger, Zipkin, and most APM tools. Don't invent your own trace header format.
@@ -557,8 +567,9 @@ Code: Message queue correlation pattern.
 I've seen all of these break correlation in production. Each one creates gaps in your trace data that make debugging harder:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
+    figure: 'Correlation anti-patterns and fixes.',
     thead: {
       th: ['Anti-Pattern', 'Why It Breaks', 'Solution'],
     },
@@ -566,15 +577,15 @@ I've seen all of these break correlation in production. Each one creates gaps in
       tr: [
         {
           th: 'Generating new trace IDs per service',
-          td: ["Logs can't be joined across services", 'Extract incoming `traceparent`; generate only if missing'],
+          td: ["Logs can't be joined across services", 'Extract incoming <span class="font-mono">traceparent</span>; generate only if missing'],
         },
         {
           th: 'Logging outside AsyncLocalStorage',
-          td: ['Logs lack correlation context', 'Run all request handlers within `contextStorage.run()`'],
+          td: ['Logs lack correlation context', 'Run all request handlers within <span class="font-mono">contextStorage.run()</span>'],
         },
         {
           th: 'Direct HTTP client usage',
-          td: ["Outbound calls don't propagate headers", 'Use `fetchWithCorrelation()` or OpenTelemetry auto-instrumentation'],
+          td: ["Outbound calls don't propagate headers", 'Use <span class="font-mono">fetchWithCorrelation()</span> or OpenTelemetry auto-instrumentation'],
         },
         {
           th: 'Fire-and-forget async',
@@ -582,11 +593,10 @@ I've seen all of these break correlation in production. Each one creates gaps in
         },
         {
           th: 'Batched message processing',
-          td: ['All messages share one correlation', 'Process each message in its own `contextStorage.run()` scope'],
+          td: ['All messages share one correlation', 'Process each message in its own <span class="font-mono">contextStorage.run()</span> scope'],
         },
       ],
     },
-    figure: 'Correlation anti-patterns and fixes.',
   }}
 />
 
@@ -838,6 +848,7 @@ Modern log architectures have three tiers: shippers that collect logs from appli
 
 <Diagram
   src={logPipelineDiagram}
+  size="full"
   title="Log pipeline architecture."
   description='A top-to-bottom flowchart describing a three-layer log pipeline. The first subgraph, "Applications," contains Service A, Service B, and Service C, all sending logs into a shared shipper. The second subgraph, "Log Shipper Layer," contains Vector, Fluentd, or Filebeat, which first parses JSON and then validates the schema before adding infrastructure metadata such as pod, node, and region. The output flows into the third processing stage, "Log Processor Layer," where Vector or Logstash enriches records with Geo-IP lookup data, redacts sensitive fields, and filters or samples noisy events. The final subgraph, "Storage Layer," contains three destinations: Elasticsearch hot storage for high-priority logs, S3 cold archive for all logs, and Splunk for security events. Arrows show the same processed stream being routed to different destinations based on access pattern and log purpose.'
 />
@@ -849,15 +860,21 @@ Not all logs deserve storage. Health checks fire every few seconds and rarely ma
 This framework helps decide how to handle different log patterns. The "Connection events" row uses aggregation — the same technique shown in the code example that follows:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
+  classes={{
+    thead: '[&_th:nth-child(2)]:text-center',
+    tbody: '[&_td:nth-child(2)]:text-center',
+  }}
   content={{
+    figure: 'Noise classification framework.',
     thead: {
       th: ['Pattern', 'Action', 'Rationale'],
     },
     tbody: {
       tr: [
         {
-          th: 'Health checks (`/health`, `/ready`)',
+          th: 'Health checks (<span class="font-mono">/health</span>, <span class="font-mono">/ready</span>)',
           td: ['Drop', 'High volume, rarely useful for debugging'],
         },
         {
@@ -886,7 +903,6 @@ This framework helps decide how to handle different log patterns. The "Connectio
         },
       ],
     },
-    figure: 'Noise classification framework.',
   }}
 />
 
@@ -917,7 +933,7 @@ const aggregatedConnectionLog: AggregatedLog = {
 Code: Aggregated log example.
 
 <Callout type="warning">
-Be cautious with sampling and dropping. Start conservative — drop only the logs you're __certain__ have no debugging value. You can always drop more later, but you can't recover logs you never stored.
+Be cautious with sampling and dropping. Start conservative — drop only the logs you're _certain_ have no debugging value. You can always drop more later, but you can't recover logs you never stored.
 </Callout>
 
 ## Schema Governance and Evolution
@@ -929,7 +945,12 @@ A schema is only useful if everyone follows it. Without governance, you'll have 
 You need a central source of truth for field definitions — what fields exist, their types, who owns them, and whether they're deprecated. Unfortunately, there's no dominant open source "log schema registry" the way there's a Confluent Schema Registry for Kafka. Your options:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: "Use your log platform's native schema management.",
@@ -946,7 +967,7 @@ You need a central source of truth for field definitions — what fields exist, 
   ]}
 />
 
-The key insight: the __format__ of your registry matters less than __having one at all__ and __enforcing it in CI__. A YAML file that every service validates against beats a sophisticated registry that nobody uses.
+The key insight: the _format_ of your registry matters less than _having one at all_ and _enforcing it in CI_. A YAML file that every service validates against beats a sophisticated registry that nobody uses.
 
 <Callout type="info">
 If you're using ECS, you already have a schema — the [ECS field reference](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html) __is__ your registry for standard fields. You only need to document custom fields you've added.
@@ -957,8 +978,14 @@ If you're using ECS, you already have a schema — the [ECS field reference](htt
 Schemas change — new features need new fields, old patterns get replaced. The key is managing change without breaking consumers. Here's the evolution process that's worked for me:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
+  classes={{
+    thead: '[&_th:nth-child(2)]:text-center',
+    tbody: '[&_td:nth-child(2)]:text-center',
+  }}
   content={{
+    figure: 'Schema evolution timeline.',
     thead: {
       th: ['Phase', 'Duration', 'Action'],
     },
@@ -994,7 +1021,6 @@ Schemas change — new features need new fields, old patterns get replaced. The 
         },
       ],
     },
-    figure: 'Schema evolution timeline.',
   }}
 />
 
@@ -1106,7 +1132,10 @@ Code: Correlation propagation tests.
 In production, monitor log quality the same way you monitor application health. Three Prometheus counters give you visibility into schema compliance and correlation coverage:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'log_schema_validation_total{result, service}',

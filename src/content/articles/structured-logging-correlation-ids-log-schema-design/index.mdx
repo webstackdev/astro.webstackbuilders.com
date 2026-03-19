@@ -11,11 +11,11 @@ featured: true
 
 It's 3 AM. A payment is stuck somewhere between your API gateway, order service, and payment processor. You start searching logs.
 
-You try `grep 'userId'`. Nothing. Maybe it's `grep 'user_id'`? A few hits, but not from the payment service. `grep 'user.id'`? Different results again. Five queries later, you've pieced together __most__ of the request path, but you're still not sure if you've found everything.
+You try `grep 'userId'`. Nothing. Maybe it's `grep 'user_id'`? A few hits, but not from the payment service. `grep 'user.id'`? Different results again. Five queries later, you've pieced together _most_ of the request path, but you're still not sure if you've found everything.
 
 Now imagine a different scenario: `user.id:12345 AND event.action:payment_initiated`. One query. Every service. Every log. Complete picture in seconds.
 
-The difference isn't better tooling. It's discipline in how you emit logs. Structured logging with consistent schemas and correlation IDs transforms distributed debugging from archaeology into routine work. Here's how to implement it.
+The difference isn't better tooling. It's discipline in how you emit logs. <Highlighter>Structured logging with consistent schemas and correlation IDs transforms distributed debugging from archaeology into routine work.</Highlighter> Here's how to implement it.
 
 ## Why Schema Matters
 
@@ -47,23 +47,26 @@ Code: ECS-compliant log entry.
 The key field groups to adopt immediately:
 
 <List
-  variant="check-icons-list"
+  variant="badge-list"
+  classes={{
+    titleClass: "block w-full text-center",
+  }}
   items={[
     {
-      lead: '<span class="font-mono">service.\*</span>',
-      text: 'which service emitted the log (service.name, service.version)',
+      title: '<span class="font-mono">service.\*</span>',
+      lead: 'Which service emitted the log (<span class="font-mono">service.name</span>, <span class="font-mono">service.version</span>)',
     },
     {
-      lead: '<span class="font-mono">trace.\*</span>',
-      text: 'correlation context (trace.id, span.id)',
+      title: '<span class="font-mono">trace.\*</span>',
+      lead: 'Correlation context (<span class="font-mono">trace.id</span>, <span class="font-mono">span.id</span>)',
     },
     {
-      lead: '<span class="font-mono">event.\*</span>',
-      text: 'what happened (event.action, event.outcome)',
+      title: '<span class="font-mono">event.\*</span>',
+      lead: 'What happened (<span class="font-mono">event.action</span>, <span class="font-mono">event.outcome</span>)',
     },
     {
-      lead: '<span class="font-mono">error.\*</span>',
-      text: 'failure details (error.type, error.message, error.stack_trace)',
+      title: '<span class="font-mono">error.\*</span>',
+      lead: 'Failure details (<span class="font-mono">error.type</span>, <span class="font-mono">error.message</span>, <span class="font-mono">error.stack_trace</span>)',
     },
   ]}
 />
@@ -83,8 +86,9 @@ A consistent schema lets you query individual services reliably. Correlation IDs
 Not all correlation IDs serve the same purpose. Here's the hierarchy you need:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Correlation ID types and scopes.',
     thead: {
       th: ['ID Type', 'Scope', 'Purpose', 'Example'],
     },
@@ -92,27 +96,26 @@ Not all correlation IDs serve the same purpose. Here's the hierarchy you need:
       tr: [
         {
           th: 'Trace ID',
-          td: ['Entire request tree', 'Connect all services in a request', '`4bf92f3577b34da6a...`'],
+          td: ['Entire request tree', 'Connect all services in a request', '<span class="font-mono">4bf92f3577b34da6a...</span>'],
         },
         {
           th: 'Span ID',
-          td: ['Single service hop', 'Distinguish parent/child operations', '`00f067aa0ba902b7`'],
+          td: ['Single service hop', 'Distinguish parent/child operations', '<span class="font-mono">00f067aa0ba902b7</span>'],
         },
         {
           th: 'Request ID',
-          td: ['Single HTTP request', 'Correlate with load balancer logs', '`req_abc123`'],
+          td: ['Single HTTP request', 'Correlate with load balancer logs', '<span class="font-mono">req_abc123</span>'],
         },
         {
           th: 'Transaction ID',
-          td: ['Business operation', 'Group related requests (e.g., checkout flow)', '`order-12345`'],
+          td: ['Business operation', 'Group related requests (e.g., checkout flow)', '<span class="font-mono">order-12345</span>'],
         },
       ],
     },
-    figure: 'Correlation ID types and scopes.',
   }}
 />
 
-The key insight: __trace ID stays constant__ across every service that handles the request. When you query `trace.id:4bf92f3577b34da6a`, you get logs from the API gateway, order service, payment service, inventory service, and notification service — everything involved in that single user action.
+The key insight: _trace ID stays constant_ across every service that handles the request. When you query `trace.id:4bf92f3577b34da6a`, you get logs from the API gateway, order service, payment service, inventory service, and notification service — everything involved in that single user action.
 
 <Newsletter />
 
@@ -122,9 +125,14 @@ Correlation IDs are useless if they don't travel with requests. Every service-to
 
 For HTTP, use the W3C Trace Context standard. The `traceparent` header carries trace and span IDs in a single string:
 
-```text
+<Inset
+  color="note-offset"
+  classes={{
+    layout: "text-content-inverse",
+  }}
+>
 traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
-```
+</Inset>
 
 The format is `version-traceId-spanId-flags`. Most APM tools (OpenTelemetry, Jaeger, Zipkin) support this natively.
 
@@ -195,7 +203,10 @@ Every HTTP client in your codebase must propagate correlation headers. A single 
 These patterns break correlation in production. Each creates gaps in your trace data:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Generating new trace IDs per service',
@@ -247,7 +258,10 @@ A 99% correlation target is achievable within weeks. The remaining 1% is typical
 You don't need to fix every service at once. A practical rollout:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Week 1:',
