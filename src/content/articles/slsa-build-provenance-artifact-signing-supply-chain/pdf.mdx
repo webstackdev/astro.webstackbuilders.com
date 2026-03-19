@@ -45,7 +45,10 @@ Before investing in countermeasures, you need to understand what you're defendin
 The past few years have given us a painful education in supply chain attacks. Each major incident revealed a different weak point in the pipeline from source code to production deployment.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Source code compromise",
@@ -76,6 +79,8 @@ The past few years have given us a painful education in supply chain attacks. Ea
 
 <Diagram
   src={supplyChainDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="Supply chain attack points."
   description="A left-to-right flowchart showing the main stages of a software supply chain: Developer, Source Repository, Build System, Artifact Registry, and Deployment. Solid arrows show the normal progression from development through deployment. Dashed arrows mark five attack opportunities: compromised developer credentials targeting the source repository, malicious commits moving from source into the build, dependency poisoning affecting the build system itself, build tampering between the build and the artifact registry, and artifact modification between the registry and deployment. The diagram emphasizes that every transition in the chain is a trust boundary that can be attacked."
 />
@@ -87,8 +92,13 @@ Each stage in the pipeline requires different defenses. SLSA focuses on the midd
 SLSA (Supply-chain Levels for Software Artifacts) addresses specific threats, not all threats. Understanding this boundary prevents both under-investment and false confidence.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: "SLSA protection scope.",
     thead: {
       th: ['SLSA Addresses', 'SLSA Does NOT Address'],
     },
@@ -116,7 +126,6 @@ SLSA (Supply-chain Levels for Software Artifacts) addresses specific threats, no
         },
       ],
     },
-    figure: "SLSA protection scope.",
   }}
 />
 
@@ -135,7 +144,10 @@ SLSA proves that an artifact came from a specific source through a specific buil
 ### Level Requirements Overview
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Level 1',
@@ -157,8 +169,9 @@ SLSA proves that an artifact came from a specific source through a specific buil
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
+    figure: 'SLSA level requirements and tradeoffs.',
     thead: {
       th: ['Level', 'Source Requirements', 'Build Requirements', 'Provenance', 'Effort', 'Protects Against'],
     },
@@ -182,7 +195,6 @@ SLSA proves that an artifact came from a specific source through a specific buil
         },
       ],
     },
-    figure: 'SLSA level requirements and tradeoffs.',
   }}
 />
 
@@ -191,7 +203,10 @@ SLSA proves that an artifact came from a specific source through a specific buil
 Not every artifact needs the same protection. Choose your target level based on what you're building and who might want to compromise it.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Internal tools with low security requirements',
@@ -439,7 +454,7 @@ Provenance tells you where an artifact came from. Signing proves that provenance
 Three approaches dominate the current landscape, each with distinct tradeoffs.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Long-lived keys (GPG/PGP)',
@@ -457,8 +472,9 @@ Three approaches dominate the current landscape, each with distinct tradeoffs.
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Signing method tradeoffs.',
     thead: {
       th: ['Method', 'Key Management', 'Verification', 'CI/CD Fit', 'Compliance'],
     },
@@ -478,7 +494,6 @@ Three approaches dominate the current landscape, each with distinct tradeoffs.
         },
       ],
     },
-    figure: 'Signing method tradeoffs.',
   }}
 />
 
@@ -811,7 +826,7 @@ For production use, consider wrapping this pattern in a Terraform module so team
 
 ## SBOM Integration
 
-Provenance tells you __how__ an artifact was built. An SBOM tells you __what's inside__. Together, they give you complete visibility into your software supply chain. When a new CVE drops, you can answer "are we affected?" in minutes instead of days.
+Provenance tells you _how_ an artifact was built. An SBOM tells you _what's inside_. Together, they give you complete visibility into your software supply chain. When a new CVE drops, you can answer "are we affected?" in minutes instead of days.
 
 ### Generating SBOMs
 
@@ -916,6 +931,7 @@ For programmatic querying across many images, tools like Grype can consume SBOMs
 
 <Diagram
   src={sbomDiagram}
+  size="full"
   title="SBOM and provenance relationship."
   description="A top-to-bottom flowchart showing how an image, its SBOM, and its provenance are connected. In the first grouped section, Source Code produces a Container Image. That image then leads to an SBOM, labeled as what is inside, and to Provenance, labeled as how it was built. In the second grouped section, the Container Image produces an Image Signature through the image digest, while the SBOM produces an SBOM Attestation and the Provenance produces a Provenance Attestation. All three signed outputs then flow into the Registry. The diagram shows that the image digest ties the image, SBOM, and provenance together so each can be verified independently."
 />
@@ -931,7 +947,10 @@ The tools and concepts above can feel overwhelming. Here's a phased approach tha
 Before adding security tooling, you need visibility into what you're protecting.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Inventory your artifacts.',
@@ -979,7 +998,10 @@ The self-verification step catches configuration problems immediately rather tha
 Signing without verification is security theater. This phase makes signatures mandatory.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Start with staging.',
@@ -1005,8 +1027,9 @@ Signing without verification is security theater. This phase makes signatures ma
 Once you have signing and verification working, expand coverage and increase rigor. The following milestones give you a roadmap — treat the timelines as rough estimates based on a team that's new to these tools.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Implementation milestones.',
     thead: {
       th: ['Milestone', 'Requirements', 'Timeline'],
     },
@@ -1026,7 +1049,6 @@ Once you have signing and verification working, expand coverage and increase rig
         },
       ],
     },
-    figure: 'Implementation milestones.',
   }}
 />
 
@@ -1038,25 +1060,49 @@ Don't try to implement everything at once. Start with signing one artifact type,
 
 You'll hit these problems. Here's how to diagnose and fix them.
 
+<Troubleshooter
+  items={{
+    symptoms: {
+      items: [
+        {
+          text: '<span class="font-mono">cosign verify</span> returns an error, <span class="font-mono">admission</span> webhook denies pods, deployments blocked.',
+        },
+      ],
+    },
+    causes: {
+      items: [
+        {
+          text: "The image was signed, but the signing identity doesn't match your verification policy. This is the most common issue.",
+        },
+      ],
+    },
+    diagnosis: {
+      lead: 'Check what identity actually signed the image. Compare the certificate identity in the output with what your policy expects. Common mismatches:',
+      items: [
+        {
+          text: 'You signed from <span class="font-mono">refs/heads/main</span> but the policy expects <span class="font-mono">refs/tags/v*</span>',
+        },
+        {
+          text: 'You renamed or moved your workflow file',
+        },
+        {
+          text: 'Policy expects GitHub but you are using GitLab',
+        },
+      ],
+    },
+    fixes: {
+      items: [
+        {
+          text: 'Update either your signing workflow or your verification policy to match.',
+        },
+      ],
+    },
+  }}
+>
+
 ### "No matching signatures" during verification
 
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: 'Symptoms:',
-      text: 'cosign verify returns an error, admission webhook denies pods, deployments blocked.',
-    },
-    {
-      lead: 'Cause:',
-      text: "The image was signed, but the signing identity doesn't match your verification policy. This is the most common issue.",
-    },
-    {
-      lead: 'Diagnosis:',
-      text: 'Check what identity actually signed the image:',
-    },
-  ]}
-/>
+</Troubleshooter>
 
 ```bash
 cosign verify --output text ghcr.io/myorg/myapp:v1.0.0 2>&1 | head -20
@@ -1064,47 +1110,46 @@ cosign verify --output text ghcr.io/myorg/myapp:v1.0.0 2>&1 | head -20
 
 Code: Inspecting Cosign verification output.
 
-Compare the certificate identity in the output with what your policy expects. Common mismatches:
-
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: 'Branch vs tag reference:',
-      text: 'You signed from refs/heads/main but the policy expects refs/tags/v*',
+<Troubleshooter
+  items={{
+    symptoms: {
+      items: [
+        {
+          text: '"Error: unable to get OIDC token", keyless signing fails.',
+        },
+      ],
     },
-    {
-      lead: 'Workflow path changed:',
-      text: 'You renamed or moved your workflow file',
+    causes: {
+      items: [
+        {
+          text: 'Missing id-token: write permission in your workflow.',
+        },
+      ],
     },
-    {
-      lead: 'Wrong OIDC issuer:',
-      text: 'Policy expects GitHub but you are using GitLab',
+    diagnosis: {
+      lead: 'Confirm that the workflow or job permissions are actually exposing an OIDC token to the step that runs Cosign. Common checks:',
+      items: [
+        {
+          text: 'Verify the workflow includes <span class="font-mono">id-token: write</span> and that a job-level <span class="font-mono">permissions</span> block is not overriding it.',
+        },
+        {
+          text: 'Make sure the signing step is running in the same job that has the OIDC permission.',
+        },
+        {
+          text: 'If you recently tightened default repository permissions, confirm the workflow still has explicit package and contents access where needed.',
+        },
+      ],
     },
-  ]}
-/>
-
-__Fix:__ Update either your signing workflow or your verification policy to match.
+    fixes: {
+      lead: 'Add the permission block to your workflow:',
+      items: [],
+    },
+  }}
+>
 
 ### OIDC token not available in GitHub Actions
 
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: 'Symptoms:',
-      text: '"Error: unable to get OIDC token", keyless signing fails.',
-    },
-    {
-      lead: 'Cause:',
-      text: 'Missing id-token: write permission in your workflow.',
-    },
-    {
-      lead: 'Fix:',
-      text: 'Add the permission block to your workflow:',
-    },
-  ]}
-/>
+</Troubleshooter>
 
 ```yaml
 permissions:
@@ -1115,69 +1160,99 @@ permissions:
 
 Code: GitHub Actions OIDC permissions block.
 
+<Troubleshooter
+  items={{
+    symptoms: {
+      items: [
+        {
+          text: '<span class="font-mono">slsa-verifier</span> fails, attestation download returns empty.',
+        },
+      ],
+    },
+    causes: {
+      items: [
+        {
+          text: 'The provenance workflow did not run, failed silently, or the artifact digest was not passed correctly.',
+        },
+      ],
+    },
+    diagnosis: {
+      items: [
+        {
+          text: 'Check the GitHub Actions run-did the provenance job complete successfully?',
+        },
+        {
+          text: 'Verify you\'re using a pinned version of <span class="font-mono">slsa-github-generator</span> (not <span class="font-mono">@main</span>)',
+        },
+        {
+          text: 'Confirm the artifact digest passed to the generator matches what you are verifying',
+        },
+      ],
+    },
+    fixes: {
+      items: [
+        {
+          text: 'Most often, this is a digest mismatch. The digest output from your build step must exactly match what you pass to the provenance generator.',
+        },
+      ],
+    },
+  }}
+>
+
 ### Provenance attestation not found
 
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: 'Symptoms:',
-      text: 'slsa-verifier fails, attestation download returns empty.',
-    },
-    {
-      lead: 'Cause:',
-      text: 'The provenance workflow did not run, failed silently, or the artifact digest was not passed correctly.',
-    },
-    {
-      lead: 'Diagnosis:',
-    },
-  ]}
-/>
+</Troubleshooter>
 
-<List
-  variant="numbered-with-background-list"
-  items={[
-    {
-      text: 'Check the GitHub Actions run-did the provenance job complete successfully?',
+<Troubleshooter
+  items={{
+    symptoms: {
+      items: [
+        {
+          text: 'Build times increased significantly, SBOM action times out.',
+        },
+      ],
     },
-    {
-      text: "Verify you're using a pinned version of slsa-github-generator (not @main)",
+    causes: {
+      items: [
+        {
+          text: 'Large images with many layers take longer to analyze.',
+        },
+      ],
     },
-    {
-      text: 'Confirm the artifact digest passed to the generator matches what you are verifying',
+    diagnosis: {
+      lead: 'Before changing the workflow, confirm where the time is going. Useful checks:',
+      items: [
+        {
+          text: 'Compare total image size and layer count between fast and slow builds to see whether image growth is driving scan time.',
+        },
+        {
+          text: 'Check the workflow logs to confirm whether the delay is in image download, unpacking, SBOM generation, or attestation upload.',
+        },
+        {
+          text: 'Verify whether the SBOM job is re-building or re-pulling artifacts unnecessarily instead of working from the image digest.',
+        },
+      ],
     },
-  ]}
-/>
-
-__Fix:__ Most often, this is a digest mismatch. The digest output from your build step must exactly match what you pass to the provenance generator.
+    fixes: {
+      lead: 'Fix options:',
+      items: [
+        {
+          text: 'Use multi-stage builds to reduce final image size',
+        },
+        {
+          text: 'Run SBOM generation in a parallel job (it only needs the image digest, not the build context)',
+        },
+        {
+          text: 'For very large images, consider generating SBOM from lockfiles during build rather than scanning the final image',
+        },
+      ],
+    },
+  }}
+>
 
 ### SBOM generation takes too long
 
-<List
-  variant="check-icons-list"
-  items={[
-    {
-      lead: 'Symptoms:',
-      text: 'Build times increased significantly, SBOM action times out.',
-    },
-    {
-      lead: 'Cause:',
-      text: 'Large images with many layers take longer to analyze.',
-    },
-    {
-      lead: 'Fix options:',
-    },
-    {
-      text: 'Use multi-stage builds to reduce final image size',
-    },
-    {
-      text: 'Run SBOM generation in a parallel job (it only needs the image digest, not the build context)',
-    },
-    {
-      text: 'For very large images, consider generating SBOM from lockfiles during build rather than scanning the final image',
-    },
-  ]}
-/>
+</Troubleshooter>
 
 ## Conclusion
 
