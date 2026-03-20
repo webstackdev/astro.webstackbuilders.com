@@ -26,7 +26,7 @@ import workloadIdentityDiagram from "./diagrams/workload-identity-federation-aut
 *[STS]: Security Token Service
 *[SPIFFE]: Secure Production Identity Framework for Everyone
 
-If you've ever inherited a CI/CD pipeline and found service account keys created by someone who left three years ago, you know the feeling. Nobody knows where the copies are. Nobody's rotated them. You're stuck wondering whether to touch them or leave them alone because __something__ might break.
+If you've ever inherited a CI/CD pipeline and found service account keys created by someone who left three years ago, you know the feeling. Nobody knows where the copies are. Nobody's rotated them. You're stuck wondering whether to touch them or leave them alone because _something_ might break.
 
 Workload identity federation offers a way out: instead of managing secrets that can be stolen, your workloads prove who they are and receive short-lived credentials that expire before anyone could misuse them.
 
@@ -41,23 +41,26 @@ I've seen the same pattern play out at multiple organizations. A key gets create
 The typical lifecycle looks something like this:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
-    { text: "Day 0: Key created for CI pipeline deployment" },
-    { text: "Day 30: Key copied to a second repo because someone needed the same access" },
-    { text: "Day 90: Developer stores key in `.env` file for local testing" },
-    { text: "Day 180: `.env` file accidentally committed to git" },
-    { text: "Day 181: Git history rewritten, but the key remains in the reflog" },
-    { text: "Day 365: Repository made public for an open source release" },
-    { text: "Day 366: Automated scanners find the key in git history" },
-    { text: "Day 367: Cryptomining instances spinning up in your account" },
+    { lead: "Day 0: Key created for CI pipeline deployment" },
+    { lead: "Day 30: Key copied to a second repo because someone needed the same access" },
+    { lead: "Day 90: Developer stores key in `.env` file for local testing" },
+    { lead: "Day 180: `.env` file accidentally committed to git" },
+    { lead: "Day 181: Git history rewritten, but the key remains in the reflog" },
+    { lead: "Day 365: Repository made public for an open source release" },
+    { lead: "Day 366: Automated scanners find the key in git history" },
+    { lead: "Day 367: Cryptomining instances spinning up in your account" },
   ]}
 />
 
 The really insidious part is that most of this happens without anyone noticing. Keys don't send notifications when they're copied. Git doesn't warn you when you're about to expose credentials in a repository you're making public.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     thead: {
       th: ['Risk', 'Impact', 'Detection Difficulty'],
@@ -106,6 +109,7 @@ Here's the conceptual difference. With long-lived keys, your CI runner holds a s
 
 <Diagram
   src={longLivedKeyDiagram}
+  size="xl"
   title="Long-lived key authentication model."
   description="Left-to-right flowchart showing a CI Runner sending a Service Account Key directly to a Cloud API for authentication. Beneath that flow is a grouped section labeled Key Properties listing three risks: the key never expires, it must be stored somewhere, and it is unclear who may have copies of it. The diagram illustrates the core weakness of static key-based authentication: access depends on a reusable secret that can persist indefinitely and spread beyond its intended owner."
 />
@@ -114,6 +118,7 @@ With federation, your CI runner requests a token from its platform, then exchang
 
 <Diagram
   src={workloadIdentityDiagram}
+  size="full"
   title="Workload identity federation authentication flow."
   description="Top-to-bottom flowchart showing keyless authentication through workload identity federation. A CI Runner first requests an OIDC token from the CI Platform identity provider. The identity provider then issues a JWT containing claims to the Cloud STS service. Inside the Cloud STS node, three validation steps are shown: verify the JWT signature, check issuer trust, and validate claims against policy. If validation succeeds, Cloud STS issues short-lived credentials valid for one hour. Those credentials are then used to access the Cloud API. The diagram shows the replacement of static secrets with a signed identity assertion followed by temporary credentials."
 />
@@ -154,30 +159,35 @@ Code: Standard and GitHub-specific claims in an OIDC token.
 The key claims for access control are:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
-      lead: "iss (issuer):",
-      text: "Where the token came from — GitHub's OIDC endpoint in this case",
+      lead: '<span class="font-mono">iss</span> (issuer)',
+      text: 'Where the token came from — GitHub\'s OIDC endpoint in this case (<span class="font-mono">https://token.actions.githubusercontent.com</span>)',
     },
     {
-      lead: "sub (subject):",
-      text: "The unique identifier for the workload, which varies based on context (branch, environment, pull request)",
+      lead: '<span class="font-mono">sub</span> (subject)',
+      text: 'The unique identifier for the workload, which varies based on context (branch, environment, pull request) — <span class="font-mono">repo:myorg/myrepo:ref:refs/heads/main</span>',
     },
     {
-      lead: "aud (audience):",
+      lead: '<span class="font-mono">aud</span> (audience)',
       text: "Who the token is intended for — your cloud provider's token exchange endpoint",
     },
     {
-      lead: "repository and repository_owner:",
+      lead: '<span class="font-mono">repository</span> and <span class="font-mono">repository_owner:</span>',
       text: "Which repo triggered the workflow",
     },
     {
-      lead: "ref:",
+      lead: '<span class="font-mono">ref:</span>',
       text: "The git reference (branch or tag) being built",
     },
     {
-      lead: "environment:",
+      lead: '<span class="font-mono">environment:</span>',
       text: "The GitHub Environment, if you're using environment protection rules",
     },
   ]}
@@ -199,14 +209,31 @@ Here's what's happening at each step:
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
-    { text: "Your workflow requests an OIDC token from GitHub, specifying the intended audience (your cloud provider)" },
-    { text: "GitHub signs a JWT containing claims about the workflow context" },
-    { text: "Your workflow sends this JWT to your cloud provider's STS endpoint" },
-    { text: "STS fetches (or retrieves from cache) GitHub's public keys to verify the signature" },
-    { text: "STS validates everything: signature, issuer is trusted, claims match your policy, token isn't expired" },
-    { text: "STS looks up which service account this workload should assume based on attribute mappings" },
-    { text: "STS returns short-lived credentials scoped to that service account's permissions" },
+    {
+      lead: "Your workflow requests an OIDC token from GitHub, specifying the intended audience (your cloud provider)",
+    },
+    {
+      lead: "GitHub signs a JWT containing claims about the workflow context",
+    },
+    {
+      lead: "Your workflow sends this JWT to your cloud provider's STS endpoint",
+    },
+    {
+      lead: "STS fetches (or retrieves from cache) GitHub's public keys to verify the signature",
+    },
+    {
+      lead: "STS validates everything: signature, issuer is trusted, claims match your policy, token isn't expired",
+    },
+    {
+      lead: "STS looks up which service account this workload should assume based on attribute mappings",
+    },
+    {
+      lead: "STS returns short-lived credentials scoped to that service account's permissions",
+    },
   ]}
 />
 
@@ -787,6 +814,7 @@ The flow inside the cluster looks like this:
 
 <Diagram
   src={kubernetesDiagram}
+  size="full"
   title="Kubernetes workload identity token exchange flow."
   description="Top-to-bottom flowchart showing workload identity inside a Kubernetes cluster. In the Kubernetes Cluster group, a Pod contains a Container that requests credentials from an SDK or client library. The SDK reads a projected token from a token volume mount located at /var/run/secrets/tokens/. That token is then exchanged with Cloud IAM outside the cluster. Within Cloud IAM, the token's signature is verified and the workload binding is checked. If validation succeeds, Cloud IAM returns credentials to the SDK or client library. The diagram shows how a pod uses a projected service account token as the proof of identity, then exchanges it for temporary cloud credentials without storing static keys."
 />
@@ -799,12 +827,12 @@ You're not going to migrate everything to workload identity in a weekend. In any
 
 ### Migration Planning
 
-Start by figuring out what you have. Most cloud providers offer ways to list service account keys and their last-used timestamps. AWS has IAM credential reports; GCP has the Policy Analyzer; Azure has sign-in logs. But those only tell you __that__ a key was used, not __where__ it's being used from.
+Start by figuring out what you have. Most cloud providers offer ways to list service account keys and their last-used timestamps. AWS has IAM credential reports; GCP has the Policy Analyzer; Azure has sign-in logs. But those only tell you _that_ a key was used, not _where_ it's being used from.
 
 For each key, you need to answer:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "What workload uses it?",
@@ -826,7 +854,7 @@ For each key, you need to answer:
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Phase', 'Duration', 'Activities', 'Success Criteria'],
@@ -928,6 +956,9 @@ The retirement sequence:
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: "Verify no recent usage:",
@@ -987,16 +1018,27 @@ The `sub` claim format changes based on workflow context. A branch push produces
 Once you can see what's in the token, most federation failures fall into a few categories:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Trust policy condition mismatch",
       text: 'The most common issue. The `sub` claim in your OIDC token doesn\'t match what your trust policy expects. This happens when:',
     },
-    { text: 'You\'re building from a feature branch but the policy only allows `main`' },
-    { text: 'Someone renamed the repository' },
-    { text: 'You\'re running in a pull request context but the policy expects a branch ref' },
-    { text: 'The GitHub Environment name has a typo' },
+    {
+      lead: 'Feature branch build',
+      text: 'You\'re building from a feature branch but the policy only allows <span class="text-mono">main</span>',
+      },
+    {
+      lead: 'Repository renamed',
+      text: 'Someone renamed the repository' },
+    {
+      lead: 'Pull request context',
+      text: 'You\'re running in a pull request context but the policy expects a branch ref',
+      },
+    {
+      lead: 'Environment name typo',
+      text: 'The GitHub Environment name has a typo',
+      },
     {
       lead: 'Audience mismatch',
       text: 'Means the <span class="text-mono">aud</span> claim in your token doesn\'t match the <span class="text-mono">client_id_list</span> in your OIDC provider configuration. This typically means the workflow is requesting a token for a different audience than what you configured. Check that your workflow\'s audience parameter matches what\'s in your cloud provider\'s OIDC provider setup.',
@@ -1015,7 +1057,7 @@ Once you can see what's in the token, most federation failures fall into a few c
 The error usually looks like `AccessDenied: Not authorized to perform sts:AssumeRoleWithWebIdentity`. Compare the decoded `sub` claim against your trust policy condition — the mismatch is usually obvious.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
     thead: {
       th: ['Error', 'Likely Cause', 'Quick Fix'],
@@ -1023,23 +1065,23 @@ The error usually looks like `AccessDenied: Not authorized to perform sts:Assume
     tbody: {
       tr: [
         {
-          th: '`InvalidIdentityToken`',
+          th: '<span class="font-mono">InvalidIdentityToken</span>',
           td: ['Token expired or malformed', 'Retry the workflow; check for clock skew'],
         },
         {
-          th: '`AccessDenied: Not authorized`',
+          th: '<span class="font-mono">AccessDenied: Not authorized</span>',
           td: ['Trust policy condition mismatch', 'Decode token, compare `sub` to policy'],
         },
         {
-          th: '`Audience does not match`',
+          th: '<span class="font-mono">Audience does not match</span>',
           td: ['Wrong audience in token request', 'Check workflow audience vs provider config'],
         },
         {
-          th: '`WebIdentityErr: failed to retrieve`',
+          th: '<span class="font-mono">WebIdentityErr: failed to retrieve</span>',
           td: ['OIDC endpoint unreachable', 'Check GitHub status; retry later'],
         },
         {
-          th: '`Service account does not exist`',
+          th: '<span class="font-mono">Service account does not exist</span>',
           td: ['Deleted or wrong SA binding', 'Verify SA exists and binding is correct'],
         },
       ],
