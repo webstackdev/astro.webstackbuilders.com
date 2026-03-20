@@ -29,7 +29,7 @@ This is the production data trap. Copying real data feels like the path of least
 
 I understand the justification for using production data in testing. "We need realistic data." "Our schema is too complex to fake." "We need to reproduce production bugs." "Performance testing requires real volumes." Each sounds reasonable until you examine it.
 
-Realistic data doesn't require __real__ data. Synthetic generators with proper domain logic produce data that's indistinguishable from production for testing purposes. Complex schemas are exactly where you __need__ synthetic generators — if you can't generate valid test data, you've built something you can't actually test. Reproducing bugs requires the __pattern__ that triggered the bug, not the actual customer's information. Performance testing cares about volume and distribution, both of which synthetic data handles fine.
+Realistic data doesn't require _real_ data. Synthetic generators with proper domain logic produce data that's indistinguishable from production for testing purposes. Complex schemas are exactly where you _need_ synthetic generators — if you can't generate valid test data, you've built something you can't actually test. Reproducing bugs requires the _pattern_ that triggered the bug, not the actual customer's information. Performance testing cares about volume and distribution, both of which synthetic data handles fine.
 
 The most dangerous justification is "it's just staging — nobody will see it." Staging environments get breached. Security groups get misconfigured. Laptops get stolen. Contractors rotate in and out. Compliance doesn't care about intent; it cares about where customer data ended up.
 
@@ -38,8 +38,9 @@ The most dangerous justification is "it's just staging — nobody will see it." 
 Every non-production environment with real data is a breach waiting to happen. The exposure surface is larger than most teams realize.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Common PII exposure scenarios in non-production',
     thead: {
       th: ['Risk', 'Consequence', 'Real-World Example'],
     },
@@ -71,7 +72,6 @@ Every non-production environment with real data is a breach waiting to happen. T
         },
       ],
     },
-    figure: 'Common PII exposure scenarios in non-production',
   }}
 />
 
@@ -284,15 +284,16 @@ The `Faker.seed()` call ensures you get the same records every time, which matte
 
 ## Production Data Anonymization
 
-Sometimes you genuinely need production data — debugging a specific customer issue, reproducing a complex data pattern, or performance testing with realistic distributions. The answer isn't "never use production data." It's "never use __identifiable__ production data." Anonymization lets you keep the structure and relationships while removing the liability.
+Sometimes you genuinely need production data — debugging a specific customer issue, reproducing a complex data pattern, or performance testing with realistic distributions. The answer isn't "never use production data." It's "never use _identifiable_ production data." Anonymization lets you keep the structure and relationships while removing the liability.
 
 ### Choosing the Right Technique
 
 Different data types need different anonymization approaches. The goal is preserving what matters for testing while destroying what identifies individuals.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Anonymization techniques by field type',
     thead: {
       th: ['Field Type', 'Technique', 'Example', "What's Preserved"],
     },
@@ -328,11 +329,10 @@ Different data types need different anonymization approaches. The goal is preser
         },
       ],
     },
-    figure: 'Anonymization techniques by field type',
   }}
 />
 
-The critical insight is __consistency__: the same real value must always map to the same fake value. Without this, referential integrity breaks. If `john@real.com` appears in both the `users` and `orders` tables, both occurrences need to become the same anonymized value.
+The critical insight is _consistency_: the same real value must always map to the same fake value. Without this, referential integrity breaks. If `john@real.com` appears in both the `users` and `orders` tables, both occurrences need to become the same anonymized value.
 
 ### Deterministic Anonymization
 
@@ -457,25 +457,55 @@ Test data isn't a one-time problem. Schemas evolve, test scenarios multiply, and
 
 The most maintainable approach separates fixtures by their role in testing. Base fixtures provide the minimal data every test needs. Scenario fixtures set up specific test cases. Factories generate data programmatically when you need flexibility or volume.
 
-```bash
-fixtures/
-├── base/                    # Minimal data for any test run
-│   ├── users.json
-│   └── products.json
-├── scenarios/               # Specific test case setups
-│   ├── empty-cart/
-│   ├── checkout-flow/
-│   └── edge-cases/
-├── factories/               # Programmatic generation
-│   ├── user_factory.py
-│   └── order_factory.py
-└── seeds/                   # Environment-specific seeding
-    ├── development.py
-    ├── staging.py
-    └── e2e.py
-```
-
-Figure: Fixture directory structure separating concerns
+<FileExplorer
+  figure="Fixture directory structure separating concerns."
+  data={[
+    {
+      type: 'folder',
+      name: 'fixtures',
+      children: [
+        {
+          type: 'folder',
+          name: 'base',
+          comment: 'Minimal data for any test run',
+          children: [
+            { type: 'file', name: 'users.json' },
+            { type: 'file', name: 'products.json' },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'scenarios',
+          comment: 'Specific test case setups',
+          children: [
+            { type: 'folder', name: 'empty-cart' },
+            { type: 'folder', name: 'checkout-flow' },
+            { type: 'folder', name: 'edge-cases' },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'factories',
+          comment: 'Programmatic generation',
+          children: [
+            { type: 'file', name: 'user_factory.py' },
+            { type: 'file', name: 'order_factory.py' },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'seeds',
+          comment: 'Environment-specific seeding',
+          children: [
+            { type: 'file', name: 'development.py' },
+            { type: 'file', name: 'staging.py' },
+            { type: 'file', name: 'e2e.py' },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
 Base fixtures are checked into version control and rarely change. They represent the "happy path" data that most tests assume exists — a default user, a few products, standard configuration. Keep them minimal; tests that need specific setups should use scenario fixtures or factories.
 
@@ -563,7 +593,11 @@ Synthetic data isn't just a technical convenience — it's often a legal require
 Different regulations have different specifics, but the common thread is clear: personal data in test environments is either prohibited outright or requires controls most teams don't have.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Regulation', 'Test Data Requirement', 'Key Provision'],
@@ -719,29 +753,30 @@ Code: Audit logging for test data operations
 
 Keep these logs alongside your application audit logs. During a compliance review, being able to show a timestamped record of every staging database refresh — with compliance scan results — demonstrates mature data handling practices.
 
-<Callout type="success">
 Auditors look for evidence of process, not just policy. A documented policy saying "we use synthetic data" isn't sufficient. You need:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'The policy document',
+      lead: 'The policy document',
     },
     {
-      text: 'Technical controls enforcing it (scanners)',
+      lead: 'Technical controls enforcing it (scanners)',
     },
     {
-      text: 'Logs proving controls ran',
+      lead: 'Logs proving controls ran',
     },
     {
-      text: 'Evidence of periodic review',
+      lead: 'Evidence of periodic review',
     },
   ]}
 />
 
 Synthetic data with this documentation passes audits easily.
-</Callout>
 
 ## Conclusion
 

@@ -77,23 +77,28 @@ Code: Terraform state file structure showing the key fields.
 The critical fields are:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
-      lead: 'version',
+      lead: '<span class="font-mono">version</span>',
       text: 'The state format version (currently 4). Terraform uses this to handle state migrations between versions.',
     },
     {
-      lead: 'serial',
+      lead: '<span class="font-mono">serial</span>',
       text: 'Incremented on every state change. This is how Terraform detects concurrent modifications — if you try to write serial 43 but the backend has serial 44, someone else modified state while you were working.',
     },
     {
-      lead: 'lineage',
+      lead: '<span class="font-mono">lineage</span>',
       text: "A unique identifier for this state's history. If lineage doesn't match, you're trying to push state from an entirely different Terraform configuration.",
     },
     {
-      lead: 'resources',
-      text: 'The mapping between your config (`aws_vpc.main`) and real infrastructure (`vpc-0123456789abcdef0`), including all the attributes Terraform knows about.',
+      lead: '<span class="font-mono">resources</span>',
+      text: 'The mapping between your config (<span class="font-mono">aws_vpc.main</span>) and real infrastructure (<span class="font-mono">vpc-0123456789abcdef0</span>), including all the attributes Terraform knows about.',
     },
   ]}
 />
@@ -105,8 +110,9 @@ When you run `terraform plan`, Terraform reads this state, queries the cloud pro
 State solves essential problems, but each solution introduces its own failure modes.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'State file purposes and their associated failure modes.',
     thead: {
       th: ['Purpose', 'How State Helps', 'What Can Go Wrong'],
     },
@@ -134,7 +140,6 @@ State solves essential problems, but each solution introduces its own failure mo
         },
       ],
     },
-    figure: 'State file purposes and their associated failure modes.',
   }}
 />
 
@@ -203,8 +208,10 @@ Point-in-time recovery on the lock table might seem excessive, but it's saved me
 Different backends implement locking differently, with varying reliability and recovery procedures.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
+    figure: 'Backend locking mechanisms and recovery methods.',
     thead: {
       th: ['Backend', 'Lock Mechanism', 'Lock Timeout', 'Force Unlock Method'],
     },
@@ -212,7 +219,7 @@ Different backends implement locking differently, with varying reliability and r
       tr: [
         {
           th: 'S3 + DynamoDB',
-          td: ['DynamoDB conditional writes', 'Infinite', '`terraform force-unlock LOCK_ID`'],
+          td: ['DynamoDB conditional writes', 'Infinite', '<span class="font-mono">terraform force-unlock LOCK_ID</span>'],
         },
         {
           th: 'Azure Blob',
@@ -232,7 +239,6 @@ Different backends implement locking differently, with varying reliability and r
         },
       ],
     },
-    figure: 'Backend locking mechanisms and recovery methods.',
   }}
 />
 
@@ -249,7 +255,10 @@ State corruption isn't always obvious. Sometimes Terraform tells you directly wi
 The most frequent causes of state problems, roughly in order of how often I've encountered them:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Interrupted applies',
@@ -482,8 +491,12 @@ Your choice of backend determines how state is stored, how locking works, and wh
 ### Backend Comparison
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  classes={{
+    tbody: '[&:nth-of-type(2)]:!font-normal',
+  }}
   content={{
+    figure: 'Backend comparison for common deployment scenarios.',
     thead: {
       th: ['Factor', 'S3 + DynamoDB', 'Azure Blob', 'GCS', 'PostgreSQL', 'Terraform Cloud'],
     },
@@ -515,7 +528,6 @@ Your choice of backend determines how state is stored, how locking works, and wh
         },
       ],
     },
-    figure: 'Backend comparison for common deployment scenarios.',
   }}
 />
 
@@ -612,11 +624,11 @@ The lifecycle configuration keeps 90 days of old versions, transitioning them to
 How you organize state files across environments and components affects both security and operational complexity. There are three common patterns:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Path-based separation',
-      text: 'uses different S3 key prefixes for each environment and component. This is the simplest approach and works well for most teams.',
+      text: 'Uses different S3 key prefixes for each environment and component. This is the simplest approach and works well for most teams.',
     },
   ]}
 />
@@ -636,15 +648,16 @@ terraform {
 Code: Path-based state separation by environment and component.
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  startNumber={2}
   items={[
     {
       lead: 'Workspace-based separation',
-      text: 'uses Terraform workspaces to manage multiple environments from the same configuration. The state key includes the workspace name automatically. This works for simple cases but can get confusing when environments need different configurations.',
+      text: 'Uses Terraform workspaces to manage multiple environments from the same configuration. The state key includes the workspace name automatically. This works for simple cases but can get confusing when environments need different configurations.',
     },
     {
       lead: 'Account-based separation',
-      text: "puts state in the same AWS account as the infrastructure it manages. This is more complex to set up but provides stronger isolation — a compromise in one account's state doesn't expose other accounts.",
+      text: "Puts state in the same AWS account as the infrastructure it manages. This is more complex to set up but provides stronger isolation — a compromise in one account's state doesn't expose other accounts.",
     },
   ]}
 />
@@ -754,19 +767,22 @@ Having backups is not enough — you must verify you can restore from them. Sche
 Beyond CI/CD and backups, a few operational practices significantly reduce state problems:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Pin provider and Terraform versions.',
       text: 'Provider updates can change resource schemas in ways that corrupt state. Pin versions in your configuration and upgrade deliberately with testing.',
     },
     {
-      lead: 'Use `-out` for plans.',
+      lead: 'Use <span class="font-mono">-out</span> for plans.',
       text: 'Always save plans to a file and apply that file. This prevents drift between plan and apply, especially in CI where infrastructure might change between the two steps.',
     },
     {
       lead: 'Never edit state manually.',
-      text: 'If you find yourself opening a state file in an editor, stop. Use `terraform state mv`, `terraform state rm`, or `terraform import` instead. Manual edits bypass validation and corrupt checksums.',
+      text: 'If you find yourself opening a state file in an editor, stop. Use <span class="font-mono">terraform state mv</span>, <span class="font-mono">terraform state rm</span>, or <span class="font-mono">terraform import</span> instead. Manual edits bypass validation and corrupt checksums.',
     },
     {
       lead: 'Review plans carefully.',

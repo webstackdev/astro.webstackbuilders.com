@@ -18,15 +18,16 @@ I watched this play out at a company that implemented per-IP rate limiting at 10
 
 The fix? They combined __sliding window counter__ (to eliminate the boundary problem) with __token bucket__ for burst control. Same traffic spike: requests distributed smoothly, everyone got served, the backend hummed along at capacity without falling over.
 
-The naive approach—"block anything over N requests"—fails because it treats rate limiting as a wall instead of a valve. The algorithms matter, but __where__ you limit and __how__ you identify clients matter more.
+The naive approach — _"block anything over N requests"_ — fails because it treats rate limiting as a wall instead of a valve. The algorithms matter, but _where_ you limit and _how_ you identify clients matter more.
 
 ## Where to Rate Limit
 
 Most rate limiting articles jump straight to algorithms. But the strategic question — where in your stack to enforce limits — often matters more than which algorithm you choose.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Rate limiting layers comparison.',
     thead: {
       th: ['Layer', 'Tools', 'Granularity', 'Best For'],
     },
@@ -41,21 +42,20 @@ Most rate limiting articles jump straight to algorithms. But the strategic quest
           td: ['AWS API Gateway, Kong, nginx', 'API key, route', 'API quotas, tiered plans'],
         },
         {
-          th: 'Service Mesh',
-          td: ['Istio, Envoy, Linkerd', 'Service identity', 'Service-to-service limits'],
-        },
-        {
           th: 'Application',
           td: ['Custom middleware', 'User, action, context', 'Fine-grained business logic'],
         },
+        {
+          th: 'Service Mesh',
+          td: ['Istio, Envoy, Linkerd', 'Service identity', 'Service-to-service limits'],
+        },
       ],
     },
-    figure: 'Rate limiting layers comparison.',
   }}
 />
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Edge rate limiting',
@@ -104,7 +104,8 @@ Code: Token bucket core logic.
 Here's how traffic patterns play out with a 10-token bucket refilling at 1 token per second:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Traffic Pattern', 'What Happens'],
@@ -142,7 +143,7 @@ For distributed systems, you need atomic operations. The standard pattern is a R
 The rate limiting key — how you identify who's making requests — is as important as the algorithm. Choose wrong, and you'll either punish legitimate users or fail to stop abuse.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: 'IP address',
@@ -156,7 +157,11 @@ Header spoofing is trivial: `curl -H "X-Forwarded-For: 1.2.3.4" your-api.com`. I
 </Callout>
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'API key',
@@ -194,7 +199,10 @@ Rate limiting is a valve, not a wall. The best rate limiters are invisible to no
 Three takeaways:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Layer appropriately',

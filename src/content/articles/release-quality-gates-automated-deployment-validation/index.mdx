@@ -13,16 +13,19 @@ I once helped a team that had implemented the "full stack" of quality gates: tes
 
 What happened? The security scanner added new rules and flagged a dependency vulnerability from 2019 that wasn't exploitable in their context. All deployments blocked. Someone added an exception. Then coverage dropped 0.1% because a refactor deleted dead code — blocked again. Exception added. Performance gate triggered on a cold-start test run — exception. By month three, engineers assumed every gate failure was another false positive and bypassed without investigating.
 
-Here's the paradox: a gate with a 10% false positive rate will block legitimate deployments constantly, training engineers to bypass it. A gate that never fires provides no protection. Somewhere between "block everything" and "block nothing" is the sweet spot where gates catch real failures without becoming obstacles.
+<Highlighter>Here's the paradox: a gate with a 10% false positive rate will block legitimate deployments constantly, training engineers to bypass it.</Highlighter> A gate that never fires provides no protection. Somewhere between "block everything" and "block nothing" is the sweet spot where gates catch real failures without becoming obstacles.
 
 The measure of a good gate isn't how many deployments it blocks — it's how many real incidents it prevents relative to how many good deployments it delays.
 
 ## What Makes a Gate Worth Having
 
-Not all checks belong in a deployment pipeline, and not all pipeline checks should block deployments. A well-designed gate has four characteristics: it's __actionable__, __deterministic__, __fast__, and __proportional__.
+Not all checks belong in a deployment pipeline, and not all pipeline checks should block deployments. A well-designed gate has four characteristics: it's _actionable_, _deterministic_, _fast_, and _proportional_.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Actionable',
@@ -60,7 +63,10 @@ Required advisory gates must run, but failures alert rather than block. These ar
 Optional gates are available but not required — nice-to-have insights like code style checks beyond basic linting, documentation coverage, or complexity metrics.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Category', 'Behavior', 'Criteria', 'Examples'],
@@ -106,7 +112,7 @@ This distinction transformed the team's deployment culture. False positives drop
 Some gate configurations sound reasonable but cause problems in practice. Recognizing these patterns can save months of frustration.
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: 'Coverage absolutism',
@@ -153,8 +159,8 @@ Start strict and loosen based on data. It's easier to make an advisory gate bloc
 
 Track your metrics: precision (percentage of failures that are real problems), false positive rate (false positives divided by total runs), and bypass rate (manual bypasses divided by gate failures). For blocking gates, target 90%+ precision, under 5% false positive rate, and under 10% bypass rate. If any metric is off, you have work to do.
 
-The goal isn't zero-risk deployments — that leads to zero deployments. The goal is catching the failures that matter while maintaining the velocity your business requires.
-
 <Callout type="success">
 Your first step: audit your current gates. For each blocking gate, check its bypass rate over the last month. Any gate with a bypass rate above 20% is a candidate for demotion to advisory status — or removal entirely.
 </Callout>
+
+The goal isn't zero-risk deployments — that leads to zero deployments. The goal is catching the failures that matter while maintaining the velocity your business requires.

@@ -14,13 +14,15 @@ featured: true
 
 How do you prove an internal platform creates value? Product teams measure revenue or user growth. Platform teams serve internal customers and enable outcomes rather than producing them directly. This creates a measurement gap — platform work is easy to fund when it's novel and hard to justify when it's mature.
 
-I've watched this play out. A platform team builds an internal developer portal with self-service infrastructure provisioning. Six months in, leadership asks for success metrics. The team reports: 500 developers onboarded, 10,000 API calls per month, 99.9% uptime. Leadership responds: "That's nice, but did we save money? Are developers faster?" The team can't answer because they measured what the platform __does__, not what it __enables__.
-
-The pivot is simple but fundamental: friction-focused metrics. Time to first deployment dropped from 2 weeks to 2 hours. Infrastructure tickets per developer dropped 80%. Developer NPS rose from -20 to +45. Now the narrative is clear: "Developers are 10x faster to get started and need 80% less support." That story justifies continued investment.
+I've watched this play out. A platform team builds an internal developer portal with self-service infrastructure provisioning. Six months in, leadership asks for success metrics. The team reports: 500 developers onboarded, 10,000 API calls per month, 99.9% uptime. Leadership responds: "That's nice, but did we save money? Are developers faster?" The team can't answer because they measured what the platform _does_, not what it _enables_.
 
 <Callout type="warning">
 The most common platform metrics mistake: measuring platform activity (requests served, uptime) instead of developer outcomes (time saved, friction reduced). A platform can be highly available and completely useless.
 </Callout>
+
+The pivot is simple but fundamental: friction-focused metrics. Time to first deployment dropped from 2 weeks to 2 hours. Infrastructure tickets per developer dropped 80%. Developer NPS rose from -20 to +45. Now the narrative is clear: <Highlighter>"Developers are 10x faster to get started and need 80% less support." That story justifies continued investment.</Highlighter>
+
+<Newsletter />
 
 Let's look at the metrics that actually demonstrate platform value.
 
@@ -31,7 +33,10 @@ Let's look at the metrics that actually demonstrate platform value.
 Lead time metrics measure how long things take. They're the clearest indicators of platform friction because they directly answer "how fast can developers move?"
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Time to first deployment',
@@ -53,7 +58,12 @@ Lead time metrics measure how long things take. They're the clearest indicators 
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-success [&_td:nth-child(3)]:text-warning [&_td:nth-child(4)]:text-danger',
+  }}
   content={{
     thead: {
       th: ['Metric', 'Poor', 'Acceptable', 'Excellent'],
@@ -84,12 +94,13 @@ Lead time metrics measure how long things take. They're the clearest indicators 
 
 ### Developer Friction Metrics
 
-Lead time tells you __how long__. Friction metrics tell you __how hard__. They measure the cognitive and operational burden the platform imposes.
-
-<Newsletter />
+Lead time tells you _how long_. Friction metrics tell you _how hard_. They measure the cognitive and operational burden the platform imposes.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Ticket volume per developer',
@@ -117,7 +128,7 @@ Some metrics exist primarily to impress stakeholders. They show activity without
 The test for a good metric: does it tell you what to do? "We have 1000 users" tells you nothing. "50% of users struggle with authentication" tells you to improve the auth flow. Here's how common platform metrics break down:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Vanity Metric', "Why It's Misleading", 'Actionable Alternative'],
@@ -163,7 +174,7 @@ The test for a good metric: does it tell you what to do? "We have 1000 users" te
 />
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: "Goodhart's Law",

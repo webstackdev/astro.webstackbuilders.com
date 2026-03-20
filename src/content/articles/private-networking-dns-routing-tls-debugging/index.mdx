@@ -25,7 +25,7 @@ The migration was supposed to take 30 minutes. We were moving from a publicly-ac
 
 Three days and four distinct failures later, we had a working connection — and a debugging playbook we've used for every migration since.
 
-Private networking isn't "the same thing, but internal." It's a fundamentally different debugging domain where familiar tools give unfamiliar results and "connection refused" could mean six different things depending on which layer actually failed. The trick is knowing where to look.
+<Highlighter>Private networking isn't "the same thing, but internal." It's a fundamentally different debugging domain where familiar tools give unfamiliar results and "connection refused" could mean six different things depending on which layer actually failed.</Highlighter> The trick is knowing where to look.
 
 ## The Debugging Playbook
 
@@ -34,7 +34,7 @@ Every private networking issue follows the same debugging sequence. Each layer d
 The sequence: __DNS → routing → connectivity → TLS → application__.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Layer', 'What to Check', 'Command', 'Pass Criteria'],
@@ -45,7 +45,7 @@ The sequence: __DNS → routing → connectivity → TLS → application__.
           th: 'DNS',
           td: [
             'Does the name resolve to the expected private IP?',
-            '<span class="font-mono">getent hosts \<hostname\></span> (sees what your app sees) or `dig @\<vpc-resolver\></span> (bypasses cache)',
+            '<span class="font-mono">getent hosts \<hostname\></span> (sees what your app sees) or <span class="font-mono">dig @\<vpc-resolver\></span> (bypasses cache)',
             'Returns expected private IP, not public',
           ],
         },
@@ -98,7 +98,10 @@ The most common DNS failure: a private hosted zone exists, the records are corre
 Split-horizon DNS creates similar confusion. You have a public zone for `api.example.com` that resolves to a public load balancer, and a private zone for the same name that resolves to an internal endpoint. If the private zone isn't associated with your VPC, queries fall through to public DNS and return the public IP. Traffic then goes out through NAT, across the internet, and back in — adding latency and potentially failing security group checks.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Symptom', 'Likely Cause', 'Fix'],

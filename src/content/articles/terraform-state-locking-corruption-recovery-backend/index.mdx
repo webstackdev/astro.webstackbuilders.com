@@ -18,7 +18,7 @@ It's 2 AM and you're staring at a `terraform plan` that wants to destroy half yo
 
 State corruption is a when, not an if. Every Terraform practitioner eventually experiences that moment of panic when state diverges from reality. The state file is Terraform's memory — it maps your HCL configuration to actual cloud resources. When that mapping breaks, Terraform loses its ability to reason about your infrastructure. The results range from orphaned resources you have to clean up manually to unintended destruction of production systems.
 
-The good news: state problems fall into predictable patterns, and each pattern has a specific recovery procedure. The question isn't whether you'll face state corruption, but whether you'll recover in minutes with practiced procedures or spend days reconstructing through imports and manual investigation.
+The good news: state problems fall into predictable patterns, and each pattern has a specific recovery procedure. <Highlighter>The question isn't whether you'll face state corruption, but whether you'll recover in minutes with practiced procedures or spend days reconstructing through imports and manual investigation.</Highlighter>
 
 ## Recognizing What's Wrong
 
@@ -27,7 +27,11 @@ State corruption isn't always obvious. Sometimes Terraform tells you directly wi
 The most common causes, roughly in order of frequency:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Interrupted applies',
@@ -211,15 +215,18 @@ A successful recovery should result in a plan showing no changes, or minimal dri
 Most state problems are preventable. These practices eliminate the patterns that cause corruption:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Enable S3 versioning with DynamoDB locking.',
       text: 'This is your recovery safety net and your concurrency protection.',
     },
     {
-      lead: 'Use CI/CD concurrency controls.',
-      text: 'Set `cancel-in-progress: false` in GitHub Actions — never cancel a running apply.',
+      lead: 'Use CI / CD concurrency controls.',
+      text: 'Set <span class="font-mono">cancel-in-progress: false</span> in GitHub Actions — never cancel a running apply.',
     },
     {
       lead: 'Pin provider and Terraform versions.',
@@ -227,11 +234,11 @@ Most state problems are preventable. These practices eliminate the patterns that
     },
     {
       lead: 'Save plans to files.',
-      text: 'Run `terraform plan -out=tfplan`, then `terraform apply tfplan`. This prevents drift between plan and apply.',
+      text: 'Run <span class="font-mono">terraform plan -out=tfplan</span>, then <span class="font-mono">terraform apply tfplan</span>. This prevents drift between plan and apply.',
     },
     {
       lead: 'Never edit state manually.',
-      text: 'Use `terraform state` commands instead. Manual JSON edits bypass validation and corrupt checksums.',
+      text: 'Use <span class="font-mono">terraform state</span> commands instead. Manual JSON edits bypass validation and corrupt checksums.',
     },
     {
       lead: 'Practice recovery quarterly.',

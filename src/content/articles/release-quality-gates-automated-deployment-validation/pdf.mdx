@@ -25,26 +25,29 @@ Here's the paradox: a gate with a 10% false positive rate will block legitimate 
 
 Consider a team that implemented the "full stack" of quality gates: test pass rate, code coverage thresholds, security scans, and performance benchmarks. On day one, everything's green and ships in five minutes. A month later, the security scanner adds new rules and flags a dependency vulnerability from 2019 that's not exploitable in their context. All deployments blocked. Someone adds an exception. Then coverage drops 0.1% because a refactor deleted dead code — blocked again. Exception added. Performance gate triggers on a cold-start test run — exception.
 
-Within three months, the gate configuration had so many exceptions it caught nothing. Worse, when a gate __did__ fire, engineers assumed it was another false positive and bypassed without investigating.
+Within three months, the gate configuration had so many exceptions it caught nothing. Worse, when a gate _did_ fire, engineers assumed it was another false positive and bypassed without investigating.
 
 They rebuilt the system with a different philosophy: __required gates__ (critical tests, security CVEs with CVSS 9+) versus __advisory gates__ (coverage trends, performance baselines). Required gates blocked deployments. Advisory gates logged warnings and alerted, but didn't block. False positives dropped 90%, and when a required gate fired, people actually investigated because they trusted it meant something.
 
 The measure of a good gate isn't how many deployments it blocks — it's how many real incidents it prevents relative to how many good deployments it delays. Quality gates are probabilistic safety nets, not deterministic guarantees. The goal isn't zero risk; it's catching the failures that matter while letting good deployments through quickly.
 
-This article covers gate design principles, implementation across pre- and post-deployment phases, configuration patterns for progressive delivery, and safe bypass mechanisms.
-
 <Callout type="warning">
 The most dangerous quality gate is one with so many false positives that teams stop trusting it. Gate fatigue leads to bypass culture, which means real failures slip through. Tune for precision over recall — it's better to miss some problems than to cry wolf constantly.
 </Callout>
+
+This article covers gate design principles, implementation across pre- and post-deployment phases, configuration patterns for progressive delivery, and safe bypass mechanisms.
 
 ## Gate Design Principles
 
 ### What Makes a Good Gate
 
-Not all checks belong in a deployment pipeline, and not all pipeline checks should block deployments. A well-designed gate has four characteristics: it's __actionable__, __deterministic__, __fast__, and __proportional__.
+Not all checks belong in a deployment pipeline, and not all pipeline checks should block deployments. A well-designed gate has four characteristics: it's _actionable_, _deterministic_, _fast_, and _proportional_.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Actionable',
@@ -70,7 +73,10 @@ Not all checks belong in a deployment pipeline, and not all pipeline checks shou
 Gates fall into three categories based on their precision and the criticality of what they detect:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Category', 'Behavior', 'Criteria', 'Examples'],
@@ -107,14 +113,14 @@ Gates fall into three categories based on their precision and the criticality of
   }}
 />
 
-The key distinction: __blocking gates must have high precision__. If a gate blocks deployments, every failure should represent a real problem worth stopping for. Gates with lower precision — security scanners that flag unexploitable vulnerabilities, performance tests with inherent variance, integration tests that depend on external services — should be advisory. They surface useful information, but they don't stop the pipeline.
+The key distinction: _blocking gates must have high precision_. If a gate blocks deployments, every failure should represent a real problem worth stopping for. Gates with lower precision — security scanners that flag unexploitable vulnerabilities, performance tests with inherent variance, integration tests that depend on external services — should be advisory. They surface useful information, but they don't stop the pipeline.
 
 ### Gate Anti-Patterns
 
 Some gate configurations sound reasonable but cause problems in practice:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: 'Coverage absolutism',
@@ -140,7 +146,7 @@ Some gate configurations sound reasonable but cause problems in practice:
 The ultimate question: is this gate worth having? Track these metrics to find out:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Precision',
@@ -184,7 +190,10 @@ Pre-deployment gates run before code reaches production — during CI builds, be
 The most fundamental gates are deterministic and should always block:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Compilation',
@@ -206,7 +215,10 @@ The most fundamental gates are deterministic and should always block:
 Test gates require more nuance because different test types have different reliability characteristics:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Unit tests',
@@ -232,7 +244,10 @@ Test gates require more nuance because different test types have different relia
 Coverage gates are where teams most often go wrong. Absolute coverage thresholds ("block if coverage drops below 80%") cause gaming and penalize legitimate refactoring. Better approaches:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Coverage delta',
@@ -250,7 +265,10 @@ Coverage gates are where teams most often go wrong. Absolute coverage thresholds
 Security gates protect against vulnerabilities, exposed secrets, and unsafe code patterns. The challenge is balancing thoroughness against false positive fatigue — security scanners are notorious for generating noise.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Dependency vulnerability scanning',
@@ -260,7 +278,8 @@ Security gates protect against vulnerabilities, exposed secrets, and unsafe code
 />
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['CVSS Score', 'Severity', 'Gate Behavior'],
@@ -292,7 +311,10 @@ Security gates protect against vulnerabilities, exposed secrets, and unsafe code
 For vulnerabilities that aren't exploitable in your context (wrong OS, unexposed code path, mitigating controls in place), maintain an allowlist with expiration dates. Review the allowlist monthly — exceptions shouldn't live forever.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'SAST (static analysis)',
@@ -318,7 +340,10 @@ Pre-deployment gates catch problems before code ships, but they can't catch ever
 The first 30-60 seconds after deployment are critical. If something is catastrophically broken — the service won't start, dependencies are unreachable, or the app crashes immediately — you want to know before traffic shifts.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Health checks',
@@ -340,7 +365,10 @@ The first 30-60 seconds after deployment are critical. If something is catastrop
 Once immediate health is confirmed, canary validation compares the new version against the baseline over a longer observation window. The core metrics:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Error rate',
@@ -366,7 +394,8 @@ Once immediate health is confirmed, canary validation compares the new version a
 Progressive delivery — gradually shifting traffic from 1% to 10% to 50% to 100%—gives you multiple opportunities to catch problems before full exposure. Each stage should have its own gate criteria:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Stage', 'Duration', 'Required Gates'],
@@ -403,6 +432,7 @@ Post-deployment gates need to query your metrics system, compare values against 
 
 <Diagram
   src={postDeploymentDiagram}
+  size="full"
   title="Post-deployment validation flow."
   description="Sequence diagram with four participants: Deployment, Gate Orchestrator, Prometheus, and Alerting. Deployment begins by sending Start validation with canary deployed to the Gate Orchestrator. A loop then repeats every 30 seconds for 5 minutes. During each iteration, the Gate Orchestrator queries Prometheus for error rate, latency, and availability, and Prometheus returns metric values. The Gate Orchestrator then compares those values to configured thresholds. Inside an alternate failure branch, if any blocking gate fails, the Gate Orchestrator sends FAIL and Rollback to Deployment, sends a Notify on-call message to Alerting, and the Deployment rolls back to the previous version. If the loop completes without triggering a blocking failure, the Gate Orchestrator sends PASS and Promote to Deployment, and the Deployment increases the canary percentage. The diagram shows the observe, evaluate, rollback, or promote cycle used for automated post-deployment quality gates."
 />
@@ -654,7 +684,8 @@ Code: Argo Rollouts business metrics template.
 The templates above cover the most common gate patterns: absolute thresholds for error rates and latency, and baseline comparisons for business metrics. Together with the progressive rollout strategy, they form a complete automated validation pipeline. The failure limits and iteration counts let you tune sensitivity — tighter limits catch problems faster but are more prone to false positives from metric noise.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Gate Type', 'Timing', 'Blocking', 'Rollback'],
@@ -708,7 +739,11 @@ Even well-tuned gates occasionally need bypassing. A critical production inciden
 Not all bypasses are equal. Categorizing them helps determine the appropriate approval level and follow-up:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Emergency bypass',
@@ -757,7 +792,11 @@ For teams using GitLab, similar patterns apply: protected branches with differen
 Bypasses should be rare. If they're not, something's wrong — either with your gates or with your culture. Guard rails help:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Rate limiting',
@@ -792,25 +831,28 @@ A few principles to carry forward:
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      lead: 'Design for precision over recall.',
+      lead: 'Design for precision over recall',
       text: 'A gate that blocks one real problem and ten false positives is worse than no gate at all. Engineers will route around it, and trust in the whole system erodes. Better to catch fewer problems with high confidence.',
     },
     {
-      lead: 'Categorize ruthlessly.',
+      lead: 'Categorize ruthlessly',
       text: 'Not every gate belongs in the critical path. Compile failures must block. Security vulnerabilities must block. But a 2% coverage regression? A 50ms latency increase? Those deserve investigation, not pipeline failure. Advisory gates surface the signal without creating friction.',
     },
     {
-      lead: 'Combine threshold types.',
+      lead: 'Combine threshold types',
       text: 'Absolute thresholds catch catastrophic failures (error rate above 5%, latency above 2 seconds). Relative thresholds catch regressions (20% worse than baseline). Used together, they\'re robust against both disaster and slow degradation.',
     },
     {
-      lead: 'Automate the hard part.',
+      lead: 'Automate the hard part',
       text: 'Manual approval gates don\'t scale. Progressive delivery tools like Argo Rollouts and Flagger shift the burden from humans to metrics. Define what "healthy" means, and let automation enforce it.',
     },
     {
-      lead: 'Maintain escape hatches.',
+      lead: 'Maintain escape hatches',
       text: 'Bypasses aren\'t a failure mode — they\'re a feature. Production incidents don\'t wait for flaky tests to stabilize. But bypasses need audit trails, approval workflows, and weekly review. Uncontrolled bypasses defeat the purpose.',
     },
   ]}
@@ -818,8 +860,8 @@ A few principles to carry forward:
 
 The goal isn't zero-risk deployments. Zero risk means zero deployments, which means zero value delivered. The goal is catching the failures that matter while maintaining the velocity your business requires.
 
-Measure gate effectiveness by the ratio of incidents prevented to false positives generated. If that ratio is high, your gates are earning their keep. If it's low, you're paying in friction for safety you're not receiving. Track it, tune it, and be willing to remove gates that aren't carrying their weight.
-
 <Callout type="success">
 The ultimate test of a quality gate system: when a gate fails, do engineers investigate or bypass? If they investigate, you've built trust. If they bypass, you've built friction. Design for the former.
 </Callout>
+
+Measure gate effectiveness by the ratio of incidents prevented to false positives generated. If that ratio is high, your gates are earning their keep. If it's low, you're paying in friction for safety you're not receiving. Track it, tune it, and be willing to remove gates that aren't carrying their weight.

@@ -20,7 +20,7 @@ import oidcTokenDiagram from "./diagrams/oidc-token-exchange-flow-for-workload-i
 
 It starts with a Slack message at 2 AM: "Why is there a $47,000 charge on our Azure bill?" You dig through the activity logs and find a cryptomining operation running in your subscription. The trail leads back to a service principal secret created eighteen months ago during a "quick proof of concept." Nobody remembers who created it. Nobody knows where else it might have been copied. And now you're explaining to leadership how a credential that was supposed to be temporary gave an attacker free rein over your infrastructure.
 
-This scenario plays out constantly. Service account keys are the most common entry point for cloud breaches, and the attack vector is almost always the same: a static credential that was created, copied somewhere, and forgotten.
+This scenario plays out constantly. <Highlighter>Service account keys are the most common entry point for cloud breaches, and the attack vector is almost always the same: a static credential that was created, copied somewhere, and forgotten.</Highlighter>
 
 ## The Hidden Risk of Long-Lived Keys
 
@@ -29,7 +29,10 @@ Service account keys are static credentials that live forever until explicitly r
 The security model is fundamentally broken: you're distributing secrets that grant access, then hoping nobody loses track of them. But secrets spread. They end up in git history, in Slack messages, in screenshots of terminal sessions. Each copy is a potential breach waiting to happen.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
     thead: {
       th: ['Risk Scenario', 'Impact', 'Detection Difficulty'],
@@ -89,18 +92,23 @@ The JWT contains claims about the workload — which repository triggered the bu
 The critical claims in a GitHub Actions token look like this:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
-      lead: 'iss (issuer)',
-      text: 'Where the token came from — `https://token.actions.githubusercontent.com`',
+      lead: '<span class="font-mono">iss</span> (issuer)',
+      text: 'Where the token came from — <span class="font-mono">https://token.actions.githubusercontent.com</span>',
     },
     {
-      lead: 'sub (subject)',
-      text: 'The specific workload identity — `repo:myorg/myrepo:ref:refs/heads/main`',
+      lead: '<span class="font-mono">sub</span> (subject)',
+      text: 'The specific workload identity — <span class="font-mono">repo:myorg/myrepo:ref:refs/heads/main</span>',
     },
     {
-      lead: 'aud (audience)',
+      lead: '<span class="font-mono">aud</span> (audience)',
       text: "Who the token is intended for — your cloud provider's token exchange endpoint",
     },
   ]}

@@ -78,27 +78,32 @@ Organizations arrive at multi-cluster architectures for different reasons, and t
 
 Every multi-cluster strategy sits somewhere on a spectrum from "all clusters are identical" to "each cluster is independent." Neither extreme works well in practice.
 
-<List
-  variant="numbered-with-background-list"
-  items={[
-    {
-      lead: "Fully consistent",
-      text: "means all clusters get exactly the same configuration. This is simple to reason about and guarantees reproducibility, but it's inflexible. You end up over-provisioning dev and staging to match production, or you can't tune production for its actual load patterns. This approach only works for small fleets with simple applications.",
-    },
-    {
-      lead: "Layered configuration",
-      text: `uses a base configuration with environment-specific overrides. This is the sweet spot for most organizations. You define what's shared (security policies, monitoring stack, core add-ons) and what varies (replica counts, resource limits, feature flags). Kustomize overlays and Helm values files are the typical implementation. The risk is "override explosion"—so many layers of patches that nobody can trace what a cluster actually runs.`,
-    },
-    {
-      lead: "Policy-governed",
-      text: "configuration sets guardrails rather than identical configs. Teams can customize their clusters within bounds enforced by OPA/Gatekeeper[^opa-gatekeeper] or Kyverno[^kyverno]. This enables innovation and team autonomy, but drift happens within the policy bounds. Debugging becomes harder because clusters are intentionally different.",
-    },
-    {
-      lead: "Fully flexible",
-      text: "means each cluster is independent, with its own GitOps repo and configuration. Maximum autonomy, maximum chaos. Security risks emerge when teams deviate from baselines. This only works with truly autonomous teams who don't need cross-cluster consistency.",
-    },
-  ]}
-/>
+<List variant="numbered-with-background-list">
+  <ListItem lead="Fully consistent">
+    Means all clusters get exactly the same configuration. This is simple to reason about and guarantees
+    reproducibility, but it's inflexible. You end up over-provisioning dev and staging to match
+    production, or you can't tune production for its actual load patterns. This approach only works for
+    small fleets with simple applications.
+  </ListItem>
+  <ListItem lead="Layered configuration">
+    Uses a base configuration with environment-specific overrides. This is the sweet spot for most
+    organizations. You define what's shared (security policies, monitoring stack, core add-ons) and
+    what varies (replica counts, resource limits, feature flags). Kustomize overlays and Helm values
+    files are the typical implementation. The risk is "override explosion"—so many layers of patches
+    that nobody can trace what a cluster actually runs.
+  </ListItem>
+  <ListItem lead="Policy-governed">
+    Configuration sets guardrails rather than identical configs. Teams can customize their clusters
+    within bounds enforced by OPA/Gatekeeper[^opa-gatekeeper] or Kyverno[^kyverno]. This enables
+    innovation and team autonomy, but drift happens within the policy bounds. Debugging becomes harder
+    because clusters are intentionally different.
+  </ListItem>
+  <ListItem lead="Fully flexible">
+    Means each cluster is independent, with its own GitOps repo and configuration. Maximum autonomy,
+    maximum chaos. Security risks emerge when teams deviate from baselines. This only works with truly
+    autonomous teams who don't need cross-cluster consistency.
+  </ListItem>
+</List>
 
 [^opa-gatekeeper]: OPA (Open Policy Agent) is an open-source, general-purpose policy engine that unifies policy enforcement across the stack, using a declarative language called Rego to define complex rules. Gatekeeper is a specialized project that integrates OPA into Kubernetes — it acts as a validating admission controller, intercepting requests to the Kubernetes API and checking them against OPA policies before resources are created or modified.
 

@@ -1,0 +1,148 @@
+---
+import { randomUUID } from 'node:crypto'
+
+import Icon from '@components/Icon/index.astro'
+
+type TroubleshooterItem = {
+  text: string
+}
+
+type TroubleshooterSection = {
+  lead?: string
+  items: TroubleshooterItem[]
+}
+
+export type Props = {
+  items: {
+    symptoms: TroubleshooterSection
+    causes: TroubleshooterSection
+    diagnosis: TroubleshooterSection
+    fixes: TroubleshooterSection
+  }
+}
+
+const { items } = Astro.props as Props
+
+const sectionMeta = {
+  symptoms: { icon: 'error-open', color: 'danger', label: 'Symptoms' },
+  causes: { icon: 'question', color: 'warning', label: 'Cause' },
+  diagnosis: { icon: 'folder-magnifying-glass', color: 'info', label: 'Diagnosis' },
+  fixes: { icon: 'wrench', color: 'success', label: 'Fix' },
+} satisfies Record<keyof Props['items'], { icon: string; color: string; label: string }>
+
+const sectionIdBase = `troubleshooter-${randomUUID()}`
+
+function getSectionClassNames(color: string) {
+  return {
+    headerBg: `bg-${color}-inverse`,
+    headerText: `text-${color}`,
+    headerTopBorder: `border-t-${color}`,
+    markerBg: `bg-${color}`,
+  }
+}
+---
+
+<style>
+  .troubleshooter + .troubleshooter {
+    margin-top: 1.5rem;
+  }
+</style>
+
+<section
+  class="troubleshooter overflow-hidden rounded-xl border border-trim bg-content-inverse"
+  aria-label="Troubleshooting"
+>
+  <div class="border-b border-trim bg-page-base px-6 py-4">
+    <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p class="m-0 text-xs font-bold uppercase tracking-[0.14em] text-content-offset">Troubleshooting</p>
+        <div class="hidden flex-wrap gap-2 text-xs sm:flex" aria-hidden="true">
+          <span class="rounded-full bg-danger-inverse px-3 py-1 font-semibold text-danger">Build Integrity</span>
+          <span class="rounded-full bg-warning-inverse px-3 py-1 font-semibold text-warning">Root Cause</span>
+          <span class="rounded-full bg-info-inverse px-3 py-1 font-semibold text-info">Verification</span>
+          <span class="rounded-full bg-success-inverse px-3 py-1 font-semibold text-success">Actionable</span>
+        </div>
+      </div>
+      <div class="[&_h3]:relative [&_h3]:text-page-inverse [&_h3]:group [&_h3]:mt-0! [&_h3]:mb-0!">
+        <slot />
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-col">
+    {([['symptoms', 'causes'], ['diagnosis', 'fixes']] as const).map((pair, rowIndex) => {
+      const cards = pair.map((key) => ({
+        key,
+        meta: sectionMeta[key],
+        items: items[key],
+      }))
+
+      return (
+        <div class:list={[
+          'flex flex-col md:flex-row shadow-sm',
+          rowIndex === 0 ? 'border-b border-trim-offset' : '',
+        ]}>
+          {cards.map((card, colIndex) => {
+            const colorClasses = getSectionClassNames(card.meta.color)
+            const sectionHeadingId = `${sectionIdBase}-${card.key}`
+
+            return (
+              <section
+                aria-labelledby={sectionHeadingId}
+                class:list={[
+                'flex flex-1 flex-col',
+                colIndex === 0 ? 'md:border-r border-trim' : '',
+                colIndex === 0 ? 'bg-content-inverse' : 'bg-page-base',
+                ]}>
+                <div class:list={[
+                  'flex items-center gap-3 border-b border-t-4 border-trim-offset px-6 py-3',
+                  colorClasses.headerBg,
+                  colorClasses.headerTopBorder,
+                ]}>
+                  <Icon icon={card.meta.icon} size={5} color={card.meta.color} />
+                  <h4
+                    class:list={[
+                    'm-0 text-sm font-bold uppercase tracking-[0.12em]',
+                    colorClasses.headerText,
+                    ]}
+                    id={sectionHeadingId}
+                  >{card.meta.label}</h4>
+                </div>
+                <div class="grow px-6 py-5 text-base text-content">
+                  {!card.items.lead && card.items.items.length === 0 ? (
+                    <span class="text-content-offset italic">None specified</span>
+                  ) : null}
+
+                  {card.items.lead && (
+                    <p class:list={[
+                      'm-0',
+                      card.items.items.length > 0 ? 'mb-3' : '',
+                    ]} set:html={card.items.lead} />
+                  )}
+
+                  {!card.items.lead && card.items.items.length === 1 && (
+                    <p class="m-0" set:html={card.items.items[0]?.text} />
+                  )}
+
+                  {card.items.items.length > 0 && (card.items.items.length > 1 || Boolean(card.items.lead)) && (
+                    <ul class="m-0 list-none flex flex-col gap-2.5 p-0">
+                      {card.items.items.map((item) => (
+                        <li class="flex items-start gap-2.5">
+                          <span class:list={[
+                            'mt-1.5 flex h-2 w-2 shrink-0 rounded-full',
+                            colorClasses.markerBg,
+                          ]} aria-hidden="true" />
+                          <span set:html={item.text} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </section>
+            )
+          })}
+        </div>
+      )
+    })}
+  </div>
+</section>

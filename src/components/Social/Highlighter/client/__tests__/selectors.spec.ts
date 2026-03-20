@@ -60,6 +60,10 @@ describe('HighlighterElement selectors', () => {
           'HighlighterElement dialog should be role="toolbar"'
         ).toBe('toolbar')
         expect(
+          dialog.querySelector('.share-dialog__text')?.textContent,
+          'HighlighterElement should render a visible share label inside the dialog'
+        ).toBe('Share Selection')
+        expect(
           shareButtons.length,
           'HighlighterElement should render at least one share button'
         ).toBeGreaterThan(0)

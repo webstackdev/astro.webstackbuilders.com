@@ -32,6 +32,7 @@ const COMPONENT_TAG_NAME = 'highlighter-element'
 const ICON_BANK_ID = 'highlighter-icon-bank'
 
 let highlighterInstanceCounter = 0
+const VISIBLE_SHARE_LABEL = 'Share Selection'
 
 /**
  * Highlighter element that creates a shareable text highlight
@@ -144,6 +145,7 @@ export class HighlighterElement extends LitElement {
           aria-label="${this.label}"
           aria-hidden="true"
         >
+          <span class="share-dialog__text">${VISIBLE_SHARE_LABEL}</span>
           <span class="share-dialog__buttons">
             ${platforms.map(
               platform => html`
@@ -235,11 +237,13 @@ export class HighlighterElement extends LitElement {
       return
     }
 
-    dialog.style.backgroundColor = 'var(--color-page-offset)'
+    dialog.style.backgroundColor = 'var(--color-page-base)'
 
     const arrow = queryShareDialogArrow(dialog)
     if (arrow) {
-      arrow.style.borderTopColor = 'var(--color-page-offset)'
+      arrow.style.backgroundColor = 'var(--color-page-base)'
+      arrow.style.borderBottomColor = 'var(--color-trim-offset)'
+      arrow.style.borderRightColor = 'var(--color-trim-offset)'
     }
   }
 

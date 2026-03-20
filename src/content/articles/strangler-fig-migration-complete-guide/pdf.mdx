@@ -33,6 +33,7 @@ import shadowTrafficDiagram from "./diagrams/shadow-traffic-architecture-with-as
 *[TTL]: Time To Live
 
 > Migrate what you can observe; observe before you migrate.
+> — Anonymous migration proverb
 
 The strangler fig pattern succeeds because it trades big-bang risk for incremental progress. This guide walks through the complete lifecycle — from baseline instrumentation through traffic shifting to legacy decommissioning — using authentication extraction as a concrete running example.
 
@@ -40,15 +41,21 @@ The strangler fig pattern succeeds because it trades big-bang risk for increment
 
 The strangler fig pattern gets its name from the strangler fig tree, which grows around a host tree and gradually replaces it while the original structure remains standing. That's exactly what we're doing with migrations: building the new system around the old one, shifting traffic incrementally, and only decommissioning the legacy system when we've proven the new one works.
 
-The core insight is simple: __you can't migrate what you can't observe__. Before touching any traffic, you need to know what "normal" looks like. That baseline becomes your comparison point throughout the migration.
+The core insight is simple: _you can't migrate what you can't observe_. Before touching any traffic, you need to know what "normal" looks like. That baseline becomes your comparison point throughout the migration.
 
 ### Why Strangler Fig Works
 
 The pattern eliminates the single point of failure that kills most migrations. With a big-bang approach, you're betting everything on one deployment. If it fails, you're scrambling to roll back while users pile into your support queue. With strangler fig, each increment is a small bet. A failure at 5% traffic is annoying; a failure at 100% traffic is a much bigger problem.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-center',
+  }}
   content={{
+    figure: 'Big-bang vs. strangler fig tradeoffs',
     thead: {
       th: ['Approach', 'Blast Radius', 'Rollback', 'Time to Value', 'Observability'],
     },
@@ -85,7 +92,7 @@ Read-only endpoints (GET requests, queries) are ideal first migration candidates
 
 ### Why Auth Is the Hardest Extraction
 
-I'm using authentication as the running example throughout this guide because if you can extract auth, you can extract anything. Auth is the hardest extraction because it touches __everything__.
+I'm using authentication as the running example throughout this guide because if you can extract auth, you can extract anything. Auth is the hardest extraction because it touches _everything_.
 
 The coupling points are numerous: user table foreign keys exist in every table with a `user_id` column, session storage lives in a shared database, permission checks are scattered throughout business logic, and password reset flows integrate with email and SMS services. Each of these creates a dependency that must be addressed during migration.
 
@@ -112,9 +119,13 @@ The goal is to capture four key metrics for every endpoint: request count, error
 // Web API 2 running on .NET Framework 4.6.2+ legacy services
 public class LegacyInstrumentationModule : IHttpModule {
     private static readonly Meter Meter = new Meter("legacy-migration");
-    private static readonly ActivitySource ActivitySource = new ActivitySource("legacy-migration");
+    private static readonly ActivitySource ActivitySource = new ActivitySource(
+      "legacy-migration"
+    );
 
-    private static readonly Counter<long> RequestCounter = Meter.CreateCounter<long>("http_requests_total");
+    private static readonly Counter<long> RequestCounter = Meter.CreateCounter<long>(
+      "http_requests_total"
+    );
     private static readonly Histogram<double> RequestDuration = Meter.CreateHistogram<double>("http_request_duration_ms", "ms");
 
     public void Init(HttpApplication context) {
@@ -123,7 +134,9 @@ public class LegacyInstrumentationModule : IHttpModule {
             var path = app.Request.Path;
 
             // Start Span (Activity)
-            var activity = ActivitySource.StartActivity($"{app.Request.HttpMethod} {path}");
+            var activity = ActivitySource.StartActivity(
+              $"{app.Request.HttpMethod} {path}"
+            );
             activity?.SetTag("http.method", app.Request.HttpMethod);
             activity?.SetTag("migration.system", "legacy");
 
@@ -140,8 +153,12 @@ public class LegacyInstrumentationModule : IHttpModule {
             var status = app.Response.StatusCode.ToString();
 
             // Record Metrics
-            RequestCounter.Add(1, new("method", app.Request.HttpMethod), new("status", status));
-            RequestDuration.Record(duration, new("method", app.Request.HttpMethod), new("status", status));
+            RequestCounter.Add(
+              1, new("method", app.Request.HttpMethod), new("status", status)
+            );
+            RequestDuration.Record(
+              duration, new("method", app.Request.HttpMethod), new("status", status)
+            );
 
             // End Span
             activity?.SetTag("http.status_code", app.Response.StatusCode);
@@ -183,6 +200,8 @@ Code: OpenTelemetry startup registration.
 
 Code: Web.config module registration.
 
+Code: Legacy system instrumentation setup.
+
 If you're working with a system that can't easily add middleware — maybe it's a compiled binary or a third-party service — you can instrument at the proxy layer instead. AWS ALB access logs or NGINX logs can be parsed into metrics, though you lose the ability to capture response bodies.
 
 ### Capturing Response Signatures
@@ -207,7 +226,9 @@ public class ResponseSignature {
 }
 
 public class MigrationLoggingHandler : DelegatingHandler {
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) {
+    protected override async Task<HttpResponseMessage> SendAsync(
+      HttpRequestMessage request, CancellationToken cancellationToken
+    ) {
         var stopwatch = Stopwatch.StartNew();
         var timestamp = DateTime.UtcNow;
 
@@ -281,7 +302,9 @@ sum(rate(http_requests_total{system="legacy",status=~"5.."}[5m])) by (path)
 sum(rate(http_requests_total{system="legacy"}[5m])) by (path)
 
 # P99 latency by endpoint
-histogram_quantile(0.99, sum(rate(http_request_duration_ms_bucket{system="legacy"}[5m])) by (le, path))
+histogram_quantile(
+  0.99, sum(rate(http_request_duration_ms_bucket{system="legacy"}[5m])) by (le, path)
+)
 ```
 
 Code: Baseline Prometheus queries.
@@ -300,6 +323,8 @@ The basic architecture routes production requests to the legacy system as normal
 
 <Diagram
   src={shadowTrafficDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="Shadow traffic architecture with async mirroring"
   description="A left-to-right flowchart showing how shadow traffic is mirrored during migration. A client request goes to a load balancer, which sends the primary request to the legacy system. The legacy system returns the response to the client. At the same time, the load balancer sends an asynchronous copy of the request to the new system. Both the new system and the legacy system send their results to a comparison and logging component. The diagram shows that users continue receiving responses only from the legacy system while the new system is evaluated in parallel."
 />
@@ -315,7 +340,9 @@ public class ShadowTrafficHandler : DelegatingHandler {
     private readonly IComparisonService _comparisonService;
     private readonly string _newServiceBaseUrl;
 
-    public ShadowTrafficHandler(string newServiceBaseUrl, IComparisonService comparisonService) {
+    public ShadowTrafficHandler(
+      string newServiceBaseUrl, IComparisonService comparisonService
+    ) {
         _newServiceBaseUrl = newServiceBaseUrl;
         _comparisonService = comparisonService;
         _shadowClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
@@ -339,7 +366,13 @@ public class ShadowTrafficHandler : DelegatingHandler {
         // Fire-and-forget shadow request (don't block the response)
         _ = Task.Run(async () => {
             try {
-                await SendShadowRequest(request, requestBody, legacyResponse.StatusCode, legacyBody, legacyLatency);
+                await SendShadowRequest(
+                  request,
+                  requestBody,
+                  legacyResponse.StatusCode,
+                  legacyBody,
+                  legacyLatency
+                );
             }
             catch (Exception ex) {
                 // Log but never affect production traffic
@@ -350,8 +383,13 @@ public class ShadowTrafficHandler : DelegatingHandler {
         return legacyResponse;
     }
 
-    private async Task SendShadowRequest(HttpRequestMessage originalRequest, string requestBody,
-        HttpStatusCode legacyStatus, string legacyBody, long legacyLatencyMs) {
+    private async Task SendShadowRequest(
+      HttpRequestMessage originalRequest,
+      string requestBody,
+      HttpStatusCode legacyStatus,
+      string legacyBody,
+      long legacyLatencyMs
+    ) {
 
         var shadowRequest = new HttpRequestMessage(originalRequest.Method,
             _newServiceBaseUrl + originalRequest.RequestUri.PathAndQuery);
@@ -363,7 +401,9 @@ public class ShadowTrafficHandler : DelegatingHandler {
         shadowRequest.Headers.Add("X-Shadow-Request", "true");
 
         if (requestBody != null) {
-            shadowRequest.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+            shadowRequest.Content = new StringContent(
+              requestBody, Encoding.UTF8, "application/json"
+            );
         }
 
         var stopwatch = Stopwatch.StartNew();
@@ -407,12 +447,18 @@ app = func.FunctionApp()
 
 VOLATILE_FIELDS = {'timestamp', 'requestId', 'traceId', 'serverTime'}
 
-@app.cosmos_db_trigger(arg_name="signatures", container_name="signatures",
-                        database_name="migration", connection="CosmosConnection",
-                        lease_container_name="leases")
+@app.cosmos_db_trigger(
+  arg_name="signatures",
+  container_name="signatures",
+  database_name="migration",
+  connection="CosmosConnection",
+  lease_container_name="leases"
+)
 async def compare_response_signatures(signatures: func.DocumentList):
     cosmos = CosmosClient.from_connection_string(os.environ["CosmosConnection"])
-    container = cosmos.get_database_client("migration").get_container_client("signatures")
+    container = cosmos.get_database_client(
+      "migration"
+    ).get_container_client("signatures")
     telemetry = TelemetryClient(os.environ["APPINSIGHTS_INSTRUMENTATIONKEY"])
 
     for sig in signatures:
@@ -420,8 +466,10 @@ async def compare_response_signatures(signatures: func.DocumentList):
 
         # Query for the matching signature from the other system
         query = "SELECT * FROM c WHERE c.requestId = @rid AND c.system = @sys"
-        params = [{"name": "@rid", "value": sig["requestId"]},
-                  {"name": "@sys", "value": partner_system}]
+        params = [
+          {"name": "@rid", "value": sig["requestId"]},
+          {"name": "@sys", "value": partner_system}
+        ]
         partners = list(container.query_items(query, parameters=params))
 
         if not partners:
@@ -542,19 +590,22 @@ Shadow traffic works for read operations but is dangerous for writes. Duplicatin
 Run shadow traffic for at least a week before considering real traffic migration. You're looking for:
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: "Mismatch rate below 0.1% (or whatever threshold you've defined as acceptable)",
+      lead: "Mismatch rate below 0.1% (or whatever threshold you've defined as acceptable)",
     },
     {
-      text: 'No systematic errors-random noise is fine, but patterns indicate bugs',
+      lead: 'No systematic errors-random noise is fine, but patterns indicate bugs',
     },
     {
-      text: 'Latency within 20% of legacy system (the new system being faster is fine; much slower is a problem)',
+      lead: 'Latency within 20% of legacy system (the new system being faster is fine; much slower is a problem)',
     },
     {
-      text: 'No memory leaks or connection pool exhaustion under sustained load',
+      lead: 'No memory leaks or connection pool exhaustion under sustained load',
     },
   ]}
 />
@@ -570,8 +621,9 @@ With validation complete, you shift from testing to construction. Shadow traffic
 Design the interface before writing implementation code. For an auth service, the contract typically includes public endpoints for login, logout, and password management, plus internal endpoints for token validation that other services will call.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Code: Auth service endpoint contract',
     thead: {
       th: ['Endpoint', 'Method', 'Purpose', 'SLO'],
     },
@@ -645,14 +697,19 @@ public class TokenService {
     private readonly TimeSpan _accessTokenTtl = TimeSpan.FromMinutes(15);
     private readonly TimeSpan _refreshTokenTtl = TimeSpan.FromDays(7);
 
-    public async Task<TokenPair> GenerateTokenPairAsync(User user, IEnumerable<string> permissions) {
+    public async Task<TokenPair> GenerateTokenPairAsync(
+      User user, IEnumerable<string> permissions
+    ) {
         var now = DateTime.UtcNow;
 
         var claims = new List<Claim> {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(now).ToUnixTimeSeconds().ToString(),
-                      ClaimValueTypes.Integer64),
+            new Claim(
+              JwtRegisteredClaimNames.Iat,
+              new DateTimeOffset(now).ToUnixTimeSeconds().ToString(),
+              ClaimValueTypes.Integer64
+            ),
             new Claim("aud", "api"),
             new Claim("aud", "internal")
         };
@@ -662,13 +719,15 @@ public class TokenService {
         var signingCredentials = new SigningCredentials(
             new RsaSecurityKey(_privateKey), SecurityAlgorithms.RsaSha256);
 
-        var accessToken = new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(
+        var accessToken = new JwtSecurityTokenHandler().WriteToken(
+          new JwtSecurityToken(
             issuer: "auth-service",
             claims: claims,
             notBefore: now,
             expires: now.Add(_accessTokenTtl),
             signingCredentials: signingCredentials
-        ));
+          )
+        );
 
         var refreshToken = await CreateRefreshTokenAsync(user.Id, now);
 
@@ -691,9 +750,13 @@ public class TokenService {
                 ClockSkew = TimeSpan.FromSeconds(30)
             };
 
-            var principal = handler.ValidateToken(token, parameters, out var validatedToken);
+            var principal = handler.ValidateToken(
+              token, parameters, out var validatedToken
+            );
             var userId = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            var issuedAt = long.Parse(principal.FindFirst(JwtRegisteredClaimNames.Iat)?.Value ?? "0");
+            var issuedAt = long.Parse(
+              principal.FindFirst(JwtRegisteredClaimNames.Iat)?.Value ?? "0"
+            );
 
             // Check token revocation (user changed password, logged out, etc.)
             if (await IsTokenRevokedAsync(userId, issuedAt)) {
@@ -703,7 +766,9 @@ public class TokenService {
             return new ValidationResult {
                 Valid = true,
                 UserId = userId,
-                Permissions = principal.FindAll("permission").Select(c => c.Value).ToList(),
+                Permissions = principal.FindAll(
+                  "permission"
+                ).Select(c => c.Value).ToList(),
                 ExpiresAt = ((JwtSecurityToken)validatedToken).ValidTo
             };
         }
@@ -750,7 +815,11 @@ public class DualWriteUserService {
             }
             catch (Exception ex) {
                 // Log but don't fail — legacy write succeeded
-                _logger.LogError(ex, "Failed to sync user {UserId} to auth service", user.Id);
+                _logger.LogError(
+                  ex,
+                  "Failed to sync user {UserId} to auth service",
+                  user.Id
+                );
                 await _syncQueue.EnqueueAsync(new SyncUserJob { UserId = user.Id });
             }
         }
@@ -769,8 +838,14 @@ public class DualWriteUserService {
                 await _authService.UpdatePasswordHashAsync(userId, hash);
             }
             catch (Exception ex) {
-                _logger.LogError(ex, "Failed to sync password for user {UserId}", userId);
-                await _syncQueue.EnqueueAsync(new SyncPasswordJob { UserId = userId, Hash = hash });
+                _logger.LogError(
+                  ex,
+                  "Failed to sync password for user {UserId}",
+                  userId
+                );
+                await _syncQueue.EnqueueAsync(
+                  new SyncPasswordJob { UserId = userId, Hash = hash }
+                );
             }
         }
     }
@@ -826,7 +901,8 @@ public class UserMigrationJob {
                     }
 
                     report.Migrated++;
-                    await Task.Delay(config.RateLimitMs);  // Be gentle with the new service
+                    // Be gentle with the new service
+                    await Task.Delay(config.RateLimitMs);
                 }
                 catch (Exception ex) {
                     report.Failed++;
@@ -857,8 +933,10 @@ Shadow traffic validated the new system; now you're moving real users. This is w
 The most common approach: route a percentage of requests to the new system, increasing the percentage as confidence grows. Start small (1%), wait for metrics to stabilize, then increase.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
+    figure: 'Progressive traffic shift schedule',
     thead: {
       th: ['Day', 'New System %', 'Gate Criteria'],
     },
@@ -894,7 +972,6 @@ The most common approach: route a percentage of requests to the new system, incr
         },
       ],
     },
-    figure: 'Progressive traffic shift schedule',
   }}
 />
 
@@ -941,22 +1018,22 @@ Percentage-based splitting is random — any user might hit either system on any
 Cohort-based migration routes entire user segments rather than random requests. Start with low-risk cohorts:
 
 <List
-  variant="numbered-with-background-list"
+  variant="card-grid-list"
   items={[
     {
-      lead: 'Internal employees:',
+      lead: 'Internal employees',
       text: 'Your own team uses the new system first. They can report issues directly.',
     },
     {
-      lead: 'Beta opt-ins:',
+      lead: 'Beta opt-ins',
       text: 'Users who explicitly want new features and understand the tradeoffs.',
     },
     {
-      lead: 'Low-tier accounts:',
+      lead: 'Low-tier accounts',
       text: 'Free users or small organizations where an issue has limited blast radius.',
     },
     {
-      lead: 'New signups:',
+      lead: 'New signups',
       text: 'Users with no history in the legacy system avoid data migration issues.',
     },
   ]}
@@ -1029,7 +1106,10 @@ public class HybridAuthMiddleware : IHttpModule {
 
         // Try JWT first (from Authorization header)
         var authHeader = request.Headers["Authorization"];
-        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)) {
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith(
+          "Bearer ",
+          StringComparison.OrdinalIgnoreCase
+        )) {
             var token = authHeader.Substring(7);
             var validation = ValidateJwt(token);
 
@@ -1038,7 +1118,9 @@ public class HybridAuthMiddleware : IHttpModule {
                 var claims = new List<Claim> {
                     new Claim(ClaimTypes.NameIdentifier, validation.UserId)
                 };
-                claims.AddRange(validation.Permissions.Select(p => new Claim("permission", p)));
+                claims.AddRange(
+                  validation.Permissions.Select(p => new Claim("permission", p))
+                );
 
                 var identity = new ClaimsIdentity(claims, "JWT");
                 HttpContext.Current.User = new ClaimsPrincipal(identity);
@@ -1076,7 +1158,10 @@ public class HybridAuthMiddleware : IHttpModule {
             result = new ValidationResult {
                 Valid = true,
                 UserId = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value,
-                Permissions = principal.FindAll("permission").Select(c => c.Value).ToList()
+                Permissions = principal
+                  .FindAll("permission")
+                  .Select(c => c.Value)
+                  .ToList()
             };
         }
         catch (SecurityTokenException) {
@@ -1115,8 +1200,10 @@ When metrics degrade during traffic shifting, you need to roll back immediately 
 Define clear thresholds before you start shifting traffic:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
+    figure: 'Automatic rollback trigger thresholds',
     thead: {
       th: ['Trigger', 'Threshold', 'Rationale'],
     },
@@ -1140,7 +1227,6 @@ Define clear thresholds before you start shifting traffic:
         },
       ],
     },
-    figure: 'Automatic rollback trigger thresholds',
   }}
 />
 
@@ -1265,8 +1351,9 @@ You've reached 100% traffic on the new system. The migration isn't complete unti
 Don't declare victory too soon. Before decommissioning the legacy system, verify:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'Migration completion checklist',
     thead: {
       th: ['Category', 'Criteria'],
     },
@@ -1294,7 +1381,6 @@ Don't declare victory too soon. Before decommissioning the legacy system, verify
         },
       ],
     },
-    figure: 'Migration completion checklist',
   }}
 />
 
@@ -1303,8 +1389,14 @@ Don't declare victory too soon. Before decommissioning the legacy system, verify
 Decommissioning happens in phases, each designed to catch problems before they become emergencies:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  classes={{
+    tbody:
+      '[&_td:nth-child(2)]:text-center',
+  }}
+
   content={{
+    figure: 'Legacy system sunset phases',
     thead: {
       th: ['Phase', 'Duration', 'Actions'],
     },
@@ -1332,7 +1424,6 @@ Decommissioning happens in phases, each designed to catch problems before they b
         },
       ],
     },
-    figure: 'Legacy system sunset phases',
   }}
 />
 
@@ -1374,7 +1465,8 @@ public class AuthReconciliationJob {
                     UserId = monolithUser.Id,
                     Differences = differences
                 });
-                await _authService.SyncUserAsync(monolithUser); // Legacy system is source of truth
+                // Legacy system is source of truth
+                await _authService.SyncUserAsync(monolithUser);
                 report.Fixed++;
                 _metrics.Increment("reconciliation.data_mismatch");
             }
@@ -1412,15 +1504,15 @@ When the reconciliation job reports zero mismatches for a week straight, you can
 After decommissioning, hold a retrospective while the details are fresh. Track these metrics to improve future migrations:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
   items={[
     {
       lead: 'Duration:',
-      text: 'Planned vs. actual (aim for <50% overrun)',
+      text: 'Planned vs. actual (aim for < 50% overrun)',
     },
     {
       lead: 'Rollbacks:',
-      text: 'Number of automatic rollbacks during traffic shifting (aim for <3)',
+      text: 'Number of automatic rollbacks during traffic shifting (aim for < 3)',
     },
     {
       lead: 'Incidents:',

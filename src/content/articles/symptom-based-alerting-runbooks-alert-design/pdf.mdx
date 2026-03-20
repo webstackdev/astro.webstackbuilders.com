@@ -11,9 +11,9 @@ featured: true
 
 import theAlertingPyramidDiagram from "./diagrams/the-alerting-pyramid.jpg"
 import theAlertFatigueCycleDiagram from "./diagrams/the-alert-fatigue-cycle.jpg"
+import ListItem from "@components/List/ListItem.astro"
 
 *[MTTA]: Mean Time to Acknowledge
-      text: 'The <span class="text-mono">runbook_url</span> annotation must exist.',
 *[MTTR]: Mean Time to Resolve
 *[NOC]: Network Operations Center
 *[P1]: Priority 1 (Critical)
@@ -36,18 +36,21 @@ At first, you have two or three alerts per day, and 90% require real action. Eng
 
 <Diagram
   src={theAlertFatigueCycleDiagram}
+  magnifyButtonPosition="bottom-right"
+  size="full"
   title="The alert fatigue cycle."
   description="Top-to-bottom flowchart showing a reinforcing loop of alert fatigue. The sequence begins with Incident occurs, which leads to Add an alert for that. That causes Alert volume increases, which leads to More false positives. More false positives lead to Team starts ignoring alerts, which then leads to Real incident missed. Missing the real incident triggers the response We need more alerts, which loops back to Add an alert for that. The diagram illustrates how adding alerts after every incident without removing low-value alerts creates a self-reinforcing spiral of noise, distrust, and missed real problems."
 />
 
-Breaking this cycle requires three changes. First, alert on __symptoms__ that affect users rather than __causes__ that might affect them — this dramatically reduces false positives. Second, require runbooks for every alert so responders can act quickly and confidently. Third, conduct regular alert hygiene reviews to prune noise and retire alerts that no longer earn their keep. These aren't optional practices for mature teams; they're prerequisites for an alerting system that actually works.
+Breaking this cycle requires three changes. First, alert on _symptoms_ that affect users rather than _causes_ that might affect them — this dramatically reduces false positives. Second, require runbooks for every alert so responders can act quickly and confidently. Third, conduct regular alert hygiene reviews to prune noise and retire alerts that no longer earn their keep. These aren't optional practices for mature teams; they're prerequisites for an alerting system that actually works.
 
 ### Measuring Alert Quality
 
 You can't fix what you don't measure. Before optimizing your alerts, establish baseline metrics that reveal whether your alerting helps or hurts.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Metric', 'Definition', 'Healthy Target', 'Warning Sign'],
@@ -96,14 +99,17 @@ Each additional noisy alert reduces the attention given to __all__ alerts. Fix y
 
 ## Symptom vs Cause Alerting
 
-The most common alerting mistake is alerting on __causes__ rather than __symptoms__. High CPU, low disk space, elevated connection counts — these are causes. They __might__ affect users, or they might not. Request latency, error rates, failed transactions — these are symptoms. They tell you users are __actually__ experiencing problems right now.
+The most common alerting mistake is alerting on _causes_ rather than _symptoms_. High CPU, low disk space, elevated connection counts — these are causes. They _might_ affect users, or they might not. Request latency, error rates, failed transactions — these are symptoms. They tell you users are _actually_ experiencing problems right now.
 
 ### The Symptom-Based Philosophy
 
 Consider three classic cause-based alerts and their symptom-based alternatives:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'High CPU usage',
@@ -120,10 +126,11 @@ Consider three classic cause-based alerts and their symptom-based alternatives:
   ]}
 />
 
-The pattern: causes are __potential__ problems; symptoms are __actual__ problems. Page on symptoms, ticket on causes.
+The pattern: causes are _potential_ problems; symptoms are _actual_ problems. Page on symptoms, ticket on causes.
 
 <Diagram
   src={theAlertingPyramidDiagram}
+  size="full"
   title="The alerting pyramid."
   description="Top-to-bottom flowchart organized into three grouped tiers. The first tier, Page Alerts User Impact, contains Error rate greater than SLO burn rate, Latency greater than SLO target, and Availability below threshold. This tier points to User impact NOW with the label Wake someone up. The second tier, Ticket Alerts Degradation, contains CPU sustained high, Disk filling toward capacity, and Connection pool trending hot. This tier points to Potential future impact with the label Fix during business hours. The third tier, Dashboards Awareness, contains All metrics visible, Trends and rates, and Capacity projections. This tier points to No action required with the label Context for investigation. The diagram shows a prioritization model where urgent symptom-based alerts page responders, cause-based degradation alerts become tickets, and the remaining metrics stay visible on dashboards for context."
 />
@@ -143,7 +150,12 @@ The math: if your monthly budget is 0.1% errors and you're currently seeing 1.44
 This framing changes how you think about alerts. A 1% error rate might sound scary in isolation, but if your SLO allows 0.1% errors, that's a 10x burn rate — you have 3 days before budget exhaustion. Urgent, but not a 2 AM page. A 0.3% error rate is only 3x burn, giving you 10 days. That's a ticket for business hours.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
+  classes={{
+    thead: '[&_th:nth-child(1)]:text-center [&_th:nth-child(2)]:text-center',
+    tbody: '[&_th:nth-child(1)]:text-center [&_td:nth-child(2)]:text-center',
+  }}
   content={{
     thead: {
       th: ['Burn Rate', 'Budget Exhaustion', 'Appropriate Response'],
@@ -209,12 +221,17 @@ Code: Prometheus SLO alerting rules.
 
 ### Multi-Window Alerting
 
-Single-window alerts have a problem: short windows catch spikes but also false-positive on brief blips; long windows miss fast-moving incidents. The solution is requiring __both__ a short and long window to breach before alerting.
+Single-window alerts have a problem: short windows catch spikes but also false-positive on brief blips; long windows miss fast-moving incidents. The solution is requiring _both_ a short and long window to breach before alerting.
 
-For a 14.4x burn rate alert, require both the 5-minute __and__ 1-hour windows to show excessive errors. This prevents two failure modes: a 1-minute spike won't trigger if the 1-hour window is healthy, and a long-resolved issue won't keep alerting if the short window has recovered.
+For a 14.4x burn rate alert, require both the 5-minute _and_ 1-hour windows to show excessive errors. This prevents two failure modes: a 1-minute spike won't trigger if the 1-hour window is healthy, and a long-resolved issue won't keep alerting if the short window has recovered.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="semantic-coloring-table"
+  fullWidth={false}
+  classes={{
+    thead: '[&_th]:text-center',
+    tbody: '[&_td]:text-center',
+  }}
   content={{
     thead: {
       th: ['Short Window', 'Long Window', 'Burn Rate', 'Severity'],
@@ -222,15 +239,15 @@ For a 14.4x burn rate alert, require both the 5-minute __and__ 1-hour windows to
     tbody: {
       tr: [
         {
-          th: '5m',
+          th: { label: '5m', color: 'danger' },
           td: ['1h', '14.4x', 'Critical'],
         },
         {
-          th: '30m',
+          th: { label: '30m', color: 'danger' },
           td: ['6h', '6x', 'Critical'],
         },
         {
-          th: '2h',
+          th: { label: '2h', color: 'warning' },
           td: ['24h', '3x', 'Warning'],
         },
       ],
@@ -247,22 +264,38 @@ Multi-window alerts require more complex PromQL or recording rules, but they dra
 
 ## Alert Signal Selection
 
-Not all metrics make good alert candidates. The four golden signals — latency, traffic, errors, and saturation — provide a framework for choosing what to alert on and, equally important, what __not__ to alert on.
+Not all metrics make good alert candidates. The four golden signals — latency, traffic, errors, and saturation — provide a framework for choosing what to alert on and, equally important, what _not_ to alert on.
 
 ### Golden Signals as Alert Candidates
 
-__Latency__ is your primary symptom signal. Alert on P99 latency[^1] exceeding your SLO, not average latency (which hides tail issues affecting your worst-served users). Page when P99 exceeds 2x your SLO for more than 5 minutes; create a ticket when it exceeds 1.5x for more than 30 minutes.
+<List variant="numbered-with-background-list">
+  <ListItem lead="Latency">
+    Your primary symptom signal. Alert on P99 latency[^1] exceeding your SLO, not average latency
+    (which hides tail issues affecting your worst-served users). Page when P99 exceeds 2x your SLO
+    for more than 5 minutes; create a ticket when it exceeds 1.5x for more than 30 minutes.
+  </ListItem>
+  <ListItem lead="Traffic">
+    Unusual — you typically alert on _drops_, not increases. A 50% traffic drop
+    compared to predictions suggests an outage that's preventing users from reaching your service.
+    High traffic is usually good news; capacity concerns belong on dashboards, not alerts.
+  </ListItem>
+  <ListItem lead="Errors">
+    Should trigger based on burn rate against your error budget, not absolute counts. A single error
+    isn't actionable; an error rate that will exhaust your monthly budget in 2 hours is. Use the
+    burn rate thresholds from the previous section.
+  </ListItem>
+  <ListItem lead="Saturation">
+    The trickiest signal. High CPU or memory usage alone doesn't warrant a page — many systems
+    run hot by design. Alert on saturation only when it's _causing_ symptoms: when
+    queue depth correlates with latency spikes, or when memory pressure triggers OOM kills. Keep raw
+    saturation metrics on dashboards for diagnosis, not as alert triggers.
+  </ListItem>
+</List>
 
 [^1]: P99, P95, and P50 are percentile metrics. P99 means the value below which 99% of observations fall — in other words, only 1% of requests are slower than this value. P99 captures the experience of your worst-served users without being skewed by rare extreme outliers. P50 (the median) shows typical experience, P95 catches most bad cases, and P99 catches nearly all of them. For alerting, P99 is usually the right choice: it's sensitive to real degradation but robust to occasional slow requests.
 
-__Traffic__ is unusual — you typically alert on __drops__, not increases. A 50% traffic drop compared to predictions suggests an outage that's preventing users from reaching your service. High traffic is usually good news; capacity concerns belong on dashboards, not alerts.
-
-__Errors__ should trigger based on burn rate against your error budget, not absolute counts. A single error isn't actionable; an error rate that will exhaust your monthly budget in 2 hours is. Use the burn rate thresholds from the previous section.
-
-__Saturation__ is the trickiest signal. High CPU or memory usage alone doesn't warrant a page — many systems run hot by design. Alert on saturation only when it's __causing__ symptoms: when queue depth correlates with latency spikes, or when memory pressure triggers OOM kills. Keep raw saturation metrics on dashboards for diagnosis, not as alert triggers.
-
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
     thead: {
       th: ['Signal', 'Alert On', "Don't Alert On", 'Page Threshold', 'Ticket Threshold'],
@@ -342,7 +375,7 @@ Absence alerts are meta-alerts about your monitoring system. They should route t
 
 ## Threshold Tuning
 
-The hardest part of alerting isn't deciding __what__ to alert on — it's deciding __when__. Set thresholds too low and you get noise; set them too high and you miss incidents. The goal is finding the sweet spot where most alerts correlate with real problems.
+The hardest part of alerting isn't deciding _what_ to alert on — it's deciding _when_. Set thresholds too low and you get noise; set them too high and you miss incidents. The goal is finding the sweet spot where most alerts correlate with real problems.
 
 ### Data-Driven Threshold Selection
 
@@ -353,7 +386,10 @@ Start by looking at the distribution of your metric over the last 30 days. What'
 Three indicators tell you if your threshold is calibrated correctly:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Too sensitive:',
@@ -415,7 +451,8 @@ Code: Dynamic threshold examples.
 Each approach has tradeoffs:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Threshold Type', 'Best For', 'Weakness'],
@@ -461,7 +498,10 @@ An alert without a runbook is a puzzle without instructions. At 2 AM, your on-ca
 A good runbook follows a consistent structure that an engineer can navigate under pressure.
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Metadata',
@@ -601,16 +641,20 @@ Code: Alert rule with runbook link.
 Enforce this in CI. Before an alert rule can be merged:
 
 <List
-  variant="numbered-with-background-list"
+  variant="zebra-list"
+  classes={{
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
-      text: 'The <span class="text-mono">runbook_url</span> annotation must exist',
+      lead: 'The <span class="text-mono">runbook_url</span> annotation must exist',
     },
     {
-      text: 'The URL must return a 200 (the runbook exists)',
+      lead: 'The URL must return a 200 (the runbook exists)',
     },
     {
-      text: 'The runbook must have been updated within the last 90 days',
+      lead: 'The runbook must have been updated within the last 90 days',
     },
   ]}
 />
@@ -712,11 +756,14 @@ Code: Alertmanager routing configuration.
 Key routing principles:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Group related alerts:',
-      text: "group_by: ['alertname', 'service'] prevents a cascading failure from generating 50 separate pages. One page with context is better than an inbox flood.",
+      text: '<span class="font-mono">group_by: [\'alertname\', \'service\']</span> prevents a cascading failure from generating 50 separate pages. One page with context is better than an inbox flood.',
     },
     {
       lead: 'Set appropriate repeat intervals:',
@@ -736,7 +783,10 @@ Escalation ensures that unacknowledged alerts reach someone who can respond. The
 A typical escalation chain for critical production issues:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'T+0:',
@@ -769,12 +819,15 @@ Alerts decay. Thresholds that made sense six months ago may be too sensitive or 
 
 ### Regular Alert Reviews
 
-Schedule monthly alert reviews. The goal isn't to review every alert — it's to review every alert that __fired__ and assess its value.
+Schedule monthly alert reviews. The goal isn't to review every alert — it's to review every alert that _fired_ and assess its value.
 
 The review process asks five questions about each alert that fired in the past month:
 
 <List
   variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Was it actionable?',
@@ -804,7 +857,10 @@ Track the outcome for each alert: keep as-is, modify threshold, update runbook, 
 A simple review meeting agenda:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Metrics review (10 min):',
@@ -830,7 +886,8 @@ A simple review meeting agenda:
 Alerts should follow a defined lifecycle from proposal to retirement.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
     thead: {
       th: ['Phase', 'Activities', 'Owner'],
@@ -878,7 +935,7 @@ Alerts should follow a defined lifecycle from proposal to retirement.
 Two signals indicate an alert should be retired:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: "Hasn't fired in 6 months:",
@@ -897,7 +954,7 @@ An alert that hasn't fired in 6 months or has &lt; 50% actionable rate should be
 
 ## Conclusion
 
-Alert fatigue is a design problem, not a discipline problem. The core principle is simple: wake people up for what users experience, not for what __might__ cause problems. High CPU doesn't warrant a 2 AM page; elevated error rates do. Disk filling up gets a ticket; write failures get a page. Reserve the pager for symptoms, handle causes during business hours.
+Alert fatigue is a design problem, not a discipline problem. The core principle is simple: wake people up for what users experience, not for what _might_ cause problems. High CPU doesn't warrant a 2 AM page; elevated error rates do. Disk filling up gets a ticket; write failures get a page. Reserve the pager for symptoms, handle causes during business hours.
 
 Derive thresholds from SLOs using multi-window burn rates that balance speed of detection with noise reduction. Every alert must have a runbook that answers: what's the impact, how do I diagnose, how do I fix it, when do I escalate? Route alerts appropriately: pages for user-impacting issues requiring immediate action, tickets for degradation that can wait until business hours, dashboards for awareness.
 

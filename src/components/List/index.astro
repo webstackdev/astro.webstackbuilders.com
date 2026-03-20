@@ -1,4 +1,5 @@
 ---
+import { BuildError } from '@lib/errors/BuildError'
 import AccentBorderLeftList from '@components/List/layouts/AccentBorderLeftList.astro'
 import BadgeList from '@components/List/layouts/BadgeList.astro'
 import CardGridList from '@components/List/layouts/CardGridList.astro'
@@ -14,9 +15,10 @@ import ThreeColumnIconList from '@components/List/layouts/ThreeColumnIconList.as
 import TwoColumnCheckIconsList from '@components/List/layouts/TwoColumnCheckIconsList.astro'
 import TwoColumnIconList from '@components/List/layouts/TwoColumnIconList.astro'
 import ZebraList from '@components/List/layouts/ZebraList.astro'
+import { getListItemsFromSlotMarkup } from '@components/List/server/slotItems'
 
 export type Props = {
-  items: {
+  items?: {
     title?: string
     lead?: string
     text: string
@@ -45,14 +47,33 @@ export type Props = {
   style?: Record<string, unknown>
 }
 
-const { items, size, color, startNumber, variant = 'default', classes, style } = Astro.props
+const { items, size, color, startNumber, variant = 'default', classes, style } = Astro.props as Props
+const hasItemsProp = Object.prototype.hasOwnProperty.call(Astro.props, 'items')
+const hasDefaultSlot = Astro.slots.has('default')
+
+if (hasItemsProp && hasDefaultSlot) {
+  throw new BuildError(
+    'List: received both the `items` prop and ListItem children. Use one API or the other.',
+    {
+      phase: 'compilation',
+      filePath: 'src/components/List/index.astro',
+      tool: 'list',
+    }
+  )
+}
+
+const slotMarkup = hasDefaultSlot ? await Astro.slots.render('default') : ''
+const normalizedItems = hasDefaultSlot
+  ? getListItemsFromSlotMarkup(slotMarkup, variant)
+  : (items ?? [])
+
 const classesProps = classes ? { classes } : {}
 const numericSizeProps = typeof size === 'number' ? { size } : {}
 const chatBubbleSizeProps = typeof size === 'string' ? { size } : {}
 const colorProps = typeof color === 'string' && color.trim().length > 0 ? { color } : {}
 const startNumberProps = typeof startNumber === 'number' ? { startNumber } : {}
 const styleProps = style ? { style } : {}
-const itemsWithColor = items as Array<{
+const itemsWithColor = normalizedItems as Array<{
   title?: string
   lead?: string
   text: string
@@ -61,32 +82,32 @@ const itemsWithColor = items as Array<{
   inverseColor?: string
   bgColor?: string
 }>
-const itemsWithIconAndColor = items as Array<{
+const itemsWithIconAndColor = normalizedItems as Array<{
   text: string
   icon: string
   color: string
   inverseColor?: string
   bgColor?: string
 }>
-const plainIconItems = items.filter((item): item is Props['items'][number] & { icon: string } => {
+const plainIconItems = normalizedItems.filter((item): item is NonNullable<Props['items']>[number] & { icon: string } => {
   return typeof item.icon === 'string' && item.icon.trim().length > 0
 })
 ---
 
 <div class:list={[classes?.wrapper ? classes.wrapper : 'mb-6']}>
-  {variant === 'accent-border-left-list' && <AccentBorderLeftList items={items} {...classesProps} {...styleProps} />}
-  {variant === 'badge-list' && <BadgeList items={items} {...classesProps} {...styleProps} />}
-  {variant === 'card-grid-list' && <CardGridList items={items} {...classesProps} {...styleProps} />}
-  {variant === 'chat-bubbles' && <ChatBubbles items={items} {...classesProps} {...chatBubbleSizeProps} />}
-  {variant === 'check-icons-list' && <CheckIconsList items={items} {...classesProps} {...styleProps} />}
-  {variant === 'chevron-list' && <ChevronList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'accent-border-left-list' && <AccentBorderLeftList items={normalizedItems} {...classesProps} {...styleProps} />}
+  {variant === 'badge-list' && <BadgeList items={normalizedItems} {...classesProps} {...styleProps} />}
+  {variant === 'card-grid-list' && <CardGridList items={normalizedItems} {...classesProps} {...styleProps} />}
+  {variant === 'chat-bubbles' && <ChatBubbles items={normalizedItems} {...classesProps} {...chatBubbleSizeProps} />}
+  {variant === 'check-icons-list' && <CheckIconsList items={normalizedItems} {...classesProps} {...styleProps} />}
+  {variant === 'chevron-list' && <ChevronList items={normalizedItems} {...classesProps} {...styleProps} />}
   {variant === 'colored-marker-list' && <ColoredMarkerList items={itemsWithColor} {...classesProps} {...numericSizeProps} {...styleProps} />}
-  {variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={items} {...classesProps} {...colorProps} {...startNumberProps} {...styleProps} />}
+  {variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={normalizedItems} {...classesProps} {...colorProps} {...startNumberProps} {...styleProps} />}
   {variant === 'plain-icon-list' && <PlainIconList items={plainIconItems} {...classesProps} {...numericSizeProps} {...styleProps} />}
-  {variant === 'side-by-side-list' && <SideBySideList items={items} {...classesProps} {...styleProps} />}
-  {variant === 'timeline-list' && <TimelineList items={items} {...classesProps} {...styleProps} />}
-  {variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={items} {...classesProps} {...numericSizeProps} {...styleProps} />}
+  {variant === 'side-by-side-list' && <SideBySideList items={normalizedItems} {...classesProps} {...styleProps} />}
+  {variant === 'timeline-list' && <TimelineList items={normalizedItems} {...classesProps} {...styleProps} />}
+  {variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={normalizedItems} {...classesProps} {...numericSizeProps} {...styleProps} />}
   {variant === 'two-column-icon-list' && <TwoColumnIconList items={itemsWithIconAndColor} {...classesProps} {...numericSizeProps} {...styleProps} />}
   {variant === 'three-column-icon-list' && <ThreeColumnIconList items={itemsWithIconAndColor} {...classesProps} {...numericSizeProps} {...styleProps} />}
-  {variant === 'zebra-list' && <ZebraList items={items} {...classesProps} {...styleProps} />}
+  {variant === 'zebra-list' && <ZebraList items={normalizedItems} {...classesProps} {...styleProps} />}
 </div>

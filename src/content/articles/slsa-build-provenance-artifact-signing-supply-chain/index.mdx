@@ -25,7 +25,7 @@ In December 2020, attackers compromised SolarWinds' build process and shipped ma
 
 These weren't exotic zero-days. They exploited a fundamental assumption: that code, builds, and artifacts are what they claim to be. When that assumption breaks down, the blast radius is enormous.
 
-Here's the good news: you can implement practical supply chain protection __today__ without managing keys, standing up infrastructure, or paying for expensive tooling. The barrier has dropped dramatically in the past few years, and the core protection — cryptographic signing with identity-based verification — is now free. If you're already comfortable with GitHub Actions, you can add signing to an existing pipeline in about 15 minutes. If you're newer to these tools, budget an hour to understand the OIDC flow and test your configuration.
+Here's the good news: you can implement practical supply chain protection _today_ without managing keys, standing up infrastructure, or paying for expensive tooling. The barrier has dropped dramatically in the past few years, and the core protection — cryptographic signing with identity-based verification — is now free. <Highlighter>If you're already comfortable with GitHub Actions, you can add signing to an existing pipeline in about 15 minutes.</Highlighter> If you're newer to these tools, budget an hour to understand the OIDC flow and test your configuration.
 
 ## What You're Actually Protecting Against
 
@@ -34,8 +34,13 @@ Before investing in countermeasures, it helps to understand the attack surface. 
 [SLSA](https://slsa.dev) (Supply-chain Levels for Software Artifacts, pronounced "salsa") is a framework that addresses a specific slice of this problem. It focuses on __provenance_ — proving that an artifact came from a specific source through a specific build process. This matters because it lets you verify that what you're deploying matches what you reviewed.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
+  classes={{
+    tbody: '!text-content',
+  }}
   content={{
+    figure: 'SLSA protection scope.',
     thead: {
       th: ['SLSA Addresses', 'SLSA Does NOT Address'],
     },
@@ -63,7 +68,6 @@ Before investing in countermeasures, it helps to understand the attack surface. 
         },
       ],
     },
-    figure: 'SLSA protection scope.',
   }}
 />
 
@@ -200,23 +204,23 @@ What I've covered here — keyless signing with Cosign and basic verification ga
 From here, you can layer in additional protections. Here's what each provides:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
   items={[
     {
       lead: 'SLSA provenance generators',
-      text: 'create cryptographically-signed attestations linking artifacts to specific commits and build configurations. The [slsa-framework](https://github.com/slsa-framework/slsa-github-generator) organization provides official generators for GitHub Actions.',
+      text: 'Create cryptographically-signed attestations linking artifacts to specific commits and build configurations. The [slsa-framework](https://github.com/slsa-framework/slsa-github-generator) organization provides official generators for GitHub Actions.',
     },
     {
       lead: 'SBOM integration',
-      text: 'adds a Software Bill of Materials to your images, listing every dependency. When a new CVE drops, you can answer "are we affected?" in minutes.',
+      text: 'Adds a Software Bill of Materials to your images, listing every dependency. When a new CVE drops, you can answer "are we affected?" in minutes.',
     },
     {
       lead: 'Kubernetes admission control',
-      text: 'with the Sigstore Policy Controller makes verification automatic and mandatory at the cluster level-no deployment workflow changes needed.',
+      text: 'With the Sigstore Policy Controller, makes verification automatic and mandatory at the cluster level-no deployment workflow changes needed.',
     },
     {
       lead: 'Level 3 hardening',
-      text: 'introduces two-person review requirements and isolated build environments for your most security-critical components.',
+      text: 'Introduces two-person review requirements and isolated build environments for your most security-critical components.',
     },
   ]}
 />

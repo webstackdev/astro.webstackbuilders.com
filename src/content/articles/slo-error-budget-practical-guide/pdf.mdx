@@ -48,8 +48,9 @@ This creates a hidden tax on every team that depends on unreliable internal serv
 Every SLO conversation surfaces the same objections. Knowing what they really mean helps you respond effectively:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="grid-and-accent-header-table"
   content={{
+    figure: 'Common SLO objections and what they really mean.',
     thead: {
       th: ['Objection', 'What They Really Mean', 'How to Respond'],
     },
@@ -77,7 +78,6 @@ Every SLO conversation surfaces the same objections. Knowing what they really me
         },
       ],
     },
-    figure: 'Common SLO objections and what they really mean.',
   }}
 />
 
@@ -86,18 +86,21 @@ Every SLO conversation surfaces the same objections. Knowing what they really me
 The trick is translating reliability into terms each stakeholder actually cares about. "99.9% availability" means nothing to a product manager, but "deployments fail unpredictably because internal services are unstable" gets attention.
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      lead: 'Engineering managers:',
+      lead: 'Engineering managers',
       text: "Engineers spend 8 hours per week debugging integration issues with flaky dependencies. Here's the Jira query.",
     },
     {
-      lead: 'Product managers:',
+      lead: 'Product managers',
       text: "We can't give customers reliable ETAs on features because deployments fail unpredictably.",
     },
     {
-      lead: 'Finance:',
+      lead: 'Finance',
       text: "CI pipelines are slow because internal tools timeout randomly-here's the compute cost of those retries.",
     },
   ]}
@@ -122,8 +125,9 @@ The second worst SLI is one that alerts constantly during normal operation. Aler
 Before adopting any metric as an SLI, run it through these questions:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
   content={{
+    figure: 'SLI evaluation criteria.',
     thead: {
       th: ['Criterion', 'Question', 'Why It Matters'],
     },
@@ -151,7 +155,6 @@ Before adopting any metric as an SLI, run it through these questions:
         },
       ],
     },
-    figure: 'SLI evaluation criteria.',
   }}
 />
 
@@ -160,7 +163,10 @@ Before adopting any metric as an SLI, run it through these questions:
 These metrics look like SLIs but fail the user-centric test:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'CPU utilization as availability proxy:',
@@ -230,7 +236,10 @@ Beyond success or failure: is the response actually what the user needed? A 200 
 Quality SLIs are necessarily service-specific:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Search service:',
@@ -270,18 +279,21 @@ Quality SLIs are harder to measure than availability or latency because they req
 For services that serve data rather than compute it on demand: how stale is the information users receive?
 
 <List
-  variant="check-icons-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      lead: 'Real-time (< 1 second):',
+      lead: 'Real-time (< 1 second)',
       text: 'Trading systems, chat, live dashboards',
     },
     {
-      lead: 'Near real-time (< 1 minute):',
+      lead: 'Near real-time (< 1 minute)',
       text: 'Activity feeds, notification counts, monitoring dashboards',
     },
     {
-      lead: 'Periodic (< 1 hour):',
+      lead: 'Periodic (< 1 hour)',
       text: 'Reports, analytics, batch-processed aggregations',
     },
   ]}
@@ -356,7 +368,7 @@ When introducing SLOs to an organization, your choice of first service matters e
 Look for a service that's:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: 'Broken enough',
@@ -388,16 +400,22 @@ An SLO of 99.9% availability means you're allowed 0.1% unavailability. That 0.1%
 The calculation is simple. If your SLO is 99.9% availability over a 30-day window:
 
 <List
-  variant="check-icons-list"
+  variant="colored-marker-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Error budget = 100% - 99.9% = 0.1%',
+      lead: 'Error budget = 100% - 99.9% = 0.1%',
+      color: 'bg-secondary',
     },
     {
-      text: 'Minutes in month = 30 days × 24 hours × 60 minutes = 43,200',
+      lead: 'Minutes in month = 30 days × 24 hours × 60 minutes = 43,200',
+      color: 'bg-info',
     },
     {
-      text: 'Allowed downtime = 43,200 × 0.001 = 43.2 minutes',
+      lead: 'Allowed downtime = 43,200 × 0.001 = 43.2 minutes',
+      color: 'bg-success',
     },
   ]}
 />
@@ -406,6 +424,8 @@ Those 43 minutes are yours to spend however you want. A 10-minute deployment tha
 
 <Diagram
   src={fromSliDiagram}
+  magnifyButtonPosition="top-left"
+  size="full"
   title="From SLI measurement to error budget decision flow."
   description="A left-to-right flowchart showing how reliability measurements become deployment decisions. The flow starts with SLI: Actual Measurements, which feed into SLO: Target Level. The SLO then determines the Error Budget, defined as 100 percent minus the SLO target. Actual errors consume that budget, producing a decision point labeled Budget Remaining? If the answer is yes, the flow continues to Ship Features. If the answer is no, the flow moves to Focus on Reliability. The diagram illustrates that teams use measured service performance and remaining budget to decide whether to prioritize velocity or reliability work."
 />
@@ -419,8 +439,10 @@ Most services have multiple SLOs, which means multiple budgets to track. A servi
 These budgets aren't independent. A single incident can consume from multiple budgets simultaneously. A database outage might consume availability budget (service returning errors), latency budget (slow queries during failover), and error rate budget (failed requests during recovery). One bad hour can blow multiple budgets at once.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
+    figure: 'Common SLO types and their error budgets.',
     thead: {
       th: ['SLO Type', 'Target', 'Monthly Budget', 'What Consumes It'],
     },
@@ -440,7 +462,6 @@ These budgets aren't independent. A single incident can consume from multiple bu
         },
       ],
     },
-    figure: 'Common SLO types and their error budgets.',
   }}
 />
 
@@ -463,15 +484,20 @@ Traditional threshold alerts ("error rate > 1%") catch acute incidents but miss 
 You need two types of burn rate alerts:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Fast burn alerts',
-      text: "catch acute incidents-a deployment gone wrong, a dependency outage, a traffic spike that overwhelms capacity. These consume budget rapidly. A typical fast burn alert fires when you'd consume 2% of your monthly budget in 1 hour. The math: 2% of a 30-day budget is 0.6 days (14.4 hours), so consuming that in 1 hour means you're burning at 14.4x the sustainable rate.",
+      text: "Catches acute incidents - a deployment gone wrong, a dependency outage, a traffic spike that overwhelms capacity. These consume budget rapidly. A typical fast burn alert fires when you'd consume 2% of your monthly budget in 1 hour. The math: 2% of a 30-day budget is 0.6 days (14.4 hours), so consuming that in 1 hour means you're burning at 14.4x the sustainable rate.",
     },
     {
       lead: 'Slow burn alerts',
-      text: "catch chronic degradation-a memory leak that causes occasional timeouts, a flaky dependency that fails 0.5% of requests, a queue that backs up during peak hours. These never trigger traditional alerts but steadily drain budget. A typical slow burn alert fires when you'd consume 5% of monthly budget in 6 hours.",
+      text: "Catches chronic degradation - a memory leak that causes occasional timeouts, a flaky dependency that fails 0.5% of requests, a queue that backs up during peak hours. These never trigger traditional alerts but steadily drain budget. A typical slow burn alert fires when you'd consume 5% of monthly budget in 6 hours.",
     },
   ]}
 />
@@ -510,15 +536,16 @@ The combination catches problems that either alert type would miss alone. Fast b
 
 ## Error Budget Policies
 
-An error budget without a policy is just a dashboard. The policy defines what happens when budget gets low — and critically, it defines this __before__ you're in crisis mode making decisions under pressure.
+An error budget without a policy is just a dashboard. The policy defines what happens when budget gets low — and critically, it defines this _before_ you're in crisis mode making decisions under pressure.
 
 ### Threshold-Based Actions
 
 Define clear thresholds and the actions that trigger at each level. Write these down, get stakeholder agreement, and publish them where everyone can see.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
   content={{
+    figure: 'Error budget policy thresholds and corresponding actions.',
     thead: {
       th: ['Budget Remaining', 'Status', 'What Changes'],
     },
@@ -546,7 +573,6 @@ Define clear thresholds and the actions that trigger at each level. Write these 
         },
       ],
     },
-    figure: 'Error budget policy thresholds and corresponding actions.',
   }}
 />
 
@@ -598,19 +624,28 @@ Policies define the rules, but someone still has to apply them. The real test of
 Error budgets provide a shared language for the three parties who most often conflict over reliability:
 
 <List
-  variant="check-icons-list"
+  variant="three-column-icon-list"
   items={[
     {
-      lead: 'Product',
-      text: 'wants features shipped fast',
+      title: 'Product',
+      text: 'Wants features shipped fast',
+      icon: "clipboard",
+      color: "warning",
+      bgColor: "warning-inverse",
     },
     {
-      lead: 'Engineering',
-      text: 'wants to try new things (which sometimes break)',
+      title: 'Engineering',
+      text: 'Wants to try new things (which sometimes break)',
+      icon: "dns",
+      color: "info",
+      bgColor: "info-inverse",
     },
     {
-      lead: 'SRE/Ops',
-      text: 'wants stability',
+      title: 'SRE/Ops',
+      text: 'Wants stability',
+      icon: "chart-line",
+      color: "success",
+      bgColor: "success-inverse",
     },
   ]}
 />
@@ -630,7 +665,10 @@ Not all budget consumption is equal. Some spending generates value; some is just
 Good investments of error budget:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Feature launches:',
@@ -652,7 +690,10 @@ These percentages aren't universal rules — they're starting points. A pre-reve
 Poor investments:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Untested deployments:',
@@ -678,8 +719,10 @@ Weekly budget status updates accomplish two things: they keep everyone informed 
 A good status update covers three things: current state, planned risk, and projected outcome. Here's what the current state portion looks like for a payment API with two SLOs:
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="criteria-highlight-table"
+  fullWidth={false}
   content={{
+    figure: 'Weekly error budget status for payment-api (30-day rolling window).',
     thead: {
       th: ['Metric', 'Target', 'Current', 'Budget Used', 'Status'],
     },
@@ -695,27 +738,28 @@ A good status update covers three things: current state, planned risk, and proje
         },
       ],
     },
-    figure: 'Weekly error budget status for payment-api (30-day rolling window).',
   }}
 />
 
 Below that, list planned budget consumption for the coming week: a database migration on Tuesday (~10% estimated), a feature flag rollout on Thursday (~5% estimated). With the current 15% used (taking the higher of the two SLO budgets as the constraint), you have 85% remaining. After 15% planned consumption, you'll end the week around 70%.
 
-This "planned consumption" section is particularly valuable. It forces teams to estimate the reliability cost of their work __before__ doing it, and it gives stakeholders visibility into upcoming risk. When that database migration consumes 25% instead of the estimated 10%, the next planning conversation includes that data point.
+This "planned consumption" section is particularly valuable. It forces teams to estimate the reliability cost of their work _before_ doing it, and it gives stakeholders visibility into upcoming risk. When that database migration consumes 25% instead of the estimated 10%, the next planning conversation includes that data point.
 
 Send these updates to a consistent audience: engineering leadership, product managers for affected services, and the on-call rotation. Keep them short — the goal is a glanceable status, not a detailed report. Save the details for when someone asks.
 
 ## Bootstrapping Observability
 
-"We can't set SLOs because we don't have observability" is usually backwards. You don't need comprehensive observability to start with SLOs — you need __enough__ data to measure one or two SLIs for one service. Start there, demonstrate value, then use that success to justify observability investment.
+"We can't set SLOs because we don't have observability" is usually backwards. You don't need comprehensive observability to start with SLOs — you need _enough_ data to measure one or two SLIs for one service. Start there, demonstrate value, then use that success to justify observability investment.
 
 ### Start with What Exists
 
 Teams without observability often have more data than they realize. Before adding any new instrumentation, inventory what you already collect.
 
 <Table
-  variant="vertical-column-delineation-table"
+  variant="numbered-review-table"
+  fullWidth={false}
   content={{
+    figure: 'Common existing data sources and the SLIs they enable.',
     thead: {
       th: ['Source', 'What It Provides', 'SLIs Possible'],
     },
@@ -747,7 +791,6 @@ Teams without observability often have more data than they realize. Before addin
         },
       ],
     },
-    figure: 'Common existing data sources and the SLIs they enable.',
   }}
 />
 
@@ -814,22 +857,25 @@ After your first quarter, watch for these signals. If you're constantly breachin
 __Key principles:__
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'SLIs must reflect user experience, not internal metrics',
+      lead: 'SLIs must reflect user experience, not internal metrics',
     },
     {
-      text: 'SLOs should be achievable with current architecture (start with reality, improve over time)',
+      lead: 'SLOs should be achievable with current architecture (start with reality, improve over time)',
     },
     {
-      text: 'Error budgets convert reliability into a spendable resource',
+      lead: 'Error budgets convert reliability into a spendable resource',
     },
     {
-      text: 'Budget policies remove politics from reliability decisions',
+      lead: 'Budget policies remove politics from reliability decisions',
     },
     {
-      text: 'When budget is healthy, spend it on velocity; when depleted, invest in reliability',
+      lead: 'When budget is healthy, spend it on velocity; when depleted, invest in reliability',
     },
   ]}
 />
