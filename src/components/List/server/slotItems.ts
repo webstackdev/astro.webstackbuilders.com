@@ -1,8 +1,17 @@
 import { JSDOM } from 'jsdom'
 import { BuildError } from '@lib/errors/BuildError'
-import type { Props as ListProps } from '@components/List/index.astro'
+import { queryListItemElements } from '@components/List/server/selectors'
 
-type ListItemShape = NonNullable<ListProps['items']>[number]
+type ListItemShape = {
+  title?: string
+  lead?: string
+  text: string
+  link?: string
+  icon?: string
+  color?: string
+  inverseColor?: string
+  bgColor?: string
+}
 
 const unsupportedRichSlotVariants = new Set([
   'plain-icon-list',
@@ -28,7 +37,7 @@ export function getListItemsFromSlotMarkup(markup: string, variant: string): Lis
   }
 
   const document = new JSDOM(`<!doctype html><html><body>${markup}</body></html>`).window.document
-  const listItemElements = Array.from(document.body.querySelectorAll('wsb-list-item'))
+  const listItemElements = queryListItemElements(document.body)
 
   if (listItemElements.length === 0) {
     throw new BuildError(
@@ -37,8 +46,12 @@ export function getListItemsFromSlotMarkup(markup: string, variant: string): Lis
     )
   }
 
-  return listItemElements.map((element) => ({
-    lead: element.getAttribute('data-lead') ?? undefined,
-    text: element.innerHTML.trim(),
-  }))
+  return listItemElements.map((element) => {
+    const lead = element.getAttribute('data-lead')
+
+    return {
+      ...(lead ? { lead } : {}),
+      text: element.innerHTML.trim(),
+    }
+  })
 }

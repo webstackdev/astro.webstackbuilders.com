@@ -17,7 +17,7 @@ describe('Troubleshooter (Astro)', () => {
     await withJsdomEnvironment(async ({ window }) => {
       window.document.body.innerHTML = renderedHtml
 
-      const region = window.document.querySelector('section[role="region"][aria-label="Troubleshooting"]')
+      const region = window.document.querySelector('section[aria-label="Troubleshooting"]')
       expect(region).toBeTruthy()
 
       const visibleHeading = region?.querySelector('h3')
