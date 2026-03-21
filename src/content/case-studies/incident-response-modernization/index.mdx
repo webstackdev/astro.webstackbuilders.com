@@ -11,6 +11,11 @@ isDraft: true
 publishDate: 2024-02-28
 ---
 
+*[IC]: Incident Commander
+*[MTTR]: Mean Time To Resolution
+*[SEV]: Severity
+*[SRE]: Site Reliability Engineering
+
 ## Overview
 
 I helped a high-traffic online marketplace transform their chaotic incident response culture into a structured, sustainable process—reducing mean time to resolution by 72% while dramatically improving engineer satisfaction with on-call duties.
@@ -53,11 +58,31 @@ The core insight was that incident response is a skill that can be learned and a
 
 I proposed a phased approach:
 
-1. **Severity definitions and escalation paths** - Stop treating every alert as critical
-2. **On-call rotation restructuring** - Distribute load fairly with clear backup support
-3. **Runbook library** - Capture institutional knowledge in executable documentation
-4. **Blameless postmortem process** - Learn from incidents instead of assigning fault
-5. **Training program** - Teach incident management as an explicit skill
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: 'Severity definitions and escalation paths',
+      text: 'Stop treating every alert as critical',
+    },
+    {
+      lead: 'On-call rotation restructuring',
+      text: 'Distribute load fairly with clear backup support',
+    },
+    {
+      lead: 'Runbook library',
+      text: 'Capture institutional knowledge in executable documentation',
+    },
+    {
+      lead: 'Blameless postmortem process',
+      text: 'Learn from incidents instead of assigning fault',
+    },
+    {
+      lead: 'Training program',
+      text: 'Teach incident management as an explicit skill',
+    },
+  ]}
+/>
 
 Leadership buy-in was critical. I presented data on engineer attrition costs—replacing the two departed seniors had cost roughly $300K in recruiting and lost productivity. Investing in incident response wasn't just about reliability; it was about retention.
 
@@ -67,14 +92,31 @@ Leadership buy-in was critical. I presented data on engineer attrition costs—r
 
 We defined four severity levels with clear criteria:
 
-| Level | Definition | Response Time | Escalation |
-|-------|------------|---------------|------------|
-| SEV1 | Customer-facing outage, revenue impact | Immediate | All hands, exec notification |
-| SEV2 | Degraded service, partial impact | 15 minutes | On-call + backup |
-| SEV3 | Internal tooling, no customer impact | 1 hour | On-call only |
-| SEV4 | Non-urgent, can wait for business hours | Next business day | Ticket queue |
-
-Table: Severity level definitions and escalation paths
+<Table
+  variant="striped-rows-table"
+  content={{
+    figure: 'Table: Severity level definitions and escalation paths',
+    thead: {
+      th: ['Level', 'Definition', 'Response Time', 'Escalation'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['SEV1', 'Customer-facing outage, revenue impact', 'Immediate', 'All hands, exec notification'],
+        },
+        {
+          td: ['SEV2', 'Degraded service, partial impact', '15 minutes', 'On-call + backup'],
+        },
+        {
+          td: ['SEV3', 'Internal tooling, no customer impact', '1 hour', 'On-call only'],
+        },
+        {
+          td: ['SEV4', 'Non-urgent, can wait for business hours', 'Next business day', 'Ticket queue'],
+        },
+      ],
+    },
+  }}
+/>
 
 The escalation paths were equally important. A SEV1 automatically paged the on-call engineer's backup plus the engineering manager. No more lone engineers struggling with major outages at 3 AM.
 
@@ -124,10 +166,27 @@ The magic wasn't just documentation—it was executable steps anyone could follo
 
 This was the cultural shift that made everything else sustainable. I introduced a postmortem template focused on system failures, not human failures:
 
-- **What happened?** (timeline, not blame)
-- **What went well?** (recognize good incident response)
-- **What could be improved?** (process, not people)
-- **Action items** (specific, assigned, deadlined)
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'What happened?',
+      text: '(timeline, not blame)',
+    },
+    {
+      lead: 'What went well?',
+      text: '(recognize good incident response)',
+    },
+    {
+      lead: 'What could be improved?',
+      text: '(process, not people)',
+    },
+    {
+      lead: 'Action items',
+      text: '(specific, assigned, deadlined)',
+    },
+  ]}
+/>
 
 The first few postmortems were awkward. People instinctively wanted to discuss who made the mistake. I consistently redirected: "Let's assume everyone acted reasonably given what they knew. How could the system have prevented this or made recovery easier?"
 
@@ -137,10 +196,23 @@ We held monthly incident review meetings where teams presented their postmortems
 
 We standardized on PagerDuty for alerting and scheduling. The tool wasn't as important as the configuration:
 
-- Alerts deduplicated and grouped to reduce noise
-- Escalation policies that actually escalated
-- On-call schedules visible to everyone
-- Automatic Slack channel creation for incidents
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: 'Alerts deduplicated and grouped to reduce noise',
+    },
+    {
+      text: 'Escalation policies that actually escalated',
+    },
+    {
+      text: 'On-call schedules visible to everyone',
+    },
+    {
+      text: 'Automatic Slack channel creation for incidents',
+    },
+  ]}
+/>
 
 I built a simple Slack bot in Python that, when an incident was declared, created a dedicated channel, invited the on-call and their backup, posted the relevant runbook, and started a timeline. Reducing ceremony meant faster response.
 
@@ -148,15 +220,34 @@ I built a simple Slack bot in Python that, when an incident was declared, create
 
 After four months, the transformation was measurable:
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| Mean time to resolution | 90 minutes | 25 minutes | 72% reduction |
-| Recurring incidents | Baseline | -60% | Through postmortem action items |
-| Pages per on-call week | 15 | 4 | 73% reduction |
-| Engineer on-call satisfaction | 2.5/5 | 4.0/5 | 60% improvement |
-| On-call cited in exit interviews | #2 reason | Zero | Eliminated |
-
-Table: Incident response transformation outcomes
+<Table
+  variant="striped-rows-table"
+  content={{
+    figure: 'Table: Incident response transformation outcomes',
+    thead: {
+      th: ['Metric', 'Before', 'After', 'Change'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['Mean time to resolution', '90 minutes', '25 minutes', '72% reduction'],
+        },
+        {
+          td: ['Recurring incidents', 'Baseline', '-60%', 'Through postmortem action items'],
+        },
+        {
+          td: ['Pages per on-call week', '15', '4', '73% reduction'],
+        },
+        {
+          td: ['Engineer on-call satisfaction', '2.5/5', '4.0/5', '60% improvement'],
+        },
+        {
+          td: ['On-call cited in exit interviews', '#2 reason', 'Zero', 'Eliminated'],
+        },
+      ],
+    },
+  }}
+/>
 
 The qualitative changes mattered as much as the metrics. In the six months following the engagement, zero engineers cited on-call as a reason for leaving. Engineers started proposing improvements to runbooks and alerting. The fear of making changes dissipated as people saw that incidents led to learning, not blame.
 
@@ -164,8 +255,20 @@ One moment captured the shift: a junior engineer resolved a SEV2 incident at mid
 
 ## Key Takeaways
 
-- **Process beats heroics**: Reliable incident response comes from systems and documentation, not from having senior engineers available 24/7. Invest in runbooks and training so anyone can respond effectively.
-
-- **Blameless culture is a precondition**: Without psychological safety, you can't learn from incidents. Getting leadership commitment to blameless postmortems was the foundation everything else built on.
-
-- **Measure what matters**: Tracking MTTR, recurrence rates, and on-call burden gave us data to demonstrate progress and identify what needed attention. What gets measured gets improved.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Process beats heroics',
+      text: 'Reliable incident response comes from systems and documentation, not from having senior engineers available 24/7. Invest in runbooks and training so anyone can respond effectively.',
+    },
+    {
+      lead: 'Blameless culture is a precondition',
+      text: 'Without psychological safety, you cannot learn from incidents. Getting leadership commitment to blameless postmortems was the foundation everything else built on.',
+    },
+    {
+      lead: 'Measure what matters',
+      text: 'Tracking MTTR, recurrence rates, and on-call burden gave us data to demonstrate progress and identify what needed attention. What gets measured gets improved.',
+    },
+  ]}
+/>

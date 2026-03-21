@@ -107,7 +107,7 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
                   data-carousel-slide
                   data-index={String(index)}
                 >
-                  <article class="group h-full relative after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-within:after:opacity-100 focus-within:after:-inset-1.5 focus-within:after:border-spotlight">
+                  <article class="content-card-frame group h-full relative">
                     <a
                       href={'href' in item ? item.href : `/${type}/${item.id}`}
                       class="block h-full bg-content-inverse rounded-xl shadow-lg transition-all duration-300 overflow-hidden border border-trim transform hover:-translate-y-2 no-underline hover:no-underline focus-visible:no-underline focus-visible:outline-none focus-visible:shadow-none"
@@ -236,6 +236,24 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
     </carousel-slider>
   )
 }
+
+<style>
+  .content-card-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms ease-out;
+  }
+
+  .content-card-frame:has(:focus-visible)::after {
+    inset: -0.375rem;
+    border-color: var(--color-spotlight);
+    opacity: 1;
+  }
+</style>
 
 <script>
   import { registerCarouselWebComponent } from '@components/Carousel/client'

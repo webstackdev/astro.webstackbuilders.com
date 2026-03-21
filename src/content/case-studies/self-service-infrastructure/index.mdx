@@ -11,6 +11,16 @@ publishDate: 2024-04-22
 isDraft: true
 ---
 
+*[AWS]: Amazon Web Services
+*[CI/CD]: Continuous Integration and Continuous Delivery
+*[IAM]: Identity and Access Management
+*[KMS]: Key Management Service
+*[OPA]: Open Policy Agent
+*[PR]: Pull Request
+*[RDS]: Relational Database Service
+*[S3]: Simple Storage Service
+*[SOC2]: System and Organization Controls 2
+
 ## Overview
 
 A digital media company's two-person platform team had become the bottleneck for 120 engineers across 8 product teams. We built a self-service infrastructure system that let teams provision their own AWS resources safely, reducing request lead time from two weeks to under an hour while maintaining SOC2 compliance with zero policy violations.
@@ -35,16 +45,37 @@ The constraints made this tricky. The company had SOC2 compliance requirements, 
 
 I started by understanding what teams actually needed. I cataloged every infrastructure ticket from the past six months—487 requests total. The distribution was revealing:
 
-| Resource Type | % of Requests |
-|--------------|---------------|
-| S3 buckets | 28% |
-| RDS databases | 24% |
-| Lambda functions | 19% |
-| SQS queues | 12% |
-| ElastiCache | 8% |
-| Other | 9% |
-
-Table: Infrastructure request distribution by resource type
+<Table
+  variant="striped-rows-table"
+  content={{
+    figure: 'Table: Infrastructure request distribution by resource type',
+    thead: {
+      th: ['Resource Type', '% of Requests'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['S3 buckets', '28%'],
+        },
+        {
+          td: ['RDS databases', '24%'],
+        },
+        {
+          td: ['Lambda functions', '19%'],
+        },
+        {
+          td: ['SQS queues', '12%'],
+        },
+        {
+          td: ['ElastiCache', '8%'],
+        },
+        {
+          td: ['Other', '9%'],
+        },
+      ],
+    },
+  }}
+/>
 
 Five resource types accounted for 91% of all requests. And within each type, the configurations were remarkably similar. Most RDS requests were for PostgreSQL with the same encryption and backup settings. Most S3 buckets needed the same access policies. Teams weren't asking for exotic infrastructure—they were asking for the same things over and over.
 
@@ -52,23 +83,51 @@ This was the insight that shaped the solution: we didn't need to give teams full
 
 The key decisions:
 
-__Terraform modules over custom portal.__ We considered building a web interface, but Terraform modules offered more flexibility and lower maintenance. Engineers already understood infrastructure as code. We'd meet them where they were.
-
-__Policy as code with OPA.__ Security requirements would be codified as Open Policy Agent policies. Every Terraform plan would be checked against these policies before apply. Compliance became automated, not manual.
-
-__CI/CD-driven provisioning.__ Teams would provision infrastructure by opening PRs, not by clicking in a portal. This gave us audit trails, review workflows, and integration with existing development processes.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Terraform modules over custom portal',
+      text: 'We considered building a web interface, but Terraform modules offered more flexibility and lower maintenance. Engineers already understood infrastructure as code. We\'d meet them where they were.',
+    },
+    {
+      lead: 'Policy as code with OPA',
+      text: 'Security requirements would be codified as Open Policy Agent policies. Every Terraform plan would be checked against these policies before apply. Compliance became automated, not manual.',
+    },
+    {
+      lead: 'CI/CD-driven provisioning',
+      text: 'Teams would provision infrastructure by opening PRs, not by clicking in a portal. This gave us audit trails, review workflows, and integration with existing development processes.',
+    },
+  ]}
+/>
 
 The implementation happened in five phases:
 
-__Month 1: Core modules.__ We built Terraform modules for the top five resource types with security best practices baked in. Each module exposed only the configuration options teams actually needed—you couldn't accidentally create a public S3 bucket because the module didn't have a parameter for that.
-
-__Month 2: Policy layer.__ We wrote OPA policies encoding SOC2 requirements: encryption at rest, encryption in transit, no public access, proper tagging. We integrated Conftest to run these policies as part of the CI pipeline.
-
-__Month 3: CI/CD wrapper.__ We set up Atlantis to run Terraform plans and applies on PR events. Teams got plan output as PR comments. Applies required approval from at least one platform team member initially.
-
-__Month 4: Self-service rollout.__ We onboarded teams one by one. Each team got a repository with module references they could customize. We trained them on the workflow and supported their first few requests closely.
-
-__Month 5: Refinement and autonomy.__ As teams proved they could use the system safely, we removed the approval requirement for pre-approved patterns. Platform team review became optional for standard resources.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Month 1: Core modules',
+      text: 'We built Terraform modules for the top five resource types with security best practices baked in. Each module exposed only the configuration options teams actually needed, you could not accidentally create a public S3 bucket because the module did not have a parameter for that.',
+    },
+    {
+      lead: 'Month 2: Policy layer',
+      text: 'We wrote OPA policies encoding SOC2 requirements: encryption at rest, encryption in transit, no public access, proper tagging. We integrated Conftest to run these policies as part of the CI pipeline.',
+    },
+    {
+      lead: 'Month 3: CI/CD wrapper',
+      text: 'We set up Atlantis to run Terraform plans and applies on PR events. Teams got plan output as PR comments. Applies required approval from at least one platform team member initially.',
+    },
+    {
+      lead: 'Month 4: Self-service rollout',
+      text: 'We onboarded teams one by one. Each team got a repository with module references they could customize. We trained them on the workflow and supported their first few requests closely.',
+    },
+    {
+      lead: 'Month 5: Refinement and autonomy',
+      text: 'As teams proved they could use the system safely, we removed the approval requirement for pre-approved patterns. Platform team review became optional for standard resources.',
+    },
+  ]}
+/>
 
 The security team was initially skeptical. "You want to let developers provision their own databases?" We addressed this by showing them the policy layer in action. We demonstrated that developers literally couldn't create non-compliant resources—the CI pipeline would reject them. The policies enforced what reviews had previously caught manually.
 
@@ -126,14 +185,35 @@ We also implemented per-team budgets. Each team had a monthly infrastructure all
 
 The day-to-day workflow for a product team:
 
-1. Engineer creates a branch in their team's infrastructure repo
-2. Adds or modifies Terraform configuration using approved modules
-3. Opens a PR
-4. GitHub Actions runs `terraform plan`, OPA policy checks, and Infracost
-5. PR comment shows the plan, any policy violations, and cost estimate
-6. For standard patterns, engineer merges after self-review
-7. Atlantis applies the changes automatically
-8. Resources are provisioned, tagged, and compliant
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      text: 'Engineer creates a branch in their team\'s infrastructure repo',
+    },
+    {
+      text: 'Adds or modifies Terraform configuration using approved modules',
+    },
+    {
+      text: 'Opens a PR',
+    },
+    {
+      text: 'GitHub Actions runs <span class="font-mono">terraform plan</span>, OPA policy checks, and Infracost',
+    },
+    {
+      text: 'PR comment shows the plan, any policy violations, and cost estimate',
+    },
+    {
+      text: 'For standard patterns, engineer merges after self-review',
+    },
+    {
+      text: 'Atlantis applies the changes automatically',
+    },
+    {
+      text: 'Resources are provisioned, tagged, and compliant',
+    },
+  ]}
+/>
 
 For non-standard requests—anything outside the pre-approved modules—the PR required platform team review. This kept the escape hatch available while ensuring experts reviewed novel infrastructure.
 
@@ -141,16 +221,37 @@ For non-standard requests—anything outside the pre-approved modules—the PR r
 
 Five months after starting, the transformation was complete:
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Infrastructure request lead time | 2 weeks | &lt;1 hour |
-| Platform team ticket volume | Baseline | -75% |
-| Security policy violations | Unknown (shadow IT) | Zero |
-| Self-sufficient product teams | 0 of 8 | 6 of 8 |
-| Shadow IT resources | Discovered during audit | Eliminated |
-| Infrastructure spend | Baseline | -12% |
-
-Table: Self-service infrastructure outcomes
+<Table
+  variant="striped-rows-table"
+  content={{
+    figure: 'Table: Self-service infrastructure outcomes',
+    thead: {
+      th: ['Metric', 'Before', 'After'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['Infrastructure request lead time', '2 weeks', '&lt;1 hour'],
+        },
+        {
+          td: ['Platform team ticket volume', 'Baseline', '-75%'],
+        },
+        {
+          td: ['Security policy violations', 'Unknown (shadow IT)', 'Zero'],
+        },
+        {
+          td: ['Self-sufficient product teams', '0 of 8', '6 of 8'],
+        },
+        {
+          td: ['Shadow IT resources', 'Discovered during audit', 'Eliminated'],
+        },
+        {
+          td: ['Infrastructure spend', 'Baseline', '-12%'],
+        },
+      ],
+    },
+  }}
+/>
 
 For standard resources, most requests completed in 15-30 minutes. The remaining 25% of tickets were non-standard requests that genuinely required platform expertise—interesting problems, not repetitive provisioning. With ticket volume down 75%, the platform engineers finally had time for the work they wanted to do: improving observability, building deployment tooling, and designing the next generation of infrastructure patterns.
 
@@ -158,6 +259,20 @@ The cost visibility produced an unexpected but significant benefit. When teams c
 
 ## Key Takeaways
 
-- __Self-service doesn't mean uncontrolled.__ The key insight was that teams didn't need full AWS access—they needed access to approved patterns. Constrained self-service is often more valuable than unconstrained freedom because it removes the cognitive load of security and compliance decisions.
-- __Codified policies beat manual reviews.__ When security requirements are code, they're consistent and fast. Manual reviews are slow, inconsistent, and create bottlenecks. Automate the rules, review the exceptions.
-- __Meet teams where they are.__ We used Terraform and Git because that's what engineers already knew. A custom portal might have looked nicer but would have added friction and required training. Familiar tools with new capabilities beat new tools with new capabilities.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Self-service does not mean uncontrolled',
+      text: 'The key insight was that teams did not need full AWS access, they needed access to approved patterns. Constrained self-service is often more valuable than unconstrained freedom because it removes the cognitive load of security and compliance decisions.',
+    },
+    {
+      lead: 'Codified policies beat manual reviews',
+      text: 'When security requirements are code, they are consistent and fast. Manual reviews are slow, inconsistent, and create bottlenecks. Automate the rules, review the exceptions.',
+    },
+    {
+      lead: 'Meet teams where they are',
+      text: 'We used Terraform and Git because that is what engineers already knew. A custom portal might have looked nicer but would have added friction and required training. Familiar tools with new capabilities beat new tools with new capabilities.',
+    },
+  ]}
+/>

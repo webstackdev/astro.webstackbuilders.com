@@ -11,6 +11,11 @@ publishDate: 2024-10-01
 isDraft: true
 ---
 
+*[CI/CD]: Continuous Integration and Continuous Delivery
+*[S3]: Simple Storage Service
+*[SSO]: Single Sign-On
+*[UI]: User Interface
+
 ## Overview
 
 A 200-engineer organization needed to reduce the cognitive load of navigating a sprawling microservices architecture built through years of acquisitions. We implemented Backstage as their internal developer platform, achieving voluntary 100% adoption within six months, cutting new engineer onboarding from three weeks to four days, and increasing developer satisfaction scores by 35%.
@@ -39,21 +44,47 @@ The assessment also inventoried what existed. We found 340 services across the o
 
 The key decisions:
 
-__Backstage over build-your-own.__ We considered building a custom portal, but Backstage's plugin ecosystem and active community meant we could move faster and wouldn't be maintaining everything ourselves. The learning curve was worth it.
-
-__Start with the software catalog.__ Backstage can do many things—catalog, docs, templates, custom plugins. We resisted the urge to do everything at once. The catalog was the foundation. It would prove value quickly and create the data model everything else would build on.
-
-__Champion teams, not mandates.__ We identified three teams who were most frustrated with the status quo and had influence in the organization. We built for their needs first, made them successful, and let them evangelize to their peers.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Backstage over build-your-own',
+      text: 'We considered building a custom portal, but Backstage\'s plugin ecosystem and active community meant we could move faster and would not be maintaining everything ourselves. The learning curve was worth it.',
+    },
+    {
+      lead: 'Start with the software catalog',
+      text: 'Backstage can do many things, catalog, docs, templates, custom plugins. We resisted the urge to do everything at once. The catalog was the foundation. It would prove value quickly and create the data model everything else would build on.',
+    },
+    {
+      lead: 'Champion teams, not mandates',
+      text: 'We identified three teams who were most frustrated with the status quo and had influence in the organization. We built for their needs first, made them successful, and let them evangelize to their peers.',
+    },
+  ]}
+/>
 
 The implementation rolled out in phases over eight months:
 
-__Months 1-2: Catalog foundation.__ We deployed Backstage, connected it to GitHub, and populated the initial catalog. This involved writing `catalog-info.yaml` files for about 100 services—enough to demonstrate value but not so many that we burned out before launch.
-
-__Months 3-4: TechDocs integration.__ We enabled TechDocs, which renders MkDocs documentation directly in Backstage. Teams could keep docs in their repos (as Markdown) and have them appear automatically in the portal. This solved the "docs are scattered" problem without requiring teams to change where they wrote.
-
-__Months 5-6: Software templates.__ We built scaffolder templates for new services. Instead of copying an existing repo and manually updating names, engineers could fill out a form and get a fully configured repo with CI/CD, observability, and documentation scaffolding in place.
-
-__Months 7-8: Custom plugins and expansion.__ We built plugins for internal tools—the deployment system, the feature flag service, the incident management platform. Teams could see everything about a service in one place.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Months 1-2: Catalog foundation',
+      text: 'We deployed Backstage, connected it to GitHub, and populated the initial catalog. This involved writing <span class="font-mono">catalog-info.yaml</span> files for about 100 services, enough to demonstrate value but not so many that we burned out before launch.',
+    },
+    {
+      lead: 'Months 3-4: TechDocs integration',
+      text: 'We enabled TechDocs, which renders MkDocs documentation directly in Backstage. Teams could keep docs in their repos (as Markdown) and have them appear automatically in the portal. This solved the "docs are scattered" problem without requiring teams to change where they wrote.',
+    },
+    {
+      lead: 'Months 5-6: Software templates',
+      text: 'We built scaffolder templates for new services. Instead of copying an existing repo and manually updating names, engineers could fill out a form and get a fully configured repo with CI/CD, observability, and documentation scaffolding in place.',
+    },
+    {
+      lead: 'Months 7-8: Custom plugins and expansion',
+      text: 'We built plugins for internal tools, the deployment system, the feature flag service, the incident management platform. Teams could see everything about a service in one place.',
+    },
+  ]}
+/>
 
 Change management was continuous throughout. We held weekly office hours where any engineer could ask questions or request features. We celebrated teams who achieved full catalog coverage in company all-hands. We tracked adoption metrics publicly, creating friendly competition between teams.
 
@@ -77,12 +108,29 @@ The key insight was keeping docs in the repo. Previous documentation initiatives
 
 We built templates for three common patterns: a new backend service, a new frontend application, and a new shared library. Each template:
 
-- Created a GitHub repository with proper structure
-- Set up CI/CD pipelines in their existing system
-- Configured observability (logging, metrics, tracing)
-- Generated the `catalog-info.yaml` for automatic catalog registration
-- Created initial documentation scaffolding
-- Set up Slack notifications for the team channel
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      text: 'Created a GitHub repository with proper structure',
+    },
+    {
+      text: 'Set up CI/CD pipelines in their existing system',
+    },
+    {
+      text: 'Configured observability (logging, metrics, tracing)',
+    },
+    {
+      text: 'Generated the <span class="font-mono">catalog-info.yaml</span> for automatic catalog registration',
+    },
+    {
+      text: 'Created initial documentation scaffolding',
+    },
+    {
+      text: 'Set up Slack notifications for the team channel',
+    },
+  ]}
+/>
 
 Engineers filled out a form with service name, owning team, and a few configuration options. Five minutes later, they had a fully functional repository ready for development.
 
@@ -90,14 +138,31 @@ Engineers filled out a form with service name, owning team, and a few configurat
 
 We built plugins to integrate with systems engineers already used:
 
-| Plugin | Purpose | Value |
-|--------|---------|-------|
-| Deployment | Deployment history, current versions, trigger deploys | No context-switching to separate UI |
-| Feature Flags | Active flags per service, management links | Quick toggle visibility |
-| Incident | Recent incidents, postmortem links | Onboarding context, history awareness |
-| Cost | Monthly infrastructure cost per service | Drove optimization conversations |
-
-Table: Custom Backstage plugins
+<Table
+  variant="striped-rows-table"
+  content={{
+    figure: 'Table: Custom Backstage plugins',
+    thead: {
+      th: ['Plugin', 'Purpose', 'Value'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['Deployment', 'Deployment history, current versions, trigger deploys', 'No context-switching to separate UI'],
+        },
+        {
+          td: ['Feature Flags', 'Active flags per service, management links', 'Quick toggle visibility'],
+        },
+        {
+          td: ['Incident', 'Recent incidents, postmortem links', 'Onboarding context, history awareness'],
+        },
+        {
+          td: ['Cost', 'Monthly infrastructure cost per service', 'Drove optimization conversations'],
+        },
+      ],
+    },
+  }}
+/>
 
 Each plugin surfaced information that previously required navigating to a separate tool. Engineers could see everything about a service in one place.
 
@@ -105,16 +170,37 @@ Each plugin surfaced information that previously required navigating to a separa
 
 Eight months in, the platform exceeded our targets:
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Services cataloged | ~0% | 100% (voluntary) |
-| New engineer onboarding | 3 weeks | 4 days |
-| New service creation | 2 days | 30 minutes |
-| Developer satisfaction score | 62 | 84 |
-| Documentation coverage | 40% | 95% |
-| Duplicate service creation | Common | Zero |
-
-Table: Platform adoption outcomes
+<Table
+  variant="striped-rows-table"
+  content={{
+    figure: 'Table: Platform adoption outcomes',
+    thead: {
+      th: ['Metric', 'Before', 'After'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['Services cataloged', '~0%', '100% (voluntary)'],
+        },
+        {
+          td: ['New engineer onboarding', '3 weeks', '4 days'],
+        },
+        {
+          td: ['New service creation', '2 days', '30 minutes'],
+        },
+        {
+          td: ['Developer satisfaction score', '62', '84'],
+        },
+        {
+          td: ['Documentation coverage', '40%', '95%'],
+        },
+        {
+          td: ['Duplicate service creation', 'Common', 'Zero'],
+        },
+      ],
+    },
+  }}
+/>
 
 The last 10% of services came onboard after seeing their peers in the catalog and feeling left out—no mandate required. New hires could navigate the service landscape independently; "Go look it up in Backstage" replaced hours of Slack conversations. The software templates eliminated boilerplate and ensured every new service started with proper observability and documentation.
 
@@ -122,6 +208,20 @@ The cultural change was as significant as the metrics. "Check Backstage" became 
 
 ## Key Takeaways
 
-- __Start with the catalog.__ It's tempting to build the whole platform before launching, but the catalog alone delivers massive value. Get services registered, get teams using it for discovery, and add capabilities incrementally based on what teams actually need.
-- __Adoption must be voluntary to stick.__ Mandated adoption creates compliance without engagement. Build something useful for champion teams, let them succeed publicly, and others will follow. The last 10% will come onboard when not being in the catalog becomes embarrassing.
-- __Keep docs in the repos.__ Documentation initiatives fail when they require engineers to go somewhere else. TechDocs succeeded because engineers could write Markdown in their IDE and commit it with their code. The friction reduction made the difference.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Start with the catalog',
+      text: 'It is tempting to build the whole platform before launching, but the catalog alone delivers massive value. Get services registered, get teams using it for discovery, and add capabilities incrementally based on what teams actually need.',
+    },
+    {
+      lead: 'Adoption must be voluntary to stick',
+      text: 'Mandated adoption creates compliance without engagement. Build something useful for champion teams, let them succeed publicly, and others will follow. The last 10% will come onboard when not being in the catalog becomes embarrassing.',
+    },
+    {
+      lead: 'Keep docs in the repos',
+      text: 'Documentation initiatives fail when they require engineers to go somewhere else. TechDocs succeeded because engineers could write Markdown in their IDE and commit it with their code. The friction reduction made the difference.',
+    },
+  ]}
+/>

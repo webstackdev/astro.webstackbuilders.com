@@ -3,13 +3,25 @@ title: "Event-Driven Architecture Migration for Real-Time Analytics"
 description: "Replacing synchronous API calls with event streaming to enable real-time dashboards and reduce system coupling across 30+ services"
 cover: "./cover.jpg"
 coverAlt: "Kafka cluster as central hub with producers and consumers orbiting around it, event messages flowing through topics as packets"
-client: "AdTech Platform"
+client: "moloco"
 duration: "6 months"
 industry: "Advertising Technology"
 projectType: "Event-Driven Architecture"
 isDraft: true
 publishDate: 2023-11-05
 ---
+
+*[CDC]: Change Data Capture
+*[CI/CD]: Continuous Integration and Continuous Delivery
+*[DLQ]: Dead Letter Queue
+*[JSON]: JavaScript Object Notation
+*[MSK]: Managed Streaming for Apache Kafka
+*[REST]: Representational State Transfer
+*[SNS]: Simple Notification Service
+*[SQL]: Structured Query Language
+*[SQS]: Simple Queue Service
+
+import eventStreamingDiagram from './event-streaming-architecture-with-kafka-as-central-hub.jpg'
 
 ## Overview
 
@@ -47,15 +59,37 @@ I started by mapping what events actually mattered. Not every API call should be
 
 I interviewed each team about their data: what they produced, what they consumed, how stale it could be. The patterns were clear:
 
-| Event Category | Producer | Consumers | Staleness Tolerance |
-|----------------|----------|-----------|---------------------|
-| Impressions | Ad server | Analytics, Billing, Fraud | Seconds |
-| Clicks/Conversions | Tracking service | Analytics, Attribution | Seconds |
-| Budget changes | Campaign service | Bidding, Pacing | Minutes |
-| User segments | DMP (Data Management Platform) | Targeting, Analytics | Hours |
-| Billing events | Billing service | Finance, Reporting | Minutes |
-
-Table: Event categories and their latency requirements
+<Table
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  content={{
+    figure: 'Table: Event categories and their latency requirements',
+    thead: {
+      th: ['Event Category', 'Producer', 'Consumers', 'Staleness Tolerance'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['Impressions', 'Ad server', 'Analytics, Billing, Fraud', 'Seconds'],
+        },
+        {
+          td: ['Clicks/Conversions', 'Tracking service', 'Analytics, Attribution', 'Seconds'],
+        },
+        {
+          td: ['Budget changes', 'Campaign service', 'Bidding, Pacing', 'Minutes'],
+        },
+        {
+          td: ['User segments', 'DMP (Data Management Platform)', 'Targeting, Analytics', 'Hours'],
+        },
+        {
+          td: ['Billing events', 'Billing service', 'Finance, Reporting', 'Minutes'],
+        },
+      ],
+    },
+  }}
+/>
 
 The impression and click events were the highest volume and most latency-sensitive. Budget changes affected bidding behavior but could tolerate slight delays. User segment updates were already batch-processed daily.
 
@@ -77,24 +111,72 @@ The migration happened in three phases over six months:
 
 **Phase 1: Infrastructure and Pilot (Months 1-2)**
 
-- Deploy MSK cluster with appropriate capacity
-- Implement Schema Registry and establish conventions
-- Migrate billing events as pilot domain (lower volume, well-understood)
-- Build monitoring dashboards for Kafka lag and throughput
+<List
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Deploy MSK cluster with appropriate capacity',
+    },
+    {
+      lead: 'Implement Schema Registry and establish conventions',
+    },
+    {
+      lead: 'Migrate billing events as pilot domain (lower volume, well-understood)',
+    },
+    {
+      lead: 'Build monitoring dashboards for Kafka lag and throughput',
+    },
+  ]}
+/>
 
 **Phase 2: Analytics Events (Months 3-4)**
 
-- Migrate impression and click events to Kafka
-- Implement change data capture from the analytics database
-- Build real-time aggregation with ksqlDB
-- Deploy real-time dashboards (beta)
+<List
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Migrate impression and click events to Kafka',
+    },
+    {
+      lead: 'Implement change data capture from the analytics database',
+    },
+    {
+      lead: 'Build real-time aggregation with ksqlDB',
+    },
+    {
+      lead: 'Deploy real-time dashboards (beta)',
+    },
+  ]}
+/>
 
 **Phase 3: Operational Events (Months 5-6)**
 
-- Migrate budget and campaign events
-- Remove synchronous dependencies from critical paths
-- Implement dead letter topics and error handling
-- Decommission legacy batch pipelines
+<List
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Migrate budget and campaign events',
+    },
+    {
+      lead: 'Remove synchronous dependencies from critical paths',
+    },
+    {
+      lead: 'Implement dead letter topics and error handling',
+    },
+    {
+      lead: 'Decommission legacy batch pipelines',
+    },
+  ]}
+/>
 
 ## The Solution
 
@@ -102,38 +184,11 @@ The migration happened in three phases over six months:
 
 The architecture centered on Kafka as the central nervous system. Services published events to topics and consumed events they cared about. The synchronous call chains dissolved into independent services reacting to events:
 
-```mermaid
-flowchart TB
-    subgraph Producers
-        AS[Ad Server<br/>Producer]
-        TS[Tracking<br/>Producer]
-        CS[Campaign<br/>Producer]
-    end
-
-    subgraph Kafka["Kafka (MSK)"]
-        IT[impressions<br/>topic]
-        CT[clicks<br/>topic]
-        BT[budget-changes<br/>topic]
-    end
-
-    subgraph Consumers
-        AN[Analytics<br/>Consumer]
-        BI[Billing<br/>Consumer]
-        FR[Fraud<br/>Consumer]
-    end
-
-    AS --> IT
-    TS --> CT
-    CS --> BT
-    IT --> AN
-    IT --> BI
-    IT --> FR
-    CT --> AN
-    CT --> BI
-    BT --> AN
-```
-
-Figure: Event streaming architecture with Kafka as central hub
+<Diagram
+  src={eventStreamingDiagram}
+  title="Event streaming architecture with Kafka as central hub."
+  description="Flowchart showing three producer services on the left: Ad Server Producer, Tracking Producer, and Campaign Producer. At the center is a Kafka (MSK) group containing three topics: impressions, clicks, and budget-changes. On the right are three consumer services: Analytics Consumer, Billing Consumer, and Fraud Consumer. Ad Server sends events to the impressions topic, Tracking sends to clicks, and Campaign sends to budget-changes. The impressions topic fans out to Analytics, Billing, and Fraud. The clicks topic fans out to Analytics and Billing. The budget-changes topic feeds Analytics. The diagram shows Kafka acting as the decoupling layer between event producers and downstream consumers."
+/>
 
 Each consumer group processed events at its own pace. If the fraud service slowed down, it fell behind on its consumer offset—but the ad server and analytics continued unaffected. The coupling was gone.
 
@@ -265,22 +320,59 @@ The investment in learning paid off. Six months post-migration, the team was com
 
 After six months, the transformation was measurable:
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Analytics latency | 24 hours | Under 5 seconds |
-| Cascade failures | 8 incidents/month | 0 (services decoupled) |
-| System throughput | Baseline | 3x increase (same infrastructure) |
-| Feature velocity | Weeks per analytics feature | Days (just add a consumer) |
-| Deployment coordination | Required across services | Independent deployments |
-
-Table: Event-driven architecture migration outcomes
+<Table
+  variant="criteria-highlight-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  content={{
+    figure: 'Table: Event-driven architecture migration outcomes',
+    thead: {
+      th: ['Metric', 'Before', 'After'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['Analytics latency', '24 hours', 'Under 5 seconds'],
+        },
+        {
+          td: ['Cascade failures', '8 incidents/month', '0 (services decoupled)'],
+        },
+        {
+          td: ['System throughput', 'Baseline', '3x increase (same infrastructure)'],
+        },
+        {
+          td: ['Feature velocity', 'Weeks per analytics feature', 'Days (just add a consumer)'],
+        },
+        {
+          td: ['Deployment coordination', 'Required across services', 'Independent deployments'],
+        },
+      ],
+    },
+  }}
+/>
 
 The business impact was immediate. The real-time dashboards became a competitive differentiator—sales closed deals they'd been losing to competitors. Campaign managers could optimize in real-time instead of waiting for next-day reports.
 
 ## Key Takeaways
 
-- **Events decouple time and availability**: When services communicate via events, a slow consumer doesn't slow down producers. This eliminates cascade failures and lets teams work independently. The architectural benefit was more valuable than the real-time analytics.
-
-- **Schema management is cultural change**: In request/response, you coordinate deployments. With events, you need contractual guarantees that schemas evolve safely. Investing in Schema Registry and compatibility rules early prevented painful breaking changes later.
-
-- **Start with replay capability**: The ability to reprocess events from the beginning is invaluable for debugging, disaster recovery, and building new consumers. SQS's lack of replay would have been a constant limitation. Choose infrastructure that supports your future needs, not just today's.
+<List
+  variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Events decouple time and availability',
+      text: 'When services communicate via events, a slow consumer does not slow down producers. This eliminates cascade failures and lets teams work independently. The architectural benefit was more valuable than the real-time analytics.',
+    },
+    {
+      lead: 'Schema management is cultural change',
+      text: 'In request/response, you coordinate deployments. With events, you need contractual guarantees that schemas evolve safely. Investing in Schema Registry and compatibility rules early prevented painful breaking changes later.',
+    },
+    {
+      lead: 'Start with replay capability',
+      text: 'The ability to reprocess events from the beginning is invaluable for debugging, disaster recovery, and building new consumers. SQS\'s lack of replay would have been a constant limitation. Choose infrastructure that supports your future needs, not just today\'s.',
+    },
+  ]}
+/>

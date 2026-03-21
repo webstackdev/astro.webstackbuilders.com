@@ -11,6 +11,18 @@ isDraft: true
 publishDate: 2024-01-20
 ---
 
+*[API]: Application Programming Interface
+*[DNS]: Domain Name System
+*[HTTP]: Hypertext Transfer Protocol
+*[mTLS]: Mutual Transport Layer Security
+*[OPA]: Open Policy Agent
+*[SOC2]: System and Organization Controls 2
+*[SPIFFE]: Secure Production Identity Framework for Everyone
+*[SPIRE]: SPIFFE Runtime Environment
+*[SVID]: SPIFFE Verifiable Identity Document
+
+import zeroTrustArchitectureDiagram from './zero-trust-architecture-with-istio-service-mesh.jpg'
+
 *[CISO]: Chief Information Security Officer
 
 ## Overview
@@ -63,14 +75,31 @@ The combination: Istio handles the data plane (mTLS, traffic routing), SPIRE pro
 
 Zero trust isn't a flag you flip—it's a journey. I designed a four-phase rollout:
 
-| Phase | Focus | Risk Level |
-|-------|-------|------------|
-| 1: Mesh Installation | Install Istio sidecars in permissive mode; mTLS available but not required | Low |
-| 2: Observability | Gain visibility via Kiali; map which services communicate and mTLS coverage | Low |
-| 3: Policy Definition | Define authorization policies based on observed patterns; audit mode first | Medium |
-| 4: Strict Mode | Enable mTLS strict mode; flip policies from audit to enforce | High |
-
-Table: Zero trust implementation phases
+<Table
+  variant="striped-rows-table"
+  content={{
+    figure: 'Table: Zero trust implementation phases',
+    thead: {
+      th: ['Phase', 'Focus', 'Risk Level'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['1: Mesh Installation', 'Install Istio sidecars in permissive mode; mTLS available but not required', 'Low'],
+        },
+        {
+          td: ['2: Observability', 'Gain visibility via Kiali; map which services communicate and mTLS coverage', 'Low'],
+        },
+        {
+          td: ['3: Policy Definition', 'Define authorization policies based on observed patterns; audit mode first', 'Medium'],
+        },
+        {
+          td: ['4: Strict Mode', 'Enable mTLS strict mode; flip policies from audit to enforce', 'High'],
+        },
+      ],
+    },
+  }}
+/>
 
 The phased approach built confidence and caught issues early. Permissive mode let us validate the mesh without breaking production. Audit mode policies logged violations without blocking, giving us data before enforcement.
 
@@ -80,31 +109,11 @@ The phased approach built confidence and caught issues early. Permissive mode le
 
 The architecture centered on Istio's sidecar proxy model. Every service pod gets an Envoy sidecar that handles mTLS termination, identity verification, and policy enforcement:
 
-```mermaid
-flowchart TB
-    subgraph Cluster["Kubernetes Cluster"]
-        subgraph SA["Service A"]
-            AppA[App]
-            EnvoyA[Envoy]
-        end
-        subgraph SB["Service B"]
-            EnvoyB[Envoy]
-            AppB[App]
-        end
-        EnvoyA <-->|mTLS| EnvoyB
-
-        subgraph CP["Istio Control Plane"]
-            Istiod
-            SPIRE[SPIRE Server]
-            OPA[OPA/Gatekeeper]
-        end
-
-        EnvoyA -.-> CP
-        EnvoyB -.-> CP
-    end
-```
-
-Figure: Zero trust architecture with Istio service mesh
+<Diagram
+  src={zeroTrustArchitectureDiagram}
+  title="Zero trust architecture with Istio service mesh."
+  description="Diagram of a Kubernetes cluster containing two services, Service A and Service B. Service A contains an application container and an Envoy sidecar. Service B also contains an Envoy sidecar and an application container. The two Envoy sidecars communicate with each other over an mTLS connection. A separate Istio Control Plane group contains Istiod, a SPIRE Server, and OPA or Gatekeeper. Both Envoy sidecars connect to the control plane, showing that policy, identity, and mesh configuration are distributed centrally while workload-to-workload traffic is mutually authenticated between sidecars."
+/>
 
 The Envoy sidecars communicate only with other sidecars that present valid SPIFFE identities. The application code is unchanged—it still makes plaintext HTTP calls to localhost, and the sidecar handles encryption transparently.
 
@@ -173,22 +182,53 @@ The alternative—continuing with plaintext and firewall rules—wasn't actually
 
 After seven months, the transformation was complete:
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Service-to-service encryption | 0% | 100% mTLS |
-| Firewall rules | 200+ | Eliminated (identity-based policies) |
-| SOC2 Type II findings | Flagged | Zero network security findings |
-| Credential revocation time | Hours | Seconds |
-| Lateral movement surface | Unbounded | 95% reduction (threat model estimate) |
-
-Table: Zero trust implementation outcomes
+<Table
+  variant="striped-rows-table"
+  content={{
+    figure: 'Table: Zero trust implementation outcomes',
+    thead: {
+      th: ['Metric', 'Before', 'After'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['Service-to-service encryption', '0%', '100% mTLS'],
+        },
+        {
+          td: ['Firewall rules', '200+', 'Eliminated (identity-based policies)'],
+        },
+        {
+          td: ['SOC2 Type II findings', 'Flagged', 'Zero network security findings'],
+        },
+        {
+          td: ['Credential revocation time', 'Hours', 'Seconds'],
+        },
+        {
+          td: ['Lateral movement surface', 'Unbounded', '95% reduction (threat model estimate)'],
+        },
+      ],
+    },
+  }}
+/>
 
 The observability improvements were a bonus. Kiali (Istio's service mesh observability dashboard) and the service graph became essential debugging tools. When something failed, engineers could see exactly which service-to-service call broke and why—a capability they'd never had with the firewall model.
 
 ## Key Takeaways
 
-- **Start with visibility**: You can't secure what you can't see. Network flow analysis and service mapping must precede policy definition. We discovered communication patterns that surprised even senior engineers.
-
-- **Gradual rollout is essential**: Permissive mode, audit policies, then enforcement. Any attempt to flip zero trust on overnight would have caused outages. The phased approach built confidence and caught issues early.
-
-- **Identity beats network location**: SPIFFE workload identity fundamentally changes the security model. Instead of "this request came from a trusted IP range," you get "this request came from a cryptographically verified workload." That's a much stronger foundation.
+<List
+  variant="check-icons-list"
+  items={[
+    {
+      lead: 'Start with visibility',
+      text: 'You cannot secure what you cannot see. Network flow analysis and service mapping must precede policy definition. We discovered communication patterns that surprised even senior engineers.',
+    },
+    {
+      lead: 'Gradual rollout is essential',
+      text: 'Permissive mode, audit policies, then enforcement. Any attempt to flip zero trust on overnight would have caused outages. The phased approach built confidence and caught issues early.',
+    },
+    {
+      lead: 'Identity beats network location',
+      text: 'SPIFFE workload identity fundamentally changes the security model. Instead of "this request came from a trusted IP range," you get "this request came from a cryptographically verified workload." That is a much stronger foundation.',
+    },
+  ]}
+/>

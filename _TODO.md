@@ -244,8 +244,6 @@ https://mermaid.js.org/config/directives.html
 
 - Need an article on OpenStack
 
-- Add a Social Share on some compelling text in each article
-
 - Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
 
 - We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
@@ -324,7 +322,7 @@ https://mermaid.js.org/config/directives.html
 <Table
   fullWidth={false}
   classes={{
-    figure: "sm:ml-8 sm:mr-12 mb-6",
+    figure: "sm:ml-6 sm:mr-12 mb-6",
   }}
   classes={{
     tbody: '!text-content',
@@ -345,3 +343,15 @@ https://mermaid.js.org/config/directives.html
     tbody:
       '[&_td:nth-child(2)]:text-success [&_td:nth-child(3)]:text-warning [&_td:nth-child(4)]:text-danger',
   }}
+
+id: ""
+displayName: ""
+industry: ""
+businessType: ""
+workModel: ""
+location: ""
+startDate: ""
+endDate: ""
+website: ""
+linkedinUrl: ""
+published:

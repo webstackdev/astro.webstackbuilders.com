@@ -5,10 +5,44 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 
 test.describe('Articles Page', () => {
+  test('@ready mouse click on article cards does not show focus-visible outline', async ({ page: playwrightPage }) => {
+    const page = await BasePage.init(playwrightPage)
+    const cardSelector = '[data-carousel-slide] article'
+    const linkSelector = '[data-carousel-slide] article a'
+
+    await page.goto('/articles')
+
+    await page.evaluate(selector => {
+      const link = document.querySelector<HTMLAnchorElement>(selector)
+      link?.addEventListener(
+        'click',
+        event => {
+          event.preventDefault()
+        },
+        { once: true }
+      )
+    }, linkSelector)
+
+    await page.click(linkSelector)
+
+    const overlayState = await page.locator(cardSelector).first().evaluate(card => {
+      const afterStyles = window.getComputedStyle(card, '::after')
+      const link = card.querySelector('a')
+
+      return {
+        isFocused: link === document.activeElement,
+        opacity: afterStyles.opacity,
+      }
+    })
+
+    expect(overlayState.isFocused).toBe(true)
+    expect(overlayState.opacity).toBe('0')
+  })
+
   test('@ready page loads with correct title', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
-    await page.expectTitle(/Articles/)
+    await page.expectTitle(/Technical Index/)
   })
 
   test('@ready articles list displays', async ({ page: playwrightPage }) => {

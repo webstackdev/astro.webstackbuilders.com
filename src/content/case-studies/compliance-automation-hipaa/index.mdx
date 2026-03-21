@@ -3,13 +3,25 @@ title: "HIPAA Compliance Automation for a Healthtech Startup"
 description: "Implementing compliance controls as code to achieve HIPAA certification in 3 months while maintaining development velocity"
 cover: "./cover.jpg"
 coverAlt: "Policy documents transforming into code blocks with medical symbols on circuit board pattern representing compliance as code"
-client: "Healthtech Startup"
+client: "non-disclosed-healthcare-startup"
 duration: "3 months"
 industry: "Healthcare Technology"
 projectType: "Compliance Automation"
-isDraft: true
 publishDate: 2023-12-10
 ---
+
+*[ARR]: Annual Recurring Revenue
+*[EBS]: Elastic Block Store
+*[HIPAA]: Health Insurance Portability and Accountability Act
+*[IAM]: Identity and Access Management
+*[MFA]: Multi-Factor Authentication
+*[NIST]: National Institute of Standards and Technology
+*[PHI]: Protected Health Information
+*[RDS]: Relational Database Service
+*[S3]: Simple Storage Service
+*[SSN]: Social Security Number
+*[TLS]: Transport Layer Security
+*[VPC]: Virtual Private Cloud
 
 ## Overview
 
@@ -47,19 +59,37 @@ But patterns emerged. Many requirements could be addressed with the same underly
 
 I categorized everything into three buckets:
 
-| Category | Requirements | Approach |
-|----------|--------------|----------|
-| Automate | Access controls, encryption, logging, monitoring | AWS Config rules + Terraform |
-| Document | Policies, procedures, risk assessments | Templates + version control |
-| Train | Workforce security awareness | Recorded sessions + acknowledgments |
-
-Table: HIPAA requirement categories and remediation approaches
+<Table
+  variant="numbered-review-table"
+  classes={{
+  figure: "sm:ml-6 sm:mr-12 mb-6",
+}}
+  content={{
+    figure: 'HIPAA requirement categories and remediation approaches',
+    thead: {
+      th: ['Category', 'Requirements', 'Approach'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['Automate', 'Access controls, encryption, logging, monitoring', 'AWS Config rules + Terraform'],
+        },
+        {
+          td: ['Document', 'Policies, procedures, risk assessments', 'Templates + version control'],
+        },
+        {
+          td: ['Train', 'Workforce security awareness', 'Recorded sessions + acknowledgments'],
+        },
+      ],
+    },
+  }}
+/>
 
 ### Compliance as Code
 
 The key insight was treating compliance like any other engineering problem. Instead of manual checklists checked quarterly, we'd encode requirements as automated checks that ran continuously.
 
-AWS Config became our compliance engine. For every technical requirement, I wrote a Config rule that evaluated whether resources met the specification. Non-compliant resources triggered alerts—or in some cases, automatic remediation.
+[AWS Config](https://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html) became our compliance engine. For every technical requirement, I wrote a Config rule that evaluated whether resources met the specification. Non-compliant resources triggered alerts—or in some cases, automatic remediation.
 
 Terraform modules encoded compliant patterns. When engineers needed a new S3 bucket, they used our module that automatically configured encryption, blocked public access, and enabled logging. Compliance became the default rather than an afterthought.
 
@@ -69,24 +99,72 @@ We had three months. I structured the work in phases that addressed the highest-
 
 **Month 1: Access Controls and Encryption**
 
-- Implement least-privilege IAM with role-based access
-- Enable encryption at rest for all data stores (RDS, S3, EBS)
-- Configure TLS everywhere, enforce minimum versions
-- Deploy AWS IAM Access Analyzer to find overly permissive policies
+<List
+  variant="card-grid-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: '1. Implement least-privilege IAM with role-based access',
+    },
+    {
+      lead: '2. Enable encryption at rest for all data stores (RDS, S3, EBS)',
+    },
+    {
+      lead: '3. Configure TLS everywhere, enforce minimum versions',
+    },
+    {
+      lead: '4. Deploy AWS IAM Access Analyzer to find overly permissive policies',
+    },
+  ]}
+/>
 
 **Month 2: Audit Logging and Monitoring**
 
-- Enable CloudTrail in all regions with tamper-evident logging
-- Configure VPC Flow Logs for network monitoring
-- Implement PHI access logging at application level
-- Build dashboards for security-relevant events
+<List
+  variant="card-grid-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: '5. Enable CloudTrail in all regions with tamper-evident logging',
+    },
+    {
+      lead: '6. Configure VPC Flow Logs for network monitoring',
+    },
+    {
+      lead: '7. Implement PHI access logging at application level',
+    },
+    {
+      lead: '8. Build dashboards for security-relevant events',
+    },
+  ]}
+/>
 
 **Month 3: Policies, Documentation, and Evidence**
 
-- Write required policies (access control, incident response, contingency planning)
-- Document procedures that match actual practices
-- Build automated evidence collection for future audits
-- Conduct security awareness training
+<List
+  variant="card-grid-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: '9. Write required policies (access control, incident response, contingency planning)',
+    },
+    {
+      lead: '10. Document procedures that match actual practices',
+    },
+    {
+      lead: '11. Build automated evidence collection for future audits',
+    },
+    {
+      lead: '12. Conduct security awareness training',
+    },
+  ]}
+/>
 
 ## The Solution
 
@@ -121,13 +199,35 @@ Code: AWS Config rule checking S3 bucket encryption compliance
 
 We had Config rules for:
 
-- S3 bucket encryption and public access blocking
-- RDS encryption at rest and in transit
-- EBS volume encryption
-- CloudTrail enabled in all regions
-- VPC Flow Logs enabled
-- IAM password policy requirements
-- MFA enforcement for console access
+<List
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'S3 bucket encryption and public access blocking',
+    },
+    {
+      lead: 'RDS encryption at rest and in transit',
+    },
+    {
+      lead: 'EBS volume encryption',
+    },
+    {
+      lead: 'CloudTrail enabled in all regions',
+    },
+    {
+      lead: 'VPC Flow Logs enabled',
+    },
+    {
+      lead: 'IAM password policy requirements',
+    },
+    {
+      lead: 'MFA enforcement for console access',
+    },
+  ]}
+/>
 
 Non-compliant resources appeared in a dashboard within minutes. During the audit, we could demonstrate continuous compliance rather than point-in-time snapshots.
 
@@ -160,9 +260,22 @@ The messiest remediation was PHI in application logs. Engineers had been logging
 
 We implemented a two-part solution:
 
-1. **Structured logging with redaction**: All logs went through a sanitization layer that recognized and redacted PHI patterns (SSNs, dates of birth, medical record numbers)
-
-2. **Separate PHI access log**: Legitimate PHI access was logged to a dedicated, encrypted log stream with stricter access controls and longer retention
+<List
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Structured logging with redaction',
+      text: 'All logs went through a sanitization layer that recognized and redacted PHI patterns (SSNs, dates of birth, medical record numbers)',
+    },
+    {
+      lead: 'Separate PHI access log',
+      text: 'Legitimate PHI access was logged to a dedicated, encrypted log stream with stricter access controls and longer retention',
+    },
+  ]}
+/>
 
 ```typescript
 // Logging middleware with PHI redaction
@@ -187,16 +300,42 @@ The policies lived in a Git repository alongside the infrastructure code. This w
 
 Key policies included:
 
-- Information Security Policy (umbrella policy)
-- Access Control Policy (who can access what, how access is granted/revoked)
-- Audit Controls Policy (what's logged, how long it's retained)
-- Incident Response Plan (what happens when things go wrong)
-- Contingency Plan (backup, disaster recovery, business continuity)
-- Workforce Security Policy (background checks, termination procedures)
+<List
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Information Security Policy',
+      text: 'Umbrella policy',
+    },
+    {
+      lead: 'Access Control Policy',
+      text: 'Who can access what, how access is granted/revoked',
+    },
+    {
+      lead: 'Audit Controls Policy',
+      text: 'What\'s logged, how long it\'s retained',
+    },
+    {
+      lead: 'Incident Response Plan',
+      text: 'What happens when things go wrong',
+    },
+    {
+      lead: 'Contingency Plan',
+      text: 'Backup, disaster recovery, business continuity',
+    },
+    {
+      lead: 'Workforce Security Policy',
+      text: 'Background checks, termination procedures',
+    },
+  ]}
+/>
 
 ### Automated Evidence Collection
 
-Audit prep is traditionally a scramble—gathering screenshots, exporting configurations, collecting attestations. I built a Lambda function that automated most of this:
+Audit prep is traditionally a scramble — gathering screenshots, exporting configurations, collecting attestations. I built a Lambda function that automated most of this:
 
 ```python
 def collect_audit_evidence():
@@ -223,27 +362,63 @@ def collect_audit_evidence():
 
 Code: Lambda function automating audit evidence collection
 
-The function ran weekly, producing a compliance report that was ready for auditors at any time. When the auditor asked "show me evidence of encryption at rest," we pulled up the most recent report—generated two days ago, not hastily assembled that morning.
+The function ran weekly, producing a compliance report that was ready for auditors at any time. When the auditor asked _"show me evidence of encryption at rest"_, we pulled up the most recent report — generated two days ago, not hastily assembled that morning.
 
 ## The Results
 
 We achieved HIPAA certification in three months—one month ahead of the deadline:
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Control monitoring | Quarterly manual reviews | 85% automated via AWS Config |
-| Audit evidence collection | 2 weeks | 2 hours (automated reports) |
-| Compliance overhead | Friction on every feature | Zero development slowdown |
-| Enterprise deal | Blocked on certification | $2M ARR contract signed |
-
-Table: HIPAA compliance automation outcomes
+<Table
+  variant="grid-and-accent-header-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+    tbody: '!text-content',
+  }}
+  content={{
+    figure: 'HIPAA compliance automation outcomes',
+    thead: {
+      th: ['Metric', 'Before', 'After'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['Control monitoring', 'Quarterly manual reviews', '85% automated via AWS Config'],
+        },
+        {
+          td: ['Audit evidence collection', '2 weeks', '2 hours (automated reports)'],
+        },
+        {
+          td: ['Compliance overhead', 'Friction on every feature', 'Zero development slowdown'],
+        },
+        {
+          td: ['Enterprise deal', 'Blocked on certification', '$2M ARR contract signed'],
+        },
+      ],
+    },
+  }}
+/>
 
 The ongoing impact was equally significant. Six months later, they passed their first annual audit with minimal preparation. The compliance posture had actually improved because the automated checks caught drift immediately rather than letting issues accumulate until the next audit cycle.
 
 ## Key Takeaways
 
-- **Compliance as code scales**: Manual checklists create audit scrambles and ongoing friction. Automated controls provide continuous assurance and reduce the compliance burden to near-zero between audits.
-
-- **Make compliance the default**: When compliant configurations are the only option (via Terraform modules and guardrails), developers don't have to think about compliance. Security becomes invisible infrastructure, not a tax on every feature.
-
-- **Start with gap analysis, not tools**: Understanding exactly what HIPAA requires—and how it maps to your current state—focuses effort on what matters. Many startups buy expensive compliance tools before understanding their actual gaps.
+<List
+  variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Compliance as code scales',
+      text: 'Manual checklists create audit scrambles and ongoing friction. Automated controls provide continuous assurance and reduce the compliance burden to near-zero between audits.',
+    },
+    {
+      lead: 'Make compliance the default',
+      text: 'When compliant configurations are the only option (via Terraform modules and guardrails), developers don\'t have to think about compliance. Security becomes invisible infrastructure, not a tax on every feature.',
+    },
+    {
+      lead: 'Start with gap analysis, not tools',
+      text: 'Understanding exactly what HIPAA requires—and how it maps to your current state—focuses effort on what matters. Many startups buy expensive compliance tools before understanding their actual gaps.',
+    },
+  ]}
+/>
