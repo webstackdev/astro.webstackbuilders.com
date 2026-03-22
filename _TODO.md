@@ -216,8 +216,6 @@ https://mermaid.js.org/config/directives.html
 
 - There's a pretty long delay when you push the Content Switcher to go from short to deep dive, what's causing it? It should be fast - maybe it's a prefetch issue, prefetch on page load
 
-- Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
-
 - Search box in header should have blue outline, not highlight
 
 - Contact page Uppy file upload not displaying. Submit button is huge on Contact page.
@@ -239,6 +237,7 @@ https://mermaid.js.org/config/directives.html
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
 
 - Moving the scroll bar up quickly with the mouse seems to make the header logic break - the Switcher component and Breadcrumbs are hidden under the header
+- Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
 
 ## Content Issues
 
@@ -251,8 +250,6 @@ https://mermaid.js.org/config/directives.html
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
 
 - Tags should break more evenly across two lines when there's a lot of them, instead of forcing the author name and date to break across two lines: platform-engineering-metrics-lead-time-developer-friction/index.mdx
-
-- Need to update Case Studies with lists and tables too
 
 17:15:36 [200] /articles/kubernetes-pod-disruption-budget-autoscaler-node-rotation 414ms
 [WebMentions] Failed to fetch mentions for https://www.webstackbuilders.com/articles/kubernetes-pod-disruption-budget-autoscaler-node-rotation. Will retry in 60s. DOMException [TimeoutError]: The operation was aborted due to timeout
