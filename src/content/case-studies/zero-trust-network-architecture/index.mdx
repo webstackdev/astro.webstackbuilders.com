@@ -3,11 +3,9 @@ title: "Zero Trust Network Architecture with Service Mesh"
 description: "Implementing mTLS, identity-based access, and micro-segmentation to eliminate implicit trust in a multi-cloud environment"
 cover: "./cover.jpg"
 coverAlt: "Encrypted mTLS tunnels connecting service pods with SPIFFE identity certificates at each endpoint for cryptographic verification"
-client: "Financial Services Firm"
+client: "non-disclosed-financial-services-firm"
 duration: "7 months"
-industry: "non-disclosed-financial-services-firm"
 projectType: "Zero Trust Security"
-isDraft: true
 publishDate: 2024-01-20
 ---
 
@@ -17,6 +15,7 @@ publishDate: 2024-01-20
 *[SPIFFE]: Secure Production Identity Framework for Everyone
 *[SPIRE]: SPIFFE Runtime Environment
 *[SVID]: SPIFFE Verifiable Identity Document
+*[SVIDs]: SPIFFE Verifiable Identity Document
 
 import zeroTrustArchitectureDiagram from './zero-trust-architecture-with-istio-service-mesh.jpg'
 
@@ -28,23 +27,23 @@ I helped a financial services firm eliminate implicit network trust by implement
 
 ## The Challenge
 
-The firm operated a hybrid environment: core trading systems on-premises with newer services in AWS. Over 100 microservices communicated across this boundary, protected by a traditional perimeter-based security model—firewalls at the edge, implicit trust inside.
+The firm operated a hybrid environment: core trading systems on-premises with newer services in AWS. Over 100 microservices communicated across this boundary, protected by a traditional perimeter-based security model — firewalls at the edge, implicit trust inside.
 
 ### The Perimeter Illusion
 
 Their security model assumed that traffic inside the network was safe. Services communicated over plaintext HTTP. Authentication happened at the edge; internal services trusted that if a request arrived, it must be legitimate. The firewall ruleset had grown to 200+ entries, maintained by a security team that couldn't keep up with the pace of new service deployments.
 
-This wasn't unusual—it's how most organizations operated for years. But recent high-profile breaches in financial services had demonstrated the model's weakness: once an attacker gets inside the perimeter, they can move laterally with little resistance. A compromised service could access any other service it could reach on the network.
+This wasn't unusual — it's how most organizations operated for years. But recent high-profile breaches in financial services had demonstrated the model's weakness: once an attacker gets inside the perimeter, they can move laterally with little resistance. A compromised service could access any other service it could reach on the network.
 
 ### Regulatory Pressure
 
-Their upcoming SOC2 Type II audit added urgency. The auditors had flagged their network segmentation as a concern in the previous cycle. New regulatory guidance emphasized zero trust principles—"never trust, always verify"—and the firm needed to demonstrate progress.
+Their upcoming SOC2 Type II audit added urgency. The auditors had flagged their network segmentation as a concern in the previous cycle. New regulatory guidance emphasized zero trust principles — _"never trust, always verify"_ — and the firm needed to demonstrate progress.
 
 Beyond compliance, the CISO had genuine security concerns. Threat modeling sessions revealed that a compromised developer laptop or supply chain attack could lead to broad data access. The blast radius of any breach was essentially unbounded.
 
 ### Constraints
 
-A greenfield zero trust implementation would be straightforward—design it from the start. But they had 100+ services in production, many written by teams no longer with the company. Some were Java applications that could easily add mTLS libraries. Others were legacy services that assumed plaintext communication.
+A greenfield zero trust implementation would be straightforward — design it from the start. But they had 100+ services in production, many written by teams no longer with the company. Some were Java applications that could easily add mTLS libraries. Others were legacy services that assumed plaintext communication.
 
 Performance was critical. Trading-adjacent systems had latency budgets measured in single-digit milliseconds. Any security layer that added noticeable latency would face pushback.
 
@@ -54,9 +53,11 @@ We needed a gradual approach: implement zero trust without breaking production, 
 
 ### Mapping the Network
 
-Before implementing anything, I needed to understand the current communication patterns. I deployed network flow analysis tools to capture which services talked to which, on what ports, at what volume.
+Before implementing anything, I needed to understand the current communication patterns. I deployed network flow analysis tools[^flow-tools] to capture which services talked to which, on what ports, at what volume.
 
-The results were illuminating. Most services only communicated with 3-5 other services, but the firewall rules permitted communication with everything. Developers had requested broad rules ("allow app-tier to db-tier") rather than specific ones because the approval process was slow. The actual required connectivity was a fraction of what was permitted.
+[^flow-tools]: Common tools for network flow analysis include VPC Flow Logs (AWS) or NSG Flow Logs (Azure) for cloud-level traffic capture, Zeek (formerly Bro) for deep packet inspection and connection logging, Cilium Hubble for Kubernetes-native network observability, ntopng for real-time traffic analysis, and Kentik or ElastiFlow for flow data aggregation and visualization. In hybrid environments, a combination of cloud-native flow logs and an on-premises collector like Zeek or SiLK typically provides the broadest coverage.
+
+The results were illuminating. Most services only communicated with 3-5 other services, but the firewall rules permitted communication with everything. Developers had requested broad rules ("allow `app-tier` to `db-tier`") rather than specific ones because the approval process was slow. The actual required connectivity was a fraction of what was permitted.
 
 I built a service dependency graph that became our roadmap. It showed natural groupings—services that formed bounded contexts—and identified the high-risk communication paths that needed encryption first.
 
@@ -70,7 +71,7 @@ The combination: Istio handles the data plane (mTLS, traffic routing), SPIRE pro
 
 ### Phased Rollout
 
-Zero trust isn't a flag you flip—it's a journey. I designed a four-phase rollout:
+Zero trust isn't a flag you flip — it's a journey. I designed a four-phase rollout:
 
 <Table
   variant="numbered-review-table"
@@ -116,7 +117,7 @@ The architecture centered on Istio's sidecar proxy model. Every service pod gets
   description="Diagram of a Kubernetes cluster containing two services, Service A and Service B. Service A contains an application container and an Envoy sidecar. Service B also contains an Envoy sidecar and an application container. The two Envoy sidecars communicate with each other over an mTLS connection. A separate Istio Control Plane group contains Istiod, a SPIRE Server, and OPA or Gatekeeper. Both Envoy sidecars connect to the control plane, showing that policy, identity, and mesh configuration are distributed centrally while workload-to-workload traffic is mutually authenticated between sidecars."
 />
 
-The Envoy sidecars communicate only with other sidecars that present valid SPIFFE identities. The application code is unchanged—it still makes plaintext HTTP calls to localhost, and the sidecar handles encryption transparently.
+The Envoy sidecars communicate only with other sidecars that present valid SPIFFE identities. The application code is unchanged — it still makes plaintext HTTP calls to localhost, and the sidecar handles encryption transparently.
 
 ### SPIFFE Workload Identity
 
@@ -128,9 +129,9 @@ spiffe://firm.internal/ns/trading/sa/order-service
 
 Code: SPIFFE identity format for Kubernetes workloads
 
-This identity is cryptographically bound to the workload. You can't steal it by grabbing an API key from a config file—it's derived from infrastructure attestation. When the order-service calls the pricing-service, the pricing-service verifies the caller's SVID before responding.
+This identity is cryptographically bound to the workload. You can't steal it by grabbing an API key from a config file — it's derived from infrastructure attestation. When the `order-service` calls the `pricing-service`, the `pricing-service` verifies the caller's SVID before responding.
 
-Certificate rotation happens automatically. SVIDs expire after one hour and refresh seamlessly. When we needed to revoke a compromised workload's access, we updated the SPIRE registration—propagation took seconds, not the hours required to rotate API keys across environments.
+Certificate rotation happens automatically. SVIDs expire after one hour and refresh seamlessly. When we needed to revoke a compromised workload's access, we updated the SPIRE registration — propagation took seconds, not the hours required to rotate API keys across environments.
 
 ### Authorization Policies
 
@@ -161,15 +162,15 @@ spec:
 
 Code: Istio AuthorizationPolicy restricting access to pricing-service
 
-This policy says: only order-service and risk-engine can call pricing-service, and only specific endpoints. Everything else is denied by default.
+This policy says: only `order-service` and `risk-engine` can call `pricing-service`, and only specific endpoints. Everything else is denied by default.
 
-For complex authorization decisions—time-based access, attribute-based policies—we delegated to OPA. Istio called OPA as an external authorizer for services that needed richer logic than Istio's native policies supported.
+For complex authorization decisions—time based access, attribute-based policies — we delegated to OPA. Istio called OPA as an external authorizer for services that needed richer logic than Istio's native policies supported.
 
 ### Legacy Service Patterns
 
-Not every service could run an Envoy sidecar. Some legacy applications had hardcoded connection assumptions that broke with a proxy. For these, we implemented gateway-mediated access:
+Not every service could run an Envoy sidecar. Some legacy applications had hardcoded connection assumptions that broke with a proxy. For these, we implemented gateway-mediated access.
 
-The legacy service sat behind an ingress gateway that handled mTLS termination. Traffic inside the legacy pod was plaintext, but the pod was network-isolated—it could only communicate through the gateway. This wasn't perfect zero trust, but it contained the blast radius while we planned modernization.
+The legacy service sat behind an ingress gateway that handled mTLS termination. Traffic inside the legacy pod was plaintext, but the pod was network-isolated — it could only communicate through the gateway. This wasn't perfect zero trust, but it contained the blast radius while we planned modernization.
 
 ### Tradeoffs and Latency
 
@@ -177,7 +178,7 @@ The Envoy sidecar adds approximately 2-3ms of latency per hop. For most services
 
 We found that the baseline latency variance was higher than the mesh overhead. A service that took 5-50ms to respond didn't notice an additional 2ms. For the few sub-millisecond paths, we documented the tradeoff explicitly: the security benefits of mTLS and identity-based access outweighed the latency cost, and the trading team agreed.
 
-The alternative—continuing with plaintext and firewall rules—wasn't actually zero latency; DNS resolution and firewall rule evaluation had their own costs. The mesh made costs explicit rather than hidden.
+The alternative — continuing with plaintext and firewall rules — wasn't actually zero latency; DNS resolution and firewall rule evaluation had their own costs. The mesh made costs explicit rather than hidden.
 
 ## The Results
 

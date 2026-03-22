@@ -1,7 +1,7 @@
 ---
 export const prerender = true
 
-import { getCollection } from 'astro:content'
+import { getCollection, getEntry } from 'astro:content'
 import { Picture } from 'astro:assets'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import Carousel from '@components/Carousel/index.astro'
@@ -17,6 +17,7 @@ export async function getStaticPaths() {
 }
 
 const { caseStudy } = Astro.props
+const clientEntry = caseStudy.data.client ? await getEntry(caseStudy.data.client) : undefined
 
 const path = `/case-studies/${caseStudy.id}`
 const section = 'Case Studies'
@@ -60,18 +61,18 @@ const section = 'Case Studies'
   <div class="space-y-4 max-w-2xl mx-auto mb-8">
     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
       {
-        caseStudy.data.client && (
+        clientEntry?.data.businessType && (
           <div class="bg-page-offset p-4 rounded-xl flex flex-wrap items-baseline gap-x-2">
             <dt class="font-semibold">Client:</dt>
-            <dd class="text-content-active">{caseStudy.data.client}</dd>
+            <dd class="text-content-active">{clientEntry.data.businessType}</dd>
           </div>
         )
       }
       {
-        caseStudy.data.industry && (
+        clientEntry?.data.industry && (
           <div class="bg-page-offset p-4 rounded-xl flex flex-wrap items-baseline gap-x-2">
             <dt class="font-semibold">Industry:</dt>
-            <dd class="text-content-active">{caseStudy.data.industry}</dd>
+            <dd class="text-content-active">{clientEntry.data.industry}</dd>
           </div>
         )
       }

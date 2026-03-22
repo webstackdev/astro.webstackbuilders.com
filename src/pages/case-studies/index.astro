@@ -1,10 +1,18 @@
 ---
-import { getCollection } from 'astro:content'
+import { getCollection, getEntry } from 'astro:content'
 import { Picture } from 'astro:assets'
 import Icon from '@components/Icon/index.astro'
 import PageLayout from '@layouts/PageLayout.astro'
 
 const allCaseStudies = await getCollection('caseStudies')
+
+/** Resolve client references for all case studies */
+const clientEntries = new Map<string, Awaited<ReturnType<typeof getEntry>>>()
+for (const cs of allCaseStudies) {
+  if (cs.data.client) {
+    clientEntries.set(cs.id, await getEntry(cs.data.client))
+  }
+}
 
 /** Sort by publish date (newest first) */
 const sortedCaseStudies = allCaseStudies.sort(
@@ -69,9 +77,9 @@ const path = '/case-studies'
                 </div>
 
                 <div class="space-y-3 mt-4">
-                  {caseStudy.data.client && (
+                  {clientEntries.get(caseStudy.id)?.data?.businessType && (
                     <span class="inline-block text-sm font-medium text-primary bg-content-inverse-active px-3 py-1 rounded-full">
-                      Client: {caseStudy.data.client}
+                      Client: {clientEntries.get(caseStudy.id)!.data.businessType}
                     </span>
                   )}
 

@@ -116,9 +116,8 @@ const caseStudiesCollection = defineCollection({
   schema: context =>
     withBreadcrumbTitleWarning(
       createBaseCollectionSchema(context).extend({
-        client: z.string().optional(),
+        client: reference('clients').optional(),
         duration: z.string().optional(),
-        industry: z.string().optional(),
         projectType: z.string().optional(),
         showToc: z.boolean().default(true),
       }),
@@ -225,6 +224,7 @@ const clientsCollection = defineCollection({
     z.object({
       id: z.string(),
       displayName: z.string(),
+      role: z.string().optional(),
       industry: z.string().optional(),
       businessType: z.string().optional(),
       workModel: z.string().optional(),
@@ -253,6 +253,37 @@ const contactDataCollection = defineCollection({
     telephoneMobile: z.string(),
     telephoneTollFree: z.string(),
     social: createSocialCollectionSchema(),
+  }),
+})
+
+const resumeDataCollection = defineCollection({
+  loader: file('./src/content/resume.json'),
+  schema: z.object({
+    education: z.object({
+      school: z.string(),
+      degree: z.string(),
+      campus: z.string(),
+      geolocationLink: z.url(),
+      graduationDate: z.string(),
+    }),
+    email: z.email(),
+    languages: z.array(z.string()),
+    name: z.string(),
+    skills: z.array(
+      z.object({
+        lead: z.string(),
+        text: z.string(),
+      })
+    ),
+    social: z.object({
+      github: z.url(),
+      linkedin: z.url(),
+      x: z.url(),
+      youtube: z.url(),
+      stackoverflow: z.url(),
+    }),
+    summary: z.string(),
+    title: z.string(),
   }),
 })
 
@@ -311,6 +342,7 @@ export const collections = {
   clients: clientsCollection,
   contactData: contactDataCollection,
   downloads: downloadsCollection,
+  resume: resumeDataCollection,
   services: servicesCollection,
   tags: tagsCollection,
   testFixtureCollection,
