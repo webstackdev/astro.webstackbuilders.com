@@ -195,14 +195,7 @@ All code samples in this article are licensed under the MIT License. Feel free t
 
 - How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
 
-## Theming and improving Mermaid diagrams
-
-[rerender diagrams when I switched color-scheme](https://github.com/mermaid-js/mermaid/issues/1945)
-[mermaid init](https://github.com/hbstack/mermaid/blob/main/assets/hb/modules/mermaid/init.ts)
-[theming](https://mermaid.ai/open-source/config/theming.html)
-
-https://mermaid.js.org/config/theming.html
-https://mermaid.js.org/config/directives.html
+- Search box in header should have blue outline, not highlight
 
 ## Todo
 
@@ -210,9 +203,7 @@ https://mermaid.js.org/config/directives.html
 
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
 
-- There's a pretty long delay when you push the Content Switcher to go from short to deep dive, what's causing it? It should be fast - maybe it's a prefetch issue, prefetch on page load
-
-- Search box in header should have blue outline, not highlight
+- There's a pretty long delay when you push the Content Switcher to go from short to deep dive, what's causing it? It should be fast - maybe it's a prefetch issue and should prefetch on page load
 
 - Contact page Uppy file upload not displaying. Submit button is huge on Contact page.
 
