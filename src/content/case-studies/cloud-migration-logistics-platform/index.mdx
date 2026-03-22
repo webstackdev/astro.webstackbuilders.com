@@ -1,9 +1,9 @@
 ---
 title: "Cloud Migration for a Regional Logistics Platform"
-description: "Migrating a legacy on-premises infrastructure to AWS while maintaining 24/7 operations for a logistics company processing 50,000 daily shipments"
+description: "Migrating a legacy .NET Framework and AngularJS logistics platform from colocated servers to Azure while modernizing to .NET 8 and Angular, maintaining 24/7 operations processing 50,000 daily shipments"
 cover: "./cover.jpg"
 coverAlt: "Split-screen showing server room transforming into cloud infrastructure with logistics elements bridging the transition"
-client: "Regional Logistics Provider"
+client: "estes-express"
 duration: "6 months"
 industry: "Logistics & Supply Chain"
 projectType: "Cloud Migration"
@@ -11,65 +11,183 @@ publishDate: 2024-08-15
 isDraft: true
 ---
 
+*[CI/CD]: Continuous Integration and Continuous Delivery
+*[CVE]: Common Vulnerabilities and Exposures
+*[EDI]: Electronic Data Interchange
+*[LINQ]: Language Integrated Query
+*[QA]: Quality Assurance
+*[RFP]: Request for Proposal
+*[SQL]: Structured Query Language
+*[VM]: Virtual Machine
+*[WAF]: Web Application Firewall
+*[WCF]: Windows Communication Foundation
+
 ## Overview
 
-A regional logistics company needed to migrate their entire infrastructure to Azure before their data center lease expired, without disrupting the 24/7 operations that processed 50,000 shipments daily. We completed the migration in six months with zero unplanned downtime, reduced infrastructure costs by 35%, and enabled the real-time tracking capabilities their customers had been demanding.
+A regional logistics company needed to migrate their .NET Framework and AngularJS platform off colocated servers in a data center and onto Azure, modernizing to .NET 8 and Angular along the way, all without disrupting the 24/7 operations that processed 50,000 shipments daily. We completed the migration and modernization in six months with zero unplanned downtime, reduced infrastructure costs by 35%, and enabled the real-time tracking capabilities their customers had been demanding.
 
 ## The Challenge
 
 The company was losing bids. Competitors were offering real-time package tracking, enterprise customers were asking for API integrations that the legacy system couldn't support, and RFP after RFP came back with "does not meet technical requirements." The business pressure was undeniable.
 
-The client was a mid-sized regional logistics provider with 200+ employees running on a 15-year-old data center. Their lease was expiring in eight months, and the landlord wasn't renewing. Even without that deadline, the infrastructure was struggling. The hardware was aging out of support, peak season traffic brought the tracking system to its knees, and every maintenance window meant a 4-hour gap where drivers couldn't update delivery status.
+The client was a mid-sized regional logistics provider with 200+ employees running on colocated servers in a third-party data center. Their colocation contract was expiring in eight months, and renewal terms had doubled in price. Even without that deadline, the stack was holding them back. The core platform was a .NET Framework 4.6.2 monolith with an AngularJS 1.5 frontend, running on Windows Server 2012 R2 boxes. The hardware was aging out of support, Entity Framework 6 queries were choking under peak season load, and every maintenance window meant a 4-hour gap where drivers couldn't update delivery status.
 
-What made this harder: logistics never stops. Trucks roll 24/7, 365 days a year. The dispatch system, the tracking platform, and the warehouse management software all needed to keep running throughout the migration. The internal IT team had managed the on-prem environment for years but had limited cloud experience. And the budget didn't allow for running both environments in parallel for long.
+What made this harder: logistics never stops. Trucks roll 24/7, 365 days a year. The dispatch system, the tracking platform, and the warehouse management software all needed to keep running throughout the migration. The internal development team knew .NET Framework inside and out but had never worked with .NET 8, Angular, or Azure. And the budget didn't allow for running both environments in parallel for long.
+
+The technical debt was stacked deep. AngularJS had been end-of-life since 2021. The .NET Framework monolith couldn't run on Linux, ruling out containerization without a rewrite. Stored procedures in SQL Server handled business logic that should have been in application code. NuGet packages were pinned to versions that hadn't been updated in years, some with known CVEs. And the frontend was a single 40,000-line AngularJS application with no module boundaries and no tests.
 
 ## The Approach
 
-We started with a two-week assessment phase. I mapped every application, database, and integration point in the existing environment. This audit surfaced 47 distinct applications, three core databases, and a dozen undocumented integrations with carrier EDI systems that nobody on the current team had built — a discovery that significantly shaped our timeline.
+We started with a two-week assessment phase. I mapped every application, database, and integration point in the existing environment. This audit surfaced 38 distinct applications and services, a core SQL Server database with 340 tables, a secondary reporting database, and a dozen undocumented integrations with carrier EDI systems that nobody on the current team had built. The .NET Framework monolith had 23 WCF service endpoints that the AngularJS frontend and several internal tools consumed. This discovery significantly shaped our timeline.
 
-The strategy was lift-and-shift first, optimize later. Trying to modernize applications during a migration with a hard deadline is how projects fail. We'd move everything to AWS in a state as close to the original as possible, prove it worked, then iterate.
+The strategy was a phased modernization with infrastructure migration. Unlike a pure lift-and-shift, we couldn't just move the .NET Framework monolith to Azure VMs and call it done, since the whole point was to get off an unsupported stack. But we also couldn't rewrite everything at once. The approach was to migrate the infrastructure to Azure first, then incrementally port the application from .NET Framework to .NET 8 and replace the AngularJS frontend with Angular.
 
-We chose AWS primarily because two of the senior developers had some experience with it from side projects. That familiarity meant faster ramp-up and fewer mistakes during the critical cutover period.
+We chose Azure because the team's existing SQL Server expertise translated directly to Azure SQL Database, the .NET ecosystem has first-class Azure support, and Azure DevOps provided a familiar CI/CD environment for a team already using Team Foundation Server.
 
-The migration happened in three phases:
+The migration happened in four phases:
 
-| Phase | Weeks | Focus | Risk Level |
-|-------|-------|-------|------------|
-| 1 | 1-8 | Non-critical systems: internal tools, reporting databases, dev environments | Low |
-| 2 | 9-16 | Databases and batch processing: PostgreSQL via DMS, invoicing jobs | Medium |
-| 3 | 17-24 | Core tracking platform and dispatch application | High |
+<Table
+  variant="criteria-highlight-table"
+  classes={{
+    figure: "sm:ml-12 sm:mr-18 mb-6",
+    thead: "[&_th:nth-child(1)]:text-center [&_th:nth-child(2)]:text-center [&_th:nth-child(4)]:text-center",
+    tbody: "[&_td:nth-child(1)]:text-center [&_td:nth-child(2)]:text-center [&_td:nth-child(4)]:text-center",
+  }}
+  content={{
+    figure: 'Migration and modernization phase timeline.',
+    thead: {
+      th: ['Phase', 'Weeks', 'Focus', 'Risk Level'],
+    },
+    tbody: {
+      tr: [
+        {
+          td: ['1', '1-6', 'Non-critical systems to Azure: internal tools, reporting database, dev environments', 'Low'],
+        },
+        {
+          td: ['2', '7-12', 'SQL Server migration via Azure DMS, .NET Framework monolith to Azure VMs as interim step', 'Medium'],
+        },
+        {
+          td: ['3', '13-20', '.NET 8 port of core services, Angular rewrite of tracking UI, containerization to Azure Container Apps', 'High'],
+        },
+        {
+          td: ['4', '21-24', 'Cutover of dispatch system, decommission of colocated servers', 'High'],
+        },
+      ],
+    },
+  }}
+/>
 
-Table: Migration Phase Timeline
+Phase 1 let the team build muscle memory with Azure services before touching anything customer-facing. Phase 2 moved the SQL Server databases via Azure Database Migration Service with ongoing replication, and deployed the existing .NET Framework monolith to Azure VMs as a temporary measure to vacate the colocation facility. Phase 3 was the modernization work, porting the WCF services to ASP.NET Core minimal APIs on .NET 8 and replacing the AngularJS frontend with Angular 17. Phase 4 cut over the remaining dispatch system and shut down the colocated servers.
 
-Phase 1 let the team build muscle memory with AWS services before touching anything customer-facing. Phase 2 moved the PostgreSQL databases via AWS Database Migration Service with ongoing replication, keeping data synchronized until cutover. Phase 3 was the highest-risk work—the customer-facing tracking system and the dispatch application that drivers depended on.
+The .NET Framework to .NET 8 port followed the Microsoft upgrade path: we used the .NET Upgrade Assistant to identify breaking changes, then manually ported service by service. Entity Framework 6 moved to EF Core 8, which required rewriting the LINQ queries that relied on lazy loading and the implicit transaction behavior that EF6 allowed. The WCF services were replaced with ASP.NET Core minimal APIs behind Azure API Management, maintaining the same contracts so internal tools could migrate incrementally.
 
-The EDI integrations were the biggest obstacle. These connections to FedEx, UPS, and regional carriers had been built by a contractor who'd left years ago. Documentation was nonexistent. We had to reverse-engineer the protocols by capturing traffic and analyzing message formats, then rebuilt the integration layer using API Gateway with Lambda functions to translate between the legacy EDI formats and modern REST APIs. AWS PrivateLink provided secure connectivity to carrier endpoints without exposing traffic to the public internet.
+The AngularJS to Angular rewrite was done module by module. We stood up the new Angular 17 application alongside the legacy AngularJS app using Azure Front Door to route traffic. New features went into Angular, and we migrated existing screens on a priority basis, starting with the customer-facing tracking portal. The AngularJS app continued to serve lower-priority internal screens until each was replaced.
+
+The EDI integrations were the biggest technical obstacle. These connections to FedEx, UPS, and regional carriers had been built by a contractor who'd left years ago. Documentation was nonexistent. We had to reverse-engineer the protocols by capturing traffic and analyzing message formats, then rebuilt the integration layer using Azure API Management with Azure Functions to translate between the legacy EDI formats and modern REST APIs. Azure Private Link provided secure connectivity to carrier endpoints without exposing traffic to the public internet.
 
 ## The Solution
 
-The target architecture used AWS services that balanced operational simplicity with the team's learning curve:
+The target architecture used Azure services that balanced operational simplicity with the team's learning curve:
 
-- __Multi-AZ deployment__ across us-east-1 for resilience. Every critical component ran in at least two availability zones.
-- __Amazon RDS for PostgreSQL__ (db.r5.xlarge instances) replaced the self-managed database servers. Automated backups, point-in-time recovery, and managed patching removed a significant operational burden.
-- __Amazon ECS with Fargate__ for the containerized services. Fargate eliminated the need to manage underlying EC2 instances, and we containerized applications during the migration rather than running them on raw EC2—a small modernization that paid off immediately in deployment consistency.
-- __Application Load Balancers__ with health checks enabled the blue-green deployment strategy we needed for zero-downtime cutovers.
+<List
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
+  items={[
+    {
+      lead: 'Azure Container Apps',
+      text: 'The .NET 8 services ran on Azure Container Apps, eliminating VM management entirely. Auto-scaling based on HTTP traffic and KEDA-based scaling for background queue processors handled peak season load without manual intervention.',
+    },
+    {
+      lead: 'Azure SQL Database',
+      text: 'Replaced the self-managed SQL Server instances with Azure SQL Database Business Critical tier. Automated backups, point-in-time recovery, built-in high availability with zone redundancy, and managed patching removed a significant operational burden.',
+    },
+    {
+      lead: 'Azure Front Door',
+      text: 'Global load balancing with built-in WAF and SSL termination. This also enabled the side-by-side Angular / AngularJS deployment, routing traffic by URL path to the appropriate frontend during the transition period.',
+    },
+    {
+      lead: 'Azure DevOps Pipelines',
+      text: 'Replaced the manual deployment process with CI/CD pipelines. The .NET 8 services built and deployed via Docker containers to Container Apps, and the Angular frontend deployed to Azure Static Web Apps with preview environments for every pull request.',
+    },
+    {
+      lead: 'Azure Monitor and Application Insights',
+      text: 'End-to-end distributed tracing across the .NET 8 services using OpenTelemetry, integrated with Application Insights dashboards that mirrored the metrics the operations team was used to watching.',
+    },
+  ]}
+/>
 
-For the migration itself, AWS Migration Hub tracked progress across all workloads. Database Migration Service handled the PostgreSQL migration with change data capture, keeping the cloud database synchronized with on-prem until we were ready to cut over. CloudWatch provided monitoring from day one, and we set up dashboards that mirrored the metrics the operations team was used to watching.
+For the migration itself, Azure Migrate tracked progress across all workloads. Azure Database Migration Service handled the SQL Server migration with change data capture, keeping the Azure SQL database synchronized with the colocated servers until we were ready to cut over. The .NET 8 port used the strangler fig pattern: new API endpoints ran on Container Apps while legacy WCF endpoints still ran on the Azure VMs, with API Management routing requests to the appropriate backend based on the endpoint path.
 
-The cutover for the tracking platform used a blue-green approach. We ran both environments in parallel for 72 hours, with traffic gradually shifting from on-prem to AWS. Operations monitored both dashboards, ready to roll back instantly. The rollback was never needed.
+The cutover for the tracking platform used a blue-green approach. We ran both environments in parallel for 72 hours, with Azure Front Door gradually shifting traffic from the legacy stack to the modernized .NET 8 / Angular deployment. Operations monitored both dashboards, ready to roll back instantly. The rollback was never needed.
 
 ## The Results
 
-The migration completed two weeks ahead of the lease deadline. The quantified outcomes:
+The migration completed two weeks ahead of the colocation contract deadline. The quantified outcomes:
 
-- __Infrastructure costs reduced by 35%__. The combination of eliminating the data center lease, avoiding a hardware refresh cycle, and right-sizing instances in AWS dropped monthly infrastructure spend from $89,000 to $58,000.
-- __Deployment frequency increased from monthly to daily__. The containerized architecture and CI/CD pipeline we built during migration enabled the development team to ship updates without scheduling maintenance windows.
-- __System availability improved from 99.5% to 99.95%__. Multi-AZ deployment and automated failover eliminated the single points of failure that had caused outages in the legacy environment.
-- __Peak season scaling became automatic__. The following holiday season, the tracking system auto-scaled to handle 3x normal traffic. Previously, this would have required ordering hardware two months in advance.
-- __Real-time tracking launched within 60 days of migration__. The team shipped the feature their customers had been asking for—something that would have taken a year on the legacy platform.
+<List
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Infrastructure costs reduced by 35%',
+      text: 'The combination of eliminating the colocation lease, avoiding a hardware refresh cycle, and right-sizing resources in Azure dropped monthly infrastructure spend from $89,000 to $58,000.',
+    },
+    {
+      lead: 'Deployment frequency increased from monthly to daily',
+      text: 'The containerized .NET 8 architecture and Azure DevOps pipelines enabled the development team to ship updates without scheduling maintenance windows. Pull request preview environments meant QA could verify changes before they reached production.',
+    },
+    {
+      lead: 'System availability improved from 99.5% to 99.95%',
+      text: 'Zone-redundant Azure SQL and Container Apps with multiple replicas eliminated the single points of failure that had caused outages in the colocated environment.',
+    },
+    {
+      lead: 'Peak season scaling became automatic',
+      text: 'The following holiday season, the .NET 8 services auto-scaled on Container Apps to handle 3x normal traffic. Previously, this would have required ordering hardware two months in advance.',
+    },
+    {
+      lead: 'API response times dropped by 60%',
+      text: 'The move from .NET Framework WCF services to ASP.NET Core minimal APIs on .NET 8, combined with EF Core query optimizations, cut average API response times from 320ms to 130ms.',
+    },
+    {
+      lead: 'Real-time tracking launched within 60 days of migration',
+      text: 'The Angular frontend with SignalR-backed live updates shipped the feature their customers had been asking for, something that would have been impractical on the AngularJS / .NET Framework stack.',
+    },
+  ]}
+/>
 
 ## Key Takeaways
 
-- __Lift-and-shift is a valid strategy when you have a deadline__. Trying to modernize and migrate simultaneously is tempting but risky. Get to the cloud first, then optimize. We containerized applications during migration because it made deployment easier, not because we were trying to re-architect.
-- __Undocumented integrations will surprise you__. Budget time for discovery. The EDI integrations we found added three weeks to the timeline. Every legacy environment has these hidden dependencies.
-- __Train the team before the critical phases__. Moving non-critical systems first wasn't just about reducing risk—it was about building confidence and competence. By the time we migrated the tracking platform, the team had already done a dozen smaller migrations successfully.
+<List
+  variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Migrate infrastructure first, then modernize the stack',
+      text: 'We moved the .NET Framework monolith to Azure VMs as an interim step to vacate the colocation facility on schedule, then ported to .NET 8 and Container Apps. Trying to do both simultaneously would have blown the deadline.',
+    },
+    {
+      lead: 'The strangler fig pattern works for .NET modernization',
+      text: 'Porting WCF services to ASP.NET Core one at a time, with API Management routing between old and new backends, let the team ship incrementally without a risky big-bang cutover.',
+    },
+    {
+      lead: 'Undocumented integrations will surprise you',
+      text: 'Budget time for discovery. The EDI integrations we found added three weeks to the timeline. Every legacy environment has these hidden dependencies.',
+    },
+    {
+      lead: 'Side-by-side frontend deployment eases the AngularJS to Angular transition',
+      text: 'Running both frontends behind Azure Front Door with path-based routing meant we could migrate screens incrementally. Users never saw a half-finished rewrite.',
+    },
+    {
+      lead: 'Train the team before the critical phases',
+      text: 'Moving non-critical systems first was not just about reducing risk. It was about building confidence with Azure, .NET 8, and Angular. By the time we migrated the tracking platform, the team had already done a dozen smaller migrations successfully.',
+    },
+  ]}
+/>

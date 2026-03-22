@@ -1,23 +1,26 @@
 /**
- * Provides build-time validation and type generation for all content by Astro build system.
- * This file exports a collections object where each key is a collection name, and the value
- * uses defineCollection() to specify the schema for that collection. Astro uses this
- * configuration to automatically load and manage content from specified directories like
- * src/content/articles or src/content/testimonials.
+ * Provides build-time validation and type generation for all content by Astro
+ * build system. This file exports a collections object where each key is a
+ * collection name, and the value uses defineCollection() to specify the schema
+ * for that collection. Astro uses this configuration to automatically load and
+ * manage content from specified directories like src/content/articles or
+ * src/content/testimonials.
  *
- * The 'email' collection is included in the src/content directory, but is not handled by
- * Astro's collections systems. It is used by files in src/pages/api.
+ * The 'email' collection is included in the src/content directory, but is not
+ * handled by Astro's collections system. It is used by files in src/pages/api.
  */
 import { defineCollection, reference, type SchemaContext } from 'astro:content'
 import { glob, file } from 'astro/loaders'
 import { z } from 'astro/zod'
 /**
- * Wraps a collection schema with a refinement that enforces breadcrumb title length limits
+ * Wraps a collection schema with a refinement that enforces breadcrumb
+ * title length limits
  */
 import { withBreadcrumbTitleWarning } from '@lib/helpers/breadcrumbTitleLengthRefinement'
 
 /**
- * NOTE: In YAML, dates written without quotes around them are interpreted as Date objects
+ * NOTE: In YAML, dates written without quotes around them are interpreted
+ * as Date objects
  */
 
 const pattern = '**/index.mdx'
@@ -214,6 +217,27 @@ const authorsCollection = defineCollection({
 })
 
 /**
+ * Clients
+ */
+const clientsCollection = defineCollection({
+  loader: glob({ pattern: flatMarkdownPattern, base: './src/content/clients' }),
+  schema: () =>
+    z.object({
+      id: z.string(),
+      displayName: z.string(),
+      industry: z.string().optional(),
+      businessType: z.string().optional(),
+      workModel: z.string().optional(),
+      location: z.string().optional(),
+      startDate: z.date().optional(),
+      endDate: z.date().optional(),
+      website: z.url().optional(),
+      linkedinUrl: z.url().optional(),
+      published: z.boolean().default(false),
+    }),
+})
+
+/**
  * Contact data
  */
 const contactDataCollection = defineCollection({
@@ -273,9 +297,10 @@ const testimonialCollection = defineCollection({
 })
 
 /**
- * This comment is a placeholder to explain the src/content/themes.json used by the
- * Theme Switcher component and script to define visual themes. It is not used by the
- * content system, but there's also a lack of good logical places to add such a data file.
+ * This comment is a placeholder to explain the src/content/themes.json
+ * used by the Theme Switcher component and script to define visual themes.
+ * It is not used by the content system, but there's also a lack of good
+ * logical places to add such a data file.
  */
 
 export const collections = {
@@ -283,6 +308,7 @@ export const collections = {
   deepDives: deepDiveArticlesCollection,
   authors: authorsCollection,
   caseStudies: caseStudiesCollection,
+  clients: clientsCollection,
   contactData: contactDataCollection,
   downloads: downloadsCollection,
   services: servicesCollection,
