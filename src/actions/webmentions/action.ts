@@ -7,7 +7,7 @@ import { fetchWebmentions } from '@components/WebMentions/server'
 import type { WebmentionDisplayItem, WebmentionsListResult } from './@types'
 
 const listInputSchema = z.object({
-  url: z.string().trim().url(),
+  url: z.string().trim().pipe(z.url()),
 })
 
 const displayProperties = new Set(['mention-of', 'in-reply-to'])

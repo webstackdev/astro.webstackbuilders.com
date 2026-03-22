@@ -1,6 +1,7 @@
 import { LitElement, html } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { queryPrefetchLink } from './selectors'
 
 export type ContentVariant = 'overview' | 'deep-dive'
 
@@ -13,12 +14,23 @@ const queueIdlePrefetch = (work: () => void): void => {
 		return
 	}
 
+	let hasRun = false
+	const runOnce = () => {
+		if (hasRun) {
+			return
+		}
+
+		hasRun = true
+		work()
+	}
+
 	if (typeof window.requestIdleCallback === 'function') {
-		window.requestIdleCallback(() => work())
+		window.requestIdleCallback(() => runOnce())
+		window.setTimeout(runOnce, 150)
 		return
 	}
 
-	window.setTimeout(work, 150)
+	window.setTimeout(runOnce, 150)
 }
 
 const prefetchDocument = (href: string): void => {
@@ -32,7 +44,7 @@ const prefetchDocument = (href: string): void => {
 
 	prefetchedHrefs.add(href)
 
-	const existingLink = document.head.querySelector(`link[rel="prefetch"][href="${href}"]`)
+	const existingLink = queryPrefetchLink(document.head, href)
 	if (!existingLink) {
 		const link = document.createElement('link')
 		link.rel = 'prefetch'

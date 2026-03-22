@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 type MockedAction<Input, Output> = {
-  handler: (input: Input) => Promise<Output>
+  handler: (_input: Input) => Promise<Output>
 }
 
 const throwActionErrorMock = vi.fn()

@@ -5,6 +5,7 @@ import { defineCustomElement } from '@components/scripts/utils'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import type { WebmentionDisplayItem, WebmentionsListResult } from '@actions/webmentions/@types'
+import { queryWebMentionsIconMarkup } from './selectors'
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -20,17 +21,6 @@ const formatDate = (dateString: string): string => {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date)
-}
-
-const queryIconMarkup = (iconBankId: string, iconName: string): string | null => {
-  if (typeof document === 'undefined') {
-    return null
-  }
-
-  const iconBank = document.getElementById(iconBankId)
-  const iconHost = iconBank?.querySelector(`[data-webmentions-icon="${iconName}"]`)
-  const markup = iconHost?.innerHTML.trim()
-  return markup ? markup : null
 }
 
 export class WebMentionsElement extends LitElement {
@@ -149,8 +139,14 @@ export class WebMentionsElement extends LitElement {
 
     const newestMentions = [...this.mentions].reverse()
     const facepileMentions = newestMentions.slice(0, this.facepileLimit).reverse()
-    const heartIconMarkup = queryIconMarkup(this.iconBankId, 'heart-filled')
-    const repostIconMarkup = queryIconMarkup(this.iconBankId, 'background-broken')
+    const heartIconMarkup = queryWebMentionsIconMarkup({
+      iconBankId: this.iconBankId,
+      iconName: 'heart-filled',
+    })
+    const repostIconMarkup = queryWebMentionsIconMarkup({
+      iconBankId: this.iconBankId,
+      iconName: 'background-broken',
+    })
 
     return html`
       <section class="mt-12 pt-8 border-t border-trim" id="webmentions" aria-labelledby="webmentions-heading">
