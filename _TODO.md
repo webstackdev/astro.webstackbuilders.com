@@ -210,10 +210,6 @@ https://mermaid.js.org/config/directives.html
 
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
 
-- Focus-visible / active handling on ToC nav items
-
-- Style "Share to Mastodon" modal in src/components/Social/Mastodon/client/index.ts
-
 - There's a pretty long delay when you push the Content Switcher to go from short to deep dive, what's causing it? It should be fast - maybe it's a prefetch issue, prefetch on page load
 
 - Search box in header should have blue outline, not highlight
@@ -224,14 +220,9 @@ https://mermaid.js.org/config/directives.html
 
 - Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
-## List Component
-
-- Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
-
-## Header
+## Header - "Squish" Effect
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
-
 - Moving the scroll bar up quickly with the mouse seems to make the header logic break - the Switcher component and Breadcrumbs are hidden under the header
 - Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
 
