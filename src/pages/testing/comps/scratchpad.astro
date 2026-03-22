@@ -9,6 +9,53 @@ const path = '/testing/comps/scratchpad'
 
 <BaseLayout pageDescription={pageDescription} noindex={true} pageTitle={pageTitle} path={path}>
   <div class="test-container max-w-4xl mx-auto py-12 px-6 space-y-24 mb-24">
+    <div class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-content-inverse rounded-lg shadow-2xl">
+      <div class="flex items-center justify-between p-6 border-b border-trim">
+        <h2 class="m-0 text-xl font-semibold" id="mastodon-modal-title">Share to Mastodon</h2>
+        <button type="button" class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded cursor-pointer transition-all duration-150 hover:bg-content-inverse-muted hover:text-content" aria-label="Close modal">
+          <!--?lit$757801943$--><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="shrink-0 w-5 h-5 text-inherit" fill="currentColor" stroke="currentColor" aria-hidden="true" focusable="false">  <path d="M6.707 18.707L12 13.414l5.293 5.293 1.414-1.414L13.414 12l5.293-5.293-1.414-1.414L12 10.586 6.707 5.293 5.293 6.707 10.586 12l-5.293 5.293z"></path> </svg>
+        </button>
+      </div>
 
+      <form id="mastodon-share-form" class="flex flex-col gap-6 p-6">
+        <div class="flex flex-col gap-2">
+          <label for="share-text" class="font-medium">Text to share</label>
+          <textarea id="share-text" name="text" rows="4" readonly="" class="w-full p-3 border border-trim rounded-md bg-content-inverse-muted font-[inherit] text-sm leading-6 resize-y focus:outline-2 focus:outline-primary focus:outline-offset-2"></textarea>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <label for="mastodon-instance" class="flex flex-col gap-2 font-medium">
+            <span>Mastodon Instance</span>
+            <span class="sr-only" id="mastodon-modal-instance-hint">Enter only the domain, without https://</span>
+            <div class="flex items-stretch border border-trim rounded-md overflow-hidden bg-content-inverse-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2">
+              <span class="flex items-center px-3 py-2 bg-content-inverse-muted text-sm select-none" aria-hidden="true">
+                https://
+              </span>
+              <input type="text" id="mastodon-instance" name="instance" placeholder="mastodon.social" required="" class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-content focus:outline-none" aria-describedby="mastodon-modal-instance-hint">
+            </div>
+          </label>
+
+          <!--?lit$757801943$-->
+
+          <label for="remember-instance" class="flex items-center gap-2 text-sm cursor-pointer">
+            <input type="checkbox" id="remember-instance" name="remember" class="w-4 h-4 cursor-pointer">
+            <span>Remember this instance</span>
+          </label>
+        </div>
+
+        <div class="flex gap-3 justify-end">
+          <button type="button" class="btn-secondary modal-cancel px-4 py-2 border border-trim rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-content hover:bg-content-inverse-muted">
+            Cancel
+          </button>
+          <button type="submit" class="btn-primary px-4 py-2 border-0 rounded-md font-medium cursor-pointer transition-all duration-150 bg-spotlight text-white hover:bg-primary-offset disabled:opacity-50 disabled:cursor-not-allowed">
+            Share
+          </button>
+        </div>
+
+        <p aria-atomic="true" class="modal-status m-0 text-sm text-center " role="status" aria-live="polite">
+          <!--?lit$757801943$-->
+        </p>
+      </form>
+    </div>
   </div>
 </BaseLayout>

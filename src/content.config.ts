@@ -116,6 +116,7 @@ const caseStudiesCollection = defineCollection({
   schema: context =>
     withBreadcrumbTitleWarning(
       createBaseCollectionSchema(context).extend({
+        author: reference('authors').optional(),
         client: reference('clients').optional(),
         duration: z.string().optional(),
         projectType: z.string().optional(),

@@ -17,6 +17,7 @@ export async function getStaticPaths() {
 }
 
 const { caseStudy } = Astro.props
+const authorEntry = caseStudy.data.author ? await getEntry(caseStudy.data.author) : undefined
 const clientEntry = caseStudy.data.client ? await getEntry(caseStudy.data.client) : undefined
 
 const path = `/case-studies/${caseStudy.id}`
@@ -24,6 +25,7 @@ const section = 'Case Studies'
 ---
 
 <MarkdownLayout
+  {...authorEntry && { author: authorEntry.data.name }}
   collectionItem={caseStudy}
   contentType="article"
   description={caseStudy.data.description}
