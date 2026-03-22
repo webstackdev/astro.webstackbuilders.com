@@ -3,7 +3,7 @@ title: "From ClickOps to Code: Infrastructure as Code Transformation"
 description: "Converting years of manual AWS console changes into version-controlled Terraform, eliminating configuration drift and enabling reproducible environments"
 cover: "./cover.jpg"
 coverAlt: "Manual AWS console management transforming into organized infrastructure as code with Git workflows"
-client: "E-commerce Platform"
+client: "non-disclosed-e-commerce"
 duration: "4 months"
 industry: "Retail / E-commerce"
 projectType: "Infrastructure as Code"
@@ -13,8 +13,6 @@ isDraft: true
 
 *[ALB]: Application Load Balancer
 *[ASG]: Auto Scaling Group
-*[AWS]: Amazon Web Services
-*[CI]: Continuous Integration
 *[EC2]: Elastic Compute Cloud
 *[HCL]: HashiCorp Configuration Language
 *[IAM]: Identity and Access Management
@@ -33,7 +31,7 @@ An e-commerce company with eight years of manual AWS changes needed to bring the
 
 Eight years of "just click it in the console" had created a mess nobody fully understood.
 
-The client was a mid-sized e-commerce platform with 15 engineers and an AWS environment that had grown organically since 2016. Every time someone needed infrastructure, they logged into the AWS console and created it. Security groups, EC2 instances, RDS databases, S3 buckets, IAM roles—all of it provisioned by hand, configured by hand, and documented nowhere.
+The client was a mid-sized e-commerce platform with 15 engineers and an AWS environment that had grown organically since 2016. Every time someone needed infrastructure, they logged into the AWS console and created it. Security groups, EC2 instances, RDS databases, S3 buckets, IAM roles — all of it provisioned by hand, configured by hand, and documented nowhere.
 
 Nobody knew what existed. The AWS bill showed 400+ EC2 instances, but the team could only account for about 250. There were S3 buckets with names like "test-backup-2019" and "johns-temp-bucket" that nobody wanted to delete because nobody knew if they mattered. Security groups had rules added over the years with no comments explaining why.
 
@@ -49,14 +47,14 @@ The breaking point came when a production change went wrong. Someone modified a 
 
 The first two weeks were archaeology. I needed to understand what actually existed before I could codify it.
 
-I ran AWS Config queries to inventory every resource across all regions. I used tools like `aws-nuke` (an open-source tool for cleaning up AWS accounts) in dry-run mode to see what would be deleted if we started fresh—we weren't going to, but it was illuminating for understanding the full scope. I interviewed every engineer about what they'd created and why.
+I ran [AWS Config](https://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html) queries to inventory every resource across all regions. I used tools like `aws-nuke` (an open-source tool for cleaning up AWS accounts) in dry-run mode to see what would be deleted if we started fresh—we weren't going to, but it was illuminating for understanding the full scope. I interviewed every engineer about what they'd created and why.
 
 The inventory revealed 847 distinct resources that mattered—everything from VPCs and subnets to Lambda functions and CloudWatch alarms. About 200 more were clearly abandoned but too risky to delete without more investigation.
 
 The key decisions shaped the rest of the project:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
   items={[
     {
       lead: 'Terraform over Pulumi',
@@ -80,7 +78,10 @@ The key decisions shaped the rest of the project:
 The implementation happened in phases:
 
 <Table
-  variant="striped-rows-table"
+  variant="criteria-highlight-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   content={{
     figure: 'Table: Implementation phase timeline',
     thead: {
@@ -111,30 +112,48 @@ The obstacles were what you'd expect. Resources created by departed employees wi
 
 ## The Solution
 
-The final architecture centered on Terraform modules organized by service tier, with Atlantis enforcing PR-based workflows for all changes.
+The final architecture centered on Terraform modules organized by service tier, with [Atlantis](https://www.runatlantis.io/)[^atlantis] enforcing PR-based workflows for all changes.
 
 ### Module Structure
 
 We organized Terraform code into layers that reflected how the team thought about their infrastructure:
 
-```bash
-terraform/
-├── modules/
-│   ├── networking/      # VPC, subnets, route tables
-│   ├── database/        # RDS, ElastiCache
-│   ├── compute/         # EC2, ASG, ALB
-│   ├── security/        # Security groups, IAM roles
-│   └── application/     # S3, Lambda, CloudWatch
-├── environments/
-│   ├── production/
-│   ├── staging/
-│   └── development/
-└── atlantis.yaml
-```
-
-Code: Terraform module directory structure
+<FileExplorer
+  figure="Terraform module directory structure"
+  data={[
+    {
+      type: 'folder',
+      name: 'terraform',
+      children: [
+        {
+          type: 'folder',
+          name: 'modules',
+          children: [
+            { type: 'folder', name: 'networking', comment: 'VPC, subnets, route tables' },
+            { type: 'folder', name: 'database', comment: 'RDS, ElastiCache' },
+            { type: 'folder', name: 'compute', comment: 'EC2, ASG, ALB' },
+            { type: 'folder', name: 'security', comment: 'Security groups, IAM roles' },
+            { type: 'folder', name: 'application', comment: 'S3, Lambda, CloudWatch' },
+          ],
+        },
+        {
+          type: 'folder',
+          name: 'environments',
+          children: [
+            { type: 'folder', name: 'production' },
+            { type: 'folder', name: 'staging' },
+            { type: 'folder', name: 'development' },
+          ],
+        },
+        { type: 'file', name: 'atlantis.yaml' },
+      ],
+    },
+  ]}
+/>
 
 Each environment composed modules with environment-specific variables. Production and staging used the same module versions with different inputs for instance sizes, replica counts, and domain names.
+
+[^atlantis]: Atlantis is an open-source tool that automates Terraform workflows through pull requests by connecting a version control system such as GitHub, GitLab, or Bitbucket to Terraform plan and apply execution.
 
 ### Import Process
 
@@ -147,22 +166,26 @@ For particularly complex resources like IAM policies, we used `terraformer` (Goo
 Atlantis ran in ECS, connected to GitHub via webhooks. The workflow:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-0",
+    thead: "",
+  }}
   items={[
     {
-      text: 'Engineer opens PR with Terraform changes',
+      lead: 'Engineer opens PR with Terraform changes',
     },
     {
-      text: 'Atlantis automatically runs <span class="font-mono">terraform plan</span> and comments the output on the PR',
+      lead: 'Atlantis automatically runs <span class="font-mono">terraform plan</span> and comments the output on the PR',
     },
     {
-      text: 'Reviewer checks the plan, approves if correct',
+      lead: 'Reviewer checks the plan, approves if correct',
     },
     {
-      text: 'Engineer comments <span class="font-mono">atlantis apply</span> to execute',
+      lead: 'Engineer comments <span class="font-mono">atlantis apply</span> to execute',
     },
     {
-      text: 'Atlantis applies changes and comments the result',
+      lead: 'Atlantis applies changes and comments the result',
     },
   ]}
 />
@@ -171,18 +194,25 @@ This replaced the old process of "ask in Slack, then click in the console." Ever
 
 ### Security and Cost Guardrails
 
-We integrated tfsec into the Atlantis workflow. PRs that introduced security issues (public S3 buckets, overly permissive security groups) failed CI and couldn't be merged without explicit override.
+We integrated tfsec[^tfsec] into the Atlantis workflow. PRs that introduced security issues (public S3 buckets, overly permissive security groups) failed CI and couldn't be merged without explicit override.
 
-Infracost estimated the monthly cost impact of changes. This didn't block PRs, but seeing "+$450/month" in the PR comment made engineers think twice about oversized instances.
+[^tfsec]: tfsec was an open-source static analysis tool for scanning Terraform code for misconfigurations and security risks before deployment, including issues such as unencrypted storage and unintended public access across AWS, Azure, and GCP. The project has since been incorporated into Trivy.
+
+[Infracost](https://www.infracost.io/docs/) estimated the monthly cost impact of changes. This didn't block PRs, but seeing "+$450 / month" in the PR comment made engineers think twice about oversized instances.
 
 ## The Results
 
 Four months after starting, the transformation was complete:
 
 <Table
-  variant="striped-rows-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+    thead: 'bg-page-inverse !text-page-base',
+    tbody: '!text-content',
+  }}
   content={{
-    figure: 'Table: Transformation outcomes',
+    figure: 'Transformation outcomes',
     thead: {
       th: ['Metric', 'Before', 'After'],
     },
@@ -204,6 +234,7 @@ Four months after starting, the transformation was complete:
           td: ['MTTR for infrastructure issues', 'Baseline', '-70%'],
         },
         {
+          className: 'bg-page-offset',
           td: ['Wasted resource spend', '$12K/month', 'Eliminated'],
         },
       ],
@@ -212,7 +243,10 @@ Four months after starting, the transformation was complete:
 />
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: '100% of production infrastructure in version control',
@@ -224,7 +258,7 @@ Four months after starting, the transformation was complete:
     },
     {
       lead: 'Configuration drift incidents went from weekly to zero',
-      text: 'With all changes going through PRs, environments stayed in sync. The "works in staging, fails in production" problem disappeared.',
+      text: 'With all changes going through PRs, environments stayed in sync. The <span class="italic">"works in staging, fails in production"</span> problem disappeared.',
     },
     {
       lead: 'All infrastructure changes require PR review',
@@ -243,6 +277,9 @@ The abandoned resources got cleaned up too. We identified 180 resources that wer
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Import before you refactor',
@@ -254,7 +291,7 @@ The abandoned resources got cleaned up too. We identified 180 resources that wer
     },
     {
       lead: 'PR-based workflows change behavior',
-      text: 'Once all changes required a PR, the "quick fix in the console" pattern stopped. Engineers adapted because the new process was actually easier, running <span class="font-mono">atlantis apply</span> is less work than clicking through the console, and rollback is trivial.',
+      text: 'Once all changes required a PR, the <span class="italic">"quick fix in the console"</span> pattern stopped. Engineers adapted because the new process was actually easier. Running <span class="font-mono">atlantis apply</span> is less work than clicking through the console. Rollback is trivial.',
     },
   ]}
 />

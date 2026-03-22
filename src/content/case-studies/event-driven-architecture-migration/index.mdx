@@ -103,7 +103,7 @@ Kinesis was AWS-native but had limitations on consumer scaling and retention. Th
 
 Kafka (MSK) was operationally more complex but offered exactly what we needed: replay capability with configurable retention, strong ordering guarantees within partitions, consumer groups for scaling, and a mature ecosystem. The complexity was justified by the capabilities.
 
-For schema management, I chose Confluent Schema Registry. When 30+ services exchange events, schema evolution is critical. The registry enforced compatibility—you couldn't deploy a producer that broke consumers.
+For schema management, I chose [Confluent Schema Registry](https://docs.confluent.io/platform/current/schema-registry/index.html). When 30+ services exchange events, schema evolution is critical. The registry enforced compatibility—you couldn't deploy a producer that broke consumers.
 
 ### Phased Migration
 
@@ -223,7 +223,7 @@ The Schema Registry enforced backward compatibility—new fields must have defau
 
 ### Real-Time Analytics with ksqlDB
 
-For the real-time dashboards, we used ksqlDB (a streaming SQL engine for Kafka) to process streams and materialize aggregations:
+For the real-time dashboards, we used [ksqlDB](https://docs.confluent.io/platform/current/ksqldb/overview.html#ksqldb-quick-start) (a streaming SQL engine for Kafka) to process streams and materialize aggregations:
 
 ```sql
 -- Create a stream from the impressions topic
@@ -257,7 +257,7 @@ The dashboard service queried these materialized tables via ksqlDB's REST API. L
 
 ### Change Data Capture
 
-Some events originated from database writes rather than application code. Rather than retrofitting every service to publish events, we used Kafka Connect with Debezium (an open-source change data capture platform) for CDC:
+Some events originated from database writes rather than application code. Rather than retrofitting every service to publish events, we used [Kafka Connect](https://www.redpanda.com/guides/kafka-tutorial-what-is-kafka-connect) with [Debezium](https://debezium.io/documentation/reference/stable/index.html)[^debezium] for CDC:
 
 ```json
 {
@@ -353,6 +353,8 @@ After six months, the transformation was measurable:
 />
 
 The business impact was immediate. The real-time dashboards became a competitive differentiator—sales closed deals they'd been losing to competitors. Campaign managers could optimize in real-time instead of waiting for next-day reports.
+
+[^debezium]: Debezium is an open-source change data capture platform that monitors database commits and emits inserts, updates, and deletes as ordered event streams for downstream consumers.
 
 ## Key Takeaways
 

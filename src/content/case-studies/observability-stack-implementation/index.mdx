@@ -3,7 +3,7 @@ title: "Full-Stack Observability for a Microservices Architecture"
 description: "Implementing unified metrics, logs, and traces across 60+ services to reduce mean time to detection from hours to minutes"
 cover: "./cover.jpg"
 coverAlt: "Neural network visualization showing services as nodes with trace connections, central dashboard synthesizing observability data"
-client: "Healthcare Technology Company"
+client: "netsmart"
 duration: "6 months"
 industry: "Healthcare Technology"
 projectType: "Observability Implementation"
@@ -34,11 +34,11 @@ The client was a healthcare technology company running 60+ microservices across 
 
 When something went wrong, engineers faced a scavenger hunt. Metrics lived in CloudWatch. Some services sent logs to Elasticsearch, others to CloudWatch Logs, and a few to files on disk that required SSH to access. Traces existed for about 20% of services, scattered across X-Ray and Jaeger depending on who had built what. Nothing was connected.
 
-The debugging workflow was painful: check CloudWatch metrics to see if something looked wrong, grep through three different log systems to find relevant errors, try to piece together the request flow from whatever traces existed, then give up and add more logging to figure out what actually happened. A single incident investigation could take hours of detective work.
+The debugging workflow was painful: check CloudWatch metrics to see if something looked wrong, `grep` through three different log systems to find relevant errors, try to piece together the request flow from whatever traces existed, then give up and add more logging to figure out what actually happened. A single incident investigation could take hours of detective work.
 
-Customers were often the alerting system. The company's mean time to detection was four hours—most of that time being "we didn't know there was a problem." Customers would report issues, then engineers would start investigating. This was embarrassing and damaging to customer trust.
+Customers were often the alerting system. The company's mean time to detection was four hours—most of that time being _"we didn't know there was a problem."_ Customers would report issues, then engineers would start investigating. This was embarrassing and damaging to customer trust.
 
-The constraints added complexity. HIPAA compliance meant we couldn't just ship logs to any SaaS vendor. Protected health information appeared in logs, and it needed to stay within approved boundaries or be redacted before leaving. Budget was also tight—the company was growing but not yet profitable, and the leadership wouldn't approve enterprise observability pricing.
+The constraints added complexity. HIPAA compliance meant we couldn't just ship logs to any SaaS vendor. Protected health information appeared in logs, and it needed to stay within approved boundaries or be redacted before leaving. Budget was also tight — the company was growing but not yet profitable, and the leadership wouldn't approve enterprise observability pricing.
 
 ## The Approach
 
@@ -47,9 +47,13 @@ The first month was assessment and planning. I audited every existing monitoring
 The current state was worse than I'd expected:
 
 <Table
-  variant="striped-rows-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+    tbody: '!text-content',
+  }}
   content={{
-    figure: 'Table: Observability state before implementation',
+    figure: 'Observability state before implementation',
     thead: {
       th: ['Signal', 'Tools in Use', 'Coverage', 'Correlation'],
     },
@@ -74,11 +78,16 @@ The core problem was clear: multiple tools with no correlation. Even where data 
 The key decisions shaped everything that followed:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'OpenTelemetry for instrumentation',
-      text: 'We needed vendor-neutral instrumentation that would work across all three languages and let us change backends later if needed. OpenTelemetry was the clear choice, it had become the industry standard, with solid SDKs for Node.js, Python, and Go.',
+      text: 'We needed vendor-neutral instrumentation that would work across all three languages and let us change backends later if needed. OpenTelemetry was the clear choice. It had become the industry standard, with solid SDKs for Node.js, Python, and Go.',
     },
     {
       lead: 'Grafana stack for backends',
@@ -94,7 +103,10 @@ The key decisions shaped everything that followed:
 The implementation rolled out over six months:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Months 1-2: Foundation',
@@ -206,7 +218,10 @@ Grafana's Loki datasource recognized the `trace_id` field (this is the default f
 We replaced the scattered alerting setup with Alertmanager routing to PagerDuty. Alerts were defined based on SLOs rather than arbitrary thresholds:
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Error rate alerts',
@@ -230,7 +245,10 @@ We implemented alert correlation to reduce noise. Multiple alerts from the same 
 The Grafana stack had real limitations compared to Datadog:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'UI polish',
@@ -254,9 +272,12 @@ The $150K annual savings justified these tradeoffs for this client. For a compan
 Six months after starting, the observability transformation was complete:
 
 <Table
-  variant="striped-rows-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   content={{
-    figure: 'Table: Observability implementation outcomes',
+    figure: 'Observability implementation outcomes',
     thead: {
       th: ['Metric', 'Before', 'After', 'Change'],
     },
@@ -285,14 +306,17 @@ Six months after starting, the observability transformation was complete:
   }}
 />
 
-Alerts now fired on actual problems, not false positives—the team knew about issues before customers did. Correlated signals meant engineers could see the full picture immediately, eliminating the tool-hopping scavenger hunts. With proper observability, junior engineers could debug issues that previously required senior expertise.
+Alerts now fired on actual problems, not false positives — the team knew about issues before customers did. Correlated signals meant engineers could see the full picture immediately, eliminating the tool-hopping scavenger hunts. With proper observability, junior engineers could debug issues that previously required senior expertise.
 
-The cultural change was significant too. Engineers started adding custom instrumentation proactively because they could see the value. "Let me add a span for this" became common in code reviews. Observability shifted from afterthought to design consideration.
+The cultural change was significant too. Engineers started adding custom instrumentation proactively because they could see the value. _"Let me add a span for this"_ became common in code reviews. Observability shifted from afterthought to design consideration.
 
 ## Key Takeaways
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Correlation is the foundation',

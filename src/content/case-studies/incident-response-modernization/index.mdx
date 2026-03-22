@@ -3,7 +3,7 @@ title: "Modernizing Incident Response for a 24/7 Platform"
 description: "Transforming ad-hoc firefighting into a structured incident management process with clear escalation, runbooks, and blameless postmortems"
 cover: "./cover.jpg"
 coverAlt: "Chaotic firefighting scene transforming into organized command center, showing shift from reactive to proactive incident response"
-client: "Online Marketplace"
+client: "overstock"
 duration: "4 months"
 industry: "E-commerce / Marketplace"
 projectType: "Incident Response"
@@ -46,11 +46,11 @@ The company couldn't afford a dedicated SRE team. Whatever we built needed to wo
 
 ### Understanding the Current State
 
-I started with an incident archaeology exercise. I reviewed three months of Slack history, git commits, and the scattered incident notes that existed. I categorized every incident by type, severity, time to resolution, and—crucially—recurrence.
+I started with an incident archaeology exercise. I reviewed three months of Slack history, git commits, and the scattered incident notes that existed. I categorized every incident by type, severity, time to resolution, and — crucially — recurrence.
 
 The data told a story: 40% of incidents were repeats. The same 12 issue types caused 80% of pages. Mean time to resolution was 90 minutes, but variance was enormous—some incidents resolved in 5 minutes, others dragged on for 8 hours because the right person wasn't available.
 
-I also conducted one-on-ones with every engineer. I needed to understand not just the technical problems but the cultural ones. People were hesitant at first—years of blame culture had taught them to be careful about admitting mistakes. Building trust took time.
+I also conducted one-on-ones with every engineer. I needed to understand not just the technical problems but the cultural ones. People were hesitant at first — years of blame culture had taught them to be careful about admitting mistakes. Building trust took time.
 
 ### The Transformation Plan
 
@@ -59,7 +59,12 @@ The core insight was that incident response is a skill that can be learned and a
 I proposed a phased approach:
 
 <List
-  variant="numbered-with-background-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-18 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Severity definitions and escalation paths',
@@ -93,7 +98,10 @@ Leadership buy-in was critical. I presented data on engineer attrition costs—r
 We defined four severity levels with clear criteria:
 
 <Table
-  variant="striped-rows-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   content={{
     figure: 'Table: Severity level definitions and escalation paths',
     thead: {
@@ -167,7 +175,10 @@ The magic wasn't just documentation—it was executable steps anyone could follo
 This was the cultural shift that made everything else sustainable. I introduced a postmortem template focused on system failures, not human failures:
 
 <List
-  variant="check-icons-list"
+  variant="card-grid-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'What happened?',
@@ -197,19 +208,22 @@ We held monthly incident review meetings where teams presented their postmortems
 We standardized on PagerDuty for alerting and scheduling. The tool wasn't as important as the configuration:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Alerts deduplicated and grouped to reduce noise',
+      lead: 'Alerts deduplicated and grouped to reduce noise',
     },
     {
-      text: 'Escalation policies that actually escalated',
+      lead: 'Escalation policies that actually escalated',
     },
     {
-      text: 'On-call schedules visible to everyone',
+      lead: 'On-call schedules visible to everyone',
     },
     {
-      text: 'Automatic Slack channel creation for incidents',
+      lead: 'Automatic Slack channel creation for incidents',
     },
   ]}
 />
@@ -221,7 +235,11 @@ I built a simple Slack bot in Python that, when an incident was declared, create
 After four months, the transformation was measurable:
 
 <Table
-  variant="striped-rows-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+    tbody: '!text-content',
+  }}
   content={{
     figure: 'Table: Incident response transformation outcomes',
     thead: {
@@ -257,6 +275,9 @@ One moment captured the shift: a junior engineer resolved a SEV2 incident at mid
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Process beats heroics',

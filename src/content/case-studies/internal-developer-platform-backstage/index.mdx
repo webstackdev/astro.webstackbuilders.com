@@ -3,7 +3,7 @@ title: "Building an Internal Developer Platform with Backstage"
 description: "Implementing Spotify's Backstage to unify service catalog, documentation, and self-service infrastructure for a 200-engineer organization"
 cover: "./cover.jpg"
 coverAlt: "Scattered documentation and services being pulled together into organized catalog structure, transformation from chaos to order"
-client: "Enterprise Software Company"
+client: "wolters-kluwer"
 duration: "8 months"
 industry: "Enterprise Software"
 projectType: "Internal Developer Platform"
@@ -11,10 +11,8 @@ publishDate: 2024-10-01
 isDraft: true
 ---
 
-*[CI/CD]: Continuous Integration and Continuous Delivery
 *[S3]: Simple Storage Service
 *[SSO]: Single Sign-On
-*[UI]: User Interface
 
 ## Overview
 
@@ -26,11 +24,11 @@ The client was an enterprise software company that had grown quickly through acq
 
 The result was chaos that looked like normalcy. Every team had services. Nobody knew what all the services were.
 
-When I asked engineers how they found information about a service they didn't own, the answers were revealing: "I Slack the team that owns it." "I search Confluence, then Notion, then the README, then give up and Slack someone." "I look at the Kubernetes namespace and try to figure it out from the deployment manifests." One senior engineer admitted he'd rebuilt functionality that already existed because finding the existing service would have taken longer than writing it from scratch.
+When I asked engineers how they found information about a service they didn't own, the answers were revealing: _"I Slack the team that owns it."_ _"I search Confluence, then Notion, then the README, then give up and Slack someone."_ _"I look at the Kubernetes namespace and try to figure it out from the deployment manifests."_ One senior engineer admitted he'd rebuilt functionality that already existed because finding the existing service would have taken longer than writing it from scratch.
 
-New engineer onboarding took three weeks minimum. Not because the work was complex, but because learning where everything lived—which repo, which wiki, which Slack channel, which team owned what—consumed enormous amounts of time. Senior engineers spent hours every week answering the same questions from new hires.
+New engineer onboarding took three weeks minimum. Not because the work was complex, but because learning where everything lived — which repo, which wiki, which Slack channel, which team owned what — consumed enormous amounts of time. Senior engineers spent hours every week answering the same questions from new hires.
 
-Documentation existed, but it was scattered and stale. Some teams used Confluence. Others used Notion. A few maintained READMEs that hadn't been updated in years. The ones who did maintain good docs got punished for it—everyone routed questions to them because their services were the only ones anyone could understand.
+Documentation existed, but it was scattered and stale. Some teams used Confluence. Others used Notion. A few maintained `READMEs` that hadn't been updated in years. The ones who did maintain good docs got punished for it — everyone routed questions to them because their services were the only ones anyone could understand.
 
 Previous attempts to fix this had failed. A "service registry" spreadsheet existed somewhere but was 18 months out of date. An internal wiki initiative had launched and died twice. Engineers were skeptical of any new "central source of truth" because they'd seen them come and go.
 
@@ -38,14 +36,19 @@ The hardest constraint was that we couldn't mandate adoption. This company had a
 
 ## The Approach
 
-We started with listening. I ran a developer experience survey to understand pain points quantitatively, then followed up with 30-minute interviews across a dozen teams. The survey confirmed what the interviews revealed: engineers spent 20-30% of their time on what they called "discovery work"—figuring out what existed, who owned it, and how it worked.
+We started with listening. I ran a developer experience survey to understand pain points quantitatively, then followed up with 30-minute interviews across a dozen teams. The survey confirmed what the interviews revealed: engineers spent 20-30% of their time on what they called "discovery work" — figuring out what existed, who owned it, and how it worked.
 
 The assessment also inventoried what existed. We found 340 services across the organization. About 200 had some documentation. Roughly 80 had documentation that was both findable and current. The gap was the opportunity.
 
 The key decisions:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Backstage over build-your-own',
@@ -53,7 +56,7 @@ The key decisions:
     },
     {
       lead: 'Start with the software catalog',
-      text: 'Backstage can do many things, catalog, docs, templates, custom plugins. We resisted the urge to do everything at once. The catalog was the foundation. It would prove value quickly and create the data model everything else would build on.',
+      text: 'Backstage can do many things: catalog, docs, templates, and can extend its functionality with custom plugins. We resisted the urge to do everything at once. The catalog was the foundation. It would prove value quickly and create the data model everything else would build on.',
     },
     {
       lead: 'Champion teams, not mandates',
@@ -65,7 +68,10 @@ The key decisions:
 The implementation rolled out in phases over eight months:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Months 1-2: Catalog foundation',
@@ -94,13 +100,15 @@ The final platform ran on their existing EKS infrastructure with a PostgreSQL ba
 
 ### Core Platform
 
-Backstage ran as a deployment in Kubernetes with horizontal pod autoscaling. The PostgreSQL database stored catalog entities, user preferences, and plugin data. We used their existing Okta setup for SSO—engineers logged in with the same credentials they used for everything else.
+Backstage ran as a deployment in Kubernetes with horizontal pod autoscaling. The PostgreSQL database stored catalog entities, user preferences, and plugin data. We used their existing Okta setup for SSO — engineers logged in with the same credentials they used for everything else.
 
-GitHub integration was the backbone of the catalog. Services registered themselves by adding a `catalog-info.yaml` file to their repository. A GitHub App discovered these files automatically, so new services appeared in the catalog without any manual registration.
+GitHub integration was the backbone of the catalog. Services registered themselves by adding a `catalog-info.yaml` file to their repository. Backstage's built-in GitHub Discovery provider, configured as part of the catalog backend, used a GitHub App installation to automatically crawl the organization's repositories and find these files — so new services appeared in the catalog without any manual registration.
 
 ### TechDocs
 
-TechDocs rendered MkDocs (a popular static site generator for project documentation) content from each service's repository. Engineers wrote docs in Markdown alongside their code. The build process generated static documentation and stored it in S3. Backstage served it directly, with full-text search across all service documentation.
+TechDocs[^techdocs] uses MkDocs (a popular Python static site generator for project documentation) to render content from each service's repository. Engineers wrote docs in Markdown alongside their code. The build process generated static documentation and stored it in S3. Backstage served it directly, with full-text search across all service documentation.
+
+[^techdocs]: TechDocs is Backstage's docs-as-code feature. Engineers keep documentation as Markdown in the same repository as their code, and Backstage turns it into searchable static documentation, typically using MkDocs behind the scenes.
 
 The key insight was keeping docs in the repo. Previous documentation initiatives failed because they required engineers to go somewhere else to write docs. TechDocs let them stay in their IDE, write Markdown next to their code, and commit everything together.
 
@@ -109,25 +117,28 @@ The key insight was keeping docs in the repo. Previous documentation initiatives
 We built templates for three common patterns: a new backend service, a new frontend application, and a new shared library. Each template:
 
 <List
-  variant="check-icons-list"
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Created a GitHub repository with proper structure',
+      lead: 'Created a GitHub repository with proper structure',
     },
     {
-      text: 'Set up CI/CD pipelines in their existing system',
+      lead: 'Set up CI/CD pipelines in their existing system',
     },
     {
-      text: 'Configured observability (logging, metrics, tracing)',
+      lead: 'Configured observability (logging, metrics, tracing)',
     },
     {
-      text: 'Generated the <span class="font-mono">catalog-info.yaml</span> for automatic catalog registration',
+      lead: 'Generated the <span class="font-mono">catalog-info.yaml</span> for automatic catalog registration',
     },
     {
-      text: 'Created initial documentation scaffolding',
+      lead: 'Created initial documentation scaffolding',
     },
     {
-      text: 'Set up Slack notifications for the team channel',
+      lead: 'Set up Slack notifications for the team channel',
     },
   ]}
 />
@@ -139,7 +150,11 @@ Engineers filled out a form with service name, owning team, and a few configurat
 We built plugins to integrate with systems engineers already used:
 
 <Table
-  variant="striped-rows-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+    tbody: '!text-content',
+  }}
   content={{
     figure: 'Table: Custom Backstage plugins',
     thead: {
@@ -171,7 +186,10 @@ Each plugin surfaced information that previously required navigating to a separa
 Eight months in, the platform exceeded our targets:
 
 <Table
-  variant="striped-rows-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-12 sm:mr-18 mb-6",
+  }}
   content={{
     figure: 'Table: Platform adoption outcomes',
     thead: {
@@ -202,14 +220,17 @@ Eight months in, the platform exceeded our targets:
   }}
 />
 
-The last 10% of services came onboard after seeing their peers in the catalog and feeling left out—no mandate required. New hires could navigate the service landscape independently; "Go look it up in Backstage" replaced hours of Slack conversations. The software templates eliminated boilerplate and ensured every new service started with proper observability and documentation.
+The last 10% of services came onboard after seeing their peers in the catalog and feeling left out — no mandate required. New hires could navigate the service landscape independently; _"Go look it up in Backstage"_ replaced hours of Slack conversations. The software templates eliminated boilerplate and ensured every new service started with proper observability and documentation.
 
-The cultural change was as significant as the metrics. "Check Backstage" became the default answer to service questions. Teams took pride in their catalog entries and documentation. The platform team received feature requests instead of complaints—a sign that engineers saw value and wanted more.
+The cultural change was as significant as the metrics. _"Check Backstage"_ became the default answer to service questions. Teams took pride in their catalog entries and documentation. The platform team received feature requests instead of complaints—a sign that engineers saw value and wanted more.
 
 ## Key Takeaways
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Start with the catalog',

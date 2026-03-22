@@ -8,12 +8,14 @@ export type Props = {
     }
     tbody: {
       tr: {
+        className?: string
         th?: string | { label: string; color?: string }
         td: string[]
       }[]
     }
     tfoot?: {
       tr: {
+        className?: string
         th?: string
         td: string[]
       }[]
@@ -53,7 +55,7 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
     {content.thead && (
       <thead class:list={[theadClass, classes?.thead]}>
         <tr>
-          <th class="w-14 px-3 py-3 font-semibold text-content-active">#</th>
+          <th class:list={['w-14 px-3 py-3 font-semibold text-content-active', classes?.thead]}>#</th>
           {content.thead.th.map((th) => (
             <th scope="col" class:list={[headerClass, classes?.thead]} set:html={th}></th>
           ))}
@@ -63,7 +65,7 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
 
     <tbody class:list={[tbodyClass, classes?.tbody]}>
       {content.tbody.tr.map((row, rowIndex) => (
-        <tr class={rowClass}>
+        <tr class:list={[rowClass, row.className]}>
           <td class="px-3 py-3 text-content-offset font-mono">{rowIndex + 1}</td>
           {row.th && (
             <th
@@ -91,7 +93,7 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
     {content.tfoot && (
       <tfoot class:list={[tfootClass, classes?.tfoot]}>
         {content.tfoot.tr.map((row, rowIndex) => (
-          <tr class={rowClass}>
+          <tr class:list={[rowClass, row.className]}>
             <td class="px-3 py-3 text-content-offset font-mono">{rowIndex + 1}</td>
             {row.th && (
               <th scope="row" class:list={['px-4 py-3 text-content font-semibold', classes?.tfoot]} set:html={row.th}></th>

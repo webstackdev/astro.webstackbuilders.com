@@ -3,7 +3,7 @@ title: "Self-Service Infrastructure for Product Teams"
 description: "Enabling development teams to safely provision their own AWS resources through guardrails, templates, and automated compliance checks"
 cover: "./cover.jpg"
 coverAlt: "Terraform module being assembled by multiple teams with automated security shields and compliance checks"
-client: "Digital Media Company"
+client: "tegna"
 duration: "5 months"
 industry: "Media & Entertainment"
 projectType: "Self-Service Infrastructure"
@@ -11,8 +11,6 @@ publishDate: 2024-04-22
 isDraft: true
 ---
 
-*[AWS]: Amazon Web Services
-*[CI/CD]: Continuous Integration and Continuous Delivery
 *[IAM]: Identity and Access Management
 *[KMS]: Key Management Service
 *[OPA]: Open Policy Agent
@@ -46,9 +44,10 @@ The constraints made this tricky. The company had SOC2 compliance requirements, 
 I started by understanding what teams actually needed. I cataloged every infrastructure ticket from the past six months—487 requests total. The distribution was revealing:
 
 <Table
-  variant="striped-rows-table"
+  variant="grid-and-accent-header-table"
+  fullWidth={false}
   content={{
-    figure: 'Table: Infrastructure request distribution by resource type',
+    figure: 'Infrastructure request distribution by resource type',
     thead: {
       th: ['Resource Type', '% of Requests'],
     },
@@ -84,7 +83,12 @@ This was the insight that shaped the solution: we didn't need to give teams full
 The key decisions:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'Terraform modules over custom portal',
@@ -104,7 +108,10 @@ The key decisions:
 The implementation happened in five phases:
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Month 1: Core modules',
@@ -129,7 +136,7 @@ The implementation happened in five phases:
   ]}
 />
 
-The security team was initially skeptical. "You want to let developers provision their own databases?" We addressed this by showing them the policy layer in action. We demonstrated that developers literally couldn't create non-compliant resources—the CI pipeline would reject them. The policies enforced what reviews had previously caught manually.
+The security team was initially skeptical. "You want to let developers provision their own databases?" We addressed this by showing them the policy layer in action. We demonstrated that developers literally couldn't create non-compliant resources — the CI pipeline would reject them. The policies enforced what reviews had previously caught manually.
 
 ## The Solution
 
@@ -173,11 +180,13 @@ deny[msg] {
 
 Code: OPA policy enforcing S3 encryption requirement
 
-The policies covered encryption, network isolation, tagging requirements, and naming conventions. Conftest (a CLI tool for running OPA policies against structured data like Terraform plans) ran these policies as a GitHub Actions step before Atlantis could apply anything. Failed policies blocked the PR with clear error messages explaining what needed to change.
+The policies covered encryption, network isolation, tagging requirements, and naming conventions. Conftest (a CLI tool for running OPA policies against structured data like Terraform plans) ran these policies as a GitHub Actions step before Atlantis[^atlantis] could apply anything. Failed policies blocked the PR with clear error messages explaining what needed to change.
+
+[^atlantis]: Atlantis is an open-source tool that automates Terraform workflows through pull requests by connecting a version control system such as GitHub, GitLab, or Bitbucket to Terraform plan and apply execution.
 
 ### Cost Controls
 
-Infracost estimated the monthly cost of each infrastructure change and posted it as a PR comment. Teams saw immediately if their new RDS instance would cost $500/month or $5,000/month.
+[Infracost](https://www.infracost.io/docs/) estimated the monthly cost of each infrastructure change and posted it as a PR comment. Teams saw immediately if their new RDS instance would cost $500/month or $5,000/month.
 
 We also implemented per-team budgets. Each team had a monthly infrastructure allocation. The system tracked provisioned resources against these budgets and warned when teams approached their limits. This prevented surprise bills and encouraged teams to think about cost as a design constraint.
 
@@ -186,31 +195,34 @@ We also implemented per-team budgets. Each team had a monthly infrastructure all
 The day-to-day workflow for a product team:
 
 <List
-  variant="numbered-with-background-list"
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
-      text: 'Engineer creates a branch in their team\'s infrastructure repo',
+      lead: 'Engineer creates a branch in their team\'s infrastructure repo',
     },
     {
-      text: 'Adds or modifies Terraform configuration using approved modules',
+      lead: 'Adds or modifies Terraform configuration using approved modules',
     },
     {
-      text: 'Opens a PR',
+      lead: 'Opens a PR',
     },
     {
-      text: 'GitHub Actions runs <span class="font-mono">terraform plan</span>, OPA policy checks, and Infracost',
+      lead: 'GitHub Actions runs <span class="font-mono">terraform plan</span>, OPA policy checks, and Infracost',
     },
     {
-      text: 'PR comment shows the plan, any policy violations, and cost estimate',
+      lead: 'PR comment shows the plan, any policy violations, and cost estimate',
     },
     {
-      text: 'For standard patterns, engineer merges after self-review',
+      lead: 'For standard patterns, engineer merges after self-review',
     },
     {
-      text: 'Atlantis applies the changes automatically',
+      lead: 'Atlantis applies the changes automatically',
     },
     {
-      text: 'Resources are provisioned, tagged, and compliant',
+      lead: 'Resources are provisioned, tagged, and compliant',
     },
   ]}
 />
@@ -222,16 +234,20 @@ For non-standard requests—anything outside the pre-approved modules—the PR r
 Five months after starting, the transformation was complete:
 
 <Table
-  variant="striped-rows-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    figure: "sm:ml-12 sm:mr-18 mb-6",
+    tbody: '!text-content',
+  }}
   content={{
-    figure: 'Table: Self-service infrastructure outcomes',
+    figure: 'Self-service infrastructure outcomes',
     thead: {
       th: ['Metric', 'Before', 'After'],
     },
     tbody: {
       tr: [
         {
-          td: ['Infrastructure request lead time', '2 weeks', '&lt;1 hour'],
+          td: ['Infrastructure request lead time', '2 weeks', '&lt; 1 hour'],
         },
         {
           td: ['Platform team ticket volume', 'Baseline', '-75%'],
@@ -261,6 +277,9 @@ The cost visibility produced an unexpected but significant benefit. When teams c
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Self-service does not mean uncontrolled',

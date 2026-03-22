@@ -3,7 +3,7 @@ title: "Kubernetes Adoption for a High-Volume Payment Processor"
 description: "Migrating 40+ microservices from EC2 instances to EKS while maintaining PCI compliance and sub-100ms latency requirements"
 cover: "./cover.jpg"
 coverAlt: "Kubernetes helm steering through financial data streams with security shields and compliance checkmarks"
-client: "Payment Processing Fintech"
+client: "fidelity"
 duration: "9 months"
 industry: "Financial Services"
 projectType: "Kubernetes Adoption"
@@ -11,10 +11,7 @@ publishDate: 2024-07-10
 isDraft: true
 ---
 
-*[AWS]: Amazon Web Services
-*[CI/CD]: Continuous Integration and Continuous Delivery
 *[CNI]: Container Network Interface
-*[DNS]: Domain Name System
 *[EC2]: Elastic Compute Cloud
 *[EKS]: Elastic Kubernetes Service
 *[mTLS]: Mutual Transport Layer Security
@@ -26,13 +23,15 @@ isDraft: true
 
 ## Overview
 
-A payment processing fintech needed to modernize their deployment infrastructure without compromising on PCI compliance or their sub-100ms latency SLAs. Over nine months, we migrated 40+ microservices from EC2 instances to Amazon EKS, reducing deployment cycles from two weeks to multiple times daily while passing their PCI-DSS audit with the new architecture.
+A payment processing fintech needed to modernize their deployment infrastructure without compromising on PCI compliance or their sub-100ms latency SLAs. Over nine months, we migrated 40+ microservices from EC2 instances to Amazon EKS, reducing deployment cycles from two weeks to multiple times daily while passing their PCI-DSS[^pci-dss] audit with the new architecture.
+
+[^pci-dss]: PCI-DSS is the Payment Card Industry Data Security Standard, a set of security requirements for systems that store, process, or transmit cardholder data.
 
 ## The Challenge
 
 The client processed over 10 million payment transactions daily through a microservices architecture running on EC2 instances. Each service had its own deployment pipeline, its own scaling rules, and its own operational quirks. What had started as a clean architecture had become a sprawling estate of 40+ services that nobody fully understood.
 
-Deployments were painful. A two-week release cycle was the norm—not because they wanted to ship slowly, but because coordinating deployments across services, managing configuration drift, and handling rollbacks manually consumed enormous amounts of engineering time. Teams were afraid to deploy because rolling back meant SSH-ing into instances and manually reverting changes.
+Deployments were painful. A two-week release cycle was the norm — not because they wanted to ship slowly, but because coordinating deployments across services, managing configuration drift, and handling rollbacks manually consumed enormous amounts of engineering time. Teams were afraid to deploy because rolling back meant SSH-ing into instances and manually reverting changes.
 
 The on-call burden was crushing. Engineers were getting paged for issues that container orchestration handles automatically: instance failures, scaling events, health check flapping. Senior engineers were burning out. Two had left in the past six months, citing on-call fatigue.
 
@@ -45,7 +44,12 @@ We started with a month of assessment work. I mapped service dependencies, analy
 The key architectural decisions came out of that assessment:
 
 <List
-  variant="check-icons-list"
+  variant="zebra-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
+  }}
   items={[
     {
       lead: 'EKS over self-managed Kubernetes',
@@ -69,9 +73,12 @@ The key architectural decisions came out of that assessment:
 The migration happened in four phases over nine months:
 
 <Table
-  variant="striped-rows-table"
+  variant="numbered-review-table"
+  classes={{
+    figure: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   content={{
-    figure: 'Table: Migration phase timeline',
+    figure: 'Migration phase timeline',
     thead: {
       th: ['Phase', 'Months', 'Focus', 'Risk Level'],
     },
@@ -104,9 +111,13 @@ The final architecture reflected the tradeoffs between operational simplicity, c
 
 ### Cluster Architecture
 
-We deployed a multi-AZ EKS cluster in us-east-1 with node groups spread across three availability zones. The cluster ran Kubernetes 1.28 with managed add-ons for CoreDNS, kube-proxy, and the VPC CNI.
+We deployed a multi-AZ EKS cluster in `us-east-1` with node groups spread across three availability zones. The cluster ran Kubernetes 1.28 with managed add-ons for CoreDNS, `kube-proxy`, and the VPC CNI[^vpc-cni].
 
-Karpenter handled node provisioning with provisioners tuned for different workload types. Payment processing services ran on dedicated node pools with instance types selected for consistent performance (no burstable instances). Batch processing and internal tools shared a separate pool that could use spot instances.
+Karpenter[^karpenter] handled node provisioning with provisioners tuned for different workload types. Payment processing services ran on dedicated node pools with instance types selected for consistent performance (no burstable instances). Batch processing and internal tools shared a separate pool that could use spot instances.
+
+[^vpc-cni]: The Amazon VPC CNI is EKS's default networking plugin. It assigns VPC IP addresses directly to pods so they can talk to other AWS network resources without an overlay network, which improves performance and makes native VPC controls like flow logs, routing, and security policies easier to use.
+
+[^karpenter]: Karpenter is an open-source Kubernetes autoscaler that launches and removes right-sized nodes based on what pending workloads actually need. It is faster and more flexible than older autoscaling approaches, but it adds some operational complexity and depends heavily on cloud-provider integration.
 
 ### Service Mesh and Security
 
@@ -114,15 +125,15 @@ Istio provided the service mesh layer. Every service-to-service call used mTLS w
 
 Network policies enforced segmentation. The cardholder data environment (CDE) services could only communicate with explicitly allowed services. Default-deny policies meant new services were isolated until explicitly permitted.
 
-We chose Istio over Linkerd despite Linkerd's simpler operational model. The deciding factors were Istio's more mature authorization policies and its integration with external authorization systems—we needed to enforce fine-grained access controls that Linkerd couldn't support at the time.
+We chose Istio over Linkerd despite Linkerd's simpler operational model. The deciding factors were Istio's more mature authorization policies and its integration with external authorization systems — we needed to enforce fine-grained access controls that Linkerd couldn't support at the time.
 
 ### GitOps and Deployment
 
-ArgoCD managed all deployments from a central Git repository. Each service had its own directory with Kubernetes manifests and Kustomize overlays for environment-specific configuration. Deployments happened by merging to the main branch—ArgoCD detected changes and reconciled the cluster state.
+ArgoCD managed all deployments from a central Git repository. Each service had its own directory with Kubernetes manifests and Kustomize overlays for environment-specific configuration. Deployments happened by merging to the main branch — ArgoCD detected changes and reconciled the cluster state.
 
 We configured ArgoCD with automated sync for staging and manual sync for production. Production deployments required explicit approval in the ArgoCD UI, creating a clear audit trail of who deployed what and when.
 
-The choice of ArgoCD over Flux came down to the UI. The team needed visibility into deployment status without kubectl access. ArgoCD's dashboard let product managers and compliance officers see deployment history without needing cluster credentials.
+The choice of ArgoCD over Flux came down to the UI. The team needed visibility into deployment status without `kubectl` access. ArgoCD's dashboard let product managers and compliance officers see deployment history without needing cluster credentials.
 
 ### Secrets and Configuration
 
@@ -135,7 +146,10 @@ Datadog provided unified metrics, logs, and traces. We instrumented all services
 ### Tradeoffs We Made
 
 <List
-  variant="check-icons-list"
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-6",
+  }}
   items={[
     {
       lead: 'Istio\'s overhead',
@@ -157,9 +171,13 @@ Datadog provided unified metrics, logs, and traces. We instrumented all services
 Nine months after starting, the migration was complete and certified:
 
 <Table
-  variant="striped-rows-table"
+  variant="grid-and-accent-header-table"
+  classes={{
+    thead: '[&_th:nth-child(2)]:text-center [&_th:nth-child(3)]:text-center',
+    tbody: '!text-content [&_td:nth-child(2)]:text-center [&_td:nth-child(3)]:text-center',
+  }}
   content={{
-    figure: 'Table: Migration outcomes summary',
+    figure: 'Migration outcomes summary',
     thead: {
       th: ['Metric', 'Before', 'After', 'Change'],
     },
@@ -172,7 +190,7 @@ Nine months after starting, the migration was complete and certified:
           td: ['Mean time to recovery', '45 minutes', '8 minutes', '82% reduction'],
         },
         {
-          td: ['Infrastructure costs', 'Baseline', '-30%', '$X00K annual savings'],
+          td: ['Infrastructure costs', 'Baseline', '-30%', '$800K annual savings'],
         },
         {
           td: ['PCI-DSS audit findings', 'N/A', 'Zero', 'Passed'],
@@ -189,7 +207,7 @@ Nine months after starting, the migration was complete and certified:
 />
 
 <List
-  variant="check-icons-list"
+  variant="numbered-with-background-list"
   items={[
     {
       lead: 'Deployment frequency increased from bi-weekly to 15+ times daily',
@@ -222,6 +240,9 @@ Nine months after starting, the migration was complete and certified:
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     {
       lead: 'Compliance constraints can drive better architecture',
