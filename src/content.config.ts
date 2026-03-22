@@ -257,7 +257,11 @@ const contactDataCollection = defineCollection({
 })
 
 const resumeDataCollection = defineCollection({
-  loader: file('./src/content/resume.json'),
+  loader: file('./src/content/resume.json', {
+    parser: text => ({
+      resume: JSON.parse(text),
+    }),
+  }),
   schema: z.object({
     education: z.object({
       school: z.string(),

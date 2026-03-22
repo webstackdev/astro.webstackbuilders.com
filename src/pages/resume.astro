@@ -1,43 +1,92 @@
 ---
+import { getCollection, render } from 'astro:content'
+import HeadContent from '@components/Head/index.astro'
 
+import '@styles/index.css'
+import '@styles/icons.css'
+
+const [resumeEntry] = await getCollection('resume')
+
+if (!resumeEntry) {
+  throw new Error('Missing resume content entry')
+}
+
+const resume = resumeEntry.data
+
+const publishedClients = (await getCollection('clients', ({ data }) => data.published)).sort((a, b) => {
+  const left = b.data.endDate?.getTime() ?? b.data.startDate?.getTime() ?? 0
+  const right = a.data.endDate?.getTime() ?? a.data.startDate?.getTime() ?? 0
+
+  return left - right
+})
+
+const renderedClients = await Promise.all(
+  publishedClients.map(async client => ({
+    client,
+    Content: (await render(client)).Content,
+  }))
+)
+
+const [rawGivenName = resume.name, ...familyNameParts] = resume.name.split(' ')
+const givenName = rawGivenName
+const familyName = familyNameParts.join(' ') || rawGivenName
+const pageTitle = `Resume for ${resume.name}`
+const pageDescription = `Curriculum vitae/resume for ${resume.name}`
+const path = '/resume'
+
+const socialEntries = [
+  { label: 'GitHub', url: resume.social.github },
+  { label: 'LinkedIn', url: resume.social.linkedin },
+  { label: 'X', url: resume.social.x },
+  { label: 'YouTube', url: resume.social.youtube },
+  { label: 'Stack Overflow', url: resume.social.stackoverflow },
+]
+
+const formatMonthYear = (date?: Date) =>
+  date
+    ? date.toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric',
+      })
+    : 'Present'
+
+const formatDateContent = (date?: Date) => date?.toISOString().slice(0, 7) ?? ''
+
+const splitLocation = (location?: string) => {
+  if (!location) {
+    return { locality: '', region: '' }
+  }
+
+  const parts = location.split(',').map(part => part.trim())
+  const locality = parts.shift() ?? ''
+
+  return {
+    locality,
+    region: parts.join(', '),
+  }
+}
+
+const educationLocation = splitLocation(resume.education.campus)
 ---
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Resume for Kevin Brown</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta charset="utf-8">
-    <meta
-      name="description"
-      content="Curriculum vitae/resume for Kevin Brown"
-    >
-    <meta name="keywords" content="resume, cv, curriculum, vitae">
-    <link
-      rel="preload"
-      href="/fonts/LibraSans.ttf"
-      as="font"
-      type="font/ttf"
-      crossorigin="anonymous"
-    >
-    <link
-      rel="preload"
-      href="/fonts/LibraSansBold.ttf"
-      as="font"
-      type="font/ttf"
-      crossorigin="anonymous"
-    >
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
+    <HeadContent
+      pageTitle={pageTitle}
+      pageDescription={pageDescription}
+      path={path}
+    />
   </head>
   <body id="resumeSubject" itemtype="http://schema.org/Person">
     <div class="container">
       <header id="personalDetails" itemscope itemref="resumeSubject">
         <h1 id="subjectName" itemprop="name">
-      <span itemprop="givenName">KEVIN</span> <span itemprop="familyName">BROWN</span>
+      <span itemprop="givenName">{givenName.toUpperCase()}</span> <span itemprop="familyName">{familyName.toUpperCase()}</span>
     </h1>
-    <div id="jobTitle" class="accent" itemprop="jobTitle">Freelance Software Developer</div>
+    <div id="jobTitle" class="accent" itemprop="jobTitle">{resume.title}</div>
     <dl id="personalInfo">
-      <a itemprop="email" href="mailto:your-email@gmail.com">
+      <a itemprop="email" href={`mailto:${resume.email}`}>
         <dt aria-label="email"><svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 -2.5 20 20">
       <g stroke="none" stroke-width="1" fill-rule="evenodd" transform="translate(-340.000000, -922.000000)">
         <g transform="translate(56.000000, 160.000000)">
@@ -45,7 +94,7 @@
         </g>
       </g>
     </svg></dt>
-        <dd id="emailLabel">kevin@webstackbuilders.com</dd>
+        <dd id="emailLabel">{resume.email}</dd>
       </a>
       <a
         id="locationWrapper"
@@ -87,7 +136,7 @@
         </a>
       </li>
       <li class="action">
-        <button id="printBtn" class="actionBtn" onClick="window.print()">
+        <button id="printBtn" class="actionBtn" onclick="window.print()">
           <svg width="28px" height="28px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
       <g>
         <path d="M105.037,367.926L105.037,367.926l-0.24,0.001v80.383c0,8.592,6.967,15.556,15.559,15.556h271.289c8.592,0,15.559-6.965,15.559-15.556v-80.383H106.275L105.037,367.926z" />
@@ -106,221 +155,82 @@
             <h2>SUMMARY</h2>
     <hr class="sectionHr">
     <p itemprop="description" itemref="resumeSubject">
-      Experienced freelance software developer with a strong focus on improving developer experience and delivering software efficiently. Highly skilled in various programming languages and technologies.
+      {resume.summary}
     </p>
           </section>
           <section id="experience">
             <h2>EXPERIENCE</h2>
-    <hr class="sectionHr"><div
-      id="experienceItem-1"
-      class="mainItem"
-      itemprop="worksFor"
-      itemscope
-      itemref="resumeSubject"
-      itemtype="http://schema.org/Organization"
-    >
-      <h3
-        id="role-1"
-        itemprop="Role"
-        itemref="experienceItem-1"
-        itemscope
-        itemtype="https://schema.org/EmployeeRole"
-      >
-        <span itemprop="roleName">Software Developer</span>
-      </h3>
-      <div class="mainDetailName" itemprop="legalName">
-        Webstack Builders
-      </div>
-      <div class="mainDetails">
-        <span
-          class="mainDetailHeader"
-          itemprop="Role"
+    <hr class="sectionHr">{renderedClients.map(({ client, Content }, index) => {
+      const location = splitLocation(client.data.location)
+
+      return (
+        <div
+          id={`experienceItem-${index + 1}`}
+          class="mainItem"
+          itemprop="worksFor"
           itemscope
-          itemtype="https://schema.org/EmployeeRole"
+          itemref="resumeSubject"
+          itemtype="http://schema.org/Organization"
         >
-          <span class="mainDetailIcon"><svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <h3
+            id={`role-${index + 1}`}
+            itemprop="Role"
+            itemref={`experienceItem-${index + 1}`}
+            itemscope
+            itemtype="https://schema.org/EmployeeRole"
+          >
+            <span itemprop="roleName">{client.data.role ?? client.data.businessType ?? client.data.displayName}</span>
+          </h3>
+          <div class="mainDetailName" itemprop="legalName">
+            {client.data.displayName}
+          </div>
+          <div class="mainDetails">
+            <span
+              class="mainDetailHeader"
+              itemprop="Role"
+              itemscope
+              itemtype="https://schema.org/EmployeeRole"
+            >
+              <span class="mainDetailIcon"><svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
       <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H16V2C16 1.44772 16.4477 1 17 1C17.5523 1 18 1.44772 18 2V3H19C20.6569 3 22 4.34315 22 6V20C22 21.6569 20.6569 23 19 23H5C3.34315 23 2 21.6569 2 20V6C2 4.34315 3.34315 3 5 3H6V2ZM16 5V6C16 6.55228 16.4477 7 17 7C17.5523 7 18 6.55228 18 6V5H19C19.5523 5 20 5.44772 20 6V9H4V6C4 5.44772 4.44772 5 5 5H6V6C6 6.55228 6.44772 7 7 7C7.55228 7 8 6.55228 8 6V5H16ZM4 11V20C4 20.5523 4.44772 21 5 21H19C19.5523 21 20 20.5523 20 20V11H4Z" />
     </svg></span>
-          <span class="mainDetailText">
-            <span
-              itemprop="startDate"
-              itemtype="http://schema.org/startDate"
-              content="2016-02"
-            >February, 2016</span> - <span
-              itemprop="endDate"
-              itemtype="http://schema.org/endDate"
-              content=""
-            >Present</span>
-          </span>
-        </span>
-        <a
-          class="detailLocationAnchor"
-          href=""
-          itemprop="location"
-          itemscope
-          itemtype="http://schema.org/PostalAddress"
-        >
-          <span class="mainDetailIcon"><svg height="18px" width="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <span class="mainDetailText">
+                <time
+                  itemprop="startDate"
+                  itemtype="http://schema.org/startDate"
+                  datetime={formatDateContent(client.data.startDate)}
+                >{formatMonthYear(client.data.startDate)}</time> - <time
+                  itemprop="endDate"
+                  itemtype="http://schema.org/endDate"
+                  datetime={formatDateContent(client.data.endDate)}
+                >{formatMonthYear(client.data.endDate)}</time>
+              </span>
+            </span>
+            {client.data.location && (
+              <a
+                class="detailLocationAnchor"
+                href={client.data.website ?? ''}
+                itemprop="location"
+                itemscope
+                itemtype="http://schema.org/PostalAddress"
+              >
+                <span class="mainDetailIcon"><svg height="18px" width="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
       <g>
         <path d="M12,1C7.58,1,4,4.58,4,9c0,7.08,8,14,8,14s8-6.92,8-14C20,4.58,16.42,1,12,1z M12,12c-1.66,0-3-1.34-3-3s1.34-3,3-3s3,1.34,3,3S13.66,12,12,12z" />
       </g>
     </svg></span>
-          <span class="mainDetailText">
-            <span itemprop="addressLocality">Clayton</span>, <span itemprop="addressRegion">Delaware</span>
-          </span>
-        </a>
-      </div>
-      <div class="mainDetailContent experienceDetailContent" itemprop="description">
-        <ul>
-    <li>Developed 10+ full stack applications utilizing React, NodeJS, TypeScript, React Native, Express, Laravel, and AWS technology stack.</li>
-    <li>Designed and coded 1,000+ unit, integration, and e2e tests using Mocha, Jest, and Playwight runners.</li>
-    <li>Completed troubleshooting of 2,000+ code-related issues and defects.</li>
-    <li>Attended 100+ weekly stand-up meetings to receive tasks and instruction for weekly goals.</li>
-    <li>Developed 10+ headless CMS applications using NextJS, GatsbyJS, and various providers including Sanity and Contentful.</li>
-    <li>Experience with both REST and GraphQL API design and implementation.</li>
-    <li>Implemented pre-bid programmatic auction ad system for a publishing platform, and integration with Facebook using their SDK and API.</li>
-    </ul>
-
-      </div>
-    </div><div
-      id="experienceItem-2"
-      class="mainItem"
-      itemprop="alumniOf"
-      itemscope
-      itemref="resumeSubject"
-      itemtype="http://schema.org/Organization"
-    >
-      <h3
-        id="role-2"
-        itemprop="Role"
-        itemref="experienceItem-2"
-        itemscope
-        itemtype="https://schema.org/EmployeeRole"
-      >
-        <span itemprop="roleName">Infrastructure Engineer</span>
-      </h3>
-      <div class="mainDetailName" itemprop="legalName">
-        Alento, Inc.
-      </div>
-      <div class="mainDetails">
-        <span
-          class="mainDetailHeader"
-          itemprop="Role"
-          itemscope
-          itemtype="https://schema.org/EmployeeRole"
-        >
-          <span class="mainDetailIcon"><svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-      <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H16V2C16 1.44772 16.4477 1 17 1C17.5523 1 18 1.44772 18 2V3H19C20.6569 3 22 4.34315 22 6V20C22 21.6569 20.6569 23 19 23H5C3.34315 23 2 21.6569 2 20V6C2 4.34315 3.34315 3 5 3H6V2ZM16 5V6C16 6.55228 16.4477 7 17 7C17.5523 7 18 6.55228 18 6V5H19C19.5523 5 20 5.44772 20 6V9H4V6C4 5.44772 4.44772 5 5 5H6V6C6 6.55228 6.44772 7 7 7C7.55228 7 8 6.55228 8 6V5H16ZM4 11V20C4 20.5523 4.44772 21 5 21H19C19.5523 21 20 20.5523 20 20V11H4Z" />
-    </svg></span>
-          <span class="mainDetailText">
-            <span
-              itemprop="startDate"
-              itemtype="http://schema.org/startDate"
-              content="2013-08"
-            >August, 2013</span> - <span
-              itemprop="endDate"
-              itemtype="http://schema.org/endDate"
-              content="2016-02"
-            >February, 2016</span>
-          </span>
-        </span>
-        <a
-          class="detailLocationAnchor"
-          href=""
-          itemprop="location"
-          itemscope
-          itemtype="http://schema.org/PostalAddress"
-        >
-          <span class="mainDetailIcon"><svg height="18px" width="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-      <g>
-        <path d="M12,1C7.58,1,4,4.58,4,9c0,7.08,8,14,8,14s8-6.92,8-14C20,4.58,16.42,1,12,1z M12,12c-1.66,0-3-1.34-3-3s1.34-3,3-3s3,1.34,3,3S13.66,12,12,12z" />
-      </g>
-    </svg></span>
-          <span class="mainDetailText">
-            <span itemprop="addressLocality">Dover</span>, <span itemprop="addressRegion">Delaware</span>
-          </span>
-        </a>
-      </div>
-      <div class="mainDetailContent experienceDetailContent" itemprop="description">
-        <ul>
-    <li>Managed a multi-homed high availability distributed compute platform and infrastructure (BGP, OSPF, VLAN, Cisco IOS).</li>
-    <li>Installed, configured, tested and maintained operating systems (RHEL/KVM/QEMU, BSD), application software, and system management tools.</li>
-    <li>Supported CI/CD pipeline and automated build and deployment of Docker containers.  Authored Jenkins extensions (Java) to support internal work flow.</li>
-    <li>Wrote and maintained custom scripts to increase system efficiency and automate processes for software and system administration (BASH/Python).</li>
-    <li>Managed and improved database server performance through maintenance tasks including re-indexing, updating statistics, and improving stored procedures (PostgreSQL).</li>
-    </ul>
-
-      </div>
-    </div><div
-      id="experienceItem-3"
-      class="mainItem"
-      itemprop="alumniOf"
-      itemscope
-      itemref="resumeSubject"
-      itemtype="http://schema.org/Organization"
-    >
-      <h3
-        id="role-3"
-        itemprop="Role"
-        itemref="experienceItem-3"
-        itemscope
-        itemtype="https://schema.org/EmployeeRole"
-      >
-        <span itemprop="roleName">Systems Analyst</span>
-      </h3>
-      <div class="mainDetailName" itemprop="legalName">
-        Eli Lilly
-      </div>
-      <div class="mainDetails">
-        <span
-          class="mainDetailHeader"
-          itemprop="Role"
-          itemscope
-          itemtype="https://schema.org/EmployeeRole"
-        >
-          <span class="mainDetailIcon"><svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-      <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H16V2C16 1.44772 16.4477 1 17 1C17.5523 1 18 1.44772 18 2V3H19C20.6569 3 22 4.34315 22 6V20C22 21.6569 20.6569 23 19 23H5C3.34315 23 2 21.6569 2 20V6C2 4.34315 3.34315 3 5 3H6V2ZM16 5V6C16 6.55228 16.4477 7 17 7C17.5523 7 18 6.55228 18 6V5H19C19.5523 5 20 5.44772 20 6V9H4V6C4 5.44772 4.44772 5 5 5H6V6C6 6.55228 6.44772 7 7 7C7.55228 7 8 6.55228 8 6V5H16ZM4 11V20C4 20.5523 4.44772 21 5 21H19C19.5523 21 20 20.5523 20 20V11H4Z" />
-    </svg></span>
-          <span class="mainDetailText">
-            <span
-              itemprop="startDate"
-              itemtype="http://schema.org/startDate"
-              content="2011-06"
-            >June, 2011</span> - <span
-              itemprop="endDate"
-              itemtype="http://schema.org/endDate"
-              content="2013-08"
-            >August, 2013</span>
-          </span>
-        </span>
-        <a
-          class="detailLocationAnchor"
-          href=""
-          itemprop="location"
-          itemscope
-          itemtype="http://schema.org/PostalAddress"
-        >
-          <span class="mainDetailIcon"><svg height="18px" width="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-      <g>
-        <path d="M12,1C7.58,1,4,4.58,4,9c0,7.08,8,14,8,14s8-6.92,8-14C20,4.58,16.42,1,12,1z M12,12c-1.66,0-3-1.34-3-3s1.34-3,3-3s3,1.34,3,3S13.66,12,12,12z" />
-      </g>
-    </svg></span>
-          <span class="mainDetailText">
-            <span itemprop="addressLocality">Indianapolis</span>, <span itemprop="addressRegion">Indiana</span>
-          </span>
-        </a>
-      </div>
-      <div class="mainDetailContent experienceDetailContent" itemprop="description">
-        <ul>
-    <li>Worked with users, observing business processes, interviewing staff, and documenting practices. Conducted research, analyzed business operations, and problem solved operating inefficiencies.</li>
-    <li>Created and analyzed users requirements for technology systems using use cases, mock ups, and interviewing stakeholders.</li>
-    <li>Prepared bid documents and and functional specifications for new application implementations.</li>
-    <li>Lead sprint planning and daily scrum meetings.</li>
-    <li>Created and maintained a company-wide inventory and descriptions of major systems, and a new employee guide to using them.</li>
-    </ul>
-
-      </div>
-    </div>
+                <span class="mainDetailText">
+                  <span itemprop="addressLocality">{location.locality}</span>{location.region && <>, <span itemprop="addressRegion">{location.region}</span></>}
+                </span>
+              </a>
+            )}
+          </div>
+          <div class="mainDetailContent experienceDetailContent" itemprop="description">
+            <Content />
+          </div>
+        </div>
+      )
+    })}
           </section>
           <section id="education-screen" itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
             <h2>EDUCATION</h2>
@@ -334,10 +244,10 @@
       <h3
         itemprop="description"
       >
-        <abbr title="Bachelor of Science">B.S.</abbr> in Computational Biology and Biophysics
+        {resume.education.degree}
       </h3>
       <div class="mainDetailName" itemprop="name">
-        Purdue University
+        {resume.education.school}
       </div>
       <div class="mainDetails">
         <span
@@ -350,12 +260,12 @@
       <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H16V2C16 1.44772 16.4477 1 17 1C17.5523 1 18 1.44772 18 2V3H19C20.6569 3 22 4.34315 22 6V20C22 21.6569 20.6569 23 19 23H5C3.34315 23 2 21.6569 2 20V6C2 4.34315 3.34315 3 5 3H6V2ZM16 5V6C16 6.55228 16.4477 7 17 7C17.5523 7 18 6.55228 18 6V5H19C19.5523 5 20 5.44772 20 6V9H4V6C4 5.44772 4.44772 5 5 5H6V6C6 6.55228 6.44772 7 7 7C7.55228 7 8 6.55228 8 6V5H16ZM4 11V20C4 20.5523 4.44772 21 5 21H19C19.5523 21 20 20.5523 20 20V11H4Z" />
     </svg></span>
           <span class="mainDetailText">
-            <span itemprop="startDate" itemtype="http://schema.org/startDate" content="2006-02-21T20:00">1992</span> - <span itemprop="endDate" itemtype="http://schema.org/endDate" content="2009-02-21T20:00">1996</span>
+            <time itemprop="startDate" itemtype="http://schema.org/startDate" datetime="1992">1992</time> - <time itemprop="endDate" itemtype="http://schema.org/endDate" datetime="1996">{resume.education.graduationDate}</time>
           </span>
         </span>
         <a
           class="detailLocationAnchor"
-          href="https://goo.gl/maps/bgNJPLsubqhyUf1M6"
+          href={resume.education.geolocationLink}
           itemprop="address"
           itemscope
           itemtype="http://schema.org/PostalAddress"
@@ -366,7 +276,7 @@
       </g>
     </svg></span>
           <span class="mainDetailText">
-            <span itemprop="addressLocality">Lafayette</span>, <span itemprop="addressRegion">Indiana</span>
+            <span itemprop="addressLocality">{educationLocation.locality}</span>, <span itemprop="addressRegion">{educationLocation.region}</span>
           </span>
         </a>
       </div>
@@ -386,10 +296,10 @@
       <h3
         itemprop="description"
       >
-        <abbr title="Bachelor of Science">B.S.</abbr> in Computational Biology and Biophysics
+        {resume.education.degree}
       </h3>
       <div class="mainDetailName" itemprop="name">
-        Purdue University
+        {resume.education.school}
       </div>
       <div class="mainDetails">
         <span
@@ -402,12 +312,12 @@
       <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H16V2C16 1.44772 16.4477 1 17 1C17.5523 1 18 1.44772 18 2V3H19C20.6569 3 22 4.34315 22 6V20C22 21.6569 20.6569 23 19 23H5C3.34315 23 2 21.6569 2 20V6C2 4.34315 3.34315 3 5 3H6V2ZM16 5V6C16 6.55228 16.4477 7 17 7C17.5523 7 18 6.55228 18 6V5H19C19.5523 5 20 5.44772 20 6V9H4V6C4 5.44772 4.44772 5 5 5H6V6C6 6.55228 6.44772 7 7 7C7.55228 7 8 6.55228 8 6V5H16ZM4 11V20C4 20.5523 4.44772 21 5 21H19C19.5523 21 20 20.5523 20 20V11H4Z" />
     </svg></span>
           <span class="mainDetailText">
-            <span itemprop="startDate" itemtype="http://schema.org/startDate" content="2006-02-21T20:00">1992</span> - <span itemprop="endDate" itemtype="http://schema.org/endDate" content="2009-02-21T20:00">1996</span>
+            <time itemprop="startDate" itemtype="http://schema.org/startDate" datetime="1992">1992</time> - <time itemprop="endDate" itemtype="http://schema.org/endDate" datetime="1996">{resume.education.graduationDate}</time>
           </span>
         </span>
         <a
           class="detailLocationAnchor"
-          href="https://goo.gl/maps/bgNJPLsubqhyUf1M6"
+          href={resume.education.geolocationLink}
           itemprop="address"
           itemscope
           itemtype="http://schema.org/PostalAddress"
@@ -418,7 +328,7 @@
       </g>
     </svg></span>
           <span class="mainDetailText">
-            <span itemprop="addressLocality">Lafayette</span>, <span itemprop="addressRegion">Indiana</span>
+            <span itemprop="addressLocality">{educationLocation.locality}</span>, <span itemprop="addressRegion">{educationLocation.region}</span>
           </span>
         </a>
       </div>
@@ -488,55 +398,20 @@
           <section itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
             <h2>SKILLS</h2>
     <hr class="sectionHr">
-    <ul class="skillList"><li
-        class="skillItem"
+    <ul class="asideList">{resume.skills.map(skill => (
+      <li
+        class="asideItem"
         itemref="resumeSubject"
         itemscope
         itemprop="knowsAbout"
         itemtype="http://schema.org/knowsAbout"
       >
-        <a class="skillItemAnchor" href="">Agile methodologies</a>
-      </li><li
-        class="skillItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="knowsAbout"
-        itemtype="http://schema.org/knowsAbout"
-      >
-        <a class="skillItemAnchor" href="">Version control (Git)</a>
-      </li><li
-        class="skillItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="knowsAbout"
-        itemtype="http://schema.org/knowsAbout"
-      >
-        <a class="skillItemAnchor" href="">Cloud computing (AWS)</a>
-      </li><li
-        class="skillItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="knowsAbout"
-        itemtype="http://schema.org/knowsAbout"
-      >
-        <a class="skillItemAnchor" href="">Database design</a>
-      </li><li
-        class="skillItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="knowsAbout"
-        itemtype="http://schema.org/knowsAbout"
-      >
-        <a class="skillItemAnchor" href="">Web development (React / Vanilla JS)</a>
-      </li><li
-        class="skillItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="knowsAbout"
-        itemtype="http://schema.org/knowsAbout"
-      >
-        <a class="skillItemAnchor" href="">CI / CD Pipelines</a>
-      </li></ul>
+        <span class="asideContent">
+          <h3 class="asideHeader">{skill.lead}</h3>
+          <div><p>{skill.text}</p></div>
+        </span>
+      </li>
+    ))}</ul>
           </section>
           <section id="achievements">
             <h2>ACHIEVEMENTS</h2>
@@ -588,219 +463,17 @@
           <section id="languages" itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
             <h2>LANGUAGES</h2>
     <hr class="sectionHr">
-    <ul class="languageList"><li
-        class="languageItem"
+    <ul class="skillList">{resume.languages.map(language => (
+      <li
+        class="skillItem"
         itemref="resumeSubject"
         itemscope
         itemprop="knowsAbout"
         itemtype="http://schema.org/knowsAbout"
       >
-        <div class="languageMeta">
-          <div class="languageName">TypeScript</div>
-          <div>Native</div>
-        </div>
-        <div class="languageRating languageRating-5">
-          <span class="languageRatingItem-1"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-2"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-3"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-4"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-5"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-        </div>
-      </li><li
-        class="languageItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="knowsAbout"
-        itemtype="http://schema.org/knowsAbout"
-      >
-        <div class="languageMeta">
-          <div class="languageName">PHP</div>
-          <div>Proficient</div>
-        </div>
-        <div class="languageRating languageRating-4">
-          <span class="languageRatingItem-1"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-2"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-3"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-4"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-5"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-        </div>
-      </li><li
-        class="languageItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="knowsAbout"
-        itemtype="http://schema.org/knowsAbout"
-      >
-        <div class="languageMeta">
-          <div class="languageName">Python</div>
-          <div>Proficient</div>
-        </div>
-        <div class="languageRating languageRating-4">
-          <span class="languageRatingItem-1"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-2"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-3"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-4"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-5"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-        </div>
-      </li><li
-        class="languageItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="knowsAbout"
-        itemtype="http://schema.org/knowsAbout"
-      >
-        <div class="languageMeta">
-          <div class="languageName">SQL</div>
-          <div>Proficient</div>
-        </div>
-        <div class="languageRating languageRating-4">
-          <span class="languageRatingItem-1"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-2"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-3"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-4"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-          <span class="languageRatingItem-5"><svg
-      width="16px"
-      height="16px"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle class="a" cx="24" cy="24" r="21.5"/>
-    </svg></span>
-        </div>
-      </li></ul>
+        <span class="skillItemAnchor">{language}</span>
+      </li>
+    ))}</ul>
           </section>
           <section
             id="socialSection"
@@ -810,182 +483,59 @@
           >
             <h2>SOCIAL</h2>
     <hr class="sectionHr">
-    <ul id="socialList"><li
+    <ul id="socialList">{socialEntries.map(entry => (
+      <li
         class="socialItem"
         itemref="resumeSubject"
         itemscope
         itemprop="sameAs"
         itemtype="http://schema.org/WebSite"
       >
-        <div class="socialDetailText">GitHub</div>
+        <div class="socialDetailText">{entry.label}</div>
         <a
           itemprop="url"
-          title="GitHub"
+          title={entry.label}
           rel="me"
-          href="https://github.com/webstackdev"
+          href={entry.url}
         >
-          <span class="socialIcon">
-            <svg
-      class="githubIcon"
-      width="42px"
-      height="42px"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 20 20"
-    >
-      <g
-        stroke="none"
-        stroke-width="1"
-        fill-rule="evenodd"
-        transform="translate(-140.000000, -7559.000000)"
-      >
-        <g transform="translate(56.000000, 160.000000)">
-          <path d="M94,7399 C99.523,7399 104,7403.59 104,7409.253 C104,7413.782 101.138,7417.624 97.167,7418.981 C96.66,7419.082 96.48,7418.762 96.48,7418.489 C96.48,7418.151 96.492,7417.047 96.492,7415.675 C96.492,7414.719 96.172,7414.095 95.813,7413.777 C98.04,7413.523 100.38,7412.656 100.38,7408.718 C100.38,7407.598 99.992,7406.684 99.35,7405.966 C99.454,7405.707 99.797,7404.664 99.252,7403.252 C99.252,7403.252 98.414,7402.977 96.505,7404.303 C95.706,7404.076 94.85,7403.962 94,7403.958 C93.15,7403.962 92.295,7404.076 91.497,7404.303 C89.586,7402.977 88.746,7403.252 88.746,7403.252 C88.203,7404.664 88.546,7405.707 88.649,7405.966 C88.01,7406.684 87.619,7407.598 87.619,7408.718 C87.619,7412.646 89.954,7413.526 92.175,7413.785 C91.889,7414.041 91.63,7414.493 91.54,7415.156 C90.97,7415.418 89.522,7415.871 88.63,7414.304 C88.63,7414.304 88.101,7413.319 87.097,7413.247 C87.097,7413.247 86.122,7413.234 87.029,7413.87 C87.029,7413.87 87.684,7414.185 88.139,7415.37 C88.139,7415.37 88.726,7417.2 91.508,7416.58 C91.513,7417.437 91.522,7418.245 91.522,7418.489 C91.522,7418.76 91.338,7419.077 90.839,7418.982 C86.865,7417.627 84,7413.783 84,7409.253 C84,7403.59 88.478,7399 94,7399"  />
-        </g>
-      </g>
-    </svg>
-          </span>
-          <span class="socialDetailTextLink">https://github.com/webstackdev</span>
+          <span class="socialDetailTextLink">{entry.url}</span>
         </a>
-      </li><li
-        class="socialItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="sameAs"
-        itemtype="http://schema.org/WebSite"
-      >
-        <div class="socialDetailText">LinkedIn</div>
-        <a
-          itemprop="url"
-          title="LinkedIn"
-          rel="me"
-          href="https://www.linkedin.com/in/kevin-brown-developer/"
-        >
-          <span class="socialIcon">
-            <svg
-      class="linkedinIcon"
-      height="42px"
-      width="42px"
-      viewBox="-143 145 512 512"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M113,145c-141.4,0-256,114.6-256,256s114.6,256,256,256s256-114.6,256-256S254.4,145,113,145z M41.4,508.1H-8.5V348.4h49.9V508.1z M15.1,328.4h-0.4c-18.1,0-29.8-12.2-29.8-27.7c0-15.8,12.1-27.7,30.5-27.7c18.4,0,29.7,11.9,30.1,27.7C45.6,316.1,33.9,328.4,15.1,328.4z M241,508.1h-56.6v-82.6c0-21.6-8.8-36.4-28.3-36.4c-14.9,0-23.2,10-27,19.6c-1.4,3.4-1.2,8.2-1.2,13.1v86.3H71.8c0,0,0.7-146.4,0-159.7h56.1v25.1c3.3-11,21.2-26.6,49.8-26.6c35.5,0,63.3,23,63.3,72.4V508.1z" />
-    </svg>
-          </span>
-          <span class="socialDetailTextLink">https://www.linkedin.com/in/kevin-brown-developer/</span>
-        </a>
-      </li><li
-        class="socialItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="sameAs"
-        itemtype="http://schema.org/WebSite"
-      >
-        <div class="socialDetailText">Twitter</div>
-        <a
-          itemprop="url"
-          title="Twitter"
-          rel="me"
-          href="https://twitter.com/WebstackDev"
-        >
-          <span class="socialIcon">
-            <svg
-      class="twitterIcon"
-      height="42px"
-      width="42px"
-      viewBox="0 0 512 512"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <g>
-        <path class="st0" d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M260.926,217.391c0.084,0.004,0.164,0.021,0.25,0.025c-0.875-3.752-1.328-7.664-1.328-11.682c0-28.307,22.951-51.258,51.262-51.258c14.742,0,28.063,6.225,37.414,16.188c9.6-1.89,18.684-5.174,27.129-9.523c1.781-0.864,3.566-1.723,5.32-2.674c-3.039,9.334-8.744,17.412-16.141,23.532c-2.004,1.576-4.062,3.098-6.326,4.344c0.154-0.018,0.304-0.052,0.457-0.071c-0.15,0.093-0.275,0.22-0.428,0.312c8.402-1.005,16.459-3.051,24.111-5.942c1.715-0.592,3.428-1.191,5.127-1.852c-6.842,10.159-15.453,19.095-25.375,26.259c0.098,2.197,0.148,4.406,0.148,6.631c0,67.736-51.558,145.842-145.844,145.842c-28.947,0-55.891-8.484-78.576-23.028c4.01,0.473,8.092,0.715,12.229,0.715c19.136,0,37.014-5.269,52.383-14.34c3.871-2.23,7.658-4.639,11.273-7.365c-0.098-0.002-0.187-0.026-0.285-0.028c0.094-0.073,0.196-0.136,0.289-0.209c-19.422-0.358-36.184-11.539-44.574-27.747c-1.25-2.489-2.32-5.096-3.164-7.831c3.086,0.58,6.246,0.898,9.5,0.898c3.391,0,6.666-0.436,9.871-1.063c1.197-0.168,2.406-0.308,3.586-0.502c-0.156-0.032-0.293-0.1-0.449-0.133c0.162-0.042,0.336-0.056,0.496-0.1c-23.449-4.709-41.119-25.428-41.119-50.262c0-0.196,0.002-0.387,0.004-0.58l0.024-0.055c5.521,3.064,11.693,5.092,18.23,5.94c1.609,0.269,3.221,0.516,4.832,0.657c-0.11-0.074-0.205-0.164-0.314-0.238c0.152,0.006,0.297,0.036,0.447,0.041c-13.754-9.191-22.803-24.883-22.803-42.666c0-8.142,1.988-15.787,5.367-22.623c0.539-1.028,1.018-2.078,1.637-3.074c22.711,27.822,55.516,46.971,92.801,52.15c4.16,0.605,8.332,1.144,12.553,1.388C260.934,217.443,260.932,217.416,260.926,217.391z"/>
-      </g>
-    </svg>
-          </span>
-          <span class="socialDetailTextLink">https://twitter.com/WebstackDev</span>
-        </a>
-      </li><li
-        class="socialItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="sameAs"
-        itemtype="http://schema.org/WebSite"
-      >
-        <div class="socialDetailText">YouTube</div>
-        <a
-          itemprop="url"
-          title="YouTube"
-          rel="me"
-          href="https://www.youtube.com/@webstackbuilders"
-        >
-          <span class="socialIcon">
-            <svg
-      class="youtubeIcon"
-      width="42px"
-      height="42px"
-      viewBox="-143 145 512 512"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <g>
-        <polygon points="78.9,450.3 162.7,401.1 78.9,351.9" />
-        <path d="M113,145c-141.4,0-256,114.6-256,256s114.6,256,256,256s256-114.6,256-256S254.4,145,113,145z M241,446.8L241,446.8c0,44.1-44.1,44.1-44.1,44.1H29.1c-44.1,0-44.1-44.1-44.1-44.1v-91.5c0-44.1,44.1-44.1,44.1-44.1h167.8c44.1,0,44.1,44.1,44.1,44.1V446.8z" />
-      </g>
-    </svg>
-          </span>
-          <span class="socialDetailTextLink">https://www.youtube.com/@webstackbuilders</span>
-        </a>
-      </li><li
-        class="socialItem"
-        itemref="resumeSubject"
-        itemscope
-        itemprop="sameAs"
-        itemtype="http://schema.org/WebSite"
-      >
-        <div class="socialDetailText">Stack Overflow</div>
-        <a
-          itemprop="url"
-          title="Stack Overflow"
-          rel="me"
-          href="https://stackoverflow.com/users/8075005/webstackdev"
-        >
-          <span class="socialIcon">
-            <svg
-      class="githubIcon"
-      width="48px"
-      height="48px"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 32 32"
-    >
-      <path d="M16 2C8.27812 2 2 8.27812 2 16C2 23.7219 8.27812 30 16 30C23.7219 30 30 23.7219 30 16C30 8.27812 23.7219 2 16 2Z" fill="#F48024"/>
-      <path d="M19.5405 18.3626L12.1082 17.2883L12.3658 15.6605L19.6337 17.0581L19.5405 18.3626Z" fill="white"/>
-      <path d="M19.672 16.6306L13.0948 13.5612L13.6977 12.2458L20.2749 15.3152L19.672 16.6306Z" fill="white"/>
-      <path d="M20.549 14.9863L14.9583 10.3274L15.8901 9.23122L21.4808 13.8901L20.549 14.9863Z" fill="white"/>
-      <path d="M17.37 7.80615L18.521 6.9292L22.851 12.7391L21.7 13.6161L17.37 7.80615Z" fill="white"/>
-      <path d="M19.5624 20.5221H11.889V18.8778H19.5624V20.5221Z" fill="white"/>
-      <path d="M20.6586 17.2334V21.6182H10.7927V17.2334H9.14844V23.2625H22.3029V17.2334H20.6586Z" fill="white"/>
-    </svg>
-          </span>
-          <span class="socialDetailTextLink">https://stackoverflow.com/users/8075005/webstackdev</span>
-        </a>
-      </li></ul>
+      </li>
+    ))}</ul>
           </section>
-        <aside>
+        </aside>
       </div>
     </div>
   </body>
 </html>
 
 <style>
+  html {
+  height: auto;
+  min-height: 100%;
+  overflow-y: auto; }
+
   body {
   background-color: lightgrey;
-  color: black; }
+  color: black;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  min-height: 100%;
+  overflow-y: auto; }
 
 a {
   color: black; }
 
 .container {
-  background-color: white; }
+  background-color: white;
+  padding: 1em; }
 
 .sectionHr {
-  background-color: black; }
+  background-color: black;
+  height: 2px;
+  margin-bottom: 0.5em;
+  width: 100%; }
 
 .githubIcon {
   fill: #171515; }
@@ -997,7 +547,7 @@ a {
   fill: #00ACEE; }
 
 .youtubeIcon path, .youtubeIcon polygon {
-  fill: #FF0000; }
+  fill: #F00; }
 
 *, *::before, *::after {
   box-sizing: border-box; }
@@ -1006,11 +556,8 @@ a {
   margin: 0; }
 
 html, body {
-  height: 100%; }
-
-body {
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased; }
+  height: auto;
+  min-height: 100%; }
 
 abbr {
   text-decoration: none; }
@@ -1020,12 +567,12 @@ input, button, textarea, select {
 
 button {
   background: none;
-  color: inherit;
   border: none;
-  padding: 0;
-  font: inherit;
+  color: inherit;
   cursor: pointer;
-  outline: inherit; }
+  font: inherit;
+  outline: inherit;
+  padding: 0; }
 
 hr {
   border: none; }
@@ -1044,18 +591,17 @@ svg {
 .asideItem {
   display: flex;
   flex-direction: row;
-  list-style-type: none; }
+  list-style: none; }
+
   .asideItem:not(:first-child) {
     margin-top: 5px; }
-
-.asideItem {
-  list-style: none; }
 
 .asideHeader {
   font-size: 1.1em; }
 
 .asideIcons {
   flex-shrink: 0; }
+
   .asideIcons svg {
     fill: #C41230;
     margin-top: 6px; }
@@ -1066,6 +612,7 @@ svg {
 @media print {
   .asideIcons svg {
     fill: black; } }
+
 /** Languages */
 .languageList {
   margin-left: 5px;
@@ -1075,175 +622,24 @@ svg {
   display: flex;
   flex-direction: row;
   list-style: none; }
+
   .languageItem:not(:last-child) {
     margin-bottom: 5px; }
 
 .languageName {
-  font-weight: 700;
+  font-weight: bold;
   width: 6em; }
 
 .languageRating {
   align-items: start;
-  fill: lightgrey;
   display: flex;
+  fill: lightgrey;
   flex-direction: row;
   margin-top: 6px; }
-  .languageRating span:not(:last-child) {
-    margin-right: 3px; }
 
-/**
- * Main container sections including Experience and Education
- */
-.mainItem:not(:last-child) {
-  margin-bottom: 10px; }
+.languageRating-5 span {
+  fill: #C41230; }
 
-.mainDetailName {
-  color: #C41230;
-  font-family: 'LibraSansBold', serif;
-  font-weight: 700;
-  letter-spacing: 1px;
-  margin-bottom: 0.5px; }
-
-.mainDetails {
-  display: flex;
-  flex-direction: row;
-  margin-bottom: 3px; }
-
-.mainDetailHeader {
-  display: flex;
-  flex-direction: row; }
-
-.detailLocationAnchor {
-  display: flex;
-  flex-direction: row;
-  margin-left: 10px;
-  text-decoration: underline dotted 1px; }
-  .detailLocationAnchor:hover .mainDetailText {
-    color: grey;
-    text-decoration-color: grey; }
-
-.mainDetailIcon svg {
-  fill: grey; }
-
-.mainDetailText {
-  color: black;
-  font-size: .75em;
-  margin-left: 4px; }
-
-.mainDetailContent ul {
-  padding-left: 0px;
-  list-style: none; }
-.mainDetailContent li {
-  padding-left: 1em;
-  position: relative; }
-.mainDetailContent li:before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  font-size: 1.5em;
-  line-height: 0.9em; }
-
-@media print {
-  .mainDetailName {
-    color: black; }
-
-  .detailLocationAnchor {
-    text-decoration: none; }
-
-  .mainDetailIcon svg {
-    fill: black; }
-
-  .detailLocationAnchor {
-    text-decoration: none; } }
-@media print {
-  .experienceDetailContent li:last-child {
-    display: none; } }
-#personalInfo {
-  display: flex;
-  flex-direction: column; }
-  #personalInfo dt {
-    display: flex;
-    align-items: center; }
-  #personalInfo a {
-    display: flex;
-    flex-direction: row;
-    margin-top: 0.4em;
-    text-decoration: underline dotted 1px; }
-    #personalInfo a:hover {
-      color: grey;
-      text-decoration-color: grey; }
-  #personalInfo dd {
-    display: inline; }
-  #personalInfo svg {
-    fill: grey; }
-
-#subjectName {
-  font-size: 2rem;
-  line-height: 2.2rem; }
-
-#emailLabel {
-  margin-left: 5px; }
-
-#locationLabel {
-  margin-left: 2px; }
-
-#telephoneLabel {
-  margin-left: 3px; }
-
-#jobTitle {
-  color: #C41230;
-  font-family: 'LibraSansBold', serif;
-  font-weight: 700;
-  font-size: 1.5em;
-  letter-spacing: 0.5px; }
-
-#actions {
-  display: none; }
-
-.actionBtn:hover {
-  fill: grey; }
-
-@media (min-width: 768px) {
-  #personalInfo {
-    flex-direction: row; }
-    #personalInfo a {
-      margin-top: 0; }
-
-  #locationWrapper {
-    margin-left: 7px; }
-
-  #telephoneWrapper {
-    margin-left: 10px; }
-
-  /** Print and Download PDF buttons only show on notebook / desktop views */
-  #actions {
-    display: flex;
-    flex-direction: row;
-    position: absolute;
-    right: 20px;
-    top: 20px; }
-    #actions li {
-      display: inline; }
-    #actions a {
-      text-decoration: none; }
-
-  #download {
-    margin-right: 1.25em; } }
-@media print {
-  #personalInfo {
-    flex-direction: row; }
-    #personalInfo a {
-      margin-top: 0;
-      text-decoration: none; }
-
-  #locationWrapper {
-    margin-left: 7px; }
-
-  #telephoneWrapper {
-    margin-left: 10px; }
-
-  #actions {
-    display: none; } }
 .languageRating-1 span:nth-of-type(1) {
   fill: #C41230; }
 
@@ -1262,10 +658,201 @@ svg {
 .languageRating-4 span:nth-of-type(4) {
   fill: #C41230; }
 
-.languageRating-5 span {
-  fill: #C41230; }
+  .languageRating span:not(:last-child) {
+    margin-right: 3px; }
+
+/**
+ * Main container sections including Experience and Education
+ */
+.mainItem:not(:last-child) {
+  margin-bottom: 10px; }
+
+.mainDetailName {
+  color: #C41230;
+  font-family: var(--font-sans);
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 0.5px; }
+
+.mainDetails {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 3px; }
+
+.mainDetailHeader {
+  display: flex;
+  flex-direction: row; }
+
+.detailLocationAnchor {
+  display: flex;
+  flex-direction: row;
+  margin-left: 10px;
+  text-decoration: underline dotted 1px; }
+
+.mainDetailIcon svg {
+  fill: grey; }
+
+.mainDetailText {
+  color: black;
+  font-size: .75em;
+  margin-left: 4px; }
+
+  .detailLocationAnchor:hover .mainDetailText {
+    color: grey;
+    text-decoration-color: grey; }
+
+.mainDetailContent ul {
+  list-style: none;
+  padding-left: 0; }
+
+.mainDetailContent li {
+  padding-left: 1em;
+  position: relative; }
+
+.mainDetailContent li::before {
+  content: "•";
+  font-size: 1.5em;
+  left: 0;
+  line-height: 0.9em;
+  position: absolute; }
 
 @media print {
+  .mainDetailName {
+    color: black; }
+
+  .detailLocationAnchor {
+    text-decoration: none; }
+
+  .mainDetailIcon svg {
+    fill: black; } }
+
+@media print {
+  .experienceDetailContent li:last-child {
+    display: none; } }
+
+#personalInfo {
+  display: flex;
+  flex-direction: column; }
+
+  #personalInfo dt {
+    align-items: center;
+    display: flex; }
+
+  #personalInfo a {
+    display: flex;
+    flex-direction: row;
+    margin-top: 0.4em;
+    text-decoration: underline dotted 1px; }
+
+    #personalInfo a:hover {
+      color: grey;
+      text-decoration-color: grey; }
+
+  #personalInfo dd {
+    display: inline; }
+
+  #personalInfo svg {
+    fill: grey; }
+
+#socialList {
+  color: black;
+  padding-left: 0; }
+
+  #socialList a {
+    text-decoration: underline dotted 1px; }
+
+    #socialList a:hover {
+      color: grey;
+      text-decoration-color: grey; }
+
+.socialItem {
+  list-style-type: none; }
+
+.socialItem:not(:first-child) {
+  margin-top: 0.75em; }
+
+.socialDetailText {
+  font-weight: bold; }
+
+.socialIcon {
+  display: none; }
+
+#subjectName {
+  font-size: 2rem;
+  line-height: 2.2rem; }
+
+#emailLabel {
+  margin-left: 5px; }
+
+#locationLabel {
+  margin-left: 2px; }
+
+#telephoneLabel {
+  margin-left: 3px; }
+
+#jobTitle {
+  color: #C41230;
+  font-family: var(--font-sans);
+  font-size: 1.5em;
+  font-weight: bold;
+  letter-spacing: 0.5px; }
+
+#actions {
+  display: none; }
+
+.actionBtn:hover {
+  fill: grey; }
+
+@media (width >= 768px) {
+  #personalInfo {
+    flex-direction: row; }
+
+    #personalInfo a {
+      margin-top: 0; }
+
+  #locationWrapper {
+    margin-left: 7px; }
+
+  #telephoneWrapper {
+    margin-left: 10px; }
+
+  /** Print and Download PDF buttons only show on notebook / desktop views */
+  #actions {
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+    right: 20px;
+    top: 20px; }
+
+    #actions li {
+      display: inline; }
+
+    #actions a {
+      text-decoration: none; }
+
+  #download {
+    margin-right: 1.25em; } }
+
+@media print {
+  .languageRating-5 span {
+    fill: black; }
+
+  #personalInfo {
+    flex-direction: row; }
+
+    #personalInfo a {
+      margin-top: 0;
+      text-decoration: none; }
+
+  #locationWrapper {
+    margin-left: 7px; }
+
+  #telephoneWrapper {
+    margin-left: 10px; }
+
+  #actions {
+    display: none; }
+
   .languageRating-1 span:nth-of-type(1) {
     fill: black; }
 
@@ -1282,10 +869,8 @@ svg {
   .languageRating-4 span:nth-of-type(2),
   .languageRating-4 span:nth-of-type(3),
   .languageRating-4 span:nth-of-type(4) {
-    fill: black; }
-
-  .languageRating-5 span {
     fill: black; } }
+
 .skillList {
   margin-left: 5px;
   padding-left: 0; }
@@ -1293,12 +878,14 @@ svg {
 .skillItem {
   font-weight: 600;
   list-style: none; }
+
   .skillItem:not(:last-child) {
     margin-bottom: 5px; }
 
 .skillItemAnchor {
   color: black;
   text-decoration: underline dotted 1px; }
+
   .skillItemAnchor:hover {
     color: grey;
     text-decoration-color: grey; }
@@ -1306,39 +893,24 @@ svg {
 @media print {
   .skillItemAnchor {
     text-decoration: none; } }
-#socialList {
-  color: black;
-  padding-left: 0; }
-  #socialList a {
-    text-decoration: underline dotted 1px; }
-    #socialList a:hover {
-      color: grey;
-      text-decoration-color: grey; }
 
-.socialItem {
-  list-style-type: none; }
-  .socialItem:not(:first-child) {
-    margin-top: 0.75em; }
-
-.socialDetailText {
-  font-weight: 700; }
-
-.socialIcon {
-  display: none; }
-
-@media (min-width: 768px) {
+@media (width >= 768px) {
   #socialList {
     display: flex;
     flex-direction: row;
     margin-top: 10px; }
+
     #socialList li {
       display: inline; }
+
       #socialList li:not(:first-child) {
         margin-left: 0.75em;
         margin-top: 0; }
+
       #socialList li:last-child svg {
         margin-left: -2px;
         margin-top: -3px; }
+
     #socialList a:hover {
       color: black;
       filter: brightness(70%); }
@@ -1348,32 +920,16 @@ svg {
 
   .socialDetailText, .socialDetailTextLink {
     display: none; } }
+
 @media print {
   #socialList a {
     text-decoration: none; }
 
   .socialIcon {
     display: none; } }
-@font-face {
-  font-family: 'LibraSansRegular';
-  font-style: normal;
-  font-weight: normal;
-  src: local("LibraSansRegular"), url("/fonts/LibraSans.ttf") format("truetype");
-  font-display: swap; }
-@font-face {
-  font-family: 'LibraSansBold';
-  font-weight: normal;
-  font-style: normal;
-  src: local("LibraSansBold"), url("/fonts//LibraSansBold.ttf") format("truetype");
-  font-display: swap; }
-body {
-  font-family: 'LibraSansRegular', serif; }
 
 header {
   position: relative; }
-
-.container {
-  padding: 1em; }
 
 .columns {
   display: block; }
@@ -1381,30 +937,27 @@ header {
 section {
   margin-top: 0.75em; }
 
-.sectionHr {
-  height: 2px;
-  margin-bottom: 0.5em;
-  width: 100%; }
-
 #education-print {
   display: none; }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .container {
-    margin: 2em auto 2em auto;
+    margin: 2em auto;
     max-width: 8.5in; }
 
   .columns {
+    column-gap: 40px;
     display: grid;
-    grid-template-columns: 3fr 2fr;
-    column-gap: 40px; } }
+    grid-template-columns: 3fr 2fr; } }
+
 @media print {
   @page {
-    size: A4 portrait;
-    margin: 0; }
+    margin: 0;
+    size: a4 portrait; }
+
   body {
     background-size: 21cm 29.7cm;
-    font-size: 12px; }
+    font-size: 0.75rem; }
 
   .container {
     break-inside: auto;
@@ -1414,12 +967,13 @@ section {
 
   .columns {
     break-inside: auto;
+    column-gap: 40px;
     display: grid;
-    grid-template-columns: 3fr 2fr;
-    column-gap: 40px; }
+    grid-template-columns: 3fr 2fr; }
 
   .sectionHr {
-    border-top: solid 2px black !important; }
+    background-color: black;
+    border-top: solid 2px black; }
 
   #education-print {
     display: block; }

@@ -57,43 +57,62 @@ const section = 'Case Studies'
       </div>
     )
   }
-
-  <div class="space-y-4 max-w-2xl mx-auto mb-8">
-    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-      {
-        clientEntry?.data.businessType && (
-          <div class="bg-page-offset p-4 rounded-xl flex flex-wrap items-baseline gap-x-2">
-            <dt class="font-semibold">Client:</dt>
-            <dd class="text-content-active">{clientEntry.data.businessType}</dd>
-          </div>
-        )
-      }
-      {
-        clientEntry?.data.industry && (
-          <div class="bg-page-offset p-4 rounded-xl flex flex-wrap items-baseline gap-x-2">
-            <dt class="font-semibold">Industry:</dt>
-            <dd class="text-content-active">{clientEntry.data.industry}</dd>
-          </div>
-        )
-      }
-      {
-        caseStudy.data.projectType && (
-          <div class="bg-page-offset p-4 rounded-xl flex flex-wrap items-baseline gap-x-2">
-            <dt class="font-semibold">Project Type:</dt>
-            <dd class="text-content-active">{caseStudy.data.projectType}</dd>
-          </div>
-        )
-      }
-      {
-        caseStudy.data.duration && (
-          <div class="bg-page-offset p-4 rounded-xl flex flex-wrap items-baseline gap-x-2">
-            <dt class="font-semibold">Duration:</dt>
-            <dd class="text-content-active">{caseStudy.data.duration}</dd>
-          </div>
-        )
-      }
-    </dl>
-  </div>
+  {/** Case Study Details */}
+  {
+    (
+      clientEntry?.data.businessType ||
+      clientEntry?.data.industry ||
+      caseStudy.data.projectType ||
+      caseStudy.data.duration
+    ) && (
+      <div class="space-y-4 mx-auto">
+        <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-base">
+          {
+            clientEntry?.data.businessType && (
+              <div class="bg-page-offset p-4 rounded-lg flex flex-col items-start border border-trim shadow-sm">
+                <dt class="text-xs font-semibold uppercase tracking-wider opacity-60 mb-2">Client</dt>
+                <dd class="font-bold text-page-inverse leading-tight">
+                  {clientEntry.data.businessType}
+                </dd>
+              </div>
+            )
+          }
+          {
+            clientEntry?.data.industry && (
+              <div class="bg-page-offset p-4 rounded-lg flex flex-col items-start border border-trim shadow-sm">
+                <dt class="text-xs font-semibold uppercase tracking-wider opacity-60 mb-2">Industry</dt>
+                <dd class="font-bold text-page-inverse leading-tight">
+                  {clientEntry.data.industry}
+                </dd>
+              </div>
+            )
+          }
+          {
+            caseStudy.data.projectType && (
+              <div class="bg-page-offset p-4 rounded-lg flex flex-col items-start border border-trim shadow-sm">
+                <dt class="text-xs font-semibold uppercase tracking-wider opacity-60 mb-2">
+                  Project Type
+                </dt>
+                <dd class="font-bold text-page-inverse leading-tight">
+                  {caseStudy.data.projectType}
+                </dd>
+              </div>
+            )
+          }
+          {
+            caseStudy.data.duration && (
+              <div class="bg-page-offset p-4 rounded-lg flex flex-col items-start border border-trim shadow-sm">
+                <dt class="text-xs font-semibold uppercase tracking-wider opacity-60 mb-2">Duration</dt>
+                <dd class="font-bold text-page-inverse leading-tight">
+                  {caseStudy.data.duration}
+                </dd>
+              </div>
+            )
+          }
+        </dl>
+      </div>
+    )
+  }
 
   {/** SLOT: after-content */}
   <div slot="after-content">
