@@ -4,7 +4,50 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 
 export type ContentVariant = 'overview' | 'deep-dive'
 
+const prefetchedHrefs = new Set<string>()
+
 const normalizeSlug = (slug: string): string => slug.replace(/^\/+|\/+$/g, '')
+
+const queueIdlePrefetch = (work: () => void): void => {
+	if (typeof window === 'undefined') {
+		return
+	}
+
+	if (typeof window.requestIdleCallback === 'function') {
+		window.requestIdleCallback(() => work())
+		return
+	}
+
+	window.setTimeout(work, 150)
+}
+
+const prefetchDocument = (href: string): void => {
+	if (typeof document === 'undefined' || typeof window === 'undefined' || !href) {
+		return
+	}
+
+	if (prefetchedHrefs.has(href)) {
+		return
+	}
+
+	prefetchedHrefs.add(href)
+
+	const existingLink = document.head.querySelector(`link[rel="prefetch"][href="${href}"]`)
+	if (!existingLink) {
+		const link = document.createElement('link')
+		link.rel = 'prefetch'
+		link.href = href
+		document.head.append(link)
+	}
+
+	if (typeof window.fetch === 'function') {
+		void window.fetch(href, {
+			credentials: 'same-origin',
+		}).catch(() => {
+			/* Best-effort warmup only. */
+		})
+	}
+	}
 
 /**
  * Builds a route href for a content variant and slug.
@@ -38,6 +81,26 @@ export class ContentSwitcherElement extends LitElement {
 
 	protected override createRenderRoot() {
 		return this
+	}
+
+	public override connectedCallback(): void {
+		super.connectedCallback()
+		this.prefetchAlternateVariant()
+	}
+
+	protected override updated(changedProperties: Map<string, unknown>): void {
+		if (changedProperties.has('currentVariant') || changedProperties.has('slug')) {
+			this.prefetchAlternateVariant()
+		}
+	}
+
+	private prefetchAlternateVariant(): void {
+		const alternateVariant = this.currentVariant === 'deep-dive' ? 'overview' : 'deep-dive'
+		const href = buildVariantHref(alternateVariant, this.slug)
+
+		queueIdlePrefetch(() => {
+			prefetchDocument(href)
+		})
 	}
 
 	protected override render() {

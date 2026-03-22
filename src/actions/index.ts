@@ -3,6 +3,7 @@ import { downloads } from './downloads/action'
 import { gdpr } from './gdpr/action'
 import { newsletter } from './newsletter/action'
 import { search } from './search/action'
+import { webmentions } from './webmentions/action'
 
 export const server = {
   contact,
@@ -10,4 +11,5 @@ export const server = {
   gdpr,
   newsletter,
   search,
+  webmentions,
 }

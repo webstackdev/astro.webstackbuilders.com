@@ -202,12 +202,7 @@ All code samples in this article are licensed under the MIT License. Feel free t
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
 
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
-
-- There's a pretty long delay when you push the Content Switcher to go from short to deep dive, what's causing it? It should be fast - maybe it's a prefetch issue and should prefetch on page load
-
 - Contact page Uppy file upload not displaying. Submit button is huge on Contact page.
-
-- Hero animation not loading on home page.
 
 - Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
@@ -223,15 +218,4 @@ All code samples in this article are licensed under the MIT License. Feel free t
 
 - Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
 
-- We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
-
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
-
-- Tags should break more evenly across two lines when there's a lot of them, instead of forcing the author name and date to break across two lines: platform-engineering-metrics-lead-time-developer-friction/index.mdx
-
-17:15:36 [200] /articles/kubernetes-pod-disruption-budget-autoscaler-node-rotation 414ms
-[WebMentions] Failed to fetch mentions for https://www.webstackbuilders.com/articles/kubernetes-pod-disruption-budget-autoscaler-node-rotation. Will retry in 60s. DOMException [TimeoutError]: The operation was aborted due to timeout
-    at node:internal/deps/undici/undici:15445:13
-    at async requestWebmentions (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/components/WebMentions/server/index.ts:199:20)
-    at async eval (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/components/WebMentions/index.astro:27:18)
-17:15:46 [200] /_vtbot_inspection_chamber.js 1ms
