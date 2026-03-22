@@ -17,7 +17,6 @@ import { z } from 'astro/zod'
  * title length limits
  */
 import { withBreadcrumbTitleWarning } from '@lib/helpers/breadcrumbTitleLengthRefinement'
-import { endSession } from '@sentry/browser'
 
 /**
  * NOTE: In YAML, dates written without quotes around them are interpreted

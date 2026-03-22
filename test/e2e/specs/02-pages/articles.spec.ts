@@ -14,6 +14,7 @@ test.describe('Articles Page', () => {
 
     await page.evaluate(selector => {
       const link = document.querySelector<HTMLAnchorElement>(selector)
+      // eslint-disable-next-line custom-rules/enforce-centralized-events -- test-only handler in Playwright browser context
       link?.addEventListener(
         'click',
         event => {
