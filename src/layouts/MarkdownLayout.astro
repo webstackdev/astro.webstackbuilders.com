@@ -183,11 +183,15 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
       class={`${shouldRenderToc ? 'grid gap-8 lg:grid-cols-[1fr_250px]' : 'flex flex-col gap-8'}`}
       itemprop="articleBody"
     >
-      <div class="markdown-content__prose min-w-0 leading-relaxed">
+      {shouldRenderToc && (
+        <div class="lg:col-start-2 lg:row-start-1">
+          <Toc items={tocHeadings} />
+        </div>
+      )}
+      <div class={`markdown-content__prose min-w-0 leading-relaxed ${shouldRenderToc ? 'lg:col-start-1 lg:row-start-1' : ''}`}>
         <slot />
         <Content components={{ ...Components }} />
       </div>
-      {shouldRenderToc && <Toc items={tocHeadings} />}
 
       {/** SLOT: after-content, includes social shares and web mentions */}
       <slot name="after-content" />

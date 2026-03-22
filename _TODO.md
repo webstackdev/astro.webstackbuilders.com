@@ -228,10 +228,6 @@ https://mermaid.js.org/config/directives.html
 
 - Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
 
-- 'three-column-icon-list' List layout is broken in dark theme
-
-- 'two-column-icon-list' List layout looks bad on dark theme. The bgColor looks good on light theme, but awkward on dark theme.
-
 ## Header
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.

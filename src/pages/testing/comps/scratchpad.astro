@@ -9,53 +9,53 @@ const path = '/testing/comps/scratchpad'
 
 <BaseLayout pageDescription={pageDescription} noindex={true} pageTitle={pageTitle} path={path}>
   <div class="test-container max-w-4xl mx-auto py-12 px-6 space-y-24 mb-24">
-    <div class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-content-inverse rounded-lg shadow-2xl">
-      <div class="flex items-center justify-between p-6 border-b border-trim">
-        <h2 class="m-0 text-xl font-semibold" id="mastodon-modal-title">Share to Mastodon</h2>
-        <button type="button" class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded cursor-pointer transition-all duration-150 hover:bg-content-inverse-muted hover:text-content" aria-label="Close modal">
-          <!--?lit$757801943$--><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="shrink-0 w-5 h-5 text-inherit" fill="currentColor" stroke="currentColor" aria-hidden="true" focusable="false">  <path d="M6.707 18.707L12 13.414l5.293 5.293 1.414-1.414L13.414 12l5.293-5.293-1.414-1.414L12 10.586 6.707 5.293 5.293 6.707 10.586 12l-5.293 5.293z"></path> </svg>
-        </button>
-      </div>
 
-      <form id="mastodon-share-form" class="flex flex-col gap-6 p-6">
-        <div class="flex flex-col gap-2">
-          <label for="share-text" class="font-medium">Text to share</label>
-          <textarea id="share-text" name="text" rows="4" readonly="" class="w-full p-3 border border-trim rounded-md bg-content-inverse-muted font-[inherit] text-sm leading-6 resize-y focus:outline-2 focus:outline-primary focus:outline-offset-2"></textarea>
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- VARIANT 1 — Mastodon Brand Header -->
+    <!-- A bold purple header strip with white text references Mastodon's  -->
+    <!-- brand identity, creating immediate visual recognition.            -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <section>
+      <h2 class="text-xl font-bold mb-6">Variant 1: Brand Header</h2>
+      <div class="relative w-full max-w-2xl overflow-hidden rounded-xl shadow-2xl">
+        <!-- Header with Mastodon-inspired purple -->
+        <div class="bg-page-inverse px-6 py-5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-7 h-7 text-white" fill="currentColor" aria-hidden="true">
+              <path d="M21.327 8.566c0-4.339-2.843-5.61-2.843-5.61-1.433-.658-3.894-.935-6.451-.956h-.063c-2.557.021-5.016.298-6.45.956 0 0-2.843 1.272-2.843 5.61 0 .993-.019 2.181.012 3.441.103 4.243.778 8.425 4.701 9.463 1.809.479 3.362.579 4.612.51 2.268-.126 3.541-.809 3.541-.809l-.075-1.646s-1.621.511-3.441.449c-1.804-.062-3.707-.194-3.999-2.409a4.523 4.523 0 0 1-.04-.621s1.77.432 4.014.535c1.372.063 2.658-.08 3.965-.236 2.506-.299 4.688-1.843 4.962-3.254.431-2.22.396-5.421.396-5.421zm-3.306 5.592h-2.081V9.047c0-1.075-.452-1.62-1.357-1.62-1 0-1.501.647-1.501 1.927v2.791h-2.069V9.354c0-1.28-.501-1.927-1.502-1.927-.904 0-1.357.545-1.357 1.62v5.111H6.074V8.903c0-1.074.273-1.927.823-2.558.566-.631 1.307-.955 2.228-.955 1.065 0 1.872.41 2.405 1.228l.518.869.519-.869c.533-.818 1.34-1.228 2.405-1.228.92 0 1.662.324 2.228.955.549.631.822 1.484.822 2.558v5.253z"/>
+            </svg>
+            <h3 class="m-0 text-lg font-bold text-white">Share to Mastodon</h3>
+          </div>
+          <button type="button" class="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 border-0 cursor-pointer transition-colors" aria-label="Close modal">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="currentColor" aria-hidden="true"><path d="M6.707 18.707L12 13.414l5.293 5.293 1.414-1.414L13.414 12l5.293-5.293-1.414-1.414L12 10.586 6.707 5.293 5.293 6.707 10.586 12l-5.293 5.293z"></path></svg>
+          </button>
         </div>
-
-        <div class="flex flex-col gap-4">
-          <label for="mastodon-instance" class="flex flex-col gap-2 font-medium">
-            <span>Mastodon Instance</span>
-            <span class="sr-only" id="mastodon-modal-instance-hint">Enter only the domain, without https://</span>
-            <div class="flex items-stretch border border-trim rounded-md overflow-hidden bg-content-inverse-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2">
-              <span class="flex items-center px-3 py-2 bg-content-inverse-muted text-sm select-none" aria-hidden="true">
-                https://
-              </span>
-              <input type="text" id="mastodon-instance" name="instance" placeholder="mastodon.social" required="" class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-content focus:outline-none" aria-describedby="mastodon-modal-instance-hint">
+        <!-- Body -->
+        <div class="bg-page p-6">
+          <form class="flex flex-col gap-5">
+            <label class="flex flex-col gap-2">
+              <span class="text-sm font-medium text-content-offset uppercase tracking-wider">Text to share</span>
+              <textarea rows="3" readonly class="w-full p-3 border border-trim-offset rounded-lg bg-page-offset text-sm leading-6 resize-y focus:outline-2 focus:outline-accent focus:outline-offset-2"></textarea>
+            </label>
+            <label class="flex flex-col gap-2">
+              <span class="text-sm font-medium text-content-offset uppercase tracking-wider">Instance</span>
+              <div class="flex items-stretch border border-trim-offset rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-accent">
+                <span class="flex items-center px-3 py-2 bg-page-offset text-sm text-content-offset select-none">https://</span>
+                <input type="text" placeholder="mastodon.social" class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-content focus:outline-none">
+              </div>
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer text-content-offset">
+              <input type="checkbox" class="w-4 h-4 accent-accent cursor-pointer">
+              <span>Remember this instance</span>
+            </label>
+            <div class="flex gap-3 justify-end pt-2">
+              <button type="button" class="px-5 py-2.5 border border-trim-offset rounded-lg font-medium cursor-pointer bg-transparent text-content hover:bg-page-offset transition-colors">Cancel</button>
+              <button type="button" class="px-5 py-2.5 border-0 rounded-lg font-medium cursor-pointer bg-page-inverse text-white hover:bg-content-active transition-colors">Share</button>
             </div>
-          </label>
-
-          <!--?lit$757801943$-->
-
-          <label for="remember-instance" class="flex items-center gap-2 text-sm cursor-pointer">
-            <input type="checkbox" id="remember-instance" name="remember" class="w-4 h-4 cursor-pointer">
-            <span>Remember this instance</span>
-          </label>
+          </form>
         </div>
+      </div>
+    </section>
 
-        <div class="flex gap-3 justify-end">
-          <button type="button" class="btn-secondary modal-cancel px-4 py-2 border border-trim rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-content hover:bg-content-inverse-muted">
-            Cancel
-          </button>
-          <button type="submit" class="btn-primary px-4 py-2 border-0 rounded-md font-medium cursor-pointer transition-all duration-150 bg-spotlight text-white hover:bg-primary-offset disabled:opacity-50 disabled:cursor-not-allowed">
-            Share
-          </button>
-        </div>
-
-        <p aria-atomic="true" class="modal-status m-0 text-sm text-center " role="status" aria-live="polite">
-          <!--?lit$757801943$-->
-        </p>
-      </form>
-    </div>
   </div>
 </BaseLayout>
