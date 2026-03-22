@@ -112,11 +112,44 @@ describe('MastodonModalElement', () => {
         'Share to Mastodon'
       )
 
+      const mastodonHeaderIcon = element.querySelector(
+        '.modal-content .flex.items-center.gap-3 svg'
+      ) as SVGElement | null
+      expect(mastodonHeaderIcon).toBeTruthy()
+      expect(mastodonHeaderIcon?.getAttribute('aria-hidden')).toBe('true')
+      expect(mastodonHeaderIcon?.getAttribute('focusable')).toBe('false')
+
+      const modalContent = element.querySelector('.modal-content') as HTMLDivElement | null
+      const form = element.querySelector('#mastodon-share-form') as HTMLFormElement | null
+      expect(modalContent?.className).toContain('bg-page-base')
+      expect(form?.className).toContain('bg-page-base')
+
+      const title = element.querySelector(`#${element.modalId}-title`) as HTMLHeadingElement | null
+      expect(title?.className).toContain('text-content-inverse')
+
       const closeIcon = element.querySelector(
         'button[aria-label="Close modal"] svg'
       ) as SVGElement | null
       expect(closeIcon?.getAttribute('aria-hidden')).toBe('true')
       expect(closeIcon?.getAttribute('focusable')).toBe('false')
+
+      const closeButton = element.querySelector(
+        'button[aria-label="Close modal"]'
+      ) as HTMLButtonElement | null
+      expect(closeButton?.className).toContain('text-primary-inverse')
+      expect(closeButton?.className).toContain('focus-visible:outline-none')
+      expect(closeButton?.className).toContain('focus-visible:after:border-spotlight')
+      expect(closeButton?.className).toContain('after:rounded-none')
+
+      const shareText = element.querySelector('#share-text') as HTMLTextAreaElement | null
+      expect(shareText?.className).toContain('outline-none')
+      expect(shareText?.className).toContain('focus-visible:outline-none')
+      expect(shareText?.className).toContain('focus-visible:ring-0')
+      expect(shareText?.className).toContain('focus-visible:shadow-none')
+
+      const shareTextWrapper = shareText?.parentElement as HTMLDivElement | null
+      expect(shareTextWrapper?.className).toContain('after:rounded-none')
+      expect(shareTextWrapper?.className).toContain('after:border-transparent')
 
       const instanceInput = element.querySelector('#mastodon-instance') as HTMLInputElement | null
       expect(instanceInput?.getAttribute('aria-describedby')).toBe(
@@ -124,19 +157,46 @@ describe('MastodonModalElement', () => {
       )
       const hint = element.querySelector(`#${element.modalId}-instance-hint`) as HTMLElement | null
       expect(hint?.textContent).toContain('Enter only the domain')
+
+      const instanceWrapper = instanceInput?.closest('div') as HTMLDivElement | null
+      expect(instanceInput?.className).toContain('focus-visible:outline-none')
+      expect(instanceInput?.className).toContain('focus-visible:ring-0')
+      expect(instanceInput?.className).toContain('focus-visible:shadow-none')
+      expect(instanceWrapper?.className).toContain('after:rounded-none')
+      expect(instanceWrapper?.className).toContain('after:border-transparent')
+      expect(instanceWrapper?.className).not.toContain('after:border-spotlight')
+
+      const rememberCheckbox = element.querySelector('#remember-instance') as HTMLInputElement | null
+      expect(rememberCheckbox?.className).toContain('focus-visible:outline-none')
+      expect(rememberCheckbox?.className).toContain('focus-visible:after:border-spotlight')
+      expect(rememberCheckbox?.className).toContain('after:rounded-none')
+
+      const cancelButton = element.querySelector('button.modal-cancel') as HTMLButtonElement | null
+      const shareButton = element.querySelector('button[type="submit"]') as HTMLButtonElement | null
+      expect(cancelButton?.className).toContain('focus-visible:outline-none')
+      expect(cancelButton?.className).toContain('focus-visible:after:border-spotlight')
+      expect(cancelButton?.className).toContain('after:rounded-none')
+      expect(shareButton?.className).toContain('focus-visible:outline-none')
+      expect(shareButton?.className).toContain('focus-visible:after:border-spotlight')
+      expect(shareButton?.className).toContain('after:rounded-none')
+      expect(shareButton?.className).toContain('text-content-inverse')
     })
   })
 
   test('openModal shows modal and populates text', async () => {
-    await renderModal(async ({ element }) => {
+    await renderModal(async ({ element, window }) => {
       element.openModal('Highlight text to share')
       await flushMicrotasks()
 
       const dialog = element.querySelector('[role="dialog"]') as HTMLElement | null
       const textarea = element.querySelector('#share-text') as HTMLTextAreaElement | null
+      const instanceInput = element.querySelector('#mastodon-instance') as HTMLInputElement | null
+      const instanceWrapper = instanceInput?.closest('div') as HTMLDivElement | null
 
       expect(dialog?.hasAttribute('hidden')).toBe(false)
       expect(textarea?.value.trim()).toBe('Highlight text to share')
+      expect(window.document.activeElement).toBe(instanceInput)
+      expect(instanceWrapper?.className).not.toContain('after:border-spotlight')
     })
   })
 

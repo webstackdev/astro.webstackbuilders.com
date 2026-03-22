@@ -59,6 +59,9 @@ export class MastodonModalElement extends LitElement {
     open: { type: Boolean, reflect: true },
     shareText: { type: String, attribute: false },
     instanceValue: { type: String, attribute: false },
+    shareTextFocusVisible: { type: Boolean, attribute: false },
+    suppressInitialInstanceFocusVisible: { type: Boolean, attribute: false },
+    instanceInputFocusVisible: { type: Boolean, attribute: false },
     rememberInstance: { type: Boolean, attribute: false },
     savedInstances: { attribute: false },
     statusMessage: { type: String, attribute: false },
@@ -70,6 +73,9 @@ export class MastodonModalElement extends LitElement {
   declare open: boolean
   declare shareText: string
   declare instanceValue: string
+  declare shareTextFocusVisible: boolean
+  declare suppressInitialInstanceFocusVisible: boolean
+  declare instanceInputFocusVisible: boolean
   declare rememberInstance: boolean
   declare statusMessage: string
   declare statusType: 'error' | 'success' | ''
@@ -86,6 +92,9 @@ export class MastodonModalElement extends LitElement {
     this.open = false
     this.shareText = ''
     this.instanceValue = ''
+    this.shareTextFocusVisible = false
+    this.suppressInitialInstanceFocusVisible = false
+    this.instanceInputFocusVisible = false
     this.rememberInstance = false
     this.savedInstances = []
     this.statusMessage = ''
@@ -183,6 +192,9 @@ export class MastodonModalElement extends LitElement {
       this.statusMessage = ''
       this.statusType = ''
       this.isSubmitting = false
+      this.shareTextFocusVisible = false
+      this.suppressInitialInstanceFocusVisible = true
+      this.instanceInputFocusVisible = false
       this.rememberInstance = false
 
       const savedInstance = getCurrentMastodonInstance() ?? this.savedInstances.at(0) ?? ''
@@ -229,6 +241,9 @@ export class MastodonModalElement extends LitElement {
     this.statusMessage = ''
     this.statusType = ''
     this.isSubmitting = false
+    this.shareTextFocusVisible = false
+    this.suppressInitialInstanceFocusVisible = false
+    this.instanceInputFocusVisible = false
     this.rememberInstance = false
 
     if (typeof window !== 'undefined') {
@@ -313,6 +328,56 @@ export class MastodonModalElement extends LitElement {
     }
   }
 
+  private updateFocusVisibleState(
+    element: HTMLInputElement | HTMLTextAreaElement,
+    applyState: (_isFocusVisible: boolean) => void
+  ): void {
+    const scheduleUpdate =
+      typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
+        ? window.requestAnimationFrame.bind(window)
+        : (callback: FrameRequestCallback) => setTimeout(() => callback(0), 0)
+
+    scheduleUpdate(() => {
+      if (typeof document === 'undefined' || document.activeElement !== element) {
+        return
+      }
+
+      applyState(element.matches(':focus-visible'))
+    })
+  }
+
+  private handleShareTextFocus(event: FocusEvent): void {
+    const target = event.target
+    if (target instanceof HTMLTextAreaElement) {
+      this.updateFocusVisibleState(target, isFocusVisible => {
+        this.shareTextFocusVisible = isFocusVisible
+      })
+    }
+  }
+
+  private handleShareTextBlur(): void {
+    this.shareTextFocusVisible = false
+  }
+
+  private handleInstanceFocus(event: FocusEvent): void {
+    const target = event.target
+    if (target instanceof HTMLInputElement) {
+      if (this.suppressInitialInstanceFocusVisible) {
+        this.suppressInitialInstanceFocusVisible = false
+        this.instanceInputFocusVisible = false
+        return
+      }
+
+      this.updateFocusVisibleState(target, isFocusVisible => {
+        this.instanceInputFocusVisible = isFocusVisible
+      })
+    }
+  }
+
+  private handleInstanceBlur(): void {
+    this.instanceInputFocusVisible = false
+  }
+
   protected override render() {
     const modalTitleId = `${this.modalId}-title`
     const instanceHintId = `${this.modalId}-instance-hint`
@@ -321,6 +386,14 @@ export class MastodonModalElement extends LitElement {
         ? queryMastodonIconMarkup({
             iconBankId: ICON_BANK_ID,
             iconName: 'close',
+            root: document,
+          })
+        : null
+    const mastodonIconMarkup =
+      typeof document !== 'undefined'
+        ? queryMastodonIconMarkup({
+            iconBankId: ICON_BANK_ID,
+            iconName: 'mastodon',
             root: document,
           })
         : null
@@ -338,14 +411,17 @@ export class MastodonModalElement extends LitElement {
           class="modal-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"
           @click=${(event: Event) => this.handleBackdropClick(event)}
         ></div>
-        <div
-          class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto bg-content-inverse rounded-lg shadow-2xl"
-        >
-          <div class="flex items-center justify-between p-6 border-b border-trim">
-            <h2 id=${modalTitleId} class="m-0 text-xl font-semibold">Share to Mastodon</h2>
+        <div class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto rounded-xl bg-page-base shadow-2xl">
+          <div class="bg-page-inverse px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-3 text-content-inverse">
+              ${mastodonIconMarkup ? unsafeHTML(mastodonIconMarkup) : null}
+              <h2 id=${modalTitleId} class="m-0 text-lg font-bold text-content-inverse">
+                Share to Mastodon
+              </h2>
+            </div>
             <button
               type="button"
-              class="modal-close flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent rounded cursor-pointer transition-all duration-150 hover:bg-content-inverse-muted hover:text-content"
+              class="modal-close relative flex items-center justify-center w-8 h-8 rounded-full bg-white/20 border-0 cursor-pointer text-primary-inverse transition-colors hover:bg-white/30 focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
               aria-label="Close modal"
               @click=${() => this.closeModal()}
             >
@@ -355,32 +431,42 @@ export class MastodonModalElement extends LitElement {
 
           <form
             id="mastodon-share-form"
-            class="flex flex-col gap-6 p-6"
+            class="flex flex-col gap-5 p-6 bg-page-base"
             @submit=${(event: Event) => this.handleSubmit(event)}
           >
             <div class="flex flex-col gap-2">
-              <label for="share-text" class="font-medium">Text to share</label>
-              <textarea
-                id="share-text"
-                name="text"
-                rows="4"
-                readonly
-                class="w-full p-3 border border-trim rounded-md bg-content-inverse-muted font-[inherit] text-sm leading-6 resize-y focus:outline-2 focus:outline-primary focus:outline-offset-2"
-                .value=${this.shareText}
-              ></textarea>
+              <label for="share-text" class="text-sm font-medium text-content-offset uppercase tracking-wider">
+                Text to share
+              </label>
+              <div
+                class=${`relative after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent ${this.shareTextFocusVisible ? 'after:-inset-1 after:border-spotlight' : ''}`}
+              >
+                <textarea
+                  id="share-text"
+                  name="text"
+                  rows="4"
+                  readonly
+                  class="w-full p-3 border border-trim-offset rounded-lg bg-page-offset font-[inherit] text-sm leading-6 resize-y outline-none focus:border-trim-offset focus:outline-none focus:ring-0 focus:ring-offset-0 focus:shadow-none focus-visible:border-trim-offset focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none"
+                  .value=${this.shareText}
+                  @focus=${(event: FocusEvent) => this.handleShareTextFocus(event)}
+                  @blur=${() => this.handleShareTextBlur()}
+                ></textarea>
+              </div>
             </div>
 
             <div class="flex flex-col gap-4">
               <label for="mastodon-instance" class="flex flex-col gap-2 font-medium">
-                <span>Mastodon Instance</span>
+                <span class="text-sm font-medium text-content-offset uppercase tracking-wider">
+                  Instance
+                </span>
                 <span id=${instanceHintId} class="sr-only"
                   >Enter only the domain, without https://</span
                 >
                 <div
-                  class="flex items-stretch border border-trim rounded-md overflow-hidden bg-content-inverse-input focus-within:outline-2 focus-within:outline-primary focus-within:outline-offset-2"
+                  class=${`relative flex items-stretch border border-trim-offset rounded-lg overflow-hidden bg-page-base after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent ${this.instanceInputFocusVisible ? 'after:-inset-1 after:border-spotlight' : ''}`}
                 >
                   <span
-                    class="flex items-center px-3 py-2 bg-content-inverse-muted text-sm select-none"
+                    class="flex items-center px-3 py-2 bg-page-offset text-sm text-content-offset select-none"
                     aria-hidden="true"
                   >
                     https://
@@ -392,8 +478,10 @@ export class MastodonModalElement extends LitElement {
                     placeholder="mastodon.social"
                     required
                     aria-describedby=${instanceHintId}
-                    class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-content focus:outline-none"
+                    class="flex-1 min-w-0 px-3 py-2 border-0 bg-transparent text-base text-content outline-none focus:border-0 focus:outline-none focus:ring-0 focus:ring-offset-0 focus:shadow-none focus-visible:border-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none"
                     .value=${this.instanceValue}
+                    @focus=${(event: FocusEvent) => this.handleInstanceFocus(event)}
+                    @blur=${() => this.handleInstanceBlur()}
                     @input=${(event: Event) => this.handleInstanceInput(event)}
                   />
                 </div>
@@ -417,12 +505,12 @@ export class MastodonModalElement extends LitElement {
                   </div>`
                 : null}
 
-              <label for="remember-instance" class="flex items-center gap-2 text-sm cursor-pointer">
+              <label for="remember-instance" class="flex items-center gap-2 text-sm cursor-pointer text-content-offset">
                 <input
                   type="checkbox"
                   id="remember-instance"
                   name="remember"
-                  class="w-4 h-4 cursor-pointer"
+                  class="relative w-4 h-4 cursor-pointer accent-accent focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
                   .checked=${this.rememberInstance}
                   @change=${(event: Event) => this.handleRememberChange(event)}
                 />
@@ -430,17 +518,17 @@ export class MastodonModalElement extends LitElement {
               </label>
             </div>
 
-            <div class="flex gap-3 justify-end">
+            <div class="flex gap-3 justify-end pt-2">
               <button
                 type="button"
-                class="btn-secondary modal-cancel px-4 py-2 border border-trim rounded-md font-medium cursor-pointer transition-all duration-150 bg-transparent text-content hover:bg-content-inverse-muted"
+                class="btn-secondary modal-cancel relative px-5 py-2.5 border border-trim-offset rounded-lg font-medium cursor-pointer bg-transparent text-content hover:bg-page-offset transition-colors focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
                 @click=${() => this.closeModal()}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="btn-primary px-4 py-2 border-0 rounded-md font-medium cursor-pointer transition-all duration-150 bg-spotlight text-white hover:bg-primary-offset disabled:opacity-50 disabled:cursor-not-allowed"
+                class="btn-primary relative px-5 py-2.5 border-0 rounded-lg font-medium cursor-pointer bg-page-inverse text-content-inverse hover:bg-content-active transition-colors focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight disabled:opacity-50 disabled:cursor-not-allowed"
                 ?disabled=${this.isSubmitting}
               >
                 Share
@@ -467,12 +555,34 @@ export class MastodonModalElement extends LitElement {
           cursor: pointer;
           font-size: 0.875rem;
           padding: 0.25rem 0.5rem;
+          position: relative;
           transition: all 0.15s ease;
+        }
+
+        .saved-list :global(.saved-instance)::after {
+          border: 2px solid transparent;
+          border-radius: 0;
+          content: '';
+          inset: 0;
+          opacity: 0;
+          pointer-events: none;
+          position: absolute;
+          transition: opacity 0.15s ease;
         }
 
         .saved-list :global(.saved-instance:hover) {
           background: var(--color-primary);
           color: var(--color-page-base);
+        }
+
+        .saved-list :global(.saved-instance:focus-visible) {
+          outline: none;
+        }
+
+        .saved-list :global(.saved-instance:focus-visible)::after {
+          border-color: var(--color-spotlight);
+          inset: -0.25rem;
+          opacity: 1;
         }
 
         .modal-status.error {
