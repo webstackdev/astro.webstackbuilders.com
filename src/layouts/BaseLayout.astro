@@ -1,6 +1,7 @@
 ---
 import { ClientRouter } from 'astro:transitions'
 import { isProd } from '@lib/config/environmentServer'
+import { applyRenderSentryContext } from '@lib/sentry/renderContext'
 import Analytics from '@components/Analytics/index.astro'
 import Breadcrumbs from '@components/Breadcrumbs/index.astro'
 import Container from '@components/Layout/Container/index.astro'
@@ -67,6 +68,43 @@ const {
   showProgressBar = false,
   tags,
 } = Astro.props
+
+const requestUrl = Astro.url?.href
+const requestHeaders = Astro.request?.headers
+
+applyRenderSentryContext({
+  contextName: 'pageRender',
+  breadcrumbMessage: 'render:BaseLayout',
+  tags: {
+    layout: 'BaseLayout',
+    path,
+    hasAstroSite: Boolean(Astro.site),
+  },
+  context: {
+    layout: 'BaseLayout',
+    path,
+    pageTitle,
+    pageDescriptionLength: pageDescription.length,
+    breadcrumbTitle,
+    contentType,
+    noindex: Boolean(noindex),
+    section,
+    showProgressBar,
+    hideBreadcrumbsOnMobile,
+    author,
+    tagCount: tags?.length ?? 0,
+    publishDate,
+    modifiedDate,
+    requestUrl,
+    astroSite: Astro.site,
+    requestMethod: Astro.request?.method,
+    requestHeaderAccept: requestHeaders?.get('accept') ?? undefined,
+    requestHeaderContentType: requestHeaders?.get('content-type') ?? undefined,
+    requestHeaderSecFetchMode: requestHeaders?.get('sec-fetch-mode') ?? undefined,
+    requestHeaderSecFetchDest: requestHeaders?.get('sec-fetch-dest') ?? undefined,
+    requestHeaderPrefetchSource: requestHeaders?.get('x-prefetch-source') ?? undefined,
+  },
+})
 ---
 
 <!doctype html>

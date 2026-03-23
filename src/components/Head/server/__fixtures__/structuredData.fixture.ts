@@ -14,7 +14,8 @@ export const createStructuredDataParams = (
   overrides: Partial<StructuredDataParams> = {}
 ): StructuredDataParams => {
   const path = normalizeFixturePath(overrides.path ?? '/')
-  const site = overrides.astro?.site ?? new URL(DEFAULT_SITE_URL)
+  const hasAstroSiteOverride = overrides.astro ? 'site' in overrides.astro : false
+  const site = hasAstroSiteOverride ? overrides.astro?.site : new URL(DEFAULT_SITE_URL)
   const url = overrides.astro?.url ?? new URL(path, site)
 
   const params: StructuredDataParams = {

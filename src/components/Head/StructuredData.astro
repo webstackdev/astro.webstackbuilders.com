@@ -1,8 +1,30 @@
 ---
 import { getSchemas } from '@components/Head/server/structuredData'
+import { applyRenderSentryContext } from '@lib/sentry/renderContext'
 export type { StructuredDataProps as Props } from '@components/Head/server/structuredData'
 
 const { path, pageTitle, pageDescription, contentType, publishDate, modifiedDate, author } = Astro.props
+
+applyRenderSentryContext({
+  contextName: 'structuredDataRender',
+  breadcrumbMessage: 'render:StructuredData',
+  tags: {
+    component: 'StructuredData',
+    path,
+    hasAstroSite: Boolean(Astro.site),
+  },
+  context: {
+    path,
+    pageTitle,
+    pageDescriptionLength: pageDescription?.length,
+    contentType,
+    publishDate,
+    modifiedDate,
+    author,
+    astroSite: Astro.site,
+    requestUrl: Astro.url?.href,
+  },
+})
 
 const schemas = getSchemas({
   astro: Astro,

@@ -18,6 +18,23 @@ describe('getSchemas', () => {
     expect(parsed[1]['@type']).toBe('WebSite')
   })
 
+  it('falls back to the request origin when Astro.site is unavailable', () => {
+    const schemas = getSchemas(
+      createStructuredDataParams({
+        astro: {
+          site: undefined,
+          url: new URL('https://www.webstackbuilders.com/contact'),
+        },
+        path: '/contact',
+      })
+    )
+
+    const parsed = schemas.map(schema => JSON.parse(schema))
+    const contactPage = parsed.find(schema => schema['@type'] === 'ContactPage')
+
+    expect(contactPage?.url).toBe('https://www.webstackbuilders.com/contact')
+  })
+
   it('wraps serialization failures in a BuildError', () => {
     const stringifySpy = vi.spyOn(JSON, 'stringify').mockImplementationOnce(() => {
       throw new TypeError('circular structure')
