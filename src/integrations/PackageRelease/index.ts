@@ -16,7 +16,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { AstroIntegration } from 'astro'
-import { getOptionalEnv } from '../../lib/config/environmentServer'
+import { getOptionalEnv, isTest } from '../../lib/config/environmentServer'
 import { BuildError } from '../../lib/errors/BuildError'
 
 interface PackageJson {
@@ -59,6 +59,10 @@ function getPackageName(): string {
 }
 
 function getBuildRelease(): string | undefined {
+  if (isTest()) {
+    return undefined
+  }
+
   const releaseCandidate = getOptionalEnv('GITHUB_SHA') ||
     getOptionalEnv('VERCEL_GIT_COMMIT_SHA') ||
     getOptionalEnv('PUBLIC_VERCEL_GIT_COMMIT_SHA')
