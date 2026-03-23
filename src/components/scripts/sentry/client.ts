@@ -1,12 +1,11 @@
 import {
-  BrowserClient,
   breadcrumbsIntegration,
   dedupeIntegration,
   defaultStackParser,
   feedbackIntegration,
-  getCurrentScope,
   globalHandlersIntegration,
   httpClientIntegration,
+  init,
   makeFetchTransport,
   linkedErrorsIntegration,
 } from '@sentry/browser'
@@ -34,7 +33,7 @@ export class SentryBootstrap {
   static init(): void {
     // Check analytics consent for PII handling
     const hasAnalyticsConsent = getAnalyticsConsentPreference()
-    const client = new BrowserClient({
+    init({
       dsn: getSentryDsn(),
       integrations: [
         // Core integrations
@@ -102,9 +101,6 @@ export class SentryBootstrap {
        */
       beforeSend: beforeSendHandler,
     })
-
-    getCurrentScope().setClient(client)
-    client.init()
 
     console.log('✅ Sentry monitoring initialized')
   }
