@@ -46,11 +46,15 @@ const toPrimitive = (value: unknown): Primitive | Primitive[] | undefined => {
 }
 
 const normalizeContext = (context: RenderContextRecord): Record<string, RenderContextValue> => {
-  return Object.fromEntries(
-    Object.entries(context)
-      .map(([key, value]) => [key, toPrimitive(value)] as const)
-      .filter(([, value]) => value !== undefined)
-  )
+  return Object.entries(context).reduce<Record<string, RenderContextValue>>((accumulator, [key, value]) => {
+    const normalizedValue = toPrimitive(value)
+
+    if (normalizedValue !== undefined) {
+      accumulator[key] = normalizedValue
+    }
+
+    return accumulator
+  }, {})
 }
 
 const normalizeTags = (
