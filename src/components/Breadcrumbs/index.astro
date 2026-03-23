@@ -1,5 +1,6 @@
 ---
 import { generateBreadcrumbs } from '@components/Breadcrumbs/server'
+import { applyRenderSentryContext } from '@lib/sentry/renderContext'
 
 export interface Props {
   /** The current URL path */
@@ -19,6 +20,25 @@ if (path === '/' || path === '') {
 }
 
 const breadcrumbs = generateBreadcrumbs(path, pageTitle)
+
+applyRenderSentryContext({
+  contextName: 'breadcrumbsRender',
+  breadcrumbMessage: 'render:Breadcrumbs',
+  tags: {
+    component: 'Breadcrumbs',
+    path,
+    breadcrumbCount: breadcrumbs.length,
+    hasAstroSite: Boolean(Astro.site),
+  },
+  context: {
+    path,
+    pageTitle,
+    breadcrumbCount: breadcrumbs.length,
+    breadcrumbLabels: breadcrumbs.map(item => item.label),
+    requestUrl: Astro.url?.href,
+    astroSite: Astro.site,
+  },
+})
 
 function rewriteBreadcrumbHref(href: string): string {
   return href === '/deep-dive' ? '/articles' : href

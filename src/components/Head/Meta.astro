@@ -1,6 +1,7 @@
 ---
 import contactData from '@content/contact.json'
 import { absoluteUrl } from '@components/scripts/utils'
+import { applyRenderSentryContext } from '@lib/sentry/renderContext'
 import { getMetaThemeData } from '@components/Head/server/meta'
 import { resolveSiteUrl } from '@components/Head/server'
 import Seo from '@components/Head/Seo.astro'
@@ -45,6 +46,25 @@ const {
 
 const defaultTheme = getMetaThemeData()
 const site = resolveSiteUrl(Astro)
+
+applyRenderSentryContext({
+  contextName: 'headMeta',
+  breadcrumbMessage: 'render:Meta',
+  tags: {
+    component: 'Meta',
+    path,
+    hasAstroSite: Boolean(Astro.site),
+  },
+  context: {
+    path,
+    pageTitle,
+    noindex,
+    contentType,
+    pageDescriptionLength: (pageDescription || contactData.company.description).length,
+    canonicalUrl: Astro.url?.href,
+    resolvedSiteUrl: site,
+  },
+})
 ---
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />

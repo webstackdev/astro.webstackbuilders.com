@@ -73,12 +73,6 @@ const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
     })
   }
 
-  if (!(astro.site instanceof URL)) {
-    throw new BuildError('Astro.site must be defined to generate structured data', {
-      filePath: STRUCTURED_DATA_FILE,
-    })
-  }
-
   if (!path || typeof path !== 'string') {
     throw new BuildError('Structured data generation requires a valid path string', {
       filePath: STRUCTURED_DATA_FILE,

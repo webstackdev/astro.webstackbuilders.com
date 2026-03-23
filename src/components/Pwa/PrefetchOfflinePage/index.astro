@@ -9,9 +9,24 @@
 
   const prefetch = (url: string) => {
     try {
-      fetch(url, { credentials: 'same-origin' }).catch(error => {
-        handleScriptError(error, { scriptName: 'BaseLayout', operation: `prefetch ${url}` })
+      fetch(url, {
+        credentials: 'same-origin',
+        headers: {
+          'x-prefetch-source': 'PrefetchOfflinePage',
+        },
       })
+        .then(response => {
+          if (response.ok) {
+            return response
+          }
+
+          throw new Error(
+            `Prefetch failed for ${url}: ${response.status} ${response.statusText || 'Unknown Status'} (content-type: ${response.headers.get('content-type') ?? 'unknown'})`
+          )
+        })
+        .catch(error => {
+          handleScriptError(error, { scriptName: 'BaseLayout', operation: `prefetch ${url}` })
+        })
     } catch (error) {
       handleScriptError(error, { scriptName: 'BaseLayout', operation: `prefetch ${url}` })
     }
