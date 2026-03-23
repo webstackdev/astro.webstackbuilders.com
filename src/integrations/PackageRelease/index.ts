@@ -1,17 +1,16 @@
 /**
  * Package Release Integration
  *
- * Automatically injects the package name and version at build time from package.json.
- * This provides a release identifier for tracking regressions between numbered releases
- * in monitoring services like Sentry.
+ * Automatically injects a build-time release identifier for monitoring systems like Sentry.
  *
  * The release is injected as PACKAGE_RELEASE_VERSION environment variable in the format
- * "name@version" and is available throughout the app as import.meta.env.PACKAGE_RELEASE_VERSION
+ * "name@commitSha" when CI metadata is available, with a local fallback to "name@version".
+ * It is available throughout the app as import.meta.env.PACKAGE_RELEASE_VERSION.
  *
  * Fallback order:
- * 1. Manual env var (PACKAGE_RELEASE_VERSION in .env)
+ * 1. Explicit release env / CI commit SHA
  * 2. package.json name@version
- * 3. "unknown@0.0.0" (if package.json cannot be read)
+ * 3. BuildError if package.json cannot be read
  */
 
 import { readFileSync } from 'node:fs'
@@ -24,16 +23,67 @@ interface PackageJson {
   version?: string
 }
 
+function readPackageJson(): PackageJson {
+  const packageJsonPath = resolve(process.cwd(), 'package.json')
+  const packageJsonContent = readFileSync(packageJsonPath, 'utf-8')
+
+  return JSON.parse(packageJsonContent) as PackageJson
+}
+
+function getPackageName(): string {
+  try {
+    const packageJsonPath = resolve(process.cwd(), 'package.json')
+    const packageJson = readPackageJson()
+    const name = packageJson.name
+
+    if (!name) {
+      throw new BuildError('package.json is missing required field. name: missing', {
+        phase: 'config-setup',
+        filePath: packageJsonPath,
+      })
+    }
+
+    return name
+  } catch (error) {
+    if (error instanceof BuildError) {
+      throw error
+    }
+
+    const packageJsonPath = resolve(process.cwd(), 'package.json')
+    throw new BuildError(
+      `Could not read package.json for package name: ${error instanceof Error ? error.message : String(error)}`,
+      { phase: 'config-setup', filePath: packageJsonPath, cause: error }
+    )
+  }
+}
+
+function getBuildRelease(): string | undefined {
+  const releaseCandidate = process.env['PACKAGE_RELEASE_VERSION'] ||
+    process.env['GITHUB_SHA'] ||
+    process.env['VERCEL_GIT_COMMIT_SHA'] ||
+    process.env['PUBLIC_VERCEL_GIT_COMMIT_SHA']
+
+  if (!releaseCandidate) {
+    return undefined
+  }
+
+  return `${getPackageName()}@${releaseCandidate}`
+}
+
 /**
  * Get package release from package.json
  * @returns Release string in format "name@version"
  * @throws {BuildError} If package.json cannot be read or parsed
  */
-function getPackageRelease(): string {
+export function getPackageRelease(): string {
+  const buildRelease = getBuildRelease()
+  if (buildRelease) {
+    return buildRelease
+  }
+
   try {
     const packageJsonPath = resolve(process.cwd(), 'package.json')
-    const packageJsonContent = readFileSync(packageJsonPath, 'utf-8')
-    const packageJson = JSON.parse(packageJsonContent) as PackageJson
+    const packageJson = readPackageJson()
 
     const name = packageJson.name
     const version = packageJson.version

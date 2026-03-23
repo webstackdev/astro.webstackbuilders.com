@@ -30,6 +30,10 @@ describe('handleScriptError', () => {
     const result = handleScriptError(new TestError('boom'), {
       scriptName: 'AppBootstrap',
       operation: 'init',
+      extra: {
+        requestStatus: 500,
+        contentType: 'text/html',
+      },
     })
 
     expect(result).toBeInstanceOf(ClientScriptError)
@@ -37,6 +41,10 @@ describe('handleScriptError', () => {
       tags: {
         scriptName: 'AppBootstrap',
         operation: 'init',
+      },
+      extra: {
+        requestStatus: 500,
+        contentType: 'text/html',
       },
     })
     expect(consoleErrorSpy).not.toHaveBeenCalled()
