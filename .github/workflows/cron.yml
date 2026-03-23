@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ping-turso
+  group: keep-alive
   cancel-in-progress: true
 
 jobs:
@@ -34,6 +34,7 @@ jobs:
       - name: Execute keep-alive query
         uses: './.github/actions/keep-alive'
         with:
+          service: turso
           url: ${{ vars.ASTRO_DB_REMOTE_URL }}
           token: ${{ secrets.ASTRO_DB_APP_TOKEN }}
 
@@ -58,5 +59,33 @@ jobs:
       - name: Execute keep-alive query
         uses: './.github/actions/keep-alive'
         with:
+          service: turso
           url: ${{ vars.ASTRO_DB_REMOTE_URL }}
           token: ${{ secrets.ASTRO_DB_APP_TOKEN }}
+
+  ping-upstash-search:
+    name: Ping Upstash Search
+    runs-on: ubuntu-latest
+    env:
+      PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars['PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN'] }}
+      PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars['PUBLIC_UPSTASH_SEARCH_REST_URL'] }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Execute keep-alive read
+        uses: './.github/actions/keep-alive'
+        with:
+          service: upstash
+          url: ${{ env.PUBLIC_UPSTASH_SEARCH_REST_URL }}
+          token: ${{ env.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
