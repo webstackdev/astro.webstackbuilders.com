@@ -66,9 +66,7 @@ jobs:
   ping-upstash-search:
     name: Ping Upstash Search
     runs-on: ubuntu-latest
-    env:
-      PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars['PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN'] }}
-      PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars['PUBLIC_UPSTASH_SEARCH_REST_URL'] }}
+    environment: production
 
     steps:
       - name: Checkout repository
@@ -87,5 +85,6 @@ jobs:
         uses: './.github/actions/keep-alive'
         with:
           service: upstash
-          url: ${{ env.PUBLIC_UPSTASH_SEARCH_REST_URL }}
-          token: ${{ env.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
+          url: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
+          token: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
+          index_name: default
