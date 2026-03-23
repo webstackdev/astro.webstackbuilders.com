@@ -3,4 +3,4 @@
  * Functions used during build process in Astro frontmatter
  */
 export { getMetaThemeData } from './meta'
-export { getSocialImageLink } from './utils'
+export { getSocialImageLink, resolveSiteUrl } from './utils'

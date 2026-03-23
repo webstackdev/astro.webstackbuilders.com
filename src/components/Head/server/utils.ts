@@ -1,6 +1,9 @@
+import type { AstroGlobal } from 'astro'
 import { getSiteUrl } from '@lib/config/siteUrlServer'
 
 const DEFAULT_SOCIAL_SLUG = 'home'
+
+type SiteInput = URL | string | Pick<AstroGlobal, 'site' | 'url'> | undefined
 
 const normalizeSocialSlug = (rawPath?: string | null): string => {
   if (!rawPath) {
@@ -34,10 +37,30 @@ const normalizeSocialSlug = (rawPath?: string | null): string => {
   return slug || DEFAULT_SOCIAL_SLUG
 }
 
-export const getSocialImageLink = (path?: string | null): string => {
+export const resolveSiteUrl = (site?: SiteInput): URL => {
+  if (site instanceof URL) {
+    return site
+  }
+
+  if (typeof site === 'string') {
+    return new URL(site)
+  }
+
+  if (site?.site instanceof URL) {
+    return site.site
+  }
+
+  if (site?.url instanceof URL) {
+    return new URL(site.url.origin)
+  }
+
+  return new URL(getSiteUrl())
+}
+
+export const getSocialImageLink = (path?: string | null, site?: SiteInput): string => {
   const slug = normalizeSocialSlug(path)
 
-  const url = new URL('/api/social-card', getSiteUrl())
+  const url = new URL('/api/social-card', resolveSiteUrl(site))
   url.searchParams.set('slug', slug)
   return url.toString()
 }

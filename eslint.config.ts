@@ -837,6 +837,27 @@ export default [
       ],
     },
   },
+  {
+    files: [
+      '**/*.astro',
+    ],
+    ignores: [
+      'src/pages/testing/**/*',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        level,
+        {
+          paths: [
+            {
+              name: '@lib/config/siteUrlServer',
+              message: 'Astro files must not import @lib/config/siteUrlServer. Resolve site URLs from Astro context or use a runtime-safe helper instead.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   /**
    * =================================================================================================
    *

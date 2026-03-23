@@ -12,7 +12,7 @@ import type {
 import contactData from '@content/contact.json'
 import { absoluteUrl } from '@components/scripts/utils/absoluteUrl'
 import { BuildError } from '@lib/errors/BuildError'
-import { getSocialImageLink } from '@components/Head/server'
+import { getSocialImageLink, resolveSiteUrl } from '@components/Head/server'
 
 const STRUCTURED_DATA_FILE = 'src/components/Head/server/structuredData.ts'
 const LOGO_PATH = '/logo.png'
@@ -91,16 +91,17 @@ const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
     })
   }
 
+  const site = resolveSiteUrl(astro)
   const normalizedPath = normalizePath(path)
-  const canonicalUrl = astro.url?.href ?? resolveRoute(normalizedPath, astro.site)
+  const canonicalUrl = astro.url?.href ?? resolveRoute(normalizedPath, site)
   const pageDescriptionFallback = pageDescription ?? contactData.company.description
-  const socialImageUrl = getSocialImageLink(path)
+  const socialImageUrl = getSocialImageLink(path, site)
 
   const context: SchemaContext = {
     path: normalizedPath,
     pageTitle,
     pageDescription: pageDescriptionFallback,
-    site: astro.site,
+    site,
     canonicalUrl,
     pathSegments: normalizedPath.split('/').filter(Boolean),
     image: socialImageUrl,

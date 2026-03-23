@@ -1,8 +1,8 @@
 ---
-import { getSiteUrl } from '@lib/config/siteUrlServer'
 import contactData from '@content/contact.json'
 import { absoluteUrl } from '@components/scripts/utils'
 import { getMetaThemeData } from '@components/Head/server/meta'
+import { resolveSiteUrl } from '@components/Head/server'
 import Seo from '@components/Head/Seo.astro'
 import Social from '@components/Head/Social.astro'
 import StructuredData from '@components/Head/StructuredData.astro'
@@ -44,6 +44,7 @@ const {
 } = Astro.props
 
 const defaultTheme = getMetaThemeData()
+const site = resolveSiteUrl(Astro)
 ---
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -98,7 +99,7 @@ const defaultTheme = getMetaThemeData()
 <link
   type="application/rss+xml"
   rel="alternate"
-  href={absoluteUrl('rss.xml', new URL(getSiteUrl()))}
+  href={absoluteUrl('rss.xml', site)}
   title={`RSS Feed for ${contactData.company.name}`}
 />
 {/* Web App Manifest */}
