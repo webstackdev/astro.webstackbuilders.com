@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getSocialImageLink } from '../utils'
+import { getSocialImageLink, resolveSiteUrl } from '../utils'
 import { getSiteUrl } from '@lib/config/siteUrlServer'
 
 vi.mock('@lib/config/siteUrlServer', () => ({
@@ -35,5 +35,23 @@ describe('getSocialImageLink', () => {
     const url = getSocialImageLink('about/company')
       expect(url).toBe('https://custom.test/api/social-card?slug=about%2Fcompany')
     expect(mockedGetSiteUrl).toHaveBeenCalledTimes(1)
+  })
+
+  it('uses an explicit request site without calling the build helper', () => {
+    const url = getSocialImageLink('/services/cloud', new URL('https://preview.webstackbuilders.com'))
+
+    expect(url).toBe('https://preview.webstackbuilders.com/api/social-card?slug=services%2Fcloud')
+    expect(mockedGetSiteUrl).not.toHaveBeenCalled()
+  })
+})
+
+describe('resolveSiteUrl', () => {
+  it('falls back to the current request origin when Astro.site is unavailable', () => {
+    const site = resolveSiteUrl({
+      site: undefined,
+      url: new URL('https://preview.webstackbuilders.com/services/cloud'),
+    })
+
+    expect(site.href).toBe('https://preview.webstackbuilders.com/')
   })
 })
