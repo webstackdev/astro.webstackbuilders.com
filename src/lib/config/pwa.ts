@@ -16,7 +16,7 @@ export const pwaConfig: PwaOptions = {
   mode: 'production',
   strategies: 'injectManifest',
   srcDir: 'src/lib/workbox',
-  filename: 'index.ts',
+  filename: 'sw.ts',
   base: '/',
   scope: '/',
   includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png'],
