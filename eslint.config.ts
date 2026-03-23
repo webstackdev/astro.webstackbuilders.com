@@ -840,6 +840,32 @@ export default [
   {
     files: [
       '**/*.astro',
+      '**/*.ts',
+      '**/*.tsx',
+    ],
+    ignores: [
+      'src/**/client/**',
+      'src/components/scripts/**/*',
+      'src/pages/testing/**/*',
+      'src/components/scripts/utils/__tests__/siteUrlClient.spec.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        level,
+        {
+          paths: [
+            {
+              name: '@components/scripts/utils/siteUrlClient',
+              message: 'Only browser-executed client code may import @components/scripts/utils/siteUrlClient. SSR, Astro frontmatter, actions, API routes, and other server-side code must resolve site URLs from runtime-safe server helpers or request context instead.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      '**/*.astro',
     ],
     ignores: [
       'src/pages/testing/**/*',
@@ -849,6 +875,10 @@ export default [
         level,
         {
           paths: [
+            {
+              name: '@components/scripts/utils/siteUrlClient',
+              message: 'Astro files must not import @components/scripts/utils/siteUrlClient. Browser-only site URL helpers are unsafe in Astro frontmatter because those files can execute during SSR. Resolve site URLs from Astro context or use a runtime-safe server helper instead.',
+            },
             {
               name: '@lib/config/siteUrlServer',
               message: 'Astro files must not import @lib/config/siteUrlServer. Resolve site URLs from Astro context or use a runtime-safe helper instead.',
