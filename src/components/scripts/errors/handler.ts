@@ -2,9 +2,12 @@ import { captureException } from '@sentry/browser'
 import { ClientScriptError } from './ClientScriptError'
 import { isProd } from '@components/scripts/utils/environmentClient'
 
+type ScriptErrorExtraValue = string | number | boolean | null
+
 export interface ScriptErrorContext {
   scriptName: string
   operation?: string
+  extra?: Record<string, ScriptErrorExtraValue>
 }
 
 /**
@@ -35,6 +38,7 @@ export function handleScriptError(error: unknown, context: ScriptErrorContext): 
         scriptName: context.scriptName,
         ...(context.operation && { operation: context.operation }),
       },
+      ...(context.extra && { extra: context.extra }),
     })
   } else {
     // Log it for debugging

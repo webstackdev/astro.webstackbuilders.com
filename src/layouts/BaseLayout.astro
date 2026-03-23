@@ -70,7 +70,7 @@ const {
 } = Astro.props
 
 const requestUrl = Astro.url?.href
-const requestHeaders = Astro.request?.headers
+const requestHeaders = Astro.isPrerendered ? undefined : Astro.request.headers
 
 applyRenderSentryContext({
   contextName: 'pageRender',

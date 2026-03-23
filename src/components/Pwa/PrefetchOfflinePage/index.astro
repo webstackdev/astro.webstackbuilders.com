@@ -7,6 +7,25 @@
 <script>
   import { handleScriptError } from '@components/scripts/errors/handler'
 
+  const BODY_PREVIEW_LENGTH = 240
+
+  const getHeaderValue = (response: Response, headerName: string) =>
+    response.headers.get(headerName) ?? 'missing'
+
+  const getBodyPreview = async (response: Response) => {
+    try {
+      const bodyText = await response.text()
+
+      if (!bodyText) {
+        return 'empty'
+      }
+
+      return bodyText.slice(0, BODY_PREVIEW_LENGTH).replace(/\s+/g, ' ')
+    } catch {
+      return 'unavailable'
+    }
+  }
+
   const prefetch = (url: string) => {
     try {
       fetch(url, {
@@ -15,14 +34,35 @@
           'x-prefetch-source': 'PrefetchOfflinePage',
         },
       })
-        .then(response => {
+        .then(async response => {
           if (response.ok) {
             return response
           }
 
-          throw new Error(
-            `Prefetch failed for ${url}: ${response.status} ${response.statusText || 'Unknown Status'} (content-type: ${response.headers.get('content-type') ?? 'unknown'})`
+          const contentType = getHeaderValue(response, 'content-type')
+          const bodyPreview = await getBodyPreview(response)
+          const statusText = response.statusText || 'Unknown Status'
+          const error = new Error(
+            `Prefetch failed for ${url}: ${response.status} ${statusText} (content-type: ${contentType})`
           )
+
+          handleScriptError(error, {
+            scriptName: 'BaseLayout',
+            operation: `prefetch ${url}`,
+            extra: {
+              prefetchUrl: url,
+              requestStatus: response.status,
+              statusText,
+              contentType,
+              bodyPreview,
+              xPrefetchSource: 'PrefetchOfflinePage',
+              xVercelId: getHeaderValue(response, 'x-vercel-id'),
+              xMatchedPath: getHeaderValue(response, 'x-matched-path'),
+              cacheControl: getHeaderValue(response, 'cache-control'),
+            },
+          })
+
+          return response
         })
         .catch(error => {
           handleScriptError(error, { scriptName: 'BaseLayout', operation: `prefetch ${url}` })

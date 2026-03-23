@@ -21,18 +21,16 @@ import { createLogger, type LogOptions, type PluginOption } from 'vite'
  */
 import {
   environmentalVariablesConfig,
-  getSentryAuthToken,
   getSiteUrl,
   isE2eTest,
-  isVercel,
   markdownConfig,
   pwaConfig,
   vercelConfig,
 } from './src/lib/config'
 import { callToActionValidator } from './src/integrations/CtaValidator'
 import { faviconGenerator } from './src/integrations/FaviconGenerator'
-import { packageRelease } from './src/integrations/PackageRelease'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
+import { getPackageRelease, packageRelease } from './src/integrations/PackageRelease'
 import { testimonialsLengthWarning } from './src/integrations/TestimonialsLengthWarning'
 import { fixContentAssetPropagation } from './src/lib/plugins/fixContentAssetPropagation'
 import { pwaDevAssetServer } from './src/lib/plugins/pwaDevAssetServer'
@@ -41,6 +39,9 @@ import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sit
 // Ensure Vite's HMR websocket connects through the same exposed dev server port used by Astro.
 const devServerPort = Number(process.env['DEV_SERVER_PORT'] ?? 4321)
 const viteLogger = createLogger(undefined, { allowClearScreen: false })
+const sentryAuthToken = process.env['SENTRY_AUTH_TOKEN']
+const sentryRelease = getPackageRelease()
+const shouldEnableSentryIntegration = Boolean(sentryAuthToken)
 
 const shouldSuppressViteWarning = (message: string): boolean => {
   return (
@@ -82,11 +83,12 @@ const standardIntegrations = [
   privacyPolicyVersion(),
   /** Warn when testimonial bodies are too short/too long (helps keep carousel cards consistent) */
   testimonialsLengthWarning({ min: 300, max: 400 }),
-  /** Only include Sentry integration in Vercel environments */
-  ...(isVercel() ? [sentry({
-    project: "webstack-builders-corporate-website",
-    org: "webstack-builders",
-    authToken: getSentryAuthToken(),
+  /** Enable Sentry build integration when CI provides upload credentials. */
+  ...(shouldEnableSentryIntegration && sentryAuthToken ? [sentry({
+    project: 'webstack-builders-corporate-website',
+    org: 'webstack-builders',
+    authToken: sentryAuthToken,
+    release: sentryRelease,
   })] : []),
   sitemap({
     serialize: createSerializeFunction({
