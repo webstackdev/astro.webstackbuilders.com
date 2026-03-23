@@ -8,7 +8,7 @@
  * It is available throughout the app as import.meta.env.PACKAGE_RELEASE_VERSION.
  *
  * Fallback order:
- * 1. Explicit release env / CI commit SHA
+ * 1. CI/Vercel commit SHA
  * 2. package.json name@version
  * 3. BuildError if package.json cannot be read
  */
@@ -16,6 +16,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { AstroIntegration } from 'astro'
+import { getOptionalEnv } from '../../lib/config/environmentServer'
 import { BuildError } from '../../lib/errors/BuildError'
 
 interface PackageJson {
@@ -58,10 +59,9 @@ function getPackageName(): string {
 }
 
 function getBuildRelease(): string | undefined {
-  const releaseCandidate = process.env['PACKAGE_RELEASE_VERSION'] ||
-    process.env['GITHUB_SHA'] ||
-    process.env['VERCEL_GIT_COMMIT_SHA'] ||
-    process.env['PUBLIC_VERCEL_GIT_COMMIT_SHA']
+  const releaseCandidate = getOptionalEnv('GITHUB_SHA') ||
+    getOptionalEnv('VERCEL_GIT_COMMIT_SHA') ||
+    getOptionalEnv('PUBLIC_VERCEL_GIT_COMMIT_SHA')
 
   if (!releaseCandidate) {
     return undefined

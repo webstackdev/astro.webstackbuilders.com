@@ -21,17 +21,14 @@ import { createLogger, type LogOptions, type PluginOption } from 'vite'
  */
 import {
   environmentalVariablesConfig,
-  getSentryAuthToken,
   getSiteUrl,
   isE2eTest,
-  isVercel,
   markdownConfig,
   pwaConfig,
   vercelConfig,
 } from './src/lib/config'
 import { callToActionValidator } from './src/integrations/CtaValidator'
 import { faviconGenerator } from './src/integrations/FaviconGenerator'
-import { packageRelease } from './src/integrations/PackageRelease'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
 import { getPackageRelease, packageRelease } from './src/integrations/PackageRelease'
 import { testimonialsLengthWarning } from './src/integrations/TestimonialsLengthWarning'
@@ -87,9 +84,9 @@ const standardIntegrations = [
   /** Warn when testimonial bodies are too short/too long (helps keep carousel cards consistent) */
   testimonialsLengthWarning({ min: 300, max: 400 }),
   /** Enable Sentry build integration when CI provides upload credentials. */
-  ...(shouldEnableSentryIntegration ? [sentry({
-    project: "webstack-builders-corporate-website",
-    org: "webstack-builders",
+  ...(shouldEnableSentryIntegration && sentryAuthToken ? [sentry({
+    project: 'webstack-builders-corporate-website',
+    org: 'webstack-builders',
     authToken: sentryAuthToken,
     release: sentryRelease,
   })] : []),
