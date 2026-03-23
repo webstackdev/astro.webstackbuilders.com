@@ -94,4 +94,24 @@ describe('ContentSwitcherElement', () => {
 			},
 		)
 	})
+
+	test('prefetches the alternate variant href on idle', async () => {
+		await runComponentRender(
+			{
+				props: {
+					currentVariant: 'overview',
+					slug: 'my-article',
+				},
+			},
+			async () => {
+				await new Promise(resolve => setTimeout(resolve, 200))
+
+				const prefetchLink = document.head.querySelector(
+					'link[rel="prefetch"][href="/deep-dive/my-article"]',
+				) as HTMLLinkElement | null
+
+				expect(prefetchLink).toBeTruthy()
+			},
+		)
+	})
 })

@@ -1,10 +1,65 @@
 import { LitElement, html } from 'lit'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import { queryPrefetchLink } from './selectors'
 
 export type ContentVariant = 'overview' | 'deep-dive'
 
+const prefetchedHrefs = new Set<string>()
+
 const normalizeSlug = (slug: string): string => slug.replace(/^\/+|\/+$/g, '')
+
+const queueIdlePrefetch = (work: () => void): void => {
+	if (typeof window === 'undefined') {
+		return
+	}
+
+	let hasRun = false
+	const runOnce = () => {
+		if (hasRun) {
+			return
+		}
+
+		hasRun = true
+		work()
+	}
+
+	if (typeof window.requestIdleCallback === 'function') {
+		window.requestIdleCallback(() => runOnce())
+		window.setTimeout(runOnce, 150)
+		return
+	}
+
+	window.setTimeout(runOnce, 150)
+}
+
+const prefetchDocument = (href: string): void => {
+	if (typeof document === 'undefined' || typeof window === 'undefined' || !href) {
+		return
+	}
+
+	if (prefetchedHrefs.has(href)) {
+		return
+	}
+
+	prefetchedHrefs.add(href)
+
+	const existingLink = queryPrefetchLink(document.head, href)
+	if (!existingLink) {
+		const link = document.createElement('link')
+		link.rel = 'prefetch'
+		link.href = href
+		document.head.append(link)
+	}
+
+	if (typeof window.fetch === 'function') {
+		void window.fetch(href, {
+			credentials: 'same-origin',
+		}).catch(() => {
+			/* Best-effort warmup only. */
+		})
+	}
+	}
 
 /**
  * Builds a route href for a content variant and slug.
@@ -38,6 +93,26 @@ export class ContentSwitcherElement extends LitElement {
 
 	protected override createRenderRoot() {
 		return this
+	}
+
+	public override connectedCallback(): void {
+		super.connectedCallback()
+		this.prefetchAlternateVariant()
+	}
+
+	protected override updated(changedProperties: Map<string, unknown>): void {
+		if (changedProperties.has('currentVariant') || changedProperties.has('slug')) {
+			this.prefetchAlternateVariant()
+		}
+	}
+
+	private prefetchAlternateVariant(): void {
+		const alternateVariant = this.currentVariant === 'deep-dive' ? 'overview' : 'deep-dive'
+		const href = buildVariantHref(alternateVariant, this.slug)
+
+		queueIdlePrefetch(() => {
+			prefetchDocument(href)
+		})
 	}
 
 	protected override render() {

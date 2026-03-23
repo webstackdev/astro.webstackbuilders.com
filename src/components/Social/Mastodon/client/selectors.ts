@@ -38,7 +38,7 @@ export const queryMastodonInstanceInput = (context: Element): HTMLInputElement |
 
 export const queryMastodonIconMarkup = (params: {
   iconBankId: string
-  iconName: 'close'
+  iconName: 'close' | 'mastodon'
   root?: Document
 }): string | null => {
   const { iconBankId, iconName, root = document } = params

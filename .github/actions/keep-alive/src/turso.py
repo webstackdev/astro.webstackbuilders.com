@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import os
 import logging
+import os
 import socket
 import ssl
 import traceback
@@ -90,7 +90,6 @@ def _debug_network_diagnostics(url: str) -> None:
         _debug_log(f"[keep-alive] diagnostics dns={unique}")
     except Exception as exc:  # noqa: BLE001
         _debug_log(f"[keep-alive] diagnostics dns_error={type(exc).__name__} {exc!r}")
-        unique = []
 
     context = ssl.create_default_context()
     # Best-effort: many endpoints negotiate h2; log what we get.
@@ -173,6 +172,7 @@ def _create_client_kwargs(*, url: str, auth_token: str) -> dict[str, object]:
     # signature is permissive), so we rely on Python logging above.
     # Keep this function to centralize any future client knobs.
     return kwargs
+
 
 def get_required_value(value: str, label: str) -> str:
     trimmed = value.strip()

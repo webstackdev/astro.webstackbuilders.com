@@ -1,16 +1,15 @@
 ---
 /**
  * WebMentions component
- * Displays webmentions for a given URL from webmention.io
+ * Displays webmentions for a given URL from webmention.io.
+ *
+ * Data is loaded client-side through an Astro Action so prerendered pages do
+ * not block on a dynamic third-party service during build or page render.
  *
  * @see https://webmention.io/
  * @see https://brid.gy/ for social media integration
  */
-import { Image } from 'astro:assets'
 import Icon from '@components/Icon/index.astro'
-import { fetchWebmentions } from '@components/WebMentions/server'
-import WebMentionItem from './item.astro'
-import { buildAvatarImageProps } from './server/avatarImage'
 
 export interface Props {
   /** The absolute URL of the page to fetch webmentions for */
@@ -22,107 +21,27 @@ export interface Props {
 }
 
 const { url, showFacepile = true, facepileLimit = 5 } = Astro.props
-
-// Fetch webmentions for this URL
-const mentions = await fetchWebmentions(url)
-
-// Get mentions that should be displayed (mentions and replies)
-const displayMentions = mentions.filter(m =>
-  ['mention-of', 'in-reply-to'].includes(m['wm-property'])
-)
-
-// Get like and repost counts
-const likes = mentions.filter(m => m['wm-property'] === 'like-of')
-const reposts = mentions.filter(m => m['wm-property'] === 'repost-of')
-
-const hasMentions = displayMentions.length > 0
-const hasInteractions = likes.length > 0 || reposts.length > 0
+const iconBankId = `webmentions-icon-bank-${Math.random().toString(36).slice(2)}`
 ---
 
-{
-  (hasMentions || hasInteractions) && (
-    <section
-      class="mt-12 pt-8 border-t border-trim"
-      id="webmentions"
-      aria-labelledby="webmentions-heading"
-    >
-      <header class="flex items-start justify-between mb-6 flex-wrap gap-4 flex-col sm:flex-row sm:items-center">
-        <h3 class="text-2xl font-bold m-0" id="webmentions-heading">
-          Webmentions
-        </h3>
+<div id={iconBankId} hidden aria-hidden="true">
+  <span data-webmentions-icon="heart-filled">
+    <Icon icon="heart-filled" size={5} color="content-active" />
+  </span>
+  <span data-webmentions-icon="background-broken">
+    <Icon icon="background-broken" size={5} color="content-lighter" />
+  </span>
+</div>
 
-        {hasInteractions && (
-          <div class="flex gap-6 items-center w-full sm:w-auto justify-start">
-            {likes.length > 0 && (
-              <span
-                class="inline-flex items-center gap-1.5 text-content-active text-sm font-medium"
-                title={`${likes.length} like${likes.length !== 1 ? 's' : ''}`}
-                aria-label={`${likes.length} like${likes.length !== 1 ? 's' : ''}`}
-              >
-                <Icon icon="heart-filled" size={5} color="content-active" />
-                {likes.length}
-              </span>
-            )}
-            {reposts.length > 0 && (
-              <span
-                class="inline-flex items-center gap-1.5 text-content-active text-sm font-medium"
-                title={`${reposts.length} repost${reposts.length !== 1 ? 's' : ''}`}
-                aria-label={`${reposts.length} repost${reposts.length !== 1 ? 's' : ''}`}
-              >
-                <Icon icon="background-broken" size={5} color="content-lighter" />
-                {reposts.length}
-              </span>
-            )}
-          </div>
-        )}
-      </header>
+<web-mentions
+  url={url}
+  show-facepile={showFacepile}
+  facepile-limit={facepileLimit}
+  icon-bank-id={iconBankId}
+></web-mentions>
 
-      {hasMentions ? (
-        <>
-          {showFacepile && displayMentions.length > 0 && (
-            <div
-              class="flex items-center gap-2 mb-6 p-4 bg-page-offset rounded-lg"
-              role="group"
-              aria-label={`Recent mentions: ${displayMentions.length}`}
-            >
-              {displayMentions
-                .slice(0, facepileLimit)
-                .reverse()
-                .map(mention => (
-                  <Image
-                    {...buildAvatarImageProps(mention.author?.photo)}
-                    alt={mention.author?.name || 'Anonymous'}
-                    title={mention.author?.name || 'Anonymous'}
-                    aria-hidden="true"
-                    class="w-10 h-10 rounded-full border-2 border-bg object-cover transition-transform hover:scale-110 hover:z-(--z-raised)"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ))}
-              {displayMentions.length > facepileLimit && (
-                <span
-                  class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-offset text-content-inverse text-xs font-semibold"
-                  aria-label={`${displayMentions.length - facepileLimit} more mention${
-                    displayMentions.length - facepileLimit !== 1 ? 's' : ''
-                  }`}
-                >
-                  +{displayMentions.length - facepileLimit}
-                </span>
-              )}
-            </div>
-          )}
+<script>
+  import { registerWebMentionsComponent } from '@components/WebMentions/client'
 
-          <ol class="list-none p-0 m-0 flex flex-col gap-6">
-            {displayMentions.reverse().map(mention => (
-              <li class="m-0">
-                <WebMentionItem mention={mention} />
-              </li>
-            ))}
-          </ol>
-        </>
-      ) : (
-        <p class="text-content-active italic my-8">No mentions yet.</p>
-      )}
-    </section>
-  )
-}
+  registerWebMentionsComponent()
+</script>

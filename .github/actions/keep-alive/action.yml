@@ -1,21 +1,41 @@
 name: Keep Alive
-description: Executes a keep-alive query (SELECT 1) against the Turso DB.
+description: Execute a keep-alive read against a supported datastore.
 
 inputs:
+  service:
+    description: Datastore to ping. Supported values are turso and upstash.
+    required: true
   url:
-    description: Turso DB URL.
+    description: Datastore connection URL.
     required: true
   token:
-    description: Turso auth token.
+    description: Datastore auth token.
     required: true
+  index_name:
+    description: Upstash Search index name.
+    required: false
+    default: default
 
 runs:
   using: composite
   steps:
-    - name: Execute keep-alive query
+    - name: Execute keep-alive request
       working-directory: ${{ github.action_path }}
-      run: python3 src/main.py
+      run: |
+        case "${{ inputs.service }}" in
+          turso)
+            python3 src/turso.py
+            ;;
+          upstash)
+            python3 src/upstash.py
+            ;;
+          *)
+            echo "Unsupported keep-alive service: ${{ inputs.service }}" >&2
+            exit 1
+            ;;
+        esac
       shell: bash
       env:
         INPUT_URL: ${{ inputs.url }}
         INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_INDEX_NAME: ${{ inputs.index_name }}

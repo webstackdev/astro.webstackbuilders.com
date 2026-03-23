@@ -195,50 +195,22 @@ All code samples in this article are licensed under the MIT License. Feel free t
 
 - How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
 
-## Theming and improving Mermaid diagrams
-
-[rerender diagrams when I switched color-scheme](https://github.com/mermaid-js/mermaid/issues/1945)
-[mermaid init](https://github.com/hbstack/mermaid/blob/main/assets/hb/modules/mermaid/init.ts)
-[theming](https://mermaid.ai/open-source/config/theming.html)
-
-https://mermaid.js.org/config/theming.html
-https://mermaid.js.org/config/directives.html
+- Search box in header should have blue outline, not highlight
 
 ## Todo
 
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
 
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
-
-- Focus-visible / active handling on ToC nav items
-
-- Style "Share to Mastodon" modal in src/components/Social/Mastodon/client/index.ts
-
-- There's a pretty long delay when you push the Content Switcher to go from short to deep dive, what's causing it? It should be fast - maybe it's a prefetch issue, prefetch on page load
-
-- Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
-
-- Search box in header should have blue outline, not highlight
-
 - Contact page Uppy file upload not displaying. Submit button is huge on Contact page.
-
-- Hero animation not loading on home page.
 
 - Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
-## List Component
-
-- Task list checked variant Markdown in dark theme is awkward, it has a dark shadow
-
-- 'three-column-icon-list' List layout is broken in dark theme
-
-- 'two-column-icon-list' List layout looks bad on dark theme. The bgColor looks good on light theme, but awkward on dark theme.
-
-## Header
+## Header - "Squish" Effect
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
-
 - Moving the scroll bar up quickly with the mouse seems to make the header logic break - the Switcher component and Breadcrumbs are hidden under the header
+- Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
 
 ## Content Issues
 
@@ -246,17 +218,4 @@ https://mermaid.js.org/config/directives.html
 
 - Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
 
-- We need to check for short form and deep article articles where the deep-dive index.pdf has a non-featured tag like "argo-cd" only in the pdf.mdx. In those cases, we should make sure the callout for the deep dive includes the name of that non-featured (technology) tag
-
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
-
-- Tags should break more evenly across two lines when there's a lot of them, instead of forcing the author name and date to break across two lines: platform-engineering-metrics-lead-time-developer-friction/index.mdx
-
-- Need to update Case Studies with lists and tables too
-
-17:15:36 [200] /articles/kubernetes-pod-disruption-budget-autoscaler-node-rotation 414ms
-[WebMentions] Failed to fetch mentions for https://www.webstackbuilders.com/articles/kubernetes-pod-disruption-budget-autoscaler-node-rotation. Will retry in 60s. DOMException [TimeoutError]: The operation was aborted due to timeout
-    at node:internal/deps/undici/undici:15445:13
-    at async requestWebmentions (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/components/WebMentions/server/index.ts:199:20)
-    at async eval (/home/kevin/Repos/WebstackBuilders/CorporateWebsite/astro.webstackbuilders.com/src/components/WebMentions/index.astro:27:18)
-17:15:46 [200] /_vtbot_inspection_chamber.js 1ms

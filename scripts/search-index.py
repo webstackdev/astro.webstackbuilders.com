@@ -97,6 +97,7 @@ def main() -> int:
 		site_origin = normalize_origin(os.environ.get("SEARCH_DOC_ORIGIN") or DEFAULT_SITE_ORIGIN)
 		doc_urls = [
 			f"{site_origin}/articles",
+			f"{site_origin}/deep-dive",
 			f"{site_origin}/services",
 			f"{site_origin}/case-studies",
 		]
