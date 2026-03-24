@@ -30,7 +30,7 @@ import {
 import { callToActionValidator } from './src/integrations/CtaValidator'
 import { faviconGenerator } from './src/integrations/FaviconGenerator'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
-import { getPackageRelease, packageRelease } from './src/integrations/PackageRelease'
+import { packageRelease } from './src/integrations/PackageRelease'
 import { testimonialsLengthWarning } from './src/integrations/TestimonialsLengthWarning'
 import { fixContentAssetPropagation } from './src/lib/plugins/fixContentAssetPropagation'
 import { pwaDevAssetServer } from './src/lib/plugins/pwaDevAssetServer'
