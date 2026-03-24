@@ -41,7 +41,12 @@ export const performSearch = async (
 
   try {
     const client = new Search({ url, token })
-    const response = await client.index('default').search({ query: q, limit: limitValue })
+    const response = await client.index('default').search({
+      query: q,
+      limit: limitValue,
+      // Enable AI-Powered Reranking
+      reranking: true,
+    })
     return response
   } catch (error) {
     const details = {
