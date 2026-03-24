@@ -212,12 +212,13 @@ describe('HighlighterElement', () => {
       }
 
       const originalMatches = trigger.matches.bind(trigger)
-      trigger.matches = (selector: string) => {
+      const focusVisibleMatches = ((selector: string) => {
         if (selector === ':focus-visible') {
           return true
         }
         return originalMatches(selector)
-      }
+      }) as typeof trigger.matches
+      trigger.matches = focusVisibleMatches
 
       trigger.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }))
       expect(dialog?.getAttribute('aria-hidden')).toBe('false')

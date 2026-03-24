@@ -1,4 +1,4 @@
-import { JSDOM } from 'jsdom'
+import { parse } from 'node-html-parser'
 import { BuildError } from '@lib/errors/BuildError'
 import { queryListItemElements } from '@components/List/server/selectors'
 
@@ -36,8 +36,8 @@ export function getListItemsFromSlotMarkup(markup: string, variant: string): Lis
     )
   }
 
-  const document = new JSDOM(`<!doctype html><html><body>${markup}</body></html>`).window.document
-  const listItemElements = queryListItemElements(document.body)
+  const root = parse(markup)
+  const listItemElements = queryListItemElements(root)
 
   if (listItemElements.length === 0) {
     throw new BuildError(

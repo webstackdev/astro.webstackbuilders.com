@@ -1,7 +1,5 @@
-import { isType1Element } from '@components/scripts/assertions/elements'
+import type { HTMLElement as NHPElement } from 'node-html-parser'
 
-export const queryListItemElements = (context: ParentNode): Element[] => {
-  return Array.from(context.querySelectorAll('wsb-list-item')).filter((element): element is Element => {
-    return isType1Element(element) && element.tagName.toLowerCase() === 'wsb-list-item'
-  })
+export const queryListItemElements = (context: NHPElement): NHPElement[] => {
+  return context.querySelectorAll('wsb-list-item')
 }

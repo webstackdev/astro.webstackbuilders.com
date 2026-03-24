@@ -6,7 +6,7 @@ import { testDatabaseFile } from './test/e2e/config/runtime/paths'
  * https://github.com/motdotla/dotenv
  */
 import dotenv from 'dotenv'
-import { isCI } from 'src/lib/config/environmentServer'
+import { isCI } from '@lib/config/environmentServer'
 
 if (!isCI()) {
   dotenv.config({ path: '.env.development', quiet: true })
