@@ -96,6 +96,9 @@ const standardIntegrations = [
       release: {
         name: sentryReleaseName,
       },
+      sourcemaps: {
+        filesToDeleteAfterUpload: ['./dist/**/client/**/*.map', './dist/**/server/**/*.map'],
+      },
     },
   })] : []),
   sitemap({
@@ -170,9 +173,22 @@ export default defineConfig({
        */
       include: ['lit', 'lit/directives/if-defined.js'],
     },
+    /**
+     * Astro 6 reads `environments.client.build.sourcemap` for client bundles
+     * instead of the top-level `build.sourcemap` (which only affects server).
+     * Use 'hidden' to generate .map files without adding //# sourceMappingURL
+     * comments, so maps are available for Sentry upload but not exposed to users.
+     */
+    environments: {
+      client: {
+        build: {
+          sourcemap: 'hidden',
+        },
+      },
+    },
     build: {
-      /** Source map generation must be turned on for Sentry. */
-      sourcemap: true,
+      /** Server source maps for Sentry. */
+      sourcemap: 'hidden',
       rollupOptions: {
         onwarn(warning, warn) {
           if (shouldSuppressRollupWarning(warning)) return
