@@ -2,7 +2,7 @@
  * Homepage Smoke Test
  * Dedicated test for homepage basic functionality and app initialization
  */
-import themeConfig from '@content/themes.json' assert { type: 'json' }
+import themeConfig from '@content/themes.json' with { type: 'json' }
 import { BasePage, test, expect } from '@test/e2e/helpers'
 
 const defaultThemeId = themeConfig.defaultTheme?.id ?? 'light'
