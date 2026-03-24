@@ -38,7 +38,6 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
     PACKAGE_RELEASE_VERSION: envField.string({
       access: 'public',
       context: 'client',
-      default: 'unknown@0.0.0',
       optional: true,
     }),
     /**

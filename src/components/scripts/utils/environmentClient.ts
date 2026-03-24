@@ -3,7 +3,6 @@
  * src/lib/config/environmentServer.ts for details.
  */
 import {
-  PACKAGE_RELEASE_VERSION,
   PRIVACY_POLICY_VERSION,
   PUBLIC_GOOGLE_MAPS_API_KEY,
   PUBLIC_GOOGLE_MAP_ID,
@@ -69,12 +68,15 @@ export const isProd = () => {
  * @throws {ClientScriptError} If PACKAGE_RELEASE_VERSION is not set
  */
 export function getPackageRelease(): string {
-  if (!PACKAGE_RELEASE_VERSION) {
+  const release = import.meta.env['PACKAGE_RELEASE_VERSION']
+
+  if (!release) {
     throw new ClientScriptError(
       'PACKAGE_RELEASE_VERSION environment variable is not set. This should be injected by the PackageRelease integration.'
     )
   }
-  return PACKAGE_RELEASE_VERSION
+
+  return release
 }
 
 /**

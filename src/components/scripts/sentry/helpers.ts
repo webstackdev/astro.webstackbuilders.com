@@ -4,6 +4,22 @@ import { getConsentSnapshot } from '@components/scripts/store/consent'
 
 type BeforeSendHandler = NonNullable<BrowserOptions['beforeSend']>
 
+const SAFE_BREADCRUMB_CATEGORIES = new Set(['script', 'sentry.event'])
+
+function scrubBreadcrumbs(
+  breadcrumbs: NonNullable<Parameters<BeforeSendHandler>[0]['breadcrumbs']>
+) {
+  return breadcrumbs
+    .filter(breadcrumb => breadcrumb.category && SAFE_BREADCRUMB_CATEGORIES.has(breadcrumb.category))
+    .map(breadcrumb => {
+      const { data: _data, ...safeBreadcrumb } = breadcrumb
+
+      return {
+        ...safeBreadcrumb,
+      }
+    })
+}
+
 /**
  * Applies consent-aware filtering to Sentry events before they are sent.
  */
@@ -23,7 +39,7 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
     }
 
     if (event.breadcrumbs) {
-      event.breadcrumbs = []
+      event.breadcrumbs = scrubBreadcrumbs(event.breadcrumbs)
     }
   }
 

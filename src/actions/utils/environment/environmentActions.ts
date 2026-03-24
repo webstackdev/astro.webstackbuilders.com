@@ -1,7 +1,6 @@
 import { ActionsFunctionError } from '../errors/ActionsFunctionError'
 import {
   DEV_SERVER_PORT,
-  PACKAGE_RELEASE_VERSION,
   PRIVACY_POLICY_VERSION,
   PUBLIC_SENTRY_DSN,
   PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN,
@@ -45,12 +44,15 @@ export function getPrivacyPolicyVersion(): string {
 }
 
 export function getPackageRelease(): string {
-  if (!PACKAGE_RELEASE_VERSION) {
+  const release = import.meta.env['PACKAGE_RELEASE_VERSION']
+
+  if (!release) {
     throw new ActionsFunctionError(
       'PACKAGE_RELEASE_VERSION environment variable is not set. This should be injected by the PackageRelease integration.'
     )
   }
-  return PACKAGE_RELEASE_VERSION
+
+  return release
 }
 
 export function getConvertkitApiKey(): string {

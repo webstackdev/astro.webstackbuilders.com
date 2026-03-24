@@ -30,7 +30,7 @@ import {
 import { callToActionValidator } from './src/integrations/CtaValidator'
 import { faviconGenerator } from './src/integrations/FaviconGenerator'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
-import { packageRelease } from './src/integrations/PackageRelease'
+import { getPackageRelease, packageRelease } from './src/integrations/PackageRelease'
 import { testimonialsLengthWarning } from './src/integrations/TestimonialsLengthWarning'
 import { fixContentAssetPropagation } from './src/lib/plugins/fixContentAssetPropagation'
 import { pwaDevAssetServer } from './src/lib/plugins/pwaDevAssetServer'
@@ -41,6 +41,7 @@ const devServerPort = Number(process.env['DEV_SERVER_PORT'] ?? 4321)
 const viteLogger = createLogger(undefined, { allowClearScreen: false })
 const sentryAuthToken = process.env['SENTRY_AUTH_TOKEN']
 const shouldEnableSentryIntegration = Boolean(sentryAuthToken)
+const sentryReleaseName = getPackageRelease()
 
 const shouldSuppressViteWarning = (message: string): boolean => {
   return (
@@ -91,6 +92,11 @@ const standardIntegrations = [
     project: 'webstack-builders-corporate-website',
     org: 'webstack-builders',
     authToken: sentryAuthToken,
+    unstable_sentryVitePluginOptions: {
+      release: {
+        name: sentryReleaseName,
+      },
+    },
   })] : []),
   sitemap({
     serialize: createSerializeFunction({
