@@ -31,7 +31,10 @@ const createEvent = (): Parameters<typeof beforeSendHandler>[0] =>
     type: 'error',
     user: { ip_address: '127.0.0.1' },
     request: { headers: { 'user-agent': 'test' } },
-    breadcrumbs: [{ message: 'clicked' }],
+    breadcrumbs: [
+      { category: 'script', message: 'bootstrap started', data: { scriptName: 'AppBootstrap' } },
+      { category: 'fetch', message: 'GET /contact', data: { url: '/contact' } },
+    ],
   }) as unknown as Parameters<typeof beforeSendHandler>[0]
 
 const createHint = (): Parameters<typeof beforeSendHandler>[1] =>
@@ -66,10 +69,13 @@ describe('sentry helpers', () => {
       expect(result).toBe(event)
       expect(event.user?.ip_address).toBe('127.0.0.1')
       expect(event.request?.headers).toEqual({ 'user-agent': 'test' })
-      expect(event.breadcrumbs).toHaveLength(1)
+      expect(event.breadcrumbs).toEqual([
+        { category: 'script', message: 'bootstrap started', data: { scriptName: 'AppBootstrap' } },
+        { category: 'fetch', message: 'GET /contact', data: { url: '/contact' } },
+      ])
     })
 
-    it('scrubs PII when analytics consent is missing', () => {
+    it('scrubs PII when analytics consent is missing and preserves safe breadcrumbs', () => {
       isProdMock.mockReturnValue(true)
       getConsentSnapshotMock.mockReturnValue({ analytics: false })
 
@@ -79,7 +85,13 @@ describe('sentry helpers', () => {
       expect(result).toBe(event)
       expect(event.user?.ip_address).toBeUndefined()
       expect(event.request?.headers).toBeUndefined()
-      expect(event.breadcrumbs).toHaveLength(0)
+      expect(event.breadcrumbs).toEqual([
+        {
+          category: 'script',
+          message: 'bootstrap started',
+          data: undefined,
+        },
+      ])
     })
   })
 
