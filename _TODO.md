@@ -191,12 +191,6 @@ The text, diagrams, and images in this work are licensed under CC BY-NC 4.0
 All code samples in this article are licensed under the MIT License. Feel free to use, modify, and distribute them in any project.
 ```
 
-## Search
-
-- How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
-
-- Search box in header should have blue outline, not highlight
-
 ## Todo
 
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
@@ -219,3 +213,29 @@ All code samples in this article are licensed under the MIT License. Feel free t
 - Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
 
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
+
+
+## Search
+
+- How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
+
+- Search box in header should have blue outline, not highlight
+
+- going to the search page with a query appended gives a 404 error
+
+- Search box on the search page is not working
+
+```json
+{
+  "id": "unique-id-from-crawler",
+  "score": 0.985,
+  "content": {
+    "text": "The full body content extracted from the crawled article..."
+  },
+  "metadata": {
+    "url": "https://example.com",
+    "title": "Introduction to Vector Search",
+    "description": "Learn the basics of how vector databases work."
+  }
+}
+```

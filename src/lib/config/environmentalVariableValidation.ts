@@ -155,12 +155,14 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       optional: false,
     }),
     /**
-     * Site uses ConvertKit for managing newsletter subscriptions
+     * Token for webmention.io API, used by the WebMentions component on
+     * prerendered case-study pages. Optional so that a missing token does
+     * not crash SSR pages at runtime (the component handles absence gracefully).
      */
     WEBMENTION_IO_TOKEN: envField.string({
       access: 'secret',
       context: 'server',
-      optional: false,
+      optional: true,
     }),
   },
   /**
