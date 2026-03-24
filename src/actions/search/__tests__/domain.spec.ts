@@ -57,7 +57,11 @@ describe('performSearch', () => {
       token: 'readonly-token',
     })
     expect(indexFn).toHaveBeenCalledWith('default')
-    expect(searchFn).toHaveBeenCalledWith({ query: 'typescript', limit: 4 })
+    expect(searchFn).toHaveBeenCalledWith({
+      query: 'typescript',
+      limit: 4,
+      reranking: true,
+    })
     expect(response).toEqual(upstashResponseFixture)
   })
 

@@ -224,3 +224,18 @@ All code samples in this article are licensed under the MIT License. Feel free t
 - going to the search page with a query appended gives a 404 error
 
 - Search box on the search page is not working
+
+```json
+{
+  "id": "unique-id-from-crawler",
+  "score": 0.985,
+  "content": {
+    "text": "The full body content extracted from the crawled article..."
+  },
+  "metadata": {
+    "url": "https://example.com",
+    "title": "Introduction to Vector Search",
+    "description": "Learn the basics of how vector databases work."
+  }
+}
+```
