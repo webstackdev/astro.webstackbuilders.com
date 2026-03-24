@@ -30,7 +30,7 @@ import {
 import { callToActionValidator } from './src/integrations/CtaValidator'
 import { faviconGenerator } from './src/integrations/FaviconGenerator'
 import { privacyPolicyVersion } from './src/integrations/PrivacyPolicyVersion'
-import { getPackageRelease, packageRelease } from './src/integrations/PackageRelease'
+import { packageRelease } from './src/integrations/PackageRelease'
 import { testimonialsLengthWarning } from './src/integrations/TestimonialsLengthWarning'
 import { fixContentAssetPropagation } from './src/lib/plugins/fixContentAssetPropagation'
 import { pwaDevAssetServer } from './src/lib/plugins/pwaDevAssetServer'
@@ -40,7 +40,6 @@ import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sit
 const devServerPort = Number(process.env['DEV_SERVER_PORT'] ?? 4321)
 const viteLogger = createLogger(undefined, { allowClearScreen: false })
 const sentryAuthToken = process.env['SENTRY_AUTH_TOKEN']
-const sentryRelease = getPackageRelease()
 const shouldEnableSentryIntegration = Boolean(sentryAuthToken)
 
 const shouldSuppressViteWarning = (message: string): boolean => {
@@ -85,10 +84,13 @@ const standardIntegrations = [
   testimonialsLengthWarning({ min: 300, max: 400 }),
   /** Enable Sentry build integration when CI provides upload credentials. */
   ...(shouldEnableSentryIntegration && sentryAuthToken ? [sentry({
+    enabled: {
+      client: false,
+      server: true,
+    },
     project: 'webstack-builders-corporate-website',
     org: 'webstack-builders',
     authToken: sentryAuthToken,
-    release: sentryRelease,
   })] : []),
   sitemap({
     serialize: createSerializeFunction({
