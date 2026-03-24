@@ -118,6 +118,16 @@ const isTokenMissing = (): boolean => {
   return !token || PLACEHOLDER_TOKENS.has(token)
 }
 
+const getWebmentionToken = (): string => {
+  const token = WEBMENTION_IO_TOKEN?.trim()
+
+  if (!token || PLACEHOLDER_TOKENS.has(token)) {
+    throw new Error('WEBMENTION_IO_TOKEN is not configured')
+  }
+
+  return token
+}
+
 const logWithThrottle = (
   level: 'warn' | 'error',
   key: string,
@@ -180,9 +190,10 @@ const processResponse = (data: WebmentionResponse): Webmention[] => {
 }
 
 const requestWebmentions = async (url: string): Promise<Webmention[]> => {
+  const token = getWebmentionToken()
   const apiUrl = new URL('https://webmention.io/api/mentions.jf2')
   apiUrl.searchParams.set('target', url)
-  apiUrl.searchParams.set('token', WEBMENTION_IO_TOKEN)
+  apiUrl.searchParams.set('token', token)
   apiUrl.searchParams.set('per-page', '1000')
 
   const requestInit: RequestInit = {
