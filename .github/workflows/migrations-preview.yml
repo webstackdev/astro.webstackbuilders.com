@@ -110,7 +110,7 @@ jobs:
         id: verify
         if: steps.gate.outputs.should_migrate == 'true'
         env:
-          ASTRO_DB_REMOTE_URL: ${{ vars.ASTRO_DB_REMOTE_URL }}
+          ASTRO_DB_REMOTE_URL: ${{ secrets.ASTRO_DB_REMOTE_URL }}
           ASTRO_DB_APP_TOKEN: ${{ secrets.ASTRO_DB_APP_TOKEN }}
         run: |
           set -uo pipefail
@@ -141,6 +141,6 @@ jobs:
       - name: Push database migrations (preview)
         if: steps.gate.outputs.should_migrate == 'true' && steps.verify.outputs.needs_push == 'true'
         env:
-          ASTRO_DB_REMOTE_URL: ${{ vars.ASTRO_DB_REMOTE_URL }}
+          ASTRO_DB_REMOTE_URL: ${{ secrets.ASTRO_DB_REMOTE_URL }}
           ASTRO_DB_APP_TOKEN: ${{ secrets.ASTRO_DB_APP_TOKEN }}
         run: npx astro db push --remote
