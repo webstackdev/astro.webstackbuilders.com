@@ -8,6 +8,7 @@ import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
 import { getSearchBarElements, getSearchBarOptionalElements } from './selectors'
 import type { SearchHit } from '@actions/search/@types'
+import { getSearchResultDisplayPath, highlightSearchText } from './results'
 import {
   closeHeaderSearch,
   getHeaderSearchExpanded,
@@ -597,18 +598,77 @@ export class SearchBarElement extends LitElement {
     const items = hits.map(hit => {
       const url = hit.url || `/search?q=${encodeURIComponent(query)}`
       const title = hit.title || query
+      const snippet = hit.snippet?.trim() ?? ''
+      const displayPath = getSearchResultDisplayPath(url)
 
       return html`
-        <li class="px-4 py-3 hover:bg-page-offset">
-          <a class="block text-body" href=${url}>${title}</a>
+        <li class="group cursor-pointer hover:bg-page-offset">
+          <a
+            class="flex items-center justify-between gap-4 px-4 py-4 no-underline hover:no-underline focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            href=${url}
+          >
+            <div class="min-w-0">
+              <div class="mb-1 truncate font-mono text-xs text-primary transition-colors group-hover:text-content-active">
+                ${displayPath}
+              </div>
+              <div class="mb-1 text-body font-bold text-content transition-colors group-hover:text-content-active">
+                ${highlightSearchText(title, query)}
+              </div>
+              ${
+                snippet
+                  ? html`
+                      <p class="line-clamp-1 text-sm text-content-offset transition-colors group-hover:text-content-active">
+                        ${highlightSearchText(snippet, query)}
+                      </p>
+                    `
+                  : nothing
+              }
+            </div>
+            <svg
+              class="h-4 w-4 shrink-0 text-(--color-gray-400) transition group-hover:translate-x-1 group-hover:text-content-active"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
+          </a>
         </li>
       `
     })
 
     const searchFor = html`
-      <li class="px-4 py-3 hover:bg-page-offset">
-        <a class="block text-body" href=${`/search?q=${encodeURIComponent(query)}`}>
-          Search for &quot;${query}&quot;
+      <li class="group cursor-pointer hover:bg-page-offset">
+        <a
+          class="flex items-center justify-between gap-4 px-4 py-4 no-underline hover:no-underline focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          href=${`/search?q=${encodeURIComponent(query)}`}
+        >
+          <div class="min-w-0">
+            <div class="mb-1 truncate font-mono text-xs text-primary transition-colors group-hover:text-content-active">
+              /search?q=${query}
+            </div>
+            <div class="text-body font-bold text-content transition-colors group-hover:text-content-active">
+              Search for &quot;${highlightSearchText(query, query)}&quot;
+            </div>
+          </div>
+          <svg
+            class="h-4 w-4 shrink-0 text-(--color-gray-400) transition group-hover:translate-x-1 group-hover:text-content-active"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
         </a>
       </li>
     `

@@ -4,6 +4,7 @@ import SearchBarFixture from '@components/Search/SearchBar/client/__fixtures__/i
 import SearchBarHeaderFixture from '@components/Search/SearchBar/client/__fixtures__/header.fixture.astro'
 import type { SearchBarElement as SearchBarElementInstance } from '../index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import type { SearchHit } from '@actions/search/@types'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 import { __resetHeaderSearchForTests } from '@components/scripts/store/search'
 
@@ -16,7 +17,7 @@ const searchQueryMock =
     (_input: {
       q: string
       limit?: number
-    }) => Promise<ActionResult<{ hits: { title: string; url: string }[] }>>
+    }) => Promise<ActionResult<{ hits: SearchHit[] }>>
   >()
 
 vi.mock('astro:actions', () => ({
@@ -129,7 +130,11 @@ describe('SearchBar web component', () => {
       searchQueryMock.mockResolvedValue({
         data: {
           hits: [
-            { title: 'About', url: '/about' },
+            {
+              title: 'Introduction to Vector Search',
+              url: 'https://www.webstackbuilders.com/deep-dive/introduction-to-vector-search',
+              snippet: 'Learn the basics of how vector databases work.',
+            },
             { title: 'Services', url: '/services' },
           ],
         },
@@ -147,11 +152,57 @@ describe('SearchBar web component', () => {
       expect(searchQueryMock).toHaveBeenCalledWith({ q: 'ab', limit: 8 })
       expect(resultsContainer.classList.contains('hidden')).toBe(false)
 
-      const links = Array.from(
-        element.querySelectorAll('[data-search-results-list] a')
-      ) as HTMLAnchorElement[]
-      expect(links.some(link => link.getAttribute('href') === '/about')).toBe(true)
+      const links = Array.from(element.querySelectorAll('[data-search-results-list] a')) as HTMLAnchorElement[]
+      expect(
+        links.some(
+          link =>
+            link.getAttribute('href') ===
+            'https://www.webstackbuilders.com/deep-dive/introduction-to-vector-search'
+        )
+      ).toBe(true)
       expect(links.some(link => link.getAttribute('href') === '/search?q=ab')).toBe(true)
+
+      const firstLink = links[0]
+      expect(firstLink?.className).toContain('no-underline')
+      expect(firstLink?.querySelector('svg')).toBeTruthy()
+      expect(firstLink?.textContent).toContain('/deep-dive/introduction-to-vector-search')
+    })
+
+    vi.useRealTimers()
+  })
+
+  it('highlights matching query terms in result titles and snippets, but not the path', async () => {
+    vi.useFakeTimers()
+
+    await runComponentRender(async ({ element, window }) => {
+      searchQueryMock.mockResolvedValue({
+        data: {
+          hits: [
+            {
+              title: 'Introduction to Vector Search',
+              url: 'https://www.webstackbuilders.com/deep-dive/introduction-to-vector-search',
+              snippet: 'Learn the basics of how vector databases work.',
+            },
+          ],
+        },
+      })
+
+      const input = element.querySelector('[data-search-input]') as HTMLInputElement
+
+      input.value = 'vector'
+      input.dispatchEvent(new window.Event('input', { bubbles: true }))
+
+      await vi.advanceTimersByTimeAsync(260)
+      await flushMicrotasks()
+
+      const firstLink = element.querySelector('[data-search-results-list] a') as HTMLAnchorElement
+      const marks = Array.from(firstLink.querySelectorAll('mark'))
+
+      expect(marks.length).toBeGreaterThan(0)
+      expect(marks.every(mark => mark.textContent?.toLowerCase() === 'vector')).toBe(true)
+
+      const pathRow = firstLink.querySelector('.font-mono')
+      expect(pathRow?.querySelector('mark')).toBeNull()
     })
 
     vi.useRealTimers()

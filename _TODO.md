@@ -226,7 +226,7 @@ All code samples in this article are licensed under the MIT License. Feel free t
 - Search box on the search page is not working
 
 ```json
-{
+[{
   "id": "unique-id-from-crawler",
   "score": 0.985,
   "content": {
@@ -237,5 +237,5 @@ All code samples in this article are licensed under the MIT License. Feel free t
     "title": "Introduction to Vector Search",
     "description": "Learn the basics of how vector databases work."
   }
-}
+}]
 ```
