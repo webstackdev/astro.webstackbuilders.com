@@ -44,8 +44,9 @@ export const performSearch = async (
     const response = await client.index('default').search({
       query: q,
       limit: limitValue,
-      // Enable AI-Powered Reranking
       reranking: true,
+      semanticWeight: 0.5,
+      keepOriginalQueryAfterEnrichment: true,
     })
     return response
   } catch (error) {

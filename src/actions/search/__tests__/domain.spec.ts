@@ -61,6 +61,8 @@ describe('performSearch', () => {
       query: 'typescript',
       limit: 4,
       reranking: true,
+      semanticWeight: 0.5,
+      keepOriginalQueryAfterEnrichment: true,
     })
     expect(response).toEqual(upstashResponseFixture)
   })

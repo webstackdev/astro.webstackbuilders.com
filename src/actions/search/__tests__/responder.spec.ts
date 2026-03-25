@@ -7,10 +7,10 @@ describe('mapUpstashSearchResults', () => {
   it('maps an array response shape', () => {
     const hits = mapUpstashSearchResults(upstashResponseFixture, 'typescript')
 
-    expect(hits).toHaveLength(1)
+    expect(hits).toHaveLength(2)
     expect(hits[0]).toMatchObject({
       title: 'TypeScript Best Practices for Modern Development',
-      url: 'https://www.webstackbuilders.com/articles/typescript-best-practices',
+      url: '/articles/typescript-best-practices',
       score: 1,
     })
     expect(hits[0]?.snippet).toEqual(expect.any(String))
@@ -19,7 +19,7 @@ describe('mapUpstashSearchResults', () => {
 
   it('accepts a { results } wrapper shape', () => {
     const hits = mapUpstashSearchResults({ results: upstashResponseFixture }, 'typescript')
-    expect(hits).toHaveLength(1)
+    expect(hits).toHaveLength(2)
   })
 
   it('returns empty when raw is not usable', () => {
@@ -51,7 +51,7 @@ describe('mapUpstashSearchResults', () => {
     const raw = [
       {
         id: 'doc-1',
-        score: 0.74,
+        score: 0.39,
         content: {
           url: '/articles/low-score',
           title: 'Low Score',
@@ -60,7 +60,7 @@ describe('mapUpstashSearchResults', () => {
       },
       {
         id: 'doc-2',
-        score: 0.75,
+        score: 0.4,
         content: {
           url: '/articles/high-enough',
           title: 'High Enough',
@@ -73,7 +73,7 @@ describe('mapUpstashSearchResults', () => {
 
     expect(hits).toHaveLength(1)
     expect(hits[0]?.title).toBe('High Enough')
-    expect(hits[0]?.score).toBe(0.75)
+    expect(hits[0]?.score).toBe(0.4)
   })
 
   it('deduplicates hits that resolve to the same canonical path', () => {

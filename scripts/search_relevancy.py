@@ -140,7 +140,12 @@ def format_results_table(rows: list[SearchRelevancyRow], *, show_path: bool = Tr
 def run_search(*, query: str, limit: int, index_name: str | None = None, reranking: bool = False) -> list[SearchRelevancyRow]:
   url, token, default_index_name = resolve_upstash_credentials()
   client = Search(url=url, token=token)
-  raw_results = client.index(index_name or default_index_name).search(query, limit=limit, reranking=reranking)
+  raw_results = client.index(index_name or default_index_name).search(
+    query,
+    limit=limit,
+    reranking=reranking,
+    semantic_weight=0.5,
+  )
   return collect_search_relevancy_rows(raw_results)
 
 

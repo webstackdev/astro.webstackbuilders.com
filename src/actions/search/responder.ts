@@ -1,6 +1,6 @@
 import type { DefaultSearchResult, SearchHit } from '@actions/search/@types'
 
-const MIN_RELEVANCY_SCORE = 0.75
+const MIN_RELEVANCY_SCORE = 0.4
 
 const getCanonicalResultPath = (url: string): string => {
   try {
@@ -8,8 +8,8 @@ const getCanonicalResultPath = (url: string): string => {
     const normalizedPath = parsedUrl.pathname.replace(/\/+$/, '') || '/'
     return normalizedPath
   } catch {
-    const [withoutQuery] = url.split('?', 1)
-    const [withoutFragment] = withoutQuery.split('#', 1)
+    const withoutQuery = url.split('?', 1)[0] ?? url
+    const withoutFragment = withoutQuery.split('#', 1)[0] ?? withoutQuery
     return withoutFragment.replace(/\/+$/, '') || '/'
   }
 }

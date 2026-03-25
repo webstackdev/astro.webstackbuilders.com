@@ -33,10 +33,6 @@ Discuss agentic AI integrations to add to Backstage
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
-## Email Templates
-
-Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
-
 ## Chat bot tying into my phone and email
 
 Vercel AI Gateway, maybe could use for a chatbot:
@@ -160,18 +156,22 @@ Styling: You must use inline CSS within your `headerTemplate` or `footerTemplate
 
 ## ToolTips
 
-Need a tooltip component for consistency. List to add tooltips to:
+Need a tooltip component for consistency.
+
+List to add tooltips to:
 
 - Themepicker button
 - Search button
+
+These have tooltips, how are they being generated?
+
 - Abbreviations in markdown
 - "Report a Bug" in footer
 - RSS feed icon in footer
 
 ## Support Pages to Style
 
-- Bug reporter modal
-- Email templates
+- Bug reporter modal. Should  have option to minimize and carry state if it's minimized after someone enters bug info in case they need to collect info from the site for the report.
 
 ## HubSpot Signup Issues
 
