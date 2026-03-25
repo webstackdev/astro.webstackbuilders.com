@@ -149,8 +149,9 @@ describe('SearchBar web component', () => {
       await vi.advanceTimersByTimeAsync(260)
       await flushMicrotasks()
 
-      expect(searchQueryMock).toHaveBeenCalledWith({ q: 'ab', limit: 8 })
+      expect(searchQueryMock).toHaveBeenCalledWith({ q: 'ab', limit: 4 })
       expect(resultsContainer.classList.contains('hidden')).toBe(false)
+      expect(resultsContainer.className).toContain('bg-page-offset')
 
       const links = Array.from(element.querySelectorAll('[data-search-results-list] a')) as HTMLAnchorElement[]
       expect(
@@ -160,12 +161,24 @@ describe('SearchBar web component', () => {
             'https://www.webstackbuilders.com/deep-dive/introduction-to-vector-search'
         )
       ).toBe(true)
-      expect(links.some(link => link.getAttribute('href') === '/search?q=ab')).toBe(true)
 
       const firstLink = links[0]
       expect(firstLink?.className).toContain('no-underline')
+      expect(firstLink?.className).toContain('focus-visible:no-underline')
       expect(firstLink?.querySelector('svg')).toBeTruthy()
       expect(firstLink?.textContent).toContain('/deep-dive/introduction-to-vector-search')
+
+      const firstItem = firstLink?.closest('li')
+      expect(firstItem?.className).toContain('hover:bg-note-inverse')
+
+      const pathRow = firstLink?.querySelector('.font-mono') as HTMLElement | null
+      expect(pathRow?.className).toContain('text-content')
+
+      const titleRow = firstLink?.querySelector('.text-body') as HTMLElement | null
+      expect(titleRow?.className).toContain('text-page-inverse')
+
+      const arrow = firstLink?.querySelector('svg') as SVGElement | null
+      expect(arrow?.className.baseVal).toContain('text-gray-400')
     })
 
     vi.useRealTimers()
@@ -264,6 +277,21 @@ describe('SearchBar web component', () => {
       expect(input.value).toBe('')
       // Still open; button switches to "Close search" mode.
       expect(clearBtn.hasAttribute('hidden')).toBe(false)
+    })
+  })
+
+  it('uses a tighter focus-visible spotlight on header mic and clear buttons', async () => {
+    await runHeaderComponentRender(async ({ element }) => {
+      const clearBtn = element.querySelector('[data-search-clear]') as HTMLButtonElement
+      const micBtn = element.querySelector('[data-search-mic]') as HTMLButtonElement
+
+      expect(clearBtn.className).toContain('after:inset-1.5')
+      expect(clearBtn.className).toContain('after:rounded-full')
+      expect(clearBtn.className).not.toContain('focus-visible:after:-inset-1.5')
+
+      expect(micBtn.className).toContain('after:inset-1.5')
+      expect(micBtn.className).toContain('after:rounded-full')
+      expect(micBtn.className).not.toContain('focus-visible:after:-inset-1.5')
     })
   })
 

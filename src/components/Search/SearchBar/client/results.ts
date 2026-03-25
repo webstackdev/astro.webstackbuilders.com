@@ -5,6 +5,10 @@ const SEARCH_RESULT_FALLBACK_PATH = '/search'
 
 type HighlightChunk = string | TemplateResult
 
+interface HighlightSearchTextOptions {
+  highlightClassName?: string
+}
+
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const getHighlightTerms = (query: string): string[] => {
@@ -30,8 +34,13 @@ export const getSearchResultDisplayPath = (url: string): string => {
   }
 }
 
-export const highlightSearchText = (text: string, query: string): HighlightChunk[] | string => {
+export const highlightSearchText = (
+  text: string,
+  query: string,
+  options: HighlightSearchTextOptions = {}
+): HighlightChunk[] | string => {
   const highlightTerms = getHighlightTerms(query)
+  const { highlightClassName = 'bg-warning-inverse' } = options
 
   if (!text || highlightTerms.length === 0) {
     return text
@@ -53,7 +62,7 @@ export const highlightSearchText = (text: string, query: string): HighlightChunk
       parts.push(text.slice(cursor, matchIndex))
     }
 
-    parts.push(html`<mark class="bg-(--color-yellow-200) px-0 text-content">${matchText}</mark>`)
+    parts.push(html`<mark class=${highlightClassName}>${matchText}</mark>`)
     cursor = matchIndex + matchText.length
   }
 

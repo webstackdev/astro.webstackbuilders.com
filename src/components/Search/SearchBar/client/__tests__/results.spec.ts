@@ -31,6 +31,17 @@ describe('SearchBar result helpers', () => {
     expect(highlightedParts.some(part => typeof part !== 'string')).toBe(true)
   })
 
+  it('supports custom highlight classes so the live modal can match the scratchpad tokens', () => {
+    const highlighted = highlightSearchText('Vector databases work.', 'vector', {
+      highlightClassName: 'bg-warning-inverse text-content',
+    })
+
+    const highlightedParts = highlighted as Array<string | { values?: unknown[] }>
+    const templatePart = highlightedParts.find(part => typeof part !== 'string') as { values?: unknown[] } | undefined
+
+    expect(templatePart?.values?.[0]).toBe('bg-warning-inverse text-content')
+  })
+
   it('returns plain text when there is no highlightable query term', () => {
     expect(highlightSearchText('Introduction to Vector Search', 'v')).toBe('Introduction to Vector Search')
   })
