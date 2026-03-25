@@ -9,12 +9,32 @@ interface HighlightSearchTextOptions {
   highlightClassName?: string
 }
 
-const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
 const getHighlightTerms = (query: string): string[] => {
   return [...new Set(query.trim().split(/\s+/).filter(term => term.length >= MIN_HIGHLIGHT_TERM_LENGTH))].sort(
     (left, right) => right.length - left.length
   )
+}
+
+const findNextHighlightMatch = (
+  normalizedText: string,
+  normalizedTerms: string[],
+  startIndex: number
+): { index: number; term: string } | null => {
+  let nextMatch: { index: number; term: string } | null = null
+
+  for (const term of normalizedTerms) {
+    const index = normalizedText.indexOf(term, startIndex)
+
+    if (index < 0) {
+      continue
+    }
+
+    if (!nextMatch || index < nextMatch.index || (index === nextMatch.index && term.length > nextMatch.term.length)) {
+      nextMatch = { index, term }
+    }
+  }
+
+  return nextMatch
 }
 
 export const getSearchResultDisplayPath = (url: string): string => {
@@ -46,24 +66,26 @@ export const highlightSearchText = (
     return text
   }
 
-  const pattern = new RegExp(`(${highlightTerms.map(term => escapeRegExp(term)).join('|')})`, 'gi')
   const parts: HighlightChunk[] = []
+  const normalizedText = text.toLocaleLowerCase()
+  const normalizedTerms = highlightTerms.map(term => term.toLocaleLowerCase())
   let cursor = 0
 
-  for (const match of text.matchAll(pattern)) {
-    const matchText = match[0]
-    const matchIndex = match.index ?? -1
+  while (cursor < text.length) {
+    const nextMatch = findNextHighlightMatch(normalizedText, normalizedTerms, cursor)
 
-    if (!matchText || matchIndex < 0) {
-      continue
+    if (!nextMatch) {
+      break
     }
 
-    if (matchIndex > cursor) {
-      parts.push(text.slice(cursor, matchIndex))
+    if (nextMatch.index > cursor) {
+      parts.push(text.slice(cursor, nextMatch.index))
     }
+
+    const matchText = text.slice(nextMatch.index, nextMatch.index + nextMatch.term.length)
 
     parts.push(html`<mark class=${highlightClassName}>${matchText}</mark>`)
-    cursor = matchIndex + matchText.length
+    cursor = nextMatch.index + matchText.length
   }
 
   if (parts.length === 0) {

@@ -1,24 +1,88 @@
 ---
-import SearchBar from '@components/Search/SearchBar/index.astro'
+import Icon from '@components/Icon/index.astro'
+import SearchEmptyState from '@components/Search/SearchEmptyState/index.astro'
 const { query: queryProp } = Astro.props
 const query = (queryProp ?? Astro.url.searchParams.get('q') ?? '').trim()
 ---
 
 <search-results query={query} class="block">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+  <div class="mx-auto w-full space-y-8 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8">
     <header class="space-y-4" aria-labelledby="search-title">
-      <h1 id="search-title" class="text-3xl md:text-4xl font-bold">Search</h1>
-      <div class="max-w-2xl">
-        <SearchBar initialQuery={query} />
+      <div class="max-w-lg mx-auto">
+        <form data-search-form class="relative" role="search" aria-label="Site search">
+          <div data-search-shell class="relative flex items-center rounded-lg border border-trim bg-page-base shadow-sm">
+            <input
+              data-search-input
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              aria-label="Search"
+              placeholder="Search…"
+              value={query}
+              class="min-w-0 flex-1 rounded-lg border-0 bg-transparent px-4 py-3 pr-24 placeholder:text-content-active focus:outline-none focus-visible:outline-none focus:ring-0"
+            />
+
+            <button
+              data-search-clear
+              type="button"
+              aria-label="Clear search"
+              hidden={!query}
+              class="relative inline-flex items-center justify-center h-11 w-11 shrink-0 border-0 bg-transparent text-content-active transition-colors duration-150 ease-linear hover:text-primary focus-visible:text-primary focus-visible:outline-none"
+            >
+              <Icon icon="close" color="inherit" size={5} />
+            </button>
+
+            <button
+              data-search-mic
+              type="button"
+              aria-label="Voice search"
+              hidden
+              class="relative inline-flex items-center justify-center h-11 w-11 shrink-0 border-0 bg-transparent text-content-active transition-colors duration-150 ease-linear hover:text-primary focus-visible:text-primary focus-visible:outline-none"
+            >
+              <Icon icon="microphone" color="inherit" size={5} />
+            </button>
+
+            <div
+              data-search-outline
+              aria-hidden="true"
+              class="pointer-events-none absolute inset-0 hidden rounded-lg border-2 border-spotlight"
+            ></div>
+          </div>
+        </form>
       </div>
 
-      <p data-search-meta class="text-sm text-content-active" aria-live="polite"></p>
-      <p data-search-error class="text-sm text-content-active hidden" role="alert"></p>
+      <p data-search-meta class="max-w-4xl mx-auto text-sm text-content-active pt-6" aria-live="polite"></p>
+      <p data-search-error class="max-w-4xl mx-auto text-sm text-content-active hidden pt-6" role="alert"></p>
     </header>
 
-    <ol data-search-results class="space-y-6" aria-label="Search results"></ol>
+    <ol data-search-results class="max-w-4xl mx-auto space-y-8" aria-label="Search results"></ol>
+
+    <div data-search-empty-state class:list={[query ? 'hidden' : '', 'max-w-5xl mx-auto']}>
+      <SearchEmptyState />
+    </div>
   </div>
 </search-results>
+
+<style>
+  [data-search-shell]:has([data-search-input]:focus-visible) [data-search-outline] {
+    display: block;
+  }
+
+  [data-search-shell]:has([data-search-input]:focus-visible) {
+    border-color: transparent;
+  }
+
+  [data-search-input]::-webkit-search-cancel-button,
+  [data-search-input]::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  [data-search-input]::-ms-clear,
+  [data-search-input]::-ms-reveal {
+    display: none;
+  }
+</style>
 
 <script>
   import { registerSearchResultsComponent } from '@components/Search/SearchResults/client'

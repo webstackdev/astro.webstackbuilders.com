@@ -73,6 +73,23 @@ describe('SearchResults web component', () => {
 
       const results = element.querySelectorAll('[data-search-results] li')
       expect(results.length).toBe(0)
+
+      const emptyState = element.querySelector('[data-search-empty-state]')
+      expect(emptyState?.classList.contains('hidden')).toBe(false)
+    })
+  })
+
+  it('shows the empty state when there is no query', async () => {
+    await runComponentRender('', async ({ element }) => {
+      await flushMicrotasks()
+
+      expect(searchQueryMock).not.toHaveBeenCalled()
+
+      const meta = element.querySelector('[data-search-meta]')
+      expect(meta?.textContent).toBe('')
+
+      const emptyState = element.querySelector('[data-search-empty-state]')
+      expect(emptyState?.classList.contains('hidden')).toBe(false)
     })
   })
 
@@ -104,6 +121,70 @@ describe('SearchResults web component', () => {
 
       const meta = element.querySelector('[data-search-meta]')
       expect(meta?.textContent).toContain('result')
+
+      const emptyState = element.querySelector('[data-search-empty-state]')
+      expect(emptyState?.classList.contains('hidden')).toBe(true)
+
+      const itemMeta = element.querySelector('[data-search-results] li div')
+      expect(itemMeta?.textContent).toContain('Article')
+      expect(itemMeta?.textContent).toContain('/articles/typescript-best-practices')
+    })
+  })
+
+  it('updates the page results as the user types in the inline search input', async () => {
+    vi.useFakeTimers()
+
+    searchQueryMock.mockResolvedValue({
+      data: {
+        hits: [
+          {
+            title: 'TypeScript Best Practices',
+            url: '/articles/typescript-best-practices',
+            snippet: '...',
+          },
+        ],
+      },
+    })
+
+    await runComponentRender('', async ({ element, window }) => {
+      const input = element.querySelector('[data-search-input]') as HTMLInputElement | null
+      expect(input).toBeTruthy()
+
+      input!.value = 'typescript'
+      input!.dispatchEvent(new window.Event('input', { bubbles: true }))
+
+      await vi.advanceTimersByTimeAsync(260)
+      await flushMicrotasks()
+
+      expect(searchQueryMock).toHaveBeenCalledWith({ q: 'typescript', limit: 20 })
+
+      const links = Array.from(
+        element.querySelectorAll('[data-search-results] a')
+      ) as HTMLAnchorElement[]
+      expect(links.some(link => link.getAttribute('href') === '/articles/typescript-best-practices')).toBe(true)
+
+      const emptyState = element.querySelector('[data-search-empty-state]')
+      expect(emptyState?.classList.contains('hidden')).toBe(true)
+    })
+
+    vi.useRealTimers()
+  })
+
+  it('shows the empty state when the search returns no hits', async () => {
+    searchQueryMock.mockResolvedValue({
+      data: {
+        hits: [],
+      },
+    })
+
+    await runComponentRender('typescript', async ({ element }) => {
+      await flushMicrotasks()
+
+      const results = element.querySelectorAll('[data-search-results] li')
+      expect(results.length).toBe(0)
+
+      const emptyState = element.querySelector('[data-search-empty-state]')
+      expect(emptyState?.classList.contains('hidden')).toBe(false)
     })
   })
 })

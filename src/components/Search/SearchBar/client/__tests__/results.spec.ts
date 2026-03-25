@@ -45,4 +45,14 @@ describe('SearchBar result helpers', () => {
   it('returns plain text when there is no highlightable query term', () => {
     expect(highlightSearchText('Introduction to Vector Search', 'v')).toBe('Introduction to Vector Search')
   })
+
+  it('highlights terms containing regex metacharacters without using regex semantics', () => {
+    const highlighted = highlightSearchText('C++ patterns for teams', 'c++')
+
+    expect(Array.isArray(highlighted)).toBe(true)
+
+    const highlightedParts = highlighted as Array<string | { values?: unknown[] }>
+    expect(highlightedParts.some(part => typeof part === 'string' && part.includes(' patterns for teams'))).toBe(true)
+    expect(highlightedParts.some(part => typeof part !== 'string')).toBe(true)
+  })
 })

@@ -178,7 +178,7 @@ describe('SearchBar web component', () => {
       expect(titleRow?.className).toContain('text-page-inverse')
 
       const arrow = firstLink?.querySelector('svg') as SVGElement | null
-      expect(arrow?.className.baseVal).toContain('text-gray-400')
+      expect(arrow?.getAttribute('class')).toContain('text-gray-400')
     })
 
     vi.useRealTimers()

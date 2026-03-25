@@ -1,0 +1,75 @@
+---
+import Icon from '@components/Icon/index.astro'
+import { Image } from 'astro:assets'
+
+import imgAbout from './images/about.jpg'
+import imgArticles from './images/articles.jpg'
+import imgCaseStudies from './images/case-studies.jpg'
+import imgContact from './images/contact.jpg'
+
+const items = [
+  {
+    title: 'Articles',
+    text: 'Read our latest thoughts, tutorials, and insights on modern web architecture and engineering.',
+    link: '/articles',
+    icon: 'document',
+    image: imgArticles,
+    cta: 'Browse articles',
+    imageClasses: '',
+  },
+  {
+    title: 'About Us',
+    text: 'Learn more about our team, our mission, and the technical approach behind our work.',
+    link: '/about',
+    icon: 'avatar',
+    image: imgAbout,
+    cta: 'Get to know us',
+    imageClasses: '',
+  },
+  {
+    title: 'Case Studies',
+    text: "Explore exactly how we've deployed scalable, high-performance solutions for our clients.",
+    link: '/case-studies',
+    icon: 'file',
+    image: imgCaseStudies,
+    cta: 'View projects',
+    imageClasses: 'flex md:order-last',
+  },
+  {
+    title: 'Contact',
+    text: 'Reach out to start a conversation about your next big project or consulting needs.',
+    link: '/contact',
+    icon: 'email',
+    image: imgContact,
+    cta: "Let's talk",
+    imageClasses: 'flex md:order-last',
+  },
+]
+---
+
+<section class="space-y-6 mt-18 mb-12">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    {items.map((item) => (
+      <a href={item.link} class="group relative flex flex-col md:flex-row p-0 rounded-md border border-trim bg-page-base shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden no-underline hover:no-underline focus-visible:rounded-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spotlight">
+        <div class="absolute inset-0 bg-content-inverse"></div>
+        <div class={`w-full md:w-48 h-48 md:h-auto shrink-0 relative overflow-hidden ${item.imageClasses}`}>
+          <Image src={item.image} alt={item.title} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        </div>
+        <div class="p-6 flex flex-col justify-center grow">
+          <div class="relative flex items-center gap-4 mb-4">
+            <h3 class="inline-flex items-center gap-2 whitespace-nowrap text-xl text-page-inverse font-bold transition-colors no-underline">
+              <Icon icon={item.icon} size={6} />
+              {item.title}
+            </h3>
+          </div>
+          <p class="relative text-content-offset text-sm leading-relaxed no-underline">{item.text}</p>
+          <div class="relative mt-6 flex pointer-events-none">
+            <span class="text-sm font-medium text-page-inverse flex items-center gap-1 group-hover:gap-2 transition-all no-underline">
+              {item.cta} <Icon icon="arrow-right" size={4} />
+            </span>
+          </div>
+        </div>
+      </a>
+    ))}
+  </div>
+</section>
