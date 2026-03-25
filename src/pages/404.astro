@@ -1,22 +1,55 @@
 ---
 import PageLayout from '@layouts/PageLayout.astro'
-import NotFound from '@components/Pages/NotFound/index.astro'
+import SearchEmptyState from '@components/Search/SearchEmptyState/index.astro'
+import SearchResults from '@components/Search/SearchResults/index.astro'
+
+const getFallbackSearchQuery = (pathname: string): string => {
+  if (pathname === '/404' || pathname === '/404/') {
+    return ''
+  }
+
+  const lastSegment = pathname
+    .split('/')
+    .filter(Boolean)
+    .at(-1)
+
+  if (!lastSegment) {
+    return ''
+  }
+
+  const decodedSegment = decodeURIComponent(lastSegment)
+  const withoutExtension = decodedSegment.replace(/\.[a-z0-9]+$/i, '')
+
+  return withoutExtension
+    .split(/[^a-z0-9]+/i)
+    .map(term => term.trim())
+    .filter(Boolean)
+    .join(' ')
+}
 
 const pageDescription = "Sorry, the page you are looking for doesn't exist or has been moved."
 const pageTitle = "404 - Page Not Found"
 const path = '/404/'
+const fallbackSearchQuery = getFallbackSearchQuery(Astro.url.pathname)
 ---
 
 <PageLayout
   pageTitle={pageTitle}
   pageDescription={pageDescription}
+  description=""
   icon="error"
   path={path}
   noindex={true}
 >
-  <NotFound
-    content={{
-      buttonText: "Go Back Home",
-    }}
-  />
+  <div class="border border-trim rounded-md mx-auto max-w-5xl mb-6">
+    <SearchResults
+      query={fallbackSearchQuery}
+      limit={4}
+      showSearchBar={false}
+      hideSearchEmptyState={true}
+    />
+  </div>
+  <div class="mx-auto max-w-5xl mb-12">
+    <SearchEmptyState />
+  </div>
 </PageLayout>

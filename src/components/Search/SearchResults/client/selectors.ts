@@ -1,10 +1,4 @@
-import {
-  isFormElement,
-  isDivElement,
-  isInputElement,
-  isOrderedListElement,
-  isParagraphElement,
-} from '@components/scripts/assertions/elements'
+import { isDivElement, isInputElement, isOrderedListElement, isParagraphElement } from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {
@@ -22,15 +16,6 @@ export const SELECTORS = {
  * Get search results elements with type validation
  */
 export function getSearchResultsElements(context: Element) {
-  const form = context.querySelector(SELECTORS.form)
-  if (!isFormElement(form)) {
-    throw new ClientScriptError({
-      scriptName: 'SearchResultsElement',
-      operation: 'getSearchResultsElements',
-      message: 'Search form element not found',
-    })
-  }
-
   const meta = context.querySelector(SELECTORS.meta)
   if (!isParagraphElement(meta)) {
     throw new ClientScriptError({
@@ -59,49 +44,19 @@ export function getSearchResultsElements(context: Element) {
   }
 
   const emptyState = context.querySelector(SELECTORS.emptyState)
-  if (!isDivElement(emptyState)) {
-    throw new ClientScriptError({
-      scriptName: 'SearchResultsElement',
-      operation: 'getSearchResultsElements',
-      message: 'Search empty state element not found',
-    })
-  }
-
-  const input = context.querySelector(SELECTORS.input)
-  if (!isInputElement(input)) {
-    throw new ClientScriptError({
-      scriptName: 'SearchResultsElement',
-      operation: 'getSearchResultsElements',
-      message: 'Search input element not found',
-    })
-  }
-
   const micBtn = context.querySelector(SELECTORS.micBtn)
-  if (!(micBtn instanceof HTMLButtonElement)) {
-    throw new ClientScriptError({
-      scriptName: 'SearchResultsElement',
-      operation: 'getSearchResultsElements',
-      message: 'Search microphone button element not found',
-    })
-  }
-
   const clearBtn = context.querySelector(SELECTORS.clearBtn)
-  if (!(clearBtn instanceof HTMLButtonElement)) {
-    throw new ClientScriptError({
-      scriptName: 'SearchResultsElement',
-      operation: 'getSearchResultsElements',
-      message: 'Search clear button element not found',
-    })
-  }
+  const form = context.querySelector(SELECTORS.form)
+  const input = context.querySelector(SELECTORS.input)
 
   return {
-    form,
+    form: form instanceof HTMLFormElement ? form : null,
     meta,
     error,
     resultsList,
-    emptyState,
-    input,
-    micBtn,
-    clearBtn,
+    emptyState: isDivElement(emptyState) ? emptyState : null,
+    input: isInputElement(input) ? input : null,
+    micBtn: micBtn instanceof HTMLButtonElement ? micBtn : null,
+    clearBtn: clearBtn instanceof HTMLButtonElement ? clearBtn : null,
   }
 }

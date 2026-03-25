@@ -39,7 +39,12 @@ describe('SearchResults web component', () => {
   })
 
   const runComponentRender = async (
-    query: string,
+    props: {
+      query?: string
+      limit?: number
+      showSearchBar?: boolean
+      hideSearchEmptyState?: boolean
+    },
     assertion: (_context: {
       element: SearchResultsElementInstance
       window: Window & typeof globalThis
@@ -49,7 +54,7 @@ describe('SearchResults web component', () => {
       container,
       component: SearchResultsFixture,
       moduleSpecifier: '@components/Search/SearchResults/client/index',
-      args: { props: { query } },
+      args: { props },
       waitForReady: async (element: SearchResultsElementInstance) => {
         await element.updateComplete
       },
@@ -63,7 +68,7 @@ describe('SearchResults web component', () => {
   }
 
   it('shows the short-query hint and does not call search', async () => {
-    await runComponentRender('a', async ({ element }) => {
+    await runComponentRender({ query: 'a' }, async ({ element }) => {
       await flushMicrotasks()
 
       expect(searchQueryMock).not.toHaveBeenCalled()
@@ -80,7 +85,7 @@ describe('SearchResults web component', () => {
   })
 
   it('shows the empty state when there is no query', async () => {
-    await runComponentRender('', async ({ element }) => {
+    await runComponentRender({ query: '' }, async ({ element }) => {
       await flushMicrotasks()
 
       expect(searchQueryMock).not.toHaveBeenCalled()
@@ -107,7 +112,7 @@ describe('SearchResults web component', () => {
       },
     })
 
-    await runComponentRender('typescript', async ({ element }) => {
+    await runComponentRender({ query: 'typescript' }, async ({ element }) => {
       await flushMicrotasks()
 
       expect(searchQueryMock).toHaveBeenCalledWith({ q: 'typescript', limit: 20 })
@@ -146,7 +151,7 @@ describe('SearchResults web component', () => {
       },
     })
 
-    await runComponentRender('', async ({ element, window }) => {
+    await runComponentRender({ query: '' }, async ({ element, window }) => {
       const input = element.querySelector('[data-search-input]') as HTMLInputElement | null
       expect(input).toBeTruthy()
 
@@ -177,7 +182,7 @@ describe('SearchResults web component', () => {
       },
     })
 
-    await runComponentRender('typescript', async ({ element }) => {
+    await runComponentRender({ query: 'typescript' }, async ({ element }) => {
       await flushMicrotasks()
 
       const results = element.querySelectorAll('[data-search-results] li')
@@ -186,5 +191,28 @@ describe('SearchResults web component', () => {
       const emptyState = element.querySelector('[data-search-empty-state]')
       expect(emptyState?.classList.contains('hidden')).toBe(false)
     })
+  })
+
+  it('supports a custom limit without rendering the built-in empty state', async () => {
+    searchQueryMock.mockResolvedValue({
+      data: {
+        hits: [],
+      },
+    })
+
+    await runComponentRender(
+      {
+        query: 'typescript',
+        limit: 4,
+        showSearchBar: false,
+        hideSearchEmptyState: true,
+      },
+      async ({ element }) => {
+        await flushMicrotasks()
+
+        expect(searchQueryMock).toHaveBeenCalledWith({ q: 'typescript', limit: 4 })
+        expect(element.querySelector('[data-search-empty-state]')).toBeNull()
+      }
+    )
   })
 })
