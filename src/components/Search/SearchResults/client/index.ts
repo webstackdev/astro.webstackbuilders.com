@@ -40,10 +40,14 @@ export class SearchResultsElement extends LitElement {
   static override properties = {
     query: { type: String, attribute: 'query' },
     limit: { type: Number, attribute: 'limit' },
+    resultsMetaOverride: { type: String, attribute: 'results-meta-override' },
+    syncQueryToLocation: { type: String, attribute: 'sync-query-to-location' },
   }
 
   declare query?: string
   declare limit: number
+  declare resultsMetaOverride: string | undefined
+  declare syncQueryToLocation: string | undefined
 
   private form: HTMLFormElement | null = null
   private meta: HTMLElement | null = null
@@ -67,6 +71,8 @@ export class SearchResultsElement extends LitElement {
   constructor() {
     super()
     this.limit = 20
+    this.resultsMetaOverride = undefined
+    this.syncQueryToLocation = 'true'
   }
 
   override connectedCallback(): void {
@@ -145,13 +151,34 @@ export class SearchResultsElement extends LitElement {
     element.textContent = text
   }
 
+  private setElementVisibility(element: HTMLElement | null, visible: boolean): void {
+    if (!element) {
+      return
+    }
+
+    element.classList.toggle('hidden', !visible)
+  }
+
+  private getResultsMetaOverride(): string {
+    return this.resultsMetaOverride?.trim() ?? ''
+  }
+
+  private setMeta(message: string, visible = message.length > 0): void {
+    this.setText(this.meta, message)
+    this.setElementVisibility(this.meta, visible)
+  }
+
+  private clearMeta(): void {
+    this.setMeta('', false)
+  }
+
   private showError(message: string): void {
     if (!this.errorEl) {
       return
     }
 
     this.setEmptyStateVisible(false)
-    this.errorEl.classList.remove('hidden')
+    this.setElementVisibility(this.errorEl, true)
     this.setText(this.errorEl, message)
   }
 
@@ -160,8 +187,21 @@ export class SearchResultsElement extends LitElement {
       return
     }
 
-    this.errorEl.classList.add('hidden')
+    this.setElementVisibility(this.errorEl, false)
     this.setText(this.errorEl, '')
+  }
+
+  private shouldSuppressMetaFeedback(): boolean {
+    return this.getResultsMetaOverride().length > 0
+  }
+
+  private getResultsMetaMessage(query: string, hits: SearchHit[]): string {
+    const override = this.getResultsMetaOverride()
+    if (override && hits.length > 0) {
+      return override
+    }
+
+    return `${hits.length} result${hits.length === 1 ? '' : 's'} for ${query}`
   }
 
   private updateClearButtonVisibility(): void {
@@ -304,7 +344,15 @@ export class SearchResultsElement extends LitElement {
     }
   }
 
-  private syncQueryToLocation(query: string): void {
+  private shouldSyncQueryToLocation(): boolean {
+    return this.syncQueryToLocation !== 'false'
+  }
+
+  private replaceLocationQuery(query: string): void {
+    if (!this.shouldSyncQueryToLocation()) {
+      return
+    }
+
     const url = new URL(window.location.href)
 
     if (query) {
@@ -396,22 +444,30 @@ export class SearchResultsElement extends LitElement {
     }
 
     this.query = query
-    this.syncQueryToLocation(query)
+    this.replaceLocationQuery(query)
     this.clearError()
 
     if (!query) {
-      this.setText(this.meta, '')
+      this.clearMeta()
       this.renderResults([])
       return
     }
 
     if (query.length < MIN_QUERY_LENGTH) {
-      this.setText(this.meta, 'Type at least 2 characters to search.')
+      if (this.shouldSuppressMetaFeedback()) {
+        this.clearMeta()
+      } else {
+        this.setMeta('Type at least 2 characters to search.')
+      }
       this.renderResults([])
       return
     }
 
-    this.setText(this.meta, 'Searching…')
+    if (this.shouldSuppressMetaFeedback()) {
+      this.clearMeta()
+    } else {
+      this.setMeta('Searching…')
+    }
     this.debounceHandle = setTimeout(() => {
       void this.run(query)
     }, 250)
@@ -431,9 +487,9 @@ export class SearchResultsElement extends LitElement {
     this.query = ''
     this.updateClearButtonVisibility()
     this.clearError()
-    this.setText(this.meta, '')
+    this.clearMeta()
     this.renderResults([])
-    this.syncQueryToLocation('')
+    this.replaceLocationQuery('')
     this.input.focus()
   }
 
@@ -450,7 +506,7 @@ export class SearchResultsElement extends LitElement {
     const query = (queryOverride ?? this.getQuery()).trim()
     this.query = query
     this.clearError()
-    this.syncQueryToLocation(query)
+    this.replaceLocationQuery(query)
 
     if (this.input && typeof this.input.value === 'string' && this.input.value !== query) {
       this.input.value = query
@@ -459,18 +515,26 @@ export class SearchResultsElement extends LitElement {
     this.updateClearButtonVisibility()
 
     if (!query) {
-      this.setText(this.meta, '')
+      this.clearMeta()
       this.renderResults([])
       return
     }
 
     if (query.length < MIN_QUERY_LENGTH) {
-      this.setText(this.meta, 'Type at least 2 characters to search.')
+      if (this.shouldSuppressMetaFeedback()) {
+        this.clearMeta()
+      } else {
+        this.setMeta('Type at least 2 characters to search.')
+      }
       this.renderResults([])
       return
     }
 
-    this.setText(this.meta, 'Searching…')
+    if (this.shouldSuppressMetaFeedback()) {
+      this.clearMeta()
+    } else {
+      this.setMeta('Searching…')
+    }
 
     const context = { scriptName: 'SearchResultsElement', operation: 'run' }
     addScriptBreadcrumb(context)
@@ -483,14 +547,14 @@ export class SearchResultsElement extends LitElement {
       const message = error instanceof Error ? error.message : 'Search failed.'
       handleScriptError(error, context)
       this.renderResults([])
-      this.setText(this.meta, '')
+      this.clearMeta()
       this.showError(message)
       return
     }
 
     if (!data) {
       this.renderResults([])
-      this.setText(this.meta, '')
+      this.clearMeta()
       return
     }
 
@@ -500,7 +564,12 @@ export class SearchResultsElement extends LitElement {
 
     const hits = (data.hits ?? []) as SearchHit[]
     this.renderResults(hits)
-    this.setText(this.meta, `${hits.length} result${hits.length === 1 ? '' : 's'} for ${query}`)
+    if (hits.length === 0 && this.shouldSuppressMetaFeedback()) {
+      this.clearMeta()
+      return
+    }
+
+    this.setMeta(this.getResultsMetaMessage(query, hits), hits.length > 0 || !this.shouldSuppressMetaFeedback())
   }
 }
 

@@ -6,18 +6,26 @@ const {
   showSearchBar = true,
   limit = 20,
   hideSearchEmptyState = false,
+  resultsMetaOverride,
+  syncQueryToLocation = true,
 } = Astro.props
 const query = (queryProp ?? Astro.url.searchParams.get('q') ?? '').trim()
 ---
 
-<search-results query={query} limit={limit} class="block">
+<search-results
+  query={query}
+  limit={limit}
+  results-meta-override={resultsMetaOverride}
+  sync-query-to-location={syncQueryToLocation ? 'true' : 'false'}
+  class="block"
+>
   <div class="mx-auto w-full space-y-8 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8">
     <header class="space-y-4" aria-labelledby="search-title">
       {
         showSearchBar && (
           <div class="max-w-lg mx-auto">
             <form data-search-form class="relative" role="search" aria-label="Site search">
-              <div data-search-shell class="relative flex items-center rounded-lg border border-trim bg-page-base shadow-sm">
+              <div data-search-shell class="searchResultsShell relative flex items-center rounded-lg border border-trim bg-page-base shadow-sm">
                 <input
                   data-search-input
                   type="search"
@@ -26,7 +34,7 @@ const query = (queryProp ?? Astro.url.searchParams.get('q') ?? '').trim()
                   aria-label="Search"
                   placeholder="Search…"
                   value={query}
-                  class="min-w-0 flex-1 rounded-lg border-0 bg-transparent px-4 py-3 pr-24 placeholder:text-content-active focus:outline-none focus-visible:outline-none focus:ring-0"
+                  class="searchResultsInput min-w-0 flex-1 rounded-lg border-0 bg-transparent px-4 py-3 pr-24 placeholder:text-content-active focus:outline-none focus-visible:outline-none focus:ring-0"
                 />
 
                 <button
@@ -52,7 +60,7 @@ const query = (queryProp ?? Astro.url.searchParams.get('q') ?? '').trim()
                 <div
                   data-search-outline
                   aria-hidden="true"
-                  class="pointer-events-none absolute inset-0 hidden rounded-lg border-2 border-spotlight"
+                  class="searchResultsOutline pointer-events-none absolute inset-0 hidden rounded-lg border-2 border-spotlight"
                 ></div>
               </div>
             </form>
@@ -60,7 +68,14 @@ const query = (queryProp ?? Astro.url.searchParams.get('q') ?? '').trim()
         )
       }
 
-      <p data-search-meta class="max-w-5xl mx-auto text-sm text-content-active pt-6" aria-live="polite"></p>
+      <p
+        data-search-meta
+        class:list={[
+          'max-w-5xl mx-auto text-sm text-content-active pt-6',
+          resultsMetaOverride ? 'hidden' : '',
+        ]}
+        aria-live="polite"
+      ></p>
       <p data-search-error class="max-w-5xl mx-auto text-sm text-content-active hidden pt-6" role="alert"></p>
     </header>
 
@@ -77,22 +92,21 @@ const query = (queryProp ?? Astro.url.searchParams.get('q') ?? '').trim()
 </search-results>
 
 <style>
-  [data-search-shell]:has([data-search-input]:focus-visible) [data-search-outline] {
+  .searchResultsShell:has(.searchResultsInput:focus-visible) .searchResultsOutline {
     display: block;
   }
 
-  [data-search-shell]:has([data-search-input]:focus-visible) {
+  .searchResultsShell:has(.searchResultsInput:focus-visible) {
     border-color: transparent;
   }
 
-  [data-search-input]::-webkit-search-cancel-button,
-  [data-search-input]::-webkit-search-decoration {
-    -webkit-appearance: none;
+  .searchResultsInput::-webkit-search-cancel-button,
+  .searchResultsInput::-webkit-search-decoration {
     appearance: none;
   }
 
-  [data-search-input]::-ms-clear,
-  [data-search-input]::-ms-reveal {
+  .searchResultsInput::-ms-clear,
+  .searchResultsInput::-ms-reveal {
     display: none;
   }
 </style>

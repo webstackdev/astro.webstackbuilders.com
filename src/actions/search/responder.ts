@@ -1,5 +1,19 @@
 import type { DefaultSearchResult, SearchHit } from '@actions/search/@types'
 
+const MIN_RELEVANCY_SCORE = 0.75
+
+const getCanonicalResultPath = (url: string): string => {
+  try {
+    const parsedUrl = new URL(url, 'https://www.webstackbuilders.com')
+    const normalizedPath = parsedUrl.pathname.replace(/\/+$/, '') || '/'
+    return normalizedPath
+  } catch {
+    const [withoutQuery] = url.split('?', 1)
+    const [withoutFragment] = withoutQuery.split('#', 1)
+    return withoutFragment.replace(/\/+$/, '') || '/'
+  }
+}
+
 const getExcerpt = (value: unknown, maxLength = 200): string | undefined => {
   if (typeof value !== 'string') return undefined
   const normalized = value.replace(/\s+/g, ' ').trim()
@@ -24,7 +38,8 @@ export const mapUpstashSearchResults = (raw: unknown, fallbackQuery: string): Se
 
   const fallbackUrl = `/search?q=${encodeURIComponent(fallbackQuery)}`
 
-  return results
+  const hits = results
+    .filter(item => typeof item.score === 'number' && item.score >= MIN_RELEVANCY_SCORE)
     .map((item): SearchHit | null => {
       const content = item.content ?? {}
       const metadata = item.metadata ?? {}
@@ -60,4 +75,22 @@ export const mapUpstashSearchResults = (raw: unknown, fallbackQuery: string): Se
       return hit
     })
     .filter((hit): hit is SearchHit => Boolean(hit))
+
+  const dedupedHits = new Map<string, SearchHit>()
+
+  for (const hit of hits) {
+    const key = getCanonicalResultPath(hit.url)
+    const existing = dedupedHits.get(key)
+
+    if (!existing) {
+      dedupedHits.set(key, hit)
+      continue
+    }
+
+    if ((hit.score ?? 0) > (existing.score ?? 0)) {
+      dedupedHits.set(key, hit)
+    }
+  }
+
+  return Array.from(dedupedHits.values())
 }

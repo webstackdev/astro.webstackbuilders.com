@@ -44,6 +44,8 @@ describe('SearchResults web component', () => {
       limit?: number
       showSearchBar?: boolean
       hideSearchEmptyState?: boolean
+      resultsMetaOverride?: string
+      syncQueryToLocation?: boolean
     },
     assertion: (_context: {
       element: SearchResultsElementInstance
@@ -212,6 +214,83 @@ describe('SearchResults web component', () => {
 
         expect(searchQueryMock).toHaveBeenCalledWith({ q: 'typescript', limit: 4 })
         expect(element.querySelector('[data-search-empty-state]')).toBeNull()
+      }
+    )
+  })
+
+  it('shows the override meta only when results are returned', async () => {
+    searchQueryMock.mockResolvedValueOnce({
+      data: {
+        hits: [],
+      },
+    })
+
+    await runComponentRender(
+      {
+        query: 'typescript',
+        limit: 4,
+        showSearchBar: false,
+        hideSearchEmptyState: true,
+        resultsMetaOverride: 'Maybe one of these is what you were looking for.',
+      },
+      async ({ element }) => {
+        await flushMicrotasks()
+
+        const meta = element.querySelector('[data-search-meta]')
+        expect(meta?.classList.contains('hidden')).toBe(true)
+        expect(meta?.textContent).toBe('')
+      }
+    )
+
+    searchQueryMock.mockResolvedValueOnce({
+      data: {
+        hits: [
+          {
+            title: 'TypeScript Best Practices',
+            url: '/articles/typescript-best-practices',
+            snippet: '...',
+          },
+        ],
+      },
+    })
+
+    await runComponentRender(
+      {
+        query: 'typescript',
+        limit: 4,
+        showSearchBar: false,
+        hideSearchEmptyState: true,
+        resultsMetaOverride: 'Maybe one of these is what you were looking for.',
+      },
+      async ({ element }) => {
+        await flushMicrotasks()
+
+        const meta = element.querySelector('[data-search-meta]')
+        expect(meta?.classList.contains('hidden')).toBe(false)
+        expect(meta?.textContent).toBe('Maybe one of these is what you were looking for.')
+      }
+    )
+  })
+
+  it('does not append a q parameter when URL syncing is disabled', async () => {
+    searchQueryMock.mockResolvedValue({
+      data: {
+        hits: [],
+      },
+    })
+
+    await runComponentRender(
+      {
+        query: 'some article',
+        showSearchBar: false,
+        hideSearchEmptyState: true,
+        syncQueryToLocation: false,
+      },
+      async ({ window }) => {
+        const initialSearch = window.location.search
+        await flushMicrotasks()
+
+        expect(window.location.search).toBe(initialSearch)
       }
     )
   })

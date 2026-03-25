@@ -1,8 +1,8 @@
-from scripts.search_relevancy import ArticleRelevancyRow, collect_article_relevancy_rows, format_results_table
+from scripts.search_relevancy import SearchRelevancyRow, collect_search_relevancy_rows, format_results_table
 
 
-def test_collect_article_relevancy_rows_groups_sections_by_article() -> None:
-  rows = collect_article_relevancy_rows(
+def test_collect_search_relevancy_rows_preserves_all_scored_results() -> None:
+  rows = collect_search_relevancy_rows(
     [
       {
         'content': {'title': 'Introduction'},
@@ -19,27 +19,48 @@ def test_collect_article_relevancy_rows_groups_sections_by_article() -> None:
         'metadata': {'path': '/case-studies/platform-migration'},
         'score': 0.95,
       },
+      {
+        'content': {'title': 'Missing Score'},
+        'metadata': {'path': '/articles/missing-score'},
+      },
     ]
   )
 
   assert rows == [
-    ArticleRelevancyRow(
-      path='/articles/typescript-best-practices',
+    SearchRelevancyRow(title='Introduction', path='/articles/typescript-best-practices#introduction', score=0.72),
+    SearchRelevancyRow(
       title='TypeScript Best Practices for Modern Development',
+      path='/articles/typescript-best-practices',
       score=1.0,
-    )
+    ),
+    SearchRelevancyRow(title='Case Study', path='/case-studies/platform-migration', score=0.95),
   ]
 
 
-def test_format_results_table_renders_two_columns() -> None:
+def test_format_results_table_renders_path_column_by_default() -> None:
   table = format_results_table(
     [
-      ArticleRelevancyRow(path='/articles/one', title='Article One', score=1.0),
-      ArticleRelevancyRow(path='/articles/two', title='Article Two', score=0.875),
+      SearchRelevancyRow(title='Article One', path='/articles/one', score=1.0),
+      SearchRelevancyRow(title='Article Two', path='/articles/two', score=0.875),
     ]
   )
 
-  assert 'Article Title' in table
+  assert 'Result Title' in table
+  assert 'Path' in table
   assert 'Relevancy Score' in table
   assert 'Article One' in table
+  assert '/articles/one' in table
   assert '0.875' in table
+
+
+def test_format_results_table_can_hide_path_column() -> None:
+  table = format_results_table(
+    [
+      SearchRelevancyRow(title='Article One', path='/articles/one', score=1.0),
+    ],
+    show_path=False,
+  )
+
+  assert 'Result Title' in table
+  assert 'Path' not in table
+  assert '/articles/one' not in table

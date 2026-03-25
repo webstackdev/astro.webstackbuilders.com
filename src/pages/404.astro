@@ -41,15 +41,27 @@ const fallbackSearchQuery = getFallbackSearchQuery(Astro.url.pathname)
   path={path}
   noindex={true}
 >
-  <div class="border border-trim rounded-md mx-auto max-w-5xl mb-6">
+  <div class="notFoundSearchResults border border-trim rounded-md mx-auto max-w-5xl mb-6">
     <SearchResults
       query={fallbackSearchQuery}
       limit={4}
       showSearchBar={false}
       hideSearchEmptyState={true}
+      resultsMetaOverride="Maybe one of these is what you were looking for."
+      syncQueryToLocation={false}
     />
   </div>
   <div class="mx-auto max-w-5xl mb-12">
     <SearchEmptyState />
   </div>
 </PageLayout>
+
+<style>
+  .notFoundSearchResults {
+    display: none;
+  }
+
+  .notFoundSearchResults:has([data-search-results] > li) {
+    display: block;
+  }
+</style>

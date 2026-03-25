@@ -170,8 +170,6 @@ Need a tooltip component for consistency. List to add tooltips to:
 
 ## Support Pages to Style
 
-- /404 (should show search results based on query)
-- /search
 - Bug reporter modal
 - Email templates
 
@@ -213,8 +211,3 @@ All code samples in this article are licensed under the MIT License. Feel free t
 - Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
 
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
-
-
-## Search
-
-- The modal on the search page should be different than returning results - maybe the page results should update as you type
