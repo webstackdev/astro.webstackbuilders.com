@@ -164,7 +164,7 @@ describe('SocialShareElement web component', () => {
       expect(mastodonButton).toBeTruthy()
 
       expect(mastodonButton?.getAttribute('aria-haspopup')).toBe('dialog')
-      expect(mastodonButton?.getAttribute('aria-controls')).toBe('mastodon-modal')
+      expect(mastodonButton?.getAttribute('aria-controls')).toBeNull()
 
       mastodonButton?.dispatchEvent(
         new window.MouseEvent('click', { bubbles: true, cancelable: true })
