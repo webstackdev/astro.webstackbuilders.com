@@ -165,13 +165,12 @@ List to add tooltips to:
 
 These have tooltips, how are they being generated?
 
-- Abbreviations in markdown
 - "Report a Bug" in footer
 - RSS feed icon in footer
 
-## Support Pages to Style
+## Abbreviation Styling
 
-- Bug reporter modal. Should  have option to minimize and carry state if it's minimized after someone enters bug info in case they need to collect info from the site for the report.
+- Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
 ## HubSpot Signup Issues
 
@@ -193,10 +192,10 @@ All code samples in this article are licensed under the MIT License. Feel free t
 
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
 
+## Contact Page File Uploads
+
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
 - Contact page Uppy file upload not displaying. Submit button is huge on Contact page.
-
-- Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
 ## Header - "Squish" Effect
 
@@ -211,9 +210,3 @@ All code samples in this article are licensed under the MIT License. Feel free t
 - Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
 
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
-
-## Search
-
-The indexer globs for files like `src/content/articles/**/index.mdx` and `src/content/services/**/index.md`, reads the raw file bytes, extracts YAML frontmatter, then runs regex-based stripping (MDX imports, JSX tags, Markdown syntax) to produce plain text for the fullContent field.
-
-No build step, no HTML parsing, no dev server fetch.
