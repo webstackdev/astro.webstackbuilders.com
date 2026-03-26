@@ -44,8 +44,6 @@ describe('WCAG Compliance', () => {
 
   test('run axe audit on all main pages', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    // Blocked by: Need to integrate @axe-core/playwright
-    // Expected: All pages should pass accessibility audit
     for (const url of pages) {
       await page.goto(url)
       const results = await new AxeBuilder({ page: page.page })

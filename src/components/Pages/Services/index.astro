@@ -14,6 +14,28 @@ const normalizeServiceId = (serviceId: string) =>
     .replace(/[^a-z0-9_-]+/g, '-')
     .replace(/^-+|-+$/g, '')
 
+const servicesHeadingAnchorClasses = [
+  'group',
+  'inline-flex',
+  'min-h-6',
+  'min-w-6',
+  'items-center',
+  'justify-center',
+  'align-middle',
+  'transition-colors',
+  'no-underline',
+  'hover:no-underline',
+  'focus-visible:no-underline',
+  'ml-1.5',
+].join(' ')
+
+const ensureServicesHeadingAnchorClasses = (html: string) =>
+  html.replace(
+    /<a class="([^"]*)"([^>]*)aria-label="Link to this section"([^>]*)>/g,
+    (_match, _currentClasses: string, beforeAria: string, afterAria: string) =>
+      `<a class="${servicesHeadingAnchorClasses}"${beforeAria}aria-label="Link to this section"${afterAria}>`
+  )
+
 const namespaceServiceHeadingAnchors = (html: string, serviceId: string) => {
   if (!html.trim()) {
     return html
@@ -28,10 +50,15 @@ const namespaceServiceHeadingAnchors = (html: string, serviceId: string) => {
     return `id="${nextId}"`
   })
 
-  return htmlWithNamespacedIds.replace(/\bhref="#([^"]+)"/g, (match, currentHref: string) => {
-    const nextHref = remappedIds.get(currentHref)
-    return nextHref ? `href="#${nextHref}"` : match
-  })
+  const htmlWithNamespacedHrefs = htmlWithNamespacedIds.replace(
+    /\bhref="#([^"]+)"/g,
+    (match, currentHref: string) => {
+      const nextHref = remappedIds.get(currentHref)
+      return nextHref ? `href="#${nextHref}"` : match
+    }
+  )
+
+  return ensureServicesHeadingAnchorClasses(htmlWithNamespacedHrefs)
 }
 
 /**

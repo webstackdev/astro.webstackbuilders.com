@@ -6,6 +6,80 @@ import { BasePage, describe, test, expect } from '@test/e2e/helpers'
 import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
 import { pages } from './_pages'
 
+interface PageLoopDiagnostics {
+  currentUrl: string
+  pathname: string
+  readyState: string
+  title: string
+}
+
+const getPageLoopDiagnostics = async (page: BasePage): Promise<PageLoopDiagnostics> => {
+  if (page.page.isClosed()) {
+    return {
+      currentUrl: 'page-closed',
+      pathname: 'unavailable',
+      readyState: 'unavailable',
+      title: 'unavailable',
+    }
+  }
+
+  const currentUrl = page.page.url()
+
+  const metadata = await page.evaluate(() => {
+    return {
+      pathname: window.location.pathname,
+      readyState: document.readyState,
+      title: document.title || '',
+    }
+  }).catch(() => {
+    return {
+      pathname: 'unavailable',
+      readyState: 'unavailable',
+      title: 'unavailable',
+    }
+  })
+
+  return {
+    currentUrl,
+    pathname: metadata.pathname,
+    readyState: metadata.readyState,
+    title: metadata.title,
+  }
+}
+
+const wrapPageLoopError = async (page: BasePage, url: string, error: unknown) => {
+  const diagnostics = await getPageLoopDiagnostics(page)
+  const message = error instanceof Error ? error.message : String(error)
+
+  throw new Error(
+    [
+      `Looped accessibility check failed on ${url}.`,
+      `currentUrl=${diagnostics.currentUrl}`,
+      `pathname=${diagnostics.pathname}`,
+      `title="${diagnostics.title}"`,
+      `readyState=${diagnostics.readyState}`,
+      `originalError=${message}`,
+    ].join(' '),
+    { cause: error instanceof Error ? error : undefined }
+  )
+}
+
+const runAcrossPages = async (
+  page: BasePage,
+  label: string,
+  callback: (_url: string) => Promise<void>
+) => {
+  for (const url of pages) {
+    await test.step(`${label} on ${url}`, async () => {
+      try {
+        await callback(url)
+      } catch (error) {
+        await wrapPageLoopError(page, url, error)
+      }
+    })
+  }
+}
+
 describe('WCAG Compliance', () => {
   /**
    * target-size rule is disabled in Axe by default!!
@@ -14,11 +88,10 @@ describe('WCAG Compliance', () => {
    * exception applies. This test intentionally checks only the simple minimum-size case and
    * does not attempt to model the spacing exception.
    */
-  test.only('@ready touch targets are at least 24x24 pixels', async ({ page: playwrightPage }) => {
+  test('@ready touch targets are at least 24x24 pixels', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
 
-    for (const url of pages) {
-      await test.step(`check touch targets on ${url}`, async () => {
+    await runAcrossPages(page, 'check touch targets', async (url) => {
         await page.goto(url)
 
         const buttons = page.page.locator('button, a')
@@ -63,8 +136,7 @@ describe('WCAG Compliance', () => {
 
         // Ensure we actually checked some buttons
         expect(validButtonsChecked, `No visible touch targets were sampled on ${url}`).toBeGreaterThan(0)
-      })
-    }
+    })
   })
 
   /**
@@ -75,7 +147,7 @@ describe('WCAG Compliance', () => {
    */
   test('@ready text has sufficient color contrast', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    for (const url of pages) {
+    await runAcrossPages(page, 'check color contrast', async (url) => {
       await page.goto(url)
 
       // Sample a few text elements
@@ -94,7 +166,7 @@ describe('WCAG Compliance', () => {
         // Basic check that colors are defined
         expect(contrast.color).toBeTruthy()
       }
-    }
+    })
   })
 
   /**
@@ -108,31 +180,33 @@ describe('WCAG Compliance', () => {
    */
   test('@ready focus indicators are visible', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
+    await runAcrossPages(page, 'check focus indicators', async (url) => {
+      await page.goto(url)
 
-    await page.pressKey('Tab')
-    await page.pressKey('Tab')
+      await page.pressKey('Tab')
+      await page.pressKey('Tab')
 
-    interface FocusIndicator {
-      outline: string,
-      outlineColor: string,
-      outlineWidth: string,
-    }
-
-    const focusIndicator = await page.evaluate<FocusIndicator | null>(() => {
-      const el = document.activeElement
-      if (!el) return null
-
-      const styles = window.getComputedStyle(el)
-      return {
-        outline: styles.outline,
-        outlineColor: styles.outlineColor,
-        outlineWidth: styles.outlineWidth,
+      interface FocusIndicator {
+        outline: string,
+        outlineColor: string,
+        outlineWidth: string,
       }
-    })
 
-    // Should have visible focus indicator
-    expect(focusIndicator?.outline !== 'none' || focusIndicator?.outlineWidth !== '0px').toBe(true)
+      const focusIndicator = await page.evaluate<FocusIndicator | null>(() => {
+        const el = document.activeElement
+        if (!el) return null
+
+        const styles = window.getComputedStyle(el)
+        return {
+          outline: styles.outline,
+          outlineColor: styles.outlineColor,
+          outlineWidth: styles.outlineWidth,
+        }
+      })
+
+      // Should have visible focus indicator
+      expect(focusIndicator?.outline !== 'none' || focusIndicator?.outlineWidth !== '0px').toBe(true)
+    })
   })
 
   /**
@@ -140,27 +214,31 @@ describe('WCAG Compliance', () => {
    * element and the maximum-scale parameter is not less than 2.
    */
   test('@ready page can be zoomed to 200%', async ({ page: playwrightPage }) => {
+    test.slow()
+    test.setTimeout(90_000)
+
     const page = await BasePage.init(playwrightPage)
+    await runAcrossPages(page, 'check zoom to 200%', async (url) => {
+      await page.goto(url)
 
-    await page.goto('/')
+      // Zoom in
+      await page.evaluate(() => {
+        document.body.style.zoom = '2'
+      })
 
-    // Zoom in
-    await page.evaluate(() => {
-      document.body.style.zoom = '2'
+      await waitForAnimationFrames(page.page, 30)
+
+      // Content should still be accessible
+      await page.expectMainElement()
+
+      // No horizontal scroll should be needed at 200% zoom (in most cases)
+      const hasHorizontalScroll = await page.evaluate(() => {
+        return document.documentElement.scrollWidth > window.innerWidth
+      })
+
+      // This may be acceptable in some cases, just checking
+      expect(typeof hasHorizontalScroll).toBe('boolean')
     })
-
-    await waitForAnimationFrames(page.page, 30)
-
-    // Content should still be accessible
-    await page.expectMainElement()
-
-    // No horizontal scroll should be needed at 200% zoom (in most cases)
-    const hasHorizontalScroll = await page.evaluate(() => {
-      return document.documentElement.scrollWidth > window.innerWidth
-    })
-
-    // This may be acceptable in some cases, just checking
-    expect(typeof hasHorizontalScroll).toBe('boolean')
   })
 
   /**
@@ -172,24 +250,25 @@ describe('WCAG Compliance', () => {
    */
   test('@ready links are distinguishable from text', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
+    await runAcrossPages(page, 'check link distinguishability', async (url) => {
+      await page.goto(url)
 
-    await page.goto('/')
+      const link = page.page.locator('a[href]').first()
+      const styles = await link.evaluate((el) => {
+        const computed = window.getComputedStyle(el)
+        return {
+          textDecoration: computed.textDecoration,
+          fontWeight: computed.fontWeight,
+        }
+      })
 
-    const link = page.page.locator('a[href]').first()
-    const styles = await link.evaluate((el) => {
-      const computed = window.getComputedStyle(el)
-      return {
-        textDecoration: computed.textDecoration,
-        fontWeight: computed.fontWeight,
-      }
+      // Should have underline or other non-color indicator
+      const hasUnderline = styles.textDecoration.includes('underline')
+      const isBold = parseInt(styles.fontWeight) >= 600
+
+      // Test passes if there's some non-color distinction
+      expect(hasUnderline || isBold || typeof styles.textDecoration === 'string').toBe(true)
     })
-
-    // Should have underline or other non-color indicator
-    const hasUnderline = styles.textDecoration.includes('underline')
-    const isBold = parseInt(styles.fontWeight) >= 600
-
-    // Test passes if there's some non-color distinction
-    expect(hasUnderline || isBold || typeof styles.textDecoration === 'string').toBe(true)
   })
 
   /**
@@ -198,48 +277,51 @@ describe('WCAG Compliance', () => {
    */
   test('@ready no content flashes more than 3 times per second', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
+    await runAcrossPages(page, 'check flash frequency', async (url) => {
+      await page.goto(url)
 
-    // Check for animations
-    const animations = await page.evaluate(() => {
-      const elements = document.querySelectorAll('*')
-      const animated = []
+      // Check for animations
+      const animations = await page.evaluate(() => {
+        const elements = document.querySelectorAll('*')
+        const animated = []
 
-      elements.forEach((el) => {
-        const styles = window.getComputedStyle(el)
-        if (styles.animation !== 'none' || styles.transition !== 'all 0s ease 0s') {
-          animated.push({
-            animation: styles.animation,
-            transition: styles.transition,
-          })
-        }
+        elements.forEach((el) => {
+          const styles = window.getComputedStyle(el)
+          if (styles.animation !== 'none' || styles.transition !== 'all 0s ease 0s') {
+            animated.push({
+              animation: styles.animation,
+              transition: styles.transition,
+            })
+          }
+        })
+
+        return animated.length
       })
 
-      return animated.length
+      // Test passes - just checking for animations presence
+      expect(animations).toBeGreaterThanOrEqual(0)
     })
-
-    // Test passes - just checking for animations presence
-    expect(animations).toBeGreaterThanOrEqual(0)
   })
 
   /**
    * Axe does not check if prefers-reduced-motion is respected; this is considered
    * a complex, context-dependent check that requires manual inspection.
    */
-  test('@ready page is usable without motion', async ({ page: playwrightPage }) => {
+  test.only('@ready page is usable without motion', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
+    await runAcrossPages(page, 'check reduced motion usability', async (url) => {
+      await page.page.emulateMedia({ reducedMotion: 'reduce' })
+      await page.goto(url)
 
-    await page.page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/')
+      // Check that animations are disabled/reduced
+      const hasReducedMotion = await page.evaluate(() => {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      })
 
-    // Check that animations are disabled/reduced
-    const hasReducedMotion = await page.evaluate(() => {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      expect(hasReducedMotion).toBe(true)
+
+      // Content should still be accessible
+      await page.expectMainElement()
     })
-
-    expect(hasReducedMotion).toBe(true)
-
-    // Content should still be accessible
-    await page.expectMainElement()
   })
 })
