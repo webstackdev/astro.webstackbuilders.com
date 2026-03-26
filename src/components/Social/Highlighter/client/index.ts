@@ -42,7 +42,7 @@ export class HighlighterElement extends LitElement {
   static registeredName = COMPONENT_TAG_NAME
 
   static override properties = {
-    label: { type: String, attribute: 'aria-label', reflect: true },
+    label: { type: String, attribute: 'share-label', reflect: true },
   }
 
   declare label: string
@@ -92,9 +92,6 @@ export class HighlighterElement extends LitElement {
     super.connectedCallback()
     if (!this.label) {
       this.label = 'Share this'
-    }
-    if (!this.hasAttribute('aria-label')) {
-      this.setAttribute('aria-label', this.label)
     }
     this.attachHostListeners()
   }

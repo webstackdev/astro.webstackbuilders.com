@@ -1,5 +1,75 @@
 [
   {
+    "id": "aria-prohibited-attr",
+    "impact": "serious",
+    "tags": [
+      "cat.aria",
+      "wcag2a",
+      "wcag412",
+      "EN-301-549",
+      "EN-9.4.1.2",
+      "RGAAv4",
+      "RGAA-7.1.1"
+    ],
+    "description": "Ensure ARIA attributes are not prohibited for an element's role",
+    "help": "Elements must only use permitted ARIA attributes",
+    "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/aria-prohibited-attr?application=playwright",
+    "nodes": [
+      {
+        "any": [],
+        "all": [],
+        "none": [
+          {
+            "id": "aria-prohibited-attr",
+            "data": {
+              "role": null,
+              "nodeName": "highlighter-element",
+              "messageKey": "noRoleSingular",
+              "prohibited": [
+                "aria-label"
+              ]
+            },
+            "relatedNodes": [],
+            "impact": "serious",
+            "message": "aria-label attribute is not well supported on a highlighter-element with no valid role attribute."
+          }
+        ],
+        "impact": "serious",
+        "html": "<highlighter-element aria-label=\"Share this insight\">",
+        "target": [
+          "highlighter-element"
+        ],
+        "failureSummary": "Fix all of the following:\n  aria-label attribute is not well supported on a highlighter-element with no valid role attribute."
+      },
+      {
+        "any": [],
+        "all": [],
+        "none": [
+          {
+            "id": "aria-prohibited-attr",
+            "data": {
+              "role": null,
+              "nodeName": "section",
+              "messageKey": "noRoleSingular",
+              "prohibited": [
+                "aria-labelledby"
+              ]
+            },
+            "relatedNodes": [],
+            "impact": "serious",
+            "message": "aria-labelledby attribute is not well supported on a section with no valid role attribute."
+          }
+        ],
+        "impact": "serious",
+        "html": "<section aria-labelledby=\"article-share-title\">",
+        "target": [
+          "section[aria-labelledby=\"article-share-title\"]"
+        ],
+        "failureSummary": "Fix all of the following:\n  aria-labelledby attribute is not well supported on a section with no valid role attribute."
+      }
+    ]
+  },
+  {
     "id": "aria-valid-attr-value",
     "impact": "critical",
     "tags": [
@@ -21,21 +91,21 @@
           {
             "id": "aria-valid-attr-value",
             "data": {
-              "messageKey": "noId",
-              "needsReview": "aria-labelledby=\"carousel-articles-suggested-all-title\""
+              "messageKey": "controlsWithinPopup",
+              "needsReview": "aria-controls=\"mastodon-modal\""
             },
             "relatedNodes": [],
             "impact": "critical",
-            "message": "ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
+            "message": "Unable to determine if aria-controls referenced ID exists on the page while using aria-haspopup: aria-controls=\"mastodon-modal\""
           }
         ],
         "none": [],
         "impact": "critical",
-        "html": "<div class=\"embla relative\" role=\"region\" aria-labelledby=\"carousel-articles-suggested-all-title\" data-astro-cid-kfjqoxel=\"\">",
+        "html": "<button type=\"button\" class=\"_button_1qagh_1 soci...\" aria-label=\"Share on Mastodon\" aria-haspopup=\"dialog\" aria-controls=\"mastodon-modal\" data-platform=\"mastodon\" data-share=\"mastodon\" data-share-text=\"Demo Page - This is ...\">",
         "target": [
-          ".mb-0:nth-child(1) > carousel-slider > .py-8.lg\\:px-8.px-4 > .embla.relative[role=\"region\"]"
+          "social-share-element[url=\"/articles/demo\"] > .social-share.max-sm\\:justify-center[aria-label=\"Share this content\"] > .bg-mastodon.hover\\:bg-mastodon-active[aria-haspopup=\"dialog\"]"
         ],
-        "failureSummary": "Fix all of the following:\n  ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
+        "failureSummary": "Fix all of the following:\n  Unable to determine if aria-controls referenced ID exists on the page while using aria-haspopup: aria-controls=\"mastodon-modal\""
       },
       {
         "any": [],
@@ -43,21 +113,21 @@
           {
             "id": "aria-valid-attr-value",
             "data": {
-              "messageKey": "noId",
-              "needsReview": "aria-labelledby=\"carousel-articles-suggested-all-title\""
+              "messageKey": "noIdShadow",
+              "needsReview": "aria-labelledby=\"article-share-title\""
             },
             "relatedNodes": [],
             "impact": "critical",
-            "message": "ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
+            "message": "ARIA attribute element ID does not exist on the page or is a descendant of a different shadow DOM tree: aria-labelledby=\"article-share-title\""
           }
         ],
         "none": [],
         "impact": "critical",
-        "html": "<div class=\"embla relative\" role=\"region\" aria-labelledby=\"carousel-articles-suggested-all-title\" data-astro-cid-kfjqoxel=\"\">",
+        "html": "<section aria-labelledby=\"article-share-title\">",
         "target": [
-          ".mb-0:nth-child(2) > carousel-slider > .py-8.lg\\:px-8.px-4 > .embla.relative[role=\"region\"]"
+          "section[aria-labelledby=\"article-share-title\"]"
         ],
-        "failureSummary": "Fix all of the following:\n  ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
+        "failureSummary": "Fix all of the following:\n  ARIA attribute element ID does not exist on the page or is a descendant of a different shadow DOM tree: aria-labelledby=\"article-share-title\""
       },
       {
         "any": [],
@@ -65,131 +135,21 @@
           {
             "id": "aria-valid-attr-value",
             "data": {
-              "messageKey": "noId",
-              "needsReview": "aria-labelledby=\"carousel-articles-suggested-all-title\""
+              "messageKey": "controlsWithinPopup",
+              "needsReview": "aria-controls=\"mastodon-modal\""
             },
             "relatedNodes": [],
             "impact": "critical",
-            "message": "ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
+            "message": "Unable to determine if aria-controls referenced ID exists on the page while using aria-haspopup: aria-controls=\"mastodon-modal\""
           }
         ],
         "none": [],
         "impact": "critical",
-        "html": "<div class=\"embla relative\" role=\"region\" aria-labelledby=\"carousel-articles-suggested-all-title\" data-astro-cid-kfjqoxel=\"\">",
+        "html": "<button type=\"button\" class=\"_button_1qagh_1 soci...\" aria-label=\"Share on Mastodon\" aria-haspopup=\"dialog\" aria-controls=\"mastodon-modal\" data-platform=\"mastodon\" data-share=\"mastodon\" data-share-text=\"Demo Article - Markd...\">",
         "target": [
-          ".mb-0:nth-child(3) > carousel-slider > .py-8.lg\\:px-8.px-4 > .embla.relative[role=\"region\"]"
+          ".gap-6.flex-col.flex > .mx-6.md\\:items-center.md\\:flex-row > .sm\\:pl-12.md\\:flex-1.w-full > social-share-element > .social-share.max-sm\\:justify-center[aria-label=\"Share this content\"] > .bg-mastodon.hover\\:bg-mastodon-active[aria-haspopup=\"dialog\"]"
         ],
-        "failureSummary": "Fix all of the following:\n  ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
-      },
-      {
-        "any": [],
-        "all": [
-          {
-            "id": "aria-valid-attr-value",
-            "data": {
-              "messageKey": "noId",
-              "needsReview": "aria-labelledby=\"carousel-articles-suggested-all-title\""
-            },
-            "relatedNodes": [],
-            "impact": "critical",
-            "message": "ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
-          }
-        ],
-        "none": [],
-        "impact": "critical",
-        "html": "<div class=\"embla relative\" role=\"region\" aria-labelledby=\"carousel-articles-suggested-all-title\" data-astro-cid-kfjqoxel=\"\">",
-        "target": [
-          ".mb-0:nth-child(4) > carousel-slider > .py-8.lg\\:px-8.px-4 > .embla.relative[role=\"region\"]"
-        ],
-        "failureSummary": "Fix all of the following:\n  ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
-      },
-      {
-        "any": [],
-        "all": [
-          {
-            "id": "aria-valid-attr-value",
-            "data": {
-              "messageKey": "noId",
-              "needsReview": "aria-labelledby=\"carousel-articles-suggested-all-title\""
-            },
-            "relatedNodes": [],
-            "impact": "critical",
-            "message": "ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
-          }
-        ],
-        "none": [],
-        "impact": "critical",
-        "html": "<div class=\"embla relative\" role=\"region\" aria-labelledby=\"carousel-articles-suggested-all-title\" data-astro-cid-kfjqoxel=\"\">",
-        "target": [
-          ".mb-0:nth-child(5) > carousel-slider > .py-8.lg\\:px-8.px-4 > .embla.relative[role=\"region\"]"
-        ],
-        "failureSummary": "Fix all of the following:\n  ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
-      },
-      {
-        "any": [],
-        "all": [
-          {
-            "id": "aria-valid-attr-value",
-            "data": {
-              "messageKey": "noId",
-              "needsReview": "aria-labelledby=\"carousel-articles-suggested-all-title\""
-            },
-            "relatedNodes": [],
-            "impact": "critical",
-            "message": "ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
-          }
-        ],
-        "none": [],
-        "impact": "critical",
-        "html": "<div class=\"embla relative\" role=\"region\" aria-labelledby=\"carousel-articles-suggested-all-title\" data-astro-cid-kfjqoxel=\"\">",
-        "target": [
-          ".mb-0:nth-child(6) > carousel-slider > .py-8.lg\\:px-8.px-4 > .embla.relative[role=\"region\"]"
-        ],
-        "failureSummary": "Fix all of the following:\n  ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
-      },
-      {
-        "any": [],
-        "all": [
-          {
-            "id": "aria-valid-attr-value",
-            "data": {
-              "messageKey": "noId",
-              "needsReview": "aria-labelledby=\"carousel-articles-suggested-all-title\""
-            },
-            "relatedNodes": [],
-            "impact": "critical",
-            "message": "ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
-          }
-        ],
-        "none": [],
-        "impact": "critical",
-        "html": "<div class=\"embla relative\" role=\"region\" aria-labelledby=\"carousel-articles-suggested-all-title\" data-astro-cid-kfjqoxel=\"\">",
-        "target": [
-          ".mb-0:nth-child(7) > carousel-slider > .py-8.lg\\:px-8.px-4 > .embla.relative[role=\"region\"]"
-        ],
-        "failureSummary": "Fix all of the following:\n  ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
-      },
-      {
-        "any": [],
-        "all": [
-          {
-            "id": "aria-valid-attr-value",
-            "data": {
-              "messageKey": "noId",
-              "needsReview": "aria-labelledby=\"carousel-articles-suggested-all-title\""
-            },
-            "relatedNodes": [],
-            "impact": "critical",
-            "message": "ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
-          }
-        ],
-        "none": [],
-        "impact": "critical",
-        "html": "<div class=\"embla relative\" role=\"region\" aria-labelledby=\"carousel-articles-suggested-all-title\" data-astro-cid-kfjqoxel=\"\">",
-        "target": [
-          ".mb-0:nth-child(8) > carousel-slider > .py-8.lg\\:px-8.px-4 > .embla.relative[role=\"region\"]"
-        ],
-        "failureSummary": "Fix all of the following:\n  ARIA attribute element ID does not exist on the page: aria-labelledby=\"carousel-articles-suggested-all-title\""
+        "failureSummary": "Fix all of the following:\n  Unable to determine if aria-controls referenced ID exists on the page while using aria-haspopup: aria-controls=\"mastodon-modal\""
       }
     ]
   }
