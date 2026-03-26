@@ -1,0 +1,32 @@
+---
+export type Props = {
+  color: string
+  classes?: string
+  size: number
+  accessible: boolean
+  focusable: boolean
+  isListMarker?: boolean
+  id?: string
+}
+
+const { color, classes, size, accessible, focusable, isListMarker, id } = Astro.props
+---
+
+<svg
+  id={id}
+  xmlns="http://www.w3.org/2000/svg"
+  class:list={["shrink-0", `w-${size} h-${size}`, `text-${color}`, classes, isListMarker ? "mt-0.5" : ""]}
+  fill="currentColor"
+  stroke="none"
+  viewBox="0 0 24 24"
+  aria-hidden={accessible ? "false" : "true"}
+  focusable={focusable ? "true" : "false"}
+>
+  {accessible && <title>Arrow Up Icon</title>}
+  <path
+    stroke-width="1.5"
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="m 12.271245,8.1561936 c -0.14975,-0.1497955 -0.392633,-0.1497955 -0.542536,0 L 1.9644423,17.920584 c -0.449402,0.449402 -1.17800398,0.449402 -1.62739068,0 -0.449402,-0.449402 -0.449402,-1.17805 0,-1.627452 L 10.101411,6.528803 c 1.048553,-1.0485843 2.748579,-1.0485843 3.797286,0 l 9.764252,9.764329 c 0.449401,0.449402 0.449401,1.17805 0,1.627452 -0.449402,0.449402 -1.177897,0.449402 -1.627299,0 z"
+  ></path>
+</svg>
