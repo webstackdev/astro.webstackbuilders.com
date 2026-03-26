@@ -14,6 +14,10 @@ const {
   formId = 'bugReporterForm',
   closeButtonId = 'bugReporterClose',
   cancelButtonId = 'bugReporterCancel',
+  minimizeButtonId = 'bugReporterMinimize',
+  minimizedBarId = 'bugReporterMinimizedBar',
+  minimizedRestoreButtonId = 'bugReporterRestore',
+  minimizedCloseButtonId = 'bugReporterMinimizedClose',
 } = Astro.props
 ---
 
@@ -24,78 +28,83 @@ const {
   form-id={formId}
   close-button-id={closeButtonId}
   cancel-button-id={cancelButtonId}
+  minimize-button-id={minimizeButtonId}
+  minimized-bar-id={minimizedBarId}
+  minimized-restore-button-id={minimizedRestoreButtonId}
+  minimized-close-button-id={minimizedCloseButtonId}
   data-testid="bug-reporter-modal"
 ></bug-reporter-modal-element>
 
 <dialog
   id={dialogId}
   aria-label="Report a bug"
-  class="fixed inset-0 m-auto bg-page-offset border border-trim rounded-md p-0 max-w-xl w-min-4xl overflow-hidden"
+  class="fixed inset-0 m-auto bg-content-inverse border border-trim rounded-lg p-0 max-w-xl w-[min(42rem,90vw)] shadow-2xl backdrop:bg-page-active/60 overflow-hidden"
 >
-  <div class="flex items-center justify-between gap-4 bg-page-inverse border-b border-trim">
-    <h2 class="text-base font-bold m-0 pl-1">Report a bug</h2>
-    <div class="flex items-center gap-2">
+  <div class="flex items-center justify-between bg-page-inverse px-4 py-2.5">
+    <h2 class="text-sm font-semibold text-content-inverse m-0">Report a bug</h2>
+    <div class="flex items-center gap-1">
       <button
+        id={minimizeButtonId}
         type="button"
         aria-label="Minimize"
-        class="flex items-center justify-center p-1.5 rounded-sm hover:bg-page-base focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 transition-colors cursor-not-allowed"
+        class="flex items-center justify-center w-7 h-7 rounded hover:bg-content-inverse/20 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 transition-colors"
         title="Minimize"
       >
-        <Icon icon="minimize" color="content-inverse" size={4} />
+        <Icon icon="minimize" color="content-inverse" size={3} />
       </button>
       <button
         id={closeButtonId}
         type="button"
         aria-label="Close"
-        class="flex items-center justify-center p-1.5 rounded-sm bg-spotlight hover:bg-spotlight-offset focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 transition-opacity"
+        class="flex items-center justify-center w-7 h-7 rounded hover:bg-danger/80 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 transition-colors"
         title="Close"
       >
-        <Icon icon="close" color="content-inverse" size={4} />
+        <Icon icon="close" color="content-inverse" size={3} />
       </button>
     </div>
   </div>
 
   <div class="p-5">
-    <p class="mt-0 text-base">
+    <p class="mt-0 mb-4 text-sm text-content-offset">
       Tell us what happened and what you expected.
     </p>
 
-    <form id={formId} class="mt-4">
+    <form id={formId} class="space-y-3">
       <label class="block">
-        <span class="font-bold">Name</span>
+        <span class="text-sm font-semibold">Name</span>
         <input
           name="name"
           autocomplete="name"
-          class="mt-1 w-full rounded-md border border-trim bg-page-offset p-2 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-1"
+          class="mt-1 w-full rounded-md border border-trim bg-page-base p-2 text-sm focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-1"
           placeholder="Your name"
         />
       </label>
 
-      <label class="block mt-3">
-        <span class="font-bold">Email</span>
+      <label class="block">
+        <span class="text-sm font-semibold">Email</span>
         <input
           name="email"
           type="email"
           autocomplete="email"
-          class="mt-1 w-full rounded-md border border-trim bg-page-offset p-2 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-1"
+          class="mt-1 w-full rounded-md border border-trim bg-page-base p-2 text-sm focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-1"
           placeholder="your.email@example.org"
         />
       </label>
 
-      <label class="block mt-3">
-        <span class="font-bold">Description</span>
+      <label class="block">
+        <span class="text-sm font-semibold">Description</span>
         <textarea
           name="message"
           required
-          rows="5"
-          class="mt-1 w-full rounded-md border border-trim bg-page-offset p-2 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-1"
+          rows="4"
+          class="mt-1 w-full rounded-md border border-trim bg-page-base p-2 text-sm focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-1"
           placeholder="What's the bug? What did you expect?"
         ></textarea>
       </label>
 
-      <p id={statusId} class="mt-3 hidden" aria-live="polite"></p>
+      <p id={statusId} class="hidden text-sm" aria-live="polite"></p>
 
-      <div class="mt-5 flex items-center justify-end gap-3 border-t border-trim pt-4">
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-trim">
         <button
           id={cancelButtonId}
           type="button"
@@ -113,6 +122,33 @@ const {
     </form>
   </div>
 </dialog>
+
+<!-- Minimized bar: shown when the modal is minimized, like a collapsed chat window -->
+<div
+  id={minimizedBarId}
+  class="fixed bottom-4 right-4 z-(--z-content-floating) hidden bg-page-inverse text-content-inverse rounded-lg shadow-2xl select-none"
+>
+  <div class="flex items-center gap-3 pl-4 pr-2 py-2">
+    <button
+      id={minimizedRestoreButtonId}
+      type="button"
+      class="flex items-center gap-3 text-left rounded-md px-0 py-0 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 transition-transform hover:scale-[1.02]"
+      aria-label="Restore bug report"
+    >
+      <Icon icon="bug" color="content-inverse" size={4} />
+      <span class="text-sm font-semibold">Bug Report</span>
+      <span class="text-xs opacity-70 italic">in progress</span>
+    </button>
+    <button
+      id={minimizedCloseButtonId}
+      type="button"
+      aria-label="Close bug report"
+      class="ml-2 flex items-center justify-center w-6 h-6 rounded hover:bg-danger/80 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 transition-colors"
+    >
+      <Icon icon="close" color="content-inverse" size={3} />
+    </button>
+  </div>
+</div>
 
 <script>
   import { registerBugReporterWebComponent } from '@components/BugReporter/client'
