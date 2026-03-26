@@ -88,6 +88,8 @@ export class ThemePickerElement extends LitElement {
 
   private readonly tooltipId = 'theme-picker-tooltip'
 
+  private readonly hiddenTooltipAttribute = 'hidden'
+
   private readonly emblaUpdateHandler = () => this.updateEmblaOverflowVisibility()
 
   // Track View Transitions
@@ -565,6 +567,8 @@ export class ThemePickerElement extends LitElement {
       portal.setAttribute('data-theme-tooltip-portal', 'true')
       portal.setAttribute('id', this.tooltipId)
       portal.setAttribute('role', 'tooltip')
+      portal.setAttribute('aria-hidden', 'true')
+      portal.setAttribute(this.hiddenTooltipAttribute, '')
       portal.className =
         'fixed left-0 top-0 z-(--z-theme-picker) pointer-events-none opacity-0 transition-opacity duration-150 ease-out'
 
@@ -616,7 +620,9 @@ export class ThemePickerElement extends LitElement {
     this.tooltipPortalContent.textContent = tooltipText
     this.tooltipActiveButton = button
 
-    // Make it accessible when visible.
+    // Expose the tooltip only while it has content and is referenced.
+    this.tooltipPortal.removeAttribute('aria-hidden')
+    this.tooltipPortal.removeAttribute(this.hiddenTooltipAttribute)
     button.setAttribute('aria-describedby', this.tooltipId)
 
     this.updateTooltipPosition()
@@ -633,6 +639,8 @@ export class ThemePickerElement extends LitElement {
     }
 
     this.tooltipActiveButton = null
+    this.tooltipPortal.setAttribute('aria-hidden', 'true')
+    this.tooltipPortal.setAttribute(this.hiddenTooltipAttribute, '')
     this.tooltipPortal.style.opacity = '0'
 
     if (this.tooltipRafId !== null && typeof cancelAnimationFrame === 'function') {

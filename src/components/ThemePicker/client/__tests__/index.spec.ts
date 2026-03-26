@@ -49,6 +49,8 @@ const getThemeButtons = (root: ThemePickerElement) =>
   queryElements<HTMLButtonElement>(root, '[data-theme]')
 const getThemeSelectButtons = (root: ThemePickerElement) =>
   queryElements<HTMLButtonElement>(root, '.themepicker__selectBtn')
+const getTooltipPortal = (doc: Document) =>
+  queryElement<HTMLDivElement>(doc, '[data-theme-tooltip-portal]')
 
 let container: AstroContainer
 
@@ -174,6 +176,23 @@ describe('ThemePicker Component', () => {
       await renderThemePickerDom(({ window }) => {
         const header = queryElement<HTMLElement>(window.document, '#header')
         expect(header.getAttribute('role')).toBe('banner')
+      })
+    })
+
+    it('keeps the tooltip hidden from assistive tech until a theme is focused', async () => {
+      await renderThemePickerDom(({ element, window }) => {
+        const tooltip = getTooltipPortal(window.document)
+        expect(tooltip.getAttribute('role')).toBe('tooltip')
+        expect(tooltip.getAttribute('aria-hidden')).toBe('true')
+        expect(tooltip.hasAttribute('hidden')).toBe(true)
+
+        const [firstThemeButton] = getThemeButtons(element)
+        firstThemeButton.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }))
+
+        expect(firstThemeButton.getAttribute('aria-describedby')).toBe('theme-picker-tooltip')
+        expect(tooltip.hasAttribute('hidden')).toBe(false)
+        expect(tooltip.getAttribute('aria-hidden')).toBeNull()
+        expect(tooltip.textContent?.trim().length).toBeGreaterThan(0)
       })
     })
   })
