@@ -1,6 +1,7 @@
 export type ButtonVariant =
   | 'danger'
   | 'note'
+  | 'page-inverse'
   | 'primary'
   | 'secondary'
   | 'twitter'
@@ -81,6 +82,11 @@ const variantClasses: Record<ButtonVariant, string> = {
     'hover:bg-note-offset ' +
     'focus-visible:bg-note-offset ' +
     'active:bg-note-offset',
+  'page-inverse':
+    'bg-page-inverse text-content-inverse ' +
+    'hover:bg-content-active ' +
+    'focus-visible:bg-content-active ' +
+    'active:bg-content-active',
   primary:
     'bg-primary text-primary-inverse ' +
     'hover:bg-primary-offset ' +
