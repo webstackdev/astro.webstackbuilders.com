@@ -229,7 +229,7 @@ describe('ARIA and Screen Readers', () => {
    * an issue if a heading element (<h1> through <h6>) is empty or hidden from assistive
    * technologies.
    */
-  test.only('@ready page has exactly one h1', async ({ page: playwrightPage }) => {
+  test('@ready page has exactly one h1', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await runAcrossPages(page, 'check h1 count', async (url) => {
       await page.goto(url)
