@@ -14,7 +14,7 @@ describe('WCAG Compliance', () => {
    * exception applies. This test intentionally checks only the simple minimum-size case and
    * does not attempt to model the spacing exception.
    */
-  test.only('@wip touch targets are at least 24x24 pixels', async ({ page: playwrightPage }) => {
+  test.only('@ready touch targets are at least 24x24 pixels', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
 
     for (const url of pages) {
@@ -75,23 +75,25 @@ describe('WCAG Compliance', () => {
    */
   test('@ready text has sufficient color contrast', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
+    for (const url of pages) {
+      await page.goto(url)
 
-    // Sample a few text elements
-    const paragraphs = page.locator('p').first()
-    const hasVisibleText = await paragraphs.isVisible()
+      // Sample a few text elements
+      const paragraphs = page.locator('p').first()
+      const hasVisibleText = await paragraphs.isVisible()
 
-    if (hasVisibleText) {
-      const contrast = await paragraphs.evaluate((el) => {
-        const styles = window.getComputedStyle(el)
-        return {
-          color: styles.color,
-          backgroundColor: styles.backgroundColor,
-        }
-      })
+      if (hasVisibleText) {
+        const contrast = await paragraphs.evaluate((el) => {
+          const styles = window.getComputedStyle(el)
+          return {
+            color: styles.color,
+            backgroundColor: styles.backgroundColor,
+          }
+        })
 
-      // Basic check that colors are defined
-      expect(contrast.color).toBeTruthy()
+        // Basic check that colors are defined
+        expect(contrast.color).toBeTruthy()
+      }
     }
   })
 

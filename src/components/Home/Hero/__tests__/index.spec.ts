@@ -47,6 +47,8 @@ describe('Home Hero (Astro)', () => {
 
       const readyClass = readyLink?.getAttribute('class') || ''
       expect(readyClass).toContain('no-underline')
+      expect(readyClass).toContain('min-h-6')
+      expect(readyClass).toContain('min-w-6')
       expect(readyClass).toContain('text-success')
       expect(readyClass).toContain('hover:text-success-offset')
       expect(readyClass).toContain('focus-visible:text-success-offset')

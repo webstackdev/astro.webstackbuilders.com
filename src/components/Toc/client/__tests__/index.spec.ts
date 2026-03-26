@@ -118,11 +118,13 @@ describe('TableOfContents component rendering', () => {
       const overlay = root.querySelector('[data-toc-overlay]') as HTMLButtonElement | null
       const panel = root.querySelector('[data-toc-panel]') as HTMLElement | null
       const links = root.querySelectorAll('nav a')
+      const firstLink = root.querySelector('[data-toc-link]') as HTMLAnchorElement | null
 
       expect(toggleButton).toBeTruthy()
       expect(overlay).toBeTruthy()
       expect(panel).toBeTruthy()
       expect(links).toHaveLength(defaultHeadings.length)
+      expect(firstLink?.className).toContain('min-h-6')
       expect(panel?.getAttribute('data-state')).toBe('closed')
       expect(root.hasAttribute('data-open')).toBe(false)
       expect(toggleButton?.getAttribute('aria-pressed')).toBeNull()
