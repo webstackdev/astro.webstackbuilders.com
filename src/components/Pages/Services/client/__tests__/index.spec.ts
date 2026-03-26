@@ -75,4 +75,56 @@ describe('ServicesPageElement class behavior', () => {
       expect(contactLink?.getAttribute('href')).toBe('/contact?type=full-workstream')
     })
   })
+
+  test('namespaces repeated markdown heading ids per service card', async () => {
+    await executeRender<ServicesPageModule>({
+      container,
+      component: ServicesPageAstro,
+      moduleSpecifier: '@components/Pages/Services/client/index',
+      args: {
+        props: {
+          services: [
+            {
+              id: 'platform-ops',
+              data: {
+                title: 'Platform Ops',
+                description: 'Operate and improve platform systems.',
+                accountType: 'platform-ops',
+              },
+              rendered: {
+                html: '<h2 id="what-you-get">What You Get<a aria-label="Link to this section" href="#what-you-get">#</a></h2><p>First card.</p>',
+              },
+            },
+            {
+              id: 'reliability-audit',
+              data: {
+                title: 'Reliability Audit',
+                description: 'Assess service reliability risks.',
+                accountType: 'reliability-audit',
+              },
+              rendered: {
+                html: '<h2 id="what-you-get">What You Get<a aria-label="Link to this section" href="#what-you-get">#</a></h2><p>Second card.</p>',
+              },
+            },
+          ],
+        },
+      },
+      waitForReady: async (element: ServicesPageElementInstance) => {
+        await element.updateComplete
+      },
+      assert: async ({ element }) => {
+        const headings = Array.from(element.querySelectorAll('h2[id]')).map(heading => heading.id)
+        const anchorHrefs = Array.from(
+          element.querySelectorAll('a[aria-label="Link to this section"]')
+        ).map(anchor => anchor.getAttribute('href'))
+
+        expect(headings).toContain('platform-ops-what-you-get')
+        expect(headings).toContain('reliability-audit-what-you-get')
+        expect(headings).not.toContain('what-you-get')
+
+        expect(anchorHrefs).toContain('#platform-ops-what-you-get')
+        expect(anchorHrefs).toContain('#reliability-audit-what-you-get')
+      },
+    })
+  })
 })
