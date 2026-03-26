@@ -59,7 +59,7 @@ describe('performSearch', () => {
     expect(indexFn).toHaveBeenCalledWith('default')
     expect(searchFn).toHaveBeenCalledWith({
       query: 'typescript',
-      limit: 24,
+      limit: 48,
       reranking: true,
       semanticWeight: 0.5,
       keepOriginalQueryAfterEnrichment: true,
