@@ -73,6 +73,7 @@ const allItems: ItemType[] = itemsOverride
 const items = prepareItems(allItems, variant, currentSlug, limit)
 
 const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
+const carouselRegionLabelledBy = title ? `${carouselId}-title` : undefined
 ---
 
 {
@@ -98,7 +99,7 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
         )}
 
         {/* Embla Carousel */}
-        <div class="embla relative" role="region" aria-labelledby={`${carouselId}-title`}>
+        <div class="embla relative" role="region" aria-labelledby={carouselRegionLabelledBy}>
           <div class="embla__viewport overflow-hidden p-4">
             <div class="embla__container flex -ml-4 md:-ml-6">
               {items.map((item: ItemType, index) => (
