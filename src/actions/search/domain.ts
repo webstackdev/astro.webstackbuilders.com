@@ -35,7 +35,10 @@ export const performSearch = async (
 ): Promise<SearchResult<SearchContent, SearchMetadata>> => {
   const startedAt = Date.now()
   const queryPreview = getQueryPreview(q)
-  const limitValue = typeof limit === 'number' && Number.isFinite(limit) ? limit : 8
+  const requestedLimit = typeof limit === 'number' && Number.isFinite(limit) ? limit : 8
+  // Over-fetch to compensate for section-chunked documents. Multiple chunks
+  // from the same page may match; dedup in responder.ts collapses them.
+  const limitValue = Math.min(requestedLimit * 6, 50)
   const url = getUpstashUrl()
   const token = getUpstashPublicToken()
 

@@ -7,6 +7,8 @@ export type SearchHit = {
 
 export interface SearchContent {
   fullContent?: string
+  sectionContent?: string
+  sectionHeading?: string
   title?: string
   description?: string
   url?: string

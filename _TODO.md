@@ -211,3 +211,9 @@ All code samples in this article are licensed under the MIT License. Feel free t
 - Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
 
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
+
+## Search
+
+The indexer globs for files like `src/content/articles/**/index.mdx` and `src/content/services/**/index.md`, reads the raw file bytes, extracts YAML frontmatter, then runs regex-based stripping (MDX imports, JSX tags, Markdown syntax) to produce plain text for the fullContent field.
+
+No build step, no HTML parsing, no dev server fetch.

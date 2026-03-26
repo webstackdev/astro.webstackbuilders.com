@@ -1,9 +1,11 @@
 """
-Page-level Upstash Search indexer.
+Section-chunked Upstash Search indexer.
 
-Reads Markdown/MDX content files from src/content/, extracts frontmatter
-and body text, and upserts one document per page into the Upstash Search
-index. Replaces the crawler-based approach that created per-section chunks.
+Reads Markdown/MDX content files from src/content/, splits each page into
+h2-level sections, and upserts one document per section chunk into the
+Upstash Search index.  Each chunk stays within the 4 096-character content
+limit.  At query time the responder deduplicates chunks that share the same
+canonical page path, returning one hit per page.
 
 Usage:
   python3 scripts/search-index.py                  # full reindex (drop + upsert)
@@ -28,6 +30,7 @@ from upstash_search import Search
 
 DEFAULT_INDEX_NAME: Final[str] = "default"
 
+REPO_ROOT: Final[Path] = Path(__file__).resolve().parents[1]
 CONTENT_ROOT: Final[Path] = Path(__file__).resolve().parents[1] / "src" / "content"
 
 
@@ -56,13 +59,28 @@ class PageDocument:
   path: str
   title: str
   description: str
-  body_text: str
+  raw_body: str
   collection: str
+  source_path: str
+
+
+@dataclass(slots=True, frozen=True)
+class ChunkDocument:
+  id: str
+  path: str
+  title: str
+  section_heading: str
+  section_content: str
+  collection: str
+  source_path: str
+
+
+CHUNK_CONTENT_LIMIT: Final[int] = 4096
+CONTENT_OVERHEAD: Final[int] = 150
 
 
 def load_environment() -> None:
-  repo_root = Path(__file__).resolve().parents[1]
-  env_path = repo_root / ".env.development"
+  env_path = REPO_ROOT / ".env.development"
   if not env_path.exists():
     raise ValueError("Missing .env.development. Use `npm run dev:env` to run with it, or create the file locally.")
   load_dotenv(dotenv_path=env_path)
@@ -154,6 +172,113 @@ def extract_plain_text(body: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Section chunking
+# ---------------------------------------------------------------------------
+
+SECTION_SPLIT_RE: Final[re.Pattern[str]] = re.compile(
+  r"^(#{2}\s+.+)$", re.MULTILINE,
+)
+
+
+def split_into_sections(raw_body: str) -> list[tuple[str, str]]:
+  """Split raw markdown into (heading, body) pairs by h2 headings."""
+  parts = SECTION_SPLIT_RE.split(raw_body)
+  sections: list[tuple[str, str]] = []
+
+  intro = parts[0].strip()
+  if intro:
+    sections.append(("", intro))
+
+  for i in range(1, len(parts), 2):
+    heading = parts[i].lstrip("#").strip()
+    body = parts[i + 1].strip() if i + 1 < len(parts) else ""
+    if body:
+      sections.append((heading, body))
+
+  if not sections and raw_body.strip():
+    sections.append(("", raw_body.strip()))
+
+  return sections
+
+
+def chunk_text(text: str, budget: int) -> list[str]:
+  """Split text into pieces that each fit within the character budget."""
+  if len(text) <= budget:
+    return [text]
+
+  chunks: list[str] = []
+  paragraphs = text.split("\n\n")
+  current = ""
+
+  for para in paragraphs:
+    candidate = f"{current}\n\n{para}" if current else para
+    if len(candidate) <= budget:
+      current = candidate
+    else:
+      if current:
+        chunks.append(current)
+      if len(para) > budget:
+        for start in range(0, len(para), budget):
+          chunks.append(para[start:start + budget])
+        current = ""
+      else:
+        current = para
+
+  if current:
+    chunks.append(current)
+
+  return chunks
+
+
+def chunk_page(page: PageDocument) -> list[ChunkDocument]:
+  """Split a page into section-level chunks that fit Upstash's character limit."""
+  sections = split_into_sections(page.raw_body)
+  chunks: list[ChunkDocument] = []
+
+  for heading, raw_section_body in sections:
+    section_text = extract_plain_text(raw_section_body)
+    if not section_text:
+      continue
+
+    overhead = len(page.title) + len(heading) + CONTENT_OVERHEAD
+    budget = max(CHUNK_CONTENT_LIMIT - overhead, 500)
+    text_parts = chunk_text(section_text, budget)
+
+    for text_part in text_parts:
+      chunk_idx = len(chunks)
+      chunks.append(ChunkDocument(
+        id=f"{page.path}#chunk-{chunk_idx}",
+        path=page.path,
+        title=page.title,
+        section_heading=heading,
+        section_content=text_part,
+        collection=page.collection,
+        source_path=page.source_path,
+      ))
+
+  if not chunks and page.description:
+    chunks.append(ChunkDocument(
+      id=f"{page.path}#chunk-0",
+      path=page.path,
+      title=page.title,
+      section_heading="",
+      section_content=page.description,
+      collection=page.collection,
+      source_path=page.source_path,
+    ))
+
+  return chunks
+
+
+def chunk_pages(pages: list[PageDocument]) -> list[ChunkDocument]:
+  """Chunk all pages into section-level documents."""
+  chunks: list[ChunkDocument] = []
+  for page in pages:
+    chunks.extend(chunk_page(page))
+  return chunks
+
+
+# ---------------------------------------------------------------------------
 # Content discovery
 # ---------------------------------------------------------------------------
 
@@ -198,15 +323,15 @@ def discover_pages(collections: list[str] | None = None) -> list[PageDocument]:
 
       slug = slug_from_path(content_file, collection_dir)
       url_path = f"{config.url_prefix}/{slug}"
-      body_text = extract_plain_text(body)
 
       pages.append(PageDocument(
         id=url_path,
         path=url_path,
         title=title,
         description=description,
-        body_text=body_text,
+        raw_body=body,
         collection=config.name,
+        source_path=str(content_file.relative_to(REPO_ROOT)),
       ))
 
   return pages
@@ -231,38 +356,38 @@ def drop_index(*, upstash_url: str, upstash_token: str, index_name: str) -> None
 UPSERT_BATCH_SIZE: Final[int] = 50
 
 
-def upsert_pages(
+def upsert_chunks(
   *,
   upstash_url: str,
   upstash_token: str,
   index_name: str,
-  pages: list[PageDocument],
+  chunks: list[ChunkDocument],
 ) -> int:
-  """Upsert pages into Upstash Search. Returns count of documents upserted."""
+  """Upsert section chunks into Upstash Search. Returns count of documents upserted."""
   client = Search(url=upstash_url, token=upstash_token)
   index = client.index(index_name)
 
   total = 0
-  for i in range(0, len(pages), UPSERT_BATCH_SIZE):
-    batch = pages[i:i + UPSERT_BATCH_SIZE]
+  for i in range(0, len(chunks), UPSERT_BATCH_SIZE):
+    batch = chunks[i:i + UPSERT_BATCH_SIZE]
     documents = [
       {
-        "id": page.id,
+        "id": chunk.id,
         "content": {
-          "title": page.title,
-          "description": page.description,
-          "fullContent": page.body_text,
+          "title": chunk.title,
+          "sectionHeading": chunk.section_heading,
+          "sectionContent": chunk.section_content,
         },
         "metadata": {
-          "path": page.path,
-          "collection": page.collection,
+          "path": chunk.path,
+          "collection": chunk.collection,
         },
       }
-      for page in batch
+      for chunk in batch
     ]
     index.upsert(documents)
     total += len(batch)
-    print(f"[search:reindex] Upserted batch {i // UPSERT_BATCH_SIZE + 1} ({total}/{len(pages)} pages)")
+    print(f"[search:reindex] Upserted batch {i // UPSERT_BATCH_SIZE + 1} ({total}/{len(chunks)} chunks)")
 
   return total
 
@@ -272,7 +397,7 @@ def upsert_pages(
 # ---------------------------------------------------------------------------
 
 def main() -> int:
-  parser = argparse.ArgumentParser(description="Page-level Upstash Search indexer.")
+  parser = argparse.ArgumentParser(description="Section-chunked Upstash Search indexer.")
   parser.add_argument("--no-drop", action="store_true", help="Skip dropping the index before upserting.")
   parser.add_argument("--dry-run", action="store_true", help="Discover pages and print summary without writing to Upstash.")
   parser.add_argument("--collection", action="append", dest="collections", help="Only index specific collection(s). Can be repeated.")
@@ -286,25 +411,28 @@ def main() -> int:
     return 1
 
   pages = discover_pages(args.collections)
-  print(f"[search:reindex] Discovered {len(pages)} pages across {len(set(p.collection for p in pages))} collection(s).")
+  chunks = chunk_pages(pages)
+  collections_count = len(set(p.collection for p in pages))
+  print(f"[search:reindex] Discovered {len(pages)} pages \u2192 {len(chunks)} chunks across {collections_count} collection(s).")
 
   if args.dry_run:
     for page in pages:
-      print(f"  {page.collection:<15} {page.path:<80} {page.title}")
-    print(f"\n[search:reindex] Dry run complete. {len(pages)} pages would be indexed.")
+      page_chunks = chunk_page(page)
+      print(f"  {page.collection:<15} {page.path:<80} {len(page_chunks):>3} chunks  {page.title}")
+    print(f"\n[search:reindex] Dry run complete. {len(pages)} pages \u2192 {len(chunks)} chunks would be indexed.")
     return 0
 
   try:
     if not args.no_drop:
       drop_index(upstash_url=upstash_url, upstash_token=upstash_token, index_name=index_name)
 
-    count = upsert_pages(
+    count = upsert_chunks(
       upstash_url=upstash_url,
       upstash_token=upstash_token,
       index_name=index_name,
-      pages=pages,
+      chunks=chunks,
     )
-    print(f"[search:reindex] Done. Indexed {count} pages into '{index_name}'.")
+    print(f"[search:reindex] Done. Indexed {count} chunks ({len(pages)} pages) into '{index_name}'.")
     return 0
   except Exception as exc:  # noqa: BLE001
     print(f"[search:reindex] {exc}", file=sys.stderr)

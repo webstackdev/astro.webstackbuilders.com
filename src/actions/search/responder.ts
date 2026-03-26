@@ -58,7 +58,8 @@ export const mapUpstashSearchResults = (raw: unknown, fallbackQuery: string): Se
       const titleValue = (content['title'] ?? content['name'] ?? item.id) as unknown
       const title = typeof titleValue === 'string' && titleValue.trim() ? titleValue : fallbackQuery
 
-      const snippetValue = (content['description'] ??
+      const snippetValue = (content['sectionContent'] ??
+        content['description'] ??
         content['excerpt'] ??
         content['summary'] ??
         content['fullContent']) as unknown
