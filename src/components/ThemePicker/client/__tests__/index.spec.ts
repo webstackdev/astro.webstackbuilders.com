@@ -107,7 +107,7 @@ describe('ThemePicker Component', () => {
       await renderThemePickerDom(({ window }) => {
         const toggleBtn = getToggleButton(window.document)
         expect(toggleBtn.getAttribute('aria-label')).toBe('toggle theme switcher')
-        expect(toggleBtn.getAttribute('aria-haspopup')).toBe('true')
+        expect(toggleBtn.getAttribute('aria-haspopup')).toBeNull()
       })
     })
 
@@ -157,7 +157,7 @@ describe('ThemePicker Component', () => {
         const toggleBtn = getToggleButton(window.document)
         expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
         expect(toggleBtn.getAttribute('aria-controls')).toBe('theme-picker-panel')
-        expect(toggleBtn.getAttribute('aria-haspopup')).toBe('true')
+        expect(toggleBtn.getAttribute('aria-haspopup')).toBeNull()
       })
     })
 
