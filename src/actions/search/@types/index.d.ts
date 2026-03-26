@@ -7,20 +7,23 @@ export type SearchHit = {
 
 export interface SearchContent {
   fullContent?: string
+  sectionContent?: string
+  sectionHeading?: string
   title?: string
+  description?: string
   url?: string
   path?: string
-  description?: string
   excerpt?: string
   summary?: string
   name?: string
 }
 
 export interface SearchMetadata {
+  path?: string
+  collection?: string
+  url?: string
   contentLength?: number
   crawledAt?: string
-  path?: string
-  url?: string
 }
 
 export type SearchDocument<TContent, TMetadata> = {

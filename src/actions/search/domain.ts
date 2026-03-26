@@ -35,7 +35,11 @@ export const performSearch = async (
 ): Promise<SearchResult<SearchContent, SearchMetadata>> => {
   const startedAt = Date.now()
   const queryPreview = getQueryPreview(q)
-  const limitValue = typeof limit === 'number' && Number.isFinite(limit) ? limit : 8
+  const requestedLimit = typeof limit === 'number' && Number.isFinite(limit) ? limit : 8
+  // Over-fetch to compensate for section-chunked documents. Multiple chunks
+  // from the same page may match; dedup in responder.ts collapses them.
+  // Upstash Search API caps limit at 100.
+  const limitValue = Math.min(requestedLimit * 6, 100)
   const url = getUpstashUrl()
   const token = getUpstashPublicToken()
 
@@ -44,8 +48,9 @@ export const performSearch = async (
     const response = await client.index('default').search({
       query: q,
       limit: limitValue,
-      // Enable AI-Powered Reranking
       reranking: true,
+      semanticWeight: 0.5,
+      keepOriginalQueryAfterEnrichment: true,
     })
     return response
   } catch (error) {

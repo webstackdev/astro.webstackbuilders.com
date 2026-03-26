@@ -8,12 +8,15 @@ import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
 import { getSearchBarElements, getSearchBarOptionalElements } from './selectors'
 import type { SearchHit } from '@actions/search/@types'
+import { getSearchResultDisplayPath, highlightSearchText } from './results'
 import {
   closeHeaderSearch,
   getHeaderSearchExpanded,
   openHeaderSearch,
   subscribeHeaderSearchExpanded,
 } from '@components/scripts/store'
+
+const HEADER_SEARCH_RESULT_LIMIT = 4
 
 export class SearchBarElement extends LitElement {
   static registeredName = 'search-bar'
@@ -597,23 +600,51 @@ export class SearchBarElement extends LitElement {
     const items = hits.map(hit => {
       const url = hit.url || `/search?q=${encodeURIComponent(query)}`
       const title = hit.title || query
+      const snippet = hit.snippet?.trim() ?? ''
+      const displayPath = getSearchResultDisplayPath(url)
 
       return html`
-        <li class="px-4 py-3 hover:bg-page-offset">
-          <a class="block text-body" href=${url}>${title}</a>
+        <li class="group cursor-pointer hover:bg-note-inverse">
+          <a
+            class="flex items-center justify-between gap-4 px-4 py-4 no-underline hover:no-underline focus-visible:no-underline"
+            href=${url}
+          >
+            <div class="min-w-0">
+              <div class="mb-1 truncate font-mono text-xs text-content transition-colors group-hover:text-content-active">
+                ${displayPath}
+              </div>
+              <div class="mb-1 text-body font-bold text-page-inverse transition-colors group-hover:text-content-active">
+                ${highlightSearchText(title, query, { highlightClassName: 'bg-warning-inverse' })}
+              </div>
+              ${
+                snippet
+                  ? html`
+                      <p class="line-clamp-1 text-sm text-content-offset transition-colors group-hover:text-content-active">
+                        ${highlightSearchText(snippet, query, { highlightClassName: 'bg-warning-inverse text-content' })}
+                      </p>
+                    `
+                  : nothing
+              }
+            </div>
+            <svg
+              class="h-4 w-4 shrink-0 text-content transition group-hover:translate-x-1 group-hover:text-content-active"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
+          </a>
         </li>
       `
     })
 
-    const searchFor = html`
-      <li class="px-4 py-3 hover:bg-page-offset">
-        <a class="block text-body" href=${`/search?q=${encodeURIComponent(query)}`}>
-          Search for &quot;${query}&quot;
-        </a>
-      </li>
-    `
-
-    render(html`${items}${searchFor}`, this.resultsList)
+    render(html`${items}`, this.resultsList)
   }
 
   private async fetchAndRender(query: string): Promise<void> {
@@ -621,7 +652,7 @@ export class SearchBarElement extends LitElement {
     addScriptBreadcrumb(context)
 
     const requestId = ++this.latestRequestId
-    const { data, error } = await actions.search.query({ q: query, limit: 8 })
+    const { data, error } = await actions.search.query({ q: query, limit: HEADER_SEARCH_RESULT_LIMIT })
 
     // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
     if (error) {

@@ -57,6 +57,10 @@ describe('SearchResults selectors', () => {
           resultsList.tagName,
           'SearchResults list with ol[data-search-results] should be an <ol>'
         ).toBe('OL')
+        expect(input, 'SearchResults should include a search input with [data-search-input]').toBeTruthy()
+        if (!input) {
+          throw new Error('Expected SearchResults input to be present for default layout test.')
+        }
         expect(
           input.tagName,
           'SearchResults should include a search input with [data-search-input]'

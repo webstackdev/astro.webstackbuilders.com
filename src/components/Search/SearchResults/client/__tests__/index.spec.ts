@@ -39,7 +39,14 @@ describe('SearchResults web component', () => {
   })
 
   const runComponentRender = async (
-    query: string,
+    props: {
+      query?: string
+      limit?: number
+      showSearchBar?: boolean
+      hideSearchEmptyState?: boolean
+      resultsMetaOverride?: string
+      syncQueryToLocation?: boolean
+    },
     assertion: (_context: {
       element: SearchResultsElementInstance
       window: Window & typeof globalThis
@@ -49,7 +56,7 @@ describe('SearchResults web component', () => {
       container,
       component: SearchResultsFixture,
       moduleSpecifier: '@components/Search/SearchResults/client/index',
-      args: { props: { query } },
+      args: { props },
       waitForReady: async (element: SearchResultsElementInstance) => {
         await element.updateComplete
       },
@@ -63,7 +70,7 @@ describe('SearchResults web component', () => {
   }
 
   it('shows the short-query hint and does not call search', async () => {
-    await runComponentRender('a', async ({ element }) => {
+    await runComponentRender({ query: 'a' }, async ({ element }) => {
       await flushMicrotasks()
 
       expect(searchQueryMock).not.toHaveBeenCalled()
@@ -73,6 +80,23 @@ describe('SearchResults web component', () => {
 
       const results = element.querySelectorAll('[data-search-results] li')
       expect(results.length).toBe(0)
+
+      const emptyState = element.querySelector('[data-search-empty-state]')
+      expect(emptyState?.classList.contains('hidden')).toBe(false)
+    })
+  })
+
+  it('shows the empty state when there is no query', async () => {
+    await runComponentRender({ query: '' }, async ({ element }) => {
+      await flushMicrotasks()
+
+      expect(searchQueryMock).not.toHaveBeenCalled()
+
+      const meta = element.querySelector('[data-search-meta]')
+      expect(meta?.textContent).toBe('')
+
+      const emptyState = element.querySelector('[data-search-empty-state]')
+      expect(emptyState?.classList.contains('hidden')).toBe(false)
     })
   })
 
@@ -90,7 +114,7 @@ describe('SearchResults web component', () => {
       },
     })
 
-    await runComponentRender('typescript', async ({ element }) => {
+    await runComponentRender({ query: 'typescript' }, async ({ element }) => {
       await flushMicrotasks()
 
       expect(searchQueryMock).toHaveBeenCalledWith({ q: 'typescript', limit: 20 })
@@ -104,6 +128,170 @@ describe('SearchResults web component', () => {
 
       const meta = element.querySelector('[data-search-meta]')
       expect(meta?.textContent).toContain('result')
+
+      const emptyState = element.querySelector('[data-search-empty-state]')
+      expect(emptyState?.classList.contains('hidden')).toBe(true)
+
+      const itemMeta = element.querySelector('[data-search-results] li div')
+      expect(itemMeta?.textContent).toContain('Article')
+      expect(itemMeta?.textContent).toContain('/articles/typescript-best-practices')
     })
+  })
+
+  it('updates the page results as the user types in the inline search input', async () => {
+    vi.useFakeTimers()
+
+    searchQueryMock.mockResolvedValue({
+      data: {
+        hits: [
+          {
+            title: 'TypeScript Best Practices',
+            url: '/articles/typescript-best-practices',
+            snippet: '...',
+          },
+        ],
+      },
+    })
+
+    await runComponentRender({ query: '' }, async ({ element, window }) => {
+      const input = element.querySelector('[data-search-input]') as HTMLInputElement | null
+      expect(input).toBeTruthy()
+
+      input!.value = 'typescript'
+      input!.dispatchEvent(new window.Event('input', { bubbles: true }))
+
+      await vi.advanceTimersByTimeAsync(260)
+      await flushMicrotasks()
+
+      expect(searchQueryMock).toHaveBeenCalledWith({ q: 'typescript', limit: 20 })
+
+      const links = Array.from(
+        element.querySelectorAll('[data-search-results] a')
+      ) as HTMLAnchorElement[]
+      expect(links.some(link => link.getAttribute('href') === '/articles/typescript-best-practices')).toBe(true)
+
+      const emptyState = element.querySelector('[data-search-empty-state]')
+      expect(emptyState?.classList.contains('hidden')).toBe(true)
+    })
+
+    vi.useRealTimers()
+  })
+
+  it('shows the empty state when the search returns no hits', async () => {
+    searchQueryMock.mockResolvedValue({
+      data: {
+        hits: [],
+      },
+    })
+
+    await runComponentRender({ query: 'typescript' }, async ({ element }) => {
+      await flushMicrotasks()
+
+      const results = element.querySelectorAll('[data-search-results] li')
+      expect(results.length).toBe(0)
+
+      const emptyState = element.querySelector('[data-search-empty-state]')
+      expect(emptyState?.classList.contains('hidden')).toBe(false)
+    })
+  })
+
+  it('supports a custom limit without rendering the built-in empty state', async () => {
+    searchQueryMock.mockResolvedValue({
+      data: {
+        hits: [],
+      },
+    })
+
+    await runComponentRender(
+      {
+        query: 'typescript',
+        limit: 4,
+        showSearchBar: false,
+        hideSearchEmptyState: true,
+      },
+      async ({ element }) => {
+        await flushMicrotasks()
+
+        expect(searchQueryMock).toHaveBeenCalledWith({ q: 'typescript', limit: 4 })
+        expect(element.querySelector('[data-search-empty-state]')).toBeNull()
+      }
+    )
+  })
+
+  it('shows the override meta only when results are returned', async () => {
+    searchQueryMock.mockResolvedValueOnce({
+      data: {
+        hits: [],
+      },
+    })
+
+    await runComponentRender(
+      {
+        query: 'typescript',
+        limit: 4,
+        showSearchBar: false,
+        hideSearchEmptyState: true,
+        resultsMetaOverride: 'Maybe one of these is what you were looking for.',
+      },
+      async ({ element }) => {
+        await flushMicrotasks()
+
+        const meta = element.querySelector('[data-search-meta]')
+        expect(meta?.classList.contains('hidden')).toBe(true)
+        expect(meta?.textContent).toBe('')
+      }
+    )
+
+    searchQueryMock.mockResolvedValueOnce({
+      data: {
+        hits: [
+          {
+            title: 'TypeScript Best Practices',
+            url: '/articles/typescript-best-practices',
+            snippet: '...',
+          },
+        ],
+      },
+    })
+
+    await runComponentRender(
+      {
+        query: 'typescript',
+        limit: 4,
+        showSearchBar: false,
+        hideSearchEmptyState: true,
+        resultsMetaOverride: 'Maybe one of these is what you were looking for.',
+      },
+      async ({ element }) => {
+        await flushMicrotasks()
+
+        const meta = element.querySelector('[data-search-meta]')
+        expect(meta?.classList.contains('hidden')).toBe(false)
+        expect(meta?.textContent).toBe('Maybe one of these is what you were looking for.')
+      }
+    )
+  })
+
+  it('does not append a q parameter when URL syncing is disabled', async () => {
+    searchQueryMock.mockResolvedValue({
+      data: {
+        hits: [],
+      },
+    })
+
+    await runComponentRender(
+      {
+        query: 'some article',
+        showSearchBar: false,
+        hideSearchEmptyState: true,
+        syncQueryToLocation: false,
+      },
+      async ({ window }) => {
+        const initialSearch = window.location.search
+        await flushMicrotasks()
+
+        expect(window.location.search).toBe(initialSearch)
+      }
+    )
   })
 })

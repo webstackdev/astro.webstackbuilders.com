@@ -33,10 +33,6 @@ Discuss agentic AI integrations to add to Backstage
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
 
-## Email Templates
-
-Right now we're using string literals to define HTML email templates for site mails. We should use Nunjucks with the rule-checking for valid CSS in HTML emails like we have in the corporate email footer repo.
-
 ## Chat bot tying into my phone and email
 
 Vercel AI Gateway, maybe could use for a chatbot:
@@ -160,20 +156,21 @@ Styling: You must use inline CSS within your `headerTemplate` or `footerTemplate
 
 ## ToolTips
 
-Need a tooltip component for consistency. List to add tooltips to:
+Need a tooltip component for consistency.
+
+List to add tooltips to:
 
 - Themepicker button
 - Search button
-- Abbreviations in markdown
+
+These have tooltips, how are they being generated?
+
 - "Report a Bug" in footer
 - RSS feed icon in footer
 
-## Support Pages to Style
+## Abbreviation Styling
 
-- /404 (should show search results based on query)
-- /search
-- Bug reporter modal
-- Email templates
+- Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
 ## HubSpot Signup Issues
 
@@ -195,10 +192,10 @@ All code samples in this article are licensed under the MIT License. Feel free t
 
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
 
+## Contact Page File Uploads
+
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component
 - Contact page Uppy file upload not displaying. Submit button is huge on Contact page.
-
-- Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
 ## Header - "Squish" Effect
 
@@ -213,29 +210,3 @@ All code samples in this article are licensed under the MIT License. Feel free t
 - Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
 
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.
-
-
-## Search
-
-- How do we handle the keywords in the long form / pdf files from a search perspective? Can we return the result in the search results if the short form content is not returned in the search results, and highlight it somehow in the search results to show that it is gated content? And clicking on its link takes the user to the Download page for that item?
-
-- Search box in header should have blue outline, not highlight
-
-- going to the search page with a query appended gives a 404 error
-
-- Search box on the search page is not working
-
-```json
-{
-  "id": "unique-id-from-crawler",
-  "score": 0.985,
-  "content": {
-    "text": "The full body content extracted from the crawled article..."
-  },
-  "metadata": {
-    "url": "https://example.com",
-    "title": "Introduction to Vector Search",
-    "description": "Learn the basics of how vector databases work."
-  }
-}
-```

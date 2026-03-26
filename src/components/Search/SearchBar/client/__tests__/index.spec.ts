@@ -4,6 +4,7 @@ import SearchBarFixture from '@components/Search/SearchBar/client/__fixtures__/i
 import SearchBarHeaderFixture from '@components/Search/SearchBar/client/__fixtures__/header.fixture.astro'
 import type { SearchBarElement as SearchBarElementInstance } from '../index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import type { SearchHit } from '@actions/search/@types'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 import { __resetHeaderSearchForTests } from '@components/scripts/store/search'
 
@@ -16,7 +17,7 @@ const searchQueryMock =
     (_input: {
       q: string
       limit?: number
-    }) => Promise<ActionResult<{ hits: { title: string; url: string }[] }>>
+    }) => Promise<ActionResult<{ hits: SearchHit[] }>>
   >()
 
 vi.mock('astro:actions', () => ({
@@ -129,7 +130,11 @@ describe('SearchBar web component', () => {
       searchQueryMock.mockResolvedValue({
         data: {
           hits: [
-            { title: 'About', url: '/about' },
+            {
+              title: 'Introduction to Vector Search',
+              url: 'https://www.webstackbuilders.com/deep-dive/introduction-to-vector-search',
+              snippet: 'Learn the basics of how vector databases work.',
+            },
             { title: 'Services', url: '/services' },
           ],
         },
@@ -144,14 +149,73 @@ describe('SearchBar web component', () => {
       await vi.advanceTimersByTimeAsync(260)
       await flushMicrotasks()
 
-      expect(searchQueryMock).toHaveBeenCalledWith({ q: 'ab', limit: 8 })
+      expect(searchQueryMock).toHaveBeenCalledWith({ q: 'ab', limit: 4 })
       expect(resultsContainer.classList.contains('hidden')).toBe(false)
+      expect(resultsContainer.className).toContain('bg-page-offset')
 
-      const links = Array.from(
-        element.querySelectorAll('[data-search-results-list] a')
-      ) as HTMLAnchorElement[]
-      expect(links.some(link => link.getAttribute('href') === '/about')).toBe(true)
-      expect(links.some(link => link.getAttribute('href') === '/search?q=ab')).toBe(true)
+      const links = Array.from(element.querySelectorAll('[data-search-results-list] a')) as HTMLAnchorElement[]
+      expect(
+        links.some(
+          link =>
+            link.getAttribute('href') ===
+            'https://www.webstackbuilders.com/deep-dive/introduction-to-vector-search'
+        )
+      ).toBe(true)
+
+      const firstLink = links[0]
+      expect(firstLink?.className).toContain('no-underline')
+      expect(firstLink?.className).toContain('focus-visible:no-underline')
+      expect(firstLink?.querySelector('svg')).toBeTruthy()
+      expect(firstLink?.textContent).toContain('/deep-dive/introduction-to-vector-search')
+
+      const firstItem = firstLink?.closest('li')
+      expect(firstItem?.className).toContain('hover:bg-note-inverse')
+
+      const pathRow = firstLink?.querySelector('.font-mono') as HTMLElement | null
+      expect(pathRow?.className).toContain('text-content')
+
+      const titleRow = firstLink?.querySelector('.text-body') as HTMLElement | null
+      expect(titleRow?.className).toContain('text-page-inverse')
+
+      const arrow = firstLink?.querySelector('svg') as SVGElement | null
+      expect(arrow?.getAttribute('class')).toContain('text-content')
+    })
+
+    vi.useRealTimers()
+  })
+
+  it('highlights matching query terms in result titles and snippets, but not the path', async () => {
+    vi.useFakeTimers()
+
+    await runComponentRender(async ({ element, window }) => {
+      searchQueryMock.mockResolvedValue({
+        data: {
+          hits: [
+            {
+              title: 'Introduction to Vector Search',
+              url: 'https://www.webstackbuilders.com/deep-dive/introduction-to-vector-search',
+              snippet: 'Learn the basics of how vector databases work.',
+            },
+          ],
+        },
+      })
+
+      const input = element.querySelector('[data-search-input]') as HTMLInputElement
+
+      input.value = 'vector'
+      input.dispatchEvent(new window.Event('input', { bubbles: true }))
+
+      await vi.advanceTimersByTimeAsync(260)
+      await flushMicrotasks()
+
+      const firstLink = element.querySelector('[data-search-results-list] a') as HTMLAnchorElement
+      const marks = Array.from(firstLink.querySelectorAll('mark'))
+
+      expect(marks.length).toBeGreaterThan(0)
+      expect(marks.every(mark => mark.textContent?.toLowerCase() === 'vector')).toBe(true)
+
+      const pathRow = firstLink.querySelector('.font-mono')
+      expect(pathRow?.querySelector('mark')).toBeNull()
     })
 
     vi.useRealTimers()
@@ -213,6 +277,21 @@ describe('SearchBar web component', () => {
       expect(input.value).toBe('')
       // Still open; button switches to "Close search" mode.
       expect(clearBtn.hasAttribute('hidden')).toBe(false)
+    })
+  })
+
+  it('uses a tighter focus-visible spotlight on header mic and clear buttons', async () => {
+    await runHeaderComponentRender(async ({ element }) => {
+      const clearBtn = element.querySelector('[data-search-clear]') as HTMLButtonElement
+      const micBtn = element.querySelector('[data-search-mic]') as HTMLButtonElement
+
+      expect(clearBtn.className).toContain('after:inset-1.5')
+      expect(clearBtn.className).toContain('after:rounded-full')
+      expect(clearBtn.className).not.toContain('focus-visible:after:-inset-1.5')
+
+      expect(micBtn.className).toContain('after:inset-1.5')
+      expect(micBtn.className).toContain('after:rounded-full')
+      expect(micBtn.className).not.toContain('focus-visible:after:-inset-1.5')
     })
   })
 

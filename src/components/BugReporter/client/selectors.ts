@@ -1,4 +1,5 @@
 import { ClientScriptError } from '@components/scripts/errors'
+import { isButtonElement, isDivElement } from '@components/scripts/assertions/elements'
 
 export const getBugReporterTriggerElement = (triggerId: string): HTMLButtonElement | null => {
   if (typeof document === 'undefined') {
@@ -63,6 +64,50 @@ export const getBugReporterCancelButtonElement = (
 
   const cancelButton = document.getElementById(cancelButtonId)
   return cancelButton instanceof HTMLButtonElement ? cancelButton : null
+}
+
+export const getBugReporterMinimizeButtonElement = (
+  minimizeButtonId: string,
+): HTMLButtonElement | null => {
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  const minimizeButton = document.getElementById(minimizeButtonId)
+  return minimizeButton instanceof HTMLButtonElement ? minimizeButton : null
+}
+
+export const getBugReporterMinimizedBarElement = (
+  minimizedBarId: string,
+): HTMLElement | null => {
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  const minimizedBar = document.getElementById(minimizedBarId)
+  return isDivElement(minimizedBar) ? minimizedBar : null
+}
+
+export const getBugReporterRestoreButtonElement = (
+  restoreButtonId: string,
+): HTMLButtonElement | null => {
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  const restoreButton = document.getElementById(restoreButtonId)
+  return isButtonElement(restoreButton) ? restoreButton : null
+}
+
+export const getBugReporterMinimizedCloseButtonElement = (
+  minimizedCloseButtonId: string,
+): HTMLButtonElement | null => {
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  const minimizedCloseButton = document.getElementById(minimizedCloseButtonId)
+  return isButtonElement(minimizedCloseButton) ? minimizedCloseButton : null
 }
 
 export const queryBugReporterNameInput = (formId: string): HTMLInputElement | null => {

@@ -1,15 +1,15 @@
-import {
-  isInputElement,
-  isOrderedListElement,
-  isParagraphElement,
-} from '@components/scripts/assertions/elements'
+import { isDivElement, isInputElement, isOrderedListElement, isParagraphElement } from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {
+  form: '[data-search-form]',
   meta: '[data-search-meta]',
   error: '[data-search-error]',
   resultsList: 'ol[data-search-results]',
-  input: 'search-bar [data-search-input]',
+  emptyState: '[data-search-empty-state]',
+  input: '[data-search-input]',
+  micBtn: '[data-search-mic]',
+  clearBtn: '[data-search-clear]',
 } as const
 
 /**
@@ -43,19 +43,20 @@ export function getSearchResultsElements(context: Element) {
     })
   }
 
+  const emptyState = context.querySelector(SELECTORS.emptyState)
+  const micBtn = context.querySelector(SELECTORS.micBtn)
+  const clearBtn = context.querySelector(SELECTORS.clearBtn)
+  const form = context.querySelector(SELECTORS.form)
   const input = context.querySelector(SELECTORS.input)
-  if (!isInputElement(input)) {
-    throw new ClientScriptError({
-      scriptName: 'SearchResultsElement',
-      operation: 'getSearchResultsElements',
-      message: 'Search input element not found',
-    })
-  }
 
   return {
+    form: form instanceof HTMLFormElement ? form : null,
     meta,
     error,
     resultsList,
-    input,
+    emptyState: isDivElement(emptyState) ? emptyState : null,
+    input: isInputElement(input) ? input : null,
+    micBtn: micBtn instanceof HTMLButtonElement ? micBtn : null,
+    clearBtn: clearBtn instanceof HTMLButtonElement ? clearBtn : null,
   }
 }

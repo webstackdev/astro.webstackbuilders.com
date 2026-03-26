@@ -17,6 +17,10 @@ import {
   getBugReporterCloseButtonElement,
   getBugReporterDialogElement,
   getBugReporterFormElement,
+  getBugReporterMinimizeButtonElement,
+  getBugReporterMinimizedCloseButtonElement,
+  getBugReporterMinimizedBarElement,
+  getBugReporterRestoreButtonElement,
   getBugReporterStatusElement,
   getBugReporterTriggerElement,
   queryBugReporterNameInput,
@@ -54,7 +58,12 @@ export class BugReporterModalElement extends LitElement {
     formId: { type: String, attribute: 'form-id' },
     closeButtonId: { type: String, attribute: 'close-button-id' },
     cancelButtonId: { type: String, attribute: 'cancel-button-id' },
+    minimizeButtonId: { type: String, attribute: 'minimize-button-id' },
+    minimizedBarId: { type: String, attribute: 'minimized-bar-id' },
+    minimizedRestoreButtonId: { type: String, attribute: 'minimized-restore-button-id' },
+    minimizedCloseButtonId: { type: String, attribute: 'minimized-close-button-id' },
     open: { type: Boolean, reflect: true },
+    minimized: { type: Boolean, reflect: true },
     statusMessage: { type: String, attribute: false },
     statusType: { type: String, attribute: false },
     isSubmitting: { type: Boolean, attribute: false },
@@ -66,7 +75,12 @@ export class BugReporterModalElement extends LitElement {
   declare formId: string
   declare closeButtonId: string
   declare cancelButtonId: string
+  declare minimizeButtonId: string
+  declare minimizedBarId: string
+  declare minimizedRestoreButtonId: string
+  declare minimizedCloseButtonId: string
   declare open: boolean
+  declare minimized: boolean
   declare statusMessage: string
   declare statusType: 'error' | 'success' | ''
   declare isSubmitting: boolean
@@ -74,8 +88,12 @@ export class BugReporterModalElement extends LitElement {
   private triggerListenerAttached = false
   private closeListenerAttached = false
   private cancelListenerAttached = false
+  private minimizeListenerAttached = false
+  private minimizedBarListenerAttached = false
   private formListenerAttached = false
   private dialogListenerAttached = false
+  /** Flag to distinguish minimize-triggered close from a real close. */
+  private isMinimizing = false
 
   constructor() {
     super()
@@ -85,7 +103,12 @@ export class BugReporterModalElement extends LitElement {
     this.formId = 'bugReporterForm'
     this.closeButtonId = 'bugReporterClose'
     this.cancelButtonId = 'bugReporterCancel'
+    this.minimizeButtonId = 'bugReporterMinimize'
+    this.minimizedBarId = 'bugReporterMinimizedBar'
+    this.minimizedRestoreButtonId = 'bugReporterRestore'
+    this.minimizedCloseButtonId = 'bugReporterMinimizedClose'
     this.open = false
+    this.minimized = false
     this.statusMessage = ''
     this.statusType = ''
     this.isSubmitting = false
@@ -101,6 +124,8 @@ export class BugReporterModalElement extends LitElement {
     this.attachTriggerListener()
     this.attachCloseButtonListener()
     this.attachCancelButtonListener()
+    this.attachMinimizeButtonListener()
+    this.attachMinimizedBarListener()
     this.attachFormListener()
     this.attachDialogListener()
   }
@@ -177,6 +202,57 @@ export class BugReporterModalElement extends LitElement {
     }
   }
 
+  private attachMinimizeButtonListener(): void {
+    const context = { scriptName: 'BugReporterModalElement', operation: 'attachMinimizeButtonListener' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (this.minimizeListenerAttached) {
+        return
+      }
+
+      const minimizeButton = getBugReporterMinimizeButtonElement(this.minimizeButtonId)
+      if (!minimizeButton) {
+        return
+      }
+
+      addButtonEventListeners(minimizeButton, this.handleMinimizeClick, this)
+      this.minimizeListenerAttached = true
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private attachMinimizedBarListener(): void {
+    const context = { scriptName: 'BugReporterModalElement', operation: 'attachMinimizedBarListener' }
+    addScriptBreadcrumb(context)
+
+    try {
+      if (this.minimizedBarListenerAttached) {
+        return
+      }
+
+      const bar = getBugReporterMinimizedBarElement(this.minimizedBarId)
+      if (!bar) {
+        return
+      }
+
+      const restoreButton = getBugReporterRestoreButtonElement(this.minimizedRestoreButtonId)
+      const closeButton = getBugReporterMinimizedCloseButtonElement(this.minimizedCloseButtonId)
+
+      if (!restoreButton || !closeButton) {
+        return
+      }
+
+      addButtonEventListeners(restoreButton, this.handleRestoreClick, this)
+      addButtonEventListeners(closeButton, this.handleMinimizedCloseClick, this)
+
+      this.minimizedBarListenerAttached = true
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
   private attachFormListener(): void {
     const context = { scriptName: 'BugReporterModalElement', operation: 'attachFormListener' }
     addScriptBreadcrumb(context)
@@ -211,10 +287,19 @@ export class BugReporterModalElement extends LitElement {
 
       const dialog = getBugReporterDialogElement(this.dialogId)
       dialog.addEventListener('close', () => {
+        // When minimizing, the dialog is closed to remove the backdrop but
+        // form state should be preserved. Skip the reset in that case.
+        if (this.isMinimizing) {
+          this.isMinimizing = false
+          return
+        }
+
         this.open = false
+        this.minimized = false
         this.isSubmitting = false
         this.statusMessage = ''
         this.statusType = ''
+        this.resetForm()
         this.syncUiState()
       })
 
@@ -234,6 +319,18 @@ export class BugReporterModalElement extends LitElement {
 
   private readonly handleCancelClick = (_event: Event): void => {
     this.closeModal()
+  }
+
+  private readonly handleMinimizeClick = (_event: Event): void => {
+    this.minimizeModal()
+  }
+
+  private readonly handleRestoreClick = (_event: Event): void => {
+    this.restoreModal()
+  }
+
+  private readonly handleMinimizedCloseClick = (_event: Event): void => {
+    this.closeFromMinimized()
   }
 
   private showStatus(message: string, type: 'error' | 'success' = 'error'): void {
@@ -264,9 +361,16 @@ export class BugReporterModalElement extends LitElement {
     addScriptBreadcrumb(context)
 
     try {
+      // If currently minimized, restore without resetting form state
+      if (this.minimized) {
+        this.restoreModal()
+        return
+      }
+
       const dialog = getBugReporterDialogElement(this.dialogId)
 
       this.open = true
+      this.minimized = false
       this.isSubmitting = false
       this.statusMessage = ''
       this.statusType = ''
@@ -288,15 +392,92 @@ export class BugReporterModalElement extends LitElement {
 
     try {
       this.open = false
+      this.minimized = false
       this.isSubmitting = false
       this.statusMessage = ''
       this.statusType = ''
+      this.resetForm()
+      this.hideMinimizedBar()
       this.syncUiState()
 
       const dialog = getBugReporterDialogElement(this.dialogId)
       closeDialog(dialog)
     } catch (error) {
       handleScriptError(error, context)
+    }
+  }
+
+  private minimizeModal(): void {
+    const context = { scriptName: 'BugReporterModalElement', operation: 'minimizeModal' }
+    addScriptBreadcrumb(context)
+
+    try {
+      this.isMinimizing = true
+      this.open = false
+      this.minimized = true
+
+      const dialog = getBugReporterDialogElement(this.dialogId)
+      closeDialog(dialog)
+
+      this.showMinimizedBar()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private restoreModal(): void {
+    const context = { scriptName: 'BugReporterModalElement', operation: 'restoreModal' }
+    addScriptBreadcrumb(context)
+
+    try {
+      this.minimized = false
+      this.open = true
+      this.hideMinimizedBar()
+
+      const dialog = getBugReporterDialogElement(this.dialogId)
+      openDialog(dialog)
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  /** Close from the minimized bar — resets form state since the user is dismissing entirely. */
+  private closeFromMinimized(): void {
+    const context = { scriptName: 'BugReporterModalElement', operation: 'closeFromMinimized' }
+    addScriptBreadcrumb(context)
+
+    try {
+      this.open = false
+      this.minimized = false
+      this.isSubmitting = false
+      this.statusMessage = ''
+      this.statusType = ''
+      this.resetForm()
+      this.hideMinimizedBar()
+      this.syncUiState()
+    } catch (error) {
+      handleScriptError(error, context)
+    }
+  }
+
+  private resetForm(): void {
+    const form = getBugReporterFormElement(this.formId)
+    if (form) {
+      form.reset()
+    }
+  }
+
+  private showMinimizedBar(): void {
+    const bar = getBugReporterMinimizedBarElement(this.minimizedBarId)
+    if (bar) {
+      bar.classList.remove('hidden')
+    }
+  }
+
+  private hideMinimizedBar(): void {
+    const bar = getBugReporterMinimizedBarElement(this.minimizedBarId)
+    if (bar) {
+      bar.classList.add('hidden')
     }
   }
 
