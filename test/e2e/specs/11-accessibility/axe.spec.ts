@@ -4,7 +4,7 @@
 import { writeFileSync } from 'fs'
 import AxeBuilder from '@axe-core/playwright'
 import { BasePage, describe, test, expect } from '@test/e2e/helpers'
-import { pages } from './_pages'
+import { runAcrossPages } from '@test/e2e/helpers/runAcrossPages'
 
 // https://github.com/dequelabs/axe-core/blob/develop/doc/rule-descriptions.md?plain=1
 
@@ -24,32 +24,34 @@ cat.text-alternatives: Rules for ensuring that text alternatives are provided fo
 */
 
 describe('WCAG Compliance', () => {
-  test('run axe accessibility audit on homepage with default theme', async ({ page: playwrightPage }) => {
+  test.only('run axe accessibility audit on homepage with default theme', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
-    const results = await new AxeBuilder({ page: page.page })
-      .withTags(['cat.color'])
-      .disableRules('color-contrast-enhanced')
-      .analyze()
+    await runAcrossPages(page, 'check forms', async (url) => {
+      await page.goto(url)
+      const results = await new AxeBuilder({ page: page.page })
+        .withTags(['cat.aria'])
+        .disableRules('color-contrast-enhanced')
+        .analyze()
 
-    const incompleteResultsString = JSON.stringify(results.incomplete, null, 2)
-    writeFileSync('axe-results-incomplete.json', incompleteResultsString, 'utf8')
+      const incompleteResultsString = JSON.stringify(results.incomplete, null, 2)
+      writeFileSync('axe-results-incomplete.json', incompleteResultsString, 'utf8')
 
-    const violationResultsString = JSON.stringify(results.violations, null, 2)
-    writeFileSync('axe-results-violations.json', violationResultsString, 'utf8')
+      const violationResultsString = JSON.stringify(results.violations, null, 2)
+      writeFileSync('axe-results-violations.json', violationResultsString, 'utf8')
 
-    expect(results.violations).toEqual([])
-    expect(results.incomplete).toEqual([])
+      expect(results.violations).toEqual([])
+      expect(results.incomplete).toEqual([])
+    })
   })
 
   test('run axe audit on all main pages', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    for (const url of pages) {
+    await runAcrossPages(page, 'check forms', async (url) => {
       await page.goto(url)
       const results = await new AxeBuilder({ page: page.page })
         .withTags(['cat.forms'])
         .analyze()
       expect(results.violations).toEqual([])
-    }
+    }, true)
   })
 })

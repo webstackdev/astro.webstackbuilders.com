@@ -4,81 +4,7 @@
  */
 import { BasePage, describe, test, expect } from '@test/e2e/helpers'
 import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
-import { pages } from './_pages'
-
-interface PageLoopDiagnostics {
-  currentUrl: string
-  pathname: string
-  readyState: string
-  title: string
-}
-
-const getPageLoopDiagnostics = async (page: BasePage): Promise<PageLoopDiagnostics> => {
-  if (page.page.isClosed()) {
-    return {
-      currentUrl: 'page-closed',
-      pathname: 'unavailable',
-      readyState: 'unavailable',
-      title: 'unavailable',
-    }
-  }
-
-  const currentUrl = page.page.url()
-
-  const metadata = await page.evaluate(() => {
-    return {
-      pathname: window.location.pathname,
-      readyState: document.readyState,
-      title: document.title || '',
-    }
-  }).catch(() => {
-    return {
-      pathname: 'unavailable',
-      readyState: 'unavailable',
-      title: 'unavailable',
-    }
-  })
-
-  return {
-    currentUrl,
-    pathname: metadata.pathname,
-    readyState: metadata.readyState,
-    title: metadata.title,
-  }
-}
-
-const wrapPageLoopError = async (page: BasePage, url: string, error: unknown) => {
-  const diagnostics = await getPageLoopDiagnostics(page)
-  const message = error instanceof Error ? error.message : String(error)
-
-  throw new Error(
-    [
-      `Looped accessibility check failed on ${url}.`,
-      `currentUrl=${diagnostics.currentUrl}`,
-      `pathname=${diagnostics.pathname}`,
-      `title="${diagnostics.title}"`,
-      `readyState=${diagnostics.readyState}`,
-      `originalError=${message}`,
-    ].join(' '),
-    { cause: error instanceof Error ? error : undefined }
-  )
-}
-
-const runAcrossPages = async (
-  page: BasePage,
-  label: string,
-  callback: (_url: string) => Promise<void>
-) => {
-  for (const url of pages) {
-    await test.step(`${label} on ${url}`, async () => {
-      try {
-        await callback(url)
-      } catch (error) {
-        await wrapPageLoopError(page, url, error)
-      }
-    })
-  }
-}
+import { runAcrossPages } from '../../helpers/runAcrossPages'
 
 describe('WCAG Compliance', () => {
   /**
@@ -92,50 +18,50 @@ describe('WCAG Compliance', () => {
     const page = await BasePage.init(playwrightPage)
 
     await runAcrossPages(page, 'check touch targets', async (url) => {
-        await page.goto(url)
+      await page.goto(url)
 
-        const buttons = page.page.locator('button, a')
-        const count = await buttons.count()
+      const buttons = page.page.locator('button, a')
+      const count = await buttons.count()
 
-        let validButtonsChecked = 0
-        for (let i = 0; i < count && validButtonsChecked < 10; i++) {
-          const button = buttons.nth(i)
-          const box = await button.boundingBox()
+      let validButtonsChecked = 0
+      for (let i = 0; i < count && validButtonsChecked < 10; i++) {
+        const button = buttons.nth(i)
+        const box = await button.boundingBox()
 
-          if (box && (await button.isVisible()) && box.width > 5 && box.height > 5) {
-            const metadata = await button.evaluate((element) => {
-              const text = element.textContent?.replace(/\s+/g, ' ').trim() || ''
+        if (box && (await button.isVisible()) && box.width > 5 && box.height > 5) {
+          const metadata = await button.evaluate((element) => {
+            const text = element.textContent?.replace(/\s+/g, ' ').trim() || ''
 
-              return {
-                tagName: element.tagName.toLowerCase(),
-                ariaLabel: element.getAttribute('aria-label') || '',
-                href: element instanceof HTMLAnchorElement ? element.getAttribute('href') || '' : '',
-                text,
-              }
-            })
+            return {
+              tagName: element.tagName.toLowerCase(),
+              ariaLabel: element.getAttribute('aria-label') || '',
+              href: element instanceof HTMLAnchorElement ? element.getAttribute('href') || '' : '',
+              text,
+            }
+          })
 
-            const targetDescription = [
-              `${metadata.tagName}[${i}]`,
-              metadata.text ? `text="${metadata.text}"` : '',
-              metadata.ariaLabel ? `aria-label="${metadata.ariaLabel}"` : '',
-              metadata.href ? `href="${metadata.href}"` : '',
-            ].filter(Boolean).join(' ')
+          const targetDescription = [
+            `${metadata.tagName}[${i}]`,
+            metadata.text ? `text="${metadata.text}"` : '',
+            metadata.ariaLabel ? `aria-label="${metadata.ariaLabel}"` : '',
+            metadata.href ? `href="${metadata.href}"` : '',
+          ].filter(Boolean).join(' ')
 
-            // WCAG 2.2 AA minimum target size is 24x24 CSS pixels.
-            expect(
-              box.width,
-              `Touch target width below threshold on ${url}: ${targetDescription}`
-            ).toBeGreaterThanOrEqual(24)
-            expect(
-              box.height,
-              `Touch target height below threshold on ${url}: ${targetDescription}`
-            ).toBeGreaterThanOrEqual(24)
-            validButtonsChecked++
-          }
+          // WCAG 2.2 AA minimum target size is 24x24 CSS pixels.
+          expect(
+            box.width,
+            `Touch target width below threshold on ${url}: ${targetDescription}`
+          ).toBeGreaterThanOrEqual(24)
+          expect(
+            box.height,
+            `Touch target height below threshold on ${url}: ${targetDescription}`
+          ).toBeGreaterThanOrEqual(24)
+          validButtonsChecked++
         }
+      }
 
-        // Ensure we actually checked some buttons
-        expect(validButtonsChecked, `No visible touch targets were sampled on ${url}`).toBeGreaterThan(0)
+      // Ensure we actually checked some buttons
+      expect(validButtonsChecked, `No visible touch targets were sampled on ${url}`).toBeGreaterThan(0)
     })
   })
 
