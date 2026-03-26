@@ -43,6 +43,7 @@ describe('Home Hero (Astro)', () => {
       const readyLink = window.document.querySelector('a[data-hero-ready-link]')
       expect(readyLink).toBeTruthy()
       expect(readyLink?.getAttribute('href')).toBe('/contact')
+      expect(readyLink?.getAttribute('aria-label')).toBe('Contact me about your infrastructure needs')
 
       const readyClass = readyLink?.getAttribute('class') || ''
       expect(readyClass).toContain('no-underline')

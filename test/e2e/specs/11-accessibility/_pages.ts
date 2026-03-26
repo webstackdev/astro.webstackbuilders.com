@@ -1,0 +1,17 @@
+export const pages = [
+  '/',
+  '/about',
+  '/articles',
+  '/articles/demo',
+  '/case-studies',
+  '/consent',
+  '/contact',
+  '/my-data',
+  '/newsletter',
+  '/offline',
+  '/privacy',
+  '/search',
+  '/services',
+  '/terms',
+  '/404',
+]

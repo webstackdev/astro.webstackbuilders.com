@@ -3,9 +3,9 @@
  * Tests for keyboard accessibility including tab order and focus management
  */
 
-import { BasePage, test, expect } from '@test/e2e/helpers'
+import { BasePage, describe, test, expect } from '@test/e2e/helpers'
 
-test.describe('Keyboard Navigation', () => {
+describe('Keyboard Navigation', () => {
 
   /**
    * Axe does not check for tabbing through interactive elements. It checks that

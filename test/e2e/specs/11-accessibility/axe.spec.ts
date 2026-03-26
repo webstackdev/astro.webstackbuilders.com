@@ -3,7 +3,8 @@
  */
 import { writeFileSync } from 'fs'
 import AxeBuilder from '@axe-core/playwright'
-import { BasePage, test, expect } from '@test/e2e/helpers'
+import { BasePage, describe, test, expect } from '@test/e2e/helpers'
+import { pages } from './_pages'
 
 // https://github.com/dequelabs/axe-core/blob/develop/doc/rule-descriptions.md?plain=1
 
@@ -22,8 +23,8 @@ cat.tables: Rules for data tables, including headers and associations.
 cat.text-alternatives: Rules for ensuring that text alternatives are provided for non-text content, such as images.
 */
 
-test.describe('WCAG Compliance', () => {
-  test.skip('@blocked run axe accessibility audit on homepage with default theme', async ({ page: playwrightPage }) => {
+describe('WCAG Compliance', () => {
+  test('run axe accessibility audit on homepage with default theme', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')
     const results = await new AxeBuilder({ page: page.page })
@@ -41,19 +42,10 @@ test.describe('WCAG Compliance', () => {
     expect(results.incomplete).toEqual([])
   })
 
-  test.skip('@blocked run axe audit on all main pages', async ({ page: playwrightPage }) => {
+  test('run axe audit on all main pages', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Blocked by: Need to integrate @axe-core/playwright
     // Expected: All pages should pass accessibility audit
-
-    const pages = [
-      '/',
-      '/about',
-      '/services',
-      '/articles',
-      '/contact',
-    ]
-
     for (const url of pages) {
       await page.goto(url)
       const results = await new AxeBuilder({ page: page.page })

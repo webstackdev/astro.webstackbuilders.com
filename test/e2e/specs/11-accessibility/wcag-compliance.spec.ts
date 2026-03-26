@@ -2,41 +2,69 @@
  * WCAG Compliance Tests
  * Tests for Web Content Accessibility Guidelines compliance
  */
-import { BasePage, test, expect } from '@test/e2e/helpers'
+import { BasePage, describe, test, expect } from '@test/e2e/helpers'
 import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
-import { wait } from '@test/e2e/helpers/waitTimeouts'
+import { pages } from './_pages'
 
-test.describe('WCAG Compliance', () => {
+describe('WCAG Compliance', () => {
   /**
    * target-size rule is disabled in Axe by default!!
    *
-   * Axe can checks if touch targets are at least 24x24 CSS pixels. If a target is smaller
-   * than 24x24 pixels, it must be at least 24 pixels away from any other touch target.
-   * A touch target size of at least 44x44 pixels is part of the WCAG 2.1 AAA guidelines,
-   * which is a more stringent level of compliance,
+   * WCAG 2.2 AA requires touch targets to be at least 24x24 CSS pixels, unless a spacing
+   * exception applies. This test intentionally checks only the simple minimum-size case and
+   * does not attempt to model the spacing exception.
    */
-  test.skip('@wip touch targets are at least 44x44 pixels', async ({ page: playwrightPage }) => {
+  test.only('@wip touch targets are at least 24x24 pixels', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
 
-    const buttons = page.page.locator('button, a')
-    const count = await buttons.count()
+    for (const url of pages) {
+      await test.step(`check touch targets on ${url}`, async () => {
+        await page.goto(url)
 
-    let validButtonsChecked = 0
-    for (let i = 0; i < count && validButtonsChecked < 10; i++) {
-      const button = buttons.nth(i)
-      const box = await button.boundingBox()
+        const buttons = page.page.locator('button, a')
+        const count = await buttons.count()
 
-      if (box && (await button.isVisible()) && box.width > 5 && box.height > 5) {
-        // 44x44 is WCAG AAA, 24x24 is AA
-        expect(box.width).toBeGreaterThan(20)
-        expect(box.height).toBeGreaterThan(20)
-        validButtonsChecked++
-      }
+        let validButtonsChecked = 0
+        for (let i = 0; i < count && validButtonsChecked < 10; i++) {
+          const button = buttons.nth(i)
+          const box = await button.boundingBox()
+
+          if (box && (await button.isVisible()) && box.width > 5 && box.height > 5) {
+            const metadata = await button.evaluate((element) => {
+              const text = element.textContent?.replace(/\s+/g, ' ').trim() || ''
+
+              return {
+                tagName: element.tagName.toLowerCase(),
+                ariaLabel: element.getAttribute('aria-label') || '',
+                href: element instanceof HTMLAnchorElement ? element.getAttribute('href') || '' : '',
+                text,
+              }
+            })
+
+            const targetDescription = [
+              `${metadata.tagName}[${i}]`,
+              metadata.text ? `text="${metadata.text}"` : '',
+              metadata.ariaLabel ? `aria-label="${metadata.ariaLabel}"` : '',
+              metadata.href ? `href="${metadata.href}"` : '',
+            ].filter(Boolean).join(' ')
+
+            // WCAG 2.2 AA minimum target size is 24x24 CSS pixels.
+            expect(
+              box.width,
+              `Touch target width below threshold on ${url}: ${targetDescription}`
+            ).toBeGreaterThanOrEqual(24)
+            expect(
+              box.height,
+              `Touch target height below threshold on ${url}: ${targetDescription}`
+            ).toBeGreaterThanOrEqual(24)
+            validButtonsChecked++
+          }
+        }
+
+        // Ensure we actually checked some buttons
+        expect(validButtonsChecked, `No visible touch targets were sampled on ${url}`).toBeGreaterThan(0)
+      })
     }
-
-    // Ensure we actually checked some buttons
-    expect(validButtonsChecked).toBeGreaterThan(0)
   })
 
   /**
@@ -45,7 +73,7 @@ test.describe('WCAG Compliance', () => {
    * requirements as 18pt (24 CSS pixels) or 14pt bold (19 CSS pixels). Note: Elements
    * found to have a 1:1 ratio are considered "incomplete" and require a manual review.
    */
-  test.skip('@ready text has sufficient color contrast', async ({ page: playwrightPage }) => {
+  test('@ready text has sufficient color contrast', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
@@ -76,7 +104,7 @@ test.describe('WCAG Compliance', () => {
    * those in WCAG 2.2, are fully met. This includes checking that the focus indicator meets
    * minimum size and contrast criteria relative to adjacent colors, not just the background color.
    */
-  test.skip('@ready focus indicators are visible', async ({ page: playwrightPage }) => {
+  test('@ready focus indicators are visible', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
@@ -109,7 +137,7 @@ test.describe('WCAG Compliance', () => {
    * Axe checks that the user-scalable="no" parameter is not present in the <meta name="viewport">
    * element and the maximum-scale parameter is not less than 2.
    */
-  test.skip('@ready page can be zoomed to 200%', async ({ page: playwrightPage }) => {
+  test('@ready page can be zoomed to 200%', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
 
     await page.goto('/')
@@ -140,7 +168,7 @@ test.describe('WCAG Compliance', () => {
    * text, and if the contrast is less, it requires a non-color visual distinction like
    * an underline. Axe also checks if links have a distinct style on focus and hover.
    */
-  test.skip('@ready links are distinguishable from text', async ({ page: playwrightPage }) => {
+  test('@ready links are distinguishable from text', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
 
     await page.goto('/')
@@ -166,7 +194,7 @@ test.describe('WCAG Compliance', () => {
    * Axe checks that no content flashes more than 3 times per second. It identifies violations
    * of both the general flash threshold and the more restrictive "three flashes" rule.
    */
-  test.skip('@ready no content flashes more than 3 times per second', async ({ page: playwrightPage }) => {
+  test('@ready no content flashes more than 3 times per second', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
@@ -196,7 +224,7 @@ test.describe('WCAG Compliance', () => {
    * Axe does not check if prefers-reduced-motion is respected; this is considered
    * a complex, context-dependent check that requires manual inspection.
    */
-  test.skip('@ready page is usable without motion', async ({ page: playwrightPage }) => {
+  test('@ready page is usable without motion', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
 
     await page.page.emulateMedia({ reducedMotion: 'reduce' })
@@ -211,48 +239,5 @@ test.describe('WCAG Compliance', () => {
 
     // Content should still be accessible
     await page.expectMainElement()
-  })
-
-  /**
-   * Axe detects if form error indicators are technically accessible to assistive
-   * technologies like screen readers. A manual check is necessary to confirm that
-   * correctly entered information remains in the form after a validation error.
-   * When a page reloads after a server-side error, a manual test is needed to
-   * ensure that focus is moved to the top of the form or the first field with an
-   * error. For client-side validation, a manual check confirms that focus shifts
-   * to the invalid field or an error summary.
-   */
-  test.skip('@wip form errors are clearly identified', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-
-    await page.goto('/contact')
-
-    const submitButton = page.page.locator('button[type="submit"]').first()
-    await submitButton.click()
-    const errors = page.page.locator('[data-error], .error, [role="alert"]')
-    await errors.first().waitFor({ state: 'visible', timeout: wait.quickAssert })
-    const count = await errors.count()
-
-    expect(count).toBeGreaterThan(0)
-
-    // Error should be descriptive
-    const errorText = await errors.first().textContent()
-    expect(errorText?.trim().length).toBeGreaterThan(5)
-  })
-
-  /**
-   * ?
-   */
-  test.skip('@ready time limits can be extended', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-
-    await page.goto('/')
-
-    // Check for timers or session warnings
-    const timer = page.page.locator('[data-timer], [data-timeout]')
-    const count = await timer.count()
-
-    // Test passes regardless - just checking for presence
-    expect(count).toBeGreaterThanOrEqual(0)
   })
 })

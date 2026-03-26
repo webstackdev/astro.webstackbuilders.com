@@ -3,9 +3,9 @@
 
 ## E2E Files with Skipped Tests
 
-Blocked Categories (44 tests):
+`FORCE_COLOR=1 CI=1 npx playwright test`
 
-Visual regression testing (18)
+## Visual Regression Testing
 
 Playwright's Built-in Visual Testing
 
@@ -17,32 +17,22 @@ Pros: It's free, everything stays local (no third-party services needed), setup 
 
 Cons: Browser rendering can be inconsistent across different operating systems and machines, leading to "flaky" tests or false positives. Managing baselines for multiple browsers and resolutions manually can also be challenging at scale.
 
-Axe accessibility (2) - axe-core integration
-
 ## Missing E2E Component Tests
 
+- BugReporter
+- Calendar
 - Code/CodeBlock
 - Code/CodeTabs
 - Consent/Checkbox
-
-## Youtube video for Backstage IDP hero on Home page
-
-Discuss agentic AI integrations to add to Backstage
+- Diagram
+- FileExplorer
+- Inset
+- Time
+- Troubleshooter
 
 ## Performance
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
-
-## Chat bot tying into my phone and email
-
-Vercel AI Gateway, maybe could use for a chatbot:
-
-https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
-https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2026-aeeff5e13f4a
-
-## Move Docker containers to dev server from Playwright
-
-We should start the mock containers with the dev server instead of with Playwright so that they're useable in a dev environment.
 
 ## Print
 
@@ -109,7 +99,7 @@ Hide any interactive or screen-specific components using display: none; in your 
 
 3. Expand External Links For Print:
 
-We can't (yet) directly interface with a printed page to explore links, so link URLs should be visible on the printed version of the Web page. To keep the page relatively clean, I prefer to expand only outbound links in articles, and suppress internal ones. If you've used relative URLs on your website for local links, you can easily do this through an attribute selector and :after pseudo=classes, thus preventing internal links and links around images from being printed:
+We can't (yet) directly interface with a printed page to explore links, so link URLs should be visible on the printed version of the Web page. To keep the page relatively clean, I prefer to expand only outbound links in articles, and suppress internal ones. If you've used relative URLs on your website for local links, you can easily do this through an attribute selector and `:after` pseudo classes, thus preventing internal links and links around images from being printed:
 
 ```css
 @media print {
@@ -188,7 +178,22 @@ The text, diagrams, and images in this work are licensed under CC BY-NC 4.0
 All code samples in this article are licensed under the MIT License. Feel free to use, modify, and distribute them in any project.
 ```
 
-## Todo
+## Youtube video for Backstage IDP hero on Home page
+
+Discuss agentic AI integrations to add to Backstage
+
+## Chat bot tying into my phone and email
+
+Vercel AI Gateway, maybe could use for a chatbot:
+
+https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
+https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2026-aeeff5e13f4a
+
+## Move Docker containers to dev server from Playwright
+
+We should start the mock containers with the dev server instead of with Playwright so that they're useable in a dev environment.
+
+## Link Validator
 
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
 
