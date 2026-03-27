@@ -69,6 +69,9 @@ const {
   tags,
 } = Astro.props
 
+const hasBreadcrumbRowSlot = Astro.slots.has('breadcrumb-row')
+const shouldRenderBreadcrumbRow = (path !== '/' && path !== '') || hasBreadcrumbRowSlot
+
 const requestUrl = Astro.url?.href
 const requestHeaders = Astro.isPrerendered ? undefined : Astro.request.headers
 
@@ -150,19 +153,24 @@ applyRenderSentryContext({
           class="flex-1 min-h-0 overflow-y-auto flex flex-col"
           style={`margin-top: var(--progress-bar-height, 0);`}
         >
-          <div
-            id="breadcrumbs"
-            class:list={[
-              'mt-4 items-center justify-between gap-4',
-              hideBreadcrumbsOnMobile ? 'hidden sm:flex' : 'flex',
-            ]}
-          >
-            <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
-            {/** breadcrumb-row slot is used to pass the ContentSwitcher on articles and deep-dive item view pages */}
-            <div class="shrink-0">
-              <slot name="breadcrumb-row" />
-            </div>
-          </div>
+          {
+            shouldRenderBreadcrumbRow && (
+              <section
+                id="breadcrumbs"
+                aria-label="Breadcrumbs and page controls"
+                class:list={[
+                  'mt-4 items-center justify-between gap-4',
+                  hideBreadcrumbsOnMobile ? 'hidden sm:flex' : 'flex',
+                ]}
+              >
+                <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
+                {/** breadcrumb-row slot is used to pass the ContentSwitcher on articles and deep-dive item view pages */}
+                <div class="shrink-0">
+                  <slot name="breadcrumb-row" />
+                </div>
+              </section>
+            )
+          }
 
           <main
             id="main"

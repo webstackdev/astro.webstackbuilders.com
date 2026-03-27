@@ -32,7 +32,7 @@ describe('WCAG Compliance', () => {
     await runAcrossPages(page, 'check forms', async (url) => {
       await page.goto(url)
       const results = await new AxeBuilder({ page: page.page })
-        .withTags(['cat.aria'])
+        .withTags(['cat.keyboard'])
         .disableRules('color-contrast-enhanced')
         .analyze()
 
