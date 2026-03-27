@@ -84,10 +84,11 @@ import CookieSvg from '@assets/images/site/cookie.svg'
 <script>
   import { registerConsentBannerWebComponent } from '@components/Consent/Banner/client'
   import { initConsentSideEffects } from '@components/scripts/store'
-  registerConsentBannerWebComponent()
+  import { whenIdle } from '@components/scripts/utils'
+  whenIdle(() => registerConsentBannerWebComponent())
 
   // Initialize cookie consent side effects with Astro View Transitions
   document.addEventListener('astro:page-load', () => {
-    initConsentSideEffects()
+    whenIdle(() => initConsentSideEffects())
   })
 </script>

@@ -50,7 +50,6 @@ export class NewsletterPage extends BasePage {
    */
   async checkGdprConsent(): Promise<void> {
     const checkbox = this.page.locator(this.gdprConsentSelector)
-    const container = this.page.locator('#newsletter-gdpr-consent-container')
     const hiddenConsentSelector = '#newsletter-gdpr-consent-hidden'
 
     if (await checkbox.isHidden().catch(() => false)) {

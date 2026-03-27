@@ -63,6 +63,8 @@ describe('NavigationElement web component behavior', () => {
       moduleSpecifier: '@components/Navigation/client/index',
       waitForReady: async (element: NavigationComponent) => {
         await element.updateComplete
+        // Flush whenIdle's setTimeout fallback used in jsdom (no requestIdleCallback)
+        await new Promise(resolve => setTimeout(resolve, 0))
       },
       assert: async ({ element }) => {
         await assertion({ element })
@@ -88,6 +90,8 @@ describe('NavigationElement web component behavior', () => {
 
       expect(toggleButton.getAttribute('aria-label')).toBe('Open main menu')
       toggleButton.click()
+      // Flush async toggleMenu (dynamic focus-trap import)
+      await new Promise(resolve => setTimeout(resolve, 0))
 
       expect(document.body.classList.contains('no-scroll')).toBe(true)
       expect(header.classList.contains('aria-expanded-true')).toBe(true)
@@ -114,6 +118,8 @@ describe('NavigationElement web component behavior', () => {
         throw new TestError('Navigation toggle button not found')
       }
       toggleButton.click()
+      // Flush async toggleMenu (dynamic focus-trap import)
+      await new Promise(resolve => setTimeout(resolve, 0))
       expect(document.body.classList.contains('no-scroll')).toBe(true)
 
       document.dispatchEvent(new window.KeyboardEvent('keyup', { key: 'Escape' }))
@@ -139,6 +145,8 @@ describe('NavigationElement web component behavior', () => {
         throw new TestError('Navigation toggle button not found')
       }
       toggleButton.click()
+      // Flush async toggleMenu (dynamic focus-trap import)
+      await new Promise(resolve => setTimeout(resolve, 0))
       expect(focusTrapMock.activate).toHaveBeenCalled()
 
       toggleButton.click()

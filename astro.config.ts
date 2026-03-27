@@ -135,7 +135,7 @@ export default defineConfig({
   integrations: standardIntegrations,
   /** Astro actions require server output in Astro 6. Individual routes can still opt into prerendering. */
   output: 'server',
-  prefetch: true,
+  prefetch: process.env['DISABLE_PREFETCH'] === '1' ? false : true,
   image: {
     remotePatterns: [
       { protocol: 'https' },
