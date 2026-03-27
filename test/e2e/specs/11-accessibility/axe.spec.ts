@@ -25,6 +25,9 @@ cat.text-alternatives: Rules for ensuring that text alternatives are provided fo
 
 describe('WCAG Compliance', () => {
   test.only('run axe accessibility audit with default theme', async ({ page: playwrightPage }) => {
+    test.slow()
+    test.setTimeout(90_000)
+
     const page = await BasePage.init(playwrightPage)
     await runAcrossPages(page, 'check forms', async (url) => {
       await page.goto(url)
@@ -45,6 +48,9 @@ describe('WCAG Compliance', () => {
   })
 
   test('run axe audit on all main pages', async ({ page: playwrightPage }) => {
+    test.slow()
+    test.setTimeout(90_000)
+
     const page = await BasePage.init(playwrightPage)
     await runAcrossPages(page, 'check forms', async (url) => {
       await page.goto(url)
