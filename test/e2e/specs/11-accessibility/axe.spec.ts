@@ -1,7 +1,6 @@
 /**
  * Axe Core Tests
  */
-import { writeFileSync } from 'fs'
 import AxeBuilder from '@axe-core/playwright'
 import { BasePage, describe, test, expect } from '@test/e2e/helpers'
 import { runAcrossPages } from '@test/e2e/helpers/runAcrossPages'
@@ -23,7 +22,7 @@ const axeTags = [
 
 describe('WCAG Compliance', () => {
   axeTags.forEach((axeTag) => {
-    test.skip(`Run axe audit on all main pages for ${axeTag}`, async ({ page: playwrightPage }) => {
+    test(`Run axe audit on all main pages for ${axeTag}`, async ({ page: playwrightPage }) => {
       test.slow()
       test.setTimeout(90_000)
 
@@ -37,32 +36,6 @@ describe('WCAG Compliance', () => {
         expect(results.violations).toEqual([])
         expect(results.incomplete).toEqual([])
       })
-    })
-  })
-
-  test.skip(
-    'Axe test for color contrast and meaning conveyed by color',
-    async ({ page: playwrightPage }
-  ) => {
-    test.slow()
-    test.setTimeout(90_000)
-
-    const page = await BasePage.init(playwrightPage)
-    await runAcrossPages(page, 'check forms', async (url) => {
-      await page.goto(url)
-      const results = await new AxeBuilder({ page: page.page })
-        .withTags('cat.color')
-        .disableRules('color-contrast-enhanced')
-        .analyze()
-
-      const incompleteResultsString = JSON.stringify(results.incomplete, null, 2)
-      writeFileSync('axe-results-incomplete.json', incompleteResultsString, 'utf8')
-
-      const violationResultsString = JSON.stringify(results.violations, null, 2)
-      writeFileSync('axe-results-violations.json', violationResultsString, 'utf8')
-
-      expect(results.violations).toEqual([])
-      expect(results.incomplete).toEqual([])
     })
   })
 })

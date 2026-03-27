@@ -7,13 +7,9 @@ View Lighthouse report:
 
 xdg-open ".cache/playwright/lighthouse-reports/run Lighthouse audit on homepage-desktop-1774621624366.html"
 
-## Performance
-
-Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
-
 ## Print
 
-- Improve print layout by hiding header and footer for articles, add tracking
+- Improve print layout by hiding header and footer for articles
 
 ```typescript
 window.addEventListener('beforeprint', (event) => {
@@ -47,7 +43,7 @@ if (window.matchMedia) {
 }
 ```
 
-- Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page.
+- Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page. npm install qr-code-styling is added as a package.
 
 - Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page. Need a fixed header format that adds article title, subtitle, and date.
 
