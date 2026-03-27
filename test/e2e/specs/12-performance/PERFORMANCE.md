@@ -3,13 +3,13 @@
 
 continue
 
-Latest run (Dec 2, 2025):
+Latest run (March 27, 2026):
 
-- Mobile Chrome LCP measured 4.3 s (threshold 2.5 s)
-- Mobile Chrome FCP measured 5.3 s (threshold 1.8 s)
-- Mobile Chrome TBT measured 228 ms (threshold 200 ms)
-- Microsoft Edge TBT measured 466 ms (threshold 200 ms)
-- Historical: Firefox + Mobile Safari FID measured 127 ms/126 ms (threshold 100 ms)
+- Mobile Chrome LCP measured 25.0s
+- Mobile Chrome FCP measured 16.4s
+- Mobile Chrome TBT measured 0ms
+- Mobile Chrome CLS measured 0
+- Mobile Chrome Speed Index measured 16.4
 
 ## Largest Contentful Paint regressions (Mobile Chrome)
 

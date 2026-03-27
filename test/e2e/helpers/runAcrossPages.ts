@@ -1,6 +1,6 @@
 import { BasePage, test } from '@test/e2e/helpers'
 
-const pages = [
+export const pages = [
   '/',
   '/about',
   '/articles',
@@ -8,7 +8,7 @@ const pages = [
   '/case-studies',
   '/consent',
   '/contact',
-  '/my-data',
+  '/privacy/my-data',
   '/newsletter',
   '/newsletter/confirm/error-token',
   '/newsletter/confirm/expired-token',
@@ -21,7 +21,7 @@ const pages = [
   '/404',
 ]
 
-const pagesWithForms = [
+export const pagesWithForms = [
   '/',
   '/articles/demo',
   '/consent',

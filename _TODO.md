@@ -3,6 +3,10 @@
 
 ## E2E
 
+View Lighthouse report:
+
+xdg-open ".cache/playwright/lighthouse-reports/run Lighthouse audit on homepage-desktop-1774621624366.html"
+
 ## Performance
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
