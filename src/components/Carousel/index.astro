@@ -74,6 +74,7 @@ const items = prepareItems(allItems, variant, currentSlug, limit)
 
 const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
 const carouselRegionLabelledBy = title ? `${carouselId}-title` : undefined
+const carouselRegionRole = carouselRegionLabelledBy ? 'region' : undefined
 ---
 
 {
@@ -99,7 +100,7 @@ const carouselRegionLabelledBy = title ? `${carouselId}-title` : undefined
         )}
 
         {/* Embla Carousel */}
-        <div class="embla relative" role="region" aria-labelledby={carouselRegionLabelledBy}>
+        <div class="embla relative" role={carouselRegionRole} aria-labelledby={carouselRegionLabelledBy}>
           <div class="embla__viewport overflow-hidden p-4">
             <div class="embla__container flex -ml-4 md:-ml-6">
               {items.map((item: ItemType, index) => (

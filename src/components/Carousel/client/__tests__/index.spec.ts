@@ -208,6 +208,7 @@ describe('Carousel component (server output)', () => {
         const region = root.querySelector('.embla')
 
         expect(heading).toBeNull()
+        expect(region?.getAttribute('role')).toBeNull()
         expect(region?.getAttribute('aria-labelledby')).toBeNull()
       },
       { title: '', variant: 'suggested' }
