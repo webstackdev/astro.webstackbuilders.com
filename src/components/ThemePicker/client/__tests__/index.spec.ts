@@ -187,7 +187,12 @@ describe('ThemePicker Component', () => {
         expect(tooltip.hasAttribute('hidden')).toBe(true)
 
         const [firstThemeButton] = getThemeButtons(element)
-        firstThemeButton.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }))
+        expect(firstThemeButton).toBeTruthy()
+        if (!firstThemeButton) {
+          return
+        }
+
+        firstThemeButton.dispatchEvent(new Event('focusin', { bubbles: true }))
 
         expect(firstThemeButton.getAttribute('aria-describedby')).toBe('theme-picker-tooltip')
         expect(tooltip.hasAttribute('hidden')).toBe(false)

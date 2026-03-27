@@ -210,7 +210,7 @@ describe('Carousel component (server output)', () => {
         expect(heading).toBeNull()
         expect(region?.getAttribute('aria-labelledby')).toBeNull()
       },
-      { title: undefined, variant: 'suggested', currentSlug: undefined }
+      { title: '', variant: 'suggested' }
     )
   })
 
