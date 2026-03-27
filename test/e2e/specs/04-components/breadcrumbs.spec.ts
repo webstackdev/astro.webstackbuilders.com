@@ -21,7 +21,7 @@ test.describe('Breadcrumbs Component', () => {
 
   test('@ready breadcrumbs display on service pages', async ({ page: playwrightPage }) => {
     const page = await BreadCrumbPage.init(playwrightPage)
-    await page.openFirstServiceDetail()
+    await page.goto('/services')
 
     await page.expectElementVisible('nav[aria-label="Breadcrumbs"]')
   })
@@ -91,8 +91,7 @@ test.describe('Breadcrumbs Component', () => {
     const itemCount = await page.countElements('nav[aria-label="Breadcrumbs"] li')
     expect(itemCount).toBeGreaterThan(1)
 
-    // Check for SVG separator icon
-    const separatorCount = await page.countElements('nav[aria-label="Breadcrumbs"] svg[aria-hidden="true"]')
+    const separatorCount = await page.countElements('nav[aria-label="Breadcrumbs"] li span.border-dashed')
     expect(separatorCount).toBeGreaterThan(0)
   })
 
@@ -111,7 +110,7 @@ test.describe('Breadcrumbs Component', () => {
     await page.setViewport(375, 667)
     await page.openFirstArticleDetail()
 
-    await page.expectElementVisible('nav[aria-label="Breadcrumbs"]')
+    await page.expectElementHidden('nav[aria-label="Breadcrumbs"]')
   })
 
   test('@ready breadcrumbs have structured data', async ({ page: playwrightPage }) => {

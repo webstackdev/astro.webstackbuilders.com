@@ -200,7 +200,7 @@ describe('ARIA and Screen Readers', () => {
   test('@ready form inputs have labels', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await runAcrossPages(page, 'check form input labels', async (url) => {
-      await page.goto(url)
+      await page.goto(url, { waitUntil: 'load' })
 
       const inputs = page.page.locator(visibleFormControlSelector)
       const count = await inputs.count()

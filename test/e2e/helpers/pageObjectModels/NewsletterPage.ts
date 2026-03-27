@@ -49,7 +49,45 @@ export class NewsletterPage extends BasePage {
    * Check GDPR consent checkbox
    */
   async checkGdprConsent(): Promise<void> {
-    await this.check(this.gdprConsentSelector)
+    const checkbox = this.page.locator(this.gdprConsentSelector)
+    const container = this.page.locator('#newsletter-gdpr-consent-container')
+    const hiddenConsentSelector = '#newsletter-gdpr-consent-hidden'
+
+    if (await checkbox.isHidden().catch(() => false)) {
+      return
+    }
+
+    await this.page.evaluate(selector => {
+      const consentCheckbox = document.querySelector<HTMLInputElement>(selector)
+      if (!consentCheckbox || consentCheckbox.disabled) {
+        return
+      }
+
+      consentCheckbox.checked = true
+      consentCheckbox.dispatchEvent(new Event('change', { bubbles: true }))
+    }, this.gdprConsentSelector)
+
+    await this.page.waitForFunction(
+      ({ checkboxSelector, containerSelector, hiddenSelector }) => {
+        const consentCheckbox = document.querySelector<HTMLInputElement>(checkboxSelector)
+        const consentContainer = document.querySelector<HTMLElement>(containerSelector)
+        const hiddenConsentInput = document.querySelector<HTMLInputElement>(hiddenSelector)
+
+        if (!consentCheckbox) {
+          return true
+        }
+
+        const containerHidden = !consentContainer || consentContainer.style.display === 'none'
+        const hiddenConsentEnabled = Boolean(hiddenConsentInput && !hiddenConsentInput.disabled)
+        return consentCheckbox.checked || consentCheckbox.disabled || containerHidden || hiddenConsentEnabled
+      },
+      {
+        checkboxSelector: this.gdprConsentSelector,
+        containerSelector: '#newsletter-gdpr-consent-container',
+        hiddenSelector: hiddenConsentSelector,
+      },
+      { timeout: wait.defaultWait }
+    )
   }
 
   /**

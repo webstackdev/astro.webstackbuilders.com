@@ -15,8 +15,7 @@ test.describe('Tags Index Page', () => {
   test('@ready tag list displays', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/tags')
-    // Tags are shown as h2 headings linking to tag pages
-    await page.expectElementVisible('h2 a[href^="/tags/"]')
+    await page.expectElementVisible('a[href^="/tags/"] h2')
   })
 
   test('@ready tag counts display', async ({ page: playwrightPage }) => {

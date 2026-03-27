@@ -21,15 +21,13 @@ test.describe('Services List Page', () => {
   test('@ready services section displays', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/services')
-    // Check for "Our Services" h2 heading
-    await page.expectHasHeading('Our Services')
+    await page.expectTextContains('h1', /My Services/)
   })
 
   test('@ready service list displays', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/services')
-    // Services are in a list with .service-item class
-    await page.expectElementVisible('.service-item')
+    await page.expectElementVisible('article[data-service-card]')
   })
 
   test('@ready service cards have required elements', async ({ page: playwrightPage }) => {
@@ -41,25 +39,24 @@ test.describe('Services List Page', () => {
   test('@ready service links are functional', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/services')
-    await page.expectAttribute('.service-item a', 'href')
+    await page.expectAttribute('a[data-service-contact-link]', 'href')
   })
 
-  test('@ready clicking service navigates to detail page', async ({ page: playwrightPage }) => {
+  test('@ready clicking service navigates to contact page with service context', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/services')
-    const href = await page.getAttribute('.service-item a', 'href')
+    const href = await page.getAttribute('a[data-service-contact-link]', 'href')
 
-    await page.click('.service-item a')
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
-    await page.expectUrlContains(href!)
+    await page.click('a[data-service-contact-link]')
+    await page.waitForURL(url => `${url.pathname}${url.search}` === href)
+    await page.expectTextContains('h1', /Contact Me/)
   })
 
   test('@ready responsive: mobile view renders correctly', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.setViewport(375, 667)
     await page.goto('/services')
-    await page.expectElementVisible('.service-item')
+    await page.expectElementVisible('article[data-service-card]')
   })
 
   test('@ready page has no console errors', async ({ page: playwrightPage }) => {

@@ -1,55 +1,7 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-## Visual Regression Testing
-
-Playwright's Built-in Visual Testing
-
-Playwright has a built-in visual comparison feature using await expect(page).toHaveScreenshot().
-
-How it works: On the first run, Playwright saves a baseline screenshot. Subsequent runs compare the actual screenshot to this baseline, failing the test if there are pixel differences.
-
-Pros: It's free, everything stays local (no third-party services needed), setup is simple, and you retain full control over the baseline images in your repository.
-
-Cons: Browser rendering can be inconsistent across different operating systems and machines, leading to "flaky" tests or false positives. Managing baselines for multiple browsers and resolutions manually can also be challenging at scale.
-
 ## E2E
-
- 56 …omium] › test/e2e/specs/02-pages/contact.spec.ts:15:3 › Contact Page › @ready hero section displays (5.3s)
-
- 70 …test/e2e/specs/02-pages/homepage.spec.ts:25:3 › Homepage › @ready featured services section renders (5.5s)
-
- 85 …st/e2e/specs/02-pages/services.spec.ts:21:3 › Services List Page › @ready services section displays (5.3s)
-
- 93 [chromium] › test/e2e/specs/02-pages/tags.spec.ts:15:3 › Tags Index Page › @ready tag list displays (6.0s)
-
-100 …nsent-checkbox.spec.ts:89:3 › Newsletter GDPR Consent › @ready privacy policy link opens in new tab (6.6s)
-
-117 …ubscription.spec.ts:28:3 › Newsletter Subscription Form › @ready form rejects invalid email format (373ms)
-
-134 …nts/breadcrumbs.spec.ts:22:3 › Breadcrumbs Component › @ready breadcrumbs display on service pages (305ms)
-
-156 …5:3 › Consent Preferences Component › @containers full stack consent submission hits backend mocks (30.0s)
-
-163 …2e/specs/04-components/footer.spec.ts:30:3 › Footer Component › @ready footer has copyright notice (421ms)
-
-172 …ponents/icon.spec.ts:38:3 › Icon Component › default variant renders every local icon exactly once (30.1s)
-
-204 …/navigation-mobile.spec.ts:232:3 › Mobile Navigation › @ready can navigate to page from mobile menu (6.0s)
-
-219 …ares.spec.ts:46:3 › Social Shares Component › renders social share component inside testing fixture (5.3s)
-
-257 …› Theme Picker Component › System Preferences › @ready respects prefers-color-scheme on first visit (1.2s)
-
-361 …ility/aria-screen-readers.spec.ts:232:3 › ARIA and Screen Readers › @ready page has exactly one h1 (16.7s
-
-397 …/12-performance/lighthouse.spec.ts:9:3 › Lighthouse Performance › run Lighthouse audit on homepage (14.5s)
-
-653 …ares.spec.ts:46:3 › Social Shares Component › renders social share component inside testing fixture (5.5s)
-
-663 …Nanostore Persistence Across Navigation › @ready theme preference persists across View Transitions (30.2s)
-
-795 …ility/aria-screen-readers.spec.ts:232:3 › ARIA and Screen Readers › @ready page has exactly one h1 (10.8s)
 
 ## Missing E2E Component Tests
 
@@ -60,9 +12,6 @@ Cons: Browser rendering can be inconsistent across different operating systems a
 - Consent/Checkbox
 - Diagram
 - FileExplorer
-- Inset
-- Time
-- Troubleshooter
 
 ## Performance
 

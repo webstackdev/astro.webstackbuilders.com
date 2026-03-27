@@ -883,13 +883,13 @@ export class BasePage extends BuiltInsPage {
    * Verify service card has required elements
    */
   async expectServiceCard(): Promise<void> {
-    const firstCard = this._page.locator('.service-item').first()
+    const firstCard = this._page.locator('article[data-service-card]').first()
 
-    // Each service should have h3 title
-    await expect(firstCard.locator('h3')).toBeVisible()
+    // Each service should have a visible title
+    await expect(firstCard.locator('h2, h3').first()).toBeVisible()
 
-    // Should have a link to the service detail page
-    await expect(firstCard.locator('a')).toBeVisible()
+    // Should have a contact CTA link for the service
+    await expect(firstCard.locator('a[data-service-contact-link]').first()).toBeVisible()
   }
 
   /**
