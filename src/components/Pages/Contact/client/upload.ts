@@ -4,7 +4,11 @@ import Audio from '@uppy/audio'
 import Webcam from '@uppy/webcam'
 
 import type { ContactFormElements } from './@types'
-import { queryAccessibilityLabelTargets, queryUppyDashboardTarget } from './selectors'
+import {
+  queryAccessibilityLabelTargets,
+  queryUppyDashboardRoots,
+  queryUppyDashboardTarget,
+} from './selectors'
 import { isUnitTest } from '@components/scripts/utils/environmentClient'
 
 export interface UploadController {
@@ -73,7 +77,7 @@ export const ensureUppyGeneratedAccessibility = (root: ParentNode & Node): Mutat
     element.setAttribute('aria-label', fallback)
   }
 
-  root.querySelectorAll(UPPY_DASHBOARD_SELECTOR).forEach(applyUppyDashboardSemantics)
+  queryUppyDashboardRoots(root).forEach(applyUppyDashboardSemantics)
   queryAccessibilityLabelTargets(root).forEach(labelIfMissing)
 
   const observer = new MutationObserver(mutations => {
@@ -89,7 +93,7 @@ export const ensureUppyGeneratedAccessibility = (root: ParentNode & Node): Mutat
         }
 
         if ('querySelectorAll' in node) {
-          node.querySelectorAll(UPPY_DASHBOARD_SELECTOR).forEach(applyUppyDashboardSemantics)
+          queryUppyDashboardRoots(node as ParentNode).forEach(applyUppyDashboardSemantics)
           queryAccessibilityLabelTargets(node as ParentNode).forEach(labelIfMissing)
         }
       })
