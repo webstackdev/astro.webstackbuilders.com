@@ -197,7 +197,7 @@ describe('ARIA and Screen Readers', () => {
   /**
    * Axe checks that form inputs have labels
    */
-  test.only('@ready form inputs have labels', async ({ page: playwrightPage }) => {
+  test('@ready form inputs have labels', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await runAcrossPages(page, 'check form input labels', async (url) => {
       await page.goto(url)

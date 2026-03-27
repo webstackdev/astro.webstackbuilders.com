@@ -5,6 +5,18 @@
  */
 import { BasePage, test, expect, setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers'
 
+const getFirstHref = async (page: BasePage, selector: string): Promise<string | null> => {
+  return await page.page.locator(selector).evaluateAll((elements) => {
+    const firstLink = elements[0]
+
+    if (!(firstLink instanceof HTMLAnchorElement)) {
+      return null
+    }
+
+    return firstLink.getAttribute('href')
+  })
+}
+
 test.describe('Dynamic Pages @smoke', () => {
   test('@ready article detail page loads', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
@@ -17,7 +29,7 @@ test.describe('Dynamic Pages @smoke', () => {
     const firstArticleLink = page.locator('a[href*="/articles/"]').first()
     await expect(firstArticleLink).toBeVisible()
 
-    const articleUrl = await firstArticleLink.getAttribute('href')
+    const articleUrl = await getFirstHref(page, 'a[href*="/articles/"]')
     expect(articleUrl).toBeTruthy()
 
     // Navigate to the article
@@ -41,8 +53,7 @@ test.describe('Dynamic Pages @smoke', () => {
     await page.waitForNetworkIdleBestEffort()
 
     // Find first service link
-    const firstServiceLink = page.locator('a[href*="/services/"]').first()
-    const serviceUrl = await firstServiceLink.getAttribute('href')
+    const serviceUrl = await getFirstHref(page, 'a[href^="/services/"]:not([href="/services/"])')
 
     if (!serviceUrl) {
       test.skip()
@@ -70,8 +81,7 @@ test.describe('Dynamic Pages @smoke', () => {
     await page.waitForNetworkIdleBestEffort()
 
     // Find first case study link
-    const firstCaseStudyLink = page.locator('a[href*="/case-studies/"]').first()
-    const caseStudyUrl = await firstCaseStudyLink.getAttribute('href')
+    const caseStudyUrl = await getFirstHref(page, 'a[href*="/case-studies/"]')
 
     if (!caseStudyUrl) {
       test.skip()
@@ -145,8 +155,7 @@ test.describe('Dynamic Pages @smoke', () => {
     // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
     await page.waitForNetworkIdleBestEffort()
 
-    const firstArticleLink = page.locator('a[href*="/articles/"]').first()
-    const articleUrl = await firstArticleLink.getAttribute('href')
+    const articleUrl = await getFirstHref(page, 'a[href*="/articles/"]')
 
     if (articleUrl) {
       resetChecker()
@@ -165,8 +174,7 @@ test.describe('Dynamic Pages @smoke', () => {
     // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
     await page.waitForNetworkIdleBestEffort()
 
-    const firstServiceLink = page.locator('a[href*="/services/"]').first()
-    const serviceUrl = await firstServiceLink.getAttribute('href')
+    const serviceUrl = await getFirstHref(page, 'a[href^="/services/"]:not([href="/services/"])')
 
     if (serviceUrl) {
       resetChecker()
@@ -185,8 +193,7 @@ test.describe('Dynamic Pages @smoke', () => {
     // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
     await page.waitForNetworkIdleBestEffort()
 
-    const firstCaseStudyLink = page.locator('a[href*="/case-studies/"]').first()
-    const caseStudyUrl = await firstCaseStudyLink.getAttribute('href')
+    const caseStudyUrl = await getFirstHref(page, 'a[href*="/case-studies/"]')
 
     if (caseStudyUrl) {
       resetChecker()
@@ -220,8 +227,7 @@ test.describe('Dynamic Pages @smoke', () => {
     // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
     await page.waitForNetworkIdleBestEffort()
 
-    const firstArticleLink = page.locator('a[href*="/articles/"]').first()
-    const articleUrl = await firstArticleLink.getAttribute('href')
+    const articleUrl = await getFirstHref(page, 'a[href*="/articles/"]')
 
     if (!articleUrl) {
       test.skip()

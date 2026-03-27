@@ -233,7 +233,7 @@ describe('WCAG Compliance', () => {
    * Axe does not check if prefers-reduced-motion is respected; this is considered
    * a complex, context-dependent check that requires manual inspection.
    */
-  test.only('@ready page is usable without motion', async ({ page: playwrightPage }) => {
+  test('@ready page is usable without motion', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await runAcrossPages(page, 'check reduced motion usability', async (url) => {
       await page.page.emulateMedia({ reducedMotion: 'reduce' })
