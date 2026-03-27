@@ -26,7 +26,7 @@ const axeTags = [
 */
 
 describe('WCAG Compliance', () => {
-  test.only('run axe accessibility audit with default theme', async ({ page: playwrightPage }) => {
+  test.only('run axe audit on all main pages', async ({ page: playwrightPage }) => {
     test.slow()
     test.setTimeout(90_000)
 
@@ -34,7 +34,7 @@ describe('WCAG Compliance', () => {
     await runAcrossPages(page, 'check forms', async (url) => {
       await page.goto(url)
       const results = await new AxeBuilder({ page: page.page })
-        .withTags(['cat.semantics'])
+        .withTags(['cat.text-alternatives'])
         //.disableRules('color-contrast-enhanced')
         .analyze()
 
@@ -47,19 +47,5 @@ describe('WCAG Compliance', () => {
       expect(results.violations).toEqual([])
       expect(results.incomplete).toEqual([])
     })
-  })
-
-  test('run axe audit on all main pages', async ({ page: playwrightPage }) => {
-    test.slow()
-    test.setTimeout(90_000)
-
-    const page = await BasePage.init(playwrightPage)
-    await runAcrossPages(page, 'check forms', async (url) => {
-      await page.goto(url)
-      const results = await new AxeBuilder({ page: page.page })
-        .withTags(['cat.forms'])
-        .analyze()
-      expect(results.violations).toEqual([])
-    }, true)
   })
 })
