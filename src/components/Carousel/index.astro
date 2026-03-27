@@ -14,6 +14,14 @@ import {
 } from './@types'
 import { prepareItems } from './server'
 
+const toIdFragment = (value: string): string => {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
 type BaseProps = {
   title?: string
   /** A link to apply to the carousel title */
@@ -72,7 +80,8 @@ const allItems: ItemType[] = itemsOverride
 
 const items = prepareItems(allItems, variant, currentSlug, limit)
 
-const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
+const carouselIdParts = [type, variant, currentSlug ?? 'all', navigationMode, title ?? 'untitled']
+const carouselId = `carousel-${carouselIdParts.map(toIdFragment).filter(Boolean).join('-')}`
 const carouselRegionLabelledBy = title ? `${carouselId}-title` : undefined
 const carouselRegionRole = carouselRegionLabelledBy ? 'region' : undefined
 ---
