@@ -59,11 +59,10 @@ Latest run (Dec 2, 2025):
 
 ## Total Blocking Time (TBT) regressions (Chromium desktop + mobile)
 
-
-
  Hero GSAP initialization plus consent logging (`initConsentSideEffects` immediately fetches `/_actions/gdpr.consentCreate`) execute in the same navigation task, so the long-task observer inside `measureTBT` still sees 200–400 ms of blocking work even after we wait for `networkidle`.
 
 **Mitigations**
+
 - Lazily hydrate carousels/testimonials (intersection observer + dynamic `import('embla-carousel')`) and skip Autoplay during CI/perf runs so fewer long tasks fall inside the measurement window.
 - Only create animation controllers once an animation actually needs lifecycle hooks, and wrap registration in `requestIdleCallback` so it lands outside the navigation task.
 - Guard consent logging and hero animation hydration with `window.isPlaywrightControlled` so Playwright perf tests can bypass those fetches and GSAP timelines when only static markup is required.

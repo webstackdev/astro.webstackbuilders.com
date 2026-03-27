@@ -3,12 +3,6 @@
 
 ## E2E
 
-## Missing E2E Component Tests
-
-- Code/CodeBlock
-- Code/CodeTabs
-- Diagram
-
 ## Performance
 
 Implement mitigations in test/e2e/specs/07-performance/PERFORMANCE.md
