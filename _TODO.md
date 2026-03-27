@@ -5,13 +5,9 @@
 
 ## Missing E2E Component Tests
 
-- BugReporter
-- Calendar
 - Code/CodeBlock
 - Code/CodeTabs
-- Consent/Checkbox
 - Diagram
-- FileExplorer
 
 ## Performance
 
