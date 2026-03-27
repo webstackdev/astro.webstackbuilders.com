@@ -32,8 +32,8 @@ describe('WCAG Compliance', () => {
     await runAcrossPages(page, 'check forms', async (url) => {
       await page.goto(url)
       const results = await new AxeBuilder({ page: page.page })
-        .withTags(['cat.keyboard'])
-        .disableRules('color-contrast-enhanced')
+        .withTags(['cat.semantics'])
+        //.disableRules('color-contrast-enhanced')
         .analyze()
 
       const incompleteResultsString = JSON.stringify(results.incomplete, null, 2)
