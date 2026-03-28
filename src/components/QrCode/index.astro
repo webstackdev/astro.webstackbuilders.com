@@ -11,9 +11,10 @@ const qrData = data ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url).toSt
 const qrSvg = await renderQrCodeSvg({ data: qrData })
 ---
 
-<div
+
+<figure
 	class:list={[
-		'not-prose mx-auto my-8 w-fit print:block print:break-inside-avoid',
+		'not-prose mx-auto my-8 flex w-fit flex-col items-center print:block print:break-inside-avoid',
 		isHidden && 'hidden',
 	]}
 	data-qr-code
@@ -21,4 +22,7 @@ const qrSvg = await renderQrCodeSvg({ data: qrData })
 	aria-label={`QR code for ${qrData}`}
 >
 	<Fragment set:html={qrSvg} />
-</div>
+	<figcaption class="mt-3 max-w-60 break-all text-center text-sm text-content">
+		{qrData}
+	</figcaption>
+</figure>

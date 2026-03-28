@@ -1,12 +1,6 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-## E2E
-
-View Lighthouse report:
-
-xdg-open ".cache/playwright/lighthouse-reports/run Lighthouse audit on homepage-desktop-1774621624366.html"
-
 ## Print
 
 1. Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page. We have a QrCode component.
@@ -25,33 +19,14 @@ A professional print header typically includes only these three elements:
 
 - Brand Identity: A high-contrast version of your logo or the site name in plain text for brand recognition.
 - Document Title: The main title of the page (usually the <h1>), ensuring the reader knows exactly what the document is.
-- Source URL: A small, plain-text URL so the reader can find the live version later.
-
-__Elements to Remove__
-
-Hide any interactive or screen-specific components using display: none; in your @media print block:
-
-- Navigation Menus: All top-level and dropdown links.
-- Search Icons/Bars: These are non-functional on paper.
-- Breadcrumbs: While useful on-screen for site hierarchy, they often look like cluttered, disconnected text on paper. Most designers remove them to keep the focus on the primary content.
-- Social Media & CTA Buttons & Download CTA: "Sign In" or "Follow Us" buttons are irrelevant in print.
 
 __Expand External Links For Print__
 
 We can't (yet) directly interface with a printed page to explore links, so link URLs should be visible on the printed version of the Web page. To keep the page relatively clean, I prefer to expand only outbound links in articles, and suppress internal ones. If you've used relative URLs on your website for local links, you can easily do this through an attribute selector and `:after` pseudo classes, thus preventing internal links and links around images from being printed:
 
-```css
-@media print {
-   article a {
-      font-weight: bolder;
-      text-decoration: none;
-   }
-
-   article a[href^=http]:after {
-      content:" <" attr(href) "> ";
-   }
-}
-```
+- Break Lists across pages, the separators between columns are broken too
+- Break code blocks across pages
+- Callouts are breaking across pages, they shouldn't
 
 ## PDF File Generation
 

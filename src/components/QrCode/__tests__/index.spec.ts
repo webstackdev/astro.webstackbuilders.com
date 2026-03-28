@@ -26,14 +26,16 @@ describe('QrCode (Astro)', () => {
     const renderedHtml = await renderQrCode()
     const document = new JSDOM(renderedHtml).window.document
 
-    const root = document.querySelector<HTMLElement>('[data-qr-code]')
+    const root = document.querySelector<HTMLElement>('figure[data-qr-code]')
     const svg = root?.querySelector('svg')
+    const caption = root?.querySelector('figcaption')
 
     expect(root).toBeTruthy()
     expect(root?.className).toContain('hidden')
     expect(root?.getAttribute('aria-label')).toContain('https://example.com/articles/demo')
     expect(svg).toBeTruthy()
     expect(svg?.querySelector('#logo-group')).toBeTruthy()
+    expect(caption?.textContent).toContain('https://example.com/articles/demo')
   })
 
   test('omits the hidden class when isHidden is false and respects a custom data prop', async () => {
@@ -43,10 +45,12 @@ describe('QrCode (Astro)', () => {
     })
     const document = new JSDOM(renderedHtml).window.document
 
-    const root = document.querySelector<HTMLElement>('[data-qr-code]')
+    const root = document.querySelector<HTMLElement>('figure[data-qr-code]')
+    const caption = root?.querySelector('figcaption')
 
     expect(root).toBeTruthy()
     expect(root?.className).not.toContain('hidden')
     expect(root?.getAttribute('aria-label')).toContain('https://example.com/contact')
+    expect(caption?.textContent).toContain('https://example.com/contact')
   })
 })

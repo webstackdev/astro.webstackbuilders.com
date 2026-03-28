@@ -1,4 +1,9 @@
-/** Print colors on color-capable printers */
+/* ==========================================================================
+   Print Stylesheet
+   Imported in index.css as: @import "./print.css" layer(utilities);
+   ========================================================================== */
+
+/* Preserve colors on color-capable printers */
 @media print and (color) {
   * {
     -webkit-print-color-adjust: exact;
@@ -6,202 +11,335 @@
   }
 }
 
-/*
-To make it so that 3 lines will always carry over to the next page if text is split, we can apply orphans: 3 to an element. widows are similar to orphans, but they are the lines of text at the top, rather than those at the bottom.
-
-Element borders can look a tad broken when fragmented across pages. We can use box-decoration-break to make it look a bit nicer. By default, it is assigned slice which looks poorly, however, we can make things look a tad more cohesive with box-decoration-break: clone;
-
-Take care with content housed within a scrolling container. It can be worth applying some print-specific CSS to set overflow: visible or to extend the size of a container.
-
-Add borders to containers in print that are identified by color contrast with no border for web.
-
-Hide web mentions, social shares, any interactive elements
-
-Things to do on Playwright for printing to PDF:
-
-- Change scaling in print dialogue to get something close to an 11pt font in Microsoft Word
-- Turn off Headers & Footers in print dialogue
-*/
-
 @media print {
-  body {
-    color: var(--color-content);
-    display: block;
-    margin: 0 0.6cm;
-    padding: 3mm 0;
+  /* --------------------------------------------------------------------------
+     Page setup
+     -------------------------------------------------------------------------- */
+
+  @page {
+    margin: 2cm;
   }
 
-  /** Don't print pseudo-element images for any on printed page */
+  /* --------------------------------------------------------------------------
+     Global resets — undo screen layout constraints for print
+     -------------------------------------------------------------------------- */
+
+  html {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Body: undo Tailwind h-full, overflow-hidden, flex, invisible */
+  body {
+    color: var(--color-content);
+    display: block !important;
+    height: auto !important;
+    margin: 0;
+    min-height: unset !important;
+    overflow: visible !important;
+    padding: 0;
+    visibility: visible !important;
+  }
+
+  /* Container component: undo overflow-hidden, min-h-0, flex constraints */
+  #main-content {
+    display: block !important;
+    height: auto !important;
+    margin: 0 !important;
+    max-width: none !important;
+    min-height: unset !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    position: static !important;
+    width: 100% !important;
+  }
+
+  /* Scroll viewport: undo flex/scroll containment */
+  #scroll-viewport {
+    display: block !important;
+    flex: none !important;
+    height: auto !important;
+    margin-top: 0 !important;
+    min-height: unset !important;
+    overflow: visible !important;
+  }
+
+  #main {
+    display: block !important;
+    height: auto !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     Typography — widows, orphans, page breaks
+     -------------------------------------------------------------------------- */
+
+  p, li, blockquote, figcaption {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Keep headings attached to the content that follows them */
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Cohesive borders when elements fragment across pages */
+  * {
+    box-decoration-break: clone;
+  }
+
+  /* --------------------------------------------------------------------------
+     Images
+     -------------------------------------------------------------------------- */
+
+  img {
+    break-inside: avoid;
+    max-width: 100% !important;
+  }
+
+  /* Don't print pseudo-element badges on images */
   img::after,
   img::before {
     display: none !important;
   }
 
-  body::after {
-    clear: both;
-    content: ' ';
-    height: 0;
+  /* --------------------------------------------------------------------------
+     Lists, figures, tables, code — avoid page breaks inside
+     -------------------------------------------------------------------------- */
 
-    /* background: */
-    visibility: hidden;
+  ul, ol, figure, table, pre, [data-qr-code] {
+    break-inside: avoid;
   }
 
-  /** Ensure that articles always start on a fresh page */
-  article {
-    break-before: always;
-  }
+  /* --------------------------------------------------------------------------
+     Links — expand external URLs, suppress internal ones
+     -------------------------------------------------------------------------- */
 
-  /** We're expanding external links in articles, no other links need styling */
   a {
     text-decoration: none;
   }
 
-  /** Expand only outbound links in articles, and suppress internal ones */
-  a[href^="http"]::after,
-  a[href^="https"]::after {
-    content:" <" attr(href) "> ";
+  /* Show full URL for outbound links */
+  article a[href^="http"]::after,
+  article a[href^="https"]::after {
+    content: " <" attr(href) "> ";
+    font-size: 0.85em;
+    word-break: break-all;
   }
 
-  /** Suppress internal links (relative paths, anchors) */
-  article a[href^="/"], /** Relative internal links */
-  article a[href^="#"] { /** Anchor links */
-    content: ""; /** Remove any added content */
+  /* Suppress URL expansion for internal links and anchor links */
+  article a[href^="/"]::after,
+  article a[href^="#"]::after {
+    content: none;
   }
 
-  /** Don't expand links that contain images */
+  /* Don't expand links that wrap images */
   a:has(img)::after {
-    content: "";
+    content: none;
   }
 
-  /** Print abbreviation definitions in parantheses */
+  /* --------------------------------------------------------------------------
+     Abbreviations — print definition in parentheses
+     -------------------------------------------------------------------------- */
+
   abbr[title]::after {
     content: " (" attr(title) ")";
   }
 
-  /** Make sure a header isn't the last element on a printed page */
-  h2, h3, h4 {
-    break-after: avoid;
+  /* --------------------------------------------------------------------------
+     Hide interactive / screen-only chrome
+     -------------------------------------------------------------------------- */
+
+  /* Site header — hide entire shell AND undo fixed positioning */
+  .header-shell {
+    display: none !important;
   }
 
-  /** Prevent images from bleeding over the edge of the printed page */
-  img {
-    max-width: 100% !important;
+  .header-footprint {
+    display: none !important;
   }
 
-  /** Prevent large elements from being split across multiple pages. */
-  ul, img {
-    break-inside: avoid;
+  .header-fixed {
+    display: none !important;
+    position: static !important;
   }
 
-  /** Hide Call to Actions */
+  /* Belt-and-suspenders: hide nav, theme icon, search icon individually */
+  #header {
+    display: none !important;
+  }
+
+  /* Reading progress bar (position: fixed, would repeat on every page) */
+  reading-progress-bar {
+    display: none !important;
+  }
+
+  /* Mobile navigation splash backdrop */
+  #mobile-splash {
+    display: none !important;
+  }
+
+  /* Footer */
+  site-footer {
+    display: none !important;
+  }
+
+  /* Breadcrumbs */
+  #breadcrumbs {
+    display: none !important;
+  }
+
+  /* Table of Contents */
+  table-of-contents {
+    display: none !important;
+  }
+
+  /* All Call-to-Action blocks (Newsletter, Contact, Download) */
   .cta {
-    display: none;
+    display: none !important;
   }
 
-
-  /** Don't print the header and footer */
-  .header,
-  .footer {
-    display: none;
+  /* Social shares and web mentions */
+  social-share-element,
+  web-mentions {
+    display: none !important;
   }
 
-  /** Applied to the main layout wrapper */
-  .layout {
-    background-color: var(--color-page-base) !important;
-    margin: 0 !important; /* page containing everything will get margin */
-    padding: 0 !important;
+  /* Social / media embeds (YouTube, Twitter, etc.) */
+  social-embed {
+    display: none !important;
+  }
+
+  /* Text highlighter elements */
+  highlighter-element {
+    display: none !important;
+  }
+
+  /* Content switcher (article ↔ deep-dive toggle) in breadcrumb row */
+  content-switcher {
+    display: none !important;
+  }
+
+  /* Related content carousel */
+  carousel-slider {
+    display: none !important;
+  }
+
+  /* Consent banner */
+  consent-banner {
+    display: none !important;
+  }
+
+  /* Bug reporter */
+  bug-reporter-modal-element {
+    display: none !important;
+  }
+
+  /* Theme picker modal */
+  theme-picker {
+    display: none !important;
+  }
+
+  /* Search bar */
+  search-bar {
+    display: none !important;
+  }
+
+  /* PWA title bar */
+  [style*="titlebar-area-height"] {
+    display: none !important;
+  }
+
+  /* Skip-to-content link */
+  [href="#main"] {
+    display: none !important;
+  }
+
+  /* Mastodon sharing modal */
+  mastodon-instance-modal {
+    display: none !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     Tabbed code blocks — print only the first language tab
+     -------------------------------------------------------------------------- */
+
+  /* Hide the language tab bar */
+  code-tabs [role="tablist"] {
+    display: none !important;
+  }
+
+  /* Hide all tab panels, then show only the first one */
+  code-tabs [role="tabpanel"] {
+    display: none !important;
+  }
+
+  code-tabs [role="tabpanel"]:first-of-type {
+    display: block !important;
+  }
+
+  /* Hide copy buttons inside code blocks */
+  code-tabs button {
+    display: none !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     Article layout — clean up for print
+     -------------------------------------------------------------------------- */
+
+  article {
+    break-before: always;
+    max-width: none !important;
     width: 100% !important;
   }
 
-  /** Applied to individual printed pages */
-  @page {
-    /** Margin in physical units for printed pages */
-    margin: 2cm;
+  /* Content grid becomes single-column when TOC is hidden */
+  #content {
+    display: block !important;
   }
 
-  html {
-    --theme-color-primary: var(--a11y-theme-color-primary);
-    --theme-color-primary-offset: var(--a11y-theme-color-primary-offset);
-    --theme-color-primary-inverse: var(--a11y-theme-color-primary-inverse);
-    --theme-color-secondary: var(--a11y-theme-color-secondary);
-    --theme-color-secondary-offset: var(--a11y-theme-color-secondary-offset);
-    --theme-color-secondary-inverse: var(--a11y-theme-color-secondary-inverse);
-    --theme-color-accent: var(--a11y-theme-color-accent);
-    --theme-color-accent-offset: var(--a11y-theme-color-accent-offset);
-    --theme-color-page-base: var(--a11y-theme-color-page-base);
-    --theme-color-page-active: var(--a11y-theme-color-page-active);
-    --theme-color-page-inverse: var(--a11y-theme-color-page-inverse);
-    --theme-color-page-offset: var(--a11y-theme-color-page-offset);
-    --theme-color-content: var(--a11y-theme-color-content);
-    --theme-color-content-offset: var(--a11y-theme-color-content-active);
-    --theme-color-content-active: var(--a11y-theme-color-content-active);
-    --theme-color-content-inverse: var(--a11y-theme-color-content-inverse);
-    --theme-color-content-inverse-active: var(--a11y-theme-color-content-inverse-active);
-    --theme-color-trim: var(--a11y-theme-color-trim);
-    --theme-color-spotlight: var(--a11y-theme-color-spotlight);
-    --theme-color-spotlight-offset: var(--a11y-theme-color-spotlight-offset);
-    --theme-color-success: var(--a11y-theme-color-success);
-    --theme-color-success-offset: var(--a11y-theme-color-success-offset);
-    --theme-color-success-inverse: var(--a11y-theme-color-success-inverse);
-    --theme-color-info: var(--a11y-theme-color-info);
-    --theme-color-info-offset: var(--a11y-theme-color-info-offset);
-    --theme-color-info-inverse: var(--a11y-theme-color-info-inverse);
-    --theme-color-note: var(--a11y-theme-color-note);
-    --theme-color-note-offset: var(--a11y-theme-color-note-offset);
-    --theme-color-note-inverse: var(--a11y-theme-color-note-inverse);
-    --theme-color-warning: var(--a11y-theme-color-warning);
-    --theme-color-warning-offset: var(--a11y-theme-color-warning-offset);
-    --theme-color-warning-inverse: var(--a11y-theme-color-warning-inverse);
-    --theme-color-danger: var(--a11y-theme-color-danger);
-    --theme-color-danger-offset: var(--a11y-theme-color-danger-offset);
-    --theme-color-danger-inverse: var(--a11y-theme-color-danger-inverse);
-    --theme-color-icons: var(--a11y-theme-color-icons);
-    --theme-color-icons-active: var(--a11y-theme-color-icons-active);
-    --theme-color-black: var(--a11y-theme-color-black);
-    --theme-color-white: var(--a11y-theme-color-white);
-    --theme-color-blue-100: var(--a11y-theme-color-blue-100);
-    --theme-color-blue-600: var(--a11y-theme-color-blue-600);
-    --theme-color-blue-900: var(--a11y-theme-color-blue-900);
-    --theme-color-gray-50: var(--a11y-theme-color-gray-50);
-    --theme-color-gray-200: var(--a11y-theme-color-gray-200);
-    --theme-color-gray-300: var(--a11y-theme-color-gray-300);
-    --theme-color-gray-600: var(--a11y-theme-color-gray-600);
-    --theme-color-gray-700: var(--a11y-theme-color-gray-700);
-    --theme-color-gray-800: var(--a11y-theme-color-gray-800);
-    --theme-color-gray-offset: var(--a11y-theme-color-gray-offset);
-    --theme-color-green-100: var(--a11y-theme-color-green-100);
-    --theme-color-green-900: var(--a11y-theme-color-green-900);
+  /* Hero image on article pages */
+  .print-hero-image {
+    break-inside: avoid;
+    margin-bottom: 1cm;
+  }
 
-    /** Shiki code highlighting colors **/
-    --shiki-foreground: var(--a11y-theme-shiki-foreground);
-    --shiki-background: var(--a11y-theme-shiki-background);
-    --shiki-token-constant: var(--a11y-theme-shiki-token-constant);
-    --shiki-token-string: var(--a11y-theme-shiki-token-string);
-    --shiki-token-comment: var(--a11y-theme-shiki-token-comment);
-    --shiki-token-keyword: var(--a11y-theme-shiki-token-keyword);
-    --shiki-token-parameter: var(--a11y-theme-shiki-token-parameter);
-    --shiki-token-function: var(--a11y-theme-shiki-token-function);
-    --shiki-token-string-expression: var(--a11y-theme-shiki-token-string-expression);
-    --shiki-token-punctuation: var(--a11y-theme-shiki-token-punctuation);
-    --shiki-token-link: var(--a11y-theme-shiki-token-link);
-    --shiki-token-inserted: var(--a11y-theme-shiki-token-inserted);
-    --shiki-token-deleted: var(--a11y-theme-shiki-token-deleted);
-    --shiki-token-changed: var(--a11y-theme-shiki-token-changed);
-    --shiki-ansi-black: var(--a11y-theme-shiki-ansi-black);
-    --shiki-ansi-red: var(--a11y-theme-shiki-ansi-red);
-    --shiki-ansi-green: var(--a11y-theme-shiki-ansi-green);
-    --shiki-ansi-yellow: var(--a11y-theme-shiki-ansi-yellow);
-    --shiki-ansi-blue: var(--a11y-theme-shiki-ansi-blue);
-    --shiki-ansi-magenta: var(--a11y-theme-shiki-ansi-magenta);
-    --shiki-ansi-cyan: var(--a11y-theme-shiki-ansi-cyan);
-    --shiki-ansi-white: var(--a11y-theme-shiki-ansi-white);
-    --shiki-ansi-bright-black: var(--a11y-theme-shiki-ansi-bright-black);
-    --shiki-ansi-bright-red: var(--a11y-theme-shiki-ansi-bright-red);
-    --shiki-ansi-bright-green: var(--a11y-theme-shiki-ansi-bright-green);
-    --shiki-ansi-bright-yellow: var(--a11y-theme-shiki-ansi-bright-yellow);
-    --shiki-ansi-bright-blue: var(--a11y-theme-shiki-ansi-bright-blue);
-    --shiki-ansi-bright-magenta: var(--a11y-theme-shiki-ansi-bright-magenta);
-    --shiki-ansi-bright-cyan: var(--a11y-theme-shiki-ansi-bright-cyan);
-    --shiki-ansi-bright-white: var(--a11y-theme-shiki-ansi-bright-white);
+  /* --------------------------------------------------------------------------
+     QR code — visible only in print (default isHidden adds `hidden` class)
+     -------------------------------------------------------------------------- */
+
+  [data-qr-code] {
+    break-inside: avoid;
+    display: block !important;
+    margin-top: 1cm;
+    text-align: center;
+  }
+
+  /* --------------------------------------------------------------------------
+     Backgrounds — override grey offset areas to paper-white
+     -------------------------------------------------------------------------- */
+
+  html, body, #main-content, #scroll-viewport, #main, article {
+    background-color: #fff !important;
+  }
+
+  .bg-page-offset,
+  [class*="bg-page"] {
+    background-color: #fff !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     Containers that rely on color contrast — add visible borders for print
+     -------------------------------------------------------------------------- */
+
+  .callout,
+  blockquote {
+    border-left: 3px solid var(--color-content) !important;
+    padding-left: 1em;
   }
 }
