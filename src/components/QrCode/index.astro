@@ -1,0 +1,24 @@
+---
+import { renderQrCodeSvg } from './server/index'
+
+interface Props {
+	data?: string
+	isHidden?: boolean
+}
+
+const { data, isHidden = true } = Astro.props
+const qrData = data ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString()
+const qrSvg = await renderQrCodeSvg({ data: qrData })
+---
+
+<div
+	class:list={[
+		'not-prose mx-auto my-8 w-fit print:block print:break-inside-avoid',
+		isHidden && 'hidden',
+	]}
+	data-qr-code
+	role="img"
+	aria-label={`QR code for ${qrData}`}
+>
+	<Fragment set:html={qrSvg} />
+</div>

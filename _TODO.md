@@ -9,51 +9,17 @@ xdg-open ".cache/playwright/lighthouse-reports/run Lighthouse audit on homepage-
 
 ## Print
 
-- Improve print layout by hiding header and footer for articles
+1. Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page. We have a QrCode component.
 
-```typescript
-window.addEventListener('beforeprint', (event) => {
-  console.log('Before print dialog opens, run this script.')
-  // Example: change content or hide elements
-  document.getElementById('hide-on-print').style.display = 'none'
-})
-
-window.addEventListener('afterprint', (event) => {
-  console.log('After print dialog closes, run this script to revert changes.')
-  // Example: revert changes
-  document.getElementById('hide-on-print').style.display = ''
-  // You can also use this event to send an AJAX request to a server for print tracking.
-})
-```
-
-Or listen for changes:
-
-```typescript
-if (window.matchMedia) {
-    var mediaQueryList = window.matchMedia('print');
-    mediaQueryList.addListener(function(mql) {
-        if (mql.matches) {
-            // Equivalent to onbeforeprint
-            console.log('Entering print mode (before print dialog)');
-        } else {
-            // Equivalent to onafterprint
-            console.log('Exiting print mode (after print dialog)');
-        }
-    });
-}
-```
-
-- Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page. npm install qr-code-styling is added as a package.
-
-- Need a layout alternative to Markup that formats for print. It needs to handle TOC differently as a full-width page. Need a fixed header format that adds article title, subtitle, and date.
-
-- Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden. The styling should be different for print for the code block. Maybe move other language code tabs to an appendix and add a link to them.
+2. Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden. The styling should be different for print for the code block. Maybe move other language code tabs to an appendix and add a link to them.
 
 [This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
 
-For printed pages, your header should shift from a navigation tool to a document identifier. Since users cannot click links or icons on paper, these elements are "cruft" that waste space and ink.
+3. For printed pages, your header should shift from a navigation tool to a document identifier. Since users cannot click links or icons on paper, these elements are "cruft" that waste space and ink.
 
-1. Recommended Print Header Format
+2. Need a layout alternative to Markup that formats for print. It should hide Table Of Contents. Need a fixed header format that adds article title, subtitle, and date.
+
+__Recommended Print Header Format__
 
 A professional print header typically includes only these three elements:
 
@@ -61,7 +27,7 @@ A professional print header typically includes only these three elements:
 - Document Title: The main title of the page (usually the <h1>), ensuring the reader knows exactly what the document is.
 - Source URL: A small, plain-text URL so the reader can find the live version later.
 
-2. Elements to Remove
+__Elements to Remove__
 
 Hide any interactive or screen-specific components using display: none; in your @media print block:
 
@@ -70,7 +36,7 @@ Hide any interactive or screen-specific components using display: none; in your 
 - Breadcrumbs: While useful on-screen for site hierarchy, they often look like cluttered, disconnected text on paper. Most designers remove them to keep the focus on the primary content.
 - Social Media & CTA Buttons: "Sign In" or "Follow Us" buttons are irrelevant in print.
 
-3. Expand External Links For Print:
+__Expand External Links For Print__
 
 We can't (yet) directly interface with a printed page to explore links, so link URLs should be visible on the printed version of the Web page. To keep the page relatively clean, I prefer to expand only outbound links in articles, and suppress internal ones. If you've used relative URLs on your website for local links, you can easily do this through an attribute selector and `:after` pseudo classes, thus preventing internal links and links around images from being printed:
 
@@ -117,6 +83,41 @@ Requirements: You must provide sufficient margins (e.g.,` margin: { top: '50px',
 
 Styling: You must use inline CSS within your `headerTemplate` or `footerTemplate` strings, as they cannot access your external stylesheet.
 
+
+Maybe something like this to check if we're on the playwright PDF generation run and set the light theme:
+
+```typescript
+window.addEventListener('beforeprint', (event) => {
+  console.log('Before print dialog opens, run this script.')
+  // Example: change content or hide elements
+  document.getElementById('hide-on-print').style.display = 'none'
+})
+
+window.addEventListener('afterprint', (event) => {
+  console.log('After print dialog closes, run this script to revert changes.')
+  // Example: revert changes
+  document.getElementById('hide-on-print').style.display = ''
+  // You can also use this event to send an AJAX request to a server for print tracking.
+})
+```
+
+Or listen for changes:
+
+```typescript
+if (window.matchMedia) {
+    var mediaQueryList = window.matchMedia('print');
+    mediaQueryList.addListener(function(mql) {
+        if (mql.matches) {
+            // Equivalent to onbeforeprint
+            console.log('Entering print mode (before print dialog)');
+        } else {
+            // Equivalent to onafterprint
+            console.log('Exiting print mode (after print dialog)');
+        }
+    });
+}
+```
+
 ## ToolTips
 
 Need a tooltip component for consistency.
@@ -135,11 +136,9 @@ These have tooltips, how are they being generated?
 
 - Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
 
-## HubSpot Signup Issues
+## HubSpot Signup Issues / Gated Content (Downloads)
 
 - Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
-
-## Downloads / Gated Content
 
 - We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading. If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should show the PDF download button instead of trying to collect email addresses again.
 
