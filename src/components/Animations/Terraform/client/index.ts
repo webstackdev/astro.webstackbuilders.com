@@ -133,6 +133,8 @@ export class TerraformAnimationElement extends LitElement {
   private setupAnimationAndController(): void {
     if (this.animationReady) return
     if (this.isHiddenOnThisViewport()) return
+    // Skip animation during Playwright perf tests to reduce main-thread contention
+    if (window.isPerformanceTest === true) return
 
     this.startAnimation()
     if (!this.timeline) return

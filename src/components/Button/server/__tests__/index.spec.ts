@@ -50,6 +50,16 @@ describe('Button server helpers', () => {
       expect(classList['aspect-square']).toBe(true)
       expect(classList['p-2']).toBe(true)
     })
+
+    it('supports the page-inverse variant', () => {
+      const classList = buildButtonClassList({
+        variant: 'page-inverse',
+      })
+
+      expect(classList['bg-page-inverse']).toBe(true)
+      expect(classList['text-content-inverse']).toBe(true)
+      expect(classList['hover:bg-content-active']).toBe(true)
+    })
   })
 
   describe('resolveAriaLabel', () => {

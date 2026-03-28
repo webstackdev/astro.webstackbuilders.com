@@ -4,7 +4,11 @@ import Audio from '@uppy/audio'
 import Webcam from '@uppy/webcam'
 
 import type { ContactFormElements } from './@types'
-import { queryAccessibilityLabelTargets, queryUppyDashboardTarget } from './selectors'
+import {
+  queryAccessibilityLabelTargets,
+  queryUppyDashboardRoots,
+  queryUppyDashboardTarget,
+} from './selectors'
 import { isUnitTest } from '@components/scripts/utils/environmentClient'
 
 export interface UploadController {
@@ -42,10 +46,22 @@ const toFile = (value: Blob | File, name: string): File => {
 
 const isNonNullable = <T>(value: T | null | undefined): value is T => value != null
 
-const ensureUppyTextInputsAreLabeled = (root: ParentNode & Node): MutationObserver => {
+const UPPY_ACCESSIBILITY_FIELD_SELECTOR = 'input[type="text"], input[type="email"], textarea'
+const UPPY_DASHBOARD_SELECTOR = '.uppy-Dashboard'
+
+const applyUppyDashboardSemantics = (element: Element): void => {
+  if (!(element instanceof HTMLElement)) return
+  if (!element.matches(UPPY_DASHBOARD_SELECTOR)) return
+  if (element.hasAttribute('role')) return
+  if (!element.getAttribute('aria-label')) return
+
+  element.setAttribute('role', 'region')
+}
+
+export const ensureUppyGeneratedAccessibility = (root: ParentNode & Node): MutationObserver => {
   const labelIfMissing = (element: Element): void => {
     if (!(element instanceof HTMLElement)) return
-    if (!element.matches('input[type="text"], input[type="email"], textarea')) return
+    if (!element.matches(UPPY_ACCESSIBILITY_FIELD_SELECTOR)) return
 
     const hasId = element.hasAttribute('id')
     const ariaLabel = element.getAttribute('aria-label')
@@ -61,18 +77,23 @@ const ensureUppyTextInputsAreLabeled = (root: ParentNode & Node): MutationObserv
     element.setAttribute('aria-label', fallback)
   }
 
+  queryUppyDashboardRoots(root).forEach(applyUppyDashboardSemantics)
   queryAccessibilityLabelTargets(root).forEach(labelIfMissing)
 
   const observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
       mutation.addedNodes.forEach(node => {
         if (!(node instanceof Element)) return
-        if (node.matches('input[type="text"], input[type="email"], textarea')) {
+        if (node.matches(UPPY_DASHBOARD_SELECTOR)) {
+          applyUppyDashboardSemantics(node)
+        }
+
+        if (node.matches(UPPY_ACCESSIBILITY_FIELD_SELECTOR)) {
           labelIfMissing(node)
-          return
         }
 
         if ('querySelectorAll' in node) {
+          queryUppyDashboardRoots(node as ParentNode).forEach(applyUppyDashboardSemantics)
           queryAccessibilityLabelTargets(node as ParentNode).forEach(labelIfMissing)
         }
       })
@@ -124,7 +145,7 @@ export const initUppyUpload = (elements: ContactFormElements): UploadController 
 
   // Uppy renders several UI inputs dynamically and may also place auxiliary UI outside the
   // immediate dashboard target. Ensure any text/email inputs are given an accessible name.
-  const ariaObserver = ensureUppyTextInputsAreLabeled(document)
+  const ariaObserver = ensureUppyGeneratedAccessibility(document)
 
   const reset = (): void => {
     uppy.cancelAll()

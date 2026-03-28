@@ -201,6 +201,20 @@ describe('Carousel component (server output)', () => {
     )
   })
 
+  it('does not emit aria-labelledby when no title is provided', async () => {
+    await renderCarousel(
+      ({ root }) => {
+        const heading = root.querySelector('h2')
+        const region = root.querySelector('.embla')
+
+        expect(heading).toBeNull()
+        expect(region?.getAttribute('role')).toBeNull()
+        expect(region?.getAttribute('aria-labelledby')).toBeNull()
+      },
+      { title: '', variant: 'suggested' }
+    )
+  })
+
   it('assigns aria-controls to pagination dots and navigation buttons', async () => {
     await renderCarousel(({ root }) => {
       const viewport = root.querySelector('.embla__viewport')

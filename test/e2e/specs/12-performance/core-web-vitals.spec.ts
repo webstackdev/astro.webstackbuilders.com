@@ -14,15 +14,15 @@ test.describe('Core Web Vitals', () => {
     await coreWebVitalsPage.goto('/')
   })
 
-  test.skip('@blocked Largest Contentful Paint under 2.5s', async () => {
+  test('@ready Largest Contentful Paint under 2.5s', async () => {
     await coreWebVitalsPage.expectLCPUnder(2500)
   })
 
-  test.skip('@ready First Input Delay simulation', async () => {
+  test('@ready First Input Delay simulation', async () => {
     await coreWebVitalsPage.expectFIDUnder(100)
   })
 
-  test.skip('@ready Cumulative Layout Shift under 0.1', async () => {
+  test('@ready Cumulative Layout Shift under 0.1', async () => {
     // Wait for page to settle
     await coreWebVitalsPage.waitForPageComplete()
     await coreWebVitalsPage.expectCLSUnder(0.1)
@@ -32,11 +32,11 @@ test.describe('Core Web Vitals', () => {
     await coreWebVitalsPage.expectTTIUnder(3800)
   })
 
-  test.skip('@blocked First Contentful Paint under 1.8s', async () => {
+  test('@ready First Contentful Paint under 1.8s', async () => {
     await coreWebVitalsPage.expectFCPUnder(1800)
   })
 
-  test.skip('@blocked Total Blocking Time under 200ms', async () => {
+  test('@ready Total Blocking Time under 200ms', async () => {
     // Wait for page to fully load
     // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
     await coreWebVitalsPage.waitForNetworkIdleBestEffort()
@@ -47,7 +47,7 @@ test.describe('Core Web Vitals', () => {
     await coreWebVitalsPage.expectSpeedIndexUnder(3400)
   })
 
-  test.skip('@blocked page load time under 3s', async () => {
+  test('@ready page load time under 3s', async () => {
     // Create new page for fresh measurement
     const startTime = Date.now()
     await coreWebVitalsPage.goto('/')

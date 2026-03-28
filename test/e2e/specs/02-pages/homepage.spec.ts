@@ -22,20 +22,22 @@ test.describe('Homepage', () => {
     await page.expectHeading()
   })
 
-  test('@ready featured services section renders', async ({ page: playwrightPage }) => {
+  test('@ready service overview section renders', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
-    // Check for Featured Services section - Carousel renders an h2 with the title
-    await page.expectHasHeading('Featured Services')
+    await page.expectHasHeading('Building the Future of Software Development')
+    await page.expectTextVisible('Platform Engineering')
+    await page.expectTextVisible('Cloud Architecture')
+    await page.expectTextVisible('Developer Experience')
   })
 
-  test('@ready case studies section displays', async ({ page: playwrightPage }) => {
+  test('@ready backstage showcase section displays', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/')
 
-    // Check for Success Stories heading - appears twice (section h2 + carousel h2), use first
-    await page.expectHasHeading('Success Stories')
+    await page.expectHasHeading('Give your developers superpowers')
+    await page.expectTextVisible('Backstage IDP Implementation')
   })
 
   test('@ready latest articles section renders', async ({ page: playwrightPage }) => {

@@ -157,7 +157,8 @@ describe('HighlighterElement', () => {
       expect(element.shadowRoot).toBeNull()
       expect(element.querySelector('.share-dialog')).not.toBeNull()
       expect(element.querySelectorAll('.share-button')).toHaveLength(mockPlatforms.length)
-      expect(element.getAttribute('aria-label')).toBe(defaultProps.ariaLabel)
+      expect(element.getAttribute('aria-label')).toBeNull()
+      expect(element.getAttribute('share-label')).toBe(defaultProps.ariaLabel)
 
       const trigger = element.querySelector('.highlighter__trigger') as HTMLButtonElement | null
       expect(trigger).toBeTruthy()

@@ -140,6 +140,7 @@ export const queryUppyDashboardTarget = (uppyContainer: HTMLElement | null): HTM
 }
 
 export type AccessibilityLabelTarget = HTMLInputElement | HTMLTextAreaElement
+export type UppyDashboardRoot = HTMLElement
 
 const isAccessibilityLabelTarget = (element: Element): element is AccessibilityLabelTarget => {
   if (isInputElement(element)) {
@@ -149,10 +150,18 @@ const isAccessibilityLabelTarget = (element: Element): element is AccessibilityL
   return element.tagName === 'TEXTAREA'
 }
 
+const isUppyDashboardRoot = (element: Element): element is UppyDashboardRoot => {
+  return element instanceof HTMLElement && element.matches('.uppy-Dashboard')
+}
+
 export const queryAccessibilityLabelTargets = (root: ParentNode): AccessibilityLabelTarget[] => {
   return Array.from(root.querySelectorAll('input[type="text"], input[type="email"], textarea')).filter(
     isAccessibilityLabelTarget
   )
+}
+
+export const queryUppyDashboardRoots = (root: ParentNode): UppyDashboardRoot[] => {
+  return Array.from(root.querySelectorAll('.uppy-Dashboard')).filter(isUppyDashboardRoot)
 }
 
 export const queryContactProjectTypeSelect = (root: ParentNode = document): HTMLSelectElement | null => {

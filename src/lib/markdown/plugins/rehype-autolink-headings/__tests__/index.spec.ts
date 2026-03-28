@@ -73,6 +73,8 @@ describe('rehype-autolink-headings plugin (Layer 1: Isolated)', () => {
     })
 
     expect(html).toContain('group')
+    expect(html).toContain('min-h-6')
+    expect(html).toContain('min-w-6')
     expect(html).toContain('no-underline')
     expect(html).toContain('transition-colors')
   })

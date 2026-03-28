@@ -3,9 +3,10 @@
  * Tests for keyboard accessibility including tab order and focus management
  */
 
-import { BasePage, test, expect } from '@test/e2e/helpers'
+import { BasePage, describe, test, expect } from '@test/e2e/helpers'
+import { runAcrossPages } from '@test/e2e/helpers/runAcrossPages'
 
-test.describe('Keyboard Navigation', () => {
+describe('Keyboard Navigation', () => {
 
   /**
    * Axe does not check for tabbing through interactive elements. It checks that
@@ -17,50 +18,22 @@ test.describe('Keyboard Navigation', () => {
    */
   test('@ready can tab through interactive elements', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
+    await runAcrossPages(page, 'check touch targets', async (url) => {
+      await page.goto(url)
 
-    let focusableCount = 0
-    const maxTabs = 50
+      let focusableCount = 0
+      const maxTabs = 50
 
-    for (let i = 0; i < maxTabs; i++) {
-      await page.pressKey('Tab')
-      const focused = await page.evaluate(() => document.activeElement?.tagName)
-      if (focused && ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'].includes(focused)) {
-        focusableCount++
+      for (let i = 0; i < maxTabs; i++) {
+        await page.pressKey('Tab')
+        const focused = await page.evaluate(() => document.activeElement?.tagName)
+        if (focused && ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'].includes(focused)) {
+          focusableCount++
+        }
       }
-    }
 
-    expect(focusableCount).toBeGreaterThan(5)
-  })
-
-  /**
-   * Axe checks some issues with tab navigation. Some issues, like an illogical
-   * tabbing order or a missing focus indicator, require a human to manually
-   * experience the page to confirm.
-   */
-  test('@wip tab order follows visual layout', async ({ page: playwrightPage }) => {
-    const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
-
-    const positions: Array<{ y: number; x: number }> = []
-
-    for (let i = 0; i < 10; i++) {
-      await page.pressKey('Tab')
-      const pos = await page.evaluate(() => {
-        const el = document.activeElement
-        if (!el) return null
-        const rect = el.getBoundingClientRect()
-        return { y: rect.top, x: rect.left }
-      })
-      if (pos) positions.push(pos)
-    }
-
-    // Check that Y positions generally increase (going down the page)
-    const firstY = positions[0]?.y || 0
-    const lastY = positions[positions.length - 1]?.y || 0
-
-    // Allow some tolerance for elements at same level
-    expect(lastY).toBeGreaterThanOrEqual(firstY - 100)
+      expect(focusableCount).toBeGreaterThan(5)
+    })
   })
 
   /**

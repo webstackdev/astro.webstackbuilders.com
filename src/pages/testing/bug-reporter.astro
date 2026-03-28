@@ -1,0 +1,66 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro'
+import Button from '@components/Button/index.astro'
+import BugReporterComponent from '@components/BugReporter/index.astro'
+
+export const prerender = true
+
+const pageTitle = 'Bug Reporter Component Test Fixture'
+const fixtureDescription =
+  'Dedicated route reserved for validating the Bug Reporter modal without relying on footer layout or scroll position.'
+const pagePath = '/testing/bug-reporter'
+const triggerId = 'bugReporterFixtureTrigger'
+const dialogId = 'bugReporterFixtureDialog'
+const statusId = 'bugReporterFixtureStatus'
+const formId = 'bugReporterFixtureForm'
+const closeButtonId = 'bugReporterFixtureClose'
+const cancelButtonId = 'bugReporterFixtureCancel'
+const minimizeButtonId = 'bugReporterFixtureMinimize'
+const minimizedBarId = 'bugReporterFixtureMinimizedBar'
+const minimizedRestoreButtonId = 'bugReporterFixtureRestore'
+const minimizedCloseButtonId = 'bugReporterFixtureMinimizedClose'
+---
+
+<BaseLayout pageTitle={pageTitle} path={pagePath} pageDescription={fixtureDescription} noindex>
+  <section class="mx-auto flex max-w-4xl flex-col items-center gap-8 py-10 px-4">
+    <header class="max-w-3xl text-center space-y-4">
+      <p class="text-xs uppercase tracking-widest text-content-active">Testing Fixture</p>
+      <h1 class="text-3xl font-semibold leading-tight">{pageTitle}</h1>
+      <p class="text-content-active">{fixtureDescription}</p>
+    </header>
+
+    <article class="w-full max-w-2xl space-y-6 rounded-lg border border-trim bg-page-offset p-6 shadow-sm">
+      <div class="space-y-2">
+        <p class="text-xs uppercase tracking-wider text-content-active">Fixture Trigger</p>
+        <h2 class="text-2xl font-semibold">Open the bug reporter modal</h2>
+        <p class="text-content-active">
+          This trigger renders the production Bug Reporter component with a stable button placement for automation.
+        </p>
+      </div>
+
+      <div class="flex justify-center">
+        <Button
+          id={triggerId}
+          type="button"
+          variant="success"
+          icon="bug"
+          text="Open Bug Reporter"
+          ariaLabel="Report a bug"
+        />
+      </div>
+
+      <BugReporterComponent
+        triggerId={triggerId}
+        dialogId={dialogId}
+        statusId={statusId}
+        formId={formId}
+        closeButtonId={closeButtonId}
+        cancelButtonId={cancelButtonId}
+        minimizeButtonId={minimizeButtonId}
+        minimizedBarId={minimizedBarId}
+        minimizedRestoreButtonId={minimizedRestoreButtonId}
+        minimizedCloseButtonId={minimizedCloseButtonId}
+      />
+    </article>
+  </section>
+</BaseLayout>
