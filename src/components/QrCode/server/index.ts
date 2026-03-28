@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import QRCodeStyling from 'qr-code-styling'
 import { JSDOM } from 'jsdom'
 
@@ -10,30 +9,65 @@ const QR_DOT_COLOR = '#000000'
 const QR_CORNER_COLOR = '#4b5563'
 const QR_CORNER_DOT_COLOR = '#111111'
 const QR_BACKGROUND_COLOR = '#ffffff'
-const LOGO_OUTER_COLOR = '#000000'
-const LOGO_INNER_COLOR = '#6b7280'
 const LOGO_BACKDROP_COLOR = '#ffffff'
-const logoSvgFileUrl = new URL('../../../assets/images/site/logo.svg', import.meta.url)
-
-let cachedLogoSvg: string | null = null
+const LOGO_SVG_MARKUP = `<svg
+	id="logo"
+	title="Webstack Builders Company Logo"
+	width="88.360085"
+	height="86.394562"
+	viewBox="0 0 88.360085 86.394562"
+	xmlns="http://www.w3.org/2000/svg"
+>
+	<g
+		id="logo-group"
+		transform="translate(-64.234499,-91.339148)"
+	>
+		<path
+			fill="#000000"
+			id="logo-block-top-left"
+			d="M 64.234499,105.965 V 91.339148 h 8.904504 8.904505 V 105.965 120.59085 h -8.904505 -8.904504 z"
+		/>
+		<path
+			fill="#000000"
+			id="logo-block-top-middle"
+			d="M 88.893126,105.965 V 91.339148 H 109.0995 129.30588 V 105.965 120.59085 H 109.0995 88.893126 Z"
+		/>
+		<path
+			fill="#000000"
+			id="logo-block-top-right"
+			d="M 134.78557,105.965 V 91.339148 h 8.90451 8.9045 V 105.965 120.59085 h -8.9045 -8.90451 z"
+		/>
+		<path
+			fill="#6b7280"
+			id="logo-block-middle-left"
+			d="m 64.234499,134.53643 v -8.5034 h 20.548856 20.548855 v 8.5034 8.5034 H 84.783355 64.234499 Z"
+		/>
+		<path
+			fill="#6b7280"
+			id="logo-block-middle-right"
+			d="m 111.49687,134.53643 v -8.5034 h 20.54885 20.54886 v 8.5034 8.5034 h -20.54886 -20.54885 z"
+		/>
+		<path
+			fill="#000000"
+			id="logo-block-bottom-left"
+			d="m 64.234499,163.10786 v -14.62585 h 8.904504 8.904505 v 14.62585 14.62585 h -8.904505 -8.904504 z"
+		/>
+		<path
+			fill="#000000"
+			id="logo-block-bottom-middle"
+			d="m 88.893126,163.10786 v -14.62585 h 20.206374 20.20638 v 14.62585 14.62585 H 109.0995 88.893126 Z"
+		/>
+		<path
+			fill="#000000"
+			id="logo-block-bottom-right"
+			d="m 134.78557,163.10786 v -14.62585 h 8.90451 8.9045 v 14.62585 14.62585 h -8.9045 -8.90451 z"
+		/>
+	</g>
+</svg>`
 
 export interface RenderQrCodeSvgOptions {
 	data: string
 	size?: number
-}
-
-const getMonochromeLogoSvg = async (): Promise<string> => {
-	if (cachedLogoSvg) {
-		return cachedLogoSvg
-	}
-
-	const logoSvg = await readFile(logoSvgFileUrl, 'utf8')
-
-	cachedLogoSvg = logoSvg
-		.replace(/var\(--color-content-inverse\)/g, LOGO_OUTER_COLOR)
-		.replace(/var\(--color-primary\)/g, LOGO_INNER_COLOR)
-
-	return cachedLogoSvg
 }
 
 const parseLogoViewBox = (viewBox: null | string): { height: number; width: number } => {
@@ -113,24 +147,22 @@ export const renderQrCodeSvg = async ({
 	data,
 	size = DEFAULT_SIZE,
 }: RenderQrCodeSvgOptions): Promise<string> => {
-	const logoSvgMarkup = await getMonochromeLogoSvg()
-
 	const qrCode = new QRCodeStyling({
 		backgroundOptions: {
 			color: QR_BACKGROUND_COLOR,
 		},
 		cornersDotOptions: {
 			color: QR_CORNER_DOT_COLOR,
-			type: 'dot',
+			type: 'dots',
 		},
 		cornersSquareOptions: {
 			color: QR_CORNER_COLOR,
-			type: 'extra-rounded',
+			type: 'dots',
 		},
 		data,
 		dotsOptions: {
 			color: QR_DOT_COLOR,
-			type: 'rounded',
+			type: 'dots',
 		},
 		height: size,
 		jsdom: JSDOM,
@@ -142,7 +174,7 @@ export const renderQrCodeSvg = async ({
 		width: size,
 	})
 
-	qrCode.applyExtension(createLogoExtension(logoSvgMarkup))
+	qrCode.applyExtension(createLogoExtension(LOGO_SVG_MARKUP))
 
 	const svgBuffer = await qrCode.getRawData('svg')
 

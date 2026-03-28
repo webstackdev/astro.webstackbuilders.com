@@ -34,7 +34,7 @@ Hide any interactive or screen-specific components using display: none; in your 
 - Navigation Menus: All top-level and dropdown links.
 - Search Icons/Bars: These are non-functional on paper.
 - Breadcrumbs: While useful on-screen for site hierarchy, they often look like cluttered, disconnected text on paper. Most designers remove them to keep the focus on the primary content.
-- Social Media & CTA Buttons: "Sign In" or "Follow Us" buttons are irrelevant in print.
+- Social Media & CTA Buttons & Download CTA: "Sign In" or "Follow Us" buttons are irrelevant in print.
 
 __Expand External Links For Print__
 
