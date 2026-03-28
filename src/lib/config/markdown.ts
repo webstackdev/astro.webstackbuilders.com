@@ -31,6 +31,12 @@ Object.defineProperty(rehypeMathjax, 'name', { value: 'rehypeMathjax' })
 import rehypeMermaid from 'rehype-mermaid'
 Object.defineProperty(rehypeMermaid, 'name', { value: 'rehypeMermaid' })
 
+import rehypeMathjaxSource from '../markdown/plugins/rehype-mathjax-source'
+Object.defineProperty(rehypeMathjaxSource, 'name', { value: 'rehypeMathjaxSource' })
+
+import rehypeMathjaxSvgAlt from '../markdown/plugins/rehype-mathjax-svg-alt'
+Object.defineProperty(rehypeMathjaxSvgAlt, 'name', { value: 'rehypeMathjaxSvgAlt' })
+
 import rehypeAutolinkHeadings from '../markdown/plugins/rehype-autolink-headings'
 Object.defineProperty(rehypeAutolinkHeadings, 'name', { value: 'rehypeAutolinkHeadings' })
 
@@ -371,6 +377,8 @@ export const markdownConfig: Partial<MdxOptions> = {
     [rehypeFootnotesTitle, rehypeFootnotesTitleConfig],
     /** Add GitHub-like color swatches for inline code color literals */
     rehypeInlineCodeColorSwatch,
+    /** Preserve original TeX source so MathJax SVG output can be labeled */
+    rehypeMathjaxSource,
     /**
      * Add a class and prepend an icon to heading tags that have an id attribute set.
      * Astro uses Github Flavored Markup to add id attribute to headings like h1,
@@ -383,6 +391,8 @@ export const markdownConfig: Partial<MdxOptions> = {
      * replaced with <mjx-container> before Tailwind class injection.
      */
     rehypeMathjax,
+    /** Add accessible labels to MathJax-generated SVGs */
+    rehypeMathjaxSvgAlt,
     /** Render Mermaid diagrams to inline SVG at build-time */
     [rehypeMermaid, rehypeMermaidConfig],
     /** Wrap grouped code blocks in <code-tabs> containers */

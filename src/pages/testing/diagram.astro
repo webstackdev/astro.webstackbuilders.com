@@ -1,0 +1,44 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro'
+import DiagramComponent from '@components/Diagram/index.astro'
+import backstageBackground from '@assets/images/backstage-background.jpg'
+
+export const prerender = true
+
+const pageTitle = 'Diagram Component Test Fixture'
+const fixtureDescription =
+  'Dedicated route reserved for validating diagram rendering, long-description disclosure, and image magnification.'
+const pagePath = '/testing/diagram'
+---
+
+<BaseLayout pageTitle={pageTitle} path={pagePath} pageDescription={fixtureDescription} noindex>
+  <section class="mx-auto flex max-w-4xl flex-col items-center gap-8 px-4 py-10">
+    <header class="max-w-3xl text-center space-y-4">
+      <p class="text-xs uppercase tracking-widest text-content-active">Testing Fixture</p>
+      <h1 class="text-3xl font-semibold leading-tight">{pageTitle}</h1>
+      <p class="text-content-active">{fixtureDescription}</p>
+    </header>
+
+    <article class="w-full max-w-3xl space-y-6 rounded-lg border border-trim bg-page-offset p-6 shadow-sm">
+      <div class="space-y-2">
+        <p class="text-xs uppercase tracking-wider text-content-active">Fixture Diagram</p>
+        <h2 class="text-2xl font-semibold">Service dependency flow</h2>
+        <p class="text-content-active">
+          Stable diagram metadata for validating the figure caption, disclosure summary, and enlarged preview.
+        </p>
+      </div>
+
+      <DiagramComponent
+        src={backstageBackground}
+        magnifyButtonPosition="top-left"
+        size="xl"
+        title="Service dependency flow for incident response escalation"
+        description="A service map showing requests entering the public edge, moving through an API layer, then branching into application services, background workers, and supporting data stores used during incident response."
+      >
+        <p data-diagram-fixture-note class="text-sm text-content-active">
+          Supporting note rendered through the Diagram default slot.
+        </p>
+      </DiagramComponent>
+    </article>
+  </section>
+</BaseLayout>

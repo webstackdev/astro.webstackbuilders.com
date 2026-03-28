@@ -14,6 +14,14 @@ import {
 } from './@types'
 import { prepareItems } from './server'
 
+const toIdFragment = (value: string): string => {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
 type BaseProps = {
   title?: string
   /** A link to apply to the carousel title */
@@ -72,7 +80,10 @@ const allItems: ItemType[] = itemsOverride
 
 const items = prepareItems(allItems, variant, currentSlug, limit)
 
-const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
+const carouselIdParts = [type, variant, currentSlug ?? 'all', navigationMode, title ?? 'untitled']
+const carouselId = `carousel-${carouselIdParts.map(toIdFragment).filter(Boolean).join('-')}`
+const carouselRegionLabelledBy = title ? `${carouselId}-title` : undefined
+const carouselRegionRole = carouselRegionLabelledBy ? 'region' : undefined
 ---
 
 {
@@ -80,7 +91,7 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
     <carousel-slider
       data-carousel
       data-carousel-navigation-mode={navigationMode}
-      class="block"
+      class="block print:hidden"
     >
       <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {title && (
@@ -98,7 +109,7 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
         )}
 
         {/* Embla Carousel */}
-        <div class="embla relative" role="region" aria-labelledby={`${carouselId}-title`}>
+        <div class="embla relative" role={carouselRegionRole} aria-labelledby={carouselRegionLabelledBy}>
           <div class="embla__viewport overflow-hidden p-4">
             <div class="embla__container flex -ml-4 md:-ml-6">
               {items.map((item: ItemType, index) => (
@@ -113,7 +124,10 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
                       class="block h-full bg-content-inverse rounded-xl shadow-lg transition-all duration-300 overflow-hidden border border-trim transform hover:-translate-y-2 no-underline hover:no-underline focus-visible:no-underline focus-visible:outline-none focus-visible:shadow-none"
                     >
                       {item.data.cover && (
-                        <div class="relative aspect-video overflow-hidden">
+                        <div
+                          class="relative overflow-hidden"
+                          style={`aspect-ratio: ${item.data.cover.width} / ${item.data.cover.height};`}
+                        >
                           <Picture
                             src={item.data.cover}
                             alt={item.data.coverAlt}
@@ -257,5 +271,6 @@ const carouselId = `carousel-${type}-${variant}-${currentSlug ?? 'all'}`
 
 <script>
   import { registerCarouselWebComponent } from '@components/Carousel/client'
-  registerCarouselWebComponent()
+  import { whenIdle } from '@components/scripts/utils'
+  whenIdle(() => registerCarouselWebComponent())
 </script>

@@ -15,7 +15,8 @@ test.describe('Contact Page', () => {
   test('@ready hero section displays', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/contact')
-    await page.expectTextContains('h1', /Let's Build Something Amazing/)
+    await page.expectTextContains('h1', /Contact Me/)
+    await page.expectTextVisible(/Connect with Webstack Builders to discuss your infrastructure needs/)
   })
 
   test('@ready contact form is visible', async ({ page: playwrightPage }) => {
@@ -36,11 +37,10 @@ test.describe('Contact Page', () => {
   test('@ready optional form fields are present', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/contact')
-    // Optional fields: company, phone, project type, budget, timeline
+    // Optional fields: company, phone, engagement type, timeline
     await page.expectElementVisible('#company')
     await page.expectElementVisible('#phone')
     await page.expectElementVisible('#project_type')
-    await page.expectElementVisible('#budget')
     await page.expectElementVisible('#timeline')
   })
 
@@ -61,7 +61,7 @@ test.describe('Contact Page', () => {
   test('@ready submit button is present', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/contact')
-    await page.expectSubmitButton('Send Project Details')
+    await page.expectSubmitButton('Send Engagement Details')
   })
 
   test('@ready form has proper labels and accessibility', async ({ page: playwrightPage }) => {
@@ -69,8 +69,8 @@ test.describe('Contact Page', () => {
     await page.goto('/contact')
     // Check that required inputs have associated labels
     await page.expectLabelFor('name', /Full Name/)
-    await page.expectLabelFor('email', /Email/)
-    await page.expectLabelFor('message', /Project Description/)
+    await page.expectLabelFor('email', /Email Address/)
+    await page.expectLabelFor('message', /Description/)
   })
 
   test('@ready form sections are properly organized', async ({ page: playwrightPage }) => {
@@ -78,8 +78,8 @@ test.describe('Contact Page', () => {
     await page.goto('/contact')
     // Check for section headings - use h3 selector to avoid matching text in paragraphs
     await page.expectHasHeading('Contact Information')
-    await page.expectHasHeading('Project Details')
-    await page.expectHasHeading('Project Files')
+    await page.expectHasHeading('Engagement Details')
+    await page.expectHasHeading('Supporting Files')
   })
 
   test('@ready data retention notice is displayed', async ({ page: playwrightPage }) => {

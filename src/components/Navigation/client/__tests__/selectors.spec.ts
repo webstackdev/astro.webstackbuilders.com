@@ -39,6 +39,8 @@ const renderNavigationDom = async (
     moduleSpecifier: '@components/Navigation/client/index',
     waitForReady: async element => {
       await element.updateComplete
+      // Flush whenIdle's setTimeout fallback used in jsdom (no requestIdleCallback)
+      await new Promise(resolve => setTimeout(resolve, 0))
     },
     assert: async ({ element }) => {
       await assertion({ element })

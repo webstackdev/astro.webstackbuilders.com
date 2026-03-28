@@ -8,6 +8,59 @@ type Props = {
 
 const { services }: Props = Astro.props
 
+const normalizeServiceId = (serviceId: string) =>
+  serviceId
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+const servicesHeadingAnchorClasses = [
+  'group',
+  'inline-flex',
+  'min-h-6',
+  'min-w-6',
+  'items-center',
+  'justify-center',
+  'align-middle',
+  'transition-colors',
+  'no-underline',
+  'hover:no-underline',
+  'focus-visible:no-underline',
+  'ml-1.5',
+].join(' ')
+
+const ensureServicesHeadingAnchorClasses = (html: string) =>
+  html.replace(
+    /<a class="([^"]*)"([^>]*)aria-label="Link to this section"([^>]*)>/g,
+    (_match, _currentClasses: string, beforeAria: string, afterAria: string) =>
+      `<a class="${servicesHeadingAnchorClasses}"${beforeAria}aria-label="Link to this section"${afterAria}>`
+  )
+
+const namespaceServiceHeadingAnchors = (html: string, serviceId: string) => {
+  if (!html.trim()) {
+    return html
+  }
+
+  const idPrefix = normalizeServiceId(serviceId)
+  const remappedIds = new Map<string, string>()
+
+  const htmlWithNamespacedIds = html.replace(/\bid="([^"]+)"/g, (_match, currentId: string) => {
+    const nextId = `${idPrefix}-${currentId}`
+    remappedIds.set(currentId, nextId)
+    return `id="${nextId}"`
+  })
+
+  const htmlWithNamespacedHrefs = htmlWithNamespacedIds.replace(
+    /\bhref="#([^"]+)"/g,
+    (match, currentHref: string) => {
+      const nextHref = remappedIds.get(currentHref)
+      return nextHref ? `href="#${nextHref}"` : match
+    }
+  )
+
+  return ensureServicesHeadingAnchorClasses(htmlWithNamespacedHrefs)
+}
+
 /**
  * Splits rendered markdown at each <h2> boundary so we can place
  * sections in a two-column layout.
@@ -29,7 +82,8 @@ const splitH2Sections = (html: string): string[] => {
     {services.length > 0 && (
       <div class="services-grid grid gap-8 md:grid-cols-2">
         {services.map((service, i) => {
-          const sections = splitH2Sections(service.rendered?.html ?? '')
+          const namespacedHtml = namespaceServiceHeadingAnchors(service.rendered?.html ?? '', service.id)
+          const sections = splitH2Sections(namespacedHtml)
           const leftSections = sections.slice(0, 2).join('')
           const rightSections = sections.slice(2, 4).join('')
           const projectType = service.data.accountType
@@ -66,7 +120,7 @@ const splitH2Sections = (html: string): string[] => {
                     Most Popular
                   </span>
                 )}
-                <h3 class="text-xl font-bold">{service.data.title}</h3>
+                <h2 class="text-xl font-bold">{service.data.title}</h2>
                 <p
                   class:list={[
                     'service-card-description sm:mt-2 text-sm leading-relaxed text-content-offset',

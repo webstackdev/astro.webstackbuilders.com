@@ -8,6 +8,7 @@ export { getOrCreateDataSubjectId, deleteDataSubjectId } from './dataSubjectId'
 
 export { absoluteUrl } from './absoluteUrl'
 export { defineCustomElement } from './defineCustomElement'
+export { whenIdle } from './idle'
 
 /**
  * !!!! DO NOT RE-EXPORT environmentClient.ts OR siteUrlClient.ts METHODS HERE !!!!!

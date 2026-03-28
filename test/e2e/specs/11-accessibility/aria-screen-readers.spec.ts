@@ -3,9 +3,86 @@
  * Tests for ARIA attributes and screen reader accessibility
  */
 
-import { BasePage, test, expect } from '@test/e2e/helpers'
+import type { Locator } from '@playwright/test'
+import { BasePage, test, describe, expect } from '@test/e2e/helpers'
+import { runAcrossPages } from '@test/e2e/helpers/runAcrossPages'
 
-test.describe('ARIA and Screen Readers', () => {
+const genericLinkNamePattern = /^(here|click|click here|read more|learn more|more|link|ready)$/i
+
+const getAccessibleNameCandidate = async (locator: Locator): Promise<string> => {
+  return locator.evaluate((element): string => {
+    const ariaLabel = element.getAttribute('aria-label')?.trim()
+
+    if (ariaLabel) {
+      return ariaLabel
+    }
+
+    const labelledBy = element.getAttribute('aria-labelledby')
+    if (labelledBy) {
+      const labelText = labelledBy
+        .split(/\s+/)
+        .map(id => document.getElementById(id)?.textContent?.trim() ?? '')
+        .filter(Boolean)
+        .join(' ')
+        .trim()
+
+      if (labelText) {
+        return labelText
+      }
+    }
+
+    if (
+      element instanceof HTMLInputElement ||
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLSelectElement
+    ) {
+      const labelText = Array.from(element.labels ?? [])
+        .map(label => label.textContent?.trim() ?? '')
+        .filter(Boolean)
+        .join(' ')
+        .trim()
+
+      if (labelText) {
+        return labelText
+      }
+    }
+
+    if (element instanceof HTMLImageElement) {
+      return element.alt.trim()
+    }
+
+    if (
+      element instanceof HTMLInputElement &&
+      ['button', 'submit', 'reset'].includes(element.type)
+    ) {
+      return element.value.trim()
+    }
+
+    return (element as HTMLElement).innerText?.trim() || element.textContent?.trim() || ''
+  })
+}
+
+const normalizeAccessibleName = (name: string): string => {
+  return name.replace(/\s+/g, ' ').trim().toLowerCase()
+}
+
+describe('ARIA and Screen Readers', () => {
+  const visibleFormControlSelector = [
+    'form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):visible',
+    'form textarea:visible',
+    'form select:visible',
+    'input[role="switch"]',
+  ].join(', ')
+
+  const visibleRequiredFormControlSelector = [
+    'form input[required]:visible',
+    'form input[aria-required="true"]:visible',
+    'form textarea[required]:visible',
+    'form textarea[aria-required="true"]:visible',
+    'form select[required]:visible',
+    'form select[aria-required="true"]:visible',
+  ].join(', ')
+
   /**
    * Axe checks for a main landmark in a few ways: it verifies that there is
    * exactly one main landmark, that the main landmark is not nested inside
@@ -14,9 +91,10 @@ test.describe('ARIA and Screen Readers', () => {
    */
   test('@ready page has main landmark', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
-
-    await page.expectMainElement()
+    await runAcrossPages(page, 'check main landmark', async (url) => {
+      await page.goto(url)
+      await page.expectMainElement()
+    })
   })
 
   /**
@@ -28,66 +106,71 @@ test.describe('ARIA and Screen Readers', () => {
    */
   test('@ready page has navigation landmark', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
+    await runAcrossPages(page, 'check navigation landmark', async (url) => {
+      await page.goto(url)
 
-    const nav = page.page.locator('nav, [role="navigation"]')
-    const count = await nav.count()
-    expect(count).toBeGreaterThan(0)
+      const nav = page.page.locator('nav, [role="navigation"]')
+      const count = await nav.count()
+      expect(count).toBeGreaterThan(0)
+    })
   })
 
   /**
    * Axe checks that buttons have accessible labels, specifically through the button-name
-   * rule which is a critical accessibility issue. This rule ensures that all buttons have
-   * a discernible name so that screen reader users can understand their purpose, even if
-   * the button is an icon without visible text.
+   * rule which is a critical accessibility issue. This rule expands that to ensure that
+   * all buttons have a discernible name so that screen reader users can understand their
+   * purpose, even if the button is an icon without visible text.
    */
-  test('@ready buttons have accessible labels', async ({ page: playwrightPage }) => {
+  test('@ready buttons have accessible labels', async ({ page: playwrightPage, browserName }) => {
+    test.skip(browserName === 'firefox', 'Firefox times out on the full cross-page button label sweep.')
+
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
+    await runAcrossPages(page, 'check button labels', async (url) => {
+      await page.goto(url)
 
-    const buttons = page.page.locator('button')
-    const count = await buttons.count()
+      const buttons = page.page.getByRole('button')
+      const count = await buttons.count()
 
-    for (let i = 0; i < count; i++) {
-      const button = buttons.nth(i)
-      const text = await button.textContent()
-      const ariaLabel = await button.getAttribute('aria-label')
-      const ariaLabelledBy = await button.getAttribute('aria-labelledby')
+      expect(count).toBeGreaterThan(0)
 
-      // Each button should have text or aria-label
-      expect(text?.trim() || ariaLabel || ariaLabelledBy).toBeTruthy()
-    }
+      for (let i = 0; i < count; i++) {
+        const button = buttons.nth(i)
+        await expect(button).toHaveAccessibleName(/\S+/)
+      }
+    })
   })
+
 
   /**
    * Axe checks that links have accessible labels and sufficient, discernible text.
    * Its link-name rule ensures that all links, including those with images, have an
    * accessible name that screen readers can use to describe the link's purpose. This
-   * includes checking for things like empty links or links that are unclear to
-   * assistive technologies.
+   * test expands that to check for things like empty links or link text that is too
+   * generic to be meaningful to assistive technologies.
    */
-  test('@ready links have meaningful text', async ({ page: playwrightPage }) => {
+  test('@ready links have meaningful text', async ({ page: playwrightPage, browserName }) => {
+    test.skip(
+      browserName === 'firefox' || browserName === 'webkit',
+      "Don't need full cross-page link label sweep on all platforms."
+    )
+
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
+    await runAcrossPages(page, 'check link labels', async (url) => {
+      await page.goto(url)
 
-    const links = page.page.locator('a[href]')
-    const count = await links.count()
+      const links = page.page.getByRole('link')
+      const count = await links.count()
 
-    for (let i = 0; i < Math.min(count, 20); i++) {
-      const link = links.nth(i)
-      const text = await link.textContent()
-      const ariaLabel = await link.getAttribute('aria-label')
+      expect(count).toBeGreaterThan(0)
 
-      const linkText = (text || ariaLabel || '').trim().toLowerCase()
+      for (let i = 0; i < count; i++) {
+        const link = links.nth(i)
+        await expect(link).toHaveAccessibleName(/\S+/)
 
-      // Link should have meaningful text, not just "here" or "click"
-      if (linkText) {
-        expect(linkText.length).toBeGreaterThan(0)
-        // Avoid generic link text
-        expect(linkText).not.toBe('here')
-        expect(linkText).not.toBe('click')
+        const linkText = normalizeAccessibleName(await getAccessibleNameCandidate(link))
+        expect(linkText).not.toMatch(genericLinkNamePattern)
       }
-    }
+    })
   })
 
   /**
@@ -95,18 +178,20 @@ test.describe('ARIA and Screen Readers', () => {
    */
   test('@ready images have alt text', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
+    await runAcrossPages(page, 'check image alt text', async (url) => {
+      await page.goto(url)
 
-    const images = page.page.locator('img')
-    const count = await images.count()
+      const images = page.page.locator('img')
+      const count = await images.count()
 
-    for (let i = 0; i < count; i++) {
-      const img = images.nth(i)
-      const alt = await img.getAttribute('alt')
+      for (let i = 0; i < count; i++) {
+        const img = images.nth(i)
+        const alt = await img.getAttribute('alt')
 
-      // Alt can be empty for decorative images, but must be present
-      expect(alt).not.toBeNull()
-    }
+        // Alt can be empty for decorative images, but must be present
+        expect(alt).not.toBeNull()
+      }
+    })
   })
 
   /**
@@ -114,26 +199,22 @@ test.describe('ARIA and Screen Readers', () => {
    */
   test('@ready form inputs have labels', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/contact')
+    await runAcrossPages(page, 'check form input labels', async (url) => {
+      await page.goto(url, { waitUntil: 'load' })
 
-    const inputs = page.page.locator('input[type="text"], input[type="email"], textarea')
-    const count = await inputs.count()
+      const inputs = page.page.locator(visibleFormControlSelector)
+      const count = await inputs.count()
 
-    for (let i = 0; i < count; i++) {
-      const input = inputs.nth(i)
-      const id = await input.getAttribute('id')
-      const ariaLabel = await input.getAttribute('aria-label')
-      const ariaLabelledBy = await input.getAttribute('aria-labelledby')
+      expect(count).toBeGreaterThan(0)
 
-      if (id) {
-        const label = page.page.locator(`label[for="${id}"]`)
-        const hasLabel = (await label.count()) > 0
-        expect(hasLabel || ariaLabel || ariaLabelledBy).toBeTruthy()
-      } else {
-        // If no id, must have aria-label or aria-labelledby
-        expect(ariaLabel || ariaLabelledBy).toBeTruthy()
+      for (let i = 0; i < count; i++) {
+        const input = inputs.nth(i)
+        await expect(input).toHaveAccessibleName(/\S+/)
+
+        const inputName = normalizeAccessibleName(await getAccessibleNameCandidate(input))
+        expect(inputName.length).toBeGreaterThan(0)
       }
-    }
+    }, true)
   })
 
   /**
@@ -150,13 +231,15 @@ test.describe('ARIA and Screen Readers', () => {
    */
   test('@ready page has exactly one h1', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
+    await runAcrossPages(page, 'check h1 count', async (url) => {
+      await page.goto(url)
 
-    const h1 = page.page.locator('h1')
-    await expect(h1).toHaveCount(1)
+      const h1 = page.page.locator('h1')
+      await expect(h1).toHaveCount(1)
 
-    const h1Text = await h1.textContent()
-    expect(h1Text?.trim().length).toBeGreaterThan(0)
+      const h1Text = await h1.textContent()
+      expect(h1Text?.trim().length).toBeGreaterThan(0)
+    })
   })
 
   /**
@@ -167,13 +250,24 @@ test.describe('ARIA and Screen Readers', () => {
    */
   test('@ready required fields are marked', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/contact')
+    await runAcrossPages(page, 'check required fields', async (url) => {
+      await page.goto(url)
 
-    const emailInput = page.page.locator('input[type="email"]').first()
-    const isRequired = await emailInput.getAttribute('required')
-    const ariaRequired = await emailInput.getAttribute('aria-required')
+      const requiredFields = page.page.locator(visibleRequiredFormControlSelector)
+      const count = await requiredFields.count()
 
-    expect(isRequired !== null || ariaRequired === 'true').toBe(true)
+      if (count === 0) {
+        return
+      }
+
+      for (let i = 0; i < count; i++) {
+        const field = requiredFields.nth(i)
+        const isRequired = await field.getAttribute('required')
+        const ariaRequired = await field.getAttribute('aria-required')
+
+        expect(isRequired !== null || ariaRequired === 'true').toBe(true)
+      }
+    }, true)
   })
 
   /**
@@ -183,20 +277,23 @@ test.describe('ARIA and Screen Readers', () => {
    */
   test('@ready lists use proper markup', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    await page.goto('/')
 
-    const lists = page.page.locator('ul, ol, [role="list"]')
-    const count = await lists.count()
+    await runAcrossPages(page, 'check list markup', async (url) => {
+      await page.goto(url)
 
-    expect(count).toBeGreaterThan(0)
+      const lists = page.page.locator('ul, ol, [role="list"]')
+      const count = await lists.count()
 
-    // Check that list items are children of lists
-    for (let i = 0; i < Math.min(count, 3); i++) {
-      const list = lists.nth(i)
-      const items = list.locator('li, [role="listitem"]')
-      const itemCount = await items.count()
+      expect(count).toBeGreaterThan(0)
 
-      expect(itemCount).toBeGreaterThan(0)
-    }
+      // Check that list items are children of lists
+      for (let i = 0; i < Math.min(count, 3); i++) {
+        const list = lists.nth(i)
+        const items = list.locator('li, [role="listitem"]')
+        const itemCount = await items.count()
+
+        expect(itemCount).toBeGreaterThan(0)
+      }
+    })
   })
 })

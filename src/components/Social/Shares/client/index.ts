@@ -11,8 +11,6 @@ import { queryMetaDescription, querySocialShareIconMarkup } from './selectors'
 
 const COMPONENT_TAG_NAME = 'social-share-element'
 const DEFAULT_NETWORKS = 'x,linkedin,bluesky,reddit,mastodon'
-const MASTODON_MODAL_ID = 'mastodon-modal'
-
 export class SocialShareElement extends LitElement {
   static registeredName = COMPONENT_TAG_NAME
 
@@ -118,7 +116,6 @@ export class SocialShareElement extends LitElement {
           class="${buttonClassList}"
           aria-label="${platform.ariaLabel}"
           aria-haspopup=${ifDefined(isMastodon ? 'dialog' : undefined)}
-          aria-controls=${ifDefined(isMastodon ? MASTODON_MODAL_ID : undefined)}
           data-platform="${platform.id}"
           data-share="${platform.id}"
           data-share-text="${shareText}"

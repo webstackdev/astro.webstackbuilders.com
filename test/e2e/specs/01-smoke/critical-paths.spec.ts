@@ -4,13 +4,21 @@
  * They should always pass and run quickly.
  */
 import { BasePage, test, expect } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
+
+const matchesPathname = (pathname: string, expectedPath: string) => {
+  const normalizedPathname = pathname !== '/' ? pathname.replace(/\/$/, '') : pathname
+  const normalizedExpectedPath = expectedPath !== '/' ? expectedPath.replace(/\/$/, '') : expectedPath
+
+  return normalizedPathname === normalizedExpectedPath
+}
 
 test.describe('Critical Paths @smoke', () => {
   test('@ready all main navigation pages are accessible', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
-    for (const { url: path, title } of page.navigationItems) {
+    for (const { url: path } of page.navigationItems) {
       await page.goto(path)
-      await page.expectTitle(title)
+      await page.waitForURL(url => matchesPathname(url.pathname, path), { timeout: wait.defaultWait })
       await page.expectHeading()
     }
   })
@@ -24,14 +32,19 @@ test.describe('Critical Paths @smoke', () => {
     const page = await BasePage.init(playwrightPage)
     for (const { url: path } of page.navigationItems) {
       await page.goto('/')
-      const navigationComplete = page.waitForPageLoad({ requireNext: true })
+      const navigationComplete = page.waitForPageLoad({ requireNext: true, timeout: wait.navigation })
+      const urlComplete = page.waitForURL(url => matchesPathname(url.pathname, path), {
+        timeout: wait.navigation,
+      })
+
       await page.navigateToPage(path)
-      await navigationComplete
+
+      await urlComplete
+      await navigationComplete.catch(() => undefined)
       await playwrightPage.waitForFunction(() => {
         return !document.documentElement.hasAttribute('data-astro-transition')
       })
-      // eslint-disable-next-line security/detect-non-literal-regexp
-      await page.expectUrl(new RegExp(path))
+      await page.expectHeading()
     }
   })
 

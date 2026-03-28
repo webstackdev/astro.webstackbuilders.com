@@ -1,5 +1,4 @@
 import { LitElement } from 'lit'
-import { createFocusTrap } from 'focus-trap'
 import type { FocusTrap } from 'focus-trap'
 import { navigate } from 'astro:transitions/client'
 import {
@@ -16,7 +15,7 @@ import {
   addButtonEventListeners,
   addLinkEventListeners,
 } from '@components/scripts/elementListeners'
-import { defineCustomElement } from '@components/scripts/utils'
+import { defineCustomElement, whenIdle } from '@components/scripts/utils'
 import { setOverlayPauseState } from '@components/scripts/store'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 
@@ -62,7 +61,8 @@ export class NavigationElement extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback()
     if (this.initialized) return
-    this.initialize()
+    this.initialized = true
+    whenIdle(() => this.initialize())
   }
 
   private initialize(): void {
@@ -80,10 +80,8 @@ export class NavigationElement extends LitElement {
       )
     }
 
-    this.setupFocusTrap()
     this.bindEvents()
     this.toggleBtn.setAttribute('aria-label', MENU_TOGGLE_LABELS.open)
-    this.initialized = true
     this.setAttribute('data-nav-ready', 'true')
   }
 
@@ -139,8 +137,10 @@ export class NavigationElement extends LitElement {
     this.splashFallbackTimeoutId = window.setTimeout(reveal, 700)
   }
 
-  private setupFocusTrap(): void {
+  private async setupFocusTrap(): Promise<void> {
+    if (this.focusTrap) return
     try {
+      const { createFocusTrap } = await import('focus-trap')
       this.focusTrap = createFocusTrap(this.focusContainer, {
         initialFocus: () => this.toggleBtn,
         // Allow backdrop taps without collapsing the menu
@@ -215,7 +215,7 @@ export class NavigationElement extends LitElement {
     }
   }
 
-  toggleMenu(force?: boolean): void {
+  async toggleMenu(force?: boolean): Promise<void> {
     if (this.isMenuOpen === force) return
     this.isMenuOpen = force !== undefined ? force : !this.isMenuOpen
 
@@ -235,6 +235,9 @@ export class NavigationElement extends LitElement {
     this.toggleAttribute(ATTRIBUTES.navOpen, this.isMenuOpen)
 
     if (this.isMenuOpen) {
+      await this.setupFocusTrap()
+      // Menu may have been closed while the dynamic import was loading
+      if (!this.isMenuOpen) return
       this.focusTrap?.activate()
       this.menu.classList.remove('menu-visible')
       this.revealMenuWhenSplashCompletes()

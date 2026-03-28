@@ -18,7 +18,9 @@ import { TEST_CONTACT_DATA, TEST_EMAILS } from '@test/e2e/fixtures/test-data'
 
 const CONTACT_PATH = '/contact'
 
-const contactSubmitActionEndpoint = '/_actions/contact.submit'
+const contactSubmitActionEndpoint = '/_actions/'
+const validProjectType = 'solutions-services'
+const validTimeline = 'asap'
 
 const waitForContactFormHydration = async (page: BasePage) => {
   await page.waitForFunction(() => {
@@ -48,15 +50,13 @@ const fillContactFormWithValidData = async (page: BasePage, overrides?: { email?
   await page.fill('#email', email)
   await page.fill('#company', TEST_CONTACT_DATA.valid.company)
   await page.fill('#phone', TEST_CONTACT_DATA.valid.phone)
-  await page.locator('#project_type').selectOption('website')
-  await page.locator('#budget').selectOption('10k-25k')
-  await page.locator('#timeline').selectOption('asap')
+  await page.locator('#project_type').selectOption(validProjectType)
+  await page.locator('#timeline').selectOption(validTimeline)
   await page.fill('#message', `${TEST_CONTACT_DATA.valid.message} UI flow ${uniqueSuffix}`)
   await page.check('#contact-gdpr-consent')
 
-  await expect(page.locator('#project_type')).toHaveValue('website')
-  await expect(page.locator('#budget')).toHaveValue('10k-25k')
-  await expect(page.locator('#timeline')).toHaveValue('asap')
+  await expect(page.locator('#project_type')).toHaveValue(validProjectType)
+  await expect(page.locator('#timeline')).toHaveValue(validTimeline)
   await expect(page.locator('#contact-gdpr-consent')).toBeChecked()
 
   return { email }
@@ -85,25 +85,24 @@ test.describe('Contact Form', () => {
     await expect(charCount).toHaveText(String(message.length))
   })
 
-  test('@ready required select fields block submission when empty', async ({ page: playwrightPage }) => {
+  test('@ready optional select fields allow submission when empty', async ({ page: playwrightPage }) => {
     const page = await setupContactPage(playwrightPage)
 
     await fillRequiredFields(page)
-    await page.locator('#project_type').selectOption('website')
-    await page.locator('#timeline').selectOption('asap')
     await page.check('#contact-gdpr-consent')
 
     const fetchSpy = await spyOnFetchEndpoint(playwrightPage, contactSubmitActionEndpoint)
 
     try {
       await page.click('#submitBtn')
+      await fetchSpy.waitForCall(wait.defaultWait)
 
-      await expect(page.locator('#formErrorBanner')).toBeVisible()
-      await expect(page.locator('#budget + .field-error')).toContainText('This field is required')
+      await expect(page.locator('#formErrorBanner')).toBeHidden()
+      await expect(page.locator('#formMessages .message-success')).toBeVisible({ timeout: wait.defaultWait })
 
       const apiCallCount = await fetchSpy.getCallCount()
-      if (apiCallCount > 0) {
-        throw new TestError('Contact API was called despite validation errors')
+      if (apiCallCount === 0) {
+        throw new TestError('Contact API was not called when only optional select fields were empty')
       }
     } finally {
       await fetchSpy.restore()

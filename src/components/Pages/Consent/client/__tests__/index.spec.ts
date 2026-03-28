@@ -205,7 +205,7 @@ describe('ConsentPreferencesElement', () => {
       expect(section!.getAttribute('aria-labelledby')).toBe('consent-preferences__title')
       expect(section!.getAttribute('aria-describedby')).toBe('consent-preferences__settings-desc')
 
-      const pageTitle = window.document.querySelector('h1')
+      const pageTitle = window.document.querySelector('h2')
       expect(pageTitle?.textContent).toContain('Privacy Preference Center')
 
       const settingsDesc = window.document.getElementById('consent-preferences__settings-desc')

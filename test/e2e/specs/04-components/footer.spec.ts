@@ -32,7 +32,8 @@ test.describe('Footer Component', () => {
     await page.goto('/')
     const footerText = await page.getTextContent('footer[role="contentinfo"]')
 
-    expect(footerText).toContain('©')
+    expect(footerText).toContain('Copyright')
+    expect(footerText).toContain('Webstack Builders, Inc.')
     expect(footerText).toMatch(/20\d{2}/) // Year pattern
   })
 

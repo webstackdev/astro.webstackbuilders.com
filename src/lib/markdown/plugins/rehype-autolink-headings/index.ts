@@ -19,6 +19,12 @@ import type { ElementContent, Element, Root } from 'hast'
 const linkProperties = {
   className: [
     'group',
+    'inline-flex',
+    'min-h-6',
+    'min-w-6',
+    'items-center',
+    'justify-center',
+    'align-middle',
     'transition-colors',
     'no-underline',
     'hover:no-underline',

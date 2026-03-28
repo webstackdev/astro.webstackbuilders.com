@@ -64,7 +64,7 @@ describe('NewsletterConfirm selectors', () => {
         expect(elements.errorMessage.id).toBe('error-message')
         expect(elements.errorDetails.id).toBe('error-details')
 
-        expect(elements.loadingHeading.tagName).toBe('H2')
+        expect(elements.loadingHeading.tagName).toBe('H1')
         expect(elements.successHeading.tagName).toBe('H2')
         expect(elements.expiredHeading.tagName).toBe('H2')
       },

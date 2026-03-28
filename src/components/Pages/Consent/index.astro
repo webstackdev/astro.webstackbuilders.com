@@ -92,12 +92,12 @@ const { content } = Astro.props
       </p>
       <div class="px-6 pb-2">
         <div class="mb-6">
-          <h1
+          <h2
             id="consent-preferences__title"
             class="text-3xl md:text-4xl font-bold text-primary-offset mb-2"
           >
             {content.header.title}
-          </h1>
+          </h2>
           <p class="text-content text-md leading-relaxed">{content.header.description}</p>
         </div>
 
@@ -144,28 +144,49 @@ const { content } = Astro.props
           <div class="bg-page-offset rounded-xl p-6">
             <div class="flex items-center justify-between mb-1">
               <div>
-                <h3 class="text-xl font-semibold text-primary-offset">{content.analytics.heading}</h3>
+                <h3
+                  id="consent-preferences__analytics-title"
+                  class="text-xl font-semibold text-primary-offset"
+                >
+                  {content.analytics.heading}
+                </h3>
               </div>
               <label
-                class="relative inline-flex items-center cursor-pointer"
+                class="inline-flex items-center gap-2 cursor-pointer"
                 data-consent-toggle="analytics-cookies"
               >
-                <input
-                  type="checkbox"
-                  id="analytics-cookies"
-                  class="sr-only peer"
-                  role="switch"
-                  aria-labelledby="consent-preferences__analytics-title"
-                  aria-describedby="consent-preferences__analytics-desc"
-                  checked
-                />
-                <div
-                  class="w-11 h-6 bg-content rounded-full peer peer-focus-visible:outline-2 peer-focus-visible:outline-spotlight peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+                <span
+                  aria-hidden="true"
+                  class="w-8 shrink-0 text-center text-[10px] font-bold uppercase tracking-wide text-content transition-colors"
                 >
-                </div>
+                  Off
+                </span>
+                <span class="relative shrink-0 w-11 h-6">
+                  <input
+                    type="checkbox"
+                    id="analytics-cookies"
+                    class="peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer opacity-0"
+                    role="switch"
+                    aria-labelledby="consent-preferences__analytics-title"
+                    aria-describedby="consent-preferences__analytics-desc"
+                    checked
+                  />
+                  <div
+                    class="relative h-6 w-11 rounded-full bg-content peer-focus-visible:outline-2 peer-focus-visible:outline-spotlight peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+                  >
+                  </div>
+                </span>
+                <span
+                  aria-hidden="true"
+                  class="w-8 shrink-0 text-center text-[10px] font-bold uppercase tracking-wide text-note-offset transition-colors"
+                >
+                  On
+                </span>
               </label>
             </div>
-            <p class="text-sm text-note-offset mb-3">{content.analytics.subheading}</p>
+            <p id="consent-preferences__analytics-desc" class="text-sm text-note-offset mb-3">
+              {content.analytics.subheading}
+            </p>
             <p class="text-content text-md leading-relaxed">{content.analytics.description}</p>
           </div>
 
@@ -173,27 +194,48 @@ const { content } = Astro.props
           <div class="bg-page-offset rounded-xl p-6">
             <div class="flex items-center justify-between mb-1">
               <div>
-                <h3 class="text-xl font-semibold text-primary-offset">{content.functional.heading}</h3>
+                <h3
+                  id="consent-preferences__functional-title"
+                  class="text-xl font-semibold text-primary-offset"
+                >
+                  {content.functional.heading}
+                </h3>
               </div>
               <label
-                class="relative inline-flex items-center cursor-pointer"
+                class="inline-flex items-center gap-2 cursor-pointer"
                 data-consent-toggle="functional-cookies"
               >
-                <input
-                  type="checkbox"
-                  id="functional-cookies"
-                  class="sr-only peer"
-                  role="switch"
-                  aria-labelledby="consent-preferences__functional-title"
-                  aria-describedby="consent-preferences__functional-desc"
-                />
-                <div
-                  class="w-11 h-6 bg-content rounded-full peer peer-focus-visible:outline-2 peer-focus-visible:outline-spotlight peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+                <span
+                  aria-hidden="true"
+                  class="w-8 shrink-0 text-center text-[10px] font-bold uppercase tracking-wide text-content transition-colors"
                 >
-                </div>
+                  Off
+                </span>
+                <span class="relative shrink-0 w-11 h-6">
+                  <input
+                    type="checkbox"
+                    id="functional-cookies"
+                    class="peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer opacity-0"
+                    role="switch"
+                    aria-labelledby="consent-preferences__functional-title"
+                    aria-describedby="consent-preferences__functional-desc"
+                  />
+                  <div
+                    class="relative h-6 w-11 rounded-full bg-content peer-focus-visible:outline-2 peer-focus-visible:outline-spotlight peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+                  >
+                  </div>
+                </span>
+                <span
+                  aria-hidden="true"
+                  class="w-8 shrink-0 text-center text-[10px] font-bold uppercase tracking-wide text-note-offset transition-colors"
+                >
+                  On
+                </span>
               </label>
             </div>
-            <p class="text-sm text-note-offset mb-3">{content.functional.subheading}</p>
+            <p id="consent-preferences__functional-desc" class="text-sm text-note-offset mb-3">
+              {content.functional.subheading}
+            </p>
             <p class="text-content text-md leading-relaxed">{content.functional.description}</p>
             <div class="bg-content-inverse-active rounded-lg p-4 mt-4 -mx-1">
               <p class="text-sm text-secondary leading-relaxed" set:html={content.functional.trailer}></p>
@@ -204,27 +246,48 @@ const { content } = Astro.props
           <div class="bg-page-offset rounded-xl p-6">
             <div class="flex items-center justify-between mb-1">
               <div>
-                <h3 class="text-xl font-semibold text-primary-offset">{content.marketing.heading}</h3>
+                <h3
+                  id="consent-preferences__marketing-title"
+                  class="text-xl font-semibold text-primary-offset"
+                >
+                  {content.marketing.heading}
+                </h3>
               </div>
               <label
-                class="relative inline-flex items-center cursor-pointer"
+                class="inline-flex items-center gap-2 cursor-pointer"
                 data-consent-toggle="marketing-cookies"
               >
-                <input
-                  type="checkbox"
-                  id="marketing-cookies"
-                  class="sr-only peer"
-                  role="switch"
-                  aria-labelledby="consent-preferences__marketing-title"
-                  aria-describedby="consent-preferences__marketing-desc"
-                />
-                <div
-                  class="w-11 h-6 bg-content rounded-full peer peer-focus-visible:outline-2 peer-focus-visible:outline-spotlight peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+                <span
+                  aria-hidden="true"
+                  class="w-8 shrink-0 text-center text-[10px] font-bold uppercase tracking-wide text-content transition-colors"
                 >
-                </div>
+                  Off
+                </span>
+                <span class="relative shrink-0 w-11 h-6">
+                  <input
+                    type="checkbox"
+                    id="marketing-cookies"
+                    class="peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer opacity-0"
+                    role="switch"
+                    aria-labelledby="consent-preferences__marketing-title"
+                    aria-describedby="consent-preferences__marketing-desc"
+                  />
+                  <div
+                    class="relative h-6 w-11 rounded-full bg-content peer-focus-visible:outline-2 peer-focus-visible:outline-spotlight peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+                  >
+                  </div>
+                </span>
+                <span
+                  aria-hidden="true"
+                  class="w-8 shrink-0 text-center text-[10px] font-bold uppercase tracking-wide text-note-offset transition-colors"
+                >
+                  On
+                </span>
               </label>
             </div>
-            <p class="text-sm text-note-offset mb-3">{content.marketing.subheading}</p>
+            <p id="consent-preferences__marketing-desc" class="text-sm text-note-offset mb-3">
+              {content.marketing.subheading}
+            </p>
             <p class="text-content text-md leading-relaxed">{content.marketing.description}</p>
           </div>
         </div>

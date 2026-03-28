@@ -47,7 +47,8 @@ test.describe('Social Shares Component', () => {
     const page = await loadSocialShareFixture(playwrightPage)
     const socialShares = page.locator(SOCIAL_SHARE_SELECTOR)
     await expect(socialShares).toBeVisible()
-    await expect(socialShares.locator('.social-share__label')).toHaveText('Share:')
+    await expect(playwrightPage.getByRole('heading', { name: 'Share this article' })).toBeVisible()
+    await expect(playwrightPage.getByText('Enjoyed the read? Share it with your network.')).toBeVisible()
   })
 
   test('displays expected platforms with deterministic order', async ({ page: playwrightPage }) => {

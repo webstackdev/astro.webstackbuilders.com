@@ -251,7 +251,9 @@ export abstract class EmblaCarouselBase extends LitElement {
       const slideCount = handles.slideCount
 
       // Autoplay plugin (only if options provided and multiple slides)
-      const autoplayOpts = this._config.autoplayOptions
+      // Skip autoplay during Playwright perf tests to reduce main-thread contention
+      const autoplayOpts =
+        window.isPerformanceTest === true ? undefined : this._config.autoplayOptions
       const requestedAutoplay =
         autoplayOpts && slideCount > 1 ? Autoplay({ ...autoplayOpts }) : null
       this._autoplayReady = false

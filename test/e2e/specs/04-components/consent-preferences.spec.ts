@@ -160,7 +160,7 @@ test.describe('Consent Preferences Component', () => {
 
     await page.locator(ALLOW_ALL_BUTTON).click()
 
-    await page.locator(SAVE_BUTTON).click()
+    await expect(page.locator(SAVE_BUTTON)).toBeDisabled()
 
     const consentResponse = await consentResponsePromise
     expect(consentResponse.ok()).toBeTruthy()

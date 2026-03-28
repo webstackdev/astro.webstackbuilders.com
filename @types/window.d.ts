@@ -58,6 +58,12 @@ declare global {
     isPlaywrightControlled?: boolean
 
     /**
+     * Set by Lighthouse / performance-only E2E specs to disable
+     * non-critical hydration (autoplay, animation timelines).
+     */
+    isPerformanceTest?: boolean
+
+    /**
      * Snapshot of environment-client results for Playwright assertions
      */
     environmentClientSnapshot?: EnvironmentClientSnapshot

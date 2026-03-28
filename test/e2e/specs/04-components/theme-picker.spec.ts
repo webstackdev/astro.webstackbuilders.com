@@ -249,7 +249,7 @@ test.describe('Theme Picker Component', () => {
       )
 
       expect(prefersDark).toBe(true)
-      expect(storedTheme).toBe('dark')
+      expect(storedTheme).toBeNull()
 
       const htmlElement = page.locator('html')
       const dataTheme = await htmlElement.getAttribute('data-theme')

@@ -235,20 +235,15 @@ test.describe('Mobile Navigation', () => {
 
     await setupTestPage(playwrightPage, '/')
 
-    // Open mobile menu first
-    await page.click('button#nav-toggle')
+    await page.openMobileMenu({ timeout: wait.navigation })
 
-    // Wait for mobile menu animation with real timers for WebKit compatibility
-    await playwrightPage.waitForTimeout(wait.bespokeMobileMenuAnimationBuffer) // Wait for 550ms animation + buffer
+    const aboutLink = playwrightPage.locator('site-navigation a[href="/about"]').first()
+    await expect(aboutLink).toBeVisible({ timeout: wait.bespokeMobileAboutLinkVisible })
+    await aboutLink.click()
 
-    // Now navigation links should be visible and clickable
-    await page.click('nav#main-nav a[href="/about"]')
-
-    // Wait for navigation to complete and check for About page content instead of URL
-    await playwrightPage.waitForSelector('text=Building Developer-First Infrastructure', { timeout: wait.defaultWait })
-
-    // Verify we're on the About page by checking breadcrumbs (using proper Playwright selector)
-    await expect(playwrightPage.locator('nav[aria-label="Breadcrumbs"]').getByText('About')).toBeVisible()
+    await page.waitForPageLoad({ requireNext: true, timeout: wait.navigation })
+    await page.expectUrlContains('/about')
+    await expect(playwrightPage.getByRole('heading', { name: 'Building Developer-First Infrastructure' })).toBeVisible()
   })
 
   test('@ready can navigate using keyboard Enter on focused link', async ({ page: playwrightPage }) => {
@@ -268,7 +263,8 @@ test.describe('Mobile Navigation', () => {
 
     // Wait for the view-transition navigation to finish and verify content
     await page.waitForPageLoad({ requireNext: true, timeout: wait.navigation })
-    await expect(playwrightPage.locator('nav[aria-label="Breadcrumbs"]').getByText('About')).toBeVisible()
+    await page.expectUrlContains('/about')
+    await expect(playwrightPage.getByRole('heading', { name: 'Building Developer-First Infrastructure' })).toBeVisible()
   })
 
   test('@ready mobile menu has proper ARIA attributes', async ({ page: playwrightPage }) => {
