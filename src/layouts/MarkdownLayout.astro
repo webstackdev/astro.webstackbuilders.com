@@ -7,6 +7,7 @@ import type { MarkdownHeading } from 'astro'
  * Layout for Markdown/MDX content files
  */
 import BaseLayout from '@layouts/BaseLayout.astro'
+import Copyright from '@components/Layout/Copyright/index.astro'
 import Lead from '@components/Layout/Markdown/Lead/index.astro'
 import Subtitle from '@components/Layout/Markdown/Subtitle/index.astro'
 import Title from '@components/Layout/Markdown/Title/index.astro'
@@ -137,6 +138,8 @@ const schemaType =
 const { Content, headings = [] } = await render(collectionItem)
 const tocHeadings: MarkdownHeading[] = headings.filter(heading => heading.depth > 1)
 const shouldRenderToc = showToc !== false && tocHeadings.length > 0
+
+const link = `https://www.webstackbuilders.com${path}`
 ---
 
 <BaseLayout
@@ -197,7 +200,11 @@ const shouldRenderToc = showToc !== false && tocHeadings.length > 0
 
       {/** SLOT: after-content, includes social shares and web mentions */}
       <slot name="after-content" />
-      <QrCode data={`https://www.webstackbuilders.com${path}`} />
+
+      <div class="hidden print:flex print:items-center print:justify-center print:gap-8 print:mx-24 print:mt-8 print:break-inside-avoid print:break-before-avoid">
+        <Copyright publishDate={publishDate ?? new Date()} variant="print" link={link} />
+        <QrCode data={link} />
+      </div>
     </div>
   </article>
 

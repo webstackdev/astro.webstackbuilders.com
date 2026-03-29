@@ -1,0 +1,33 @@
+---
+import Icon from '@components/Icon/index.astro'
+
+export interface Props {
+  link?: string
+  publishYear: number
+}
+
+const { link, publishYear } = Astro.props
+
+const companyName = 'Webstack Builders, Inc.'
+const creativeCommonsLicense = 'The text, diagrams, and images in this work are licensed under CC BY-NC 4.0'
+const mitLicense = 'All code samples in this article are licensed under the MIT License. Feel free to use, modify, and distribute them in any project.'
+---
+
+<div class="flex flex-col gap-4">
+  <div class="flex">
+    <span>Copyright</span>
+    <Icon
+      icon="copyright"
+      color="content-active"
+      size={3}
+      classes="ml-2 mt-1"
+    />
+    <span class="ml-2 mr-1">
+      <time datetime={String(publishYear)}>{publishYear}</time>
+    </span>
+    <span>{companyName}</span>
+  </div>
+  <div>{creativeCommonsLicense}</div>
+  <div>{mitLicense}</div>
+  <div>{link}</div>
+</div>

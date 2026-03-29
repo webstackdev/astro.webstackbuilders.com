@@ -1,35 +1,17 @@
 ---
-import Icon from '@components/Icon/index.astro'
+import DefaultCopyright from '@components/Layout/Copyright/layouts/default.astro'
+import PrintCopyright from '@components/Layout/Copyright/layouts/print.astro'
 
 export interface Props {
+  link?: string
   publishDate: Date
+  variant?: 'default' | 'print'
 }
 
-const { publishDate } = Astro.props
+const { publishDate, variant = 'default', link } = Astro.props
 const publishYear = publishDate.getFullYear()
 ---
 
-<div class="flex flex-col text-content-active text-xs mb-6">
-  <div class="flex justify-center">
-    <span class="mr-2">Copyright</span>
-    <Icon
-      icon="copyright"
-      color="content-active"
-      size={3}
-      classes="mt-0"
-    />
-    <span class="ml-2 mr-1">
-      <time datetime={String(publishYear)}>{publishYear}</time>
-    </span>
-    <span class="">Webstack Builders, Inc.</span>
-  </div>
-  <div class="flex justify-center">
-    <span class="mr-1">See our </span>
-    <a
-      href="/terms"
-      class="inline-flex min-h-6 items-center align-middle underline transition-colors hover:text-primary-offset hover:decoration-primary-offset focus-visible:text-primary-offset focus-visible:decoration-primary-offset focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
-    >
-      terms of use
-    </a>
-  </div>
-</div>
+
+{variant === 'default' && <DefaultCopyright publishYear={publishYear} />}
+{variant === 'print' && <PrintCopyright publishYear={publishYear} link={link} />}

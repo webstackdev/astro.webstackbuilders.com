@@ -1,0 +1,161 @@
+---
+export const prerender = true
+
+import { type CollectionEntry, getCollection, getEntry } from 'astro:content'
+import { isDev } from '@lib/config/environmentServer'
+import { getReadingTimeLabel } from '@lib/markdown/utils/readingTime'
+import ContentLayout from '@components/Content/Layout/index.astro'
+
+export interface Props {
+  article: CollectionEntry<'deepDives'>
+}
+
+/** Generate static paths for all deep-dive articles */
+export async function getStaticPaths() {
+  if (!isDev()) {
+    return []
+  }
+
+  const articleEntries = await getCollection('deepDives')
+
+  return articleEntries.map(article => ({
+    params: { slug: article.id },
+    props: { article },
+  }))
+}
+
+const { article } = Astro.props
+const author = await getEntry(article.data.author)
+
+const articleBody = article.body ?? ''
+const readingTime = article.data.readingTime ?? getReadingTimeLabel(articleBody)
+// If section const value is changed, update the ContentLayout usage of the value
+const section = 'Deep Dive Article PDF Files'
+---
+
+<ContentLayout
+  author={author.data.name}
+  article={article}
+  path={`/deep-dive/${article.id}`}
+  section={section}
+  {...readingTime && { readingTime }}
+/>
+
+<style is:global is:inline>
+  @media print and (color) {
+    @page {
+      size: A4 landscape; /* Set paper size and orientation */
+      margin: 2cm;        /* Set all margins to 2 centimeters */
+    }
+
+    @page :first {
+      margin-top: 10cm;   /* Add extra top margin for a title page */
+    }
+
+    .footer {
+      display: block;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: #f8f9fa;
+      border-top: 2px solid #dee2e6;
+      padding: 15px 20px;
+      font-size: 10pt;
+      color: #666;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    body {
+      padding-bottom: 70px; /* Extra space to prevent content overlap */
+    }
+
+    html[data-theme] {
+      --theme-color-primary: #001A39;
+      --theme-color-primary-offset: #003d86;
+      --theme-color-primary-inverse: #FFF;
+      --theme-color-secondary: #006dca;
+      --theme-color-secondary-offset: #1894ff;
+      --theme-color-secondary-inverse: #FFF;
+      --theme-color-accent: #7c3aed;
+      --theme-color-accent-offset: #d28fe0;
+      --theme-color-page-base: #f3f4f6;
+      --theme-color-page-active: #9ca3af;
+      --theme-color-page-inverse: #003d86;
+      --theme-color-page-offset: #e5e7eb;
+      --theme-color-content: #374151;
+      --theme-color-content-offset: #6b7280;
+      --theme-color-content-active: #001a39;
+      --theme-color-content-inverse: #f3f4f6;
+      --theme-color-content-inverse-active: #bfdbfe;
+      --theme-color-trim: #4b5563;
+      --theme-color-spotlight: #facc15;
+      --theme-color-spotlight-offset: #ca8a04;
+      --theme-color-success: #15803d;
+      --theme-color-success-offset: #22c55e;
+      --theme-color-success-inverse: #dcfce7;
+      --theme-color-info: #0891b2;
+      --theme-color-info-offset: #38bdf8;
+      --theme-color-info-inverse: #cffafe;
+      --theme-color-note: #374151;
+      --theme-color-note-offset: #6b7280;
+      --theme-color-note-inverse: #d1d5db;
+      --theme-color-warning: #a16207;
+      --theme-color-warning-offset: #ca8a04;
+      --theme-color-warning-inverse: #fef3c7;
+      --theme-color-danger: #dc2626;
+      --theme-color-danger-offset: #b91c1c;
+      --theme-color-danger-inverse: #fecaca;
+      --theme-color-icons: #374151;
+      --theme-color-icons-active: #9ca3af;
+      --theme-color-black: #000;
+      --theme-color-white: #fff;
+      --theme-color-blue-100: #dbeafe;
+      --theme-color-blue-600: #2563eb;
+      --theme-color-blue-900: #1e3a8a;
+      --theme-color-gray-50: #f9fafb;
+      --theme-color-gray-200: #e5e7eb;
+      --theme-color-gray-300: #d1d5db;
+      --theme-color-gray-600: #4b5563;
+      --theme-color-gray-700: #374151;
+      --theme-color-gray-800: #1f2937;
+      --theme-color-gray-offset: #9ca3af;
+      --theme-color-green-100: #d1fae5;
+      --theme-color-green-900: #14532d;
+      --shiki-foreground: #24292e;
+      --shiki-background: #fff;
+      --shiki-token-constant: #005cc5;
+      --shiki-token-string: #032f62;
+      --shiki-token-comment: #6a737d;
+      --shiki-token-keyword: #d73a49;
+      --shiki-token-parameter: #24292e;
+      --shiki-token-function: #6f42c1;
+      --shiki-token-string-expression: #032f62;
+      --shiki-token-punctuation: #24292e;
+      --shiki-token-link: #032f62;
+      --shiki-token-inserted: #22863a;
+      --shiki-token-deleted: #b31d28;
+      --shiki-token-changed: #e36209;
+      --shiki-ansi-black: #24292e;
+      --shiki-ansi-red: #d73a49;
+      --shiki-ansi-green: #28a745;
+      --shiki-ansi-yellow: #dbab09;
+      --shiki-ansi-blue: #0366d6;
+      --shiki-ansi-magenta: #5a32a3;
+      --shiki-ansi-cyan: #1b7c83;
+      --shiki-ansi-white: #6a737d;
+      --shiki-ansi-bright-black: #959da5;
+      --shiki-ansi-bright-red: #cb2431;
+      --shiki-ansi-bright-green: #22863a;
+      --shiki-ansi-bright-yellow: #b08800;
+      --shiki-ansi-bright-blue: #005cc5;
+      --shiki-ansi-bright-magenta: #5a32a3;
+      --shiki-ansi-bright-cyan: #3192aa;
+      --shiki-ansi-bright-white: #d1d5da;
+    }
+  }
+</style>

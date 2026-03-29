@@ -10,6 +10,27 @@ For printed pages, your header should shift from a navigation tool to a document
 - Brand Identity: A high-contrast version of your logo or the site name in plain text for brand recognition.
 - Document Title: The main title of the page (usually the <h1>), ensuring the reader knows exactly what the document is.
 
+```css
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages);
+      font-family: Arial, sans-serif;
+      font-size: 10pt;
+      color: #000;
+    }
+
+    @bottom-left {
+      content: "Company Name";
+      font-size: 9pt;
+      color: #000;
+    }
+
+    @bottom-right {
+      content: "Confidential";
+      font-size: 9pt;
+      color: #000;
+    }
+```
+
 ## PDF File Generation
 
 - Need a workflow to generate PDF files from Markdown for downloads.
@@ -23,8 +44,6 @@ Because the browser doesn't know which page an element (like an <h1>) will land 
 Paged.js Polyfill: Use the Paged.js library to handle sophisticated print layouts (like TOCs and cross-references) within the browser before Puppeteer "prints" the result.
 
 [Paged.js](https://pagedjs.org/en/documentation/) polyfills `@page` properties, and lays out an HTML document in print format where it can have page numbers generated to update in a table of contents.
-
-This article has different approaches to [print pagination](https://www.customjs.space/blog/html-print-pagination-footer/). One approach overlaps with PagedJS's approach.
 
 - Headers and Footers (Native Support)
 
@@ -74,8 +93,6 @@ if (window.matchMedia) {
     });
 }
 ```
-
-[This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
 
 Handling Dynamic Content
 
