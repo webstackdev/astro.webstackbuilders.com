@@ -3,6 +3,7 @@ export type Props = {
   content: {
     caption?: string
     subcaption?: string
+    figure?: string
     thead?: {
       th: string[]
     }
@@ -38,6 +39,7 @@ const theadClass = 'bg-page-offset border-b border-trim'
 const tbodyClass = ''
 const tfootClass = ''
 const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b border-trim-offset last:border-b-0'
+const hasScreenCaption = Boolean(content.caption || content.subcaption)
 
 const getMarkerColorClass = (rowHeader: string | { label: string; color?: string }) => {
   if (typeof rowHeader === 'string') {
@@ -54,12 +56,17 @@ const getMarkerColorClass = (rowHeader: string | { label: string; color?: string
 }
 ---
 
-<table class:list={[tableClass, classes?.table]}>
-    {content.caption && (
-      <caption class:list={[captionClass, classes?.caption]} set:html={content.caption}></caption>
-    )}
-    {content.subcaption && (
-      <caption class:list={[captionClass, classes?.caption]} set:html={content.subcaption}></caption>
+<table class:list={[tableClass, content.thead ? 'print-table-has-head' : 'print-table-no-head', classes?.table]}>
+    {(hasScreenCaption || content.figure) && (
+      <caption class:list={[captionClass, content.figure ? 'print-table-caption' : '', !hasScreenCaption ? 'hidden' : '', classes?.caption]}>
+        {hasScreenCaption && (
+          <span class="screen-table-caption-copy">
+            {content.caption && <span class="block" set:html={content.caption}></span>}
+            {content.subcaption && <span class="block" set:html={content.subcaption}></span>}
+          </span>
+        )}
+        {content.figure && <span class="hidden print-table-figure-copy" set:html={content.figure}></span>}
+      </caption>
     )}
 
     {content.thead && (

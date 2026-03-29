@@ -44,6 +44,8 @@ const getElements = (root: NewsletterFormElement) => {
   }
 
   return {
+    title: selectElement<HTMLElement>('[id$="-title"]'),
+    description: selectElement<HTMLElement>('[id$="-description"]'),
     form: selectElement<HTMLFormElement>('#newsletter-form'),
     emailLabel: selectElement<HTMLLabelElement>('#newsletter-email-label'),
     emailInput: selectElement<HTMLInputElement>('#newsletter-email'),
@@ -100,14 +102,25 @@ describe.each(newsletterVariants)('NewsletterFormElement web component (%s)', va
   test('registers the custom element and hydrates DOM references', async () => {
     await renderNewsletter(async ({ elements }) => {
       expect(customElements.get('newsletter-form')).toBeDefined()
+      expect(elements.title.id).toBe('newsletter-cta-' + variant + '-title')
+      expect(elements.description.id).toBe('newsletter-cta-' + variant + '-description')
       expect(elements.form.id).toBe('newsletter-form')
       expect(elements.emailInput.id).toBe('newsletter-email')
       expect(elements.consentCheckbox.id).toBe('newsletter-gdpr-consent')
 
+      expect(elements.title.textContent).toContain(defaultNewsletterProps.title)
+      expect(elements.description.textContent).toContain(defaultNewsletterProps.description)
       expect(elements.emailLabel.getAttribute('for')).toBe('newsletter-email')
       expect(elements.emailLabel.textContent).toContain('Email')
       expect(elements.buttonArrow.getAttribute('aria-hidden')).toBe('true')
       expect(elements.buttonSpinner.getAttribute('aria-hidden')).toBe('true')
+    })
+  })
+
+  test('builds aria relationships from the newsletter CTA id base', async () => {
+    await renderNewsletter(async ({ element }) => {
+      expect(element.getAttribute('aria-labelledby')).toBe('newsletter-cta-' + variant + '-title')
+      expect(element.getAttribute('aria-describedby')).toBe('newsletter-cta-' + variant + '-description')
     })
   })
 
