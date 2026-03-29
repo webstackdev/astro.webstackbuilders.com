@@ -3,30 +3,12 @@
 
 ## Print
 
-1. Add a QR code at the bottom of printed pages so it's easier for someone to navigate to from a printed page. We have a QrCode component.
-
-2. Need to make sure that on print, when we have a tabbed code block with multiple languages, only the first language is printed and the other language tabs are hidden. The styling should be different for print for the code block. Maybe move other language code tabs to an appendix and add a link to them.
-
-[This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
-
-3. For printed pages, your header should shift from a navigation tool to a document identifier. Since users cannot click links or icons on paper, these elements are "cruft" that waste space and ink.
-
-2. Need a layout alternative to Markup that formats for print. It should hide Table Of Contents. Need a fixed header format that adds article title, subtitle, and date.
-
 __Recommended Print Header Format__
 
-A professional print header typically includes only these three elements:
+For printed pages, your header should shift from a navigation tool to a document identifier. Since users cannot click links or icons on paper, these elements are "cruft" that waste space and ink. A professional print header typically includes only these three elements:
 
 - Brand Identity: A high-contrast version of your logo or the site name in plain text for brand recognition.
 - Document Title: The main title of the page (usually the <h1>), ensuring the reader knows exactly what the document is.
-
-__Expand External Links For Print__
-
-We can't (yet) directly interface with a printed page to explore links, so link URLs should be visible on the printed version of the Web page. To keep the page relatively clean, I prefer to expand only outbound links in articles, and suppress internal ones. If you've used relative URLs on your website for local links, you can easily do this through an attribute selector and `:after` pseudo classes, thus preventing internal links and links around images from being printed:
-
-- Break Lists across pages, the separators between columns are broken too
-- Break code blocks across pages
-- Callouts are breaking across pages, they shouldn't
 
 ## PDF File Generation
 
@@ -92,6 +74,74 @@ if (window.matchMedia) {
     });
 }
 ```
+
+[This article](https://excessivelyadequate.com/posts/print.html) shows how to control the following properties in Chrome's Print Properties dialog box from CSS: Layout, Paper size, Margins, Headers and footers, and Background graphics. Headers and footers is the checkbox that by default is enabled and adds information on printed pages. It also shows how to use Chrome from the terminal in headless mode to output a PDF file from an HTML page.
+
+Handling Dynamic Content
+
+If your page fetches data (like an API call) that needs to be visible in the print, the load event might fire before your data arrives. In that case, you should call  `print()` only after your data-fetching logic completes:
+
+```typescript
+async function prepareAndPrint() {
+  // 1. Fetch your data or render dynamic elements
+  await fetchData()
+  await renderTable()
+
+  // 2. Trigger the print dialog now that the DOM is ready
+  window.print()
+}
+
+// Call this function when you want the process to start
+prepareAndPrint()
+```
+
+To ensure your script has executed and the document is ready before the user prints, you should use the `beforeprint` event listener.
+
+This event is specifically designed to run code after a print request is initiated (by Ctrl+P, the menu, or `window.print()`) but before the browser captures the page for the print preview.
+
+The "Safe Preparation" Pattern
+
+Since you want to ensure the document is finished loading and your script has run, you can combine a global "ready" flag with the beforeprint listener.
+
+```typescript
+let isDataReady = false;
+
+// 1. Run your heavy loading/processing logic on page load
+
+window.addEventListener('load', async () => {
+  await myComplexScript() // Your data fetching or DOM manipulation
+  isDataReady = true
+})
+
+// 2. Hook into the print intent
+
+window.addEventListener('beforeprint', () => {
+  if (!isDataReady) {
+    // Optional: Warn the user or perform a last-second synchronous update
+    console.warn("Print triggered before background script finished.")
+  }
+  prepareDOMForPrinting() // Final tweaks (hide buttons, expand sections, etc.)
+})
+```
+
+How this meets your requirements:
+
+Guaranteed Execution: The code inside beforeprint is guaranteed to finish before the print preview is generated.
+
+Check Load Status: By using a flag (like isDataReady), you can verify if your initial "load" scripts finished. If they haven't, you can run critical logic immediately inside the beforeprint block.
+
+Automatic Trigger: This doesn't open the print dialog itself; it just "sits and waits" for the user to trigger it manually.
+
+Important Limitations
+
+Synchronous Only: The `beforeprint` event does not support await. If you try to fetch data from an API inside the beforeprint listener, the print dialog will likely open before the data returns.
+Best Practice: Always perform your heavy asynchronous work (API calls, massive DOM construction) on load. Use beforeprint only for synchronous UI adjustments like toggling classes or updating timestamps.
+
+```bash
+chrome --headless --print-to-pdf=book.pdf --no-margins --virtual-time-budget=1337 manuscript.html
+```
+
+The `--virtual-time-budget=NUMBER` flag defines how long4 Chrome waits between page load and printing - this allows the layout to settle and JavaScript code to run. Complex documents might require a value higher than `1337`. On some platforms, you might need to supply the `--disable-gpu` flag as well.
 
 ## ToolTips
 
