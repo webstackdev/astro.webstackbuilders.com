@@ -201,9 +201,13 @@ const link = `https://www.webstackbuilders.com${path}`
       {/** SLOT: after-content, includes social shares and web mentions */}
       <slot name="after-content" />
 
-      <div class="hidden print:flex print:items-center print:justify-center print:gap-8 print:mx-24 print:mt-8 print:break-inside-avoid print:break-before-avoid">
-        <Copyright publishDate={publishDate ?? new Date()} variant="print" link={link} />
-        <QrCode data={link} />
+      <div class="hidden mx-24 mt-8 print:grid print:grid-cols-2 print:gap-4 print:items-center print:break-inside-avoid">
+        <span class="print:break-inside-avoid">
+          <Copyright publishDate={publishDate ?? new Date()} variant="print" link={link} />
+        </span>
+        <span class="print:break-inside-avoid">
+          <QrCode data={link} />
+        </span>
       </div>
     </div>
   </article>
