@@ -1,6 +1,7 @@
 declare const styles: {
   readonly footerGrid: string
   readonly footerContact: string
+  readonly footerPrintContact: string
   readonly footerSocial: string
   readonly footerBottomRow: string
   readonly footerBottomPrimary: string
