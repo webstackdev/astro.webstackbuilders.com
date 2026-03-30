@@ -5,6 +5,7 @@ import { type CollectionEntry, getCollection, getEntry } from 'astro:content'
 import { isDev } from '@lib/config/environmentServer'
 import { getReadingTimeLabel } from '@lib/markdown/utils/readingTime'
 import ContentLayout from '@components/Content/Layout/index.astro'
+import Cover from '@components/Layout/Print/Cover/index.astro'
 
 export interface Props {
   article: CollectionEntry<'deepDives'>
@@ -33,6 +34,7 @@ const readingTime = article.data.readingTime ?? getReadingTimeLabel(articleBody)
 const section = 'Deep Dive Article PDF Files'
 ---
 
+<Cover article={article} authorName={author.data.name} />
 <ContentLayout
   author={author.data.name}
   article={article}
@@ -44,30 +46,30 @@ const section = 'Deep Dive Article PDF Files'
 <style is:global is:inline>
   @media print and (color) {
     @page {
-      size: A4 landscape; /* Set paper size and orientation */
-      margin: 2cm;        /* Set all margins to 2 centimeters */
+      margin: 2cm 2cm 3.5cm; /* Reserve extra bottom margin for fixed print footer */
+      size: a4 landscape; /* Set paper size and orientation */
     }
 
     @page :first {
+      margin-bottom: 3.5cm;
       margin-top: 10cm;   /* Add extra top margin for a title page */
     }
 
     .footer {
-      display: block;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 50px;
+      align-items: center;
       background: #f8f9fa;
       border-top: 2px solid #dee2e6;
-      padding: 15px 20px;
-      font-size: 10pt;
+      bottom: 0;
       color: #666;
-
+      display: block;
       display: flex;
+      font-size: 0.875rem;
+      height: 50px;
       justify-content: space-between;
-      align-items: center;
+      left: 0;
+      padding: 15px 20px;
+      position: fixed;
+      right: 0;
     }
 
     body {
