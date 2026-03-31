@@ -1,20 +1,23 @@
 ---
 export const prerender = true
 
+import { GENERATE_PDFS } from 'astro:env/server'
 import { type CollectionEntry, getCollection, getEntry, render } from 'astro:content'
 import type { MarkdownHeading } from 'astro'
 import { Image, Picture } from 'astro:assets'
 import { isDev } from '@lib/config/environmentServer'
-import PrintLayout from '@layouts/PrintLayout.astro'
-import Cover from '@components/Layout/Print/Cover/index.astro'
-import PrintToc from '@components/Layout/Print/Toc/index.astro'
+
 import Copyright from '@components/Layout/Copyright/index.astro'
+import Cover from '@components/Layout/Print/Cover/index.astro'
+import PrintLayout from '@layouts/PrintLayout.astro'
 import QrCode from '@components/QrCode/index.astro'
+import Toc from '@components/Layout/Print/Toc/index.astro'
 
 /** MDX components that are safe for static PDF rendering (no web components) */
 import Avatar from '@components/Avatar/index.astro'
 import Button from '@components/Button/index.astro'
 import Callout from '@components/Callout/index.astro'
+import CodeTabs from '@components/Code/CodeTabs/index.astro'
 import Copy from '@components/Copy/index.astro'
 import Diagram from '@components/Diagram/index.astro'
 import Icon from '@components/Icon/index.astro'
@@ -23,7 +26,6 @@ import List from '@components/List/index.astro'
 import ListItem from '@components/List/ListItem.astro'
 import Table from '@components/Table/index.astro'
 import Time from '@components/Time/index.astro'
-import CodeTabs from '@components/Code/CodeTabs/index.astro'
 
 const PdfComponents = {
   Avatar,
@@ -48,7 +50,7 @@ export interface Props {
 
 /** Generate static paths for all deep-dive articles */
 export async function getStaticPaths() {
-  if (!isDev() && !import.meta.env.GENERATE_PDFS) {
+  if (!isDev() && !GENERATE_PDFS) {
     return []
   }
 
@@ -75,7 +77,7 @@ const publishDate = article.data.publishDate
   <Cover article={article} authorName={author.data.name} />
 
   {/* Table of contents — page numbers injected by the PDF generation script */}
-  <PrintToc headings={tocHeadings} />
+  <Toc headings={tocHeadings} />
 
   {/* Article body */}
   <article class="print-article markdown-content__prose">
