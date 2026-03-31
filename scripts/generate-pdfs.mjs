@@ -6,6 +6,7 @@
  * Usage:
  * - node scripts/generate-pdfs.mjs <slug>       # single article
  * - node scripts/generate-pdfs.mjs              # all deep dive articles
+ * - OR npm run pdf:generate
  *
  * Requires a running server (dev or preview) at localhost:4321.
  * Set PDF_SERVER_URL to override the server base URL.
@@ -18,7 +19,7 @@ import puppeteer from 'puppeteer'
 // --- Configuration ---
 
 const SERVER_BASE = process.env.PDF_SERVER_URL ?? 'http://localhost:4321'
-const OUTPUT_DIR = resolve('public/downloads/pdfs')
+const OUTPUT_DIR = resolve('public/downloads')
 const ARTICLES_DIR = resolve('src/content/articles')
 const CONTACT_JSON = resolve('src/content/contact.json')
 const slugFilter = process.argv[2] ?? null
