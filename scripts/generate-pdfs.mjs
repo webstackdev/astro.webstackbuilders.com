@@ -104,20 +104,23 @@ const generatePdf = async (browser, slug) => {
     await page.emulateMediaType('print')
 
     // Wait for all images to finish loading
-    await page.evaluate(() =>
-      Promise.all(
-        Array.from(document.images)
+    await page.evaluate(() => {
+      const doc = globalThis.document
+
+      return Promise.all(
+        Array.from(doc.images)
           .filter(img => !img.complete)
           .map(img => new Promise(r => { img.onload = r; img.onerror = r }))
       )
-    )
+    })
 
-    const title = await page.evaluate(() => document.title)
+    const title = await page.title()
 
     // Inject approximate page numbers into the ToC
     await page.evaluate((contentH) => {
-      const toc = document.querySelector('.print-toc')
-      const article = document.querySelector('.print-article')
+      const doc = globalThis.document
+      const toc = doc.querySelector('.print-toc')
+      const article = doc.querySelector('.print-article')
       if (!toc || !article) return
 
       // Cover always occupies 1 page (break-after: page)
@@ -133,7 +136,7 @@ const generatePdf = async (browser, slug) => {
         pageMap.set(h.id, pagesBeforeArticle + Math.floor(Math.max(0, offset) / contentH) + 1)
       }
 
-      for (const span of document.querySelectorAll('.print-toc__page')) {
+      for (const span of doc.querySelectorAll('.print-toc__page')) {
         const href = span.closest('a')?.getAttribute('href')?.replace('#', '')
         if (href && pageMap.has(href)) {
           span.textContent = String(pageMap.get(href))

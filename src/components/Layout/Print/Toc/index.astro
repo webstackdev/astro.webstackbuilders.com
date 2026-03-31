@@ -18,19 +18,19 @@ const tocTree = buildTocTree(headings)
 ---
 
 {tocTree.length > 0 && (
-  <section class="print-toc">
-    <h2 class="print-toc__title">Table of Contents</h2>
+  <section class="print-toc break-after-page py-[1cm]">
+    <h2 class="mb-[1cm] text-[20pt] font-bold">Table of Contents</h2>
     <nav aria-label="Table of contents">
       {(() => {
         const renderNodes = (nodes: TocItem[], depth = 0): unknown =>
           nodes.map(node => (
             <div class:list={[
-              'print-toc__entry',
-              depth > 0 && 'print-toc__entry--nested',
+              'mb-[0.15cm]',
+              depth > 0 && 'pl-[1.5em]',
             ]}>
-              <a href={`#${node.slug}`} class="print-toc__link">
-                <span class="print-toc__text">{node.text}</span>
-                <span class="print-toc__leader" aria-hidden="true"></span>
+              <a href={`#${node.slug}`} class="flex items-baseline text-inherit no-underline">
+                <span class="shrink-0">{node.text}</span>
+                <span class="mx-[0.3em] min-w-[2em] grow border-b border-dotted border-[#999]" aria-hidden="true"></span>
                 <span class="print-toc__page"></span>
               </a>
               {node.children.length > 0 && renderNodes(node.children, depth + 1)}
