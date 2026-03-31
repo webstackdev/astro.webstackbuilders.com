@@ -12,53 +12,35 @@
  * Set PDF_SERVER_URL to override the server base URL.
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { PDFDocument } from 'pdf-lib'
 import puppeteer from 'puppeteer'
+import { buildHeaderTemplate, footerTemplate } from './html.mjs'
 
 // --- Configuration ---
 
 const SERVER_BASE = process.env.PDF_SERVER_URL ?? 'http://localhost:4321'
 const OUTPUT_DIR = resolve('public/downloads')
 const ARTICLES_DIR = resolve('src/content/articles')
-const CONTACT_JSON = resolve('src/content/contact.json')
 const slugFilter = process.argv[2] ?? null
 
 // PDF page: US Letter (8.5 × 11 in)
-const MARGIN = { top: '2cm', right: '2cm', bottom: '2.5cm', left: '2cm' }
+const CONTENT_PADDING_CM = { top: 2, right: 2, bottom: 2.5, left: 2 }
+const PDF_MARGIN = { top: '0', right: '0', bottom: '0', left: '0' }
 
 // Content area in pixels at 96 DPI (for approximate ToC page-number calculation)
 const CM_PER_IN = 2.54
 const PAGE_HEIGHT_IN = 11
-const MARGIN_TOP_IN = 2 / CM_PER_IN
-const MARGIN_BOTTOM_IN = 2.5 / CM_PER_IN
-const MARGIN_SIDE_IN = 2 / CM_PER_IN
-const CONTENT_HEIGHT_PX = (PAGE_HEIGHT_IN - MARGIN_TOP_IN - MARGIN_BOTTOM_IN) * 96
-const CONTENT_WIDTH_PX = (8.5 - 2 * MARGIN_SIDE_IN) * 96
+const CONTENT_PADDING_TOP_IN = CONTENT_PADDING_CM.top / CM_PER_IN
+const CONTENT_PADDING_BOTTOM_IN = CONTENT_PADDING_CM.bottom / CM_PER_IN
+const CONTENT_PADDING_LEFT_IN = CONTENT_PADDING_CM.left / CM_PER_IN
+const CONTENT_PADDING_RIGHT_IN = CONTENT_PADDING_CM.right / CM_PER_IN
+const CONTENT_HEIGHT_PX = (PAGE_HEIGHT_IN - CONTENT_PADDING_TOP_IN - CONTENT_PADDING_BOTTOM_IN) * 96
+const CONTENT_WIDTH_PX = (8.5 - CONTENT_PADDING_LEFT_IN - CONTENT_PADDING_RIGHT_IN) * 96
 
 // --- Templates ---
 
-const contact = JSON.parse(readFileSync(CONTACT_JSON, 'utf-8')).company
-
-const esc = (s) =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-
-const buildHeaderTemplate = (title) =>
-  `<div style="font-size:9pt; font-family:Arial,Helvetica,sans-serif; width:100%; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding-bottom:4px;">
-    <span style="font-weight:bold;">${esc(contact.name)}</span>
-    <span style="color:#555; max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right;">${esc(title)}</span>
-  </div>`
-
-const footerTemplate =
-  `<div style="font-size:8pt; font-family:Arial,Helvetica,sans-serif; width:100%; border-top:1px solid #ccc; padding-top:4px;">
-    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-      <span>${esc(contact.address)}, ${esc(contact.city)}, ${esc(contact.state)} ${esc(contact.index)}</span>
-      <span>${esc(contact.email)}</span>
-    </div>
-    <div style="text-align:center; color:#555;">
-      Page <span class="pageNumber"></span> of <span class="totalPages"></span>
-    </div>
-  </div>`
 
 // --- Slug collection ---
 
@@ -79,6 +61,48 @@ const checkServer = async () => {
   } catch {
     return false
   }
+}
+
+const buildPdfOptions = ({
+  title,
+  includeHeaderFooter,
+  pageRanges,
+}) => {
+  return {
+    format: 'Letter',
+    margin: PDF_MARGIN,
+    displayHeaderFooter: includeHeaderFooter,
+    ...(includeHeaderFooter
+      ? {
+          headerTemplate: buildHeaderTemplate(title ?? ''),
+          footerTemplate,
+        }
+      : {}),
+    printBackground: true,
+    preferCSSPageSize: false,
+    tagged: true,
+    outline: true,
+    ...(pageRanges ? { pageRanges } : {}),
+  }
+}
+
+const writeMergedPdf = async ({ coverPdfBytes, fullPdfBytes, outputPdf }) => {
+  const mergedPdf = await PDFDocument.create()
+  const coverPdf = await PDFDocument.load(coverPdfBytes)
+  const fullPdf = await PDFDocument.load(fullPdfBytes)
+
+  const [coverPage] = await mergedPdf.copyPages(coverPdf, [0])
+  mergedPdf.addPage(coverPage)
+
+  const remainingPageIndices = fullPdf.getPageIndices().slice(1)
+  if (remainingPageIndices.length > 0) {
+    const remainingPages = await mergedPdf.copyPages(fullPdf, remainingPageIndices)
+    for (const pdfPage of remainingPages) {
+      mergedPdf.addPage(pdfPage)
+    }
+  }
+
+  writeFileSync(outputPdf, await mergedPdf.save())
 }
 
 // --- PDF generation ---
@@ -149,19 +173,12 @@ const generatePdf = async (browser, slug) => {
       }
     }, CONTENT_HEIGHT_PX)
 
-    // Generate PDF
-    await page.pdf({
-      path: outputPdf,
-      format: 'Letter',
-      margin: MARGIN,
-      displayHeaderFooter: true,
-      headerTemplate: buildHeaderTemplate(title),
-      footerTemplate,
-      printBackground: true,
-      preferCSSPageSize: false,
-      tagged: true,
-      outline: true,
-    })
+    const [coverPdfBytes, fullPdfBytes] = await Promise.all([
+      page.pdf(buildPdfOptions({ includeHeaderFooter: false, pageRanges: '1' })),
+      page.pdf(buildPdfOptions({ includeHeaderFooter: true, title })),
+    ])
+
+    await writeMergedPdf({ coverPdfBytes, fullPdfBytes, outputPdf })
 
     console.log('    ✓ done\n')
     return true

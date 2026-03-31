@@ -73,23 +73,25 @@ const publishDate = article.data.publishDate
 ---
 
 <PrintLayout pageTitle={article.data.title}>
-  {/* Cover page */}
-  <Cover article={article} authorName={author.data.name} />
+  <div class="print-document">
+    {/* Cover page */}
+    <Cover article={article} authorName={author.data.name} />
 
-  {/* Table of contents — page numbers injected by the PDF generation script */}
-  <Toc headings={tocHeadings} />
+    {/* Table of contents — page numbers injected by the PDF generation script */}
+    <Toc headings={tocHeadings} />
 
-  {/* Article body */}
-  <article class="print-article markdown-content__prose">
-    <Content components={{ ...PdfComponents }} />
+    {/* Article body */}
+    <article class="print-article markdown-content__prose">
+      <Content components={{ ...PdfComponents }} />
 
-    <div style="margin-top: 2cm; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center; break-inside: avoid;">
-      <Copyright publishDate={publishDate ?? new Date()} variant="print" {...(link ? { link } : {})} />
-      <QrCode data={link} />
-    </div>
-  </article>
+      <div style="margin-top: 2cm; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center; break-inside: avoid;">
+        <Copyright publishDate={publishDate ?? new Date()} variant="print" {...(link ? { link } : {})} />
+        <QrCode data={link} />
+      </div>
+    </article>
 
-  <CodeTabs />
+    <CodeTabs />
+  </div>
 </PrintLayout>
 
 <style is:global>

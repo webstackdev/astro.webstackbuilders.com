@@ -1,0 +1,76 @@
+---
+import contactData from '@content/contact.json'
+import { formatPhoneNumber } from '@components/Footer/server'
+import Avatar from '@components/Avatar/index.astro'
+---
+
+<footer
+  class="print-running-footer"
+  role="contentinfo"
+>
+  <div class="print-layout-footer__body">
+    <div class="print-layout-footer__columns">
+      <div class="flex min-w-0 items-center gap-3">
+        <div class="w-16 shrink-0">
+          <Avatar name="Kevin Brown" />
+        </div>
+        <div>
+          <h2 class="font-bold text-2xl">{contactData.company.name}</h2>
+        </div>
+      </div>
+
+      <address class="min-w-0 not-italic text-base">
+        <p>{contactData.company.address}</p>
+        <p>
+          {contactData.company.city}, {contactData.company.state}
+          {contactData.company.index}
+        </p>
+      </address>
+
+      <address class="min-w-0 not-italic text-base">
+        <p class="hyphens-none">
+          <a
+            href={`mailto:${contactData.company.email}`}
+            class:list={[
+              'inline-flex min-h-6 items-center align-middle',
+              'hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary',
+              'focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2',
+            ]}
+          >
+            {contactData.company.email}
+          </a>
+        </p>
+        <p itemprop="telephone">
+          <a
+            href={`tel:${contactData.company.telephoneTollFree}`}
+            rel="nofollow"
+            class:list={[
+              'inline-flex min-h-6 items-center align-middle',
+              'hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary',
+              'focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2',
+            ]}
+          >
+            Toll Free {formatPhoneNumber(contactData.company.telephoneTollFree)}
+          </a>
+        </p>
+        <p itemprop="telephone">
+          <a
+            href={`tel:${contactData.company.telephoneLocal}`}
+            rel="nofollow"
+            class:list={[
+              'inline-flex min-h-6 items-center align-middle',
+              'hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary',
+              'focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2',
+            ]}
+          >
+            Local {formatPhoneNumber(contactData.company.telephoneLocal)}
+          </a>
+        </p>
+      </address>
+    </div>
+
+    <div class="print-layout-footer__page-count" aria-hidden="true"></div>
+  </div>
+</footer>
+
+
