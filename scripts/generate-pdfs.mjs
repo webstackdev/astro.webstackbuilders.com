@@ -103,6 +103,11 @@ const generatePdf = async (browser, slug) => {
     await page.goto(inputUrl, { waitUntil: 'networkidle0', timeout: 60_000 })
     await page.emulateMediaType('print')
 
+    // Wait for web fonts so PDF typography matches the site instead of fallback metrics.
+    await page.evaluate(() => {
+      return globalThis.document.fonts.ready
+    })
+
     // Wait for all images to finish loading
     await page.evaluate(() => {
       const doc = globalThis.document
