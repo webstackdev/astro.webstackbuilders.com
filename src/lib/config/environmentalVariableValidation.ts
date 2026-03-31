@@ -72,6 +72,14 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       optional: true,
     }),
     /**
+     * Build-time flag used to enable generation of prerendered /print/ pages.
+     */
+    GENERATE_PDFS: envField.string({
+      access: 'public',
+      context: 'server',
+      optional: true,
+    }),
+    /**
      * Google Maps Platform
      *
      * Used by client-side map components (must be PUBLIC_ so Vite can bundle it)
