@@ -10,6 +10,7 @@ import securityPlugin from 'eslint-plugin-security'
 import ymlPlugin from 'eslint-plugin-yml'
 import tsPlugin from 'typescript-eslint'
 import restrictedGlobals from 'confusing-browser-globals'
+import globals from 'globals'
 import enforceCentralizedEventsRule from './test/eslint/enforce-centralized-events-rule'
 import noHtmlElementAssertionsRule from './test/eslint/no-html-element-assertions-rule'
 import noQuerySelectorOutsideSelectorsRule from './test/eslint/no-query-selector-outside-selectors-rule'
@@ -50,7 +51,9 @@ export default [
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
-        NodeJS: 'readonly',
+        ...globals.node,     // Covers 'process', 'Buffer', etc.
+        NodeJS: 'readonly',  // Covers TS namespaces
+        console: 'readonly', // Specific fix for 'console'
       },
     },
     rules: {

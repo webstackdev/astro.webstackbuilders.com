@@ -1,0 +1,44 @@
+---
+/**
+ * Static table of contents for PDF output.
+ *
+ * Renders heading links with empty .print-toc__page spans.
+ * The PDF generation script (scripts/generate-pdfs.mjs) injects
+ * approximate page numbers into those spans before calling page.pdf().
+ */
+import type { MarkdownHeading } from 'astro'
+import { buildTocTree, type TocItem } from '@components/Toc/server/index'
+
+export interface Props {
+  headings: MarkdownHeading[]
+}
+
+const { headings } = Astro.props
+const tocTree = buildTocTree(headings)
+---
+
+{tocTree.length > 0 && (
+  <section class="print-toc">
+    <h2 class="print-toc__title">Table of Contents</h2>
+    <nav aria-label="Table of contents">
+      {(() => {
+        const renderNodes = (nodes: TocItem[], depth = 0): unknown =>
+          nodes.map(node => (
+            <div class:list={[
+              'print-toc__entry',
+              depth > 0 && 'print-toc__entry--nested',
+            ]}>
+              <a href={`#${node.slug}`} class="print-toc__link">
+                <span class="print-toc__text">{node.text}</span>
+                <span class="print-toc__leader" aria-hidden="true"></span>
+                <span class="print-toc__page"></span>
+              </a>
+              {node.children.length > 0 && renderNodes(node.children, depth + 1)}
+            </div>
+          ))
+
+        return renderNodes(tocTree)
+      })()}
+    </nav>
+  </section>
+)}

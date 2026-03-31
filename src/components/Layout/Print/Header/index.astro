@@ -2,22 +2,16 @@
 import Brand from '@components/Brand/index.astro'
 
 export interface Props {
-  /** The URL path component e.g. 'articles/my-article' */
-  path: string
+  /** Article title to display in the running header */
+  articleTitle: string
 }
+
+const { articleTitle } = Astro.props
 ---
 
-<header
-  id="header"
-  data-header-search-open="false"
-  class="site-header group/header flex flex-row items-center justify-between relative"
-  role="banner"
->
-  {/* Logo and wordmark */}
-  <span
-    id="header__brand"
-    class="header-brand flex items-center justify-between relative z-(--z-content-overlay)"
-  >
+<div class="print-running-header">
+  <div class="print-running-header__body">
     <Brand />
-  </span>
-</header>
+    <span>{articleTitle}</span>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+---
+/**
+ * Minimal layout for PDF generation via Puppeteer.
+ *
+ * Unlike BaseLayout this has zero interactive web components,
+ * no consent banner, no theme picker, no analytics, no service worker.
+ * It only includes the CSS pipeline so the print pages render with
+ * the site's styles when Puppeteer visits them.
+ */
+import '@styles/index.css'
+
+export interface Props {
+  pageTitle: string
+}
+
+const { pageTitle } = Astro.props
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
