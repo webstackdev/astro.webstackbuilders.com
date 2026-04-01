@@ -4,6 +4,7 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 import { addWrapperEventListeners } from '@components/scripts/elementListeners'
 import {
   getTooltipElements,
+  hasTooltipElements,
   queryTooltipFocusableDescendant,
   queryTooltipUpgradeCandidates,
 } from './selectors'
@@ -17,25 +18,90 @@ const TOOLTIP_POPUP_CLASSES =
 let tooltipIdCounter = 0
 let pageLoadListenerAttached = false
 
+const scheduleMicrotask = (callback: () => void): void => {
+  if (typeof queueMicrotask === 'function') {
+    queueMicrotask(callback)
+    return
+  }
+
+  void Promise.resolve().then(callback)
+}
+
+export const initializeTooltipHost = (host: HTMLElement): {
+  trigger: HTMLSpanElement
+  tooltip: HTMLSpanElement
+} => {
+  const { trigger, tooltip } = getTooltipElements(host)
+
+  if (!tooltip.id) {
+    tooltip.id = createTooltipId()
+  }
+
+  trigger.setAttribute('aria-describedby', tooltip.id)
+
+  const focusableDescendant = queryTooltipFocusableDescendant(trigger)
+  if (focusableDescendant) {
+    trigger.removeAttribute('tabindex')
+  } else {
+    trigger.tabIndex = 0
+  }
+
+  const syncState = (isOpen: boolean): void => {
+    tooltip.classList.toggle('hidden', !isOpen)
+    tooltip.setAttribute('aria-hidden', String(!isOpen))
+    host.toggleAttribute('data-open', isOpen)
+  }
+
+  const handleOpen = (): void => {
+    syncState(true)
+  }
+
+  const handleClose = (): void => {
+    syncState(false)
+  }
+
+  const handleFocusOut = (event: FocusEvent): void => {
+    const relatedTarget = event.relatedTarget
+    if (relatedTarget instanceof Node && host.contains(relatedTarget)) {
+      return
+    }
+
+    syncState(false)
+  }
+
+  const handleKeyUp = (event: Event): void => {
+    if ('key' in event && typeof event.key === 'string' && event.key === 'Escape') {
+      syncState(false)
+    }
+  }
+
+  if (!trigger.dataset['tooltipOpenListeners']) {
+    trigger.addEventListener('mouseenter', handleOpen)
+    trigger.addEventListener('mouseleave', handleClose)
+    trigger.addEventListener('focusin', handleOpen)
+    trigger.addEventListener('focusout', handleFocusOut)
+    trigger.dataset['tooltipOpenListeners'] = 'true'
+  }
+
+  if (!trigger.dataset['tooltipEscapeListener']) {
+    addWrapperEventListeners(trigger, handleKeyUp, host, {
+      allowedKeys: ['Escape'],
+    })
+    trigger.dataset['tooltipEscapeListener'] = 'true'
+  }
+
+  syncState(host.hasAttribute('data-open'))
+
+  return { trigger, tooltip }
+}
+
 /**
  * Tooltip web component that toggles server-rendered tooltip markup.
  */
 export class TooltipElement extends LitElement {
   static registeredName = 'site-tooltip'
 
-  static override properties = {
-    open: { type: Boolean, reflect: true },
-  }
-
-  declare open: boolean
-
-  private trigger: HTMLSpanElement | null = null
-  private tooltip: HTMLSpanElement | null = null
-
-  constructor() {
-    super()
-    this.open = false
-  }
+  private isInitialized = false
 
   protected override createRenderRoot() {
     return this
@@ -43,103 +109,33 @@ export class TooltipElement extends LitElement {
 
   override connectedCallback(): void {
     super.connectedCallback()
-    this.cacheElements()
-    this.initializeAccessibility()
-    this.attachListeners()
-    this.syncState()
+    this.initializeWhenReady()
   }
 
   override disconnectedCallback(): void {
-    this.detachListeners()
+    this.isInitialized = false
     super.disconnectedCallback()
   }
 
-  protected override updated(): void {
-    this.syncState()
-  }
-
-  private cacheElements(): void {
-    const { trigger, tooltip } = getTooltipElements(this)
-    this.trigger = trigger
-    this.tooltip = tooltip
-  }
-
-  private initializeAccessibility(): void {
-    if (!this.trigger || !this.tooltip) {
+  private initializeWhenReady(): void {
+    if (this.isInitialized) {
       return
     }
 
-    if (!this.tooltip.id) {
-      this.tooltip.id = createTooltipId()
-    }
+    if (!hasTooltipElements(this)) {
+      scheduleMicrotask(() => {
+        if (!this.isConnected) {
+          return
+        }
 
-    this.trigger.setAttribute('aria-describedby', this.tooltip.id)
-
-    const focusableDescendant = queryTooltipFocusableDescendant(this.trigger)
-    if (focusableDescendant) {
-      this.trigger.removeAttribute('tabindex')
-      return
-    }
-
-    this.trigger.tabIndex = 0
-  }
-
-  private attachListeners(): void {
-    this.trigger?.addEventListener('mouseenter', this.handleOpen)
-    this.trigger?.addEventListener('mouseleave', this.handleClose)
-    this.trigger?.addEventListener('focusin', this.handleOpen)
-    this.trigger?.addEventListener('focusout', this.handleFocusOut)
-
-    if (this.trigger && !this.trigger.dataset['tooltipEscapeListener']) {
-      addWrapperEventListeners(this.trigger, this.handleKeyUp, this, {
-        allowedKeys: ['Escape'],
+        this.initializeWhenReady()
       })
-      this.trigger.dataset['tooltipEscapeListener'] = 'true'
-    }
-  }
 
-  private detachListeners(): void {
-    this.trigger?.removeEventListener('mouseenter', this.handleOpen)
-    this.trigger?.removeEventListener('mouseleave', this.handleClose)
-    this.trigger?.removeEventListener('focusin', this.handleOpen)
-    this.trigger?.removeEventListener('focusout', this.handleFocusOut)
-  }
-
-  private syncState(): void {
-    if (!this.tooltip) {
       return
     }
 
-    this.tooltip.classList.toggle('hidden', !this.open)
-    this.tooltip.setAttribute('aria-hidden', String(!this.open))
-    this.toggleAttribute('data-open', this.open)
-  }
-
-  private readonly handleOpen = (): void => {
-    this.open = true
-  }
-
-  private readonly handleClose = (): void => {
-    this.open = false
-  }
-
-  private readonly handleFocusOut = (event: FocusEvent): void => {
-    const relatedTarget = event.relatedTarget
-    if (relatedTarget instanceof Node && this.contains(relatedTarget)) {
-      return
-    }
-
-    this.open = false
-  }
-
-  private readonly handleKeyUp = (event: Event): void => {
-    if (!('key' in event) || typeof event.key !== 'string') {
-      return
-    }
-
-    if (event.key === 'Escape') {
-      this.open = false
-    }
+    initializeTooltipHost(this)
+    this.isInitialized = true
   }
 }
 
@@ -165,7 +161,7 @@ const createTooltipPopupElement = (document: Document, text: string): HTMLSpanEl
   return tooltip
 }
 
-const upgradeTooltipCandidate = (element: HTMLElement): TooltipElement | null => {
+const upgradeTooltipCandidate = (element: HTMLElement): HTMLElement | null => {
   const title = element.getAttribute('title')?.trim()
   if (!title || !element.parentNode) {
     return null
@@ -174,7 +170,7 @@ const upgradeTooltipCandidate = (element: HTMLElement): TooltipElement | null =>
   const document = element.ownerDocument
   const parentNode = element.parentNode
   const nextSibling = element.nextSibling
-  const wrapper = document.createElement(TooltipElement.registeredName) as TooltipElement
+  const wrapper = document.createElement(TooltipElement.registeredName)
   wrapper.className = TOOLTIP_HOST_CLASSES
 
   const trigger = createTriggerElement(document)
@@ -189,10 +185,10 @@ const upgradeTooltipCandidate = (element: HTMLElement): TooltipElement | null =>
   return wrapper
 }
 
-export const enhanceTooltipElements = (root: ParentNode = document): TooltipElement[] => {
+export const enhanceTooltipElements = (root: ParentNode = document): HTMLElement[] => {
   return queryTooltipUpgradeCandidates(root)
     .map(element => upgradeTooltipCandidate(element))
-    .filter((element): element is TooltipElement => element instanceof TooltipElement)
+    .filter((element): element is HTMLElement => element instanceof HTMLElement)
 }
 
 const registerPageLoadListener = (): void => {
@@ -216,13 +212,17 @@ declare global {
 /**
  * Registers the tooltip custom element.
  */
-export const registerWebComponent = (tagName = TooltipElement.registeredName) => {
+export const registerWebComponent = async (tagName = TooltipElement.registeredName) => {
   if (typeof window === 'undefined') {
     return
   }
 
   defineCustomElement(tagName, TooltipElement)
-  enhanceTooltipElements(document)
+
+  if (document.body?.childElementCount) {
+    enhanceTooltipElements(document)
+  }
+
   registerPageLoadListener()
 }
 

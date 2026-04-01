@@ -50,3 +50,10 @@ export const queryTooltipUpgradeCandidates = (root: ParentNode): HTMLElement[] =
     }
   )
 }
+
+export const hasTooltipElements = (root: ParentNode): boolean => {
+  const trigger = root.querySelector(SELECTORS.trigger)
+  const tooltip = root.querySelector(SELECTORS.tooltip)
+
+  return isSpanElement(trigger) && isSpanElement(tooltip)
+}

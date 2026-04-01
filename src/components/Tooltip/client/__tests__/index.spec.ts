@@ -3,13 +3,16 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import TooltipAstro from '@components/Tooltip/index.astro'
 import {
   enhanceTooltipElements,
+  initializeTooltipHost,
   type TooltipElement as TooltipElementInstance,
 } from '@components/Tooltip/client'
-import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import { executeRender } from '@test/unit/helpers/litRuntime'
+import { withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 import { getTooltipElements } from '../selectors'
 
-type TooltipComponentModule = WebComponentModule<TooltipElementInstance>
+const flushMicrotasks = async () => {
+  await Promise.resolve()
+  await Promise.resolve()
+}
 
 describe('TooltipElement', () => {
   let container: AstroContainer
@@ -25,17 +28,19 @@ describe('TooltipElement', () => {
       window: Window
     }) => Promise<void> | void
   ): Promise<void> => {
-    await executeRender<TooltipComponentModule>({
-      container,
-      component: TooltipAstro,
-      moduleSpecifier: '@components/Tooltip/client/index',
-      args,
-      waitForReady: async (element: TooltipElementInstance) => {
-        await element.updateComplete
-      },
-      assert: async ({ element, window }) => {
+    await withJsdomEnvironment(async ({ window }) => {
+      const renderResult = await container.renderToString(TooltipAstro, args)
+      window.document.body.innerHTML = renderResult
+
+      const element = window.document.querySelector('site-tooltip') as TooltipElementInstance | null
+      if (!element) {
+        throw new Error('Missing rendered Tooltip host in test DOM.')
+      }
+
+      initializeTooltipHost(element)
+
+        await flushMicrotasks()
         await assertion({ element, window: window as unknown as Window })
-      },
     })
   }
 
@@ -74,13 +79,13 @@ describe('TooltipElement', () => {
         const { trigger, tooltip } = getTooltipElements(element)
 
         trigger.dispatchEvent(new Event('mouseenter'))
-        await element.updateComplete
+        await flushMicrotasks()
 
         expect(tooltip.classList.contains('hidden')).toBe(false)
         expect(tooltip.getAttribute('aria-hidden')).toBe('false')
 
         trigger.dispatchEvent(new Event('mouseleave'))
-        await element.updateComplete
+        await flushMicrotasks()
 
         expect(tooltip.classList.contains('hidden')).toBe(true)
         expect(tooltip.getAttribute('aria-hidden')).toBe('true')
@@ -102,13 +107,13 @@ describe('TooltipElement', () => {
         const { trigger, tooltip } = getTooltipElements(element)
 
         trigger.dispatchEvent(new Event('focusin', { bubbles: true }))
-        await element.updateComplete
+        await flushMicrotasks()
         expect(tooltip.classList.contains('hidden')).toBe(false)
 
         const escapeEvent = new Event('keyup', { bubbles: true })
         Object.defineProperty(escapeEvent, 'key', { value: 'Escape' })
         trigger.dispatchEvent(escapeEvent)
-        await element.updateComplete
+        await flushMicrotasks()
         expect(tooltip.classList.contains('hidden')).toBe(true)
       }
     )
