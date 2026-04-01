@@ -127,7 +127,7 @@ export const buildTemplateStyles = () => {
       background-color: #E5E7EB !important;
       box-sizing: border-box;
       color: #001A39;
-      height: 100%;
+      height: 2cm;
       margin: 0 !important;
       padding: 0 !important;
       -webkit-print-color-adjust: exact;

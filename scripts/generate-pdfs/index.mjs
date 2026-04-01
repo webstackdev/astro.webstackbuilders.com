@@ -26,7 +26,18 @@ const ARTICLES_DIR = resolve('src/content/articles')
 const slugFilter = process.argv[2] ?? null
 
 // PDF page: US Letter (8.5 × 11 in)
-const CONTENT_PADDING_CM = { top: 2, right: 2, bottom: 2.5, left: 2 }
+// These values must stay in sync with `.print-document` padding in
+// src/pages/print/index.css so the viewport and ToC pagination math reflect
+// the actual printable content box.
+const CONTENT_TOP_PADDING_CM = 3
+const CONTENT_BOTTOM_PADDING_CM = 2.5
+const CONTENT_SIDE_PADDING_CM = 1.5
+const CONTENT_PADDING_CM = {
+  top: CONTENT_TOP_PADDING_CM,
+  right: CONTENT_SIDE_PADDING_CM,
+  bottom: CONTENT_BOTTOM_PADDING_CM,
+  left: CONTENT_SIDE_PADDING_CM,
+}
 const PDF_MARGIN = { top: '0px', right: '0px', bottom: '0px', left: '0px' }
 
 // Content area in pixels at 96 DPI (for approximate ToC page-number calculation)
