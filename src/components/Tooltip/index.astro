@@ -1,0 +1,52 @@
+---
+export type Props = {
+	text?: string
+	id?: string
+	class?: string
+	triggerClass?: string
+	tooltipClass?: string
+}
+
+const {
+	text,
+	id,
+	class: className,
+	triggerClass,
+	tooltipClass,
+}: Props = Astro.props
+
+const shouldRenderWrapper = typeof text === 'string' && text.trim().length > 0
+---
+
+{
+	shouldRenderWrapper && (
+		<site-tooltip class:list={['relative inline-flex', className]}>
+			<span
+				data-tooltip-trigger
+				class:list={[
+					'inline-flex items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spotlight',
+					triggerClass,
+				]}
+			>
+				<slot />
+			</span>
+			<span
+				data-tooltip-popup
+				id={id}
+				role="tooltip"
+				aria-hidden="true"
+				class:list={[
+					'pointer-events-none absolute left-0 top-full z-(--z-content-floating) mt-2 hidden max-w-64 rounded-md border border-trim bg-page-inverse px-2 py-1 text-sm leading-tight text-page-base shadow-elevated',
+					tooltipClass,
+				]}
+			>
+				{text}
+			</span>
+		</site-tooltip>
+	)
+}
+
+<script>
+	import { registerTooltipWebComponent } from '@components/Tooltip/client'
+	registerTooltipWebComponent()
+</script>
