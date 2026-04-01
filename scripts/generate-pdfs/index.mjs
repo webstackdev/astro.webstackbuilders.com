@@ -27,7 +27,7 @@ const slugFilter = process.argv[2] ?? null
 
 // PDF page: US Letter (8.5 × 11 in)
 const CONTENT_PADDING_CM = { top: 2, right: 2, bottom: 2.5, left: 2 }
-const PDF_MARGIN = { top: '0', right: '0', bottom: '0', left: '0' }
+const PDF_MARGIN = { top: '0px', right: '0px', bottom: '0px', left: '0px' }
 
 // Content area in pixels at 96 DPI (for approximate ToC page-number calculation)
 const CM_PER_IN = 2.54

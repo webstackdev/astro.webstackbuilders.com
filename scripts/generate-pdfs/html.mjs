@@ -38,38 +38,42 @@ const formatPhoneNumber = (phoneNumber) => {
 
 export const buildHeaderTemplate = (title) =>
   `${buildTemplateStyles()}
-  <div class="pdf-header">
-    <div class="pdf-brand" aria-label="Webstack Builders">
-      <span class="pdf-brand__logo">${logoSvg}</span>
-      <span class="pdf-brand__wordmarks" aria-hidden="true">
-        <span class="pdf-brand__wordmark-row">${wordmarkWebstackSvg}</span>
-        <span class="pdf-brand__wordmark-row">${wordmarkBuildersSvg}</span>
-      </span>
+  <header class="pdf-header" role="banner">
+    <div class="pdf-header__inner">
+      <div class="pdf-brand" aria-label="Webstack Builders">
+        <span class="pdf-brand__logo">${logoSvg}</span>
+        <span class="pdf-brand__wordmarks" aria-hidden="true">
+          <span class="pdf-brand__wordmark-row">${wordmarkWebstackSvg}</span>
+          <span class="pdf-brand__wordmark-row">${wordmarkBuildersSvg}</span>
+        </span>
+      </div>
+      <span class="pdf-header__title">${esc(title)}</span>
     </div>
-    <span class="pdf-header__title">${esc(title)}</span>
-  </div>`
+  </header>`
 
 export const footerTemplate =
 `${buildTemplateStyles()}
 <footer class="pdf-footer" role="contentinfo">
-  <div class="pdf-layout-footer__left">
-    <div class="pdf-layout-footer__avatar">
-      <img class="pdf-layout-footer__avatar-img" src="${kevinBrownAvatarDataUri}" alt="Kevin Brown">
-      <h2 class="pdf-layout-footer__company-name">${esc(contact.name)}</h2>
+  <div class="pdf-footer__inner">
+    <div class="pdf-layout-footer__left">
+      <div class="pdf-layout-footer__avatar">
+        <img class="pdf-layout-footer__avatar-img" src="${kevinBrownAvatarDataUri}" alt="Kevin Brown">
+      </div>
+      <address class="pdf-layout-footer__address">
+        <h2 class="pdf-layout-footer__company-name">${esc(contact.name)}</h2>
+        <p>${esc(contact.address)}</p>
+        <p>${esc(contact.city)}, ${esc(contact.state)} ${esc(contact.index)}</p>
+      </address>
     </div>
-    <address class="pdf-layout-footer__address">
-      <p>${esc(contact.address)}</p>
-      <p>${esc(contact.city)}, ${esc(contact.state)} ${esc(contact.index)}</p>
+
+    <div class="pdf-layout-footer__center" aria-hidden="true">
+      Page&nbsp;<span class="pageNumber"></span>&nbsp;of&nbsp;<span class="totalPages"></span>
+    </div>
+
+    <address class="pdf-layout-footer__right">
+      <p>${esc(contact.email)}</p>
+      <p>Toll Free ${esc(formatPhoneNumber(contact.telephoneTollFree))}</p>
+      <p>Local ${esc(formatPhoneNumber(contact.telephoneLocal))}</p>
     </address>
   </div>
-
-  <div class="pdf-layout-footer__center" aria-hidden="true">
-    Page&nbsp;<span class="pageNumber"></span>&nbsp;of&nbsp;<span class="totalPages"></span>
-  </div>
-
-  <address class="pdf-layout-footer__right">
-    <p>${esc(contact.email)}</p>
-    <p>Toll Free ${esc(formatPhoneNumber(contact.telephoneTollFree))}</p>
-    <p>Local ${esc(formatPhoneNumber(contact.telephoneLocal))}</p>
-  </address>
 </footer>`

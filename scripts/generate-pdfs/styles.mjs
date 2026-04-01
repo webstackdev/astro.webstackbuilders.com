@@ -1,16 +1,26 @@
 export const buildTemplateStyles = () => {
   return `<style>
+    html,
     * {
       box-sizing: border-box;
     }
 
+    html,
     body {
       font-family: "Onest Regular", Arial, Helvetica, sans-serif;
+      height: 100%;
       margin: 0;
+      overflow: hidden;
+      padding: 0;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
       width: 100%;
     }
+
+    /**
+     * Do not remove, to stretch header and footer to top and bottom of page respectively
+     */
+    #header, #footer { padding: 0 !important; }
 
     /**
      * PDF Header Styles
@@ -19,13 +29,21 @@ export const buildTemplateStyles = () => {
     .pdf-header {
       background-color: #E5E7EB !important;
       box-sizing: border-box;
-      display: flex;
-      min-height: 2cm;
-      justify-content: space-between;
+      height: 1.5cm;
+      margin: 0 !important;
+      padding: 0 !important;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
-      padding: 0.45cm 2cm 0.35cm;
-      width: 100%;
+      width: 100% !important;
+    }
+
+    .pdf-header__inner {
+      align-items: center;
+      display: flex;
+      height: 100%;
+      justify-content: space-between;
+      padding: 0 1cm;
+      width: 100% !important;
     }
 
     /**
@@ -96,12 +114,9 @@ export const buildTemplateStyles = () => {
 
     .pdf-header__title {
       color: #001A39;
-      flex: 1 1 auto;
-      font-size: 12pt;
+      font-size: 14pt;
       font-weight: 700;
       line-height: 1.1;
-      max-width: 60%;
-      margin: 0;
       text-align: right;
     }
 
@@ -110,18 +125,27 @@ export const buildTemplateStyles = () => {
      */
 
     .pdf-footer {
-      align-items: center;
-      background-color: #003d86 !important;
+      background-color: #001A39 !important;
       box-sizing: border-box;
       color: #fff;
-      display: flex;
-      gap: 12px;
-      justify-content: space-between;
-      min-height: 2.5cm;
+      height: 100%;
+      margin: 0 !important;
+      padding: 0 !important;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
-      padding: 0.35cm 2cm 0.45cm;
-      width: 100%;
+      width: 100% !important;
+      border: #6b7280 1px solid;
+    }
+
+    .pdf-footer__inner {
+      align-items: center;
+      display: flex;
+      gap: 12px;
+      height: 100%;
+      justify-content: space-between;
+      padding: 0.2cm;
+      width: 100% !important;
+      border: #6b7280 1px solid;
     }
 
     /**
@@ -130,20 +154,12 @@ export const buildTemplateStyles = () => {
 
     .pdf-layout-footer__left {
       display: flex;
-      flex-direction: column;
-      flex: 1 1 0;
       gap: 4px;
-      justify-content: center;
-      min-width: 0;
+      border: #6b7280 1px solid;
     }
 
     .pdf-layout-footer__avatar {
       align-items: center;
-      display: flex;
-      flex: 0 0 auto;
-      gap: 8px;
-      justify-content: flex-start;
-      min-width: 0;
       width: 100%;
     }
 
@@ -157,34 +173,32 @@ export const buildTemplateStyles = () => {
       width: 32px;
     }
 
-    .pdf-layout-footer__company-name {
-      color: #fff;
-      font-size: 12pt;
-      font-weight: 700;
-      line-height: 1.1;
-      margin: 0;
-    }
-
-    .pdf-layout-footer__address,
-    .pdf-layout-footer__right {
-      font-size: 10pt;
-      font-style: normal;
-      line-height: 1.2;
-      margin: 0;
-      min-width: 0;
-    }
-
     .pdf-layout-footer__address {
       display: flex;
       flex-direction: column;
       gap: 2px;
       justify-content: center;
       width: 100%;
+      margin: 0;
+      min-width: 0;
     }
 
-    .pdf-layout-footer__address p,
-    .pdf-layout-footer__right p {
+    .pdf-layout-footer__company-name {
+      color: #6b7280;
+      font-size: 12pt;
+      font-style: normal;
+      font-weight: 700;
+      line-height: 1.1;
+      margin: 0;
+    }
+
+
+    .pdf-layout-footer__address p {
+      color: #6b7280;
       font-size: 10pt;
+      font-style: normal;
+      font-weight: 700;
+      line-height: 1.1;
       margin: 0;
     }
 
@@ -194,7 +208,7 @@ export const buildTemplateStyles = () => {
 
     .pdf-layout-footer__center {
       align-items: center;
-      color: #fff;
+      color: #6b7280;
       display: flex;
       flex: 0 0 auto;
       font-size: 10pt;
@@ -202,6 +216,7 @@ export const buildTemplateStyles = () => {
       line-height: 1.1;
       margin: 0;
       text-align: center;
+      border: #6b7280 1px solid;
     }
 
     /**
@@ -210,20 +225,22 @@ export const buildTemplateStyles = () => {
 
     .pdf-layout-footer__right {
       align-items: center;
-      color: #fff;
       display: flex;
       flex-direction: column;
       flex: 1 1 0;
-      font-size: 12pt;
       gap: 2px;
       justify-content: flex-end;
       text-align: right;
+      margin: 0;
+      min-width: 0;
+      border: #6b7280 1px solid;
     }
 
-    .pdf-layout-footer__right a,
     .pdf-layout-footer__right p {
-      color: #fff;
-      text-decoration: none;
+      color: #6b7280;
+      font-size: 10pt;
+      font-style: normal;
+      line-height: 1.2;
     }
   </style>`
 }
