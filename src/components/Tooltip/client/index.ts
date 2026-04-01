@@ -12,7 +12,7 @@ const TOOLTIP_HOST_CLASSES = 'relative inline-flex'
 const TOOLTIP_TRIGGER_CLASSES =
   'inline-flex items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spotlight'
 const TOOLTIP_POPUP_CLASSES =
-  'pointer-events-none absolute left-0 top-full z-(--z-content-floating) mt-2 hidden max-w-64 rounded-md border border-trim bg-page-inverse px-2 py-1 text-sm leading-tight text-page-base shadow-elevated'
+  'pointer-events-none absolute left-0 top-full z-(--z-content-floating) mt-2 hidden max-w-64 rounded-md border border-trim bg-page-inverse px-2 py-1 text-sm leading-tight text-page-base shadow-elevated whitespace-nowrap'
 
 let tooltipIdCounter = 0
 let pageLoadListenerAttached = false
