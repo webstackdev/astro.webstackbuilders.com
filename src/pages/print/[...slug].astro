@@ -63,7 +63,6 @@ export async function getStaticPaths() {
 }
 
 const { article } = Astro.props
-const author = await getEntry(article.data.author)
 
 const { Content, headings = [] } = await render(article)
 const tocHeadings: MarkdownHeading[] = headings.filter(heading => heading.depth > 1)
@@ -75,7 +74,7 @@ const publishDate = article.data.publishDate
 <PrintLayout pageTitle={article.data.title}>
   <div class="print-document">
     {/* Cover page */}
-    <Cover article={article} authorName={author.data.name} />
+    <Cover article={article} />
 
     {/* Table of contents — page numbers injected by the PDF generation script */}
     <Toc headings={tocHeadings} />
