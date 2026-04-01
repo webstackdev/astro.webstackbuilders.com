@@ -2,7 +2,7 @@
 export const prerender = true
 
 import { GENERATE_PDFS } from 'astro:env/server'
-import { type CollectionEntry, getCollection, getEntry, render } from 'astro:content'
+import { type CollectionEntry, getCollection, render } from 'astro:content'
 import type { MarkdownHeading } from 'astro'
 import { Image, Picture } from 'astro:assets'
 import { isDev } from '@lib/config/environmentServer'
@@ -83,7 +83,7 @@ const publishDate = article.data.publishDate
     <article class="print-article markdown-content__prose">
       <Content components={{ ...PdfComponents }} />
 
-      <div style="margin-top: 2cm; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center; break-inside: avoid;">
+      <div style=" align-items: center; break-inside: avoid; display: grid; gap: 1rem; grid-template-columns: 1fr 1fr;margin-top: 2cm;">
         <Copyright publishDate={publishDate ?? new Date()} variant="print" {...(link ? { link } : {})} />
         <QrCode data={link} />
       </div>
