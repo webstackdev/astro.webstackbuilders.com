@@ -27,7 +27,6 @@ export const buildTemplateStyles = () => {
      */
 
     .pdf-header {
-      background-color: #E5E7EB !important;
       box-sizing: border-box;
       height: 1.5cm;
       margin: 0 !important;
@@ -38,7 +37,7 @@ export const buildTemplateStyles = () => {
     }
 
     .pdf-header__inner {
-      align-items: center;
+      align-items: flex-end;
       display: flex;
       height: 100%;
       justify-content: space-between;
@@ -113,8 +112,8 @@ export const buildTemplateStyles = () => {
      */
 
     .pdf-header__title {
-      color: #001A39;
-      font-size: 14pt;
+      color: #6b7280;
+      font-size: 13pt;
       font-weight: 700;
       line-height: 1.1;
       text-align: right;
@@ -125,16 +124,15 @@ export const buildTemplateStyles = () => {
      */
 
     .pdf-footer {
-      background-color: #001A39 !important;
+      background-color: #E5E7EB !important;
       box-sizing: border-box;
-      color: #fff;
+      color: #001A39;
       height: 100%;
       margin: 0 !important;
       padding: 0 !important;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
       width: 100% !important;
-      border: #6b7280 1px solid;
     }
 
     .pdf-footer__inner {
@@ -143,9 +141,8 @@ export const buildTemplateStyles = () => {
       gap: 12px;
       height: 100%;
       justify-content: space-between;
-      padding: 0.2cm;
+      padding: 0 1cm;
       width: 100% !important;
-      border: #6b7280 1px solid;
     }
 
     /**
@@ -153,14 +150,15 @@ export const buildTemplateStyles = () => {
      */
 
     .pdf-layout-footer__left {
+      align-items: center;
       display: flex;
       gap: 4px;
-      border: #6b7280 1px solid;
+      width: 40%;
     }
 
     .pdf-layout-footer__avatar {
       align-items: center;
-      width: 100%;
+      display: flex;
     }
 
     .pdf-layout-footer__avatar-img {
@@ -178,26 +176,25 @@ export const buildTemplateStyles = () => {
       flex-direction: column;
       gap: 2px;
       justify-content: center;
-      width: 100%;
-      margin: 0;
+      margin-left: 8px;
       min-width: 0;
+      width: 100%;
     }
 
     .pdf-layout-footer__company-name {
-      color: #6b7280;
+      color: #001A39;
       font-size: 12pt;
       font-style: normal;
-      font-weight: 700;
+      font-weight: 600;
       line-height: 1.1;
       margin: 0;
     }
 
 
     .pdf-layout-footer__address p {
-      color: #6b7280;
+      color: #001A39;
       font-size: 10pt;
       font-style: normal;
-      font-weight: 700;
       line-height: 1.1;
       margin: 0;
     }
@@ -207,16 +204,13 @@ export const buildTemplateStyles = () => {
      */
 
     .pdf-layout-footer__center {
-      align-items: center;
-      color: #6b7280;
       display: flex;
-      flex: 0 0 auto;
-      font-size: 10pt;
       justify-content: center;
+      color: #001A39;
+      font-size: 10pt;
       line-height: 1.1;
       margin: 0;
-      text-align: center;
-      border: #6b7280 1px solid;
+      width: 20%;
     }
 
     /**
@@ -224,23 +218,20 @@ export const buildTemplateStyles = () => {
      */
 
     .pdf-layout-footer__right {
-      align-items: center;
+      align-items: flex-end;
       display: flex;
       flex-direction: column;
-      flex: 1 1 0;
-      gap: 2px;
-      justify-content: flex-end;
-      text-align: right;
-      margin: 0;
+      justify-content: center;
       min-width: 0;
-      border: #6b7280 1px solid;
+      width: 40%;
     }
 
     .pdf-layout-footer__right p {
-      color: #6b7280;
+      color: #001A39;
       font-size: 10pt;
       font-style: normal;
       line-height: 1.2;
+      margin: 0;
     }
   </style>`
 }
