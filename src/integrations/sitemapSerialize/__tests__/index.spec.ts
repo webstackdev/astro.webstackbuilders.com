@@ -109,6 +109,15 @@ describe('createSerializeFunction', () => {
       ).toBeUndefined()
     })
 
+    it('should exclude print routes after the route rename from pdf to print', () => {
+      const serialize = createSerializeFunction({
+        exclude: ['print'],
+      })
+
+      expect(serialize(createSitemapItem('https://example.com/print'))).toBeUndefined()
+      expect(serialize(createSitemapItem('https://example.com/print/my-article'))).toBeUndefined()
+    })
+
     it('should handle multiple exclusions', () => {
       const serialize = createSerializeFunction({
         exclude: ['downloads', 'social-shares', '/articles/demo'],

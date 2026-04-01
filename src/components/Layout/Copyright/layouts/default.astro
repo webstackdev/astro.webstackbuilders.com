@@ -1,0 +1,34 @@
+---
+import Icon from '@components/Icon/index.astro'
+
+export interface Props {
+  publishYear: number
+}
+
+const { publishYear } = Astro.props
+---
+
+<div class="flex flex-col text-content-active text-xs mb-6 print:hidden">
+  <div class="flex justify-center">
+    <span class="mr-2">Copyright</span>
+    <Icon
+      icon="copyright"
+      color="content-active"
+      size={3}
+      classes="mt-0"
+    />
+    <span class="ml-2 mr-1">
+      <time datetime={String(publishYear)}>{publishYear}</time>
+    </span>
+    <span class="">Webstack Builders, Inc.</span>
+  </div>
+  <div class="flex items-center justify-center">
+    <span class="mr-1">See our </span>
+    <a
+      href="/terms"
+      class="inline-flex min-h-6 items-center align-middle underline transition-colors hover:text-primary-offset hover:decoration-primary-offset focus-visible:text-primary-offset focus-visible:decoration-primary-offset focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
+    >
+      terms of use
+    </a>
+  </div>
+</div>

@@ -4,6 +4,21 @@
  * Uses API to fetch actual content IDs to ensure tests work even if content changes
  */
 import { BasePage, test, expect, setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers'
+import { wait } from '@test/e2e/helpers/waitTimeouts'
+
+const articleLinkSelector = 'a[href*="/articles/"]'
+const serviceLinkSelector = 'a[href^="/services/"]:not([href="/services/"])'
+const caseStudyLinkSelector = 'a[href*="/case-studies/"]'
+
+const waitForListingPageReady = async (page: BasePage, linkSelector: string): Promise<void> => {
+  await expect(page.locator('main#main')).toBeVisible({ timeout: wait.navigation })
+  await expect(page.locator(linkSelector).first()).toBeVisible({ timeout: wait.navigation })
+}
+
+const waitForDetailPageReady = async (page: BasePage): Promise<void> => {
+  await expect(page.locator('main#main')).toBeVisible({ timeout: wait.navigation })
+  await expect(page.locator('h1[id="article-title"]')).toBeVisible({ timeout: wait.navigation })
+}
 
 const getFirstHref = async (page: BasePage, selector: string): Promise<string | null> => {
   return await page.page.locator(selector).evaluateAll((elements) => {
@@ -22,20 +37,18 @@ test.describe('Dynamic Pages @smoke', () => {
     const page = await BasePage.init(playwrightPage)
     // First, visit articles list to get an actual article link
     await page.goto('/articles')
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await waitForListingPageReady(page, articleLinkSelector)
 
     // Find first article link
-    const firstArticleLink = page.locator('a[href*="/articles/"]').first()
+    const firstArticleLink = page.locator(articleLinkSelector).first()
     await expect(firstArticleLink).toBeVisible()
 
-    const articleUrl = await getFirstHref(page, 'a[href*="/articles/"]')
+    const articleUrl = await getFirstHref(page, articleLinkSelector)
     expect(articleUrl).toBeTruthy()
 
     // Navigate to the article
     await page.goto(articleUrl!)
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await waitForDetailPageReady(page)
 
     // Verify article page loaded with expected elements
     await expect(page.locator('main#main')).toBeVisible()
@@ -49,21 +62,21 @@ test.describe('Dynamic Pages @smoke', () => {
     const page = await BasePage.init(playwrightPage)
     // Visit services list to get an actual service link
     await page.goto('/services')
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await expect(page.locator('main#main')).toBeVisible({ timeout: wait.navigation })
 
     // Find first service link
-    const serviceUrl = await getFirstHref(page, 'a[href^="/services/"]:not([href="/services/"])')
+    const serviceUrl = await getFirstHref(page, serviceLinkSelector)
 
     if (!serviceUrl) {
       test.skip()
       return
     }
 
+    await waitForListingPageReady(page, serviceLinkSelector)
+
     // Navigate to the service
     await page.goto(serviceUrl)
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await waitForDetailPageReady(page)
 
     // Verify service page loaded
     await expect(page.locator('main#main')).toBeVisible()
@@ -77,21 +90,21 @@ test.describe('Dynamic Pages @smoke', () => {
     const page = await BasePage.init(playwrightPage)
     // Visit case studies list to get an actual case study link
     await page.goto('/case-studies')
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await expect(page.locator('main#main')).toBeVisible({ timeout: wait.navigation })
 
     // Find first case study link
-    const caseStudyUrl = await getFirstHref(page, 'a[href*="/case-studies/"]')
+    const caseStudyUrl = await getFirstHref(page, caseStudyLinkSelector)
 
     if (!caseStudyUrl) {
       test.skip()
       return
     }
 
+    await waitForListingPageReady(page, caseStudyLinkSelector)
+
     // Navigate to the case study
     await page.goto(caseStudyUrl)
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await waitForDetailPageReady(page)
 
     // Verify case study page loaded
     await expect(page.locator('main#main')).toBeVisible()
@@ -152,16 +165,14 @@ test.describe('Dynamic Pages @smoke', () => {
 
     // Test article page
     await page.goto('/articles')
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await waitForListingPageReady(page, articleLinkSelector)
 
-    const articleUrl = await getFirstHref(page, 'a[href*="/articles/"]')
+    const articleUrl = await getFirstHref(page, articleLinkSelector)
 
     if (articleUrl) {
       resetChecker()
       await page.goto(articleUrl)
-      // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-      await page.waitForNetworkIdleBestEffort()
+      await waitForDetailPageReady(page)
 
       const filtered404s = errorChecker.getFiltered404s()
       if (filtered404s.length > 0) {
@@ -171,16 +182,15 @@ test.describe('Dynamic Pages @smoke', () => {
 
     // Test service page
     await page.goto('/services')
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await expect(page.locator('main#main')).toBeVisible({ timeout: wait.navigation })
 
-    const serviceUrl = await getFirstHref(page, 'a[href^="/services/"]:not([href="/services/"])')
+    const serviceUrl = await getFirstHref(page, serviceLinkSelector)
 
     if (serviceUrl) {
+      await waitForListingPageReady(page, serviceLinkSelector)
       resetChecker()
       await page.goto(serviceUrl)
-      // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-      await page.waitForNetworkIdleBestEffort()
+      await waitForDetailPageReady(page)
 
       const filtered404s = errorChecker.getFiltered404s()
       if (filtered404s.length > 0) {
@@ -190,16 +200,15 @@ test.describe('Dynamic Pages @smoke', () => {
 
     // Test case study page
     await page.goto('/case-studies')
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await expect(page.locator('main#main')).toBeVisible({ timeout: wait.navigation })
 
-    const caseStudyUrl = await getFirstHref(page, 'a[href*="/case-studies/"]')
+    const caseStudyUrl = await getFirstHref(page, caseStudyLinkSelector)
 
     if (caseStudyUrl) {
+      await waitForListingPageReady(page, caseStudyLinkSelector)
       resetChecker()
       await page.goto(caseStudyUrl)
-      // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-      await page.waitForNetworkIdleBestEffort()
+      await waitForDetailPageReady(page)
 
       const filtered404s = errorChecker.getFiltered404s()
       if (filtered404s.length > 0) {
@@ -224,10 +233,9 @@ test.describe('Dynamic Pages @smoke', () => {
     const page = await BasePage.init(playwrightPage)
     // First, get actual article URL
     await page.goto('/articles')
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await waitForListingPageReady(page, articleLinkSelector)
 
-    const articleUrl = await getFirstHref(page, 'a[href*="/articles/"]')
+    const articleUrl = await getFirstHref(page, articleLinkSelector)
 
     if (!articleUrl) {
       test.skip()
@@ -238,8 +246,7 @@ test.describe('Dynamic Pages @smoke', () => {
     const errorChecker = setupConsoleErrorChecker(page.page)
 
     await page.goto(articleUrl)
-    // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
-    await page.waitForNetworkIdleBestEffort()
+    await waitForDetailPageReady(page)
 
     logConsoleErrors(errorChecker)
 

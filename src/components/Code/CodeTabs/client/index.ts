@@ -131,7 +131,7 @@ export class CodeTabsElement extends LitElement {
   private buildUi(args: { shouldRenderTabs: boolean; labels: string[] }): void {
     const header = document.createElement('div')
     header.className =
-      'flex w-full min-w-0 items-center justify-between bg-page-offset'
+      'code-tabs-print-header flex w-full min-w-0 items-center justify-between bg-page-offset'
 
     const copyButton = this.createCopyButton()
 

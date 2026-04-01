@@ -1,0 +1,98 @@
+---
+export const prerender = true
+
+import { GENERATE_PDFS } from 'astro:env/server'
+import { type CollectionEntry, getCollection, render } from 'astro:content'
+import type { MarkdownHeading } from 'astro'
+import { Image, Picture } from 'astro:assets'
+import { isDev } from '@lib/config/environmentServer'
+
+import Copyright from '@components/Layout/Copyright/index.astro'
+import Cover from '@components/Layout/Print/Cover/index.astro'
+import PrintLayout from '@layouts/PrintLayout.astro'
+import QrCode from '@components/QrCode/index.astro'
+import Toc from '@components/Layout/Print/Toc/index.astro'
+
+/** MDX components that are safe for static PDF rendering (no web components) */
+import Avatar from '@components/Avatar/index.astro'
+import Button from '@components/Button/index.astro'
+import Callout from '@components/Callout/index.astro'
+import CodeTabs from '@components/Code/CodeTabs/index.astro'
+import Copy from '@components/Copy/index.astro'
+import Diagram from '@components/Diagram/index.astro'
+import Icon from '@components/Icon/index.astro'
+import Inset from '@components/Inset/index.astro'
+import List from '@components/List/index.astro'
+import ListItem from '@components/List/ListItem.astro'
+import Table from '@components/Table/index.astro'
+import Time from '@components/Time/index.astro'
+
+const PdfComponents = {
+  Avatar,
+  Button,
+  Callout,
+  Copy,
+  Diagram,
+  Icon,
+  Image,
+  Inset,
+  List,
+  ListItem,
+  Picture,
+  QrCode,
+  Table,
+  Time,
+}
+
+export interface Props {
+  article: CollectionEntry<'deepDives'>
+}
+
+/** Generate static paths for all deep-dive articles */
+export async function getStaticPaths() {
+  if (!isDev() && !GENERATE_PDFS) {
+    return []
+  }
+
+  const articleEntries = await getCollection('deepDives')
+
+  return articleEntries.map(article => ({
+    params: { slug: article.id },
+    props: { article },
+  }))
+}
+
+const { article } = Astro.props
+
+const { Content, headings = [] } = await render(article)
+const tocHeadings: MarkdownHeading[] = headings.filter(heading => heading.depth > 1)
+
+const link = `https://www.webstackbuilders.com/articles/${article.id}`
+const publishDate = article.data.publishDate
+---
+
+<PrintLayout pageTitle={article.data.title}>
+  <div class="print-document">
+    {/* Cover page */}
+    <Cover article={article} />
+
+    {/* Table of contents — page numbers injected by the PDF generation script */}
+    <Toc headings={tocHeadings} />
+
+    {/* Article body */}
+    <article class="print-article markdown-content__prose">
+      <Content components={{ ...PdfComponents }} />
+
+      <div style=" align-items: center; break-inside: avoid; display: grid; gap: 1rem; grid-template-columns: 1fr 1fr;margin-top: 2cm;">
+        <Copyright publishDate={publishDate ?? new Date()} variant="print" {...(link ? { link } : {})} />
+        <QrCode data={link} />
+      </div>
+    </article>
+
+    <CodeTabs />
+  </div>
+</PrintLayout>
+
+<style is:global>
+  @import './index.css';
+</style>

@@ -3,10 +3,23 @@ import GDPRConsent from '@components/Consent/Checkbox/index.astro'
 import Confetti from '@components/Animations/Confetti/index.astro'
 import Icon from '@components/Icon/index.astro'
 
-const title = 'Stay Updated'
-const description = 'One deep dive per month on infrastructure topics, plus quick wins you can ship the same day.'
-const placeholder = 'Enter your email address'
-const buttonText = 'Subscribe'
+interface Props {
+  title?: string
+  description?: string
+  placeholder?: string
+  buttonText?: string
+  titleId: string
+  descriptionId: string
+}
+
+const {
+  title = 'Stay Updated',
+  description = 'One deep dive per month on infrastructure topics, plus quick wins you can ship the same day.',
+  placeholder = 'Enter your email address',
+  buttonText = 'Subscribe',
+  titleId,
+  descriptionId,
+} = Astro.props
 ---
 
 <section class="mb-4 md:mb-6">
@@ -19,11 +32,11 @@ const buttonText = 'Subscribe'
     </div>
 
     <div class="space-y-2">
-      <p class="text-page-base">
+      <p id={titleId} class="text-page-base">
         <span class="text-success">$</span>
         {` ${title}`}
       </p>
-      <p class="text-page-base/70 text-sm">
+      <p id={descriptionId} class="text-page-base/70 text-sm">
         <span class="text-page-base/50">&gt;</span>
         {` ${description}`}
       </p>

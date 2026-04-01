@@ -42,6 +42,8 @@ const viteLogger = createLogger(undefined, { allowClearScreen: false })
 const sentryAuthToken = process.env['SENTRY_AUTH_TOKEN']
 const shouldEnableSentryIntegration = Boolean(sentryAuthToken)
 const sentryReleaseName = getPackageRelease()
+const astroEnvConfig = environmentalVariablesConfig as NonNullable<AstroUserConfig['env']>
+const astroMarkdownConfig = markdownConfig as unknown as NonNullable<AstroUserConfig['markdown']>
 
 const shouldSuppressViteWarning = (message: string): boolean => {
   return (
@@ -103,7 +105,7 @@ const standardIntegrations = [
   })] : []),
   sitemap({
     serialize: createSerializeFunction({
-      exclude: ['deep-dive', 'downloads', '/articles/demo', 'testing', 'hero', 'links'],
+      exclude: ['deep-dive', 'downloads', 'print', '/articles/demo', 'testing', 'hero', 'links'],
     }),
   }),
   /**
@@ -123,8 +125,8 @@ export default defineConfig({
   devToolbar: {
     enabled: false,
   },
-  env: environmentalVariablesConfig,
-  markdown: markdownConfig as AstroUserConfig['markdown'],
+  env: astroEnvConfig,
+  markdown: astroMarkdownConfig,
   /**
    * Astro sets substantial Vite config internally in the framework. When you use Vitest
    * in an Astro project, you use Astro's getViteConfig helper to get the resolved internal
@@ -204,7 +206,6 @@ export default defineConfig({
        */
       'process.env.CSS_TRANSFORMER_WASM': 'false',
     },
-    /* @ts-expect-error - tailwindcss plugin type compatibility */
     plugins: [
       fixContentAssetPropagation(),
       tailwindcss(),

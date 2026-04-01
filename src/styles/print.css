@@ -1,15 +1,6 @@
 /* ==========================================================================
    Print Stylesheet
-   Imported in index.css as: @import "./print.css" layer(utilities);
    ========================================================================== */
-
-/* Preserve colors on color-capable printers */
-@media print and (color) {
-  * {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-}
 
 @media print {
   /* --------------------------------------------------------------------------
@@ -18,6 +9,19 @@
 
   @page {
     margin: 2cm;
+
+    @bottom-left {
+      color: #000;
+      content: "Webstack Builders, Inc.";
+      font-size: 0.75rem;
+    }
+
+    @bottom-right {
+      color: #000;
+      content: "Page " counter(page) " of " counter(pages);
+      font-family: Arial, sans-serif;
+      font-size: 0.8333rem;
+    }
   }
 
   /* --------------------------------------------------------------------------
@@ -72,13 +76,37 @@
     width: 100% !important;
   }
 
+  #header {
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+
   /* --------------------------------------------------------------------------
      Typography — widows, orphans, page breaks
      -------------------------------------------------------------------------- */
 
-  p, li, blockquote, figcaption {
+  p, blockquote, figcaption {
     orphans: 3;
     widows: 3;
+  }
+
+  .screen-table-figure-caption,
+  .print-table-caption .screen-table-caption-copy {
+    display: none !important;
+  }
+
+  .print-table-caption {
+    caption-side: bottom !important;
+    display: table-caption !important;
+    font-style: italic;
+    padding-top: 0.75rem !important;
+    text-align: center !important;
+  }
+
+  .print-table-caption .print-table-figure-copy {
+    display: block !important;
   }
 
   /* Keep headings attached to the content that follows them */
@@ -112,8 +140,102 @@
      Lists, figures, tables, code — avoid page breaks inside
      -------------------------------------------------------------------------- */
 
-  ul, ol, figure, table, pre, [data-qr-code] {
+  li, [data-qr-code] {
     break-inside: avoid;
+  }
+
+  .callout {
+    box-decoration-break: slice;
+    break-inside: avoid;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  .callout__header {
+    break-after: avoid;
+  }
+
+  .callout__content {
+    break-before: avoid;
+  }
+
+  .callout__header + .callout__content {
+    margin-top: 0.75rem;
+  }
+
+  .service-card {
+    background-clip: padding-box;
+    background-color: var(--color-content-inverse) !important;
+    border: 1px solid var(--color-trim) !important;
+    border-radius: 1rem !important;
+    box-decoration-break: clone;
+    overflow: visible !important;
+  }
+
+  .service-card-body {
+    background-color: var(--color-content-inverse) !important;
+    padding-bottom: 2rem !important;
+  }
+
+  .services-grid {
+    background-color: var(--color-page-base) !important;
+    row-gap: 3rem !important;
+  }
+
+  /**
+   * Make sure Zebra List doesn't leave an empty container with borders
+   * when it breaks across lines
+   */
+  .print-zebra-list {
+    border: 0 !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  .print-zebra-list > .print-zebra-list-item {
+    border: 1px solid var(--color-trim) !important;
+    border-radius: 0 !important;
+  }
+
+  .print-zebra-list > .print-zebra-list-item + .print-zebra-list-item {
+    margin-top: -1px;
+  }
+
+  /**
+   * Table wrappers use a shared rounded, bordered shell for screen layouts.
+   * In print, that shell can fragment across pages and leave an empty bordered
+   * area at the bottom of the page. Make the shell non-visual and let the
+   * table's own row/header borders carry the printed structure instead.
+   */
+  .print-table-shell {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  .print-table-shell tr > :first-child {
+    border-left: 1px solid var(--color-trim) !important;
+  }
+
+  .print-table-shell tr > :last-child {
+    border-right: 1px solid var(--color-trim) !important;
+  }
+
+  .print-table-has-head thead > tr:first-child > * {
+    border-top: 1px solid var(--color-trim) !important;
+  }
+
+  .print-table-no-head tbody:first-child > tr:first-child > * {
+    border-top: 1px solid var(--color-trim) !important;
+  }
+
+  .print-table-shell tfoot:last-child > tr:last-child > * {
+    border-bottom: 1px solid var(--color-trim) !important;
+  }
+
+  .print-table-shell tbody:last-child > tr:last-child > * {
+    border-bottom: 1px solid var(--color-trim) !important;
   }
 
   /* --------------------------------------------------------------------------
@@ -152,135 +274,34 @@
   }
 
   /* --------------------------------------------------------------------------
-     Hide interactive / screen-only chrome
+     Fix header position — remove fixed positioning and z-index
+     so it prints in flow with the rest of the content
      -------------------------------------------------------------------------- */
 
-  /* Site header — hide entire shell AND undo fixed positioning */
-  .header-shell {
-    display: none !important;
-  }
-
-  .header-footprint {
-    display: none !important;
-  }
-
   .header-fixed {
-    display: none !important;
     position: static !important;
-  }
-
-  /* Belt-and-suspenders: hide nav, theme icon, search icon individually */
-  #header {
-    display: none !important;
-  }
-
-  /* Reading progress bar (position: fixed, would repeat on every page) */
-  reading-progress-bar {
-    display: none !important;
-  }
-
-  /* Mobile navigation splash backdrop */
-  #mobile-splash {
-    display: none !important;
-  }
-
-  /* Footer */
-  site-footer {
-    display: none !important;
-  }
-
-  /* Breadcrumbs */
-  #breadcrumbs {
-    display: none !important;
-  }
-
-  /* Table of Contents */
-  table-of-contents {
-    display: none !important;
-  }
-
-  /* All Call-to-Action blocks (Newsletter, Contact, Download) */
-  .cta {
-    display: none !important;
-  }
-
-  /* Social shares and web mentions */
-  social-share-element,
-  web-mentions {
-    display: none !important;
-  }
-
-  /* Social / media embeds (YouTube, Twitter, etc.) */
-  social-embed {
-    display: none !important;
-  }
-
-  /* Text highlighter elements */
-  highlighter-element {
-    display: none !important;
-  }
-
-  /* Content switcher (article ↔ deep-dive toggle) in breadcrumb row */
-  content-switcher {
-    display: none !important;
-  }
-
-  /* Related content carousel */
-  carousel-slider {
-    display: none !important;
-  }
-
-  /* Consent banner */
-  consent-banner {
-    display: none !important;
-  }
-
-  /* Bug reporter */
-  bug-reporter-modal-element {
-    display: none !important;
-  }
-
-  /* Theme picker modal */
-  theme-picker {
-    display: none !important;
-  }
-
-  /* Search bar */
-  search-bar {
-    display: none !important;
-  }
-
-  /* PWA title bar */
-  [style*="titlebar-area-height"] {
-    display: none !important;
-  }
-
-  /* Skip-to-content link */
-  [href="#main"] {
-    display: none !important;
-  }
-
-  /* Mastodon sharing modal */
-  mastodon-instance-modal {
-    display: none !important;
   }
 
   /* --------------------------------------------------------------------------
      Tabbed code blocks — print only the first language tab
      -------------------------------------------------------------------------- */
 
-  /* Hide the language tab bar */
-  code-tabs [role="tablist"] {
-    display: none !important;
-  }
-
   /* Hide all tab panels, then show only the first one */
   code-tabs [role="tabpanel"] {
     display: none !important;
   }
 
+  .code-tabs-print-header + pre,
+  .code-tabs-print-header + [role="tabpanel"] {
+    break-before: avoid;
+  }
+
   code-tabs [role="tabpanel"]:first-of-type {
     display: block !important;
+  }
+
+  .code-tabs-print-header {
+    break-after: avoid;
   }
 
   /* Hide copy buttons inside code blocks */
@@ -328,8 +349,11 @@
     background-color: #fff !important;
   }
 
-  .bg-page-offset,
-  [class*="bg-page"] {
+  /**
+   * Override header background to white for print, and remove the
+   * "offset" effect created by the pseudo-element
+   */
+  .site-header::after {
     background-color: #fff !important;
   }
 
@@ -339,7 +363,18 @@
 
   .callout,
   blockquote {
-    border-left: 3px solid var(--color-content) !important;
+    border-left: 3px solid var(--color-trim) !important;
     padding-left: 1em;
+  }
+}
+
+/* ==========================================================================
+   Color Print Stylesheet - use case is primarily for PDF generation
+   ========================================================================== */
+
+@media print and (color) {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

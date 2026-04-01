@@ -53,7 +53,7 @@ const { content, variant = 'default', classes, fullWidth = true } = Astro.props
 const classesProps = classes ? { classes } : {}
 const layoutProps = { ...classesProps, fullWidth }
 const wrapperClass = [
-  'overflow-x-auto rounded-md border border-trim bg-content-inverse',
+  'print-table-shell overflow-x-auto rounded-md border border-trim bg-content-inverse',
   fullWidth ? 'w-full' : 'mx-auto w-fit max-w-full',
 ].join(' ')
 ---
@@ -73,6 +73,6 @@ const wrapperClass = [
     {variant === 'vertical-column-delineation-table' && <VerticalColumnDelineationTable content={content as VerticalColumnDelineationTableProps['content']} {...layoutProps} />}
   </div>
   {content.figure && (
-    <figcaption class="italic text-base text-center mt-3" set:html={content.figure}></figcaption>
+    <figcaption class="screen-table-figure-caption italic text-base text-center mt-3" set:html={content.figure}></figcaption>
   )}
 </figure>

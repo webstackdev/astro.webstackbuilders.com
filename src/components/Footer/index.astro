@@ -62,7 +62,7 @@ const footerTextLinkClasses = [
 ---
 
 <site-footer transition:persist>
-  <footer class="w-full bg-page-offset mt-6 pt-4" role="contentinfo">
+  <footer class="w-full bg-page-offset mt-6 pt-4 print:hidden" role="contentinfo">
     <div
       id="footer-inner"
       class:list={[
@@ -79,11 +79,14 @@ const footerTextLinkClasses = [
           <div class="mr-3 w-16">
             <Avatar name="Kevin Brown" />
           </div>
+          {/* Mobile: company name */}
           <h2 class="font-bold text-2xl sm:hidden">{contactData.company.name}</h2>
         </div>
+        {/* Address and Phone Numbers Block */}
         <address class="mt-3 text-base sm:mt-0">
-          {/* Desktop: show company name here */}
+          {/* Desktop: company name */}
           <h2 class="hidden font-bold text-2xl sm:block">{contactData.company.name}</h2>
+          {/* Street Address */}
           <div class="mt-2 sm:ml-1">
             <p>{contactData.company.address}</p>
             <p>
@@ -91,6 +94,7 @@ const footerTextLinkClasses = [
               {contactData.company.index}
             </p>
           </div>
+          {/* Email Address */}
           <p class="hyphens-none">
             <a
               href={`mailto:${contactData.company.email}`}
@@ -103,6 +107,7 @@ const footerTextLinkClasses = [
               {contactData.company.email}
             </a>
           </p>
+          {/* Toll Free Telephone Number */}
           <p itemprop="telephone">
             <a
               href={`tel:${contactData.company.telephoneTollFree}`}
@@ -116,6 +121,7 @@ const footerTextLinkClasses = [
               Toll Free {formatPhoneNumber(contactData.company.telephoneTollFree)}
             </a>
           </p>
+          {/* Local Telephone Number */}
           <p itemprop="telephone">
             <a
               href={`tel:${contactData.company.telephoneLocal}`}
@@ -133,7 +139,10 @@ const footerTextLinkClasses = [
       </div>
 
       {/* "Hire Me" block with current month and year set by script */}
-      <div class:list={[styles.footerHireMe, 'hidden lg:block lg:self-end lg:mt-8']}>
+      <div class:list={[
+        styles.footerHireMe,
+        'hidden lg:block lg:self-end lg:mt-8',
+      ]}>
         <a
           href="/contact"
           id="page-footer__hire-me-anchor"

@@ -23,21 +23,32 @@ import PageNewsletter from './layouts/page.astro'
 export type Props = NewsletterProps
 
 const {
+  id,
   title = 'Stay Updated',
   description = 'Subscribe to our newsletter for the latest insights on web development and digital solutions.',
   placeholder = 'Enter your email address',
   buttonText = 'Subscribe',
   variant = 'article',
 } = Astro.props
+
+const idBase = id ?? `newsletter-cta-${variant}`
+const titleId = `${idBase}-title`
+const descriptionId = `${idBase}-description`
 ---
 
-<newsletter-form class="cta block print:hidden">
+<newsletter-form
+  class="cta block print:hidden!"
+  aria-labelledby={titleId}
+  aria-describedby={descriptionId}
+>
   {variant === 'article' && (
     <ArticleNewsletter
       title={title}
       description={description}
       placeholder={placeholder}
       buttonText={buttonText}
+      titleId={titleId}
+      descriptionId={descriptionId}
     />
   )}
   {variant === 'home' && (
@@ -46,6 +57,8 @@ const {
       description={description}
       placeholder={placeholder}
       buttonText={buttonText}
+      titleId={titleId}
+      descriptionId={descriptionId}
     />
   )}
   {variant === 'page' && (
@@ -54,6 +67,8 @@ const {
       description={description}
       placeholder={placeholder}
       buttonText={buttonText}
+      titleId={titleId}
+      descriptionId={descriptionId}
     />
   )}
 </newsletter-form>

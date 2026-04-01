@@ -3,6 +3,7 @@ export type Props = {
   content: {
     caption?: string
     subcaption?: string
+    figure?: string
     thead?: {
       th: string[]
     }
@@ -32,11 +33,12 @@ export type Props = {
 const { content, classes, fullWidth = true }: Props = Astro.props
 
 const tableClass = `text-left border-collapse${fullWidth ? ' w-full' : ''}`
-const captionClass = 'text-left px-5 py-3 text-content-offset'
+const captionClass = 'caption-top px-5 py-3 text-left text-content-offset'
 const headerClass = 'px-5 py-3 font-semibold text-content'
 const theadClass = 'bg-note-inverse/50 border-b border-trim'
 const tbodyClass = ''
 const tfootClass = ''
+const hasScreenCaption = Boolean(content.caption || content.subcaption)
 
 const stateClasses = {
   accent: {
@@ -157,12 +159,17 @@ const getCellStateClass = (cell: string | { label: string; color?: string }) => 
 }
 ---
 
-<table class:list={[tableClass, classes?.table]}>
-    {content.caption && (
-      <caption class:list={[captionClass, classes?.caption]} set:html={content.caption}></caption>
-    )}
-    {content.subcaption && (
-      <caption class:list={[captionClass, classes?.caption]} set:html={content.subcaption}></caption>
+<table class:list={[tableClass, content.thead ? 'print-table-has-head' : 'print-table-no-head', classes?.table]}>
+    {(hasScreenCaption || content.figure) && (
+      <caption class:list={[captionClass, content.figure ? 'print-table-caption' : '', !hasScreenCaption ? 'hidden' : '', classes?.caption]}>
+        {hasScreenCaption && (
+          <span class="screen-table-caption-copy">
+            {content.caption && <span class="block" set:html={content.caption}></span>}
+            {content.subcaption && <span class="block" set:html={content.subcaption}></span>}
+          </span>
+        )}
+        {content.figure && <span class="hidden print-table-figure-copy" set:html={content.figure}></span>}
+      </caption>
     )}
 
     {content.thead && (
