@@ -14,7 +14,7 @@ This uses MDAST with ~~strikethrough~~ text.
       const html = await processWithAstroSettings({ markdown, plugin: remarkAbbreviations })
 
       // Should have abbreviation
-      expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
+      expect(html).toContain('<abbr data-tooltip="" title="Markdown Abstract Syntax Tree">MDAST</abbr>')
       // Should have GFM strikethrough
       expect(html).toContain('<del>strikethrough</del>')
     })
@@ -31,7 +31,7 @@ This uses MDAST with ~~strikethrough~~ text.
       const html = await processWithAstroSettings({ markdown, plugin: remarkAbbreviations })
 
       expect(html).toContain('<table')
-      expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
+      expect(html).toContain('<abbr data-tooltip="" title="Markdown Abstract Syntax Tree">MDAST</abbr>')
     })
 
     it('should work with GFM autolinks', async () => {
@@ -60,7 +60,7 @@ This uses MDAST[^1].
 
       const html = await processWithAstroSettings({ markdown, plugin: remarkAbbreviations })
 
-      expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
+      expect(html).toContain('<abbr data-tooltip="" title="Markdown Abstract Syntax Tree">MDAST</abbr>')
       // Footnote reference should be present
       expect(html).toContain('footnote')
     })
@@ -76,7 +76,7 @@ The "MDAST" format is great.
 
       const html = await processWithAstroSettings({ markdown, plugin: remarkAbbreviations })
 
-      expect(html).toContain('<abbr title="Markdown Abstract Syntax Tree">MDAST</abbr>')
+      expect(html).toContain('<abbr data-tooltip="" title="Markdown Abstract Syntax Tree">MDAST</abbr>')
       // Note: smartypants is handled by Astro's internal processing, not in our test pipeline
     })
   })

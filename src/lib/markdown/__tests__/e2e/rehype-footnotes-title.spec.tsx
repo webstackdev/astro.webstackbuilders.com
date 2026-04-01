@@ -25,11 +25,16 @@ afterEach(() => {
 })
 
 describe('Layer 3: E2E - rehypeFootnotesTitle', () => {
-  it('should add a title attribute to footnote backrefs', () => {
+  it('should wrap footnote backrefs in explicit tooltip markup', () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
+    const tooltip = container.querySelector('site-tooltip')
     const backref = container.querySelector('a[data-footnote-backref]')
+    const popup = container.querySelector('[data-tooltip-popup]')
+
+    expect(tooltip).toBeTruthy()
     expect(backref).toBeTruthy()
-    expect(backref?.getAttribute('title')).toBe('Return to footnote 1')
+    expect(backref?.getAttribute('title')).toBeNull()
+    expect(popup?.textContent).toBe('Return to footnote 1')
   })
 })

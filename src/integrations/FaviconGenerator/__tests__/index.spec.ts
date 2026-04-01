@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, afterAll, vi, type Mock } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
 import sharp, { type Metadata } from 'sharp'
 import toIco from 'to-ico'
 import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
-import { isUnitTest } from '@lib/config/environmentServer'
 import { TestError } from '@test/errors'
 
 // Mock external dependencies before any imports
@@ -46,16 +45,6 @@ describe('FaviconGenerator Integration', () => {
     consoleLogSpy.mockRestore()
     consoleWarnSpy.mockRestore()
     consoleErrorSpy.mockRestore()
-  })
-
-  // Clean shutdown after all tests complete
-  afterAll(() => {
-    // Force process exit after a brief delay to allow cleanup
-    setTimeout(() => {
-      if (isUnitTest()) {
-        process.exit(0)
-      }
-    }, 100)
   })
 
   describe('Integration Setup', () => {

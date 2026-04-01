@@ -271,6 +271,10 @@ export const remarkRehypeConfig: RemarkRehypeOptions = {
   footnoteBackLabel: 'Back to reference 1',
   /** Footnote label displayed at start of footnote section */
   footnoteLabel: 'Footnotes',
+  /** Add a class for no print on footnotes */
+  footnoteLabelProperties: {
+    className: ['print:hidden'],
+  },
   /** Convert GridTables mdast nodes to standard HTML table output */
   handlers: {
     [TYPE_TABLE]: mdast2hastGridTablesHandler(),

@@ -191,6 +191,7 @@ function replaceAbbreviations(
             data: {
               hName: 'abbr',
               hProperties: {
+                'data-tooltip': '',
                 title: reference,
               },
               hChildren: [{ type: 'text', value: abbr }],
@@ -213,6 +214,7 @@ function replaceAbbreviations(
             data: {
               hName: 'abbr',
               hProperties: {
+                'data-tooltip': '',
                 title: reference,
               },
               hChildren: [{ type: 'text', value: abbr }],

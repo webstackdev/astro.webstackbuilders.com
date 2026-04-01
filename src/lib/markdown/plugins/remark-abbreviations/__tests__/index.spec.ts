@@ -136,8 +136,8 @@ for (const [configName, config] of Object.entries(configToTest)) {
         config
       )
 
-      expect(value).toContain(`<abbr title="ref1">A.B.C.</abbr>`)
-      expect(value).toContain(`<abbr title="ref2">C-D%F.</abbr>`)
+      expect(value).toContain(`<abbr data-tooltip="" title="ref1">A.B.C.</abbr>`)
+      expect(value).toContain(`<abbr data-tooltip="" title="ref2">C-D%F.</abbr>`)
     })
 
     it('does not parse words starting with abbr', async () => {
@@ -227,7 +227,7 @@ describe('heading exclusion', () => {
     // Heading should contain plain text, no <abbr>
     expect(value).toContain('<h1>Understanding the HTML Specification</h1>')
     // Body paragraph should still get <abbr>
-    expect(value).toContain('<abbr title="HyperText Markup Language">HTML</abbr>')
+    expect(value).toContain('<abbr data-tooltip="" title="HyperText Markup Language">HTML</abbr>')
   })
 
   it('skips all heading levels (h1–h6)', async () => {
@@ -242,6 +242,6 @@ describe('heading exclusion', () => {
     `)
     expect(value).toContain('<h2>HTML in h2</h2>')
     expect(value).toContain('<h3>HTML in h3</h3>')
-    expect(value).toContain('<abbr title="HyperText Markup Language">HTML</abbr>')
+    expect(value).toContain('<abbr data-tooltip="" title="HyperText Markup Language">HTML</abbr>')
   })
 })

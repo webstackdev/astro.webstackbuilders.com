@@ -1,22 +1,6 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-## ToolTips
-
-Need a tooltip component for consistency.
-
-List to add tooltips to:
-
-- Themepicker button
-- Search button
-
-These have tooltips, how are they being generated?
-
-- "Report a Bug" in footer
-- RSS feed icon in footer
-
-- Improve `<abbr>` styling: https://codepen.io/ire/pen/NoqWpm
-
 ## HubSpot Signup Issues / Gated Content (Downloads)
 
 - Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
