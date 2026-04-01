@@ -4,7 +4,7 @@ import { rehypeFootnotesTitleConfig } from '@lib/config/markdown'
 import { processIsolated } from '@lib/markdown/helpers/processors'
 
 describe('rehype-footnotes-title (Layer 1: Isolated)', () => {
-  it('should add title attribute to footnote backrefs', async () => {
+  it('should wrap footnote backrefs in explicit tooltip markup', async () => {
     const markdown = `Here is a footnote.[^1]
 
 [^1]: My reference.`
@@ -17,8 +17,12 @@ describe('rehype-footnotes-title (Layer 1: Isolated)', () => {
       gfm: true,
     })
 
+    expect(html).toContain('<site-tooltip')
     expect(html).toContain('data-footnote-backref')
-    expect(html).toContain('title="Return to footnote 1"')
+    expect(html).toContain('data-tooltip-trigger')
+    expect(html).toContain('data-tooltip-popup')
+    expect(html).toContain('Return to footnote 1')
+    expect(html).not.toContain('title="Return to footnote 1"')
   })
 
   it('should not add title attribute to footnote references', async () => {
