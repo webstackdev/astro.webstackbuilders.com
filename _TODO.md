@@ -1,26 +1,12 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
-## HubSpot Signup Issues / Gated Content (Downloads)
-
-- Add people who sign up for newsletter, download, or fill out contact form to Hubspot tracking. Need to configure it to remove them if they do the GDPR remove me. Also remove them from the newsletter.
-
-- We need a gating system, where the user gets a token to be able to download a PDF and the token is checked before downloading. If a reader has already given their email address - newsletter signup, contact form, download registration, then the download CTA on short form articles should show the PDF download button instead of trying to collect email addresses again.
-
-## Youtube video for Backstage IDP hero on Home page
-
-Discuss agentic AI integrations to add to Backstage
-
 ## Chat bot tying into my phone and email
 
 Vercel AI Gateway, maybe could use for a chatbot:
 
 https://vercel.com/kevin-browns-projects-dd474f73/astro-webstackbuilders-com/ai-gateway
 https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2026-aeeff5e13f4a
-
-## Move Docker containers to dev server from Playwright
-
-We should start the mock containers with the dev server instead of with Playwright so that they're useable in a dev environment.
 
 ## Link Validator
 
@@ -41,6 +27,11 @@ We should start the mock containers with the dev server instead of with Playwrig
 
 - Need an article on OpenStack
 
+## Youtube video for Backstage IDP hero on Home page
+
+- Discuss agentic AI integrations to add to Backstage
 - Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
+
+## Deep Dive Link
 
 - Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.

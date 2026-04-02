@@ -9,7 +9,7 @@ isDraft: false
 fileType: "Whitepaper"
 fileSize: "2.3 MB"
 pages: 24
-fileName: "*.pdf"
+fileName: "circuit-breaker-retry-budget-cascade-failure-prevention.pdf"
 ---
 
 A payment service starts responding slowly due to database connection pool exhaustion. Response times climb from 50ms to 2 seconds. Every upstream service has a 1-second timeout configured, so requests start timing out. Each caller retries 3 times. The payment service, already struggling with connection issues, now receives 4x the normal traffic. Its request queue grows to thousands. What started as a 30-second database blip becomes a 2-hour cascading outage across your entire platform.
@@ -22,6 +22,9 @@ Read this e-book to understand:
 
 <List
   variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
   items={[
     { text: "Retry amplification math: how exponential growth turns minor failures into catastrophic outages" },
     { text: "The three states of circuit breakers: closed, open, half-open, and when to transition" },

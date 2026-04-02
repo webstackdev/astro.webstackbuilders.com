@@ -13,7 +13,7 @@ import { createConsentRecord, markConsentRecordsVerified } from '@actions/gdpr/e
 import { createPendingSubscription, confirmSubscription } from '@actions/newsletter/domain'
 import { validateEmail } from '@actions/newsletter/utils'
 import { sendConfirmationEmail, sendWelcomeEmail } from '@actions/newsletter/entities/email'
-import { subscribeToConvertKit } from '@actions/newsletter/entities/subscribe'
+import { createOrUpdateContact, addContactToNewsletterList, setMarketingOptIn } from '@actions/utils/hubspot'
 
 const subscribeSchema = z.object({
   email: z.string(),
@@ -146,14 +146,16 @@ export const newsletter = {
       }
 
       try {
-        await subscribeToConvertKit({
+        const contact = await createOrUpdateContact({
           email: subscription.email,
-          ...(subscription.firstName ? { firstName: subscription.firstName } : {}),
+          ...(subscription.firstName ? { firstname: subscription.firstName } : {}),
         })
-      } catch (convertKitError) {
-        handleActionsFunctionError(convertKitError, {
+        await setMarketingOptIn(contact.id, true)
+        await addContactToNewsletterList(contact.id)
+      } catch (hubspotError) {
+        handleActionsFunctionError(hubspotError, {
           route: '/_actions/newsletter/confirm',
-          operation: 'subscribeToConvertKit',
+          operation: 'hubspotSubscribe',
         })
       }
 

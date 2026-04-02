@@ -8,8 +8,9 @@ import {
   getResendApiKey,
   isProd,
 } from '@actions/utils/environment/environmentActions'
-import { ActionsFunctionError, throwActionError } from '@actions/utils/errors'
+import { ActionsFunctionError, handleActionsFunctionError, throwActionError } from '@actions/utils/errors'
 import { createConsentRecord } from '@actions/gdpr/entities/consent'
+import { createOrUpdateContact, setMarketingOptIn } from '@actions/utils/hubspot'
 import type { FileAttachment, EmailData } from '@actions/contact/@types'
 import { contactFormInputSchema } from './domain'
 import {
@@ -102,6 +103,21 @@ export const contact = {
           },
           files
         )
+
+        if (formData.consent) {
+          try {
+            const contact = await createOrUpdateContact({
+              email: formData.email.trim(),
+              firstname: formData.name.trim(),
+            })
+            await setMarketingOptIn(contact.id, true)
+          } catch (hubspotError) {
+            handleActionsFunctionError(hubspotError, {
+              route: '/_actions/contact/submit',
+              operation: 'hubspotCreateContact',
+            })
+          }
+        }
 
         return {
           success: true,

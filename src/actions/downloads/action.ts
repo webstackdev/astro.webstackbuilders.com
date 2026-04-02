@@ -4,6 +4,8 @@ import { z } from 'astro/zod'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import { createConsentRecord } from '@actions/gdpr/entities/consent'
 import { getPrivacyPolicyVersion } from '@actions/utils/environment/environmentActions'
+import { handleActionsFunctionError } from '@actions/utils/errors'
+import { createOrUpdateContact, setMarketingOptIn } from '@actions/utils/hubspot'
 
 export const inputSchema = z.object({
   firstName: z.string().trim().min(1),
@@ -61,6 +63,22 @@ export const downloads = {
         company: input.companyName,
         timestamp: new Date().toISOString(),
       })
+
+      try {
+        const contact = await createOrUpdateContact({
+          email: input.workEmail.trim(),
+          firstname: input.firstName.trim(),
+          lastname: input.lastName.trim(),
+        })
+        if (input.consent) {
+          await setMarketingOptIn(contact.id, true)
+        }
+      } catch (hubspotError) {
+        handleActionsFunctionError(hubspotError, {
+          route: '/_actions/downloads/submit',
+          operation: 'hubspotCreateContact',
+        })
+      }
 
       return {
         success: true,

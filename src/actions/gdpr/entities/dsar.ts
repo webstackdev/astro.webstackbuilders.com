@@ -9,6 +9,8 @@ import type {
 } from '@actions/gdpr/@types'
 import { deleteNewsletterConfirmationsByEmail } from '@actions/newsletter/domain'
 import { deleteConsentRecordsByEmail, findConsentRecordsByEmail } from '@actions/gdpr/entities/consent'
+import { handleActionsFunctionError } from '@actions/utils/errors'
+import { purgeContact } from '@actions/utils/hubspot'
 
 export async function findActiveRequestByEmail(
   email: string,
@@ -120,6 +122,16 @@ export async function verifyDsarToken(token: string): Promise<DsarVerifyResult> 
   if (requestType === 'DELETE') {
     await deleteConsentRecordsByEmail(email)
     await deleteNewsletterConfirmationsByEmail(email)
+    try {
+      await purgeContact(email)
+    } catch (hubspotError) {
+      // Log and report to Sentry but do not block the GDPR deletion — local
+      // data has already been removed and the request must be marked fulfilled.
+      handleActionsFunctionError(hubspotError, {
+        route: '/_actions/gdpr/dsar',
+        operation: 'hubspotPurgeContact',
+      })
+    }
     await markDsarRequestFulfilled(token)
     return { status: 'deleted' }
   }

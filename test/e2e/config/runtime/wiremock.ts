@@ -25,7 +25,7 @@ const runDocker = (args: string[]) => {
   })
 }
 
-const waitForHealthy = async (service: 'convertkit' | 'resend', timeoutMs = 15000) => {
+const waitForHealthy = async (service: 'resend' | 'hubspot', timeoutMs = 15000) => {
   const deadline = Date.now() + timeoutMs
   const url = `${buildWiremockBaseUrl(service)}/__admin/mappings`
 
@@ -45,9 +45,9 @@ const waitForHealthy = async (service: 'convertkit' | 'resend', timeoutMs = 1500
 }
 
 export const startWiremock = async () => {
-  await runDocker(['up', '-d', 'convertkit-mock', 'resend-mock'])
-  await waitForHealthy('convertkit')
+  await runDocker(['up', '-d', 'resend-mock', 'hubspot-mock'])
   await waitForHealthy('resend')
+  await waitForHealthy('hubspot')
 }
 
 export const stopWiremock = async () => {

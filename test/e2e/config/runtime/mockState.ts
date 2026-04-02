@@ -2,7 +2,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { buildWiremockBaseUrl } from '../../helpers/wiremockConfig'
 
-type WiremockService = 'convertkit' | 'resend'
+type WiremockService = 'resend' | 'hubspot'
 
 interface WiremockState {
   services: Record<WiremockService, { baseUrl: string }>
@@ -19,8 +19,8 @@ const getStateFilePath = () => {
 
 const buildStatePayload = (): WiremockState => {
   const services: WiremockState['services'] = {
-    convertkit: { baseUrl: buildWiremockBaseUrl('convertkit') },
     resend: { baseUrl: buildWiremockBaseUrl('resend') },
+    hubspot: { baseUrl: buildWiremockBaseUrl('hubspot') },
   }
 
   return {
