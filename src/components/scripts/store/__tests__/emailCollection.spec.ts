@@ -2,7 +2,6 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  $emailCollection,
   __resetEmailCollectionForTests,
   clearCollectedEmail,
   getEmailCollectionSnapshot,
