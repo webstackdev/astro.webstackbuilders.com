@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/crm/v3/objects/contacts",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .*"
+      }
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": "{\n  \"id\": \"{{randomValue length=6 type='NUMERIC'}}\",\n  \"properties\": {\n    \"email\": \"{{jsonPath request.body '$.properties.email'}}\",\n    \"firstname\": \"{{jsonPath request.body '$.properties.firstname'}}\",\n    \"lastname\": \"{{jsonPath request.body '$.properties.lastname'}}\",\n    \"hs_marketable_status\": \"false\",\n    \"createdate\": \"{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSSXXX'}}\",\n    \"lastmodifieddate\": \"{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSSXXX'}}\"\n  },\n  \"createdAt\": \"{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSSXXX'}}\",\n  \"updatedAt\": \"{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSSXXX'}}\",\n  \"archived\": false\n}",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Mock-Service": "hubspot"
+    },
+    "transformers": ["response-template"]
+  }
+}

@@ -75,9 +75,11 @@ vi.mock('@actions/newsletter/entities/email', () => {
   }
 })
 
-vi.mock('@actions/newsletter/entities/subscribe', () => {
+vi.mock('@actions/utils/hubspot', () => {
   return {
-    subscribeToConvertKit: vi.fn(async () => undefined),
+    createOrUpdateContact: vi.fn(async () => ({ id: '42' })),
+    setMarketingOptIn: vi.fn(async () => undefined),
+    addContactToNewsletterList: vi.fn(async () => undefined),
   }
 })
 
@@ -345,7 +347,7 @@ describe('newsletter.confirm.handler', () => {
     const { newsletter } = await import('../action')
     const { markConsentRecordsVerified } = await import('@actions/gdpr/entities/consent')
     const { sendWelcomeEmail } = await import('@actions/newsletter/entities/email')
-    const { subscribeToConvertKit } = await import('@actions/newsletter/entities/subscribe')
+    const { createOrUpdateContact, setMarketingOptIn, addContactToNewsletterList } = await import('@actions/utils/hubspot')
 
     const context = {
       request: new Request('https://example.com/_actions/newsletter/confirm', { method: 'POST' }),
@@ -362,7 +364,9 @@ describe('newsletter.confirm.handler', () => {
       '3f2d0e5a-7e8d-4b3c-9a6a-2b5d84c6f3a2'
     )
     expect(sendWelcomeEmail).toHaveBeenCalledWith('test@example.com', 'Test')
-    expect(subscribeToConvertKit).toHaveBeenCalledWith({ email: 'test@example.com', firstName: 'Test' })
+    expect(createOrUpdateContact).toHaveBeenCalledWith({ email: 'test@example.com', firstname: 'Test' })
+    expect(setMarketingOptIn).toHaveBeenCalledWith('42', true)
+    expect(addContactToNewsletterList).toHaveBeenCalledWith('42')
 
     expect(response).toMatchObject({
       success: true,

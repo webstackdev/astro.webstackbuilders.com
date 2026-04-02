@@ -6,6 +6,7 @@ import { updateConsent } from './consent'
 import { cacheEmbed } from './socialEmbeds'
 import { saveMastodonInstance } from './mastodonInstances'
 import { setOverlayPauseState } from './animationLifecycle'
+import { markEmailCollected } from './emailCollection'
 
 // Re-export types
 export type {} from './@types'
@@ -131,6 +132,19 @@ export {
   toggleHeaderSearch,
 } from './search'
 
+// Re-export email collection
+export {
+  $emailCollection, // only allowed to use in tests
+  __resetEmailCollectionForTests,
+  clearCollectedEmail,
+  createEmailCollectionController,
+  getEmailCollectionSnapshot,
+  markEmailCollected,
+  subscribeToEmailCollection,
+  type EmailCollectionState,
+  type EmailSource,
+} from './emailCollection'
+
 /**
  * Expose a limited set of store actions during Playwright runs so E2E tests
  * can seed state without relying on private internals or DOM-only flows.
@@ -145,5 +159,6 @@ export function exposeStoreActionsForTesting(): void {
     cacheEmbed,
     saveMastodonInstance,
     setOverlayPauseState,
+    markEmailCollected,
   })
 }

@@ -100,14 +100,6 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       optional: false,
     }),
     /**
-     * Site uses ConvertKit for managing newsletter subscriptions
-     */
-    CONVERTKIT_API_KEY: envField.string({
-      access: 'public',
-      context: 'server',
-      optional: true,
-    }),
-    /**
      * Vercel uses optional cron secret to prevent abuse of services
      */
     CRON_SECRET: envField.string({
@@ -119,6 +111,23 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
      * Site uses Resend for sending site emails
      */
     RESEND_API_KEY: envField.string({
+      access: 'public',
+      context: 'server',
+      optional: true,
+    }),
+    /**
+     * HubSpot Private App access token for CRM contact management.
+     * Used for newsletter subscriptions, download gating, and GDPR purge.
+     */
+    HUBSPOT_ACCESS_TOKEN: envField.string({
+      access: 'secret',
+      context: 'server',
+      optional: true,
+    }),
+    /**
+     * HubSpot static list ID for newsletter subscribers.
+     */
+    HUBSPOT_NEWSLETTER_LIST_ID: envField.string({
       access: 'public',
       context: 'server',
       optional: true,

@@ -1,29 +1,6 @@
 name: wb-e2e-mocks
 
 services:
-  convertkit-mock:
-    image: wiremock/wiremock:3.6.0
-    container_name: ${COMPOSE_PROJECT_NAME:-wb}-convertkit-mock
-    restart: unless-stopped
-    environment:
-      - JAVA_OPTS=-XX:MaxRAMPercentage=75.0
-    command:
-      - "--verbose"
-      - "--port=8080"
-      - "--global-response-templating"
-    ports:
-      - "${CONVERTKIT_HTTP_PORT:-9010}:8080"
-    volumes:
-      - ./convertkit/mappings:/home/wiremock/mappings:ro
-      - ./convertkit/__files:/home/wiremock/__files:ro
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/__admin/mappings"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-    networks:
-      - e2e-mocks
-
   resend-mock:
     image: wiremock/wiremock:3.6.0
     container_name: ${COMPOSE_PROJECT_NAME:-wb}-resend-mock
@@ -39,6 +16,29 @@ services:
     volumes:
       - ./resend/mappings:/home/wiremock/mappings:ro
       - ./resend/__files:/home/wiremock/__files:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/__admin/mappings"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    networks:
+      - e2e-mocks
+
+  hubspot-mock:
+    image: wiremock/wiremock:3.6.0
+    container_name: ${COMPOSE_PROJECT_NAME:-wb}-hubspot-mock
+    restart: unless-stopped
+    environment:
+      - JAVA_OPTS=-XX:MaxRAMPercentage=75.0
+    command:
+      - "--verbose"
+      - "--port=8080"
+      - "--global-response-templating"
+    ports:
+      - "${HUBSPOT_HTTP_PORT:-9012}:8080"
+    volumes:
+      - ./hubspot/mappings:/home/wiremock/mappings:ro
+      - ./hubspot/__files:/home/wiremock/__files:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/__admin/mappings"]
       interval: 10s

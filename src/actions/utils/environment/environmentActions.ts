@@ -6,7 +6,11 @@ import {
   PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN,
   PUBLIC_UPSTASH_SEARCH_REST_URL,
 } from 'astro:env/client'
-import { CONVERTKIT_API_KEY, RESEND_API_KEY } from 'astro:env/server'
+import {
+  HUBSPOT_ACCESS_TOKEN,
+  HUBSPOT_NEWSLETTER_LIST_ID,
+  RESEND_API_KEY,
+} from 'astro:env/server'
 
 export {
   isCI,
@@ -55,13 +59,22 @@ export function getPackageRelease(): string {
   return release
 }
 
-export function getConvertkitApiKey(): string {
-  if (!CONVERTKIT_API_KEY) {
+export function getHubspotAccessToken(): string {
+  if (!HUBSPOT_ACCESS_TOKEN) {
     throw new ActionsFunctionError(
-      'CONVERTKIT_API_KEY environment variable is not set. This is either set in a .env file locally during development, in GitHub Secrets and made available in CI runs by the .github/workflows actions, or by Vercel as an env var made available to serverless functions in deployment.'
+      'HUBSPOT_ACCESS_TOKEN environment variable is not set. This is either set in a .env file locally during development, in GitHub Secrets and made available in CI runs by the .github/workflows actions, or by Vercel as an env var made available to serverless functions in deployment.'
     )
   }
-  return CONVERTKIT_API_KEY
+  return HUBSPOT_ACCESS_TOKEN
+}
+
+export function getHubspotNewsletterListId(): string {
+  if (!HUBSPOT_NEWSLETTER_LIST_ID) {
+    throw new ActionsFunctionError(
+      'HUBSPOT_NEWSLETTER_LIST_ID environment variable is not set. This is required for adding contacts to the newsletter list in HubSpot.'
+    )
+  }
+  return HUBSPOT_NEWSLETTER_LIST_ID
 }
 
 export function getResendApiKey(): string {

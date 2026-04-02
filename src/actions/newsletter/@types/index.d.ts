@@ -5,28 +5,6 @@ export type NewsletterFormData = {
   DataSubjectId?: string
 }
 
-export type ConvertKitSubscriber = {
-  email_address: string
-  first_name?: string
-  state?: 'active' | 'inactive'
-  fields?: Record<string, string>
-}
-
-export type ConvertKitResponse = {
-  subscriber: {
-    id: number
-    first_name: string | null
-    email_address: string
-    state: string
-    created_at: string
-    fields: Record<string, string>
-  }
-}
-
-export type ConvertKitErrorResponse = {
-  errors: string[]
-}
-
 export interface PendingSubscription {
   email: string
   firstName?: string | undefined

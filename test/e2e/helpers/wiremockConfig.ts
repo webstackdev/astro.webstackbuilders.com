@@ -1,17 +1,21 @@
 import { env } from 'node:process'
 
-type WiremockService = 'convertkit' | 'resend'
+type WiremockService = 'resend' | 'hubspot'
 
 const getHost = () => env['WIREMOCK_HOST'] ?? '127.0.0.1'
 
 const getPort = (service: WiremockService) => {
   const defaults: Record<WiremockService, number> = {
-    convertkit: 9010,
     resend: 9011,
+    hubspot: 9012,
   }
 
-  const envKey = service === 'convertkit' ? 'CONVERTKIT_HTTP_PORT' : 'RESEND_HTTP_PORT'
-  return Number(env[envKey] ?? defaults[service])
+  const envKeyMap: Record<WiremockService, string> = {
+    resend: 'RESEND_HTTP_PORT',
+    hubspot: 'HUBSPOT_HTTP_PORT',
+  }
+
+  return Number(env[envKeyMap[service]] ?? defaults[service])
 }
 
 export const buildWiremockBaseUrl = (service: WiremockService) => {

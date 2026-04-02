@@ -132,6 +132,6 @@ export class WiremockClient {
 }
 
 export const wiremock = {
-  convertkit: new WiremockClient('convertkit'),
   resend: new WiremockClient('resend'),
+  hubspot: new WiremockClient('hubspot'),
 }

@@ -40,7 +40,7 @@ const suppressedConsoleMessagePatterns = [
   /🍪 Modal dismissed by user/i,
   /🍪 User accepted all cookies/i,
   /\[DEV\/TEST MODE\] Newsletter subscription would be created:/i,
-  /ConvertKit API authentication failed:/i,
+  /\[DEV\/TEST MODE\] HubSpot /i,
   /\[Newsletter Email\] Failed to send confirmation:/i,
 ]
 
