@@ -49,6 +49,8 @@ const CONTENT_PADDING_LEFT_IN = CONTENT_PADDING_CM.left / CM_PER_IN
 const CONTENT_PADDING_RIGHT_IN = CONTENT_PADDING_CM.right / CM_PER_IN
 const CONTENT_HEIGHT_PX = (PAGE_HEIGHT_IN - CONTENT_PADDING_TOP_IN - CONTENT_PADDING_BOTTOM_IN) * 96
 const CONTENT_WIDTH_PX = (8.5 - CONTENT_PADDING_LEFT_IN - CONTENT_PADDING_RIGHT_IN) * 96
+const ASSET_SETTLE_TIMEOUT_MS = 30_000
+const LAYOUT_SETTLE_DELAY_MS = 500
 
 // --- Templates ---
 
@@ -116,6 +118,81 @@ const writeMergedPdf = async ({ coverPdfBytes, fullPdfBytes, outputPdf }) => {
   writeFileSync(outputPdf, await mergedPdf.save())
 }
 
+const wait = (durationMs) => new Promise(resolve => setTimeout(resolve, durationMs))
+
+const forceLazyAssetsToLoad = async (page) => {
+  await page.evaluate(async () => {
+    const documentRoot = globalThis.document.scrollingElement ?? globalThis.document.documentElement
+    const pause = (durationMs) => new Promise(resolve => globalThis.setTimeout(resolve, durationMs))
+    const viewportHeight = globalThis.innerHeight || 800
+    const step = Math.max(200, Math.floor(viewportHeight * 0.9))
+
+    for (const image of Array.from(globalThis.document.images)) {
+      image.loading = 'eager'
+      image.decoding = 'sync'
+
+      if ('fetchPriority' in image) {
+        image.fetchPriority = 'high'
+      }
+    }
+
+    for (let top = 0; top < documentRoot.scrollHeight; top += step) {
+      documentRoot.scrollTop = top
+      await pause(50)
+    }
+
+    documentRoot.scrollTop = 0
+    await pause(50)
+  })
+}
+
+const waitForPageAssets = async (page) => {
+  await page.evaluate(async (timeoutMs) => {
+    const pause = (durationMs) => new Promise(resolve => globalThis.setTimeout(resolve, durationMs))
+    const withTimeout = async (promiseFactory) => {
+      const timeoutPromise = pause(timeoutMs)
+
+      try {
+        await Promise.race([promiseFactory(), timeoutPromise])
+      } catch {
+        await timeoutPromise
+      }
+    }
+
+    if (globalThis.document.fonts?.ready) {
+      await withTimeout(() => globalThis.document.fonts.ready)
+    }
+
+    await Promise.allSettled(
+      Array.from(globalThis.document.images).map(async (image) => {
+        image.loading = 'eager'
+        image.decoding = 'sync'
+
+        if ('fetchPriority' in image) {
+          image.fetchPriority = 'high'
+        }
+
+        if (!image.complete) {
+          await withTimeout(() => new Promise(resolve => {
+            const done = () => {
+              image.removeEventListener('load', done)
+              image.removeEventListener('error', done)
+              resolve()
+            }
+
+            image.addEventListener('load', done, { once: true })
+            image.addEventListener('error', done, { once: true })
+          }))
+        }
+
+        if (typeof image.decode === 'function') {
+          await withTimeout(() => image.decode())
+        }
+      })
+    )
+  }, ASSET_SETTLE_TIMEOUT_MS)
+}
+
 // --- PDF generation ---
 
 const generatePdf = async (browser, slug) => {
@@ -135,24 +212,14 @@ const generatePdf = async (browser, slug) => {
       height: Math.round(CONTENT_HEIGHT_PX),
     })
 
-    await page.goto(inputUrl, { waitUntil: 'networkidle2', timeout: 60_000 })
+    await page.goto(inputUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 })
     await page.emulateMediaType('print')
 
-    // Wait for web fonts so PDF typography matches the site instead of fallback metrics.
-    await page.evaluate(() => {
-      return globalThis.document.fonts.ready
-    })
+    await forceLazyAssetsToLoad(page)
+    await waitForPageAssets(page)
 
-    // Wait for all images to finish loading
-    await page.evaluate(() => {
-      const doc = globalThis.document
-
-      return Promise.all(
-        Array.from(doc.images)
-          .filter(img => !img.complete)
-          .map(img => new Promise(r => { img.onload = r; img.onerror = r }))
-      )
-    })
+    // Final settle — give any remaining layout shifts a moment to resolve
+    await wait(LAYOUT_SETTLE_DELAY_MS)
 
     const title = await page.title()
 
