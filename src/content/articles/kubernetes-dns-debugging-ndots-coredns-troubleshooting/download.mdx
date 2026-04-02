@@ -9,7 +9,7 @@ isDraft: false
 fileType: "Whitepaper"
 fileSize: "2.3 MB"
 pages: 24
-fileName: "*.pdf"
+fileName: "kubernetes-dns-debugging-ndots-coredns-troubleshooting.pdf"
 ---
 
 An application works perfectly in development. In Kubernetes, external API calls take 5+ seconds while the API responds in 100ms. After hours debugging network policies and service meshes, the culprit is revealed: `ndots:5` on a default `resolv.conf`. Every lookup like `api.stripe.com` tries the search domain first: `api.stripe.com.default.svc.cluster.local`, `api.stripe.com.svc.cluster.local`, `api.stripe.com.cluster.local`. Three failed lookups at one second each equals the mysterious latency. The fix: add a trailing dot. DNS is often the problem. Rule it out early to avoid hours of debugging in the wrong direction.

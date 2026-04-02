@@ -9,7 +9,7 @@ isDraft: false
 fileType: "Whitepaper"
 fileSize: "2.3 MB"
 pages: 24
-fileName: "*.pdf"
+fileName: "api-gateway-metrics-traces-logs-debugging.pdf"
 ---
 
 Four hours debugging a latency spike revealed the problem: the gateway metrics measured the wrong thing. Users saw 5-second delays, the gateway dashboard showed 200ms P99 latency, and every backend claimed sub-100ms response times. The real issue—4 seconds spent waiting for slow consumers to upload request bodies — never appeared in any metric. Gateway observability that does not connect to upstream and downstream services is useless.

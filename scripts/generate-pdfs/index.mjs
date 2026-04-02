@@ -135,7 +135,7 @@ const generatePdf = async (browser, slug) => {
       height: Math.round(CONTENT_HEIGHT_PX),
     })
 
-    await page.goto(inputUrl, { waitUntil: 'networkidle0', timeout: 60_000 })
+    await page.goto(inputUrl, { waitUntil: 'networkidle2', timeout: 60_000 })
     await page.emulateMediaType('print')
 
     // Wait for web fonts so PDF typography matches the site instead of fallback metrics.
