@@ -34,3 +34,5 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 ## Content Issues
 
 - Need an article on OpenStack
+
+- The one I'd add that's less obvious than newsletters is reading incident retros from companies that publish them well. Railway just published one this week. Cloudflare publishes consistently. Anthropic does a good job. They're more useful than most newsletter issues.
