@@ -17,9 +17,9 @@ const liClasses = isRoot
   : "relative before:content-[''] before:absolute before:top-[0.8rem] before:-left-6 before:w-5 before:border-t before:border-dashed before:border-(--color-trim) last:border-l last:border-solid last:border-(--color-page-base) last:-ml-6 last:pl-6 last:before:left-0"
 ---
 
-<li class={liClasses} role="none">
+<li class={liClasses}>
   <div class="flex items-center">
-    <div class="group flex items-center py-1 node" role="treeitem" aria-level={String(path.split('/').length)}>
+    <div class="group flex items-center py-1 node">
       {hasChildren && (
         <span
           aria-hidden="true"
@@ -67,7 +67,7 @@ const liClasses = isRoot
   {node.note && <p class="ml-9 mt-2 note-text leading-relaxed text-content-offset">{node.note}</p>}
 
   {hasChildren && (
-    <ul role="group" class="list-none p-0 m-0 pl-6 border-l border-dashed border-(--color-trim) ml-2 children">
+    <ul class="list-none p-0 m-0 pl-6 border-l border-dashed border-(--color-trim) ml-2 children">
       {node.children?.map((childNode, index) => <FileExplorerPrintNode node={childNode} path={`${path}/${index}`} />)}
     </ul>
   )}
