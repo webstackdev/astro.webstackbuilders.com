@@ -1,0 +1,84 @@
+---
+import type { FileSystemNode } from '@components/FileExplorer/client/index'
+import PrintNode from '@components/FileExplorer/PrintNode.astro'
+
+export type Props = {
+  data: FileSystemNode[]
+  figure?: string
+  classes?: {
+    wrapper?: string
+  }
+  fullWidth?: boolean
+}
+
+const {
+  data = [],
+  figure,
+  classes = {},
+  fullWidth = true,
+} = Astro.props
+
+const wrapperClass = [
+  'file-explorer-print',
+  'my-6',
+  'block',
+  'mx-auto',
+  fullWidth ? 'w-full' : 'w-fit max-w-full',
+  classes.wrapper,
+].filter(Boolean).join(' ')
+---
+
+<figure class={wrapperClass}>
+  <div class="file-explorer-print__panel mx-auto max-w-full rounded-lg bg-(--color-page-base) p-6 font-mono text-left">
+    <ul class="list-none p-0 m-0 tree-root" aria-label={figure ? undefined : 'File explorer'}>
+      {data.map((node, index) => <PrintNode node={node} path={`${index}`} isRoot />)}
+    </ul>
+  </div>
+
+  {figure && <figcaption class="mx-auto mt-3 max-w-full text-center italic" set:html={figure} />}
+</figure>
+
+<style>
+  .file-explorer-print {
+    margin-inline: auto;
+  }
+
+  .file-explorer-print__panel {
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    margin-inline: auto;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    width: fit-content;
+  }
+
+  .file-explorer-print :global(.node) {
+    white-space: normal;
+  }
+
+  .file-explorer-print :global(.node-name),
+  .file-explorer-print :global(.comment),
+  .file-explorer-print :global(.note-text) {
+    font-size: inherit;
+  }
+
+  .file-explorer-print figcaption {
+    font-size: var(--font-size-base);
+  }
+
+  @media print {
+    .file-explorer-print {
+      break-inside: auto;
+    }
+
+    .file-explorer-print__panel {
+      break-inside: auto;
+      overflow: visible;
+    }
+
+    .file-explorer-print :global(.children),
+    .file-explorer-print :global(li) {
+      break-inside: auto;
+    }
+  }
+</style>

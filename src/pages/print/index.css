@@ -35,6 +35,37 @@
     padding: 3cm 1.5cm 2.5cm;
   }
 
+  /** Remove link/abbreviation underlines in PDF output. */
+  .print-document :is(a, abbr[data-tooltip]),
+  .print-document :is(a, abbr[data-tooltip]) * {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-decoration: none !important;
+  }
+
+  /**
+   * PDF typography tuning hook.
+   *
+   * The main typography scale is driven by CSS variables, so overriding the
+   * token values here lets print pages use a pixel-based base size without
+   * affecting the web/mobile layouts.
+   */
+  .print-document--font-size-px {
+    --print-base-font-size-px: 12px;
+    --font-size-xs: calc(var(--print-base-font-size-px) * 0.75);
+    --font-size-sm: calc(var(--print-base-font-size-px) * 0.875);
+    --font-size-base: var(--print-base-font-size-px);
+    --font-size-lg: calc(var(--print-base-font-size-px) * 1.125);
+    --font-size-xl: calc(var(--print-base-font-size-px) * 1.25);
+    --font-size-2xl: calc(var(--print-base-font-size-px) * 1.375);
+    --font-size-3xl: calc(var(--print-base-font-size-px) * 1.5);
+    --font-size-4xl: calc(var(--print-base-font-size-px) * 2);
+    --font-size-5xl: calc(var(--print-base-font-size-px) * 2.25);
+    --font-size-6xl: calc(var(--print-base-font-size-px) * 2.5);
+    --font-size-7xl: calc(var(--print-base-font-size-px) * 3);
+
+    font-size: var(--print-base-font-size-px);
+  }
+
   html[data-theme="light"][data-theme] {
     --theme-color-primary: #001A39;
     --theme-color-primary-offset: #003d86;
