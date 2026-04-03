@@ -23,6 +23,14 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 - Moving the scroll bar up quickly with the mouse seems to make the header logic break - the Switcher component and Breadcrumbs are hidden under the header
 - Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
 
+## Resume
+
+- Finish styling
+
+## Env Vars
+
+- Add HubSpot env vars to Vercel
+
 ## Content Issues
 
 - Need an article on OpenStack
