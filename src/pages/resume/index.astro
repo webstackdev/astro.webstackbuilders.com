@@ -4,6 +4,7 @@ import HeadContent from '@components/Head/index.astro'
 
 import '@styles/index.css'
 import '@styles/icons.css'
+import './index.css'
 
 const [resumeEntry] = await getCollection('resume')
 
@@ -70,21 +71,35 @@ const splitLocation = (location?: string) => {
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light" class="min-h-full overflow-y-auto">
   <head>
     <HeadContent pageTitle={pageTitle} pageDescription={pageDescription} path={path} />
   </head>
-  <body id="resumeSubject" itemtype="http://schema.org/Person">
-    <div class="container">
-      <header id="personalDetails" itemscope itemref="resumeSubject">
-        <h1 id="subjectName" itemprop="name">
+  <body
+    id="resumeSubject"
+    itemtype="http://schema.org/Person"
+    class="min-h-full overflow-y-auto font-sans leading-6 [font-smoothing:antialiased] md:flex md:justify-center print:block"
+  >
+    <div class="bg-white mx-auto w-full max-w-204 p-4 md:my-8 print:m-0 print:max-w-[21cm] print:p-[1.3cm]">
+      <header id="personalDetails" itemscope itemref="resumeSubject" class="relative">
+        <h1 id="subjectName" itemprop="name" class="text-[2rem] leading-[2.2rem]">
           <span itemprop="givenName">{givenName.toUpperCase()}</span>
           <span itemprop="familyName">{familyName.toUpperCase()}</span>
         </h1>
-        <div id="jobTitle" class="accent" itemprop="jobTitle">{resume.title}</div>
-        <dl id="personalInfo">
-          <a itemprop="email" href={`mailto:${resume.email}`}>
-            <dt aria-label="email">
+        <div
+          id="jobTitle"
+          class="accent font-sans text-[1.5em] font-bold tracking-[0.5px]"
+          itemprop="jobTitle"
+        >
+          {resume.title}
+        </div>
+        <dl id="personalInfo" class="flex flex-col md:flex-row print:flex-row">
+          <a
+            itemprop="email"
+            href={`mailto:${resume.email}`}
+            class="mt-[0.4em] flex flex-row underline decoration-dotted md:mt-0 print:mt-0 print:no-underline"
+          >
+            <dt aria-label="email" class="flex items-center">
               <svg
                 width="18px"
                 height="18px"
@@ -105,15 +120,16 @@ const splitLocation = (location?: string) => {
                 </g>
               </svg>
             </dt>
-            <dd id="emailLabel">{resume.email}</dd>
+            <dd id="emailLabel" class="ml-1.25 inline">{resume.email}</dd>
           </a>
           <a
             id="locationWrapper"
             itemprop="homeLocation"
             itemscope
-            href="https://goo.gl/maps/2YrZYDRvD3FU9mkCA"
+            href={resume.mapLink}
+            class="mt-[0.4em] flex flex-row underline decoration-dotted md:mt-0 md:ml-1.75 print:mt-0 print:ml-1.75 print:no-underline"
           >
-            <dt aria-label="location">
+            <dt aria-label="location" class="flex items-center">
               <svg
                 height="18px"
                 width="18px"
@@ -127,10 +143,16 @@ const splitLocation = (location?: string) => {
                 </g>
               </svg>
             </dt>
-            <dd id="locationLabel">Tampa Bay, Florida</dd>
+            <dd id="locationLabel" class="ml-0.5 inline">{resume.location}</dd>
           </a>
-          <a id="telephoneWrapper" itemprop="telephone" itemscope href="tel:+8889871881">
-            <dt aria-label="telephone">
+          <a
+            id="telephoneWrapper"
+            itemprop="telephone"
+            itemscope
+            href="tel:+8889871881"
+            class="mt-[0.4em] flex flex-row underline decoration-dotted md:mt-0 md:ml-2.5 print:mt-0 print:ml-2.5 print:no-underline"
+          >
+            <dt aria-label="telephone" class="flex items-center">
               <svg
                 height="18px"
                 width="18px"
@@ -148,11 +170,11 @@ const splitLocation = (location?: string) => {
                 </g>
               </svg>
             </dt>
-            <dd id="telephoneLabel">1 (888) 987-1881</dd>
+            <dd id="telephoneLabel" class="ml-0.75 inline">1 (888) 987-1881</dd>
           </a>
         </dl>
-        <ul id="actions">
-          <li id="download" class="action">
+        <ul id="actions" class="hidden md:absolute md:right-5 md:top-5 md:flex md:flex-row print:hidden">
+          <li id="download" class="action md:mr-5">
             <a id="downloadLink" class="actionBtn" href="pdf/resume.pdf">
               <svg
                 height="28px"
@@ -171,7 +193,7 @@ const splitLocation = (location?: string) => {
               </svg>
             </a>
           </li>
-          <li class="action">
+          <li class="action md:inline">
             <button id="printBtn" class="actionBtn" onclick="window.print()">
               <svg
                 width="28px"
@@ -198,24 +220,24 @@ const splitLocation = (location?: string) => {
           </li>
         </ul>
       </header>
-      <main class="resumeMain">
-        <section itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
+      <main>
+        <section class="mt-3" itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
           <h2>SUMMARY</h2>
-          <hr class="sectionHr" />
+          <hr class="sectionHr mb-2 h-0.5 w-full" />
           <p itemprop="description" itemref="resumeSubject">
             {resume.summary}
           </p>
         </section>
-        <section id="experience">
+        <section id="experience" class="mt-3">
           <h2>EXPERIENCE</h2>
-          <hr class="sectionHr" />
+          <hr class="sectionHr mb-2 h-0.5 w-full" />
           {
             renderedClients.map(({ client, Content }, index) => {
               const location = splitLocation(client.data.location)
               return (
                 <div
                   id={`experienceItem-${index + 1}`}
-                  class="mainItem"
+                  class="mainItem mb-2.5 last:mb-0"
                   itemprop="worksFor"
                   itemscope
                   itemref="resumeSubject"
@@ -232,17 +254,17 @@ const splitLocation = (location?: string) => {
                       {client.data.role ?? client.data.businessType ?? client.data.displayName}
                     </span>
                   </h3>
-                  <div class="mainDetailName" itemprop="legalName">
+                  <div class="text-danger-offset mb-px font-sans font-bold tracking-[1px]" itemprop="legalName">
                     {client.data.displayName}
                   </div>
-                  <div class="mainDetails">
+                  <div class="mainDetails mb-0.75 flex flex-row">
                     <span
-                      class="mainDetailHeader"
+                      class="mainDetailHeader flex flex-row"
                       itemprop="Role"
                       itemscope
                       itemtype="https://schema.org/EmployeeRole"
                     >
-                      <span class="mainDetailIcon">
+                      <span>
                         <svg
                           width="18px"
                           height="18px"
@@ -256,7 +278,7 @@ const splitLocation = (location?: string) => {
                           />
                         </svg>
                       </span>
-                      <span class="mainDetailText">
+                      <span class="mainDetailText ml-1 text-[0.75em]">
                         <time
                           itemprop="startDate"
                           itemtype="http://schema.org/startDate"
@@ -276,7 +298,7 @@ const splitLocation = (location?: string) => {
                     </span>
                     {client.data.location && (
                       <a
-                        class="detailLocationAnchor"
+                        class="detailLocationAnchor ml-2.5 flex flex-row underline decoration-dotted"
                         href={client.data.website ?? ''}
                         itemprop="location"
                         itemscope
@@ -294,7 +316,7 @@ const splitLocation = (location?: string) => {
                             </g>
                           </svg>
                         </span>
-                        <span class="mainDetailText">
+                        <span class="mainDetailText ml-1 text-[0.75em]">
                           <span itemprop="addressLocality">{location.locality}</span>
                           {location.region && (
                             <>
@@ -313,21 +335,21 @@ const splitLocation = (location?: string) => {
             })
           }
         </section>
-        <section itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
+        <section class="mt-3" itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
           <h2>SKILLS</h2>
-          <hr class="sectionHr" />
-          <ul class="asideList">
+          <hr class="sectionHr mb-2 h-0.5 w-full" />
+          <ul class="asideList pl-0">
             {
               resume.skills.map((skill: (typeof resume.skills)[number]) => (
                 <li
-                  class="asideItem"
+                  class="asideItem mt-1.25 flex list-none flex-row first:mt-0"
                   itemref="resumeSubject"
                   itemscope
                   itemprop="knowsAbout"
                   itemtype="http://schema.org/knowsAbout"
                 >
-                  <span class="asideContent">
-                    <h3 class="asideHeader">{skill.lead}</h3>
+                  <span class="asideContent ml-2.5">
+                    <h3 class="asideHeader text-[1.1em]">{skill.lead}</h3>
                     <div>
                       <p>{skill.text}</p>
                     </div>
@@ -339,23 +361,24 @@ const splitLocation = (location?: string) => {
         </section>
         <section
           id="languages"
+          class="mt-3"
           itemscope
           itemref="resumeSubject"
           itemtype="http://schema.org/ItemList"
         >
           <h2>LANGUAGES</h2>
-          <hr class="sectionHr" />
-          <ul class="skillList">
+          <hr class="sectionHr mb-2 h-0.5 w-full" />
+          <ul class="skillList ml-1.25 pl-0">
             {
               resume.languages.map((language: (typeof resume.languages)[number]) => (
                 <li
-                  class="skillItem"
+                  class="skillItem mb-1.25 list-none font-semibold last:mb-0"
                   itemref="resumeSubject"
                   itemscope
                   itemprop="knowsAbout"
                   itemtype="http://schema.org/knowsAbout"
                 >
-                  <span class="skillItemAnchor">{language}</span>
+                  <span class="skillItemAnchor underline decoration-dotted">{language}</span>
                 </li>
               ))
             }
@@ -363,26 +386,27 @@ const splitLocation = (location?: string) => {
         </section>
         <section
           id="socialSection"
+          class="mt-3"
           itemscope
           itemref="resumeSubject"
           itemtype="http://schema.org/ItemList"
         >
           <h2>SOCIAL</h2>
-          <hr class="sectionHr" />
+          <hr class="sectionHr mb-2 h-0.5 w-full" />
           {
             socialEntries.length > 0 ? (
-              <ul id="socialList">
+              <ul id="socialList" class="pl-0 md:mt-2.5">
                 {socialEntries.map(entry => (
                   <li
-                    class="socialItem"
+                    class="socialItem mt-3 list-none first:mt-0"
                     itemref="resumeSubject"
                     itemscope
                     itemprop="sameAs"
                     itemtype="http://schema.org/WebSite"
                   >
-                    <div class="socialDetailText">{entry.label}</div>
+                    <div class="socialDetailText font-bold">{entry.label}</div>
                     <a itemprop="url" title={entry.label} rel="me" href={entry.url}>
-                      <span class="socialDetailTextLink">{entry.url}</span>
+                      <span class="socialDetailTextLink underline decoration-dotted">{entry.url}</span>
                     </a>
                   </li>
                 ))}
@@ -396,553 +420,3 @@ const splitLocation = (location?: string) => {
     </div>
   </body>
 </html>
-
-<style>
-  html {
-    height: auto;
-    min-height: 100%;
-    overflow-y: auto;
-  }
-
-  body {
-    background-color: lightgrey;
-    color: black;
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.5;
-    min-height: 100%;
-    overflow-y: auto;
-  }
-
-  a {
-    color: black;
-  }
-
-  .container {
-    background-color: white;
-    padding: 1em;
-  }
-
-  .sectionHr {
-    background-color: black;
-    height: 2px;
-    margin-bottom: 0.5em;
-    width: 100%;
-  }
-
-  .githubIcon {
-    fill: #171515;
-  }
-
-  .linkedinIcon {
-    fill: #0a66c2;
-  }
-
-  .twitterIcon {
-    fill: #00acee;
-  }
-
-  .youtubeIcon path,
-  .youtubeIcon polygon {
-    fill: #f00;
-  }
-
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-  }
-
-  * {
-    margin: 0;
-  }
-
-  html,
-  body {
-    height: auto;
-    min-height: 100%;
-  }
-
-  abbr {
-    text-decoration: none;
-  }
-
-  input,
-  button,
-  textarea,
-  select {
-    font: inherit;
-  }
-
-  button {
-    background: none;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    font: inherit;
-    outline: inherit;
-    padding: 0;
-  }
-
-  hr {
-    border: none;
-  }
-
-  p,
-  h1,
-  h2,
-  h3 {
-    overflow-wrap: break-word;
-  }
-
-  svg {
-    display: block;
-    max-width: 100%;
-  }
-
-  /** Achievements, Strengths */
-  .asideList {
-    padding-left: 0;
-  }
-
-  .asideItem {
-    display: flex;
-    flex-direction: row;
-    list-style: none;
-  }
-
-  .asideItem:not(:first-child) {
-    margin-top: 5px;
-  }
-
-  .asideHeader {
-    font-size: 1.1em;
-  }
-
-  .asideIcons {
-    flex-shrink: 0;
-  }
-
-  .asideIcons svg {
-    fill: #c41230;
-    margin-top: 6px;
-  }
-
-  .asideContent {
-    margin-left: 10px;
-  }
-
-  @media print {
-    .asideIcons svg {
-      fill: black;
-    }
-  }
-
-  /** Languages */
-  .languageList {
-    margin-left: 5px;
-    padding-left: 0;
-  }
-
-  .languageItem {
-    display: flex;
-    flex-direction: row;
-    list-style: none;
-  }
-
-  .languageItem:not(:last-child) {
-    margin-bottom: 5px;
-  }
-
-  .languageName {
-    font-weight: bold;
-    width: 6em;
-  }
-
-  .languageRating {
-    align-items: start;
-    display: flex;
-    fill: lightgrey;
-    flex-direction: row;
-    margin-top: 6px;
-  }
-
-  .languageRating-5 span {
-    fill: #c41230;
-  }
-
-  .languageRating-1 span:nth-of-type(1) {
-    fill: #c41230;
-  }
-
-  .languageRating-2 span:nth-of-type(1),
-  .languageRating-2 span:nth-of-type(2) {
-    fill: #c41230;
-  }
-
-  .languageRating-3 span:nth-of-type(1),
-  .languageRating-3 span:nth-of-type(2),
-  .languageRating-3 span:nth-of-type(3) {
-    fill: #c41230;
-  }
-
-  .languageRating-4 span:nth-of-type(1),
-  .languageRating-4 span:nth-of-type(2),
-  .languageRating-4 span:nth-of-type(3),
-  .languageRating-4 span:nth-of-type(4) {
-    fill: #c41230;
-  }
-
-  .languageRating span:not(:last-child) {
-    margin-right: 3px;
-  }
-
-  /**
- * Main container sections including Experience and Education
- */
-  .mainItem:not(:last-child) {
-    margin-bottom: 10px;
-  }
-
-  .mainDetailName {
-    color: #c41230;
-    font-family: var(--font-sans);
-    font-weight: bold;
-    letter-spacing: 1px;
-    margin-bottom: 0.5px;
-  }
-
-  .mainDetails {
-    display: flex;
-    flex-direction: row;
-    margin-bottom: 3px;
-  }
-
-  .mainDetailHeader {
-    display: flex;
-    flex-direction: row;
-  }
-
-  .detailLocationAnchor {
-    display: flex;
-    flex-direction: row;
-    margin-left: 10px;
-    text-decoration: underline dotted 1px;
-  }
-
-  .mainDetailIcon svg {
-    fill: grey;
-  }
-
-  .mainDetailText {
-    color: black;
-    font-size: 0.75em;
-    margin-left: 4px;
-  }
-
-  .detailLocationAnchor:hover .mainDetailText {
-    color: grey;
-    text-decoration-color: grey;
-  }
-
-  .mainDetailContent :global(ul) {
-    list-style: none;
-    padding-left: 0;
-  }
-
-  .mainDetailContent :global(li) {
-    padding-left: 1em;
-    position: relative;
-  }
-
-  .mainDetailContent :global(li::before) {
-    content: '•';
-    font-size: 1.5em;
-    left: 0;
-    line-height: 0.9em;
-    position: absolute;
-  }
-
-  @media print {
-    .mainDetailName {
-      color: black;
-    }
-
-    .detailLocationAnchor {
-      text-decoration: none;
-    }
-
-    .mainDetailIcon svg {
-      fill: black;
-    }
-  }
-
-  @media print {
-    .experienceDetailContent :global(li:last-child) {
-      display: none;
-    }
-  }
-
-  #personalInfo {
-    display: flex;
-    flex-direction: column;
-  }
-
-  #personalInfo dt {
-    align-items: center;
-    display: flex;
-  }
-
-  #personalInfo a {
-    display: flex;
-    flex-direction: row;
-    margin-top: 0.4em;
-    text-decoration: underline dotted 1px;
-  }
-
-  #socialList {
-    color: black;
-    padding-left: 0;
-  }
-
-  #socialList a {
-    text-decoration: underline dotted 1px;
-  }
-
-  #socialList a:hover {
-    color: grey;
-    text-decoration-color: grey;
-  }
-
-  #personalInfo a:hover {
-    color: grey;
-    text-decoration-color: grey;
-  }
-
-  #personalInfo dd {
-    display: inline;
-  }
-
-  #personalInfo svg {
-    fill: grey;
-  }
-
-  .socialItem {
-    list-style-type: none;
-  }
-
-  .socialItem:not(:first-child) {
-    margin-top: 0.75em;
-  }
-
-  .socialDetailText {
-    font-weight: bold;
-  }
-
-  #subjectName {
-    font-size: 2rem;
-    line-height: 2.2rem;
-  }
-
-  #emailLabel {
-    margin-left: 5px;
-  }
-
-  #locationLabel {
-    margin-left: 2px;
-  }
-
-  #telephoneLabel {
-    margin-left: 3px;
-  }
-
-  #jobTitle {
-    color: #c41230;
-    font-family: var(--font-sans);
-    font-size: 1.5em;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-  }
-
-  #actions {
-    display: none;
-  }
-
-  .actionBtn:hover {
-    fill: grey;
-  }
-
-  @media (width >= 768px) {
-    #personalInfo {
-      flex-direction: row;
-    }
-
-    #personalInfo a {
-      margin-top: 0;
-    }
-
-    #locationWrapper {
-      margin-left: 7px;
-    }
-
-    #telephoneWrapper {
-      margin-left: 10px;
-    }
-
-    /** Print and Download PDF buttons only show on notebook / desktop views */
-    #actions {
-      display: flex;
-      flex-direction: row;
-      position: absolute;
-      right: 20px;
-      top: 20px;
-    }
-
-    #actions li {
-      display: inline;
-    }
-
-    #actions a {
-      text-decoration: none;
-    }
-
-    #download {
-      margin-right: 1.25em;
-    }
-  }
-
-  @media print {
-    .languageRating-5 span {
-      fill: black;
-    }
-
-    #personalInfo {
-      flex-direction: row;
-    }
-
-    #personalInfo a {
-      margin-top: 0;
-      text-decoration: none;
-    }
-
-    #locationWrapper {
-      margin-left: 7px;
-    }
-
-    #telephoneWrapper {
-      margin-left: 10px;
-    }
-
-    #actions {
-      display: none;
-    }
-
-    .languageRating-1 span:nth-of-type(1) {
-      fill: black;
-    }
-
-    .languageRating-2 span:nth-of-type(1),
-    .languageRating-2 span:nth-of-type(2) {
-      fill: black;
-    }
-
-    .languageRating-3 span:nth-of-type(1),
-    .languageRating-3 span:nth-of-type(2),
-    .languageRating-3 span:nth-of-type(3) {
-      fill: black;
-    }
-
-    .languageRating-4 span:nth-of-type(1),
-    .languageRating-4 span:nth-of-type(2),
-    .languageRating-4 span:nth-of-type(3),
-    .languageRating-4 span:nth-of-type(4) {
-      fill: black;
-    }
-  }
-
-  .skillList {
-    margin-left: 5px;
-    padding-left: 0;
-  }
-
-  .skillItem {
-    font-weight: 600;
-    list-style: none;
-  }
-
-  .skillItem:not(:last-child) {
-    margin-bottom: 5px;
-  }
-
-  .skillItemAnchor {
-    color: black;
-    text-decoration: underline dotted 1px;
-  }
-
-  .skillItemAnchor:hover {
-    color: grey;
-    text-decoration-color: grey;
-  }
-
-  @media print {
-    .skillItemAnchor {
-      text-decoration: none;
-    }
-  }
-
-  header {
-    position: relative;
-  }
-
-  .resumeMain {
-    display: block;
-  }
-
-  section {
-    margin-top: 0.75em;
-  }
-
-  @media (width >= 768px) {
-    .container {
-      margin: 2em auto;
-      max-width: 8.5in;
-    }
-
-    #socialList {
-      margin-top: 10px;
-    }
-
-    #socialList a:hover {
-      color: black;
-      filter: brightness(70%);
-    }
-  }
-
-  @media print {
-    @page {
-      margin: 0;
-      size: a4 portrait;
-    }
-
-    body {
-      background-size: 21cm 29.7cm;
-      font-size: 0.75rem;
-    }
-
-    .container {
-      break-inside: auto;
-      margin: 0;
-      max-width: 21cm;
-      padding: 1.3cm;
-    }
-
-    .sectionHr {
-      background-color: black;
-      border-top: solid 2px black;
-    }
-
-    #socialList a {
-      text-decoration: none;
-    }
-  }
-</style>

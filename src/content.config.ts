@@ -273,6 +273,8 @@ const resumeDataCollection = defineCollection({
     }),
     email: z.email(),
     languages: z.array(z.string()),
+    location: z.string(),
+    mapLink: z.url(),
     name: z.string(),
     skills: z.array(
       z.object({
