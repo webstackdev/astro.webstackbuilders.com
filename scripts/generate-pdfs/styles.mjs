@@ -183,7 +183,7 @@ export const buildTemplateStyles = () => {
 
     .pdf-layout-footer__company-name {
       color: #001A39;
-      font-size: 12pt;
+      font-size: 10pt;
       font-style: normal;
       font-weight: 600;
       line-height: 1.1;
@@ -193,7 +193,7 @@ export const buildTemplateStyles = () => {
 
     .pdf-layout-footer__address p {
       color: #001A39;
-      font-size: 10pt;
+      font-size: 8pt;
       font-style: normal;
       line-height: 1.1;
       margin: 0;
@@ -207,7 +207,7 @@ export const buildTemplateStyles = () => {
       display: flex;
       justify-content: center;
       color: #001A39;
-      font-size: 10pt;
+      font-size: 8pt;
       line-height: 1.1;
       margin: 0;
       width: 20%;
@@ -221,6 +221,7 @@ export const buildTemplateStyles = () => {
       align-items: flex-end;
       display: flex;
       flex-direction: column;
+      gap: 2px;
       justify-content: center;
       min-width: 0;
       width: 40%;
@@ -228,7 +229,7 @@ export const buildTemplateStyles = () => {
 
     .pdf-layout-footer__right p {
       color: #001A39;
-      font-size: 10pt;
+      font-size: 8pt;
       font-style: normal;
       line-height: 1.2;
       margin: 0;

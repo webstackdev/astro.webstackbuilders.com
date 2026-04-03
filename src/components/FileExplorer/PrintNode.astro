@@ -1,0 +1,74 @@
+---
+import type { FileSystemNode } from '@components/FileExplorer/client/index'
+import FileExplorerPrintNode from '@components/FileExplorer/PrintNode.astro'
+
+export interface Props {
+  node: FileSystemNode
+  path: string
+  isRoot?: boolean
+}
+
+const { node } = Astro.props
+const { path, isRoot = false } = Astro.props
+const hasChildren = node.type === 'folder' && (node.children?.length ?? 0) > 0
+const isFolder = node.type === 'folder'
+const liClasses = isRoot
+  ? 'relative'
+  : "relative before:content-[''] before:absolute before:top-[0.8rem] before:-left-6 before:w-5 before:border-t before:border-dashed before:border-(--color-trim) last:border-l last:border-solid last:border-(--color-page-base) last:-ml-6 last:pl-6 last:before:left-0"
+---
+
+<li class={liClasses} role="none">
+  <div class="flex items-center">
+    <div class="group flex items-center py-1 node" role="treeitem" aria-level={String(path.split('/').length)}>
+      {hasChildren && (
+        <span
+          aria-hidden="true"
+          class="mr-2 inline-flex w-4 shrink-0 items-center justify-center text-(--color-trim)"
+        >
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            class="h-4 w-4 fill-none stroke-current rotate-90"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M7 5l6 5-6 5" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+          </svg>
+        </span>
+      )}
+
+      {isFolder ? (
+        <span aria-hidden="true" class="mr-2 inline-flex items-center text-secondary node-icon folder-icon">
+          <svg aria-hidden="true" focusable="false" class="h-6 w-6 fill-current icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+          </svg>
+        </span>
+      ) : (
+        <span aria-hidden="true" class="mr-2 inline-flex items-center text-(--color-content-offset) node-icon file-icon">
+          <svg aria-hidden="true" focusable="false" class="h-6 w-6 fill-current icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+          </svg>
+        </span>
+      )}
+
+      <span class={`text-(--color-content) node-name ${isFolder ? 'font-medium' : 'font-normal file-name'}`}>
+        {node.name}
+      </span>
+      {node.comment && <span class="ml-6 text-(--color-content-offset) italic comment"># {node.comment}</span>}
+    </div>
+
+    {node.note && (
+      <span class="ml-3 inline-flex items-center rounded-full border border-trim bg-page-base px-2 py-0.5 text-xs font-semibold leading-none text-secondary">
+        i
+      </span>
+    )}
+  </div>
+
+  {node.note && <p class="ml-9 mt-2 note-text leading-relaxed text-content-offset">{node.note}</p>}
+
+  {hasChildren && (
+    <ul role="group" class="list-none p-0 m-0 pl-6 border-l border-dashed border-(--color-trim) ml-2 children">
+      {node.children?.map((childNode, index) => <FileExplorerPrintNode node={childNode} path={`${path}/${index}`} />)}
+    </ul>
+  )}
+</li>
