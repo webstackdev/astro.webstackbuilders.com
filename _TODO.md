@@ -26,12 +26,3 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 ## Content Issues
 
 - Need an article on OpenStack
-
-## Youtube video for Backstage IDP hero on Home page
-
-- Discuss agentic AI integrations to add to Backstage
-- Home page reorganization: move the "What I Deliver" box from the Hero into the Backstage image. Move the Backstage image / video to the hero.
-
-## Deep Dive Link
-
-- Add a "Preview Special" item to our Download CTA that lets the user know the Deep Dive content can be previewed in HTML format, and offer a switch to it.

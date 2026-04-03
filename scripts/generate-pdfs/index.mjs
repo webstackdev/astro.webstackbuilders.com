@@ -251,10 +251,10 @@ const generatePdf = async (browser, slug) => {
       }
     }, CONTENT_HEIGHT_PX)
 
-    const [coverPdfBytes, fullPdfBytes] = await Promise.all([
-      page.pdf(buildPdfOptions({ includeHeaderFooter: false, pageRanges: '1' })),
-      page.pdf(buildPdfOptions({ includeHeaderFooter: true, title })),
-    ])
+    const coverPdfBytes = await page.pdf(
+      buildPdfOptions({ includeHeaderFooter: false, pageRanges: '1' })
+    )
+    const fullPdfBytes = await page.pdf(buildPdfOptions({ includeHeaderFooter: true, title }))
 
     await writeMergedPdf({ coverPdfBytes, fullPdfBytes, outputPdf })
 
