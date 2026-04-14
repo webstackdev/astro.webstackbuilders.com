@@ -1,11 +1,27 @@
 ---
-import VercelAnalytics from '@vercel/analytics/astro'
 import { isProd } from '@components/scripts/utils/environmentClient'
 
 const mode = isProd() ? 'production' : 'development'
+const paramsStr = JSON.stringify(Astro.params)
+const pathname = Astro.url.pathname
 ---
 
+<vercel-analytics-state
+  data-mode={mode}
+  data-params={paramsStr}
+  data-pathname={pathname}
+></vercel-analytics-state>
+
 <script>
+  import { computeRoute, inject, pageview } from '@vercel/analytics'
+
+  const analyticsState = document.querySelector(
+    'vercel-analytics-state:last-of-type'
+  ) as HTMLElement | null
+  const pathname = analyticsState?.dataset['pathname'] ?? window.location.pathname
+  const params = JSON.parse(analyticsState?.dataset['params'] ?? '{}')
+  const mode = analyticsState?.dataset['mode'] === 'development' ? 'development' : 'production'
+
   window.webAnalyticsBeforeSend = event => {
     /** Ignore testing pages in tracking */
     if (event?.url?.includes('/testing/')) {
@@ -13,5 +29,21 @@ const mode = isProd() ? 'production' : 'development'
     }
     return event
   }
+
+  if (!window.__webstackAnalyticsInjected) {
+    inject({
+      beforeSend: window.webAnalyticsBeforeSend,
+      disableAutoTrack: true,
+      framework: 'astro',
+      mode,
+    })
+    window.__webstackAnalyticsInjected = true
+  } else {
+    window.va?.('beforeSend', window.webAnalyticsBeforeSend)
+  }
+
+  pageview({
+    path: pathname,
+    route: computeRoute(pathname, params),
+  })
 </script>
-<VercelAnalytics mode={mode} />

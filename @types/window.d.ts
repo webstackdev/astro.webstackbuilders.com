@@ -112,6 +112,11 @@ declare global {
      * Exposes client environment helper values for diagnostics fixtures.
      */
     environmentClientValues?: EnvironmentClientValues
+
+    /**
+     * Tracks one-time Vercel analytics injection across Astro view transitions.
+     */
+    __webstackAnalyticsInjected?: boolean
   }
 }
 

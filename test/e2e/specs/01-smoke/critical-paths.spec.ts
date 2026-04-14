@@ -18,8 +18,13 @@ test.describe('Critical Paths @smoke', () => {
     const page = await BasePage.init(playwrightPage)
     for (const { url: path } of page.navigationItems) {
       await page.goto(path)
-      await page.waitForURL(url => matchesPathname(url.pathname, path), { timeout: wait.defaultWait })
       await page.expectHeading()
+
+      const currentPathname = new URL(page.url()).pathname
+      expect(
+        matchesPathname(currentPathname, path),
+        `Expected ${path} after goto(), received ${currentPathname}`
+      ).toBe(true)
     }
   })
 
