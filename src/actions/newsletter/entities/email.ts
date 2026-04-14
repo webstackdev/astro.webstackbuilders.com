@@ -1,6 +1,7 @@
 import { Resend } from 'resend'
 import { getResendApiKey, isProd } from '@actions/utils/environment/environmentActions'
 import { getSiteUrl } from '@actions/utils/environment/siteUrlActions'
+import { newsletterReplyTo, newsletterSender } from '@actions/utils/email/resendSenders'
 import { ActionsFunctionError } from '@actions/utils/errors/ActionsFunctionError'
 import {
   generateConfirmationEmailHtml,
@@ -29,7 +30,8 @@ export async function sendConfirmationEmail(
   }
 
   const resendPayload = {
-    from: 'Webstack Builders <newsletter@webstackbuilders.com>',
+    from: newsletterSender,
+    replyTo: newsletterReplyTo,
     to: email,
     subject: 'Confirm your newsletter subscription - Webstack Builders',
     html: generateConfirmationEmailHtml(firstName, confirmUrl, expiresIn),
@@ -77,7 +79,8 @@ export async function sendWelcomeEmail(email: string, firstName?: string): Promi
   const resend = getResendClient()
 
   const resendPayload = {
-    from: 'Webstack Builders <newsletter@webstackbuilders.com>',
+    from: newsletterSender,
+    replyTo: newsletterReplyTo,
     to: email,
     subject: '🎉 Welcome to Webstack Builders!',
     html: generateWelcomeEmailHtml(firstName),

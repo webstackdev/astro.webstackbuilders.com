@@ -1,6 +1,7 @@
 export type ContactFormData = {
   name: string
   email: string
+  company?: string
   phone?: string
   message: string
   consent?: boolean
@@ -29,6 +30,7 @@ export type FileAttachment = {
 export type EmailData = {
   from: string
   to: string
+  replyTo?: string
   subject: string
   html: string
 }

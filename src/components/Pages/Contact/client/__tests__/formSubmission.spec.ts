@@ -1,6 +1,10 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RenderContactFormContext } from './testUtils'
-import { appendUploadFiles } from '@components/Pages/Contact/client/formSubmission'
+import {
+  appendUploadFiles,
+  applyContactPreviewState,
+  resolveContactPreviewState,
+} from '@components/Pages/Contact/client/formSubmission'
 
 const contactSubmitMock = vi.hoisted(() => vi.fn())
 const isInputErrorMock = vi.hoisted(() => vi.fn())
@@ -58,6 +62,16 @@ describe('ContactForm submission', () => {
     })
   })
 
+  it('resolves supported contact preview states from query params', () => {
+    expect(resolveContactPreviewState('?contactState=success')).toBe('success')
+    expect(resolveContactPreviewState('?contactState=error')).toBe('error')
+    expect(resolveContactPreviewState('?contactState=loading')).toBe('loading')
+    expect(resolveContactPreviewState('?contactState=validation')).toBe('validation')
+    expect(resolveContactPreviewState('?contactState=confetti')).toBe('confetti')
+    expect(resolveContactPreviewState('?contactState=unknown')).toBeNull()
+    expect(resolveContactPreviewState('')).toBeNull()
+  })
+
   const fillValidFields = (context: RenderContactFormContext): void => {
     const { elements, window } = context
     elements.fields.name.input.value = 'Webstack Builders'
@@ -75,6 +89,87 @@ describe('ContactForm submission', () => {
 
       expect(contactSubmitMock).not.toHaveBeenCalled()
       expect(elements.formErrorBanner.classList.contains('hidden')).toBe(false)
+    })
+  })
+
+  it('applies success preview state for styling', async () => {
+    await renderContactForm(async context => {
+      applyContactPreviewState(context.elements, {
+        state: 'success',
+        rootElement: context.element,
+      })
+
+      expect(context.element.getAttribute('data-contact-state')).toBe('success')
+      expect(context.elements.messages.style.display).toBe('block')
+      expect(context.elements.successMessage.classList.contains('hidden')).toBe(false)
+      expect(context.elements.errorMessage.classList.contains('hidden')).toBe(true)
+      expect(context.elements.submitBtn.disabled).toBe(false)
+    })
+  })
+
+  it('applies error preview state for styling', async () => {
+    await renderContactForm(async context => {
+      applyContactPreviewState(context.elements, {
+        state: 'error',
+        rootElement: context.element,
+      })
+
+      expect(context.element.getAttribute('data-contact-state')).toBe('error')
+      expect(context.elements.messages.style.display).toBe('block')
+      expect(context.elements.errorMessage.classList.contains('hidden')).toBe(false)
+      expect(context.elements.errorText.textContent).toContain('Unable to send message')
+      expect(context.elements.successMessage.classList.contains('hidden')).toBe(true)
+    })
+  })
+
+  it('applies loading preview state for styling', async () => {
+    await renderContactForm(async context => {
+      applyContactPreviewState(context.elements, {
+        state: 'loading',
+        rootElement: context.element,
+      })
+
+      expect(context.element.getAttribute('data-contact-state')).toBe('loading')
+      expect(context.elements.submitBtn.disabled).toBe(true)
+      expect(context.elements.btnText.style.display).toBe('none')
+      expect(context.elements.btnLoading.classList.contains('hidden')).toBe(false)
+      expect(context.elements.messages.style.display).toBe('none')
+    })
+  })
+
+  it('applies validation preview state for styling', async () => {
+    await renderContactForm(async context => {
+      applyContactPreviewState(context.elements, {
+        state: 'validation',
+        rootElement: context.element,
+      })
+
+      expect(context.element.getAttribute('data-contact-state')).toBe('validation')
+      expect(context.elements.formErrorBanner.classList.contains('hidden')).toBe(false)
+      expect(context.elements.messages.style.display).toBe('block')
+      expect(context.elements.errorMessage.classList.contains('hidden')).toBe(false)
+      expect(context.elements.errorText.textContent).toBe(
+        'Please correct the highlighted fields and try again.'
+      )
+      expect(context.elements.fields.name.feedback.textContent).toBe('Please enter your name')
+      expect(context.elements.fields.email.feedback.textContent).toBe(
+        'Please enter a valid email address.'
+      )
+      expect(context.elements.fields.message.feedback.textContent).toBe('Please describe your project')
+    })
+  })
+
+  it('applies confetti preview state without disabling the submit button', async () => {
+    await renderContactForm(async context => {
+      applyContactPreviewState(context.elements, {
+        state: 'confetti',
+        rootElement: context.element,
+      })
+
+      expect(context.element.getAttribute('data-contact-state')).toBe('idle')
+      expect(context.element.getAttribute('data-contact-preview-mode')).toBe('confetti')
+      expect(context.elements.submitBtn.disabled).toBe(false)
+      expect(context.elements.messages.style.display).toBe('none')
     })
   })
 
@@ -120,6 +215,33 @@ describe('ContactForm submission', () => {
     })
   })
 
+  it('runs the confetti preview sequence without submitting the form', async () => {
+    await renderContactForm(async context => {
+      applyContactPreviewState(context.elements, {
+        state: 'confetti',
+        rootElement: context.element,
+      })
+
+      let confettiEvent: Event | undefined
+      context.elements.submitBtn.addEventListener('confetti:fire', event => {
+        confettiEvent = event
+      })
+
+      const submitEvent = new context.window.Event('submit', { bubbles: true, cancelable: true })
+      context.elements.form.dispatchEvent(submitEvent)
+
+      await flushPromises()
+
+      expect(contactSubmitMock).not.toHaveBeenCalled()
+      expect(context.element.getAttribute('data-contact-state')).toBe('success')
+      expect(context.elements.submitBtn.disabled).toBe(false)
+      expect(context.elements.messages.style.display).toBe('block')
+      expect(context.elements.successMessage.classList.contains('hidden')).toBe(false)
+      expect(context.elements.errorMessage.classList.contains('hidden')).toBe(true)
+      expect(confettiEvent).toBeDefined()
+    })
+  })
+
   it('displays error message when server rejects submission', async () => {
     await renderContactForm(async context => {
       fillValidFields(context)
@@ -136,7 +258,7 @@ describe('ContactForm submission', () => {
       expect(contactSubmitMock).toHaveBeenCalled()
       expect(context.elements.messages.style.display).toBe('block')
       expect(context.elements.errorMessage.classList.contains('hidden')).toBe(false)
-      expect(context.elements.errorMessage.style.display).toBe('flex')
+      expect(context.elements.errorMessage.style.display).toBe('block')
       expect(context.elements.errorText.textContent).toBe('Server error')
       expect(context.elements.successMessage.classList.contains('hidden')).toBe(true)
       expect(context.elements.charCount.textContent).toBe('42')

@@ -202,6 +202,35 @@ describe('List (Astro)', () => {
     })
   })
 
+  test('renders the experience-list variant with compact chevron markers', async () => {
+    const List = (await import('@components/List/index.astro')).default
+
+    const renderedHtml = await container.renderToString(List, {
+      props: {
+        variant: 'experience-list',
+        items: [
+          {
+            text: 'Built self-service infrastructure provisioning workflows.',
+          },
+        ],
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const list = window.document.querySelector('ul')
+      const item = window.document.querySelector('ul li')
+      const svg = window.document.querySelector('ul li svg')
+
+      expect(list?.className).toContain('space-y-2')
+      expect(list?.className).toContain('text-content-offset')
+      expect(item?.className).toContain('flex')
+      expect(svg).toBeTruthy()
+      expect(item?.textContent).toContain('Built self-service infrastructure provisioning workflows.')
+    })
+  })
+
   test('applies hover styling for the three-column-icon-list variant', async () => {
     const List = (await import('@components/List/index.astro')).default
 

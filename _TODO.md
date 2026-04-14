@@ -27,9 +27,9 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 
 - Finish styling
 
-## Env Vars
+## Contact Form
 
-- Add HubSpot env vars to Vercel
+- `0/2000` characters should show number of characters left instead
 
 ## Content Issues
 

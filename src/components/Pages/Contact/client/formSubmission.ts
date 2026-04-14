@@ -12,10 +12,21 @@ import type { ContactFormElements } from './@types'
 import { validateEmailField } from './email'
 import { actions, isInputError } from 'astro:actions'
 import type { UploadController } from './upload'
+import { queryContactFormGeneratedFieldError, queryContactFormGenericFields } from './selectors'
+
+export type ContactUiState = 'idle' | 'loading' | 'success' | 'error' | 'validation'
+
+export const contactPreviewStates = ['loading', 'success', 'error', 'validation', 'confetti'] as const
+
+type ContactPreviewState = (typeof contactPreviewStates)[number]
+type ContactPreviewMode = 'confetti'
+
+const contactPreviewModeAttribute = 'data-contact-preview-mode'
 
 interface SubmissionControllers {
   labelController: LabelController
   uploadController?: UploadController | null
+  rootElement?: HTMLElement | null
 }
 
 export const appendUploadFiles = (
@@ -33,6 +44,33 @@ const hideMessages = (elements: ContactFormElements): void => {
   elements.messages.style.display = 'none'
 }
 
+const setContactState = (
+  rootElement: HTMLElement | null | undefined,
+  state: ContactUiState
+): void => {
+  rootElement?.setAttribute('data-contact-state', state)
+}
+
+const setContactPreviewMode = (
+  rootElement: HTMLElement | null | undefined,
+  previewMode?: ContactPreviewMode
+): void => {
+  if (!rootElement) {
+    return
+  }
+
+  if (previewMode) {
+    rootElement.setAttribute(contactPreviewModeAttribute, previewMode)
+    return
+  }
+
+  rootElement.removeAttribute(contactPreviewModeAttribute)
+}
+
+const isConfettiPreviewMode = (rootElement: HTMLElement | null | undefined): boolean => {
+  return rootElement?.getAttribute(contactPreviewModeAttribute) === 'confetti'
+}
+
 const showSuccessMessage = (elements: ContactFormElements): void => {
   elements.messages.style.display = 'block'
   elements.successMessage.classList.remove('hidden')
@@ -43,8 +81,17 @@ const showErrorMessage = (elements: ContactFormElements, message: string): void 
   elements.messages.style.display = 'block'
   elements.successMessage.classList.add('hidden')
   elements.errorMessage.classList.remove('hidden')
-  elements.errorMessage.style.display = 'flex'
+  elements.errorMessage.style.display = 'block'
   elements.errorText.textContent = message
+}
+
+const fireConfetti = (elements: ContactFormElements): void => {
+  elements.submitBtn.dispatchEvent(
+    new CustomEvent('confetti:fire', {
+      bubbles: true,
+      composed: true,
+    })
+  )
 }
 
 const setLoading = (elements: ContactFormElements, loading: boolean): void => {
@@ -59,6 +106,93 @@ const setLoading = (elements: ContactFormElements, loading: boolean): void => {
     elements.btnLoading.classList.add('hidden')
     elements.btnLoading.style.display = 'none'
   }
+}
+
+const clearGeneratedGenericErrors = (elements: ContactFormElements): void => {
+  queryContactFormGenericFields(elements.form).forEach(field => {
+    field.classList.remove('error')
+    field.setAttribute('aria-invalid', 'false')
+    field.removeAttribute('aria-errormessage')
+    queryContactFormGeneratedFieldError(field)?.remove()
+  })
+}
+
+const resetSubmissionFeedback = (elements: ContactFormElements): void => {
+  hideMessages(elements)
+  hideErrorBanner(elements.formErrorBanner)
+  setLoading(elements, false)
+  clearGeneratedGenericErrors(elements)
+  Object.values(elements.fields).forEach(clearFieldFeedback)
+}
+
+export const resolveContactPreviewState = (search: string): ContactPreviewState | null => {
+  const params = new URLSearchParams(search)
+  const previewState = params.get('contactState')?.trim().toLowerCase()
+
+  if (!previewState) {
+    return null
+  }
+
+  return contactPreviewStates.includes(previewState as ContactPreviewState)
+    ? (previewState as ContactPreviewState)
+    : null
+}
+
+export const applyContactPreviewState = (
+  elements: ContactFormElements,
+  options: {
+    state: ContactPreviewState
+    rootElement?: HTMLElement | null
+  }
+): void => {
+  resetSubmissionFeedback(elements)
+  setContactPreviewMode(options.rootElement, options.state === 'confetti' ? 'confetti' : undefined)
+
+  switch (options.state) {
+    case 'loading':
+      setLoading(elements, true)
+      setContactState(options.rootElement, 'loading')
+      return
+
+    case 'success':
+      showSuccessMessage(elements)
+      setContactState(options.rootElement, 'success')
+      return
+
+    case 'error':
+      showErrorMessage(elements, 'Unable to send message. Please try again later.')
+      setContactState(options.rootElement, 'error')
+      return
+
+    case 'validation':
+      showFieldFeedback(elements.fields.name, 'Please enter your name', 'error')
+      showFieldFeedback(elements.fields.email, 'Please enter a valid email address.', 'error')
+      showFieldFeedback(elements.fields.message, 'Please describe your project', 'error')
+      showErrorBanner(elements.formErrorBanner)
+      showErrorMessage(elements, 'Please correct the highlighted fields and try again.')
+      setContactState(options.rootElement, 'validation')
+      return
+
+    case 'confetti':
+      setContactState(options.rootElement, 'idle')
+      return
+  }
+}
+
+const runConfettiPreviewSequence = async (
+  elements: ContactFormElements,
+  rootElement: HTMLElement | null | undefined
+): Promise<void> => {
+  hideErrorBanner(elements.formErrorBanner)
+  hideMessages(elements)
+  setLoading(elements, true)
+  setContactState(rootElement, 'loading')
+
+  await Promise.resolve()
+
+  showSuccessMessage(elements)
+  setContactState(rootElement, 'success')
+  fireConfetti(elements)
 }
 
 const runFieldValidations = (elements: ContactFormElements): boolean => {
@@ -124,23 +258,33 @@ export const initFormSubmission = (
     addScriptBreadcrumb(context)
 
     try {
+      if (isConfettiPreviewMode(controllers.rootElement)) {
+        resetSubmissionFeedback(elements)
+        await runConfettiPreviewSequence(elements, controllers.rootElement)
+        setLoading(elements, false)
+        return
+      }
+
       Object.values(elements.fields).forEach(clearFieldFeedback)
       const isValid = runFieldValidations(elements)
 
       if (!isValid) {
         showErrorBanner(elements.formErrorBanner)
+        setContactState(controllers.rootElement, 'validation')
         return
       }
 
       hideErrorBanner(elements.formErrorBanner)
       setLoading(elements, true)
       hideMessages(elements)
+      setContactState(controllers.rootElement, 'loading')
 
       try {
         const formData = new FormData(elements.form)
         appendUploadFiles(formData, controllers.uploadController)
         const { data, error } = await actions.contact.submit(formData)
         if (showActionInputErrors(elements, error)) {
+          setContactState(controllers.rootElement, 'validation')
           return
         }
 
@@ -149,28 +293,27 @@ export const initFormSubmission = (
             elements,
             error?.message || data?.message || 'An error occurred while sending your message.'
           )
+          setContactState(controllers.rootElement, 'error')
           return
         }
 
         showSuccessMessage(elements)
+        setContactState(controllers.rootElement, 'success')
 
-        elements.submitBtn.dispatchEvent(
-          new CustomEvent('confetti:fire', {
-            bubbles: true,
-            composed: true,
-          })
-        )
+        fireConfetti(elements)
 
         resetFormState(elements, controllers)
       } catch (error) {
         handleScriptError(error, context)
         showErrorMessage(elements, 'Unable to send message. Please try again later.')
+        setContactState(controllers.rootElement, 'error')
       } finally {
         setLoading(elements, false)
       }
     } catch (error) {
       handleScriptError(error, context)
       setLoading(elements, false)
+      setContactState(controllers.rootElement, 'error')
     }
   })
 }

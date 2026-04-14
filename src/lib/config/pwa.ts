@@ -2,6 +2,8 @@ import type { PwaOptions } from '@vite-pwa/astro'
 import contactData from '../../content/contact.json'
 import themeConfig from '../../content/themes.json'
 
+const { company: companyContactData } = contactData
+
 const buildThemeColor = (): string => {
   const themes = themeConfig.themes || []
   const defaultThemeId = themeConfig.defaultTheme?.id
@@ -31,16 +33,16 @@ export const pwaConfig: PwaOptions = {
    */
   manifest: {
     background_color: '#f3f4f6',
-    description: contactData.company.description,
+    description: companyContactData.description,
     dir: 'ltr',
     display_override: ['window-controls-overlay'],
     display: 'browser',
     lang: 'en_US',
-    name: contactData.company.name,
+    name: companyContactData.name,
     orientation: 'natural',
     /** Make the app non-installable as a stand-alone PWA */
     prefer_related_applications: true,
-    short_name: contactData.company.name,
+    short_name: companyContactData.name,
     start_url: '/index.html',
     theme_color: manifestThemeColor,
     icons: [

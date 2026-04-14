@@ -48,6 +48,21 @@ export type ConfettiFireOptions = {
   startVelocity?: number
 
   /**
+   * How long each particle should animate for, in frames.
+   */
+  ticks?: number
+
+  /**
+   * Downward acceleration to apply to particles.
+   */
+  gravity?: number
+
+  /**
+   * How quickly particle velocity decays over time.
+   */
+  decay?: number
+
+  /**
    * Scale factor for each confetti particle. Use decimals to make the confetti
    * smaller. (default: 1)
    */
@@ -71,6 +86,12 @@ export type ConfettiFireOptions = {
 }
 
 type ConfettiInstance = ReturnType<typeof createConfetti>
+
+const defaultConfettiColors = ['#003d86', '#dc2626', '#facc15']
+
+const toAccentShapes = (shapes: ConfettiShape[]): ConfettiShape[] => {
+  return shapes.includes('star') ? ['circle'] : shapes
+}
 
 export class ConfettiAnimationElement extends LitElement {
   private initialized = false
@@ -175,22 +196,39 @@ export class ConfettiAnimationElement extends LitElement {
 
       const {
         origin,
-        particleCount = 50,
-        spread = 70,
-        startVelocity = 45,
-        scalar = 1,
-        colors,
-        shapes = ['square', 'circle'],
+        particleCount = 40,
+        spread = 360,
+        startVelocity = 30,
+        ticks = 50,
+        gravity = 0,
+        decay = 0.94,
+        scalar = 1.2,
+        colors = defaultConfettiColors,
+        shapes = ['star'],
       } = options
 
-      void this.confettiInstance({
-        particleCount,
+      const baseBurstOptions = {
         spread,
         startVelocity,
-        scalar,
+        ticks,
+        gravity,
+        decay,
         origin,
         colors,
+      }
+
+      void this.confettiInstance({
+        ...baseBurstOptions,
+        particleCount,
+        scalar,
         shapes,
+      })
+
+      void this.confettiInstance({
+        ...baseBurstOptions,
+        particleCount: Math.max(10, Math.round(particleCount / 4)),
+        scalar: Math.max(0.75, scalar * 0.625),
+        shapes: toAccentShapes(shapes),
       })
     } catch (error) {
       handleScriptError(error, context)
