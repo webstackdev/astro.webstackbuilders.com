@@ -67,6 +67,7 @@ describe('ContactForm submission', () => {
     expect(resolveContactPreviewState('?contactState=error')).toBe('error')
     expect(resolveContactPreviewState('?contactState=loading')).toBe('loading')
     expect(resolveContactPreviewState('?contactState=validation')).toBe('validation')
+    expect(resolveContactPreviewState('?contactState=confetti')).toBe('confetti')
     expect(resolveContactPreviewState('?contactState=unknown')).toBeNull()
     expect(resolveContactPreviewState('')).toBeNull()
   })
@@ -158,6 +159,20 @@ describe('ContactForm submission', () => {
     })
   })
 
+  it('applies confetti preview state without disabling the submit button', async () => {
+    await renderContactForm(async context => {
+      applyContactPreviewState(context.elements, {
+        state: 'confetti',
+        rootElement: context.element,
+      })
+
+      expect(context.element.getAttribute('data-contact-state')).toBe('idle')
+      expect(context.element.getAttribute('data-contact-preview-mode')).toBe('confetti')
+      expect(context.elements.submitBtn.disabled).toBe(false)
+      expect(context.elements.messages.style.display).toBe('none')
+    })
+  })
+
   it('submits successfully and resets UI state', async () => {
     await renderContactForm(async context => {
       fillValidFields(context)
@@ -197,6 +212,33 @@ describe('ContactForm submission', () => {
       expect(confettiEvent?.target).toBe(context.elements.submitBtn)
       expect(confettiEvent?.bubbles).toBe(true)
       expect((confettiEvent as CustomEvent)?.composed).toBe(true)
+    })
+  })
+
+  it('runs the confetti preview sequence without submitting the form', async () => {
+    await renderContactForm(async context => {
+      applyContactPreviewState(context.elements, {
+        state: 'confetti',
+        rootElement: context.element,
+      })
+
+      let confettiEvent: Event | undefined
+      context.elements.submitBtn.addEventListener('confetti:fire', event => {
+        confettiEvent = event
+      })
+
+      const submitEvent = new context.window.Event('submit', { bubbles: true, cancelable: true })
+      context.elements.form.dispatchEvent(submitEvent)
+
+      await flushPromises()
+
+      expect(contactSubmitMock).not.toHaveBeenCalled()
+      expect(context.element.getAttribute('data-contact-state')).toBe('success')
+      expect(context.elements.submitBtn.disabled).toBe(false)
+      expect(context.elements.messages.style.display).toBe('block')
+      expect(context.elements.successMessage.classList.contains('hidden')).toBe(false)
+      expect(context.elements.errorMessage.classList.contains('hidden')).toBe(true)
+      expect(confettiEvent).toBeDefined()
     })
   })
 

@@ -4,15 +4,19 @@
  *
  * Use query parameters to view prefilled form states for testing:
  *
- * - /contact/?projectType=web-development (prefills project type dropdown)
- * - /contact/?formState=success (shows success message)
- * - /contact/?formState=error (shows error message)
- * - /contact/?formState=idle (shows idle state)
+ * - /contact?projectType=web-development (prefills project type dropdown)
+ * - /contact?formState=success (shows success message)
+ * - /contact?formState=error (shows error message)
+ * - /contact?formState=idle (shows idle state)
  *
- * - /contact/?contactState=success
- * - /contact/?contactState=error
- * - /contact/?contactState=validation
- * - /contact/?contactState=loading
+ * - /contact?contactState=success
+ * - /contact?contactState=error
+ * - /contact?contactState=validation
+ * - /contact?contactState=loading
+ *
+ * Confetti mode makes the submit button a no-op, and only triggers the confetti animation
+ *
+ * - /contact?contactState=confetti
  */
 import Confetti from '@components/Animations/Confetti/index.astro'
 import GDPRConsent from '@components/Consent/Checkbox/index.astro'
@@ -20,9 +24,11 @@ import Icon from '@components/Icon/index.astro'
 import List from '@components/List/index.astro'
 //import Map from '@components/Map/index.astro'
 
-import './uppy-audio.css'
+// Keep this Uppy CSS import order intact. Core reset styles must load first,
+// followed by component styles that restore their intended visual treatment.
 import './uppy-core.css'
 import './uppy-dashboard.css'
+import './uppy-audio.css'
 import './uppy-webcam.css'
 import './validation.css'
 
@@ -113,8 +119,9 @@ const { content, prefilledProjectType = '' } = Astro.props
     {/* <Map /> */}
 
     {/** Contact Form Section */}
-    <section class="pt-5 pb-8 bg-page-offset" aria-label="Contact form">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+    <Confetti classes="block" canvasClasses="fixed inset-0 h-dvh w-screen">
+      <section class="pt-5 pb-8 bg-page-offset" aria-label="Contact form">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start" data-sticky-container>
             {/** Contact Form */}
             <div class="lg:col-span-2 bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg">
@@ -365,22 +372,20 @@ const { content, prefilledProjectType = '' } = Astro.props
                   ))}
                 </div>
 
-                <Confetti classes="">
-                  <div class="flex justify-end">
-                    {/** Intentionally not using Button component. */}
-                    <button
-                      type="submit"
-                      class="inline-flex items-center justify-center px-8 py-4 bg-page-inverse hover:bg-content-active text-content-inverse font-semibold rounded-xl transition-all duration-200 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-50"
-                      id="submitBtn"
-                    >
-                      <span class="btn-text">{content.form.submitButtonText}</span>
-                      <span class="btn-loading hidden">
-                        <Icon icon="spinner" color="inherit" size={5} classes="mr-2" />
-                        {content.form.waitingText}
-                      </span>
-                    </button>
-                  </div>
-                </Confetti>
+                <div class="flex justify-end">
+                  {/** Intentionally not using Button component. */}
+                  <button
+                    type="submit"
+                    class="inline-flex items-center justify-center px-8 py-4 bg-page-inverse hover:bg-content-active text-content-inverse font-semibold rounded-xl transition-all duration-200 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-50"
+                    id="submitBtn"
+                  >
+                    <span class="btn-text">{content.form.submitButtonText}</span>
+                    <span class="btn-loading hidden">
+                      <Icon icon="spinner" color="inherit" size={5} classes="mr-2" />
+                      {content.form.waitingText}
+                    </span>
+                  </button>
+                </div>
               </form>
 
               {/** Form Messages */}
@@ -493,8 +498,9 @@ const { content, prefilledProjectType = '' } = Astro.props
               </div>
             </div>
           </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </Confetti>
   </div>
 </contact-form>
 
