@@ -36,6 +36,12 @@ const allowedAttachmentTypes = [
   'text/plain',
 ] as const
 
+type AllowedAttachmentType = (typeof allowedAttachmentTypes)[number]
+
+const isAllowedAttachmentType = (mimeType: string): mimeType is AllowedAttachmentType => {
+  return allowedAttachmentTypes.some(allowedAttachmentType => allowedAttachmentType === mimeType)
+}
+
 const normalizeMimeType = (mimeType: string): string => {
   return mimeType.split(';')[0]?.trim().toLowerCase() || ''
 }
@@ -151,7 +157,7 @@ export async function parseAttachments(form: FormData): Promise<FileAttachment[]
 
       const normalizedType = normalizeMimeType(value.type)
 
-      if (!allowedAttachmentTypes.includes(normalizedType)) {
+      if (!isAllowedAttachmentType(normalizedType)) {
         throw new ActionsFunctionError(`File type ${value.type} not allowed`, { status: 400 })
       }
 
@@ -191,7 +197,7 @@ export async function parseAttachmentsFromInput(
 
     const normalizedType = normalizeMimeType(value.type)
 
-    if (!allowedAttachmentTypes.includes(normalizedType)) {
+    if (!isAllowedAttachmentType(normalizedType)) {
       throw new ActionsFunctionError(`File type ${value.type} not allowed`, { status: 400 })
     }
 
