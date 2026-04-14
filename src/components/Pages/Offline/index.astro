@@ -2,7 +2,7 @@
 /**
  * Offline Page Layout
  */
-import contactData from '@content/contact.json'
+import { companyContactData } from '@lib/content/contactData'
 import Button from '@components/Button/index.astro'
 import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 import Icon from '@components/Icon/index.astro'
@@ -67,7 +67,7 @@ const { content } = Astro.props
     <HeadingAnchor href={"#offline-company-title"} />
   </h2>
   <p class="text-content-inverse/70 leading-relaxed mb-6">
-    {contactData.company.description}
+    {companyContactData.description}
   </p>
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
     {content.about.items.map((item) => {
@@ -101,7 +101,7 @@ const { content } = Astro.props
       </div>
       <div class="min-w-0">
         <div class="text-sm text-content-offset font-medium uppercase tracking-wide">Email</div>
-        <div class="text-md text-page-inverse font-semibold break-all">{contactData.company.email}</div>
+        <div class="text-md text-page-inverse font-semibold break-all">{companyContactData.email}</div>
       </div>
     </div>
     <div class="flex min-w-0 items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
@@ -114,7 +114,7 @@ const { content } = Astro.props
       </div>
       <div class="min-w-0">
         <div class="text-sm text-content-offset font-medium uppercase tracking-wide">Website</div>
-        <div class="text-md text-page-inverse font-semibold break-all">{contactData.company.url.replace('https://', '')}</div>
+        <div class="text-md text-page-inverse font-semibold break-all">{companyContactData.url.replace('https://', '')}</div>
       </div>
     </div>
   </div>
