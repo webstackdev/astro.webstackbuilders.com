@@ -119,12 +119,11 @@ const { content, prefilledProjectType = '' } = Astro.props
     {/* <Map /> */}
 
     {/** Contact Form Section */}
-    <Confetti classes="block" canvasClasses="fixed inset-0 h-dvh w-screen">
-      <section class="pt-5 pb-8 bg-page-offset" aria-label="Contact form">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start" data-sticky-container>
-            {/** Contact Form */}
-            <div class="lg:col-span-2 bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg">
+    <section class="pt-5 pb-8 bg-page-offset" aria-label="Contact form">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start" data-sticky-container>
+          {/** Contact Form */}
+          <div class="lg:col-span-2 bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg">
               {/** Contact FormHeader */}
               <div class="mb-8">
                 <h2 class="text-page-inverse text-2xl md:text-3xl font-semibold mb-3">
@@ -372,20 +371,22 @@ const { content, prefilledProjectType = '' } = Astro.props
                   ))}
                 </div>
 
-                <div class="flex justify-end">
-                  {/** Intentionally not using Button component. */}
-                  <button
-                    type="submit"
-                    class="inline-flex items-center justify-center px-8 py-4 bg-page-inverse hover:bg-content-active text-content-inverse font-semibold rounded-xl transition-all duration-200 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-50"
-                    id="submitBtn"
-                  >
-                    <span class="btn-text">{content.form.submitButtonText}</span>
-                    <span class="btn-loading hidden">
-                      <Icon icon="spinner" color="inherit" size={5} classes="mr-2" />
-                      {content.form.waitingText}
-                    </span>
-                  </button>
-                </div>
+                <Confetti classes="inline-block self-end">
+                  <div class="flex justify-end">
+                    {/** Intentionally not using Button component. */}
+                    <button
+                      type="submit"
+                      class="inline-flex items-center justify-center px-8 py-4 bg-page-inverse hover:bg-content-active text-content-inverse font-semibold rounded-xl transition-all duration-200 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-50"
+                      id="submitBtn"
+                    >
+                      <span class="btn-text">{content.form.submitButtonText}</span>
+                      <span class="btn-loading hidden">
+                        <Icon icon="spinner" color="inherit" size={5} classes="mr-2" />
+                        {content.form.waitingText}
+                      </span>
+                    </button>
+                  </div>
+                </Confetti>
               </form>
 
               {/** Form Messages */}
@@ -437,70 +438,69 @@ const { content, prefilledProjectType = '' } = Astro.props
                   </div>
                 </div>
               </div>
-            </div>
+          </div>
 
-            {/** Contact Information */}
-            <div
-              class="bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg h-fit"
-              data-sticky-sidebar
-            >
-              <div class="space-y-8">
-                <div>
-                  <h3 class="text-page-inverse text-xl font-semibold mb-6">{content.contact.header}</h3>
+          {/** Contact Information */}
+          <div
+            class="bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg h-fit"
+            data-sticky-sidebar
+          >
+            <div class="space-y-8">
+              <div>
+                <h3 class="text-page-inverse text-xl font-semibold mb-6">{content.contact.header}</h3>
 
-                  <div class="space-y-6">
-                    {content.contact.details.map((item) => (
-                      <div class="flex items-start gap-4">
-                        <div
-                          class="shrink-0 w-11 h-11 bg-page-inverse text-white rounded-xl flex items-center justify-center"
-                        >
-                          <Icon
-                            icon={item.icon}
-                            size={6}
-                            color="content-inverse"
-                            {...(item.iconClasses ? { classes: item.iconClasses } : {})}
-                          />
-                        </div>
-                        <div>
-                          <h4 class="text-page-inverse text-md mb-1">{item.text}</h4>
-                          <p class="text-content-active text-sm" set:html={item.value}></p>
-                        </div>
+                <div class="space-y-6">
+                  {content.contact.details.map((item) => (
+                    <div class="flex items-start gap-4">
+                      <div
+                        class="shrink-0 w-11 h-11 bg-page-inverse text-white rounded-xl flex items-center justify-center"
+                      >
+                        <Icon
+                          icon={item.icon}
+                          size={6}
+                          color="content-inverse"
+                          {...(item.iconClasses ? { classes: item.iconClasses } : {})}
+                        />
                       </div>
-                    ))}
-                  </div>
+                      <div>
+                        <h4 class="text-page-inverse text-md mb-1">{item.text}</h4>
+                        <p class="text-content-active text-sm" set:html={item.value}></p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              </div>
 
-                <div>
-                  <h3 class="text-page-inverse text-xl font-semibold mb-4">
-                    {content.contact.expertise.header}
-                  </h3>
-                  <List
-                    items={content.contact.expertise.areas}
-                    variant="colored-marker-list"
-                    classes={{
-                      icon: "bg-page-inverse",
-                    }}
-                  />
-                </div>
+              <div>
+                <h3 class="text-page-inverse text-xl font-semibold mb-4">
+                  {content.contact.expertise.header}
+                </h3>
+                <List
+                  items={content.contact.expertise.areas}
+                  variant="colored-marker-list"
+                  classes={{
+                    icon: "bg-page-inverse",
+                  }}
+                />
+              </div>
 
-                <div>
-                  <h3 class="text-page-inverse text-xl font-semibold mb-4">
-                    {content.contact.chooseUs.header}
-                  </h3>
-                  <List
-                    items={content.contact.chooseUs.areas}
-                    variant="colored-marker-list"
-                    classes={{
-                      icon: "bg-page-inverse",
-                    }}
-                  />
-                </div>
+              <div>
+                <h3 class="text-page-inverse text-xl font-semibold mb-4">
+                  {content.contact.chooseUs.header}
+                </h3>
+                <List
+                  items={content.contact.chooseUs.areas}
+                  variant="colored-marker-list"
+                  classes={{
+                    icon: "bg-page-inverse",
+                  }}
+                />
               </div>
             </div>
           </div>
         </div>
-      </section>
-    </Confetti>
+      </div>
+    </section>
   </div>
 </contact-form>
 
