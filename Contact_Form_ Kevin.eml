@@ -1,0 +1,209 @@
+Delivered-To: kevin@webstackbuilders.com
+Received: by 2002:a05:6214:202b:b0:89c:a2ad:339b with SMTP id 11csp1897635qvf;
+        Tue, 14 Apr 2026 06:02:40 -0700 (PDT)
+X-Forwarded-Encrypted: i=4; AFNElJ9jv1UNPyFH5FkVhIQYgnZTKXkI4Hq6noplnCzp0jGWl1tzX7nAReYN/nO4QUIadkFgQ7c//g==@webstackbuilders.com
+X-Received: by 2002:a05:6a20:3d06:b0:398:7357:bb91 with SMTP id adf61e73a8af0-39fe3f56b62mr18273907637.33.1776171760114;
+        Tue, 14 Apr 2026 06:02:40 -0700 (PDT)
+ARC-Seal: i=3; a=rsa-sha256; t=1776171760; cv=pass;
+        d=google.com; s=arc-20240605;
+        b=BgnNFfYJf8pgsPesEafUlU4vMLXh4iPeVawtomjHsEaxioOz2fjR3dNcQ186kRUvBQ
+         93dti4XdiDXFTEifojeyxJXJDCl4uPAucw+W+UeTMnytVE52boAFt79j7knG1OZjDXOO
+         dasp+ImaSODE7Wjj/GJrvMtIYalv7LRL9vz5+7ZxIsQW/N1xiICX3Qpy25nY9DM6uhen
+         yjtMrVbJMLATj1qKtHzEgrHLjFKWKDONqMr5gq83xq2PipM0J4pQFSc0LLqOkEERPsRt
+         wq9X/1qbw8eYrV9kvtCOkP7GzcX/vKUi1bsUth9GvyN4vuk5jrAMzq3FcUWUOQgWo4Vr
+         MG1w==
+ARC-Message-Signature: i=3; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:mime-version:date:message-id:subject:reply-to:to:from
+         :dkim-signature:dkim-signature;
+        bh=yY9J2qv0+S/XZaMLoOwAlBmuLMoTRiOKnbqckzEXWEM=;
+        fh=1JSicWTQQWuLqSXgXTAkx/vPNtvEF3QcOK7XU+tlkE4=;
+        b=NqAROpbLdgoiC9FgUBHC2gPXNBI0I9b4JeTR30705BZe397pIKO13cDqokiEzdxX/C
+         IodrwVq2xLwL7nyQmHfvg6rvBExcMm+n1BTyQKY8/s4o8ahUA/hkJHpcHHqv+FnJlkQR
+         9+4NP4ZZ5EQI1W1MWVxDAk8Cn3Ma4LpsbiNeCa1GfuLQy09ofQum7LRZ03XjXsgElJEw
+         IHbhkp13pXd9RnoQRWbTIO7XAFqzTvCW0llfHJKyi7lx6vkujmgttC4GB4XSS9on77Op
+         Nosua8UOfolQ7ur3HVQVLmYXuWpgzkTUTmYorZLA4vQk75ehOstneQs1QLcUFLAExbR6
+         Y9lQ==;
+        dara=google.com
+ARC-Authentication-Results: i=3; mx.google.com;
+       dkim=pass header.i=@contact.webstackbuilders.com header.s=resend header.b="SLf/vVm8";
+       dkim=pass header.i=@amazonses.com header.s=224i4yxa5dv7c2xz3womw6peuasteono header.b=Xd6QAq9u;
+       arc=pass (i=2 spf=pass spfdomain=send.contact.webstackbuilders.com dkim=pass dkdomain=contact.webstackbuilders.com dkim=pass dkdomain=amazonses.com dmarc=pass fromdomain=webstackbuilders.com);
+       spf=softfail (google.com: domain of transitioning 0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com does not designate 209.85.220.69 as permitted sender) smtp.mailfrom=0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=webstackbuilders.com;
+       dara=pass header.i=@webstackbuilders.com
+Return-Path: <0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com>
+Received: from mail-sor-f69.google.com (mail-sor-f69.google.com. [209.85.220.69])
+        by mx.google.com with SMTPS id 41be03b00d2f7-c7921925100sor3373155a12.3.2026.04.14.06.02.39
+        for <kevin@webstackbuilders.com>
+        (Google Transport Security);
+        Tue, 14 Apr 2026 06:02:39 -0700 (PDT)
+Received-SPF: softfail (google.com: domain of transitioning 0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com does not designate 209.85.220.69 as permitted sender) client-ip=209.85.220.69;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@contact.webstackbuilders.com header.s=resend header.b="SLf/vVm8";
+       dkim=pass header.i=@amazonses.com header.s=224i4yxa5dv7c2xz3womw6peuasteono header.b=Xd6QAq9u;
+       arc=pass (i=2 spf=pass spfdomain=send.contact.webstackbuilders.com dkim=pass dkdomain=contact.webstackbuilders.com dkim=pass dkdomain=amazonses.com dmarc=pass fromdomain=webstackbuilders.com);
+       spf=softfail (google.com: domain of transitioning 0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com does not designate 209.85.220.69 as permitted sender) smtp.mailfrom=0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=webstackbuilders.com;
+       dara=pass header.i=@webstackbuilders.com
+ARC-Seal: i=2; a=rsa-sha256; t=1776171759; cv=pass;
+        d=google.com; s=arc-20240605;
+        b=AEtBXJXXGwvAa9A2emJvEa9v1KKrFaFCrz77zy0pKIggwY3jb1Vi6uW7I5mbnwM3PD
+         dwuJYGB8ciozhhV+dEPQ03Jmt1+HoCdkEDekHtrxZBl5P5jlgpR2fGD8UAq/m/GAv5ef
+         xAzk7Kf1zn11NVamTswivhHbhrT4cu29rHBnkia66gYgQDuQB2EFPHMxrTiXiLoVfWYE
+         l583DtLfSDuUWr7tNH6uF7oNq1xBCbPddRytjtd7YhNe7sqGE9Acvr0lZxbClipCJala
+         OYM1FzhyLniUhTrhXfFxihBA0M1s6IXXEz231pleluL6Hj3HJA0irj/7eO1sxjm92Lf8
+         OZng==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:mime-version:date:message-id:subject:reply-to:to:from
+         :dkim-signature:dkim-signature;
+        bh=yY9J2qv0+S/XZaMLoOwAlBmuLMoTRiOKnbqckzEXWEM=;
+        fh=1JSicWTQQWuLqSXgXTAkx/vPNtvEF3QcOK7XU+tlkE4=;
+        b=D+PLnWv7YNaJTSr3I4ZQgDBcNO5kx2sJAJrP8uFcE5l/gF/Z1WCUdi0FG4fRBVIkmC
+         wu75h739oRIoOf34eLq416QEpuhD4XnWK5MD1vGRKPr8T6eFOYnQbHALzbJ+B8yuViJr
+         ipKh1vJiw8VKlILxf7cD7SlohMIZUiHV4eNihlmq12y3H3c5wlx5ripnQa03kV7iVb7c
+         sExXGQj53kJAZSOAMCFjwu1GHDhLgswNCjqgPV8jg5uQaCtoXhNbpVkaXo96TTxq5maF
+         m1EXbj6aRwX+T8pTZ736L+8PHzUXoz0Uqavge8GtaJeHbq01xRWzwvuxDiDF8Qktfoih
+         BIog==;
+        dara=google.com
+ARC-Authentication-Results: i=2; mx.google.com;
+       dkim=pass header.i=@contact.webstackbuilders.com header.s=resend header.b="SLf/vVm8";
+       dkim=pass header.i=@amazonses.com header.s=224i4yxa5dv7c2xz3womw6peuasteono header.b=Xd6QAq9u;
+       spf=pass (google.com: domain of 0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com designates 54.240.9.37 as permitted sender) smtp.mailfrom=0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=webstackbuilders.com
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776171759; x=1776776559;
+        h=feedback-id:mime-version:date:message-id:subject:reply-to:to:from
+         :dkim-signature:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=yY9J2qv0+S/XZaMLoOwAlBmuLMoTRiOKnbqckzEXWEM=;
+        b=dQtjNUFd/aUlfBQpbNIG9E9YBQi9ORFKcWEobGGAMrpQMsD5XWjevCadgquYboudoY
+         SarYw5cRYopSxBWc5XnJvBaSfsS99Rn1hz92IjI+byMEIfFkQV3wRpSaEcr/EJnNCA+e
+         ZvU2sQX3NdFFt9oKM7/gp7gNa/eFNu/D807NuBC0n20OeNUKCCWqst6sREXWqKnPiJUD
+         tE5IDhMQzZdnthDgNxM8gzVwUM4cKkXJrcRS+WXZ5GUmUIW/V8+c4ldUtxuIIn5pySdb
+         SPLdLWbsqUUo9WU+K+sum3pUCR8t2saa4zGZlX1lBVk7RvODuMpd6GEitSb3BDs+4zEY
+         7GpQ==
+X-Forwarded-Encrypted: i=2; AFNElJ//7yeF/w4+V/SzyVGjHLDb+xDTH/ZsQuNpw/AGXJEhKNcrao3PWsBjOrjIbbU1k3OR9+qZSw==@webstackbuilders.com
+X-Gm-Message-State: AOJu0Yyzk8xa0XsdpZo7Ip1O0TIBAy6SZEkutZqNLszX6SgHJVRrHC6+
+	I2ii0OwfAmMp54aZhomqViq4xzV5mTH4rkJ7Uks6pIxIL9LqFMGJ2ggiIb4FzR1TB/4UlohibPc
+	NCACC99tzVCeHJ2Y/VPSCzzbQf37goxFbu/KVjoyOG1octlKYhHLhLAqdDqYI8IbUc8h73JHjcl
+	sQyrTDMzcMs/vwSzYWAi/VtKg6XDSz5vgPk6A=
+X-Gm-Gg: AeBDietUfwWzlJatL8aixdg+1+7Q2Q/6peoP9P54WO4ZT/DMSacCGbpA08oUoduktUE
+	7VyiSvWhFXOdyKHJtbbeE2Dec9HWyS0bT766zizNRjLqPNUHvh5HnAxXaNiv1NwgZJ3R2F3LOx+
+	UXseeEZ+eOt8Esql5U1IAawKyT4u7CSGSyzqvPX6f2F72PpSbg+5MCz+KWx7A4GKS2UPIlseHpY
+	m2whzthWnU8ywJaMEkh/tv68FhCYL9AC0yEFxKGSxcDfd0xlHSKUdicEVxU72VZx63HGuWmLBQn
+	OG0Qv9ll1FZnjwNnuh/uBB434HgKpQ398tJCYmr2QOwlpy4Ydnw/rWUzvoFLzYmtXUONE/IXQKz
+	bG3mEN5EFNVrqA/SMs2MYk4+f5xVuYcF3kdQEZEMsNYmo823dB7Z++jsiwBxfmWakvB/szq7It+
+	0zg/8HJ4QtvqTz6UuNBHV0PVK/PxqxtxnRq6mqDK2ZdzdNm3pQTE3hwYyCxr8jJdVzPFv0MzqUm
+	2EI3lydllkkmDtzx5M9fteq76Orgw4Lew6dBpo=
+X-Received: by 2002:a05:6a21:33a0:b0:398:6461:688c with SMTP id adf61e73a8af0-39fe3c64c9bmr19199868637.2.1776171759485;
+        Tue, 14 Apr 2026 06:02:39 -0700 (PDT)
+X-Received: by 2002:a05:6a21:33a0:b0:398:6461:688c with SMTP id adf61e73a8af0-39fe3c64c9bmr19199492637.2.1776171756218;
+        Tue, 14 Apr 2026 06:02:36 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1776171756; cv=none;
+        d=google.com; s=arc-20240605;
+        b=K/d1y4xOjKfaNZntZGLfvONXSyKUnAnKr70EFelmyQxSlyNKEA//9vyG3vclws195M
+         KD8CxqSV1jjPj2ROw6Vm0/TuqZ9Rjo+CheBjZ1bTH2YPGJ/b03nXd1NwWygKQEO47IaQ
+         2+pMI1XM0OvGuok168whfSHbGX5FLKyykhp/CeyfvxParMJcISOvMyGoRb8MLVQYWyxD
+         GSJCJvfnwSjpXfxZBGL2qQov4BMxwaKhg1YYek8Nnrs1JrkoSMh/ETOe9RtsgQRNwHvG
+         mZlRsUjAl1fx8WpzcQZuxe1CpadDkJrQ27XnCVaFSGEuSYz4hcsmNR5wydFN0qc8FsfS
+         L4nQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:mime-version:date:message-id:subject:reply-to:to:from
+         :dkim-signature:dkim-signature;
+        bh=yY9J2qv0+S/XZaMLoOwAlBmuLMoTRiOKnbqckzEXWEM=;
+        fh=2j6Ij1yT7WpJgRfQ4bc2ZUqeHCAyE7Qp6PudKqFG51o=;
+        b=cig3n6kqHySTGc+Cdxoo18qIPZ5MDcVIzh/Vy+sHPkbjf68hCkOM5IP3FkEOwSKn5M
+         16HDCaE54vAoSvXzk72PuSerle6kXR8nrzJokPb+M1Syl6KY6nq4pxGSHlutR/XjLbNR
+         6KiN96SyUQg2AXmqPVuQQNndM7RsYWLWZoE5cJINENmFfF17sdfFPiI8ukSbOiAMN620
+         fcYtWIRDDx0vhBDJGS4rKeJDQs+FFBqqllzimhgBAqLLuPHZHk5q12KxcBd4a5r2wwXd
+         2GV6YuacGrMjN21Rw78RyP5P5RRTkAwH8rCEgz84OWp/jBGfHbbb7bQUFhMm+XEc1zOI
+         5JhA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@contact.webstackbuilders.com header.s=resend header.b="SLf/vVm8";
+       dkim=pass header.i=@amazonses.com header.s=224i4yxa5dv7c2xz3womw6peuasteono header.b=Xd6QAq9u;
+       spf=pass (google.com: domain of 0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com designates 54.240.9.37 as permitted sender) smtp.mailfrom=0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=webstackbuilders.com
+Return-Path: <0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com>
+Received: from a9-37.smtp-out.amazonses.com (a9-37.smtp-out.amazonses.com. [54.240.9.37])
+        by mx.google.com with ESMTPS id 6a1803df08f44-8ae65e459b1si2066626d6.63.2026.04.14.06.02.35
+        for <info@webstackbuilders.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 14 Apr 2026 06:02:36 -0700 (PDT)
+Received-SPF: pass (google.com: domain of 0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@send.contact.webstackbuilders.com designates 54.240.9.37 as permitted sender) client-ip=54.240.9.37;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple; s=resend;
+	d=contact.webstackbuilders.com; t=1776171755;
+	h=From:To:Reply-To:Subject:Message-ID:Date:MIME-Version:Content-Type;
+	bh=yY9J2qv0+S/XZaMLoOwAlBmuLMoTRiOKnbqckzEXWEM=;
+	b=SLf/vVm8VHCD77TrsGuVxvq8xoBM8ITrarG0cQt15lL/NrEYdv/hVcQ8k4gO1uEu
+	KSpWxLcoGS13D0jv+bOS3vmGlBot0HIoTYi5cBwHg8/Bk4C8PET7xusecBE5jBb6aQA
+	6fbdqzvCZlFQ2S1iplGlpMNvEaRZO97Wd237UOiM=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1776171755;
+	h=From:To:Reply-To:Subject:Message-ID:Date:MIME-Version:Content-Type:Feedback-ID;
+	bh=yY9J2qv0+S/XZaMLoOwAlBmuLMoTRiOKnbqckzEXWEM=;
+	b=Xd6QAq9umA7vL0HUxyVX8gmRg+WXkvMe+amJ1BAzWDbtEfsEq4ME0EMVXY3c0MRY
+	Kskll9kXDpi6JfoxYbceREP7t6U/1RIJyBhHtBzY32kt1xUAa4tIAmDFq/y6wHVgTZi
+	ke8sA2RvLebF8iq4fkWniaizFYwnv3koUpwN4ujA=
+From: contact@contact.webstackbuilders.com
+To: info@webstackbuilders.com
+Reply-To: brown70@list.ru
+Subject: Contact Form: Kevin
+Message-ID: <0100019d8c162845-acabf689-f24c-47a9-875e-0e3a6dfb689b-000000@email.amazonses.com>
+Date: Tue, 14 Apr 2026 13:02:35 +0000
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="--_NmP-982771661416cd13-Part_1"
+Feedback-ID: :1.us-east-1.a5rFcilfMSFqVfdvJu5pTpbHpeMaXQkIMu8kn2hilO/H+DXmLRmigkE4zG959YVdwf23cwdOKa138JCdCrrJCCo5ZKSIsZc9O59T15uGePpRhLuI0jIotYOx2i7hT04AdkLHLzUe0POp9UdM4Cuoq/N83INTXDPUZ9VFlrQDJ4o=:1.us-east-1.pAEstvQcjyhQNKGKcgSlzI7SVR8ZSG5wSmKwiz/A8Dg=:AmazonSES
+X-SES-Outgoing: 2026.04.14-54.240.9.37
+
+----_NmP-982771661416cd13-Part_1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+NEW CONTACT FORM SUBMISSION
+
+Name: Kevin
+
+Email: brown70@list.ru
+
+Phone: +7 (921) 761-80-01
+
+Service: full-workstream
+
+Timeline: asap
+
+Message:
+
+Another test email
+
+Consent Given: Yes
+----_NmP-982771661416cd13-Part_1
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=3D"utf-8">
+<style>
+body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: =
+10px; }
+p { margin: 10px 0; }
+</style>
+</head>
+<body>
+<h1>New Contact Form Submission</h1>
+<p><strong>Name:</strong> Kevin</p>
+<p><strong>Email:</strong> brown70@list.ru</p>
+<p><strong>Phone:</strong> =
++7 (921) 761-80-01</p>
+<p><strong>Service:</strong> full-workstream</p>
+<p><strong>Timeline:</strong> asap</p>
+<p><strong>Message:</strong></p>
+<p>Another test email</p>
+<p><strong>Consent Given:</strong> Yes</p>
+</body>
+</html>
+----_NmP-982771661416cd13-Part_1--

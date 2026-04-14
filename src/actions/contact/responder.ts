@@ -16,6 +16,30 @@ export const isAllowedTimeline = (timeline: string): timeline is ContactTimeline
   return (contactTimelineValues as readonly string[]).includes(timeline)
 }
 
+const allowedAttachmentTypes = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'audio/mpeg',
+  'audio/mp4',
+  'audio/ogg',
+  'audio/wav',
+  'audio/webm',
+  'video/mp4',
+  'video/quicktime',
+  'video/webm',
+  'application/zip',
+  'text/plain',
+] as const
+
+const normalizeMimeType = (mimeType: string): string => {
+  return mimeType.split(';')[0]?.trim().toLowerCase() || ''
+}
+
 const readInputString = (input: Record<string, unknown>, key: string): string => {
   const value = input[key]
   return typeof value === 'string' ? value : ''
@@ -34,6 +58,7 @@ export function generateEmailContent(data: ContactFormData, files: FileAttachmen
     `<p><strong>Email:</strong> ${escapeHtml(data.email)}</p>`,
   ]
 
+  if (data.company) fields.push(`<p><strong>Company:</strong> ${escapeHtml(data.company)}</p>`)
   if (data.phone) fields.push(`<p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>`)
   if (data.service) fields.push(`<p><strong>Service:</strong> ${escapeHtml(data.service)}</p>`)
   if (data.budget) fields.push(`<p><strong>Budget:</strong> ${escapeHtml(data.budget)}</p>`)
@@ -81,6 +106,7 @@ export function getFormDataFromInput(input: Record<string, unknown>): ContactFor
     consent: readInputBoolean(input, 'consent'),
   }
 
+  const company = readInputString(input, 'company')
   const phone = readInputString(input, 'phone')
   const budget = readInputString(input, 'budget')
   const timeline = readInputString(input, 'timeline')
@@ -93,6 +119,7 @@ export function getFormDataFromInput(input: Record<string, unknown>): ContactFor
 
   const dataSubjectId = readInputString(input, 'DataSubjectId')
 
+  if (company) formData.company = company
   if (phone) formData.phone = phone
   if (budget) formData.budget = budget
   // Assertion OK because it is validated by Zod
@@ -106,21 +133,6 @@ export function getFormDataFromInput(input: Record<string, unknown>): ContactFor
 
 export async function parseAttachments(form: FormData): Promise<FileAttachment[]> {
   const files: FileAttachment[] = []
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'image/webp',
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'audio/mpeg',
-    'audio/wav',
-    'video/mp4',
-    'video/quicktime',
-    'application/zip',
-    'text/plain',
-  ]
   const maxFileSize = 10 * 1024 * 1024
   const maxFiles = 5
 
@@ -137,7 +149,9 @@ export async function parseAttachments(form: FormData): Promise<FileAttachment[]
         throw new ActionsFunctionError(`File ${value.name} exceeds 10MB limit`, { status: 400 })
       }
 
-      if (!allowedTypes.includes(value.type)) {
+      const normalizedType = normalizeMimeType(value.type)
+
+      if (!allowedAttachmentTypes.includes(normalizedType)) {
         throw new ActionsFunctionError(`File type ${value.type} not allowed`, { status: 400 })
       }
 
@@ -145,7 +159,7 @@ export async function parseAttachments(form: FormData): Promise<FileAttachment[]
       files.push({
         filename: value.name,
         content: buffer,
-        contentType: value.type,
+        contentType: normalizedType,
         size: value.size,
       })
     }
@@ -158,21 +172,6 @@ export async function parseAttachmentsFromInput(
   input: Record<string, unknown>
 ): Promise<FileAttachment[]> {
   const files: FileAttachment[] = []
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'image/webp',
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'audio/mpeg',
-    'audio/wav',
-    'video/mp4',
-    'video/quicktime',
-    'application/zip',
-    'text/plain',
-  ]
   const maxFileSize = 10 * 1024 * 1024
   const maxFiles = 5
 
@@ -190,7 +189,9 @@ export async function parseAttachmentsFromInput(
       throw new ActionsFunctionError(`File ${value.name} exceeds 10MB limit`, { status: 400 })
     }
 
-    if (!allowedTypes.includes(value.type)) {
+    const normalizedType = normalizeMimeType(value.type)
+
+    if (!allowedAttachmentTypes.includes(normalizedType)) {
       throw new ActionsFunctionError(`File type ${value.type} not allowed`, { status: 400 })
     }
 
@@ -198,7 +199,7 @@ export async function parseAttachmentsFromInput(
     files.push({
       filename: value.name,
       content: buffer,
-      contentType: value.type,
+      contentType: normalizedType,
       size: value.size,
     })
   }

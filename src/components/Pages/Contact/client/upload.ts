@@ -26,7 +26,10 @@ const allowedMimeTypes = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/zip',
   'audio/mpeg',
+  'audio/mp4',
+  'audio/ogg',
   'audio/wav',
+  'audio/webm',
   'image/gif',
   'image/jpeg',
   'image/png',
@@ -34,6 +37,7 @@ const allowedMimeTypes = [
   'text/plain',
   'video/mp4',
   'video/quicktime',
+  'video/webm',
 ] as const
 
 const toFile = (value: Blob | File, name: string): File => {
