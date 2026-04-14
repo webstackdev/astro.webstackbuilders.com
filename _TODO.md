@@ -33,6 +33,8 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 
 ## Content Issues
 
-- Need an article on OpenStack
+We fixed the Confetti animation for the Contact page by wrapping the entire Contact form in the Confetti component - src/components/Pages/Contact/index.astro
 
-- The one I'd add that's less obvious than newsletters is reading incident retros from companies that publish them well. Railway just published one this week. Cloudflare publishes consistently. Anthropic does a good job. They're more useful than most newsletter issues.
+We have the same problem of the Confetti animation being constrained to a small row of the page in the other places where it's used - the Download CTA and the Newsletter CTA layouts. But in those cases, there's no way we can wrap the page content inside the component - it's internal to the CTA components, and they're designed to be used by authors inside of article MDX files.
+
+I think we need to refactor the Confetti component to create a canvas that uses absolute positioning the
