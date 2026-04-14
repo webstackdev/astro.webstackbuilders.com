@@ -13,7 +13,7 @@ import type { ContactFormConfig } from './@types'
 import { initCharacterCounter, initUploadPlaceholder } from './utils'
 import { initLabelHandlers, type LabelController } from './feedback'
 import { initEmailValidationHandler } from './email'
-import { initFormSubmission } from './formSubmission'
+import { applyContactPreviewState, initFormSubmission, resolveContactPreviewState } from './formSubmission'
 import { initGenericValidation, initNameLengthHandler, initMssgLengthHandler } from './validation'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -75,7 +75,9 @@ export class ContactFormElement extends LitElement {
       initFormSubmission(elements, {
         labelController: this.labelController,
         uploadController: this.uploadController,
+        rootElement: this,
       })
+      this.applyPreviewStateFromQuery(elements)
       this.initializeStickySidebar()
       this.setViewTransitionsHandlers()
     } catch (error) {
@@ -104,6 +106,22 @@ export class ContactFormElement extends LitElement {
     }
 
     projectTypeSelect.value = projectType
+  }
+
+  private applyPreviewStateFromQuery(elements: ReturnType<typeof getContactFormElements>): void {
+    if (typeof window === 'undefined' || import.meta.env.PROD) {
+      return
+    }
+
+    const previewState = resolveContactPreviewState(window.location.search)
+    if (!previewState) {
+      return
+    }
+
+    applyContactPreviewState(elements, {
+      state: previewState,
+      rootElement: this,
+    })
   }
 
   /**

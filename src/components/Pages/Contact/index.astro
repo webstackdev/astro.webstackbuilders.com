@@ -1,4 +1,18 @@
 ---
+/**
+ * Contact Page
+ *
+ * Use query parameters to view prefilled form states for testing:
+ * - /contact/?projectType=web-development (prefills project type dropdown)
+ * - /contact/?formState=success (shows success message)
+ * - /contact/?formState=error (shows error message)
+ * - /contact/?formState=idle (shows idle state)
+ *
+ * - /contact/?contactState=success
+ * - /contact/?contactState=error
+ * - /contact/?contactState=validation
+ * - /contact/?contactState=loading
+ */
 import Confetti from '@components/Animations/Confetti/index.astro'
 import GDPRConsent from '@components/Consent/Checkbox/index.astro'
 import Icon from '@components/Icon/index.astro'
@@ -92,7 +106,7 @@ export type Props = {
 const { content, prefilledProjectType = '' } = Astro.props
 ---
 
-<contact-form>
+<contact-form data-contact-state="idle">
   <div class="min-h-screen md:mb-16">
     {/** Google Maps embed */}
     {/* <Map /> */}
@@ -369,9 +383,14 @@ const { content, prefilledProjectType = '' } = Astro.props
               </form>
 
               {/** Form Messages */}
-              <div id="formMessages" class="mt-8 rounded-xl overflow-hidden" style="display: none;">
-                <div class="message-success hidden" role="status" aria-live="polite" aria-atomic="true">
-                  <div class="flex items-start p-6 bg-success-inverse  border border-success gap-4">
+              <div id="formMessages" class="mt-8" style="display: none;">
+                <div
+                  class="message-success hidden w-full rounded-xl border border-success bg-success-inverse"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  <div class="flex items-start gap-4 p-6">
                     <div
                       class="shrink-0 w-6 h-6 bg-success rounded-full flex items-center justify-center text-sm font-bold"
                     >
@@ -385,8 +404,13 @@ const { content, prefilledProjectType = '' } = Astro.props
                     </div>
                   </div>
                 </div>
-                <div class="message-error hidden" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div class="flex items-start p-6 bg-danger-offset border border-danger gap-4">
+                <div
+                  class="message-error hidden w-full rounded-xl border border-danger bg-danger-inverse text-danger"
+                  role="alert"
+                  aria-live="assertive"
+                  aria-atomic="true"
+                >
+                  <div class="flex items-start gap-4 p-6">
                     <div
                       class="shrink-0 w-6 h-6 bg-danger rounded-full flex items-center justify-center"
                     >
@@ -394,8 +418,14 @@ const { content, prefilledProjectType = '' } = Astro.props
                     </div>
                     <div>
                       <h3 class="text-lg font-semibold text-danger mb-2">Oops!</h3>
-                      <p id="errorMessage">
-                        {content.form.errorText} <a href={`mailto:${content.form.errorEmail}`}>{content.form.errorEmail}</a>
+                      <p id="errorMessage" class="text-danger">
+                        {content.form.errorText}{' '}
+                        <a
+                          href={`mailto:${content.form.errorEmail}`}
+                          class="text-danger underline decoration-current underline-offset-2"
+                        >
+                          {content.form.errorEmail}
+                        </a>
                       </p>
                     </div>
                   </div>
