@@ -16,6 +16,7 @@ import { initEmailValidationHandler } from './email'
 import { applyContactPreviewState, initFormSubmission, resolveContactPreviewState } from './formSubmission'
 import { initGenericValidation, initNameLengthHandler, initMssgLengthHandler } from './validation'
 import { defineCustomElement } from '@components/scripts/utils'
+import { isProd } from '@components/scripts/utils/environmentClient'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { initUppyUpload, type UploadController } from './upload'
 
@@ -109,7 +110,7 @@ export class ContactFormElement extends LitElement {
   }
 
   private applyPreviewStateFromQuery(elements: ReturnType<typeof getContactFormElements>): void {
-    if (typeof window === 'undefined' || import.meta.env.PROD) {
+    if (typeof window === 'undefined' || isProd()) {
       return
     }
 
