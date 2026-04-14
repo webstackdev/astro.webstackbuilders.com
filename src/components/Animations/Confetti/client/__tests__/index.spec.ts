@@ -165,7 +165,7 @@ describe('ConfettiAnimationElement', () => {
       element.fire()
 
       expect(confettiCreateMock).toHaveBeenCalledTimes(1)
-      expect(confettiInstanceMock).toHaveBeenCalledTimes(1)
+      expect(confettiInstanceMock).toHaveBeenCalledTimes(2)
 
       const args = confettiInstanceMock.mock.calls[0]?.[0]
       expect(args).toEqual(
@@ -173,6 +173,14 @@ describe('ConfettiAnimationElement', () => {
           particleCount: expect.any(Number),
           spread: expect.any(Number),
           startVelocity: expect.any(Number),
+          shapes: ['star'],
+        })
+      )
+
+      const accentArgs = confettiInstanceMock.mock.calls[1]?.[0]
+      expect(accentArgs).toEqual(
+        expect.objectContaining({
+          shapes: ['circle'],
         })
       )
     })
@@ -220,7 +228,7 @@ describe('ConfettiAnimationElement', () => {
       controllerArgs?.onPlay()
 
       element.fire()
-      expect(confettiInstanceMock).toHaveBeenCalledTimes(1)
+      expect(confettiInstanceMock).toHaveBeenCalledTimes(2)
     })
   })
 
@@ -234,8 +242,9 @@ describe('ConfettiAnimationElement', () => {
         })
       )
 
-      expect(confettiInstanceMock).toHaveBeenCalledTimes(1)
-      expect(confettiInstanceMock).toHaveBeenCalledWith(
+      expect(confettiInstanceMock).toHaveBeenCalledTimes(2)
+      expect(confettiInstanceMock).toHaveBeenNthCalledWith(
+        1,
         expect.objectContaining({ particleCount: 12 })
       )
     })
@@ -272,7 +281,7 @@ describe('ConfettiAnimationElement', () => {
         })
       )
 
-      expect(confettiInstanceMock).toHaveBeenCalledTimes(1)
+      expect(confettiInstanceMock).toHaveBeenCalledTimes(2)
 
       const callArgs = confettiInstanceMock.mock.calls[0]?.[0]
       expect(callArgs).toEqual(expect.objectContaining({ particleCount: 12 }))
@@ -290,11 +299,20 @@ describe('ConfettiAnimationElement', () => {
         shapes: ['star'],
       })
 
-      expect(confettiInstanceMock).toHaveBeenCalledTimes(1)
-      expect(confettiInstanceMock).toHaveBeenCalledWith(
+      expect(confettiInstanceMock).toHaveBeenCalledTimes(2)
+      expect(confettiInstanceMock).toHaveBeenNthCalledWith(
+        1,
         expect.objectContaining({
           colors: ['#bada55', '#ff0000'],
           shapes: ['star'],
+        })
+      )
+
+      expect(confettiInstanceMock).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          colors: ['#bada55', '#ff0000'],
+          shapes: ['circle'],
         })
       )
     })

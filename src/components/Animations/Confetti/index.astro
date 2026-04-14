@@ -6,10 +6,12 @@
  */
 export interface Props {
   /** Additional classes to add to the component wrapper */
-  classes: string
+  classes?: string
+  /** Additional classes to add to the canvas element */
+  canvasClasses?: string
 }
 
-const { classes } = Astro.props
+const { classes = '', canvasClasses = '' } = Astro.props
 ---
 
 <confetti-animation
@@ -19,7 +21,10 @@ const { classes } = Astro.props
   <canvas
     data-confetti-canvas
     aria-hidden="true"
-    class="absolute inset-0 w-full h-full pointer-events-none z-(--z-content-overlay)"
+    class:list={[
+      'absolute inset-0 w-full h-full pointer-events-none z-(--z-modal)',
+      canvasClasses,
+    ]}
   ></canvas>
   <slot />
 </confetti-animation>

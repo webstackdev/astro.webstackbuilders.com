@@ -26,7 +26,11 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
   }
 
   const resend = new Resend(getResendApiKey())
-  const attachments = files.map(file => ({ filename: file.filename, content: file.content }))
+  const attachments = files.map(file => ({
+    filename: file.filename,
+    content: file.content,
+    contentType: file.contentType,
+  }))
 
   try {
     const result = await resend.emails.send({

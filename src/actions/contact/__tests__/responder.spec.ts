@@ -14,6 +14,7 @@ describe('contact responder', () => {
         {
           name: 'Jane Doe',
           email: 'jane@example.com',
+          company: 'Acme Co',
           service: 'Website redesign',
           timeline: '2-3-months',
           budget: '$5k-$10k',
@@ -42,6 +43,7 @@ describe('contact responder', () => {
 
       // Key fields should appear somewhere in the rendered content.
       expect(document.body.textContent ?? '').toContain('jane@example.com')
+      expect(document.body.textContent ?? '').toContain('Acme Co')
       expect(document.body.textContent ?? '').toContain('Website redesign')
       expect(document.body.textContent ?? '').toContain('$5k-$10k')
     })
@@ -77,6 +79,7 @@ describe('contact responder', () => {
         name: ' Jane ',
         email: 'jane@example.com',
         message: ' Hello ',
+        company: 'Acme Co',
         service: 'Web development',
         timeline: '2-3-months',
         budget: '$5k-$10k',
@@ -90,6 +93,7 @@ describe('contact responder', () => {
       expect(formData.name).toBe(' Jane ')
       expect(formData.email).toBe('jane@example.com')
       expect(formData.message).toBe(' Hello ')
+      expect(formData.company).toBe('Acme Co')
       expect(formData.service).toBe('Web development')
       expect(formData.timeline).toBe('2-3-months')
       expect(formData.budget).toBe('$5k-$10k')
@@ -122,6 +126,18 @@ describe('contact responder', () => {
       expect(firstAttachment.contentType).toBe('text/plain')
       expect(firstAttachment.size).toBeGreaterThan(0)
       expect(firstAttachment.content).toBeInstanceOf(Buffer)
+    })
+
+    it('accepts browser-recorded audio with codec parameters', async () => {
+      const file = new File(['audio'], 'recording.webm', { type: 'audio/webm;codecs=opus' })
+
+      const attachments = await parseAttachmentsFromInput({
+        file1: file,
+      })
+
+      expect(attachments).toHaveLength(1)
+      expect(attachments[0]?.contentType).toBe('audio/webm')
+      expect(attachments[0]?.filename).toBe('recording.webm')
     })
 
     it('rejects disallowed mime types', async () => {
