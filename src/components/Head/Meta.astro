@@ -1,5 +1,5 @@
 ---
-import contactData from '@content/contact.json'
+import { companyContactData } from '@lib/content/contactData'
 import { absoluteUrl } from '@components/scripts/utils'
 import { applyRenderSentryContext } from '@lib/sentry/renderContext'
 import { getMetaThemeData } from '@components/Head/server/meta'
@@ -60,7 +60,7 @@ applyRenderSentryContext({
     pageTitle,
     noindex,
     contentType,
-    pageDescriptionLength: (pageDescription || contactData.company.description).length,
+    pageDescriptionLength: (pageDescription || companyContactData.description).length,
     canonicalUrl: Astro.url?.href,
     resolvedSiteUrl: site,
   },
@@ -69,8 +69,8 @@ applyRenderSentryContext({
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content={pageDescription || contactData.company.description} />
-<meta name="author" content={contactData.company.author.name} />
+<meta name="description" content={pageDescription || companyContactData.description} />
+<meta name="author" content={companyContactData.author.name} />
 <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
 <Seo
   path={path}
@@ -84,7 +84,7 @@ applyRenderSentryContext({
 {/* Open Graph meta tags for Twitter and Facebook social shares */}
 <Social
   title={pageTitle}
-  description={pageDescription || contactData.company.description}
+  description={pageDescription || companyContactData.description}
   path={path}
 />
 {/* JSON-LD Structured Data for search engines */}
@@ -120,7 +120,7 @@ applyRenderSentryContext({
   type="application/rss+xml"
   rel="alternate"
   href={absoluteUrl('rss.xml', site)}
-  title={`RSS Feed for ${contactData.company.name}`}
+  title={`RSS Feed for ${companyContactData.name}`}
 />
 {/* Web App Manifest */}
 <link rel="manifest" href="/manifest.json" />

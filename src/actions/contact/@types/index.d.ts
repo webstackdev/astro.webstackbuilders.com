@@ -29,6 +29,7 @@ export type FileAttachment = {
 export type EmailData = {
   from: string
   to: string
+  replyTo?: string
   subject: string
   html: string
 }

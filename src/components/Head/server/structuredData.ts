@@ -9,7 +9,7 @@ import type {
   WebSite,
   WithContext,
 } from 'schema-dts'
-import contactData from '@content/contact.json'
+import { companyContactData } from '@lib/content/contactData'
 import { absoluteUrl } from '@components/scripts/utils/absoluteUrl'
 import { BuildError } from '@lib/errors/BuildError'
 import { getSocialImageLink, resolveSiteUrl } from '@components/Head/server'
@@ -88,7 +88,7 @@ const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
   const site = resolveSiteUrl(astro)
   const normalizedPath = normalizePath(path)
   const canonicalUrl = astro.url?.href ?? resolveRoute(normalizedPath, site)
-  const pageDescriptionFallback = pageDescription ?? contactData.company.description
+  const pageDescriptionFallback = pageDescription ?? companyContactData.description
   const socialImageUrl = getSocialImageLink(path, site)
 
   const context: SchemaContext = {
@@ -128,18 +128,18 @@ const organizationSchema: SchemaBuilder = context => {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: contactData.company.name,
-    url: contactData.company.url,
+    name: companyContactData.name,
+    url: companyContactData.url,
     logo: logoUrl,
-    description: contactData.company.description,
-    email: contactData.company.email,
+    description: companyContactData.description,
+    email: companyContactData.email,
     address: {
       '@type': 'PostalAddress',
-      addressLocality: contactData.company.city,
-      addressRegion: contactData.company.state,
-      addressCountry: contactData.company.country,
+      addressLocality: companyContactData.city,
+      addressRegion: companyContactData.state,
+      addressCountry: companyContactData.country,
     },
-    sameAs: contactData.company.social.map(social => social.url),
+    sameAs: companyContactData.social.map(social => social.url),
   } satisfies WithContext<Organization>
 }
 
@@ -151,12 +151,12 @@ const webSiteSchema: SchemaBuilder = context => {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: contactData.company.name,
-    url: contactData.company.url,
+    name: companyContactData.name,
+    url: companyContactData.url,
     description: context.pageDescription,
     publisher: {
       '@type': 'Organization',
-      name: contactData.company.name,
+      name: companyContactData.name,
       logo: resolveAssetUrl(ICON_PATH, context.site),
     },
   } satisfies WithContext<WebSite>
@@ -178,11 +178,11 @@ const articleSchema: SchemaBuilder = context => {
     dateModified: (context.modifiedDate ?? context.publishDate).toISOString(),
     author: {
       '@type': 'Person',
-      name: context.author || contactData.company.author.name,
+      name: context.author || companyContactData.author.name,
     },
     publisher: {
       '@type': 'Organization',
-      name: contactData.company.name,
+      name: companyContactData.name,
       logo: resolveAssetUrl(ICON_PATH, context.site),
     },
     url: context.canonicalUrl,
@@ -239,8 +239,8 @@ const serviceSchema: SchemaBuilder = context => {
     description: context.pageDescription,
     provider: {
       '@type': 'Organization',
-      name: contactData.company.name,
-      url: contactData.company.url,
+      name: companyContactData.name,
+      url: companyContactData.url,
     },
     url: context.canonicalUrl,
   } satisfies WithContext<Service>
@@ -259,9 +259,9 @@ const contactPageSchema: SchemaBuilder = context => {
     url: context.canonicalUrl,
     mainEntity: {
       '@type': 'Organization',
-      name: contactData.company.name,
-      email: contactData.company.email,
-      url: contactData.company.url,
+      name: companyContactData.name,
+      email: companyContactData.email,
+      url: companyContactData.url,
     },
   } satisfies WithContext<ContactPage>
 }

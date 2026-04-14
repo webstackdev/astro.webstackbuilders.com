@@ -9,6 +9,7 @@ import {
   isProd,
 } from '@actions/utils/environment/environmentActions'
 import { ActionsFunctionError, handleActionsFunctionError, throwActionError } from '@actions/utils/errors'
+import { contactFormSender } from '@actions/utils/email/resendSenders'
 import { createConsentRecord } from '@actions/gdpr/entities/consent'
 import { createOrUpdateContact, setMarketingOptIn } from '@actions/utils/hubspot'
 import type { FileAttachment, EmailData } from '@actions/contact/@types'
@@ -27,16 +28,43 @@ async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise
   const resend = new Resend(getResendApiKey())
   const attachments = files.map(file => ({ filename: file.filename, content: file.content }))
 
-  const result = await resend.emails.send({
-    from: emailData.from,
-    to: emailData.to,
-    subject: emailData.subject,
-    html: emailData.html,
-    ...(attachments.length > 0 && { attachments }),
-  })
+  try {
+    const result = await resend.emails.send({
+      from: emailData.from,
+      to: emailData.to,
+      ...(emailData.replyTo && { replyTo: emailData.replyTo }),
+      subject: emailData.subject,
+      html: emailData.html,
+      ...(attachments.length > 0 && { attachments }),
+    })
 
-  if (!result.data) {
-    throw new ActionsFunctionError('Failed to send email. Please try again later.', { status: 502 })
+    if (result.error) {
+      throw new ActionsFunctionError({
+        message: `Failed to send contact email: ${result.error.message}`,
+        appCode: 'CONTACT_EMAIL_SEND_FAILED',
+        status: 502,
+        route: 'actions:contact',
+        operation: 'sendEmail',
+      })
+    }
+
+    if (!result.data) {
+      throw new ActionsFunctionError({
+        message: 'Failed to send contact email: Resend returned no delivery result',
+        appCode: 'CONTACT_EMAIL_SEND_FAILED',
+        status: 502,
+        route: 'actions:contact',
+        operation: 'sendEmail',
+      })
+    }
+  } catch (error) {
+    throw new ActionsFunctionError(error, {
+      message: 'Failed to send email. Please try again later.',
+      appCode: 'CONTACT_EMAIL_SEND_FAILED',
+      status: 502,
+      route: 'actions:contact',
+      operation: 'sendEmail',
+    })
   }
 }
 
@@ -96,8 +124,9 @@ export const contact = {
         const htmlContent = generateEmailContent(formData, files)
         await sendEmail(
           {
-            from: 'contact@webstackbuilders.com',
+            from: contactFormSender,
             to: 'info@webstackbuilders.com',
+            replyTo: formData.email.trim(),
             subject: `Contact Form: ${formData.name}`,
             html: htmlContent,
           },
@@ -124,13 +153,17 @@ export const contact = {
           message: 'Thank you for your message. We will get back to you soon!',
         }
       } catch (error) {
-        if (error instanceof ActionsFunctionError) {
-          throw error
-        }
         if (error instanceof ActionError) {
           throw error
         }
-        throwActionError(error, { route, operation: 'submit' })
+
+        if (error instanceof ActionsFunctionError && !error.isServerError) {
+          throw error
+        }
+
+        throwActionError(error, { route, operation: 'submit' }, {
+          fallbackMessage: 'Failed to send email. Please try again later.',
+        })
       }
     },
   }),
