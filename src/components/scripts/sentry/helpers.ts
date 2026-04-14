@@ -6,6 +6,21 @@ type BeforeSendHandler = NonNullable<BrowserOptions['beforeSend']>
 
 const SAFE_BREADCRUMB_CATEGORIES = new Set(['script', 'sentry.event'])
 
+const isHandledContactSubmitHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const requestUrl = event.request?.url
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  return (
+    typeof requestUrl === 'string' &&
+    requestUrl.includes('/_actions/contact.submit') &&
+    mechanismType === 'auto.http.client.fetch' &&
+    typeof errorMessage === 'string' &&
+    errorMessage.includes('HTTP Client Error with status code:')
+  )
+}
+
 function scrubBreadcrumbs(
   breadcrumbs: NonNullable<Parameters<BeforeSendHandler>[0]['breadcrumbs']>
 ) {
@@ -25,6 +40,12 @@ function scrubBreadcrumbs(
  */
 export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
   if (!isProd()) {
+    return null
+  }
+
+  // The Contact form already handles action failures in the UI. Drop the
+  // browser-side auto-fetch event and rely on the server-side action error.
+  if (isHandledContactSubmitHttpError(event)) {
     return null
   }
 

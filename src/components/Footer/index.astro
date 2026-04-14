@@ -1,5 +1,5 @@
 ---
-import contactData from '@content/contact.json'
+import { companyContactData } from '@lib/content/contactData'
 import { formatPhoneNumber } from '@components/Footer/server'
 import Avatar from '@components/Avatar/index.astro'
 import BugReporter from '@components/BugReporter/index.astro'
@@ -80,37 +80,37 @@ const footerTextLinkClasses = [
             <Avatar name="Kevin Brown" />
           </div>
           {/* Mobile: company name */}
-          <h2 class="font-bold text-2xl sm:hidden">{contactData.company.name}</h2>
+          <h2 class="font-bold text-2xl sm:hidden">{companyContactData.name}</h2>
         </div>
         {/* Address and Phone Numbers Block */}
         <address class="mt-3 text-base sm:mt-0">
           {/* Desktop: company name */}
-          <h2 class="hidden font-bold text-2xl sm:block">{contactData.company.name}</h2>
+          <h2 class="hidden font-bold text-2xl sm:block">{companyContactData.name}</h2>
           {/* Street Address */}
           <div class="mt-2 sm:ml-1">
-            <p>{contactData.company.address}</p>
+            <p>{companyContactData.address}</p>
             <p>
-              {contactData.company.city}, {contactData.company.state}
-              {contactData.company.index}
+              {companyContactData.city}, {companyContactData.state}
+              {companyContactData.index}
             </p>
           </div>
           {/* Email Address */}
           <p class="hyphens-none">
             <a
-              href={`mailto:${contactData.company.email}`}
+              href={`mailto:${companyContactData.email}`}
               class:list={[
                 'inline-flex min-h-6 items-center align-middle',
                 'hover:text-secondary hover:decoration-secondary focus:text-secondary focus:decoration-secondary',
                 'focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2',
               ]}
             >
-              {contactData.company.email}
+              {companyContactData.email}
             </a>
           </p>
           {/* Toll Free Telephone Number */}
           <p itemprop="telephone">
             <a
-              href={`tel:${contactData.company.telephoneTollFree}`}
+              href={`tel:${companyContactData.telephoneTollFree}`}
               rel="nofollow"
               class:list={[
                 'inline-flex min-h-6 items-center align-middle',
@@ -118,13 +118,13 @@ const footerTextLinkClasses = [
                 'focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2',
               ]}
             >
-              Toll Free {formatPhoneNumber(contactData.company.telephoneTollFree)}
+              Toll Free {formatPhoneNumber(companyContactData.telephoneTollFree)}
             </a>
           </p>
           {/* Local Telephone Number */}
           <p itemprop="telephone">
             <a
-              href={`tel:${contactData.company.telephoneLocal}`}
+              href={`tel:${companyContactData.telephoneLocal}`}
               rel="nofollow"
               class:list={[
                 'inline-flex min-h-6 items-center align-middle',
@@ -132,7 +132,7 @@ const footerTextLinkClasses = [
                 'focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2',
               ]}
             >
-              Local {formatPhoneNumber(contactData.company.telephoneLocal)}
+              Local {formatPhoneNumber(companyContactData.telephoneLocal)}
             </a>
           </p>
         </address>
@@ -161,7 +161,7 @@ const footerTextLinkClasses = [
       <nav class:list={["mt-5", styles.footerSocial]} aria-label="Social links">
         <ul class="grid list-none gap-x-4 gap-y-3 p-0 sm:mb-0 sm:mt-0 sm:mx-0 lg:grid-cols-2">
           {
-            contactData.company.social
+            companyContactData.social
               .sort((a, b) => a.order - b.order)
               .map(social => (
                 <li class="list-none">

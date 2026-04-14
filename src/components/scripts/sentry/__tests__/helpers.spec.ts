@@ -37,6 +37,23 @@ const createEvent = (): Parameters<typeof beforeSendHandler>[0] =>
     ],
   }) as unknown as Parameters<typeof beforeSendHandler>[0]
 
+const createContactSubmitHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/contact.submit' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 502',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
 const createHint = (): Parameters<typeof beforeSendHandler>[1] =>
   ({}) as Parameters<typeof beforeSendHandler>[1]
 
@@ -73,6 +90,17 @@ describe('sentry helpers', () => {
         { category: 'script', message: 'bootstrap started', data: { scriptName: 'AppBootstrap' } },
         { category: 'fetch', message: 'GET /contact', data: { url: '/contact' } },
       ])
+    })
+
+    it('drops handled contact action http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createContactSubmitHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
     })
 
     it('scrubs PII when analytics consent is missing and preserves safe breadcrumbs', () => {

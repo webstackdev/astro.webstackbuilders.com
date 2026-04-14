@@ -1,0 +1,42 @@
+
+---
+import Icon from '@components/Icon/index.astro'
+
+export type Props = {
+  items: {
+    lead?: string
+    text: string
+    color?: string
+  }[]
+  classes?: {
+    ul?: string
+    li?: string
+    em?: string
+    icon?: string
+    text?: string
+  }
+}
+
+const { items, classes }: Props = Astro.props
+
+const ulClass = ['ml-3 mr-1 space-y-2 text-sm text-content-offset', classes?.ul]
+const liClass = ['flex items-start gap-3', classes?.li]
+const emClass = ['not-italic font-semibold text-content', classes?.em]
+const iconClass = ['mt-0.5 shrink-0', classes?.icon]
+---
+
+<ul class:list={ulClass}>
+  {
+    items.map((item) => (
+      <li class:list={liClass}>
+        <span class:list={iconClass} aria-hidden="true">
+          <Icon icon="chevron" color={item.color ?? 'text-primary-offset'} size={3} />
+        </span>
+        <div class="min-w-0">
+          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
+          <span class:list={['block leading-relaxed', item.lead ? 'mt-0.5' : '', classes?.text]} set:html={item.text}></span>
+        </div>
+      </li>
+    ))
+  }
+</ul>

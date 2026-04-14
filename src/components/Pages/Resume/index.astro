@@ -1,0 +1,306 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js'
+import HeadContent from '@components/Head/index.astro'
+import Icon from '@components/Icon/index.astro'
+import List from '@components/List/index.astro'
+import ListItem from '@components/List/ListItem.astro'
+import { formatPhoneNumber } from '@components/Footer/server'
+import { formatMonthYear, formatDateContent, splitLocation } from '@components/Pages/Resume/server'
+
+import '@styles/index.css'
+import '@styles/icons.css'
+import './index.css'
+
+type SocialEntry = {
+  label: string
+  url: string
+}
+type RenderedClient = {
+  client: CollectionEntry<'clients'>
+  Content: AstroComponentFactory
+}
+
+export interface Props {
+  contactData: CollectionEntry<'contactData'>['data']
+  pageDescription: string
+  pageTitle: string
+  path: string
+  renderedClients: RenderedClient[]
+  resume: CollectionEntry<'resume'>['data']
+}
+
+const {
+  contactData,
+  pageDescription,
+  pageTitle,
+  path,
+  renderedClients,
+  resume,
+} = Astro.props as Props
+
+const companyContact = contactData.company
+const socialEntries: SocialEntry[] = [...companyContact.social]
+  .sort((left, right) => left.order - right.order)
+  .map(entry => ({
+    label: entry.displayName,
+    url: entry.url,
+  }))
+const resumeLocation = `${companyContact.city}, ${companyContact.state}`
+const resumePhoneNumber = formatPhoneNumber(companyContact.telephoneTollFree)
+---
+
+<!doctype html>
+<html lang="en" data-theme="light" class="min-h-full overflow-y-auto">
+  <head>
+    <HeadContent pageTitle={pageTitle} pageDescription={pageDescription} path={path} />
+  </head>
+  <body
+    itemtype="http://schema.org/Person"
+    class="min-h-full overflow-y-auto font-sans leading-6 [font-smoothing:antialiased] bg-page-offset md:flex md:justify-center print:bg-white print:block"
+  >
+    <div class="relative bg-primary-inverse mx-auto w-full max-w-4xl p-6 md:my-10 md:p-12 md:shadow-xl lg:my-14 lg:p-16 print:m-0 print:max-w-[21cm] print:p-[1cm] print:shadow-none">
+      <header
+        itemscope
+        itemref="resumeSubject"
+        class="relative border-b-2 border-trim/10 pb-6 mb-8 print:border-b print:border-trim/30 print:pb-4 print:mb-6"
+      >
+        <h1
+          itemprop="name"
+          class="text-4xl font-extrabold tracking-tight text-primary print:text-3xl"
+        >
+          <span itemprop="givenName">{resume.firstName}</span>
+          <span itemprop="familyName">{resume.lastName}</span>
+        </h1>
+        <div
+          class="text-xl font-medium text-danger-offset mt-1 tracking-wide print:text-lg"
+          itemprop="jobTitle"
+        >
+          {resume.title}
+        </div>
+        <dl class="flex gap-2 text-sm text-content-offset font-medium mt-6">
+          <a
+            itemprop="email"
+            href={`mailto:${resume.email}`}
+            class="flex gap-2 hover:text-primary transition-colors duration-200"
+          >
+            <dt aria-label="email" class="text-primary-offset">
+              <Icon icon="email-solid" color="content" size={4} />
+            </dt>
+            <dd>{resume.email}</dd>
+          </a>
+          <a
+            id="locationWrapper"
+            itemprop="homeLocation"
+            itemscope
+            href={companyContact.mapLink}
+            class="flex gap-2 hover:text-primary transition-colors duration-200"
+          >
+            <dt aria-label="location" class="text-primary-offset">
+              <Icon icon="location" color="content" size={6} />
+            </dt>
+            <dd id="locationLabel" class="inline">{resumeLocation}</dd>
+          </a>
+          <a
+            id="telephoneWrapper"
+            itemprop="telephone"
+            itemscope
+            href={`tel:${companyContact.telephoneTollFree}`}
+            class="flex gap-2 hover:text-primary transition-colors duration-200"
+          >
+            <dt
+              aria-label="telephone"
+              class="text-primary-offset"
+            >
+              <Icon icon="telephone" color="content" size={6} />
+            </dt>
+            <dd id="telephoneLabel" class="inline">{resumePhoneNumber}</dd>
+          </a>
+        </dl>
+        <ul class="md:absolute md:right-0 md:top-0 md:flex md:flex-row md:items-center md:gap-4 print:hidden text-content-offset">
+          <li>
+            <a
+              class="inline-flex h-7 w-7 items-center justify-center hover:text-primary transition-colors duration-200"
+              href="pdf/resume.pdf"
+              title="Download PDF"
+              aria-label="Download PDF"
+            >
+              <Icon icon="download" color="content" size={7} />
+            </a>
+          </li>
+          <li>
+            <button
+              class="inline-flex h-7 w-7 items-center justify-center appearance-none border-0 bg-transparent p-0 leading-none hover:text-primary transition-colors duration-200"
+              onclick="window.print()"
+              title="Print Resume"
+              aria-label="Print Resume"
+            >
+              <Icon icon="print" color="content" size={6} />
+            </button>
+          </li>
+        </ul>
+      </header>
+      <main class="space-y-8 print:space-y-6">
+        <section itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
+          <h2 class="text-xs font-bold tracking-widest text-primary uppercase mb-3 border-b-2 border-trim/10 pb-2 print:border-trim/30 print:mb-2 print:pb-1">SUMMARY</h2>
+          <p itemprop="description" itemref="resumeSubject" class="text-content leading-relaxed print:text-sm">
+            {resume.summary}
+          </p>
+        </section>
+        <section id="experience">
+          <h2 class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10 pb-2 print:border-trim/30 print:mb-3 print:pb-1">EXPERIENCE</h2>
+          <div class="space-y-8 print:space-y-5">
+          {
+            renderedClients.map(({ client, Content }: RenderedClient, index: number) => {
+              const location = splitLocation(client.data.location)
+              return (
+                <div
+                  id={`experienceItem-${index + 1}`}
+                  class="flex flex-col gap-1.5"
+                  itemprop="worksFor"
+                  itemscope
+                  itemref="resumeSubject"
+                  itemtype="http://schema.org/Organization"
+                >
+                  <div class="flex flex-col md:flex-row md:items-baseline md:justify-between">
+                    <h3
+                      id={`role-${index + 1}`}
+                      class="text-xl font-bold text-content-active print:text-lg"
+                      itemprop="Role"
+                      itemref={`experienceItem-${index + 1}`}
+                      itemscope
+                      itemtype="https://schema.org/EmployeeRole"
+                    >
+                      <span itemprop="roleName">
+                        {client.data.role ?? client.data.businessType ?? client.data.displayName}
+                      </span>
+                    </h3>
+                    <div class="text-sm font-medium text-content-offset mt-0.5 md:mt-0 flex gap-1.5 items-center">
+                      <time
+                        itemprop="startDate"
+                        itemtype="http://schema.org/startDate"
+                        datetime={formatDateContent(client.data.startDate)}
+                      >
+                        {formatMonthYear(client.data.startDate)}
+                      </time>
+                      <span class="text-trim/50">&mdash;</span>
+                      <time
+                        itemprop="endDate"
+                        itemtype="http://schema.org/endDate"
+                        datetime={formatDateContent(client.data.endDate)}
+                      >
+                        {formatMonthYear(client.data.endDate)}
+                      </time>
+                    </div>
+                  </div>
+                  <div class="text-base font-semibold text-primary-offset flex flex-wrap items-center gap-x-2 gap-y-1 print:text-sm">
+                    <span itemprop="legalName">{client.data.displayName}</span>
+                    {client.data.location && (
+                      <>
+                        <span class="text-trim/30 select-none">&bull;</span>
+                        <a
+                          class="inline-flex items-center gap-1 hover:text-primary transition-colors text-content-offset font-medium"
+                          href={client.data.website ?? ''}
+                          itemprop="location"
+                          itemscope
+                          itemtype="http://schema.org/PostalAddress"
+                        >
+                          <Icon icon="location" color="content" size={6} />
+                          <span>
+                            <span itemprop="addressLocality">{location.locality}</span>
+                            {location.region && (
+                              <>, <span itemprop="addressRegion">{location.region}</span></>
+                            )}
+                          </span>
+                        </a>
+                      </>
+                    )}
+                  </div>
+                  <div class="experienceDetailContent mt-3" itemprop="description">
+                    <Content components={{ List, ListItem }} />
+                  </div>
+                </div>
+              )
+            })
+          }
+          </div>
+        </section>
+        <section class="mt-8 print:mt-6" itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
+          <h2 class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10 pb-2 print:border-trim/30 print:mb-3 print:pb-1">SKILLS</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 print:gap-y-3">
+            {
+              resume.skills.map((skill: (typeof resume.skills)[number]) => (
+                <div
+                  class="flex flex-col"
+                  itemref="resumeSubject"
+                  itemscope
+                  itemprop="knowsAbout"
+                  itemtype="http://schema.org/knowsAbout"
+                >
+                  <h3 class="font-bold text-content-active text-sm mb-1">{skill.lead}</h3>
+                  <p class="text-sm text-content-offset leading-relaxed print:text-xs">{skill.text}</p>
+                </div>
+              ))
+            }
+          </div>
+        </section>
+        <section
+          id="languages"
+          class="mt-8 print:mt-6"
+          itemscope
+          itemref="resumeSubject"
+          itemtype="http://schema.org/ItemList"
+        >
+          <h2 class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10 pb-2 print:border-trim/30 print:mb-3 print:pb-1">LANGUAGES</h2>
+          <ul class="flex flex-wrap gap-4 text-sm font-medium text-content-offset print:text-xs">
+            {
+              resume.languages.map((language: (typeof resume.languages)[number]) => (
+                <li
+                  class="bg-trim/5 px-3 py-1 rounded-full text-primary-offset print:bg-transparent print:p-0 print:border print:border-trim/20 print:px-2 print:py-0.5 print:rounded-md"
+                  itemref="resumeSubject"
+                  itemscope
+                  itemprop="knowsAbout"
+                  itemtype="http://schema.org/knowsAbout"
+                >
+                  <span itemprop="name">{language}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </section>
+        <section
+          id="socialSection"
+          class="mt-8 print:mt-6 print:hidden"
+          itemscope
+          itemref="resumeSubject"
+          itemtype="http://schema.org/ItemList"
+        >
+          <h2 class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10 pb-2 print:border-trim/30 print:mb-3 print:pb-1">SOCIAL</h2>
+          {
+            socialEntries.length > 0 ? (
+              <ul id="socialList" class="flex flex-col md:flex-row md:flex-wrap gap-4 md:gap-8">
+                {socialEntries.map((entry: SocialEntry) => (
+                  <li
+                    class="text-sm"
+                    itemref="resumeSubject"
+                    itemscope
+                    itemprop="sameAs"
+                    itemtype="http://schema.org/WebSite"
+                  >
+                    <a class="group inline-flex items-center gap-2 hover:text-primary transition-colors text-content-offset" itemprop="url" title={entry.label} rel="me" href={entry.url}>
+                      <span class="font-bold text-content-active group-hover:text-primary transition-colors">{entry.label}</span>
+                      <span class="text-trim/30 select-none">&bull;</span>
+                      <span class="truncate">{entry.url.replace(/^https?:\/\//, '')}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p class="text-sm text-content-offset italic">No social profiles available.</p>
+            )
+          }
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

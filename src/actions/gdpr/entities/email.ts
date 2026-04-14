@@ -2,6 +2,7 @@ import { Resend } from 'resend'
 import { dsarVerificationEmailHtml } from '@actions/gdpr/email/dsarHtml'
 import { dsarVerificationEmailText } from '@actions/gdpr/email/dsarText'
 import { getResendApiKey, isProd } from '@actions/utils/environment/environmentActions'
+import { gdprReplyTo, gdprSender } from '@actions/utils/email/resendSenders'
 import { getSiteUrl } from '@actions/utils/environment/siteUrlActions'
 import { ActionsFunctionError } from '@actions/utils/errors/ActionsFunctionError'
 
@@ -61,7 +62,8 @@ export async function sendDsarVerificationEmail(
 
   try {
     const result = await resend.emails.send({
-      from: 'Webstack Builders <privacy@webstackbuilders.com>',
+      from: gdprSender,
+      replyTo: gdprReplyTo,
       to: email,
       subject: `${subject} - Webstack Builders`,
       html,

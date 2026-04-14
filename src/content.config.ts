@@ -242,18 +242,46 @@ const clientsCollection = defineCollection({
  * Contact data
  */
 const contactDataCollection = defineCollection({
-  loader: file('./src/content/contact.json'),
+  loader: file('./src/content/contact.json', {
+    parser: text => ({
+      contact: JSON.parse(text),
+    }),
+  }),
   schema: z.object({
-    name: z.string(),
-    email: z.email(),
-    address: z.string(),
-    city: z.string(),
-    state: z.string().length(2),
-    index: z.string(),
-    telephoneLocal: z.string(),
-    telephoneMobile: z.string(),
-    telephoneTollFree: z.string(),
-    social: createSocialCollectionSchema(),
+    company: z.object({
+      name: z.string(),
+      description: z.string(),
+      url: z.url(),
+      email: z.email(),
+      address: z.string(),
+      city: z.string(),
+      state: z.string().length(2),
+      index: z.string(),
+      country: z.string(),
+      mapLink: z.url(),
+      telephoneLocal: z.string(),
+      telephoneMobile: z.string(),
+      telephoneTollFree: z.string(),
+      author: z.object({
+        name: z.string(),
+        email: z.email(),
+      }),
+      dataProtectionOfficer: z.object({
+        name: z.string(),
+        email: z.email(),
+      }),
+      social: z.array(
+        z.object({
+          network: z.string(),
+          name: z.string(),
+          url: z.url(),
+          order: z.number(),
+          displayName: z.string(),
+          iconName: z.string(),
+          blurb: z.string(),
+        })
+      ),
+    }),
   }),
 })
 
@@ -272,21 +300,15 @@ const resumeDataCollection = defineCollection({
       graduationDate: z.string(),
     }),
     email: z.email(),
+    firstName: z.string(),
+    lastName: z.string(),
     languages: z.array(z.string()),
-    name: z.string(),
     skills: z.array(
       z.object({
         lead: z.string(),
         text: z.string(),
       })
     ),
-    social: z.object({
-      github: z.url(),
-      linkedin: z.url(),
-      x: z.url(),
-      youtube: z.url(),
-      stackoverflow: z.url(),
-    }),
     summary: z.string(),
     title: z.string(),
   }),
