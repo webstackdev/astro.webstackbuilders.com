@@ -142,6 +142,7 @@ describe('MastodonModalElement', () => {
       expect(closeButton?.className).toContain('after:rounded-none')
 
       const shareText = element.querySelector('#share-text') as HTMLTextAreaElement | null
+      expect(shareText?.readOnly).toBe(false)
       expect(shareText?.className).toContain('outline-none')
       expect(shareText?.className).toContain('focus-visible:outline-none')
       expect(shareText?.className).toContain('focus-visible:ring-0')
@@ -200,6 +201,25 @@ describe('MastodonModalElement', () => {
     })
   })
 
+  test('allows editing the share text before submit', async () => {
+    await renderModal(async ({ element, window }) => {
+      element.openModal('Original share text')
+      await flushMicrotasks()
+
+      const textarea = element.querySelector('#share-text') as HTMLTextAreaElement | null
+      expect(textarea).toBeTruthy()
+
+      if (!textarea) {
+        return
+      }
+
+      textarea.value = 'Edited share text'
+      textarea.dispatchEvent(new window.Event('input', { bubbles: true }))
+
+      expect(element.shareText).toBe('Edited share text')
+    })
+  })
+
   test('submits share request when instance is valid', async () => {
     await renderModal(async ({ element, window }) => {
       const openSpy = vi.spyOn(window, 'open').mockReturnValue(null)
@@ -208,8 +228,11 @@ describe('MastodonModalElement', () => {
       await flushMicrotasks()
 
       const input = element.querySelector('#mastodon-instance') as HTMLInputElement
+      const textarea = element.querySelector('#share-text') as HTMLTextAreaElement
       input.value = 'mastodon.social'
       input.dispatchEvent(new window.Event('input', { bubbles: true }))
+      textarea.value = 'Updated share copy'
+      textarea.dispatchEvent(new window.Event('input', { bubbles: true }))
 
       const rememberCheckbox = element.querySelector('#remember-instance') as HTMLInputElement
       rememberCheckbox.checked = true
@@ -221,6 +244,7 @@ describe('MastodonModalElement', () => {
       await flushMicrotasks()
 
       expect(mockIsMastodonInstance).toHaveBeenCalledWith('mastodon.social')
+  expect(mockBuildShareUrl).toHaveBeenCalledWith('mastodon.social', 'Updated share copy')
       expect(mockSaveInstance).toHaveBeenCalled()
       expect(mockSetCurrentInstance).toHaveBeenCalledWith('mastodon.social')
       expect(openSpy).toHaveBeenCalledWith(

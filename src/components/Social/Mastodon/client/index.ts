@@ -51,6 +51,22 @@ if (typeof window !== 'undefined') {
   window.openMastodonModal = dispatchOpenModal
 }
 
+const hasTagName = (target: EventTarget | null, expectedTagName: string): boolean => {
+  if (!target || typeof target !== 'object' || !('tagName' in target)) {
+    return false
+  }
+
+  return (target as { tagName?: string }).tagName === expectedTagName
+}
+
+const isTextInput = (target: EventTarget | null): target is HTMLInputElement => {
+  return hasTagName(target, 'INPUT')
+}
+
+const isTextArea = (target: EventTarget | null): target is HTMLTextAreaElement => {
+  return hasTagName(target, 'TEXTAREA')
+}
+
 export class MastodonModalElement extends LitElement {
   static registeredName = COMPONENT_TAG_NAME
 
@@ -316,15 +332,22 @@ export class MastodonModalElement extends LitElement {
 
   private handleRememberChange(event: Event): void {
     const target = event.target
-    if (target instanceof HTMLInputElement) {
+    if (isTextInput(target)) {
       this.rememberInstance = target.checked
     }
   }
 
   private handleInstanceInput(event: Event): void {
     const target = event.target
-    if (target instanceof HTMLInputElement) {
+    if (isTextInput(target)) {
       this.instanceValue = target.value
+    }
+  }
+
+  private handleShareTextInput(event: Event): void {
+    const target = event.target
+    if (isTextArea(target)) {
+      this.shareText = target.value
     }
   }
 
@@ -348,7 +371,7 @@ export class MastodonModalElement extends LitElement {
 
   private handleShareTextFocus(event: FocusEvent): void {
     const target = event.target
-    if (target instanceof HTMLTextAreaElement) {
+    if (isTextArea(target)) {
       this.updateFocusVisibleState(target, isFocusVisible => {
         this.shareTextFocusVisible = isFocusVisible
       })
@@ -361,7 +384,7 @@ export class MastodonModalElement extends LitElement {
 
   private handleInstanceFocus(event: FocusEvent): void {
     const target = event.target
-    if (target instanceof HTMLInputElement) {
+    if (isTextInput(target)) {
       if (this.suppressInitialInstanceFocusVisible) {
         this.suppressInitialInstanceFocusVisible = false
         this.instanceInputFocusVisible = false
@@ -445,9 +468,9 @@ export class MastodonModalElement extends LitElement {
                   id="share-text"
                   name="text"
                   rows="4"
-                  readonly
                   class="w-full p-3 border border-trim-offset rounded-lg bg-page-offset font-[inherit] text-sm leading-6 resize-y outline-none focus:border-trim-offset focus:outline-none focus:ring-0 focus:ring-offset-0 focus:shadow-none focus-visible:border-trim-offset focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none"
                   .value=${this.shareText}
+                  @input=${(event: Event) => this.handleShareTextInput(event)}
                   @focus=${(event: FocusEvent) => this.handleShareTextFocus(event)}
                   @blur=${() => this.handleShareTextBlur()}
                 ></textarea>

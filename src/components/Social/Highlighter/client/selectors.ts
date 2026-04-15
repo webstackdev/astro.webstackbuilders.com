@@ -3,6 +3,7 @@ import {
   isSpanElement,
   isType1Element,
 } from '@components/scripts/assertions/elements'
+import type { TooltipElement } from '@components/Tooltip/client'
 import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {
@@ -11,6 +12,7 @@ export const SELECTORS = {
   dialog: '.share-dialog',
   dialogArrow: '.share-dialog__arrow',
   shareButton: '.share-button',
+  tooltipHost: 'site-tooltip',
   shareIcon: 'svg.share-icon',
   status: '[data-highlighter-status]',
 } as const
@@ -33,6 +35,12 @@ export const queryShareDialog = (context: Element): HTMLSpanElement | null => {
 export const queryShareButtons = (context: Element): HTMLButtonElement[] => {
   return Array.from(context.querySelectorAll(SELECTORS.shareButton)).filter(
     (node): node is HTMLButtonElement => isButtonElement(node)
+  )
+}
+
+export const queryShareTooltipHosts = (context: Element): TooltipElement[] => {
+  return Array.from(context.querySelectorAll(SELECTORS.tooltipHost)).filter(
+    (node): node is TooltipElement => isType1Element(node) && node.tagName === 'SITE-TOOLTIP'
   )
 }
 

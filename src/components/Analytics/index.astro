@@ -13,11 +13,10 @@ const pathname = Astro.url.pathname
 ></vercel-analytics-state>
 
 <script>
+  import { queryAnalyticsStateElement } from './client/selectors'
   import { computeRoute, inject, pageview } from '@vercel/analytics'
 
-  const analyticsState = document.querySelector(
-    'vercel-analytics-state:last-of-type'
-  ) as HTMLElement | null
+  const analyticsState = queryAnalyticsStateElement()
   const pathname = analyticsState?.dataset['pathname'] ?? window.location.pathname
   const params = JSON.parse(analyticsState?.dataset['params'] ?? '{}')
   const mode = analyticsState?.dataset['mode'] === 'development' ? 'development' : 'production'

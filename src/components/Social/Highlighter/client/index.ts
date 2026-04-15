@@ -4,9 +4,10 @@
  * Uses LoadableScript pattern for optimized loading
  */
 
-import type { ShareData } from '@components/Social/common'
+import type { ShareData, SharePlatform } from '@components/Social/common'
 import { platforms, nativeShare } from '@components/Social/common'
 import { MastodonModal } from '@components/Social/Mastodon/client'
+import { initializeTooltipHost } from '@components/Tooltip/client'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import {
@@ -25,11 +26,16 @@ import {
   queryShareButtons,
   queryShareDialog,
   queryShareIcon,
+  queryShareTooltipHosts,
 } from './selectors'
 
 const SCRIPT_NAME = 'Highlighter'
 const COMPONENT_TAG_NAME = 'highlighter-element'
 const ICON_BANK_ID = 'highlighter-icon-bank'
+const TOOLTIP_TRIGGER_CLASSES =
+  'inline-flex items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spotlight'
+const TOOLTIP_POPUP_CLASSES =
+  'pointer-events-none absolute left-1/2 top-full z-(--z-content-floating) mt-2 hidden -translate-x-1/2 max-w-64 rounded-md border border-trim bg-page-inverse px-2 py-1 text-sm leading-tight text-page-base shadow-elevated whitespace-nowrap'
 
 let highlighterInstanceCounter = 0
 const VISIBLE_SHARE_LABEL = 'Share Selection'
@@ -100,6 +106,7 @@ export class HighlighterElement extends LitElement {
     this.bindTriggerButton()
     this.bindWrapperListeners()
     this.bindShareButtons()
+    this.initializeShareTooltips()
     this.applyThemeStyles()
   }
 
@@ -107,6 +114,7 @@ export class HighlighterElement extends LitElement {
     this.bindTriggerButton()
     this.bindWrapperListeners()
     this.bindShareButtons()
+    this.initializeShareTooltips()
     this.applyThemeStyles()
   }
 
@@ -144,19 +152,7 @@ export class HighlighterElement extends LitElement {
         >
           <span class="share-dialog__text">${VISIBLE_SHARE_LABEL}</span>
           <span class="share-dialog__buttons">
-            ${platforms.map(
-              platform => html`
-                <button
-                  type="button"
-                  class="share-button"
-                  data-platform="${platform.id}"
-                  aria-label="${platform.ariaLabel}"
-                  title="${platform.ariaLabel}"
-                >
-                  ${this.renderPlatformIcon(platform.id)}
-                </button>
-              `
-            )}
+            ${platforms.map(platform => this.renderShareButton(platform))}
           </span>
           <span class="share-dialog__arrow"></span>
         </span>
@@ -268,6 +264,31 @@ export class HighlighterElement extends LitElement {
     return iconMarkup ? unsafeHTML(iconMarkup) : null
   }
 
+  private renderShareButton(platform: SharePlatform) {
+    return html`
+      <site-tooltip class="relative inline-flex">
+        <span data-tooltip-trigger class="${TOOLTIP_TRIGGER_CLASSES}">
+          <button
+            type="button"
+            class="share-button"
+            data-platform="${platform.id}"
+            aria-label="${platform.ariaLabel}"
+          >
+            ${this.renderPlatformIcon(platform.id)}
+          </button>
+        </span>
+        <span
+          data-tooltip-popup
+          role="tooltip"
+          aria-hidden="true"
+          class="${TOOLTIP_POPUP_CLASSES}"
+        >
+          ${platform.ariaLabel}
+        </span>
+      </site-tooltip>
+    `
+  }
+
   private getIconMarkup(iconName: string): string | null {
     if (!iconName) {
       return null
@@ -304,6 +325,11 @@ export class HighlighterElement extends LitElement {
       default:
         return null
     }
+  }
+
+  private initializeShareTooltips(): void {
+    const tooltipHosts = queryShareTooltipHosts(this)
+    tooltipHosts.forEach(host => initializeTooltipHost(host))
   }
 
   private applyFocusVisibleStyles(): void {
@@ -403,10 +429,26 @@ export class HighlighterElement extends LitElement {
   private getShareData(): ShareData {
     const text = this.getHighlightedText()
     return {
-      text: `"${text}"`,
+      text,
       url: window.location.href,
       title: document.title,
     }
+  }
+
+  private shouldUseNativeShare(): boolean {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return false
+    }
+
+    if (typeof navigator.share !== 'function') {
+      return false
+    }
+
+    const hasTouchPoints = navigator.maxTouchPoints > 0
+    const prefersCoarsePointer =
+      typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
+
+    return hasTouchPoints || prefersCoarsePointer
   }
 
   /**
@@ -428,7 +470,7 @@ export class HighlighterElement extends LitElement {
       }
 
       // Try native share first on mobile
-      if (typeof navigator.share === 'function') {
+      if (this.shouldUseNativeShare()) {
         const shared = await nativeShare(data)
         if (shared) {
           this.emitShareEvent(platformId, data)
