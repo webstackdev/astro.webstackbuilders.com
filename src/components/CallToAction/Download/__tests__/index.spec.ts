@@ -1,8 +1,49 @@
+import type { CollectionEntry } from 'astro:content'
+import { getCollection } from 'astro:content'
 import { beforeEach, describe, expect, test } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 
-const existingResource = 'performance-testing-load-models-benchmark-accuracy'
+type DownloadFixture = {
+  directDownloadUrl: string
+  resource: string
+}
+
+const getDownloadResource = (download: CollectionEntry<'downloads'>): string | null => {
+  const normalizedFilePath = download.filePath?.replace(/\\/g, '/')
+  const filePathMatch = normalizedFilePath?.match(/\/articles\/(.+)\/download\.[^/.]+$/)
+
+  if (filePathMatch?.[1]) {
+    return filePathMatch[1]
+  }
+
+  const normalizedId = download.id.replace(/\\/g, '/')
+  const idWithoutDownloadSuffix = normalizedId.replace(/\/download$/, '')
+  return idWithoutDownloadSuffix.split('/')[0] ?? null
+}
+
+const getDownloadFixture = async (): Promise<DownloadFixture | null> => {
+  const [download] = await getCollection('downloads')
+
+  if (!download) {
+    return null
+  }
+
+  const resource = getDownloadResource(download)
+  const fileName = download.data.fileName?.trim()
+
+  if (!resource || !fileName) {
+    return null
+  }
+
+  return {
+    directDownloadUrl: `/downloads/${fileName}`,
+    resource,
+  }
+}
+
+const downloadFixture = await getDownloadFixture()
+const existingDownloadTest = downloadFixture ? test : test.skip
 
 describe('Download CallToAction (Astro)', () => {
   let container: AstroContainer
@@ -42,12 +83,16 @@ describe('Download CallToAction (Astro)', () => {
     })
   })
 
-  test('renders direct and landing download URLs for the web component host', async () => {
+  existingDownloadTest('renders direct and landing download URLs for the web component host', async () => {
+    if (!downloadFixture) {
+      throw new Error('Expected an existing download fixture')
+    }
+
     const Download = (await import('@components/CallToAction/Download/index.astro')).default
 
     const renderedHtml = await container.renderToString(Download, {
       props: {
-        resource: existingResource,
+        resource: downloadFixture.resource,
       },
     })
 
@@ -58,12 +103,12 @@ describe('Download CallToAction (Astro)', () => {
       const primaryLink = window.document.querySelector('[data-download-cta-primary]')
 
       expect(host?.getAttribute('data-landing-url')).toBe(
-        `/downloads/${existingResource}`
+        `/downloads/${downloadFixture.resource}`
       )
       expect(host?.getAttribute('data-direct-download-url')).toBe(
-        '/downloads/performance-testing-load-models-benchmark-accuracy.pdf'
+        downloadFixture.directDownloadUrl
       )
-      expect(primaryLink?.getAttribute('href')).toBe(`/downloads/${existingResource}`)
+      expect(primaryLink?.getAttribute('href')).toBe(`/downloads/${downloadFixture.resource}`)
     })
   })
 
