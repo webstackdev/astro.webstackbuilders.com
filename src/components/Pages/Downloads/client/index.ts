@@ -9,6 +9,7 @@ import {
 } from './selectors'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import { markEmailCollected } from '@components/scripts/store'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import type { DownloadsSubmitInput } from '@actions/downloads/action'
@@ -132,6 +133,7 @@ export class DownloadFormElement extends LitElement {
           throw new ClientScriptError({ message: error.message || 'Failed to submit form' })
         }
 
+        markEmailCollected(payload.workEmail.trim(), 'download_form')
         this.showStatus('success', 'Thank you! Click the button below to download your resource.')
 
         submitButton.dispatchEvent(

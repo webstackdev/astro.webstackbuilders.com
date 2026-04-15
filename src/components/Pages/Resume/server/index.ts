@@ -1,4 +1,10 @@
 import type { CollectionEntry } from 'astro:content'
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js'
+
+export type RenderedClient = {
+  client: CollectionEntry<'clients'>
+  Content: AstroComponentFactory
+}
 
 export const getSocialEntries = (contactData: CollectionEntry<'contactData'>['data']) =>
   [...contactData.company.social]

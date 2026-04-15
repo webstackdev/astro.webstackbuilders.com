@@ -30,3 +30,5 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 ## Contact Form
 
 - `0/2000` characters should show number of characters left instead
+
+## Content Issues

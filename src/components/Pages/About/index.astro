@@ -3,6 +3,7 @@ import Contact from '@components/CallToAction/Contact/index.astro'
 import HeadingAnchor from '@components/Layout/HeadingAnchor/index.astro'
 import Button from '@components/Button/index.astro'
 import Icon from '@components/Icon/index.astro'
+import { getSiteUrl } from '@lib/config'
 
 export type Props = {
   content: {
@@ -58,6 +59,7 @@ const { content } = Astro.props
 
 /** Icons per expertise card, matched by index to content.expertise.itemlist */
 const expertiseIcons = ['cloud', 'document', 'gear', 'globe', 'wrench', 'chart']
+const resumeLink = `${getSiteUrl()}/resume`
 ---
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-12 md:space-y-24">
@@ -94,7 +96,7 @@ const expertiseIcons = ['cloud', 'document', 'gear', 'globe', 'wrench', 'chart']
                     text="View C.V."
                     variant="page-inverse"
                     size="small"
-                    href="https://webstackbuilders.com/resume"
+                    href={resumeLink}
                     icon="arrow-right"
                     iconPosition="right"
                     iconSize={4}
@@ -132,7 +134,7 @@ const expertiseIcons = ['cloud', 'document', 'gear', 'globe', 'wrench', 'chart']
               {item.title}
             </h3>
           </div>
-          <p class="text-content leading-relaxed text-sm">
+          <p class="text-content leading-relaxed text-md">
             {item.description}
           </p>
         </div>
@@ -199,7 +201,7 @@ const expertiseIcons = ['cloud', 'document', 'gear', 'globe', 'wrench', 'chart']
           <h3 class="text-lg font-semibold text-page-inverse">
             {item.name}
           </h3>
-          <p class="text-sm text-content leading-relaxed">
+          <p class="text-md text-content leading-relaxed">
             {item.text}
           </p>
         </div>
@@ -207,13 +209,15 @@ const expertiseIcons = ['cloud', 'document', 'gear', 'globe', 'wrench', 'chart']
     </div>
   </section>
 
-  <Contact
-    id="about-cta-title"
-    title={content.proficiencies.cta.title}
-    description={content.proficiencies.cta.description}
-    primaryLink={{
-      href: content.proficiencies.cta.primaryLink.href,
-      text: content.proficiencies.cta.primaryLink.text,
-    }}
-  />
+  <div class="mb-6">
+    <Contact
+      id="about-cta-title"
+      title={content.proficiencies.cta.title}
+      description={content.proficiencies.cta.description}
+      primaryLink={{
+        href: content.proficiencies.cta.primaryLink.href,
+        text: content.proficiencies.cta.primaryLink.text,
+      }}
+    />
+  </div>
 </div>

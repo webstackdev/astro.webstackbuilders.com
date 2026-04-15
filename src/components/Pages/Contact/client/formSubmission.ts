@@ -11,6 +11,7 @@ import { validateGenericFields, validateNameField, validateMessageField } from '
 import type { ContactFormElements } from './@types'
 import { validateEmailField } from './email'
 import { actions, isInputError } from 'astro:actions'
+import { markEmailCollected } from '@components/scripts/store'
 import type { UploadController } from './upload'
 import { queryContactFormGeneratedFieldError, queryContactFormGenericFields } from './selectors'
 
@@ -297,6 +298,7 @@ export const initFormSubmission = (
           return
         }
 
+        markEmailCollected(elements.fields.email.input.value.trim(), 'contact_form')
         showSuccessMessage(elements)
         setContactState(controllers.rootElement, 'success')
 

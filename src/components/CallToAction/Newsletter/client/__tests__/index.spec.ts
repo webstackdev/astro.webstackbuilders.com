@@ -8,6 +8,7 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 import { executeRender } from '@test/unit/helpers/litRuntime'
 
 const newsletterSubscribeMock = vi.fn()
+const markEmailCollectedMock = vi.fn()
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -15,6 +16,10 @@ vi.mock('astro:actions', () => ({
       subscribe: newsletterSubscribeMock,
     },
   },
+}))
+
+vi.mock('@components/scripts/store', () => ({
+  markEmailCollected: markEmailCollectedMock,
 }))
 
 type NewsletterComponentModule = WebComponentModule<NewsletterFormElement>
@@ -63,6 +68,7 @@ describe.each(newsletterVariants)('NewsletterFormElement web component (%s)', va
 
   beforeEach(async () => {
     newsletterSubscribeMock.mockReset()
+    markEmailCollectedMock.mockReset()
     container = await AstroContainer.create()
   })
 
@@ -173,6 +179,7 @@ describe.each(newsletterVariants)('NewsletterFormElement web component (%s)', va
         email: 'test@example.com',
         consentGiven: true,
       })
+      expect(markEmailCollectedMock).toHaveBeenCalledWith('test@example.com', 'newsletter_form')
       expect(elements.message.textContent).toBe('Subscribed successfully!')
       expect(elements.message.getAttribute('role')).toBe('status')
       expect(elements.message.getAttribute('aria-live')).toBe('polite')

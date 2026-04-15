@@ -303,6 +303,9 @@ const resumeDataCollection = defineCollection({
     firstName: z.string(),
     lastName: z.string(),
     languages: z.array(z.string()),
+    location: z.string(),
+    mapLink: z.url(),
+    name: z.string(),
     skills: z.array(
       z.object({
         lead: z.string(),

@@ -2,6 +2,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { DownloadFormElements } from './testUtils'
 
 const downloadsSubmitMock = vi.fn()
+const markEmailCollectedMock = vi.fn()
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -9,6 +10,10 @@ vi.mock('astro:actions', () => ({
       submit: downloadsSubmitMock,
     },
   },
+}))
+
+vi.mock('@components/scripts/store', () => ({
+  markEmailCollected: markEmailCollectedMock,
 }))
 
 // Mock the logger to suppress error output in tests
@@ -58,6 +63,7 @@ describe('download-form web component', () => {
   afterEach(() => {
     vi.restoreAllMocks()
     downloadsSubmitMock.mockReset()
+    markEmailCollectedMock.mockReset()
   })
 
   it('does not submit when native form validation fails', async () => {
@@ -88,6 +94,7 @@ describe('download-form web component', () => {
       await flushPromises()
 
       expect(downloadsSubmitMock).toHaveBeenCalledWith(payload)
+      expect(markEmailCollectedMock).toHaveBeenCalledWith('jane@example.com', 'download_form')
     })
   })
 

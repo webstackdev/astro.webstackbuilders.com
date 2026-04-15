@@ -9,6 +9,7 @@ import emailValidator from 'email-validator'
 import { actions } from 'astro:actions'
 import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import { markEmailCollected } from '@components/scripts/store'
 import { getNewsletterElements } from './selectors'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
@@ -269,6 +270,7 @@ export class NewsletterFormElement extends LitElement {
         })
 
         if (result.data?.success) {
+          markEmailCollected(email, 'newsletter_form')
           this.showMessage(
             result.data.message ||
               'Check your email! Click the confirmation link to complete your subscription.',
