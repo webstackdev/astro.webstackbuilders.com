@@ -57,8 +57,31 @@ const descriptionId = `${id}-description`
 // Construct the download landing page URL
 const downloadUrl = `/downloads/${normalizedResource}`
 const downloadEntries = await getCollection('downloads')
+
+const matchesDownloadResource = (
+  download: (typeof downloadEntries)[number],
+  expectedResource: string
+) => {
+  const normalizedDownloadId = download.id.replace(/\\/g, '/')
+
+  if (normalizedDownloadId === expectedResource) {
+    return true
+  }
+
+  if (normalizedDownloadId.replace(/\/download$/, '') === expectedResource) {
+    return true
+  }
+
+  if (normalizedDownloadId.split('/')[0] === expectedResource) {
+    return true
+  }
+
+  const normalizedFilePath = download.filePath?.replace(/\\/g, '/')
+  return normalizedFilePath?.includes(`/${expectedResource}/download.`) ?? false
+}
+
 const matchedDownloadEntry = downloadEntries.find(
-  download => download.id.replace(/\/download$/, '') === normalizedResource
+  download => matchesDownloadResource(download, normalizedResource)
 )
 const directDownloadFileName = matchedDownloadEntry?.data.fileName?.trim()
 const directDownloadUrl = directDownloadFileName
