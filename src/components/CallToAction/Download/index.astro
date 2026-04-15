@@ -5,6 +5,7 @@
  */
 import { BuildError } from '@lib/errors/BuildError'
 import { Image } from 'astro:assets'
+import { getCollection } from 'astro:content'
 import Button from '@components/Button/index.astro'
 import List from '@components/List/index.astro'
 import Icon from '@components/Icon/index.astro'
@@ -55,99 +56,120 @@ const descriptionId = `${id}-description`
 
 // Construct the download landing page URL
 const downloadUrl = `/downloads/${normalizedResource}`
+const downloadEntries = await getCollection('downloads')
+const matchedDownloadEntry = downloadEntries.find(
+  download => download.id.replace(/\/download$/, '') === normalizedResource
+)
+const directDownloadFileName = matchedDownloadEntry?.data.fileName?.trim()
+const directDownloadUrl = directDownloadFileName
+  ? `/downloads/${directDownloadFileName}`
+  : downloadUrl
 ---
 
-<section
-  class="bg-linear-to-br from-primary/5 to-accent/5 border border-primary/20 rounded-2xl p-6 md:p-8 mb-6 print:hidden!"
-  aria-labelledby={titleId}
-  aria-describedby={descriptionId}
+<download-cta
+  class="cta block print:hidden!"
+  data-landing-url={downloadUrl}
+  data-direct-download-url={directDownloadUrl}
+  data-email-state="gated"
 >
-  <div class="flex flex-col lg:flex-row gap-8">
-    <div class="lg:flex-1">
-      <div class="flex items-center gap-2 mb-3">
-        <span
-          class="inline-flex items-center gap-1 text-xs font-bold text-content bg-primary/10 px-2.5 py-1 rounded-full"
-        >
-          <Icon
-            icon={"download-document"}
-            size={3.5}
-            color={"content"}
-          />
-          Free PDF Guide
-        </span>
-      </div>
-
-      <h2 id={titleId} class="text-2xl md:text-3xl font-bold text-primary-offset mb-3">
-        {title}
-      </h2>
-      <p id={descriptionId} class="text-base text-content-offset mb-4 max-w-xl">
-        {description}
-      </p>
-
-      <p class="text-sm font-semibold text-content mb-3">What you'll get:</p>
-      {
-        listItems && (
-          <List
-            variant="two-column-check-icons-list"
-            items={listItems}
-            classes={{
-              wrapper: 'mb-0',
-            }}
-          />
-        )
-      }
-    </div>
-
-    <div class="lg:w-72 lg:shrink-0">
-      <div class="bg-content-inverse rounded-xl border border-trim p-5 shadow-sm">
-        <div class="flex text-center mb-4">
-          <div class="w-20 h-20 rounded-lg overflow-hidden ml-2 mb-3">
-            <Image
-              src={pdfDownloadImg}
-              alt="PDF download"
-              width={80}
-              height={80}
-              class="w-full h-full object-cover"
-            />
-          </div>
-          <div class="flex flex-col justify-start items-center gap-2 mx-auto mt-2 text-trim">
-            <p class="text-sm leading-none">Free resource</p>
-            <Icon
-              icon={"lightning"}
-              size={5}
-              color={"text-trim"}
-            />
-            <p class="text-sm leading-none">Instant access</p>
-          </div>
-        </div>
-
-        <div class="space-y-3">
-          <Button
-            href={downloadUrl}
-            variant="success"
-            class="w-full gap-2 px-6 py-3 text-content-inverse"
+  <section
+    class="bg-linear-to-br from-primary/5 to-accent/5 border border-primary/20 rounded-2xl p-6 md:p-8 mb-6"
+    aria-labelledby={titleId}
+    aria-describedby={descriptionId}
+  >
+    <div class="flex flex-col lg:flex-row gap-8">
+      <div class="lg:flex-1">
+        <div class="flex items-center gap-2 mb-3">
+          <span
+            class="inline-flex items-center gap-1 text-xs font-bold text-content bg-primary/10 px-2.5 py-1 rounded-full"
           >
             <Icon
-              icon={"download"}
-              size={5}
-              color={"content-inverse"}
+              icon={"download-document"}
+              size={3.5}
+              color={"content"}
             />
-            <span class="mt-1">{buttonText}</span>
-          </Button>
-          {
-            secondaryLink && (
-              <Button
-                href={secondaryLink.href}
-                variant="secondary"
-                class="w-full mt-2 px-6 py-3 bg-page-offset text-content-inverse hover:bg-page-offset focus-visible:bg-page-offset"
-                text={secondaryLink.text}
-              />
-            )
-          }
+            Free PDF Guide
+          </span>
         </div>
 
-        <p class="text-xs text-content text-center mt-4">No credit card required.</p>
+        <h2 id={titleId} class="text-2xl md:text-3xl font-bold text-primary-offset mb-3">
+          {title}
+        </h2>
+        <p id={descriptionId} class="text-base text-content-offset mb-4 max-w-xl">
+          {description}
+        </p>
+
+        <p class="text-sm font-semibold text-content mb-3">What you'll get:</p>
+        {
+          listItems && (
+            <List
+              variant="two-column-check-icons-list"
+              items={listItems}
+              classes={{
+                wrapper: 'mb-0',
+              }}
+            />
+          )
+        }
+      </div>
+
+      <div class="lg:w-72 lg:shrink-0">
+        <div class="bg-content-inverse rounded-xl border border-trim p-5 shadow-sm">
+          <div class="flex text-center mb-4">
+            <div class="w-20 h-20 rounded-lg overflow-hidden ml-2 mb-3">
+              <Image
+                src={pdfDownloadImg}
+                alt="PDF download"
+                width={80}
+                height={80}
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="flex flex-col justify-start items-center gap-2 mx-auto mt-2 text-trim">
+              <p class="text-sm leading-none">Free resource</p>
+              <Icon
+                icon={"lightning"}
+                size={5}
+                color={"text-trim"}
+              />
+              <p class="text-sm leading-none">Instant access</p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <Button
+              href={downloadUrl}
+              variant="success"
+              class="w-full gap-2 px-6 py-3 text-content-inverse"
+              data-download-cta-primary
+            >
+              <Icon
+                icon={"download"}
+                size={5}
+                color={"content-inverse"}
+              />
+              <span class="mt-1">{buttonText}</span>
+            </Button>
+            {
+              secondaryLink && (
+                <Button
+                  href={secondaryLink.href}
+                  variant="secondary"
+                  class="w-full mt-2 px-6 py-3 bg-page-offset text-content-inverse hover:bg-page-offset focus-visible:bg-page-offset"
+                  text={secondaryLink.text}
+                />
+              )
+            }
+          </div>
+
+          <p class="text-xs text-content text-center mt-4">No credit card required.</p>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</download-cta>
+
+<script>
+  import { registerDownloadCtaWebComponent } from '@components/CallToAction/Download/client'
+  registerDownloadCtaWebComponent()
+</script>

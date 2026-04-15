@@ -8,6 +8,7 @@ import {
 
 const contactSubmitMock = vi.hoisted(() => vi.fn())
 const isInputErrorMock = vi.hoisted(() => vi.fn())
+const markEmailCollectedMock = vi.hoisted(() => vi.fn())
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -26,6 +27,10 @@ vi.mock('@components/scripts/errors/handler', () => ({
   handleScriptError: vi.fn(),
 }))
 
+vi.mock('@components/scripts/store', () => ({
+  markEmailCollected: markEmailCollectedMock,
+}))
+
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
 
 let renderContactForm: typeof import('./testUtils').renderContactForm
@@ -39,6 +44,7 @@ describe('ContactForm submission', () => {
     vi.clearAllMocks()
     contactSubmitMock.mockReset()
     isInputErrorMock.mockReset()
+    markEmailCollectedMock.mockReset()
   })
 
   it('appends uploaded files to FormData as file1..file5', async () => {
@@ -196,6 +202,10 @@ describe('ContactForm submission', () => {
 
       expect(contactSubmitMock).toHaveBeenCalledTimes(1)
       expect(contactSubmitMock.mock.calls[0]?.[0]).toBeInstanceOf(FormData)
+      expect(markEmailCollectedMock).toHaveBeenCalledWith(
+        'team@webstackbuilders.com',
+        'contact_form'
+      )
       expect(context.elements.messages.style.display).toBe('block')
       expect(context.elements.successMessage.classList.contains('hidden')).toBe(false)
       expect(context.elements.errorMessage.classList.contains('hidden')).toBe(true)
