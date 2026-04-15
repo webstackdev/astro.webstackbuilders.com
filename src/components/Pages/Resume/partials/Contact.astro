@@ -1,0 +1,60 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import Icon from '@components/Icon/index.astro'
+import { formatPhoneNumber } from '@components/Footer/server'
+
+export interface Props {
+  contactData: CollectionEntry<'contactData'>['data']
+  email: string
+}
+
+const {
+  contactData,
+  email,
+} = Astro.props as Props
+
+const resumeLocation = `${contactData.company.city}, ${contactData.company.state}`
+const resumePhoneNumber = formatPhoneNumber(contactData.company.telephoneTollFree)
+---
+
+<dl
+  class="flex gap-2 text-sm text-content-offset font-medium"
+>
+  <a
+    itemprop="email"
+    href={`mailto:${email}`}
+    class="flex gap-2 hover:text-primary transition-colors duration-200"
+  >
+    <dt aria-label="email" class="text-primary-offset">
+      <Icon icon="email-solid" color="content" size={4} />
+    </dt>
+    <dd>{email}</dd>
+  </a>
+  <a
+    id="locationWrapper"
+    itemprop="homeLocation"
+    itemscope
+    href={contactData.company.mapLink}
+    class="flex gap-2 hover:text-primary transition-colors duration-200"
+  >
+    <dt aria-label="location" class="text-primary-offset">
+      <Icon icon="location" color="content" size={6} />
+    </dt>
+    <dd id="locationLabel" class="inline">{resumeLocation}</dd>
+  </a>
+  <a
+    id="telephoneWrapper"
+    itemprop="telephone"
+    itemscope
+    href={`tel:${contactData.company.telephoneTollFree}`}
+    class="flex gap-2 hover:text-primary transition-colors duration-200"
+  >
+    <dt
+      aria-label="telephone"
+      class="text-primary-offset"
+    >
+      <Icon icon="telephone" color="content" size={6} />
+    </dt>
+    <dd id="telephoneLabel" class="inline">{resumePhoneNumber}</dd>
+  </a>
+</dl>
