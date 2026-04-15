@@ -1,0 +1,96 @@
+---
+import type { RenderedClient } from '@components/Pages/Resume/server'
+import { formatMonthYear, formatDateContent, splitLocation } from '@components/Pages/Resume/server'
+import Icon from '@components/Icon/index.astro'
+import List from '@components/List/index.astro'
+import ListItem from '@components/List/ListItem.astro'
+
+export interface Props {
+  renderedClients: RenderedClient[]
+}
+
+const { renderedClients } = Astro.props as Props
+---
+
+<section id="experience">
+  <h2
+    class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10"
+  >
+    Experience
+  </h2>
+  <div class="space-y-8">
+    {
+      renderedClients.map(({ client, Content }: RenderedClient, index: number) => {
+        const location = splitLocation(client.data.location)
+        return (
+          <div
+            id={`experienceItem-${index + 1}`}
+            class="flex flex-col gap-1.5"
+            itemprop="worksFor"
+            itemscope
+            itemref="resumeSubject"
+            itemtype="http://schema.org/Organization"
+          >
+            <div class="flex flex-col md:flex-row md:items-baseline md:justify-between">
+              <h3
+                id={`role-${index + 1}`}
+                class="text-xl font-bold text-content-active"
+                itemprop="Role"
+                itemref={`experienceItem-${index + 1}`}
+                itemscope
+                itemtype="https://schema.org/EmployeeRole"
+              >
+                <span itemprop="roleName">
+                  {client.data.role ?? client.data.businessType ?? client.data.displayName}
+                </span>
+              </h3>
+              <div class="text-sm font-medium text-content-offset mt-0.5 md:mt-0 flex gap-1.5 items-center">
+                <time
+                  itemprop="startDate"
+                  itemtype="http://schema.org/startDate"
+                  datetime={formatDateContent(client.data.startDate)}
+                >
+                  {formatMonthYear(client.data.startDate)}
+                </time>
+                <span class="text-trim/50">&mdash;</span>
+                <time
+                  itemprop="endDate"
+                  itemtype="http://schema.org/endDate"
+                  datetime={formatDateContent(client.data.endDate)}
+                >
+                  {formatMonthYear(client.data.endDate)}
+                </time>
+              </div>
+            </div>
+            <div class="text-base font-semibold text-primary-offset flex flex-wrap items-center gap-x-2 gap-y-1 print:text-sm">
+              <span itemprop="legalName">{client.data.displayName}</span>
+              {client.data.location && (
+                <>
+                  <span class="text-trim/30 select-none">&bull;</span>
+                  <a
+                    class="inline-flex items-center gap-1 hover:text-primary transition-colors text-content-offset font-medium"
+                    href={client.data.website ?? ''}
+                    itemprop="location"
+                    itemscope
+                    itemtype="http://schema.org/PostalAddress"
+                  >
+                    <Icon icon="location" color="content" size={6} />
+                    <span>
+                      <span itemprop="addressLocality">{location.locality}</span>
+                      {location.region && (
+                        <>, <span itemprop="addressRegion">{location.region}</span></>
+                      )}
+                    </span>
+                  </a>
+                </>
+              )}
+            </div>
+            <div class="experienceDetailContent mt-3" itemprop="description">
+              <Content components={{ List, ListItem }} />
+            </div>
+          </div>
+        )
+      })
+    }
+  </div>
+</section>

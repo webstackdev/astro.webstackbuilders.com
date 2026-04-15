@@ -1,26 +1,18 @@
 ---
 import type { CollectionEntry } from 'astro:content'
-import type { AstroComponentFactory } from 'astro/runtime/server/index.js'
+import type { RenderedClient } from '@components/Pages/Resume/server'
 import HeadContent from '@components/Head/index.astro'
 import Contact from '@components/Pages/Resume/partials/Contact.astro'
 import Controls from '@components/Pages/Resume/partials/Controls.astro'
-import ExperienceCard from '@components/Pages/Resume/partials/ExperienceCard.astro'
+import Experience from '@components/Pages/Resume/partials/Experience.astro'
+import Languages from '@components/Pages/Resume/partials/Languages.astro'
 import Persona from '@components/Pages/Resume/partials/Persona.astro'
 import Skills from '@components/Pages/Resume/partials/Skills.astro'
+import Socials from '@components/Pages/Resume/partials/Socials.astro'
 import Summary from '@components/Pages/Resume/partials/Summary.astro'
 
 import '@styles/index.css'
 import '@styles/icons.css'
-import './index.css'
-
-type SocialEntry = {
-  label: string
-  url: string
-}
-type RenderedClient = {
-  client: CollectionEntry<'clients'>
-  Content: AstroComponentFactory
-}
 
 export interface Props {
   contactData: CollectionEntry<'contactData'>['data']
@@ -39,14 +31,6 @@ const {
   renderedClients,
   resume,
 } = Astro.props as Props
-
-const companyContact = contactData.company
-const socialEntries: SocialEntry[] = [...companyContact.social]
-  .sort((left, right) => left.order - right.order)
-  .map(entry => ({
-    label: entry.displayName,
-    url: entry.url,
-  }))
 ---
 
 <!doctype html>
@@ -67,105 +51,55 @@ const socialEntries: SocialEntry[] = [...companyContact.social]
         <div class="md:absolute md:right-0 md:top-0">
           <Controls />
         </div>
-        <Persona
-          givenName={resume.firstName}
-          familyName={resume.lastName}
-          title={resume.title}
-        />
+
+        <div class="">
+          <Persona
+            givenName={resume.firstName}
+            familyName={resume.lastName}
+            title={resume.title}
+          />
+        </div>
+
         <div class="mt-1!">
           <Contact
             contactData={contactData}
-            email={companyContact.email}
+            email={contactData.company.email}
           />
         </div>
       </header>
+
       <main class="space-y-8">
-        <div class=" mb-3 border-b-2 border-trim/10">
+        <div class="border-b-2 border-trim/10">
           <Summary summary={resume.summary} />
         </div>
-        <section id="experience">
-          <h2
-            class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10"
-          >
-            Experience
-          </h2>
-          <div class="space-y-8">
-          {
-            renderedClients.map(({ client, Content }: RenderedClient, index: number) => {
-              return (
-                <ExperienceCard
-                  index={index}
-                  client={client}
-                  Content={Content}
-                />
-              )
-            })
-          }
-          </div>
-        </section>
-        <section class="mt-8" itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
-          <h2 class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10 pb-2">Skills</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-            <Skills skills={resume.skills} />
-          </div>
-        </section>
-        <section
-          id="languages"
-          class="mt-8"
-          itemscope
-          itemref="resumeSubject"
-          itemtype="http://schema.org/ItemList"
-        >
-          <h2 class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10 pb-2">Languages</h2>
-          <ul class="flex flex-wrap gap-4 text-sm font-medium text-content-offset">
-            {
-              resume.languages.map((language: (typeof resume.languages)[number]) => (
-                <li
-                  class="bg-trim/5 px-3 py-1 rounded-full text-primary-offset print:bg-transparent print:p-0 print:border print:border-trim/20 print:px-2 print:py-0.5 print:rounded-md"
-                  itemref="resumeSubject"
-                  itemscope
-                  itemprop="knowsAbout"
-                  itemtype="http://schema.org/knowsAbout"
-                >
-                  <span itemprop="name">{language}</span>
-                </li>
-              ))
-            }
-          </ul>
-        </section>
-        <section
-          id="socialSection"
-          class="mt-8 print:mt-6 print:hidden"
-          itemscope
-          itemref="resumeSubject"
-          itemtype="http://schema.org/ItemList"
-        >
-          <h2 class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10 pb-2 print:border-trim/30 print:mb-3 print:pb-1">SOCIAL</h2>
-          {
-            socialEntries.length > 0 ? (
-              <ul id="socialList" class="flex flex-col md:flex-row md:flex-wrap gap-4 md:gap-8">
-                {socialEntries.map((entry: SocialEntry) => (
-                  <li
-                    class="text-sm"
-                    itemref="resumeSubject"
-                    itemscope
-                    itemprop="sameAs"
-                    itemtype="http://schema.org/WebSite"
-                  >
-                    <a class="group inline-flex items-center gap-2 hover:text-primary transition-colors text-content-offset" itemprop="url" title={entry.label} rel="me" href={entry.url}>
-                      <span class="font-bold text-content-active group-hover:text-primary transition-colors">{entry.label}</span>
-                      <span class="text-trim/30 select-none">&bull;</span>
-                      <span class="truncate">{entry.url.replace(/^https?:\/\//, '')}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p class="text-sm text-content-offset italic">No social profiles available.</p>
-            )
-          }
-        </section>
+
+        <div class="">
+          <Experience renderedClients={renderedClients} />
+        </div>
+
+        <div class="">
+          <Skills skills={resume.skills} />
+        </div>
+
+        <div class="">
+          <Languages languages={resume.languages} />
+        </div>
+
+        <div class="">
+          <Socials socials={contactData.company.social} />
+        </div>
       </main>
     </div>
   </body>
 </html>
+
+<style>
+  {/** DO NOT ADD STYLES HERE - Use Tailwind classes on HTML elements, this are resets */}
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+  }
+</style>
