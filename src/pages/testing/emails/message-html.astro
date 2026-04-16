@@ -1,0 +1,36 @@
+---
+import messageTemplateContent from '@actions/contact/email/message.mjml?raw'
+import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
+
+export const prerender = false
+
+const messageTemplate = createEmailTemplate(
+  new URL('../../../actions/contact/email/message.mjml', import.meta.url),
+  messageTemplateContent
+)
+
+const { html } = await compileEmailTemplate(messageTemplate, {
+  attachments: [
+    { filename: 'project-brief.pdf', sizeLabel: '2.4 MB' },
+    { filename: 'homepage-wireframe.png', sizeLabel: '684 KB' },
+  ],
+  consentGiven: 'Yes',
+  fields: [
+    { label: 'Name', value: 'Alex Example' },
+    { label: 'Email', value: 'alex@example.com' },
+    { label: 'Company', value: 'Northwind Studio' },
+    { label: 'Phone', value: '+1 (555) 010-4422' },
+    { label: 'Service', value: 'Website redesign and content migration' },
+    { label: 'Budget', value: '$12,000 - $20,000' },
+    { label: 'Timeline', value: '2-3 months' },
+    { label: 'Website', value: 'https://northwind.example' },
+  ],
+  messageHtml: [
+    'We need help modernizing our marketing site before a fall launch.',
+    'Primary goals are faster performance, cleaner content architecture, and easier publishing for the internal team.',
+    'Please review the attached brief and wireframe before our kickoff call.',
+  ].join('<br><br>'),
+})
+---
+
+<Fragment set:html={html} />

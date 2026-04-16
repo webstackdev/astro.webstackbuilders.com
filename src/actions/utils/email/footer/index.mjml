@@ -1,0 +1,66 @@
+{% macro renderCommonFooter(
+  notePrefix='',
+  contactEmailHref=common.company.emailHref,
+  contactEmailLabel=common.company.email,
+  privacyUrl='',
+  unsubscribeUrl='',
+  showTopDivider=true
+) %}
+  {% set footerEmailHref = contactEmailHref %}
+  {% set footerEmailLabel = contactEmailLabel %}
+  {% set footerNotePrefix = notePrefix %}
+  {% set footerPrivacyUrl = privacyUrl %}
+  {% set footerUnsubscribeUrl = unsubscribeUrl %}
+
+  {% if showTopDivider %}
+    <mj-section padding="30px 24px 0">
+      <mj-column>
+        <mj-divider border-color="#f0f0f0" border-width="2px" padding="0" />
+      </mj-column>
+    </mj-section>
+  {% endif %}
+
+  {% if footerNotePrefix or footerPrivacyUrl or footerUnsubscribeUrl %}
+    <mj-section padding="24px 24px 0">
+      <mj-column>
+        {% if footerNotePrefix %}
+          <mj-text
+            color="#666666"
+            font-size="14px"
+            line-height="22px"
+            padding="0 0 12px"
+          >
+            {{ footerNotePrefix }} <a href="{{ footerEmailHref }}">{{ footerEmailLabel }}</a>
+          </mj-text>
+        {% endif %}
+
+        {% if footerPrivacyUrl %}
+          <mj-text
+            color="#666666"
+            font-size="14px"
+            line-height="22px"
+            padding="0 0 12px"
+          >
+            Read our <a href="{{ footerPrivacyUrl }}">Privacy Policy</a> for more information about how we handle
+            your data.
+          </mj-text>
+        {% endif %}
+
+        {% if footerUnsubscribeUrl %}
+          <mj-text
+            color="#666666"
+            font-size="14px"
+            line-height="22px"
+            padding="0"
+          >
+            If you no longer wish to receive these emails, you can
+            <a href="{{ footerUnsubscribeUrl }}" data-testid="unsubscribe-link">unsubscribe here</a>
+            at any time.
+          </mj-text>
+        {% endif %}
+      </mj-column>
+    </mj-section>
+  {% endif %}
+
+  {% include './partials/layout.mjml' %}
+{% endmacro %}

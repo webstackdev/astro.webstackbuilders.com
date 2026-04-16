@@ -1,5 +1,7 @@
 import { Buffer } from 'node:buffer'
 import { ActionsFunctionError } from '@actions/utils/errors'
+import messageTemplateContent from '@actions/contact/email/message.mjml?raw'
+import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
 import { escapeHtml, formatFileSize } from './utils'
 import type { ContactFormData, ContactTimeline, FileAttachment } from '@actions/contact/@types'
 
@@ -58,50 +60,66 @@ const readInputBoolean = (input: Record<string, unknown>, key: string): boolean 
   return false
 }
 
-export function generateEmailContent(data: ContactFormData, files: FileAttachment[]): string {
+const contactMessageTemplate = createEmailTemplate(
+  new URL('./email/message.mjml', import.meta.url),
+  messageTemplateContent
+)
+
+type ContactEmailTemplateData = {
+  attachments: Array<{ filename: string; sizeLabel: string }>
+  consentGiven: 'Yes' | 'No'
+  fields: Array<{ label: string; value: string }>
+  messageHtml: string
+}
+
+/**
+ * Builds the template data required by the contact MJML email.
+ */
+export function createContactEmailTemplateData(
+  data: ContactFormData,
+  files: FileAttachment[]
+): ContactEmailTemplateData {
   const fields = [
-    `<p><strong>Name:</strong> ${escapeHtml(data.name)}</p>`,
-    `<p><strong>Email:</strong> ${escapeHtml(data.email)}</p>`,
+    { label: 'Name', value: data.name },
+    { label: 'Email', value: data.email },
   ]
 
-  if (data.company) fields.push(`<p><strong>Company:</strong> ${escapeHtml(data.company)}</p>`)
-  if (data.phone) fields.push(`<p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>`)
-  if (data.service) fields.push(`<p><strong>Service:</strong> ${escapeHtml(data.service)}</p>`)
-  if (data.budget) fields.push(`<p><strong>Budget:</strong> ${escapeHtml(data.budget)}</p>`)
-  if (data.timeline) fields.push(`<p><strong>Timeline:</strong> ${escapeHtml(data.timeline)}</p>`)
-  if (data.website) fields.push(`<p><strong>Website:</strong> ${escapeHtml(data.website)}</p>`)
+  if (data.company) fields.push({ label: 'Company', value: data.company })
+  if (data.phone) fields.push({ label: 'Phone', value: data.phone })
+  if (data.service) fields.push({ label: 'Service', value: data.service })
+  if (data.budget) fields.push({ label: 'Budget', value: data.budget })
+  if (data.timeline) fields.push({ label: 'Timeline', value: data.timeline })
+  if (data.website) fields.push({ label: 'Website', value: data.website })
 
-  fields.push('<p><strong>Message:</strong></p>')
-  fields.push(`<p>${escapeHtml(data.message).replace(/\n/g, '<br>')}</p>`)
-
-  if (files.length > 0) {
-    fields.push('<p><strong>Attachments:</strong></p>')
-    fields.push('<ul>')
-    files.forEach(file => {
-      fields.push(`<li>${escapeHtml(file.filename)} (${formatFileSize(file.size)})</li>`)
-    })
-    fields.push('</ul>')
+  return {
+    attachments: files.map(file => ({
+      filename: file.filename,
+      sizeLabel: formatFileSize(file.size),
+    })),
+    consentGiven: data.consent ? 'Yes' : 'No',
+    fields,
+    messageHtml: escapeHtml(data.message).replace(/\n/g, '<br>'),
   }
+}
 
-  fields.push(`<p><strong>Consent Given:</strong> ${data.consent ? 'Yes' : 'No'}</p>`)
+/*
+Template data shape for src/actions/contact/email/message.mjml:
 
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-p { margin: 10px 0; }
-</style>
-</head>
-<body>
-<h1>New Contact Form Submission</h1>
-${fields.join('\n')}
-</body>
-</html>
-`.trim()
+fields: Array<{ label: string; value: string }>
+messageHtml: string
+attachments: Array<{ filename: string; sizeLabel: string }>
+consentGiven: 'Yes' | 'No'
+*/
+export async function generateEmailContent(
+  data: ContactFormData,
+  files: FileAttachment[]
+): Promise<string> {
+  const { html } = await compileEmailTemplate(
+    contactMessageTemplate,
+    createContactEmailTemplateData(data, files)
+  )
+
+  return html
 }
 
 export function getFormDataFromInput(input: Record<string, unknown>): ContactFormData {

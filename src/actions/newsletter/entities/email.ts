@@ -8,7 +8,7 @@ import {
   generateConfirmationEmailText,
   generateWelcomeEmailHtml,
   generateWelcomeEmailText,
-} from '@actions/newsletter/templates'
+} from '../email/index'
 
 function getResendClient(): Resend {
   return new Resend(getResendApiKey())
@@ -34,8 +34,8 @@ export async function sendConfirmationEmail(
     replyTo: newsletterReplyTo,
     to: email,
     subject: 'Confirm your newsletter subscription - Webstack Builders',
-    html: generateConfirmationEmailHtml(firstName, confirmUrl, expiresIn),
-    text: generateConfirmationEmailText(firstName, confirmUrl, expiresIn),
+    html: await generateConfirmationEmailHtml(firstName, confirmUrl, expiresIn),
+    text: await generateConfirmationEmailText(firstName, confirmUrl, expiresIn),
     tags: [
       { name: 'type', value: 'newsletter-confirmation' },
       { name: 'flow', value: 'double-optin' },
@@ -83,8 +83,8 @@ export async function sendWelcomeEmail(email: string, firstName?: string): Promi
     replyTo: newsletterReplyTo,
     to: email,
     subject: '🎉 Welcome to Webstack Builders!',
-    html: generateWelcomeEmailHtml(firstName),
-    text: generateWelcomeEmailText(firstName),
+    html: await generateWelcomeEmailHtml(firstName),
+    text: await generateWelcomeEmailText(firstName),
     tags: [
       { name: 'type', value: 'newsletter-welcome' },
       { name: 'flow', value: 'post-confirmation' },

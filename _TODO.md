@@ -12,6 +12,34 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 
 - Re-enable link validator in `astro.config.ts` when pdf / downloads sorted out
 
+## Email Sending Locations
+
+These are the files where HTML is built as string literals and then passed to Resend:
+
+- Contact form email HTML
+
+`src/actions/contact/responder.ts:50`
+Function: `generateEmailContent(data, files)`
+It returns a full <!DOCTYPE html>... string built from form fields and attachments.
+
+- Newsletter confirmation email HTML
+
+`src/actions/newsletter/templates/confirmationHtml.ts:1`
+Function: `generateConfirmationEmailHtml(firstName, confirmUrl, expiresIn)`
+Full HTML email template returned as a template literal.
+
+- Newsletter welcome email HTML
+
+`src/actions/newsletter/templates/welcomeHtml.ts:1`
+Function: `generateWelcomeEmailHtml(firstName)`
+Full HTML email template returned as a template literal.
+
+- DSAR verification email HTML
+
+`src/actions/gdpr/email/dsarHtml.ts:6`
+Function: `dsarVerificationEmailHtml(props)`
+Full HTML email template returned as a template literal.
+
 ## Contact Page File Uploads
 
 - Uppy, Tus server, whatever other server needed for file upload on Contact Form component

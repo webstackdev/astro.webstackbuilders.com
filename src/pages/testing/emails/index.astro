@@ -1,0 +1,79 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro'
+
+export const prerender = false
+
+const pageTitle = 'Email Template Preview Index'
+const pageDescription =
+  'Preview routes for the HTML and text versions of the email templates used by the application.'
+const pagePath = '/testing/emails'
+
+const emailPreviewLinks = [
+  {
+    description: 'Contact form message email rendered from the MJML template.',
+    href: '/testing/emails/message-html',
+    label: 'Message HTML preview',
+  },
+  {
+    description: 'Plain-text output for the contact form message email.',
+    href: '/testing/emails/message-text',
+    label: 'Message text preview',
+  },
+  {
+    description: 'Newsletter confirmation email rendered from the MJML template.',
+    href: '/testing/emails/confirmation-html',
+    label: 'Confirmation HTML preview',
+  },
+  {
+    description: 'Plain-text output for the newsletter confirmation email.',
+    href: '/testing/emails/confirmation-text',
+    label: 'Confirmation text preview',
+  },
+  {
+    description: 'Newsletter welcome email rendered from the MJML template.',
+    href: '/testing/emails/welcome-html',
+    label: 'Welcome HTML preview',
+  },
+  {
+    description: 'Plain-text output for the newsletter welcome email.',
+    href: '/testing/emails/welcome-text',
+    label: 'Welcome text preview',
+  },
+  {
+    description: 'GDPR verification email rendered from the MJML template.',
+    href: '/testing/emails/verification-html',
+    label: 'Verification HTML preview',
+  },
+  {
+    description: 'Plain-text output for the GDPR verification email.',
+    href: '/testing/emails/verification-text',
+    label: 'Verification text preview',
+  },
+] as const
+---
+
+<BaseLayout pageTitle={pageTitle} path={pagePath} pageDescription={pageDescription} noindex>
+  <section class="mx-auto flex max-w-4xl flex-col gap-8 px-4 py-10">
+    <header class="space-y-4 text-center self-center max-w-3xl">
+      <p class="text-xs uppercase tracking-widest text-content-active">Testing Fixture</p>
+      <h1 class="text-3xl font-semibold leading-tight">{pageTitle}</h1>
+      <p class="text-content-active">
+        These links open the HTML and plain-text preview routes for the email templates in the
+        testing/emails directory.
+      </p>
+    </header>
+
+    <section class="rounded-lg border border-trim bg-page-offset p-6 shadow-sm">
+      <ul class="space-y-5">
+        {
+          emailPreviewLinks.map(({ description, href, label }) => (
+            <li class="space-y-1">
+              <a class="text-lg font-semibold text-link hover:text-link-hover" href={href}>{label}</a>
+              <p class="text-sm text-content-active">{description}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </section>
+</BaseLayout>

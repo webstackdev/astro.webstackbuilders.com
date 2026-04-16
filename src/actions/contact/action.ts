@@ -125,7 +125,7 @@ export const contact = {
           })
         }
 
-        const htmlContent = generateEmailContent(formData, files)
+        const htmlContent = await generateEmailContent(formData, files)
         await sendEmail(
           {
             from: contactFormSender,

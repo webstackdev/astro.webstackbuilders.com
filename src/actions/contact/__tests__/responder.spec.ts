@@ -2,6 +2,7 @@ import { JSDOM } from 'jsdom'
 import { describe, expect, it } from 'vitest'
 
 import {
+  createContactEmailTemplateData,
   generateEmailContent,
   getFormDataFromInput,
   parseAttachmentsFromInput,
@@ -9,8 +10,8 @@ import {
 
 describe('contact responder', () => {
   describe('generateEmailContent', () => {
-    it('generates valid HTML with required elements', () => {
-      const html = generateEmailContent(
+    it('generates valid HTML with required elements', async () => {
+      const html = await generateEmailContent(
         {
           name: 'Jane Doe',
           email: 'jane@example.com',
@@ -36,9 +37,8 @@ describe('contact responder', () => {
       expect(document.documentElement.outerHTML).toContain('&lt;ASAP&gt;')
       expect(document.documentElement.outerHTML).toContain('&amp;')
 
-      // Header should exist and include the sender name.
-      expect(document.querySelector('meta[charset="utf-8"]')).not.toBeNull()
-      expect(document.querySelector('h1')?.textContent ?? '').toContain('New Contact Form Submission')
+      // Header copy should exist and include the sender name.
+      expect(document.body.textContent ?? '').toContain('New Contact Form Submission')
       expect(document.body.textContent ?? '').toContain('Jane Doe')
 
       // Key fields should appear somewhere in the rendered content.
@@ -48,8 +48,8 @@ describe('contact responder', () => {
       expect(document.body.textContent ?? '').toContain('$5k-$10k')
     })
 
-    it('renders attachments section when attachments exist', () => {
-      const html = generateEmailContent(
+    it('renders attachments section when attachments exist', async () => {
+      const html = await generateEmailContent(
         {
           name: 'Jane Doe',
           email: 'jane@example.com',
@@ -70,6 +70,45 @@ describe('contact responder', () => {
 
       const dom = new JSDOM(html)
       expect(dom.window.document.body.textContent ?? '').toContain('brief.pdf')
+    })
+
+    it('builds template data with optional fields and escaped message markup', () => {
+      const templateData = createContactEmailTemplateData(
+        {
+          name: 'Jane Doe',
+          email: 'jane@example.com',
+          company: 'Acme Co',
+          service: 'Website redesign',
+          timeline: '2-3-months',
+          budget: '$5k-$10k',
+          message: 'Hi team!\nWe need help <ASAP> & would like a call.',
+          consent: true,
+        },
+        [
+          {
+            filename: 'brief.pdf',
+            content: Buffer.from('pdf-bytes'),
+            contentType: 'application/pdf',
+            size: 1234,
+          },
+        ]
+      )
+
+      expect(templateData.fields).toEqual([
+        { label: 'Name', value: 'Jane Doe' },
+        { label: 'Email', value: 'jane@example.com' },
+        { label: 'Company', value: 'Acme Co' },
+        { label: 'Service', value: 'Website redesign' },
+        { label: 'Budget', value: '$5k-$10k' },
+        { label: 'Timeline', value: '2-3-months' },
+      ])
+      expect(templateData.attachments).toEqual([
+        { filename: 'brief.pdf', sizeLabel: '1.21 KB' },
+      ])
+      expect(templateData.consentGiven).toBe('Yes')
+      expect(templateData.messageHtml).toContain('&lt;ASAP&gt;')
+      expect(templateData.messageHtml).toContain('&amp;')
+      expect(templateData.messageHtml).toContain('<br>')
     })
   })
 

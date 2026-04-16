@@ -1,0 +1,141 @@
+{% import '../../utils/email/footer/index.mjml' as emailFooter with context %}
+
+<mjml>
+  <mj-head>
+    <mj-title>{{ subject }}</mj-title>
+    <mj-preview>
+      {{ subject }} from Webstack Builders
+    </mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" />
+      <mj-class
+        name="header-section"
+        background-color="#0066cc"
+        padding="20px 24px"
+        border-radius="5px 5px 0 0"
+      />
+      <mj-class
+        name="content-section"
+        background-color="#ffffff"
+        padding="30px 24px 0"
+        border-left="1px solid #e0e0e0"
+        border-right="1px solid #e0e0e0"
+      />
+      <mj-class
+        name="content-section-last"
+        background-color="#ffffff"
+        padding="0 24px 30px"
+        border-left="1px solid #e0e0e0"
+        border-right="1px solid #e0e0e0"
+        border-bottom="1px solid #e0e0e0"
+        border-radius="0 0 5px 5px"
+      />
+      <mj-class
+        name="header-text"
+        align="center"
+        color="#ffffff"
+        font-size="28px"
+        font-weight="700"
+        line-height="36px"
+        padding="0"
+      />
+      <mj-class
+        name="body-text"
+        color="#333333"
+        font-size="16px"
+        line-height="26px"
+        padding="0 0 16px"
+      />
+      <mj-class
+        name="body-text-tight"
+        color="#333333"
+        font-size="16px"
+        line-height="26px"
+        padding="0 0 8px"
+      />
+      <mj-class
+        name="link-text"
+        color="#0066cc"
+        font-size="16px"
+        line-height="24px"
+        padding="0 0 16px"
+      />
+      <mj-class
+        name="button"
+        background-color="#0066cc"
+        border-radius="5px"
+        color="#ffffff"
+        font-size="16px"
+        font-weight="600"
+        inner-padding="14px 30px"
+      />
+      <mj-class
+        name="warning-box"
+        background-color="#fff3cd"
+        border-left="4px solid #ffc107"
+        padding="16px"
+      />
+    </mj-attributes>
+    <mj-style inline="inline">
+      .url-break {
+        word-break: break-all;
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#ffffff" width="600px">
+    <mj-section mj-class="header-section">
+      <mj-column>
+        <mj-text mj-class="header-text">
+          Data {{ 'Access' if requestType == 'ACCESS' else 'Deletion' }} Request
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section mj-class="content-section">
+      <mj-column>
+        <mj-text mj-class="body-text">
+          Hello,
+        </mj-text>
+        <mj-text mj-class="body-text">
+          We received a request to {{ actionText }} from Webstack Builders. To complete this request, please verify
+          your email address by clicking the button below:
+        </mj-text>
+        <mj-button mj-class="button" href="{{ verifyUrl }}">
+          Verify Request
+        </mj-button>
+        <mj-text mj-class="body-text-tight">
+          Or copy and paste this link into your browser:
+        </mj-text>
+        <mj-text
+          mj-class="link-text"
+          css-class="url-break"
+        >
+          {{ verifyUrl }}
+        </mj-text>
+        {% if requestType == 'DELETE' %}
+          <mj-text mj-class="warning-box body-text">
+            <strong>⚠️ Important:</strong> This action will permanently delete all your data from our systems. This
+            cannot be undone.
+          </mj-text>
+        {% endif %}
+      </mj-column>
+    </mj-section>
+
+    <mj-section mj-class="content-section-last">
+      <mj-column>
+        <mj-text mj-class="body-text">
+          <strong>This link will expire in {{ expiresIn }}.</strong>
+        </mj-text>
+        <mj-text mj-class="body-text">
+          If you didn't make this request, you can safely ignore this email. No action will be taken without verification.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    {{ emailFooter.renderCommonFooter(
+      notePrefix='Questions? Contact us at',
+      contactEmailHref=common.company.dataProtectionOfficer.emailHref,
+      contactEmailLabel=common.company.dataProtectionOfficer.email
+    ) }}
+  </mj-body>
+</mjml>

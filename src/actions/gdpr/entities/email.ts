@@ -1,10 +1,45 @@
 import { Resend } from 'resend'
-import { dsarVerificationEmailHtml } from '@actions/gdpr/email/dsarHtml'
+import verificationTemplateContent from '@actions/gdpr/email/verification.mjml?raw'
 import { dsarVerificationEmailText } from '@actions/gdpr/email/dsarText'
+import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
 import { getResendApiKey, isProd } from '@actions/utils/environment/environmentActions'
 import { gdprReplyTo, gdprSender } from '@actions/utils/email/resendSenders'
 import { getSiteUrl } from '@actions/utils/environment/siteUrlActions'
 import { ActionsFunctionError } from '@actions/utils/errors/ActionsFunctionError'
+
+const verificationTemplate = createEmailTemplate(
+  new URL('../email/verification.mjml', import.meta.url),
+  verificationTemplateContent
+)
+
+type DsarVerificationTemplateData = {
+  actionText: string
+  expiresIn: string
+  requestType: 'ACCESS' | 'DELETE'
+  subject: string
+  verifyUrl: string
+}
+
+const createDsarVerificationTemplateData = (
+  requestType: 'ACCESS' | 'DELETE',
+  actionText: string,
+  verifyUrl: string,
+  expiresIn: string,
+  subject: string
+): DsarVerificationTemplateData => ({
+  actionText,
+  expiresIn,
+  requestType,
+  subject,
+  verifyUrl,
+})
+
+const generateDsarVerificationEmailHtml = async (
+  templateData: DsarVerificationTemplateData
+): Promise<string> => {
+  const { html } = await compileEmailTemplate(verificationTemplate, templateData)
+  return html
+}
 
 export async function sendDsarVerificationEmail(
   email: string,
@@ -45,13 +80,15 @@ export async function sendDsarVerificationEmail(
       ? 'Verify Your Data Access Request'
       : 'Verify Your Data Deletion Request'
 
-  const html = dsarVerificationEmailHtml({
-    subject,
+  const templateData = createDsarVerificationTemplateData(
     requestType,
     actionText,
     verifyUrl,
     expiresIn,
-  })
+    subject
+  )
+
+  const html = await generateDsarVerificationEmailHtml(templateData)
 
   const text = dsarVerificationEmailText({
     requestType,

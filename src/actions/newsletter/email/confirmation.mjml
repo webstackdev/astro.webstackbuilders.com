@@ -1,0 +1,219 @@
+{% import '../../utils/email/footer/index.mjml' as emailFooter with context %}
+{% set privacyUrl = common.company.url ~ '/privacy' %}
+{% set unsubscribeUrl = privacyUrl ~ '#unsubscribe' %}
+
+<mjml>
+  <mj-head>
+    <mj-title>
+      Confirm Your Newsletter Subscription
+    </mj-title>
+    <mj-preview>
+      Confirm your email to start receiving Webstack Builders updates.
+    </mj-preview>
+    <mj-attributes>
+      <mj-all
+        font-family="Arial, sans-serif"
+      />
+      <mj-class
+        name="shell-section"
+        padding="0 24px"
+      />
+      <mj-class
+        name="header-section"
+        padding="30px 24px 24px"
+        border-bottom="2px solid #f0f0f0"
+      />
+      <mj-class
+        name="content-section"
+        padding="30px 24px 0"
+      />
+      <mj-class
+        name="logo"
+        align="center"
+        color="#0066cc"
+        font-size="24px"
+        font-weight="700"
+      />
+      <mj-class
+        name="heading"
+        color="#111827"
+        font-size="30px"
+        font-weight="700"
+        line-height="38px"
+        padding="0 0 20px"
+      />
+      <mj-class
+        name="subheading"
+        color="#111827"
+        font-size="22px"
+        font-weight="700"
+        line-height="30px"
+        padding="16px 0 12px"
+      />
+      <mj-class
+        name="body-text"
+        color="#333333"
+        font-size="16px"
+        line-height="26px"
+        padding="0 0 16px"
+      />
+      <mj-class
+        name="body-text-tight"
+        color="#333333"
+        font-size="16px"
+        line-height="26px"
+        padding="0 0 8px"
+      />
+      <mj-class
+        name="link-text"
+        color="#0066cc"
+        font-size="14px"
+        line-height="22px"
+        padding="0 0 16px"
+      />
+      <mj-class
+        name="button"
+        background-color="#0066cc"
+        border-radius="5px"
+        color="#ffffff"
+        font-size="16px"
+        font-weight="600"
+        inner-padding="14px 30px"
+      />
+      <mj-class
+        name="info-box"
+        background-color="#f8f9fa"
+        border-left="4px solid #0066cc"
+        padding="16px"
+      />
+      <mj-class
+        name="notice"
+        color="#d97706"
+        font-size="16px"
+        font-weight="600"
+        line-height="24px"
+        padding="0 0 8px"
+      />
+    </mj-attributes>
+    <mj-style inline="inline">
+      .url-break {
+        word-break: break-all;
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#ffffff" width="600px">
+    <mj-section mj-class="header-section">
+      <mj-column>
+        <mj-text mj-class="logo">
+          Webstack Builders
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section mj-class="content-section">
+      <mj-column>
+        <mj-text mj-class="heading">
+          Confirm Your Subscription
+        </mj-text>
+        <mj-text mj-class="body-text">
+          {{ greeting }},
+        </mj-text>
+        <mj-text mj-class="body-text">
+          Thank you for subscribing to the Webstack Builders newsletter! To complete your subscription and start
+          receiving our latest articles, insights, and updates, please confirm your email address.
+        </mj-text>
+        <mj-button mj-class="button"  href="{{ confirmUrl }}">
+          Confirm My Subscription
+        </mj-button>
+        <mj-text mj-class="body-text-tight">
+          Or copy and paste this link into your browser:
+        </mj-text>
+        <mj-text mj-class="link-text" css-class="url-break">
+          {{ confirmUrl }}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section
+      mj-class="shell-section"
+      padding-top="20px"
+    >
+      <mj-column>
+        <mj-text mj-class="info-box body-text-tight">
+          <strong>Why did I receive this?</strong>
+        </mj-text>
+        <mj-text mj-class="info-box body-text">
+          You're receiving this email because someone (hopefully you!) entered this email address on our website to
+          subscribe to our newsletter. If you didn't request this, you can safely ignore this email.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section mj-class="shell-section" padding-top="20px">
+      <mj-column>
+        <mj-text mj-class="info-box notice">
+          ⏰ This confirmation link expires in {{ expiresIn }}
+        </mj-text>
+        <mj-text mj-class="info-box body-text">
+          For security reasons, this confirmation link will only work once and will expire after {{ expiresIn }}.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section mj-class="content-section" padding-top="24px">
+      <mj-column>
+        <mj-text mj-class="subheading">What You're Consenting To</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="0 24px 0">
+      <mj-group>
+        <mj-column width="4%">
+          <mj-text padding="0" mj-class="body-text">•</mj-text>
+        </mj-column>
+        <mj-column width="96%">
+          <mj-text padding="0 0 10px" mj-class="body-text"><strong>Purpose:</strong> Receiving marketing emails and newsletters</mj-text>
+        </mj-column>
+      </mj-group>
+    </mj-section>
+
+    <mj-section padding="0 24px 0">
+      <mj-group>
+        <mj-column width="4%">
+          <mj-text padding="0" mj-class="body-text">•</mj-text>
+        </mj-column>
+        <mj-column width="96%">
+          <mj-text padding="0 0 10px" mj-class="body-text"><strong>Frequency:</strong> Weekly articles and occasional updates</mj-text>
+        </mj-column>
+      </mj-group>
+    </mj-section>
+
+    <mj-section padding="0 24px 0">
+      <mj-group>
+        <mj-column width="4%">
+          <mj-text padding="0" mj-class="body-text">•</mj-text>
+        </mj-column>
+        <mj-column width="96%">
+          <mj-text padding="0 0 10px" mj-class="body-text"><strong>Your Rights:</strong> You can unsubscribe at any time using the link in every email</mj-text>
+        </mj-column>
+      </mj-group>
+    </mj-section>
+
+    <mj-section padding="0 24px 0">
+      <mj-group>
+        <mj-column width="4%">
+          <mj-text padding="0" mj-class="body-text">•</mj-text>
+        </mj-column>
+        <mj-column width="96%">
+          <mj-text padding="0 0 10px" mj-class="body-text"><strong>Data Usage:</strong> We'll only use your email to send you the content you signed up for</mj-text>
+        </mj-column>
+      </mj-group>
+    </mj-section>
+
+    {{ emailFooter.renderCommonFooter(
+      notePrefix='Questions? Contact us at',
+      privacyUrl=privacyUrl,
+      unsubscribeUrl=unsubscribeUrl
+    ) }}
+  </mj-body>
+</mjml>

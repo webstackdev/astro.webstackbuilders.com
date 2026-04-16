@@ -1,4 +1,4 @@
 export { generateConfirmationEmailHtml } from './confirmationHtml'
-export { generateConfirmationEmailText } from './confirmationText'
+export { generateConfirmationEmailText } from './confirmationHtml'
 export { generateWelcomeEmailHtml } from './welcomeHtml'
-export { generateWelcomeEmailText } from './welcomeText'
+export { generateWelcomeEmailText } from './welcomeHtml'
