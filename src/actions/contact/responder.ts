@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { ActionsFunctionError } from '@actions/utils/errors'
+import acknowledgementTemplateContent from '@actions/contact/email/acknowledgement.mjml?raw'
 import messageTemplateContent from '@actions/contact/email/message.mjml?raw'
 import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
 import { escapeHtml, formatFileSize } from './utils'
@@ -65,11 +66,31 @@ const contactMessageTemplate = createEmailTemplate(
   messageTemplateContent
 )
 
+const contactAcknowledgementTemplate = createEmailTemplate(
+  new URL('./email/acknowledgement.mjml', import.meta.url),
+  acknowledgementTemplateContent
+)
+
 type ContactEmailTemplateData = {
   attachments: Array<{ filename: string; sizeLabel: string }>
   consentGiven: 'Yes' | 'No'
   fields: Array<{ label: string; value: string }>
   messageHtml: string
+}
+
+type ContactAcknowledgementTemplateData = {
+  greeting: string
+  replyToEmail: string
+}
+
+const createGreeting = (name: string): string => {
+  const trimmedName = name.trim()
+  if (!trimmedName) {
+    return 'Hello'
+  }
+
+  const [firstName] = trimmedName.split(/\s+/)
+  return firstName ? `Hi ${firstName}` : 'Hello'
 }
 
 /**
@@ -102,6 +123,19 @@ export function createContactEmailTemplateData(
   }
 }
 
+/**
+ * Builds the template data required by the contact acknowledgement MJML email.
+ */
+export function createContactAcknowledgementTemplateData(
+  data: ContactFormData,
+  replyToEmail: string
+): ContactAcknowledgementTemplateData {
+  return {
+    greeting: createGreeting(data.name),
+    replyToEmail,
+  }
+}
+
 /*
 Template data shape for src/actions/contact/email/message.mjml:
 
@@ -117,6 +151,21 @@ export async function generateEmailContent(
   const { html } = await compileEmailTemplate(
     contactMessageTemplate,
     createContactEmailTemplateData(data, files)
+  )
+
+  return html
+}
+
+/**
+ * Generates the acknowledgement email HTML sent back to the contact submitter.
+ */
+export async function generateAcknowledgementEmailContent(
+  data: ContactFormData,
+  replyToEmail: string
+): Promise<string> {
+  const { html } = await compileEmailTemplate(
+    contactAcknowledgementTemplate,
+    createContactAcknowledgementTemplateData(data, replyToEmail)
   )
 
   return html

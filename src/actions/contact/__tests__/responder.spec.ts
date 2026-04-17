@@ -2,7 +2,9 @@ import { JSDOM } from 'jsdom'
 import { describe, expect, it } from 'vitest'
 
 import {
+  createContactAcknowledgementTemplateData,
   createContactEmailTemplateData,
+  generateAcknowledgementEmailContent,
   generateEmailContent,
   getFormDataFromInput,
   parseAttachmentsFromInput,
@@ -109,6 +111,40 @@ describe('contact responder', () => {
       expect(templateData.messageHtml).toContain('&lt;ASAP&gt;')
       expect(templateData.messageHtml).toContain('&amp;')
       expect(templateData.messageHtml).toContain('<br>')
+    })
+
+    it('builds acknowledgement template data from the submitter name', () => {
+      const templateData = createContactAcknowledgementTemplateData(
+        {
+          name: 'Jane Doe',
+          email: 'jane@example.com',
+          message: 'Hello there with enough detail.',
+        },
+        'info@webstackbuilders.com'
+      )
+
+      expect(templateData).toEqual({
+        greeting: 'Hi Jane',
+        replyToEmail: 'info@webstackbuilders.com',
+      })
+    })
+
+    it('generates acknowledgement email HTML with reply instructions', async () => {
+      const html = await generateAcknowledgementEmailContent(
+        {
+          name: 'Jane Doe',
+          email: 'jane@example.com',
+          message: 'Hello there with enough detail.',
+        },
+        'info@webstackbuilders.com'
+      )
+
+      const dom = new JSDOM(html)
+      const bodyText = dom.window.document.body.textContent ?? ''
+
+      expect(bodyText).toContain('Thanks for reaching out')
+      expect(bodyText).toContain('Hi Jane')
+      expect(bodyText).toContain('info@webstackbuilders.com')
     })
   })
 
