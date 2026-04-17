@@ -30,3 +30,8 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 ## Contact Form
 
 - `0/2000` characters should show number of characters left instead
+
+I put our default data deletion request email template in src/pages/testing/comps/scratchpad.astro
+I'd like to get some design ideas for making this page nicer. You're free to generate any idea you like - add images, add sections, change the copy, anything to improve the page for its intended purpose. Add the comp as a block in a div below the existing "Default Layout" section. Since this is an email, we use mjml to generate them. That means we should restrict our CSS to styles that mjml supports / are generally supported by a wide range of email clients (but don't change it to mjml markup, we'll do that for the winning comp).
+
+I want to add several comps, but let's do them one at a time since it's a fairly large task.
