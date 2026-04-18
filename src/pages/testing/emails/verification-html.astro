@@ -1,0 +1,27 @@
+---
+import verificationTemplateContent from '@actions/gdpr/email/verification.mjml?raw'
+import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
+
+export const prerender = false
+
+const requestType = 'DELETE'
+const actionText = 'delete your data'
+const expiresIn = '24 hours'
+const subject = 'Verify Your Data Deletion Request'
+const verifyUrl = 'https://www.webstackbuilders.com/privacy/my-data?token=mock-dsar-token-123'
+
+const verificationTemplate = createEmailTemplate(
+  new URL('../../../actions/gdpr/email/verification.mjml', import.meta.url),
+  verificationTemplateContent
+)
+
+const { html } = await compileEmailTemplate(verificationTemplate, {
+  actionText,
+  expiresIn,
+  requestType,
+  subject,
+  verifyUrl,
+})
+---
+
+<Fragment set:html={html} />

@@ -31,4 +31,8 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 
 - `0/2000` characters should show number of characters left instead
 
-## Content Issues
+## Newsletter / MJML Templates
+
+- We need to make sure the images point to the full production URL, not a relative import
+- Need to move the unsubscribe link into an Action and handle it entirely within our website instead of on Hubspot
+- Need to add a newsletter publishing workflow as an action, using the newsletter static segment imported from Hubspot

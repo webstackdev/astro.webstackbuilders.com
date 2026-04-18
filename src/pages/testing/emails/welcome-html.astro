@@ -1,0 +1,20 @@
+---
+import welcomeTemplateContent from '@actions/newsletter/email/welcome.mjml?raw'
+import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
+
+export const prerender = false
+
+const firstName = 'Jane'
+const greeting = `Hi ${firstName}`
+
+const welcomeTemplate = createEmailTemplate(
+  new URL('../../../actions/newsletter/email/welcome.mjml', import.meta.url),
+  welcomeTemplateContent
+)
+
+const { html } = await compileEmailTemplate(welcomeTemplate, {
+  greeting,
+})
+---
+
+<Fragment set:html={html} />

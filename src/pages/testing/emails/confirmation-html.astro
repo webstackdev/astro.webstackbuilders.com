@@ -1,0 +1,24 @@
+---
+import confirmationTemplateContent from '@actions/newsletter/email/confirmation.mjml?raw'
+import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
+
+export const prerender = false
+
+const firstName = 'Jane'
+const greeting = `Hi ${firstName}`
+const confirmUrl = 'https://www.webstackbuilders.com/newsletter/confirm/mock-token-123'
+const expiresIn = '24 hours'
+
+const confirmationTemplate = createEmailTemplate(
+  new URL('../../../actions/newsletter/email/confirmation.mjml', import.meta.url),
+  confirmationTemplateContent
+)
+
+const { html } = await compileEmailTemplate(confirmationTemplate, {
+  confirmUrl,
+  expiresIn,
+  greeting,
+})
+---
+
+<Fragment set:html={html} />
