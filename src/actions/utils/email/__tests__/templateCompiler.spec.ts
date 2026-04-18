@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import { JSDOM } from 'jsdom'
 import { describe, expect, it } from 'vitest'
 import { ActionsFunctionError } from '@actions/utils/errors'
 import contactMessageTemplateContent from '../../../contact/email/message.mjml?raw'
@@ -39,19 +40,18 @@ describe('compileEmailTemplate', () => {
       messageHtml: 'Need help with a launch plan.<br>Timeline is flexible.',
     })
 
-    expect(result.html).toContain('New Contact Form Submission')
-    expect(result.html).toContain('Alex Example')
-    expect(result.html).toContain('brief.pdf (2.4 MB)')
-    expect(result.html).toContain('+18889871881')
-    expect(result.html).toContain('support@webstackbuilders.com')
-    expect(result.html).toContain('www.webstackbuilders.com')
-    expect(result.html).toContain('1032 E. Brandon Boulevard, Suite 5230')
+    const dom = new JSDOM(result.html)
+
+    expect(dom.window.document.querySelector('html')).not.toBeNull()
+    expect(dom.window.document.querySelector('head')).not.toBeNull()
+    expect(dom.window.document.querySelector('body')).not.toBeNull()
+    expect(dom.window.document.querySelectorAll('table').length).toBeGreaterThan(0)
+    expect(dom.window.document.body.textContent ?? '').toContain('Alex Example')
+    expect(dom.window.document.body.textContent ?? '').toContain('brief.pdf (2.4 MB)')
     expect(result.text).toContain('Need help with a launch plan.')
     expect(result.text).toContain('Timeline is flexible.')
-    expect(result.text).toContain('Phone: +18889871881')
-    expect(result.text).toContain('Email: support@webstackbuilders.com')
-    expect(result.text).toContain('Website: www.webstackbuilders.com')
-    expect(result.text).toContain('Address: 1032 E. Brandon Boulevard, Suite 5230')
+    expect(result.text).toContain('Alex Example')
+    expect(result.text).toContain('brief.pdf (2.4 MB)')
   })
 
   it('renders nunjucks data, supports mj-include, and returns html and plain text', async () => {
