@@ -73,6 +73,16 @@ interface MjmlRenderResult {
   errors: MjmlError[]
 }
 
+type Awaitable<T> = T | Promise<T>
+
+type MjmlRenderer = (
+  _input: string,
+  _options?: {
+    filePath?: string
+    keepComments?: boolean
+  }
+) => Awaitable<MjmlRenderResult>
+
 const projectRoot = process.cwd()
 
 const templateEnvironment = new nunjucks.Environment(
@@ -235,8 +245,8 @@ export async function compileEmailTemplate(
     const mjmlModule = await import('mjml')
     const mjml2html = (
       'default' in mjmlModule ? mjmlModule.default : mjmlModule
-    ) as (_input: string, _options?: { filePath?: string; keepComments?: boolean }) => MjmlRenderResult
-    const { html, errors } = mjml2html(mjmlWithData, {
+    ) as MjmlRenderer
+    const { html, errors } = await mjml2html(mjmlWithData, {
       filePath: absolutePath,
       keepComments: false,
     })

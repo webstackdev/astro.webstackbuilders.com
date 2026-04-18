@@ -54,7 +54,7 @@ describe('compileEmailTemplate', () => {
     expect(result.text).toContain('brief.pdf (2.4 MB)')
   })
 
-  it('renders nunjucks data, supports mj-include, and returns html and plain text', async () => {
+  it('renders nunjucks data and returns html and plain text', async () => {
     const result = await compileEmailTemplate(exampleTemplate, {
       htmlMessage: '<strong>Urgent</strong> message body',
       items: ['Coffee Beans', 'Espresso Machine'],
@@ -74,7 +74,7 @@ describe('compileEmailTemplate', () => {
     expect(result.text).toContain('privacy policy')
   })
 
-  it('injects common contact data and resolves relative nunjucks imports', async () => {
+  it('injects common contact data into inline fixture content', async () => {
     const result = await compileEmailTemplate(withCommonDataTemplate, {
       name: 'Alex',
     })
