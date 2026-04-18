@@ -9,12 +9,13 @@ import {
   isProd,
 } from '@actions/utils/environment/environmentActions'
 import { ActionsFunctionError, handleActionsFunctionError, throwActionError } from '@actions/utils/errors'
-import { contactFormSender } from '@actions/utils/email/resendSenders'
+import { contactFormSender, contactInbox, contactReplyTo } from '@actions/utils/email/resendSenders'
 import { createConsentRecord } from '@actions/gdpr/entities/consent'
 import { createOrUpdateContact, setMarketingOptIn } from '@actions/utils/hubspot'
 import type { FileAttachment, EmailData } from '@actions/contact/@types'
 import { contactFormInputSchema } from './domain'
 import {
+  generateAcknowledgementEmailContent,
   generateEmailContent,
   getFormDataFromInput,
   parseAttachmentsFromInput,
@@ -125,17 +126,40 @@ export const contact = {
           })
         }
 
-        const htmlContent = generateEmailContent(formData, files)
+        const htmlContent = await generateEmailContent(formData, files)
         await sendEmail(
           {
             from: contactFormSender,
-            to: 'info@webstackbuilders.com',
+            to: contactInbox,
             replyTo: formData.email.trim(),
             subject: `Contact Form: ${formData.name}`,
             html: htmlContent,
           },
           files
         )
+
+        try {
+          const acknowledgementHtml = await generateAcknowledgementEmailContent(
+            formData,
+            contactReplyTo
+          )
+
+          await sendEmail(
+            {
+              from: contactFormSender,
+              to: formData.email.trim(),
+              replyTo: contactReplyTo,
+              subject: 'We received your message - Webstack Builders',
+              html: acknowledgementHtml,
+            },
+            []
+          )
+        } catch (emailError) {
+          handleActionsFunctionError(emailError, {
+            route,
+            operation: 'sendAcknowledgementEmail',
+          })
+        }
 
         if (formData.consent) {
           try {

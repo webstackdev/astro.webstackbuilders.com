@@ -1,0 +1,18 @@
+---
+import acknowledgementTemplateContent from '@actions/contact/email/acknowledgement.mjml?raw'
+import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
+
+export const prerender = false
+
+const acknowledgementTemplate = createEmailTemplate(
+  new URL('../../../actions/contact/email/acknowledgement.mjml', import.meta.url),
+  acknowledgementTemplateContent
+)
+
+const { text } = await compileEmailTemplate(acknowledgementTemplate, {
+  greeting: 'Hi Alex',
+  replyToEmail: 'info@webstackbuilders.com',
+})
+---
+
+<pre>{text}</pre>
