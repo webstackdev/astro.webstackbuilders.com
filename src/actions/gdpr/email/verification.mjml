@@ -1,8 +1,11 @@
-{% import '../../utils/email/footer/index.mjml' as emailFooter with context %}
+{% set isDeleteRequest = requestType == 'DELETE' %}
+{% set requestLabel = 'Deletion' if requestType == 'DELETE' else 'Access' %}
+{% set buttonText = 'Yes, Delete My Data' if isDeleteRequest else 'Verify Request' %}
+{% set buttonHoverBackground = '#b91c1c' if isDeleteRequest else '#0057ad' %}
+{% set linkHoverColor = '#0057ad' if isDeleteRequest else '#004a94' %}
 
 <mjml>
   <mj-head>
-    {% include '../../utils/email/footer/styles.mjml' %}
     <mj-title>{{ subject }}</mj-title>
     <mj-preview>
       {{ subject }} from Webstack Builders
@@ -10,34 +13,36 @@
     <mj-attributes>
       <mj-all font-family="Arial, sans-serif" />
       <mj-class
-        name="header-section"
-        background-color="#0066cc"
-        padding="20px 24px"
-        border-radius="5px 5px 0 0"
+        name="card-header"
+        background-color="#e5e7eb"
+        border-bottom="1px solid #d1d5db"
+        border-radius="8px 8px 0 0"
+        padding="16px 16px 8px"
       />
       <mj-class
-        name="content-section"
+        name="card-section"
         background-color="#ffffff"
-        padding="30px 24px 0"
-        border-left="1px solid #e0e0e0"
-        border-right="1px solid #e0e0e0"
+        padding="0 40px"
       />
       <mj-class
-        name="content-section-last"
+        name="hero-section"
         background-color="#ffffff"
-        padding="0 24px 30px"
-        border-left="1px solid #e0e0e0"
-        border-right="1px solid #e0e0e0"
-        border-bottom="1px solid #e0e0e0"
-        border-radius="0 0 5px 5px"
+        padding="40px 24px 20px"
       />
       <mj-class
-        name="header-text"
+        name="hero-emoji"
         align="center"
-        color="#ffffff"
-        font-size="28px"
+        font-size="56px"
+        line-height="56px"
+        padding="0 0 20px"
+      />
+      <mj-class
+        name="hero-title"
+        align="center"
+        color="#111827"
+        font-size="24px"
         font-weight="700"
-        line-height="36px"
+        line-height="32px"
         padding="0"
       />
       <mj-class
@@ -48,96 +53,274 @@
         padding="0 0 16px"
       />
       <mj-class
-        name="body-text-tight"
+        name="body-text-spaced"
         color="#333333"
         font-size="16px"
         line-height="26px"
-        padding="0 0 8px"
+        padding="0 0 36px"
+      />
+      <mj-class
+        name="center-note"
+        align="center"
+        color="#666666"
+        font-size="14px"
+        line-height="22px"
+        padding="0 0 16px"
       />
       <mj-class
         name="link-text"
+        align="center"
         color="#0066cc"
-        font-size="16px"
-        line-height="24px"
+        font-size="14px"
+        line-height="22px"
         padding="0 0 16px"
       />
       <mj-class
         name="button"
-        background-color="#0066cc"
-        border-radius="5px"
+        border-radius="6px"
         color="#ffffff"
         font-size="16px"
         font-weight="600"
-        inner-padding="14px 30px"
+        inner-padding="16px 40px"
+        line-height="120%"
+        text-transform="none"
+        padding="0 0 24px"
       />
       <mj-class
-        name="warning-box"
-        background-color="#fff3cd"
-        border-left="4px solid #ffc107"
-        padding="16px"
+        name="danger-box"
+        background-color="#fef2f2"
+        border-left="4px solid #ef4444"
+        border-radius="4px"
+        padding="20px"
+      />
+      <mj-class
+        name="danger-heading"
+        color="#991b1b"
+        font-size="15px"
+        font-weight="700"
+        line-height="22px"
+        padding="0 0 12px"
+      />
+      <mj-class
+        name="danger-list"
+        color="#7f1d1d"
+        font-size="14px"
+        line-height="24px"
+        padding="0 0 28px"
+      />
+      <mj-class
+        name="footer-section"
+        background-color="#f8fafc"
+        border-top="1px solid #f0f0f0"
+        border-radius="0 0 8px 8px"
+        padding="24px 40px"
+      />
+      <mj-class
+        name="footer-note"
+        align="center"
+        color="#64748b"
+        font-size="13px"
+        line-height="18px"
+        padding="0 0 12px"
+      />
+      <mj-class
+        name="footer-meta"
+        align="center"
+        color="#94a3b8"
+        font-size="12px"
+        line-height="18px"
+        padding="0"
       />
     </mj-attributes>
     <mj-style inline="inline">
+      .cta-hover td:hover,
+      .cta-hover a:hover {
+        background-color: {{ buttonHoverBackground }} !important;
+      }
+
+      .cta-hover a:hover {
+        color: #ffffff !important;
+      }
+
+      .link-hover a:hover {
+        color: {{ linkHoverColor }} !important;
+      }
+
       .url-break {
         word-break: break-all;
       }
     </mj-style>
   </mj-head>
-  <mj-body background-color="#ffffff" width="600px">
-    {% include '../../utils/email/header/default/index.mjml' %}
-    <mj-section mj-class="header-section">
-      <mj-column>
-        <mj-text mj-class="header-text">
-          Data {{ 'Access' if requestType == 'ACCESS' else 'Deletion' }} Request
-        </mj-text>
-      </mj-column>
-    </mj-section>
+  <mj-body background-color="#f3f4f6" width="600px">
+    <mj-wrapper background-color="#f3f4f6" padding="40px 20px">
+      <mj-section mj-class="card-header">
+        <mj-column>
+          <mj-table align="left" padding="0">
+            <tr>
+              <td style="width:49px;vertical-align:middle;">
+                <a href="{{ common.company.url }}" style="color:#001A39;text-decoration:none;display:inline-block;">
+                  <table
+                    align="left"
+                    cellpadding="0"
+                    cellspacing="0"
+                    role="presentation"
+                    style="width:49px;height:48px;background-color:#ffffff;border:3px solid #ffffff;"
+                  >
+                    <tbody>
+                      <tr>
+                        <td style="height:17px;">
+                          <table
+                            cellpadding="0"
+                            cellspacing="0"
+                            role="presentation"
+                            style="width:100%;height:100%;background-color:#ffffff;border:0;"
+                          >
+                            <tbody>
+                              <tr>
+                                <td style="width:10px;height:17px;background-color:#001A39;"></td>
+                                <td style="width:3px;height:17px;background-color:#ffffff;"></td>
+                                <td style="width:23px;height:17px;background-color:#001A39;"></td>
+                                <td style="width:3px;height:17px;background-color:#ffffff;"></td>
+                                <td style="width:10px;height:17px;background-color:#001A39;"></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="height:3px;background-color:#ffffff;line-height:3px;font-size:3px;">&nbsp;</td>
+                      </tr>
+                      <tr>
+                        <td style="height:9px;">
+                          <table
+                            cellpadding="0"
+                            cellspacing="0"
+                            role="presentation"
+                            style="width:100%;height:100%;background-color:#ffffff;border:0;"
+                          >
+                            <tbody>
+                              <tr>
+                                <td style="width:23px;height:9px;background-color:#006DCA;"></td>
+                                <td style="width:3px;height:9px;background-color:#ffffff;"></td>
+                                <td style="width:23px;height:9px;background-color:#006DCA;"></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="height:2px;background-color:#ffffff;line-height:2px;font-size:2px;">&nbsp;</td>
+                      </tr>
+                      <tr>
+                        <td style="height:17px;">
+                          <table
+                            cellpadding="0"
+                            cellspacing="0"
+                            role="presentation"
+                            style="width:100%;height:100%;background-color:#ffffff;border:0;"
+                          >
+                            <tbody>
+                              <tr>
+                                <td style="width:10px;height:17px;background-color:#001A39;"></td>
+                                <td style="width:3px;height:17px;background-color:#ffffff;"></td>
+                                <td style="width:23px;height:17px;background-color:#001A39;"></td>
+                                <td style="width:3px;height:17px;background-color:#ffffff;"></td>
+                                <td style="width:10px;height:17px;background-color:#001A39;"></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </a>
+              </td>
+              <td style="padding-left:14px;vertical-align:middle;text-align:left;">
+                <a
+                  href="{{ common.company.url }}"
+                  style="color:#001A39;text-decoration:none;display:block;text-align:left;font-family:Arial, sans-serif;font-size:24px;font-weight:700;line-height:26px;"
+                >
+                  Webstack<br>
+                  Builders
+                </a>
+              </td>
+            </tr>
+          </mj-table>
+        </mj-column>
+      </mj-section>
 
-    <mj-section mj-class="content-section">
-      <mj-column>
-        <mj-text mj-class="body-text">
-          Hello,
-        </mj-text>
-        <mj-text mj-class="body-text">
-          We received a request to {{ actionText }} from Webstack Builders. To complete this request, please verify
-          your email address by clicking the button below:
-        </mj-text>
-        <mj-button mj-class="button" href="{{ verifyUrl }}">
-          Verify Request
-        </mj-button>
-        <mj-text mj-class="body-text-tight">
-          Or copy and paste this link into your browser:
-        </mj-text>
-        <mj-text
-          mj-class="link-text"
-          css-class="url-break"
-        >
-          {{ verifyUrl }}
-        </mj-text>
-        {% if requestType == 'DELETE' %}
-          <mj-text mj-class="warning-box body-text">
-            <strong>⚠️ Important:</strong> This action will permanently delete all your data from our systems. This
-            cannot be undone.
+      <mj-section mj-class="hero-section">
+        <mj-column>
+          <mj-text mj-class="hero-emoji">👋</mj-text>
+          <mj-text mj-class="hero-title">
+            We received a request to<br>
+            {{ actionText }}.
           </mj-text>
-        {% endif %}
-      </mj-column>
-    </mj-section>
+        </mj-column>
+      </mj-section>
 
-    <mj-section mj-class="content-section-last">
-      <mj-column>
-        <mj-text mj-class="body-text">
-          <strong>This link will expire in {{ expiresIn }}.</strong>
-        </mj-text>
-        <mj-text mj-class="body-text">
-          If you didn't make this request, you can safely ignore this email. No action will be taken without verification.
-        </mj-text>
-      </mj-column>
-    </mj-section>
+      <mj-section mj-class="card-section">
+        <mj-column>
+          <mj-text mj-class="body-text">
+            Hello,
+          </mj-text>
+          <mj-text mj-class="body-text-spaced">
+            To complete this {{ requestLabel | lower }} request and{% if isDeleteRequest %} permanently remove your
+            data,{% endif %} please verify that you requested this action. <strong>This link is valid for
+            {{ expiresIn }}.</strong>
+          </mj-text>
+          {% if isDeleteRequest %}
+            <mj-text mj-class="danger-box danger-heading">
+              What happens next?
+            </mj-text>
+            <mj-text mj-class="danger-box danger-list">
+              <ul style="margin:0;padding-left:20px;">
+                <li style="margin-bottom:4px;">Your account profile will be permanently deleted.</li>
+                <li style="margin-bottom:4px;">All usage history and subscriptions will be canceled.</li>
+                <li>You will immediately be unsubscribed from all communications.</li>
+              </ul>
+            </mj-text>
+          {% endif %}
+          {% if isDeleteRequest %}
+            <mj-button css-class="cta-hover" mj-class="button" background-color="#dc2626" href="{{ verifyUrl }}">
+              {{ buttonText }}
+            </mj-button>
+          {% else %}
+            <mj-button css-class="cta-hover" mj-class="button" background-color="#0066cc" href="{{ verifyUrl }}">
+              {{ buttonText }}
+            </mj-button>
+          {% endif %}
+          <mj-text mj-class="center-note">
+            If the button doesn't work, copy and paste this link:<br>
+          </mj-text>
+          <mj-text css-class="link-hover" mj-class="link-text url-break">
+            <a href="{{ verifyUrl }}" style="color:#0066cc;word-break:break-all;display:inline-block;">
+              {{ verifyUrl }}
+            </a>
+          </mj-text>
+          <mj-divider border-color="#f0f0f0" border-width="1px" padding="16px 0 32px" />
+          <mj-text mj-class="center-note" padding="0 0 32px">
+            <strong>Didn't request this?</strong> You can safely ignore this email.<br>
+            No action will be taken without your verification.
+          </mj-text>
+        </mj-column>
+      </mj-section>
 
-    {{ emailFooter.renderCommonFooter(
-      notePrefix='Questions? Contact us at',
-      contactEmailHref=common.company.dataProtectionOfficer.emailHref,
-      contactEmailLabel=common.company.dataProtectionOfficer.email
-    ) }}
+      <mj-section mj-class="footer-section">
+        <mj-column>
+          <mj-text mj-class="footer-note">
+            Questions? Contact us at
+            <a href="{{ common.company.dataProtectionOfficer.emailHref }}" style="color:#475569;text-decoration:underline;">
+              {{ common.company.dataProtectionOfficer.email }}
+            </a>
+          </mj-text>
+          <mj-text mj-class="footer-meta">
+            © {{ common.currentYear }} {{ common.company.name }}<br>
+            {{ common.company.address }}, {{ common.company.cityStatePostal }}<br>
+            {{ common.company.telephoneTollFree }} • {{ common.company.telephoneLocal }}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
   </mj-body>
 </mjml>

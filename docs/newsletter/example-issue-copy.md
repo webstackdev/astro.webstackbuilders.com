@@ -85,7 +85,7 @@ If that DNS investigation above had used correlation IDs, the team could have tr
 
 ---
 
-## What We're Reading
+## What I'm Reading
 
 - **Cloudflare's routing incident post-mortem** — A BGP misconfiguration took down a significant chunk of their network for 17 minutes. The post-mortem is worth reading for the timeline alone: how a change that passed validation in staging behaved differently in production because of a subtle difference in route map evaluation order. [Read it →](#)
 
