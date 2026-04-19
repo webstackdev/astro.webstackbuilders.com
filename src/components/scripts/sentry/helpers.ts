@@ -21,6 +21,21 @@ const isHandledContactSubmitHttpError = (event: Parameters<BeforeSendHandler>[0]
   )
 }
 
+const isHandledConsentRateLimitHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const requestUrl = event.request?.url
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  return (
+    typeof requestUrl === 'string' &&
+    requestUrl.includes('/_actions/gdpr.consentCreate') &&
+    mechanismType === 'auto.http.client.fetch' &&
+    typeof errorMessage === 'string' &&
+    errorMessage.includes('HTTP Client Error with status code: 429')
+  )
+}
+
 function scrubBreadcrumbs(
   breadcrumbs: NonNullable<Parameters<BeforeSendHandler>[0]['breadcrumbs']>
 ) {
@@ -46,6 +61,12 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
   // The Contact form already handles action failures in the UI. Drop the
   // browser-side auto-fetch event and rely on the server-side action error.
   if (isHandledContactSubmitHttpError(event)) {
+    return null
+  }
+
+  // Consent logging is best-effort on the client. Rate limiting here is expected
+  // under bursty preference changes, so drop the browser-side auto-fetch event.
+  if (isHandledConsentRateLimitHttpError(event)) {
     return null
   }
 

@@ -25,6 +25,7 @@ import {
   initConsentSideEffects,
 } from '@components/scripts/store/consent'
 import { $isConsentBannerVisible } from '@components/scripts/store/consentBanner'
+import * as errorHandlerModule from '@components/scripts/errors/handler'
 
 // Mock js-cookie
 vi.mock('js-cookie', () => ({
@@ -61,6 +62,7 @@ vi.mock('@components/scripts/sentry/helpers', () => ({
 }))
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.restoreAllMocks()
   vi.clearAllMocks()
   vi.unstubAllGlobals()
@@ -471,6 +473,135 @@ describe('Consent side effects', () => {
     })
 
     onlineGetter.mockRestore()
+  })
+
+  it('coalesces burst consent updates into the latest payload before sending', async () => {
+    vi.useFakeTimers()
+
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true })
+    vi.stubGlobal('fetch', fetchSpy)
+
+    let consentListener:
+      | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
+      | undefined
+    vi.spyOn($consent, 'subscribe').mockImplementation(listener => {
+      consentListener = listener
+      return () => {}
+    })
+    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation(() => () => {})
+
+    initConsentSideEffects()
+
+    const dataSubjectId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+    const state0 = {
+      analytics: false,
+      marketing: false,
+      functional: false,
+      DataSubjectId: dataSubjectId,
+    }
+    const state1 = {
+      analytics: true,
+      marketing: false,
+      functional: false,
+      DataSubjectId: dataSubjectId,
+    }
+    const state2 = {
+      analytics: true,
+      marketing: true,
+      functional: false,
+      DataSubjectId: dataSubjectId,
+    }
+    const state3 = {
+      analytics: true,
+      marketing: true,
+      functional: true,
+      DataSubjectId: dataSubjectId,
+    }
+
+    await consentListener?.(state1, state0)
+    await consentListener?.(state2, state1)
+    await consentListener?.(state3, state2)
+
+    expect(fetchSpy).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(250)
+
+    await vi.waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    })
+
+    const firstFetchCall = fetchSpy.mock.calls.at(0)
+    if (!firstFetchCall) {
+      throw new TestError('Expected coalesced consent logging fetch to be called once')
+    }
+
+    const [, options] = firstFetchCall
+    const payload = JSON.parse(options?.body as string)
+    expect(payload.purposes).toEqual(['analytics', 'marketing', 'functional'])
+  })
+
+  it('retries consent logging after a 429 without reporting a script error', async () => {
+    vi.useFakeTimers()
+
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: { get: vi.fn(() => '1') },
+        json: vi.fn().mockResolvedValue({ error: { message: 'Try again in 1s' } }),
+      })
+      .mockResolvedValueOnce({ ok: true })
+    vi.stubGlobal('fetch', fetchSpy)
+
+    const handleScriptErrorSpy = vi.spyOn(errorHandlerModule, 'handleScriptError')
+
+    let consentListener:
+      | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
+      | undefined
+    vi.spyOn($consent, 'subscribe').mockImplementation(listener => {
+      consentListener = listener
+      return () => {}
+    })
+    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation(() => () => {})
+
+    initConsentSideEffects()
+
+    const oldState = {
+      analytics: false,
+      marketing: false,
+      functional: false,
+      DataSubjectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    }
+    const newState = {
+      analytics: true,
+      marketing: false,
+      functional: false,
+      DataSubjectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    }
+
+    await consentListener?.(newState, oldState)
+
+    await vi.advanceTimersByTimeAsync(250)
+
+    await vi.waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    })
+
+    expect(handleScriptErrorSpy).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(1_000)
+
+    await vi.waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(2)
+    })
+
+    expect(handleScriptErrorSpy).not.toHaveBeenCalled()
   })
 
   it('deletes the data subject id when functional consent is revoked', () => {

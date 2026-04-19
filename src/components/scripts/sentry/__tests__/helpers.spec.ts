@@ -54,6 +54,23 @@ const createContactSubmitHttpErrorEvent = (): Parameters<typeof beforeSendHandle
     },
   }) as unknown as Parameters<typeof beforeSendHandler>[0]
 
+const createConsentRateLimitHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/gdpr.consentCreate' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 429',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
 const createHint = (): Parameters<typeof beforeSendHandler>[1] =>
   ({}) as Parameters<typeof beforeSendHandler>[1]
 
@@ -97,6 +114,17 @@ describe('sentry helpers', () => {
       getConsentSnapshotMock.mockReturnValue({ analytics: true })
 
       const event = createContactSubmitHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled consent rate-limit http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createConsentRateLimitHttpErrorEvent()
 
       const result = beforeSendHandler(event, createHint())
 
