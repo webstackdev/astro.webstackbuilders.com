@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 import { TestError } from '@test/errors'
+import * as errorHandlerModule from '@components/scripts/errors/handler'
 import Newsletter from '@components/CallToAction/Newsletter/index.astro'
 import type { NewsletterProps } from '@components/CallToAction/Newsletter/client/@types'
 import type { NewsletterFormElement } from '@components/CallToAction/Newsletter/client'
@@ -212,6 +213,8 @@ describe.each(newsletterVariants)('NewsletterFormElement web component (%s)', va
     newsletterSubscribeMock.mockRejectedValueOnce(new TestError('Network error'))
 
     await renderNewsletter(async ({ elements }) => {
+      const handleScriptErrorSpy = vi.spyOn(errorHandlerModule, 'handleScriptError')
+
       elements.emailInput.value = 'test@example.com'
       elements.consentCheckbox.checked = true
 
@@ -219,6 +222,7 @@ describe.each(newsletterVariants)('NewsletterFormElement web component (%s)', va
       await flushPromises()
 
       expect(newsletterSubscribeMock).toHaveBeenCalled()
+      expect(handleScriptErrorSpy).not.toHaveBeenCalled()
       expect(elements.message.textContent).toBe(
         'Network error. Please check your connection and try again.'
       )

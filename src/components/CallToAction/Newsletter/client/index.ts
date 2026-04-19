@@ -262,40 +262,41 @@ export class NewsletterFormElement extends LitElement {
       this.setLoading(true)
       this.showMessage('Sending confirmation email...', 'info')
 
+      let result: Awaited<ReturnType<typeof actions.newsletter.subscribe>>
+
       try {
-        const result = await actions.newsletter.subscribe({
+        result = await actions.newsletter.subscribe({
           email,
           consentGiven,
           ...(DataSubjectId ? { DataSubjectId } : {}),
         })
+      } catch (error) {
+        this.showMessage('Network error. Please check your connection and try again.', 'error')
+        return
+      } finally {
+        this.setLoading(false)
+      }
 
-        if (result.data?.success) {
-          markEmailCollected(email, 'newsletter_form')
-          this.showMessage(
-            result.data.message ||
-              'Check your email! Click the confirmation link to complete your subscription.',
-            'success'
-          )
-          this.submitButton.dispatchEvent(
-            new CustomEvent('confetti:fire', { bubbles: true, composed: true })
-          )
-          this.form?.reset()
-          this.setFieldInvalid(this.emailInput, false)
-          this.setFieldInvalid(this.consentCheckbox, false)
-        } else {
+      if (result.data?.success) {
+        markEmailCollected(email, 'newsletter_form')
+        this.showMessage(
+          result.data.message ||
+            'Check your email! Click the confirmation link to complete your subscription.',
+          'success'
+        )
+        this.submitButton.dispatchEvent(
+          new CustomEvent('confetti:fire', { bubbles: true, composed: true })
+        )
+        this.form?.reset()
+        this.setFieldInvalid(this.emailInput, false)
+        this.setFieldInvalid(this.consentCheckbox, false)
+      } else {
+        if (!result.data?.success) {
           this.showMessage(
             result.error?.message || 'Failed to subscribe. Please try again.',
             'error'
           )
         }
-      } catch (error) {
-        handleScriptError(error, {
-          scriptName: 'NewsletterFormElement',
-          operation: 'apiSubmission',
-        })
-        this.showMessage('Network error. Please check your connection and try again.', 'error')
-      } finally {
-        this.setLoading(false)
       }
     } catch (error) {
       handleScriptError(error, context)

@@ -1,5 +1,6 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { DownloadFormElements } from './testUtils'
+import * as errorHandlerModule from '@components/scripts/errors/handler'
 
 const downloadsSubmitMock = vi.fn()
 const markEmailCollectedMock = vi.fn()
@@ -142,12 +143,14 @@ describe('download-form web component', () => {
   it('displays error state when API fails', async () => {
     await renderDownloadForm(async ({ elements, window }) => {
       downloadsSubmitMock.mockResolvedValue({ error: { message: 'Server error' } })
+      const handleScriptErrorSpy = vi.spyOn(errorHandlerModule, 'handleScriptError')
 
       fillDownloadForm(elements)
       submitForm(window, elements.form)
       await flushPromises()
 
       expect(downloadsSubmitMock).toHaveBeenCalled()
+      expect(handleScriptErrorSpy).not.toHaveBeenCalled()
       expect(elements.statusDiv.classList.contains('hidden')).toBe(false)
       expect(elements.statusDiv.classList.contains('error')).toBe(true)
       expect(elements.statusDiv.textContent).toContain('There was an error processing your request')
