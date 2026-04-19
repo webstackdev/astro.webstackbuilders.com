@@ -5,10 +5,8 @@ import DownloadFormFixture from '@components/Pages/Downloads/client/__tests__/__
 import type { DownloadFormElement } from '@components/Pages/Downloads/client'
 import {
   getDownloadButtonWrapper,
-  getDownloadCompanyNameInput,
   getDownloadFirstNameInput,
   getDownloadFormElement,
-  getDownloadJobTitleInput,
   getDownloadLastNameInput,
   getDownloadStatusDiv,
   getDownloadSubmitButton,
@@ -27,8 +25,6 @@ export interface DownloadFormElements {
   firstName: HTMLInputElement
   lastName: HTMLInputElement
   workEmail: HTMLInputElement
-  jobTitle: HTMLInputElement
-  companyName: HTMLInputElement
 }
 
 export interface RenderDownloadFormContext {
@@ -67,8 +63,6 @@ export const renderDownloadForm = async (assertion: RenderDownloadFormAssertion)
           firstName: getDownloadFirstNameInput(window.document),
           lastName: getDownloadLastNameInput(window.document),
           workEmail: getDownloadWorkEmailInput(window.document),
-          jobTitle: getDownloadJobTitleInput(window.document),
-          companyName: getDownloadCompanyNameInput(window.document),
         },
       }
 

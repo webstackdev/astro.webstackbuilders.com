@@ -114,13 +114,15 @@ export class DownloadFormElement extends LitElement {
       const dataSubjectId =
         typeof dataSubjectIdRaw === 'string' ? dataSubjectIdRaw.trim() : ''
       const DataSubjectId = dataSubjectId.length > 0 ? dataSubjectId : undefined
+      const jobTitle = String(formData.get('jobTitle') ?? '').trim()
+      const companyName = String(formData.get('companyName') ?? '').trim()
 
       const payload = {
         firstName: String(formData.get('firstName') ?? ''),
         lastName: String(formData.get('lastName') ?? ''),
         workEmail: String(formData.get('workEmail') ?? ''),
-        jobTitle: String(formData.get('jobTitle') ?? ''),
-        companyName: String(formData.get('companyName') ?? ''),
+        ...(jobTitle && { jobTitle }),
+        ...(companyName && { companyName }),
         consent,
         DataSubjectId,
       } satisfies DownloadsSubmitInput

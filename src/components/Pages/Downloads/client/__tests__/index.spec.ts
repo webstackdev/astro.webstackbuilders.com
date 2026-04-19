@@ -37,8 +37,6 @@ const defaultFormValues = {
   firstName: 'Jane',
   lastName: 'Doe',
   workEmail: 'jane@example.com',
-  jobTitle: 'Engineer',
-  companyName: 'Acme Corp',
 }
 
 const fillDownloadForm = (
@@ -49,8 +47,6 @@ const fillDownloadForm = (
   elements.firstName.value = values.firstName
   elements.lastName.value = values.lastName
   elements.workEmail.value = values.workEmail
-  elements.jobTitle.value = values.jobTitle
-  elements.companyName.value = values.companyName
   return values
 }
 
@@ -93,7 +89,11 @@ describe('download-form web component', () => {
       submitForm(window, elements.form)
       await flushPromises()
 
-      expect(downloadsSubmitMock).toHaveBeenCalledWith(payload)
+      expect(downloadsSubmitMock).toHaveBeenCalledWith({
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        workEmail: payload.workEmail,
+      })
       expect(markEmailCollectedMock).toHaveBeenCalledWith('jane@example.com', 'download_form')
     })
   })
