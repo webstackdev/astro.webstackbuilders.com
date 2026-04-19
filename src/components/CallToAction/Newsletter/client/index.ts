@@ -270,7 +270,7 @@ export class NewsletterFormElement extends LitElement {
           consentGiven,
           ...(DataSubjectId ? { DataSubjectId } : {}),
         })
-      } catch (error) {
+      } catch {
         this.showMessage('Network error. Please check your connection and try again.', 'error')
         return
       } finally {

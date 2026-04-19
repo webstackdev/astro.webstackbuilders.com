@@ -387,7 +387,7 @@ export function initConsentSideEffects(): void {
   let hasConsentLoggingFailure = false
   let isConsentLogProcessing = false
   let onlineListener: (() => void) | null = null
-  let consentLogTimerId: ReturnType<typeof setTimeout> | null = null
+  let consentLogTimerId: number | null = null
 
   const isNavigatorOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false
 

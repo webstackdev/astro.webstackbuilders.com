@@ -49,12 +49,12 @@ const getEmailDomain = (email: string): string | undefined => {
 
 const buildSubscribeErrorExtra = (options: {
   body: z.infer<typeof subscribeSchema>
-  fingerprint?: string
+  fingerprint: string | undefined
   consentFunctional: boolean
   stage: NewsletterSubscribeStage
   userAgent: string
-  clientAddress?: string
-  rateLimitIdentifier?: string
+  clientAddress: string | undefined
+  rateLimitIdentifier: string | undefined
   subjectIdSource: 'generated' | 'provided' | 'pending'
 }): Record<string, unknown> => {
   return {

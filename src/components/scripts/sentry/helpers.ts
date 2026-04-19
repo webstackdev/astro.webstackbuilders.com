@@ -71,8 +71,8 @@ const isHandledConsentLogRetryError = (event: Parameters<BeforeSendHandler>[0]):
   const tags = event.tags ?? {}
 
   return (
-    tags.scriptName === 'cookieConsent' &&
-    tags.operation === 'logConsentToAPI' &&
+    tags['scriptName'] === 'cookieConsent' &&
+    tags['operation'] === 'logConsentToAPI' &&
     typeof errorMessage === 'string' &&
     /try again in\s+\d+s/i.test(errorMessage)
   )

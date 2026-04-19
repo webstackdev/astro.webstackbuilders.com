@@ -2,10 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { TestError } from '@test/errors'
 import {
   getDownloadButtonWrapper,
-  getDownloadCompanyNameInput,
   getDownloadFirstNameInput,
   getDownloadFormElement,
-  getDownloadJobTitleInput,
   getDownloadLastNameInput,
   getDownloadStatusDiv,
   getDownloadSubmitButton,
@@ -176,18 +174,6 @@ const inputSelectorCases = [
     selector: getDownloadWorkEmailInput,
     id: 'workEmail',
     errorMessage: 'Work email input not found',
-  },
-  {
-    name: 'job title',
-    selector: getDownloadJobTitleInput,
-    id: 'jobTitle',
-    errorMessage: 'Job title input not found',
-  },
-  {
-    name: 'company name',
-    selector: getDownloadCompanyNameInput,
-    id: 'companyName',
-    errorMessage: 'Company name input not found',
   },
 ]
 

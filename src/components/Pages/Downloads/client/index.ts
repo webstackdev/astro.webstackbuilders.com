@@ -121,8 +121,8 @@ export class DownloadFormElement extends LitElement {
         firstName: String(formData.get('firstName') ?? ''),
         lastName: String(formData.get('lastName') ?? ''),
         workEmail: String(formData.get('workEmail') ?? ''),
-        ...(jobTitle && { jobTitle }),
-        ...(companyName && { companyName }),
+        jobTitle: jobTitle || undefined,
+        companyName: companyName || undefined,
         consent,
         DataSubjectId,
       } satisfies DownloadsSubmitInput
