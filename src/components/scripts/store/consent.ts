@@ -33,6 +33,18 @@ export interface ConsentState {
 
 const consentCookieCategories: ConsentCategories[] = ['analytics', 'marketing', 'functional']
 const CONSENT_COOKIE_PREFIX = 'consent_'
+const CONSENT_LOG_DEBOUNCE_MS = 250
+const CONSENT_LOG_MAX_RETRY_DELAY_MS = 30_000
+
+class ConsentLogRetryableError extends Error {
+  readonly retryAfterMs: number
+
+  constructor(message: string, retryAfterMs: number, cause?: unknown) {
+    super(message, { cause })
+    this.name = 'ConsentLogRetryableError'
+    this.retryAfterMs = retryAfterMs
+  }
+}
 
 const prefixConsentCookie = (category: ConsentCategories): string =>
   `${CONSENT_COOKIE_PREFIX}${category}`
@@ -371,12 +383,63 @@ export function initConsentSideEffects(): void {
     userAgent: string
     verified: boolean
   }
-  const pendingConsentLogQueue: ConsentLogPayload[] = []
+  let queuedConsentLogPayload: ConsentLogPayload | null = null
   let hasConsentLoggingFailure = false
   let isConsentLogProcessing = false
   let onlineListener: (() => void) | null = null
+  let consentLogTimerId: number | null = null
 
   const isNavigatorOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false
+
+  const clearConsentLogTimer = () => {
+    if (consentLogTimerId === null || typeof window === 'undefined') {
+      return
+    }
+
+    window.clearTimeout(consentLogTimerId)
+    consentLogTimerId = null
+  }
+
+  const scheduleConsentLogProcessing = (delayMs: number) => {
+    if (typeof window === 'undefined') {
+      void processConsentLogQueue()
+      return
+    }
+
+    clearConsentLogTimer()
+    consentLogTimerId = window.setTimeout(() => {
+      consentLogTimerId = null
+      void processConsentLogQueue()
+    }, delayMs)
+  }
+
+  const parseRetryAfterMs = (response: Response, serverMessage?: string): number => {
+    const retryAfterHeader = response.headers.get('Retry-After')
+    if (retryAfterHeader) {
+      const retryAfterSeconds = Number(retryAfterHeader)
+      if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+        return Math.min(retryAfterSeconds * 1000, CONSENT_LOG_MAX_RETRY_DELAY_MS)
+      }
+
+      const retryAfterDate = Date.parse(retryAfterHeader)
+      if (!Number.isNaN(retryAfterDate)) {
+        return Math.min(
+          Math.max(0, retryAfterDate - Date.now()),
+          CONSENT_LOG_MAX_RETRY_DELAY_MS
+        )
+      }
+    }
+
+    const retryMatch = serverMessage?.match(/try again in\s+(\d+)s/i)
+    if (retryMatch) {
+      const retryAfterSeconds = Number(retryMatch[1])
+      if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+        return Math.min(retryAfterSeconds * 1000, CONSENT_LOG_MAX_RETRY_DELAY_MS)
+      }
+    }
+
+    return 5_000
+  }
 
   const ensureOnlineListener = () => {
     if (typeof window === 'undefined' || onlineListener) {
@@ -407,26 +470,34 @@ export function initConsentSideEffects(): void {
     isConsentLogProcessing = true
 
     try {
-      while (pendingConsentLogQueue.length > 0) {
-        const payload = pendingConsentLogQueue[0]!
+      while (queuedConsentLogPayload) {
+        const payload = queuedConsentLogPayload
+        queuedConsentLogPayload = null
+
         try {
           await sendConsentPayload(payload)
-          pendingConsentLogQueue.shift()
         } catch (error) {
           if (!isNavigatorOnline()) {
+            queuedConsentLogPayload ??= payload
             ensureOnlineListener()
             break
           }
 
+          if (error instanceof ConsentLogRetryableError) {
+            queuedConsentLogPayload ??= payload
+            scheduleConsentLogProcessing(error.retryAfterMs)
+            break
+          }
+
           hasConsentLoggingFailure = true
-          pendingConsentLogQueue.shift()
           handleScriptError(error, consentLoggingContext)
+          break
         }
       }
     } finally {
       isConsentLogProcessing = false
 
-      if (pendingConsentLogQueue.length === 0 && onlineListener && typeof window !== 'undefined') {
+      if (!queuedConsentLogPayload && onlineListener && typeof window !== 'undefined') {
         window.removeEventListener('online', onlineListener)
         onlineListener = null
       }
@@ -434,8 +505,8 @@ export function initConsentSideEffects(): void {
   }
 
   const enqueueConsentPayload = (payload: ConsentLogPayload) => {
-    pendingConsentLogQueue.push(payload)
-    void processConsentLogQueue()
+    queuedConsentLogPayload = payload
+    scheduleConsentLogProcessing(CONSENT_LOG_DEBOUNCE_MS)
   }
 
   const sendConsentPayload = async (payload: ConsentLogPayload) => {
@@ -456,6 +527,18 @@ export function initConsentSideEffects(): void {
         (responseBody && typeof (responseBody as { message?: string }).message === 'string'
           ? (responseBody as { message: string }).message
           : undefined)
+
+      if (response.status === 429) {
+        throw new ConsentLogRetryableError(
+          serverMessage ?? 'Consent logging is temporarily rate limited',
+          parseRetryAfterMs(response, serverMessage),
+          {
+            status: response.status,
+            statusText: response.statusText,
+            body: responseBody,
+          }
+        )
+      }
 
       throw new ClientScriptError({
         message: serverMessage ?? `Failed to record consent (status ${response.status})`,

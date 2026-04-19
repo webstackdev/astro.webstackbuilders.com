@@ -54,6 +54,78 @@ const createContactSubmitHttpErrorEvent = (): Parameters<typeof beforeSendHandle
     },
   }) as unknown as Parameters<typeof beforeSendHandler>[0]
 
+const createConsentRateLimitHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/gdpr.consentCreate' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 429',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createDownloadsSubmitHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/downloads.submit' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 400',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createNewsletterSubscribeHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/newsletter.subscribe' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 500',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createConsentLogRetryErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    message: 'Try again in 30s',
+    tags: {
+      scriptName: 'cookieConsent',
+      operation: 'logConsentToAPI',
+    },
+    exception: {
+      values: [
+        {
+          value: 'Try again in 30s',
+          mechanism: {
+            type: 'generic',
+            handled: true,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
 const createHint = (): Parameters<typeof beforeSendHandler>[1] =>
   ({}) as Parameters<typeof beforeSendHandler>[1]
 
@@ -97,6 +169,50 @@ describe('sentry helpers', () => {
       getConsentSnapshotMock.mockReturnValue({ analytics: true })
 
       const event = createContactSubmitHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled consent rate-limit http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createConsentRateLimitHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled downloads action http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createDownloadsSubmitHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled newsletter action http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createNewsletterSubscribeHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled consent log retry errors', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createConsentLogRetryErrorEvent()
 
       const result = beforeSendHandler(event, createHint())
 

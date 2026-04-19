@@ -300,7 +300,82 @@ describe('newsletter.subscribe.handler', () => {
 
     expect(throwActionError).toHaveBeenCalledWith(
       expect.any(Error),
-      { route: '/_actions/newsletter/subscribe', operation: 'subscribe' }
+      expect.objectContaining({
+        route: '/_actions/newsletter/subscribe',
+        operation: 'subscribe',
+        extra: expect.objectContaining({
+          stage: 'buildRequestFingerprint',
+          source: 'newsletter_form',
+          input: expect.objectContaining({
+            consentGiven: true,
+            emailDomain: 'example.com',
+            hasDataSubjectId: false,
+            hasFirstName: false,
+            subjectIdSource: 'pending',
+          }),
+        }),
+      })
+    )
+  })
+
+  it('logs handled action errors with subscribe stage context', async () => {
+    vi.resetModules()
+
+    const { createPendingSubscription } = await import('@actions/newsletter/domain')
+    vi.mocked(createPendingSubscription).mockRejectedValueOnce(
+      new (await import('@actions/utils/errors')).ActionsFunctionError('db unavailable', {
+        status: 500,
+      })
+    )
+
+    const { newsletter } = await import('../action')
+    const { handleActionsFunctionError } = await import('@actions/utils/errors')
+
+    const context = {
+      request: new Request('https://example.com/_actions/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'user-agent': 'ua-6' },
+      }),
+      cookies: {} as unknown,
+      clientAddress: '203.0.113.16',
+    }
+
+    await expect(
+      getMockedHandler<NewsletterSubscribeInput, NewsletterSubscribeOutput>(newsletter.subscribe)(
+        { email: 'test@example.com', consentGiven: true },
+        context
+      )
+    ).rejects.toMatchObject({
+      name: 'ActionsFunctionError',
+      status: 500,
+      message: 'db unavailable',
+    })
+
+    expect(handleActionsFunctionError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'ActionsFunctionError',
+        status: 500,
+      }),
+      expect.objectContaining({
+        route: '/_actions/newsletter/subscribe',
+        operation: 'subscribe',
+        extra: expect.objectContaining({
+          stage: 'createPendingSubscription',
+          fingerprint: 'fingerprint-1',
+          source: 'newsletter_form',
+          input: expect.objectContaining({
+            emailDomain: 'example.com',
+            emailLength: 16,
+            consentGiven: true,
+            subjectIdSource: 'generated',
+          }),
+          request: expect.objectContaining({
+            hasClientAddress: true,
+            hasUserAgent: true,
+            rateLimitIdentifier: 'newsletter:consent:fingerprint-1',
+          }),
+        }),
+      })
     )
   })
 })

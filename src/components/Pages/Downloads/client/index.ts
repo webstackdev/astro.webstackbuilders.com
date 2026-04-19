@@ -114,13 +114,15 @@ export class DownloadFormElement extends LitElement {
       const dataSubjectId =
         typeof dataSubjectIdRaw === 'string' ? dataSubjectIdRaw.trim() : ''
       const DataSubjectId = dataSubjectId.length > 0 ? dataSubjectId : undefined
+      const jobTitle = String(formData.get('jobTitle') ?? '').trim()
+      const companyName = String(formData.get('companyName') ?? '').trim()
 
       const payload = {
         firstName: String(formData.get('firstName') ?? ''),
         lastName: String(formData.get('lastName') ?? ''),
         workEmail: String(formData.get('workEmail') ?? ''),
-        jobTitle: String(formData.get('jobTitle') ?? ''),
-        companyName: String(formData.get('companyName') ?? ''),
+        jobTitle: jobTitle || undefined,
+        companyName: companyName || undefined,
         consent,
         DataSubjectId,
       } satisfies DownloadsSubmitInput
@@ -128,9 +130,9 @@ export class DownloadFormElement extends LitElement {
       try {
         const { error } = await actions.downloads.submit(payload)
 
-        // @TODO: Improve this error handling to be more user friendly. Also this is inconsistent with how we're handling errors in other forms, where we set a message and return. Should look at the types of errors that could occur, and give the user an idea of what to do.
         if (error) {
-          throw new ClientScriptError({ message: error.message || 'Failed to submit form' })
+          this.showStatus('error', 'There was an error processing your request. Please try again.')
+          return
         }
 
         markEmailCollected(payload.workEmail.trim(), 'download_form')

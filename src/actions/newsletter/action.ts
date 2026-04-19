@@ -26,6 +26,61 @@ const confirmSchema = z.object({
   token: z.string().min(1),
 })
 
+type NewsletterSubscribeStage =
+  | 'buildRequestFingerprint'
+  | 'checkRateLimit'
+  | 'validateEmail'
+  | 'validateConsent'
+  | 'resolveDataSubjectId'
+  | 'createConsentRecord'
+  | 'createPendingSubscription'
+  | 'sendConfirmationEmail'
+
+const getEmailDomain = (email: string): string | undefined => {
+  const normalizedEmail = email.trim().toLowerCase()
+  const atIndex = normalizedEmail.lastIndexOf('@')
+
+  if (atIndex === -1 || atIndex === normalizedEmail.length - 1) {
+    return undefined
+  }
+
+  return normalizedEmail.slice(atIndex + 1)
+}
+
+const buildSubscribeErrorExtra = (options: {
+  body: z.infer<typeof subscribeSchema>
+  fingerprint: string | undefined
+  consentFunctional: boolean
+  stage: NewsletterSubscribeStage
+  userAgent: string
+  clientAddress: string | undefined
+  rateLimitIdentifier: string | undefined
+  subjectIdSource: 'generated' | 'provided' | 'pending'
+}): Record<string, unknown> => {
+  return {
+    stage: options.stage,
+    source: 'newsletter_form',
+    consentFunctional: options.consentFunctional,
+    fingerprint: options.fingerprint,
+    request: {
+      hasClientAddress:
+        typeof options.clientAddress === 'string' && options.clientAddress !== 'unknown',
+      hasUserAgent: options.userAgent !== 'unknown',
+      rateLimitIdentifier: options.rateLimitIdentifier,
+    },
+    input: {
+      emailDomain: getEmailDomain(options.body.email),
+      emailLength: options.body.email.trim().length,
+      consentGiven: Boolean(options.body.consentGiven),
+      hasFirstName:
+        typeof options.body.firstName === 'string' && options.body.firstName.trim().length > 0,
+      hasDataSubjectId:
+        typeof options.body.DataSubjectId === 'string' && options.body.DataSubjectId.length > 0,
+      subjectIdSource: options.subjectIdSource,
+    },
+  }
+}
+
 export const newsletter = {
   subscribe: defineAction({
     accept: 'json',
@@ -35,16 +90,26 @@ export const newsletter = {
       context
     ): Promise<{ success: true; message: string; requiresConfirmation: true }> => {
       const route = '/_actions/newsletter/subscribe'
+      let stage: NewsletterSubscribeStage = 'buildRequestFingerprint'
+      let fingerprint: string | undefined
+      let consentFunctional = false
+      let rateLimitIdentifier: string | undefined
+      let subjectIdSource: 'generated' | 'provided' | 'pending' = 'pending'
+      const userAgent = context.request.headers.get('user-agent') || 'unknown'
 
       try {
-        const { fingerprint } = buildRequestFingerprint({
+        const requestFingerprint = buildRequestFingerprint({
           route,
           request: context.request,
           cookies: context.cookies,
           clientAddress: context.clientAddress,
         })
 
-        const rateLimitIdentifier = createRateLimitIdentifier('newsletter:consent', fingerprint)
+        fingerprint = requestFingerprint.fingerprint
+        consentFunctional = requestFingerprint.consentFunctional
+
+        stage = 'checkRateLimit'
+        rateLimitIdentifier = createRateLimitIdentifier('newsletter:consent', fingerprint)
         const { success, reset } = await checkRateLimit(rateLimiters.consent, rateLimitIdentifier)
 
         if (!success) {
@@ -53,8 +118,10 @@ export const newsletter = {
           throw new ActionsFunctionError(`Try again in ${retryAfterSeconds}s`, { status: 429 })
         }
 
+        stage = 'validateEmail'
         const validatedEmail = validateEmail(body.email)
 
+        stage = 'validateConsent'
         if (!body.consentGiven) {
           throw new ActionsFunctionError(
             'You must consent to receive marketing emails to subscribe.',
@@ -62,15 +129,18 @@ export const newsletter = {
           )
         }
 
-        const userAgent = context.request.headers.get('user-agent') || 'unknown'
-
+        stage = 'resolveDataSubjectId'
         let subjectId = body.DataSubjectId
         if (!subjectId) {
           subjectId = uuidv4()
+          subjectIdSource = 'generated'
         } else if (!uuidValidate(subjectId)) {
           throw new ActionsFunctionError('Invalid DataSubjectId format', { status: 400 })
+        } else {
+          subjectIdSource = 'provided'
         }
 
+        stage = 'createConsentRecord'
         await createConsentRecord({
           dataSubjectId: subjectId,
           email: validatedEmail,
@@ -86,6 +156,7 @@ export const newsletter = {
           verified: false,
         })
 
+        stage = 'createPendingSubscription'
         const token = await createPendingSubscription({
           email: validatedEmail,
           ...(body.firstName && { firstName: body.firstName }),
@@ -96,6 +167,7 @@ export const newsletter = {
           source: 'newsletter_form',
         })
 
+        stage = 'sendConfirmationEmail'
         await sendConfirmationEmail(validatedEmail, token, body.firstName)
 
         return {
@@ -104,10 +176,27 @@ export const newsletter = {
           requiresConfirmation: true,
         }
       } catch (error) {
+        const errorContext = {
+          route,
+          operation: 'subscribe',
+          extra: buildSubscribeErrorExtra({
+            body,
+            fingerprint,
+            consentFunctional,
+            stage,
+            userAgent,
+            clientAddress: context.clientAddress,
+            rateLimitIdentifier,
+            subjectIdSource,
+          }),
+        } as const
+
         if (error instanceof ActionsFunctionError) {
+          handleActionsFunctionError(error, errorContext)
           throw error
         }
-        throwActionError(error, { route, operation: 'subscribe' })
+
+        throwActionError(error, errorContext)
       }
     },
   }),

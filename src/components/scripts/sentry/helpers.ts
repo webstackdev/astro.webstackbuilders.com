@@ -21,6 +21,63 @@ const isHandledContactSubmitHttpError = (event: Parameters<BeforeSendHandler>[0]
   )
 }
 
+const isHandledConsentRateLimitHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const requestUrl = event.request?.url
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  return (
+    typeof requestUrl === 'string' &&
+    requestUrl.includes('/_actions/gdpr.consentCreate') &&
+    mechanismType === 'auto.http.client.fetch' &&
+    typeof errorMessage === 'string' &&
+    errorMessage.includes('HTTP Client Error with status code: 429')
+  )
+}
+
+const isHandledDownloadsSubmitHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const requestUrl = event.request?.url
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  return (
+    typeof requestUrl === 'string' &&
+    requestUrl.includes('/_actions/downloads.submit') &&
+    mechanismType === 'auto.http.client.fetch' &&
+    typeof errorMessage === 'string' &&
+    errorMessage.includes('HTTP Client Error with status code:')
+  )
+}
+
+const isHandledNewsletterSubscribeHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const requestUrl = event.request?.url
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  return (
+    typeof requestUrl === 'string' &&
+    requestUrl.includes('/_actions/newsletter.subscribe') &&
+    mechanismType === 'auto.http.client.fetch' &&
+    typeof errorMessage === 'string' &&
+    errorMessage.includes('HTTP Client Error with status code:')
+  )
+}
+
+const isHandledConsentLogRetryError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const errorMessage = event.exception?.values?.[0]?.value ?? event.message ?? ''
+  const tags = event.tags ?? {}
+
+  return (
+    tags['scriptName'] === 'cookieConsent' &&
+    tags['operation'] === 'logConsentToAPI' &&
+    typeof errorMessage === 'string' &&
+    /try again in\s+\d+s/i.test(errorMessage)
+  )
+}
+
 function scrubBreadcrumbs(
   breadcrumbs: NonNullable<Parameters<BeforeSendHandler>[0]['breadcrumbs']>
 ) {
@@ -46,6 +103,30 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
   // The Contact form already handles action failures in the UI. Drop the
   // browser-side auto-fetch event and rely on the server-side action error.
   if (isHandledContactSubmitHttpError(event)) {
+    return null
+  }
+
+  // Consent logging is best-effort on the client. Rate limiting here is expected
+  // under bursty preference changes, so drop the browser-side auto-fetch event.
+  if (isHandledConsentRateLimitHttpError(event)) {
+    return null
+  }
+
+  // The downloads form handles action failures in the UI. Drop the browser-side
+  // auto-fetch event and rely on the user-facing error state instead.
+  if (isHandledDownloadsSubmitHttpError(event)) {
+    return null
+  }
+
+  // The newsletter form handles action failures in the UI. Drop the browser-side
+  // auto-fetch event and rely on the server-side action error for diagnosis.
+  if (isHandledNewsletterSubscribeHttpError(event)) {
+    return null
+  }
+
+  // Consent logging retries are best-effort and user-invisible. If a handled
+  // client exception still gets emitted from this path, drop it as noise.
+  if (isHandledConsentLogRetryError(event)) {
     return null
   }
 

@@ -26,12 +26,14 @@ export interface ActionsErrorLogEntry {
   operation?: string | undefined
   status: number
   code?: string | undefined
+  appCode?: string | undefined
   retryable: boolean
   requestId?: string | undefined
   correlationId?: string | undefined
   runtime?: string | undefined
   region?: string | undefined
   message: string
+  details?: Record<string, unknown> | undefined
   stack?: string | undefined
   cause?: string | undefined
 }
@@ -48,6 +50,20 @@ const toCauseString = (cause: unknown): string | undefined => {
   if (!cause) return undefined
   if (cause instanceof Error) return cause.message
   return String(cause)
+}
+
+const mergeErrorDetails = (
+  error: ActionsFunctionError,
+  context: ActionsFunctionContext
+): Record<string, unknown> | undefined => {
+  if (error.details && context.extra) {
+    return {
+      ...error.details,
+      ...context.extra,
+    }
+  }
+
+  return error.details ?? context.extra
 }
 
 /**
@@ -77,12 +93,15 @@ export function handleActionsFunctionError(
 
   logActionsError(normalizedError, context)
 
+  const mergedDetails = mergeErrorDetails(normalizedError, context)
+
   if (isProd()) {
     withScope(scope => {
       scope.setTags({
         route: context.route,
         status: String(normalizedError.status),
         retryable: normalizedError.retryable ? 'true' : 'false',
+        ...(normalizedError.appCode && { appCode: normalizedError.appCode }),
         ...(context.operation && { operation: context.operation }),
         ...(context.runtime && { runtime: context.runtime }),
         ...(context.region && { region: context.region }),
@@ -91,8 +110,8 @@ export function handleActionsFunctionError(
       if (context.requestId) scope.setTag('requestId', context.requestId)
       if (context.correlationId) scope.setTag('correlationId', context.correlationId)
 
-      if (context.extra && Object.keys(context.extra).length > 0) {
-        scope.setExtras(context.extra)
+      if (mergedDetails && Object.keys(mergedDetails).length > 0) {
+        scope.setExtras(mergedDetails)
       }
 
       captureException(normalizedError)
@@ -116,6 +135,7 @@ export function formatActionsErrorLogEntry(
     route: context.route,
     status: error.status,
     code: error.code,
+    appCode: error.appCode,
     retryable: error.retryable,
     message: error.getSafeMessage(),
   }
@@ -125,6 +145,11 @@ export function formatActionsErrorLogEntry(
   if (context.region) entry.region = context.region
   if (context.requestId) entry.requestId = context.requestId
   if (context.correlationId) entry.correlationId = context.correlationId
+
+  const mergedDetails = mergeErrorDetails(error, context)
+  if (mergedDetails && Object.keys(mergedDetails).length > 0) {
+    entry.details = mergedDetails
+  }
 
   if (isDev() && !isUnitTest()) {
     if (error.stack) entry.stack = error.stack

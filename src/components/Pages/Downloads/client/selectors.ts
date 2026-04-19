@@ -92,14 +92,6 @@ export function getDownloadWorkEmailInput(root?: SelectorRoot): HTMLInputElement
   return queryInputElement('#workEmail', 'Work email input not found', root)
 }
 
-export function getDownloadJobTitleInput(root?: SelectorRoot): HTMLInputElement {
-  return queryInputElement('#jobTitle', 'Job title input not found', root)
-}
-
-export function getDownloadCompanyNameInput(root?: SelectorRoot): HTMLInputElement {
-  return queryInputElement('#companyName', 'Company name input not found', root)
-}
-
 export type DownloadFormInvalidatableControl =
   | HTMLInputElement
   | HTMLSelectElement

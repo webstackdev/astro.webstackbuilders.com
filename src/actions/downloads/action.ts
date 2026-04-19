@@ -7,6 +7,15 @@ import { getPrivacyPolicyVersion } from '@actions/utils/environment/environmentA
 import { handleActionsFunctionError } from '@actions/utils/errors'
 import { createOrUpdateContact, setMarketingOptIn } from '@actions/utils/hubspot'
 
+const optionalTrimmedString = z.preprocess(value => {
+  if (typeof value !== 'string') {
+    return value
+  }
+
+  const trimmedValue = value.trim()
+  return trimmedValue.length > 0 ? trimmedValue : undefined
+}, z.string().optional())
+
 export const inputSchema = z.object({
   firstName: z.string().trim().min(1),
   lastName: z.string().trim().min(1),
@@ -15,8 +24,8 @@ export const inputSchema = z.object({
     .trim()
     .min(1)
     .refine(value => emailValidator.validate(value), 'Invalid email address'),
-  jobTitle: z.string().trim().min(1),
-  companyName: z.string().trim().min(1),
+  jobTitle: optionalTrimmedString,
+  companyName: optionalTrimmedString,
   consent: z.boolean().optional(),
   DataSubjectId: z.uuid().optional(),
 })
@@ -59,8 +68,8 @@ export const downloads = {
       console.log('Download form submission:', {
         name: `${input.firstName} ${input.lastName}`,
         email: input.workEmail,
-        jobTitle: input.jobTitle,
-        company: input.companyName,
+        jobTitle: input.jobTitle ?? null,
+        company: input.companyName ?? null,
         timestamp: new Date().toISOString(),
       })
 

@@ -40,85 +40,33 @@ applyTo: "**"
 # Code Organization and Directory Structure
 
 ## src/lib Directory Restrictions
+
 - **The src/lib directory is for server-side build code ONLY**
 - NO client-side code can go in src/lib (it gets bundled into server-side builds)
 - Client-side utilities should go in src/components/scripts/ or appropriate component directories
 
 ## API Code Organization
+
 - **API endpoints** go in `src/pages/api/`
 - **Code files related to API endpoints** go in `src/pages/api/` and are prefixed with `_` (e.g., `_utils/`, `_contracts/`)
 - **API utility files** go specifically in the `_utils/` folder
 - **API contract/type files** go in `_contracts/` folder for centralized type definitions
 
 ## API Endpoints (Permission Required)
+
 - **Do not create, recreate, or restore `src/pages/api/*` endpoints without explicit user permission.**
 - Prefer Astro Actions (`/_actions/...`) for new backend behavior unless instructed otherwise.
 
 ## Mixed Concern Files
+
 - Files that straddle server-side API and client-side concerns (like API client wrappers) require clarification
 - **Ask before placing such files** - they may need special handling or alternative organization
 - Example: gdpr.client.ts (API client wrapper) - unclear placement due to mixed server/client concerns
 
-# Astro View Transitions Navigation
-
-Components may have behavior dependent on Astro View Transitions navigation events. Choose the appropriate navigation method:
-
-- **Fresh page load**: Use `page.goto(url)` for full browser navigation (no View Transitions, triggers full page lifecycle)
-- **Client-side navigation**: Use `navigateToPage('/path')` for in-site navigation with View Transitions (triggers `astro:page-load` and other View Transition events)
-
-Always use the `navigateToPage()` method for client-side navigation - never ad-hoc `click('a[href]')` calls. This maintains centralized control.
-
-When a Playwright-native action (e.g., `page.click()`, `page.fill()`, `page.hover()`) is required, expose it through the shared `BasePage` helpers (e.g., `BasePage.click()`), then call that helper from tests instead of the raw Playwright API. This keeps all browser interactions centrally managed and makes future behavior changes (timeouts, logging, etc.) easier.
+# Personality
 
 # Personality
 
-# Testing Standards
-
-## Astro Component Testing - Container API (MANDATORY)
-
-- **NEVER use manual HTML strings in test files or fixtures.** They get out of sync with templates and are worse than no test at all.
-- **ALWAYS use Astro's Container API** to create fixtures from actual .astro templates. See: https://docs.astro.build/en/reference/container-reference/
-- **Test fixtures MUST import actual components**, not duplicate HTML. Example:
-  ```astro
-  ---
-  import MyComponent from '@components/MyComponent/index.astro'
-  const { testProp } = Astro.props
-  ---
-  <MyComponent prop={testProp} />
-  ```
-- **Hard-coded HTML fixtures are FORBIDDEN.** If you find yourself writing HTML in a fixture, STOP and use the actual component instead.
-- Reference the working example in src/components/Test/container.astro and its test file.
-- Use experimental_AstroContainer.create() to instantiate the container.
-- Use container.renderToString(Component) to get rendered HTML from actual Astro components.
-- Configure Vitest with getViteConfig() from 'astro/config' to support Astro Container API.
-- Test files should follow a client.spec.ts naming pattern or similar.
-- Fixture files should follow a componentName.fixture.astro naming pattern (e.g., newsletter.fixture.astro).
-- A working example test using the Container API is available at /home/kevin/Repos/Webstack Builders/Corporate Website/astro.webstackbuilders.com/src/components/Test/container.spec.ts
-
-## E2E Testing Standards
-
-- **NEVER hard-code content slugs in e2e tests** (e.g., `/articles/typescript-best-practices`, `/services/web-development`). Content can be deleted or renamed. Always dynamically fetch the first available item from listing pages (articles, services, case-studies, etc.) and navigate to it. This prevents test breakage when content changes.
-- **Playwright E2E Tests**: ALWAYS run with `CI=1` and `FORCE_COLOR=1` environment variables (e.g., `CI=1 FORCE_COLOR=1 npx playwright test`). This prevents the Playwright test runner from launching its own dev server. The user maintains a running dev server for development.
-- **NEVER run the full e2e test suite** unless explicitly requested by the user. The full suite is very resource intensive and takes over 10 minutes to run. Only run specific e2e test files when verification is needed (e.g., `CI=1 FORCE_COLOR=1 npx playwright test test/e2e/specific-file.spec.ts`).
-- **NEVER start a dev server yourself**. The user runs their own dev server for development. When you need a dev server running, notify the user instead of starting one.
-
-### Astro View Transitions Testing
-
-- **Navigation method matters**: Choose between `page.goto()` and Astro's client-side navigation based on what you're testing:
-  - Use `page.goto(url)` for testing **fresh page loads** (full browser navigation, no View Transitions)
-  - Use `BasePage.click()` on navigation links or `BasePage.navigateToPage()` for testing **View Transitions** (client-side navigation within the site) so that all clicks flow through the centralized helpers
-- **Wait for page load properly**: Use BasePage's `waitForPageLoad()` method to wait for `astro:page-load` event instead of arbitrary timeouts
-- **NEVER use `page.waitForTimeout()`** for waiting on View Transitions - it's unreliable and slows tests. Use event-based waits instead
-- **transition:persist directive**: Must be applied directly to HTML elements (including custom elements), not on Astro component wrappers. Example:
-  ```astro
-  <!-- CORRECT: In component definition -->
-  <theme-picker transition:name="theme-picker-island" transition:persist>
-
-  <!-- WRONG: On component usage -->
-  <ThemePicker transition:name="theme-picker-island" transition:persist />
-  ```
-
-# Personality
 - Do not apologize
 - Do not flatter me
 - Do not use superlatives lke "absolutely"
@@ -126,6 +74,7 @@ When a Playwright-native action (e.g., `page.click()`, `page.fill()`, `page.hove
 - Be direct
 
 # Response Guidelines
+
 - When the user asks "What would you suggest", "what do you recommend", or similar language, provide multiple options with clear explanations but do NOT begin implementation
 - Always wait for explicit permission before implementing suggested changes
 - Present suggestions as numbered options with pros/cons when applicable
