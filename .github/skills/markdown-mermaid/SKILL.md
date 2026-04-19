@@ -48,4 +48,4 @@ Use this skill for `.md` and `.mdx` authoring in this repository.
 
 ## References
 
-- See `.claude/skills/markdown-mermaid/references/examples.md` for concrete repo examples.
+- See `.github/skills/markdown-mermaid/references/examples.md` for concrete repo examples.

@@ -35,4 +35,4 @@ Use this skill when changing Astro View Transitions behavior, implementing persi
 
 ## References
 
-- See `.claude/skills/view-transitions/references/examples.md` for concrete repo examples.
+- See `.github/skills/view-transitions/references/examples.md` for concrete repo examples.

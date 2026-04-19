@@ -24,4 +24,4 @@ Use this skill for Astro files under `docs/`.
 
 ## References
 
-- See `.claude/skills/docs-astro/references/examples.md` for concrete repo examples.
+- See `.github/skills/docs-astro/references/examples.md` for concrete repo examples.

@@ -27,4 +27,4 @@ Use this skill for JavaScript and TypeScript edits in this repository.
 
 ## References
 
-- See `.claude/skills/javascript-typescript/references/examples.md` for concrete repo examples.
+- See `.github/skills/javascript-typescript/references/examples.md` for concrete repo examples.

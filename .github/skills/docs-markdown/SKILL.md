@@ -25,4 +25,4 @@ Use this skill for Markdown files under `docs/`.
 
 ## References
 
-- See `.claude/skills/docs-markdown/references/examples.md` for concrete repo examples.
+- See `.github/skills/docs-markdown/references/examples.md` for concrete repo examples.

@@ -29,4 +29,4 @@ Use this skill for stylesheet edits in this repository.
 
 ## References
 
-- See `.claude/skills/css/references/examples.md` for concrete repo examples.
+- See `.github/skills/css/references/examples.md` for concrete repo examples.

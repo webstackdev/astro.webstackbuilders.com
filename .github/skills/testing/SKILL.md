@@ -51,4 +51,4 @@ Use this skill for all test-related work in this repository, especially `*.spec.
 
 ## References
 
-- See `.claude/skills/testing/references/examples.md` for concrete repo examples.
+- See `.github/skills/testing/references/examples.md` for concrete repo examples.
