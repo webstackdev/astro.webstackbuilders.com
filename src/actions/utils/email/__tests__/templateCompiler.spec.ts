@@ -37,6 +37,11 @@ const importedExampleTemplate = createImportedEmailTemplate(
   exampleTemplateContent
 )
 
+const importedBundleSafeTemplate = createImportedEmailTemplate(
+  'src/actions/utils/email/__fixtures__/missing-from-runtime-bundle.mjml',
+  exampleTemplateContent
+)
+
 describe('compileEmailTemplate', () => {
   it('compiles the moved contact message template from its imported source', async () => {
     const result = await compileEmailTemplate(contactMessageTemplate, {
@@ -101,6 +106,18 @@ describe('compileEmailTemplate', () => {
 
   it('compiles imported template content from a stable source path', async () => {
     const result = await compileEmailTemplate(importedExampleTemplate, {
+      htmlMessage: '<strong>Urgent</strong> message body',
+      items: ['Coffee Beans'],
+      name: 'Alex',
+    })
+
+    expect(result.html).toContain('Hello, Alex!')
+    expect(result.html).toContain('Coffee Beans')
+    expect(result.text).toContain('Urgent message body')
+  })
+
+  it('compiles imported template content when the source file is absent at runtime', async () => {
+    const result = await compileEmailTemplate(importedBundleSafeTemplate, {
       htmlMessage: '<strong>Urgent</strong> message body',
       items: ['Coffee Beans'],
       name: 'Alex',
