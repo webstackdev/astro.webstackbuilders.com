@@ -2,7 +2,10 @@ import { Buffer } from 'node:buffer'
 import { ActionsFunctionError } from '@actions/utils/errors'
 import acknowledgementTemplateContent from '@actions/contact/email/acknowledgement.mjml?raw'
 import messageTemplateContent from '@actions/contact/email/message.mjml?raw'
-import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
+import {
+  compileEmailTemplate,
+  createImportedEmailTemplate,
+} from '@actions/utils/email/templateCompiler'
 import { escapeHtml, formatFileSize } from './utils'
 import type { ContactFormData, ContactTimeline, FileAttachment } from '@actions/contact/@types'
 
@@ -61,13 +64,13 @@ const readInputBoolean = (input: Record<string, unknown>, key: string): boolean 
   return false
 }
 
-const contactMessageTemplate = createEmailTemplate(
-  new URL('./email/message.mjml', import.meta.url),
+const contactMessageTemplate = createImportedEmailTemplate(
+  'src/actions/contact/email/message.mjml',
   messageTemplateContent
 )
 
-const contactAcknowledgementTemplate = createEmailTemplate(
-  new URL('./email/acknowledgement.mjml', import.meta.url),
+const contactAcknowledgementTemplate = createImportedEmailTemplate(
+  'src/actions/contact/email/acknowledgement.mjml',
   acknowledgementTemplateContent
 )
 

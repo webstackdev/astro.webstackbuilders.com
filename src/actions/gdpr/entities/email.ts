@@ -1,14 +1,17 @@
 import { Resend } from 'resend'
 import verificationTemplateContent from '@actions/gdpr/email/verification.mjml?raw'
 import { dsarVerificationEmailText } from '@actions/gdpr/email/dsarText'
-import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
+import {
+  compileEmailTemplate,
+  createImportedEmailTemplate,
+} from '@actions/utils/email/templateCompiler'
 import { getResendApiKey, isProd } from '@actions/utils/environment/environmentActions'
 import { gdprReplyTo, gdprSender } from '@actions/utils/email/resendSenders'
 import { getSiteUrl } from '@actions/utils/environment/siteUrlActions'
 import { ActionsFunctionError } from '@actions/utils/errors/ActionsFunctionError'
 
-const verificationTemplate = createEmailTemplate(
-  new URL('../email/verification.mjml', import.meta.url),
+const verificationTemplate = createImportedEmailTemplate(
+  'src/actions/gdpr/email/verification.mjml',
   verificationTemplateContent
 )
 

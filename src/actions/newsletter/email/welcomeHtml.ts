@@ -1,8 +1,8 @@
 import welcomeTemplateContent from './welcome.mjml?raw'
-import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
+import { compileEmailTemplate, createImportedEmailTemplate } from '@actions/utils/email/templateCompiler'
 
-const welcomeTemplate = createEmailTemplate(
-  new URL('./welcome.mjml', import.meta.url),
+const welcomeTemplate = createImportedEmailTemplate(
+  'src/actions/newsletter/email/welcome.mjml',
   welcomeTemplateContent
 )
 

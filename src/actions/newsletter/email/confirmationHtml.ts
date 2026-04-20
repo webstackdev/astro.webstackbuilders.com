@@ -1,8 +1,8 @@
 import confirmationTemplateContent from './confirmation.mjml?raw'
-import { compileEmailTemplate, createEmailTemplate } from '@actions/utils/email/templateCompiler'
+import { compileEmailTemplate, createImportedEmailTemplate } from '@actions/utils/email/templateCompiler'
 
-const confirmationTemplate = createEmailTemplate(
-  new URL('./confirmation.mjml', import.meta.url),
+const confirmationTemplate = createImportedEmailTemplate(
+  'src/actions/newsletter/email/confirmation.mjml',
   confirmationTemplateContent
 )
 

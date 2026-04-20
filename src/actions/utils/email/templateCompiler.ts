@@ -230,7 +230,10 @@ const createPlainText = (html: string): string =>
 /**
  * Creates a bundle-safe template descriptor from imported MJML source.
  */
-export const createImportedEmailTemplate = createEmailTemplate
+export const createImportedEmailTemplate = (
+  sourcePath: string,
+  content: string
+): EmailTemplateSource => createEmailTemplate(sourcePath, content)
 
 /**
  * Renders imported MJML source with Nunjucks data and returns HTML plus plain text.
