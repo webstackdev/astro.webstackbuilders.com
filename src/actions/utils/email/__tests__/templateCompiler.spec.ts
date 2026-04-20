@@ -6,7 +6,11 @@ import contactMessageTemplateContent from '../../../contact/email/message.mjml?r
 import exampleTemplateContent from '../__fixtures__/example.mjml?raw'
 import invalidTemplateContent from '../__fixtures__/invalid.mjml?raw'
 import withCommonDataTemplateContent from '../__fixtures__/with-common-data.mjml?raw'
-import { compileEmailTemplate, createEmailTemplate } from '../templateCompiler'
+import {
+  compileEmailTemplate,
+  createEmailTemplate,
+  createImportedEmailTemplate,
+} from '../templateCompiler'
 
 const exampleTemplate = createEmailTemplate(
   new URL('../__fixtures__/example.mjml', import.meta.url),
@@ -26,6 +30,11 @@ const contactMessageTemplate = createEmailTemplate(
 const withCommonDataTemplate = createEmailTemplate(
   new URL('../__fixtures__/with-common-data.mjml', import.meta.url),
   withCommonDataTemplateContent
+)
+
+const importedExampleTemplate = createImportedEmailTemplate(
+  'src/actions/utils/email/__fixtures__/example.mjml',
+  exampleTemplateContent
 )
 
 describe('compileEmailTemplate', () => {
@@ -88,6 +97,18 @@ describe('compileEmailTemplate', () => {
     expect(result.text).toContain('Hello, Alex!')
     expect(result.text).toContain('Visit www.webstackbuilders.com [https://www.webstackbuilders.com].')
     expect(result.text).toContain('Contact Webstack Builders at support@webstackbuilders.com.')
+  })
+
+  it('compiles imported template content from a stable source path', async () => {
+    const result = await compileEmailTemplate(importedExampleTemplate, {
+      htmlMessage: '<strong>Urgent</strong> message body',
+      items: ['Coffee Beans'],
+      name: 'Alex',
+    })
+
+    expect(result.html).toContain('Hello, Alex!')
+    expect(result.html).toContain('Coffee Beans')
+    expect(result.text).toContain('Urgent message body')
   })
 
   it('throws ActionsFunctionError when MJML compilation reports errors', async () => {
