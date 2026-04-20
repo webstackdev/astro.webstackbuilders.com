@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { isAbsolute, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { convert } from 'html-to-text'
@@ -218,6 +219,22 @@ export const createEmailTemplate = (
   }
 }
 
+const createMjmlRenderOptions = (absolutePath: string): {
+  filePath?: string
+  keepComments: boolean
+} => {
+  if (!existsSync(absolutePath)) {
+    return {
+      keepComments: false,
+    }
+  }
+
+  return {
+    filePath: absolutePath,
+    keepComments: false,
+  }
+}
+
 const createPlainText = (html: string): string =>
   convert(html, {
     wordwrap: 130,
@@ -249,10 +266,10 @@ export async function compileEmailTemplate(
     const mjml2html = (
       'default' in mjmlModule ? mjmlModule.default : mjmlModule
     ) as MjmlRenderer
-    const { html, errors } = await mjml2html(mjmlWithData, {
-      filePath: absolutePath,
-      keepComments: false,
-    })
+    const { html, errors } = await mjml2html(
+      mjmlWithData,
+      createMjmlRenderOptions(absolutePath)
+    )
 
     if (errors.length > 0) {
       throw new ActionsFunctionError({
