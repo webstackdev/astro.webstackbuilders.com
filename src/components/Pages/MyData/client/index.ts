@@ -4,7 +4,12 @@ import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/erro
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import { getPrivacyFormElements } from './selectors'
+import {
+  getPrivacyFormElements,
+  getPrivacyPreviewToastElement,
+  getPrivacyPreviewToastElements,
+  getPrivacySubmitButton,
+} from './selectors'
 
 type MessageType = 'success' | 'error' | 'info'
 type RequestType = 'ACCESS' | 'DELETE'
@@ -70,10 +75,7 @@ export class PrivacyFormElement extends LitElement {
   private deleteMessage!: HTMLElement
 
   private getPreviewToastElements(requestType: RequestType): HTMLElement[] {
-    const prefix = requestType === 'ACCESS' ? 'access' : 'delete'
-    return ['success', 'loading', 'error', 'validation']
-      .map(state => this.querySelector<HTMLElement>(`#${prefix}-preview-toast-${state}`))
-      .filter((el): el is HTMLElement => el !== null)
+    return getPrivacyPreviewToastElements(requestType, this)
   }
 
   override connectedCallback(): void {
@@ -160,7 +162,7 @@ export class PrivacyFormElement extends LitElement {
     state: RequestPreviewState | 'idle',
     requestType?: RequestType
   ): void {
-    form.dataset.privacyState = state
+    form.dataset['privacyState'] = state
     form.setAttribute('aria-busy', String(state === 'loading'))
 
     if (!requestType) {
@@ -172,8 +174,8 @@ export class PrivacyFormElement extends LitElement {
   }
 
   private setSubmitLoading(form: HTMLFormElement, loading: boolean): void {
-    const submitButton = form.querySelector('button[type="submit"]')
-    if (submitButton instanceof HTMLButtonElement) {
+    const submitButton = getPrivacySubmitButton(form)
+    if (submitButton) {
       submitButton.disabled = loading
     }
   }
@@ -397,13 +399,12 @@ export class PrivacyFormElement extends LitElement {
     const isAccessRequest = requestType === 'ACCESS'
     const form = isAccessRequest ? this.accessForm : this.deleteForm
     const emailInput = isAccessRequest ? this.accessEmailInput : this.deleteEmailInput
-    const prefix = isAccessRequest ? 'access' : 'delete'
 
     // Show only the matching static SSR preview toast; hide all others for this form.
     for (const el of this.getPreviewToastElements(requestType)) {
       el.classList.add('hidden')
     }
-    this.querySelector<HTMLElement>(`#${prefix}-preview-toast-${previewState}`)?.classList.remove('hidden')
+    getPrivacyPreviewToastElement(requestType, previewState, this)?.classList.remove('hidden')
 
     this.setRequestState(form, previewState, requestType)
     this.setSubmitLoading(form, previewState === 'loading')

@@ -144,7 +144,7 @@ describe('PrivacyForm behavior', () => {
         const elements = getPrivacyFormElements(element)
         const accessSubmitButton = elements.accessForm.querySelector('button[type="submit"]')
 
-        expect(elements.accessForm.dataset.privacyState).toBe('loading')
+        expect(elements.accessForm.dataset['privacyState']).toBe('loading')
         expect(elements.accessForm.getAttribute('aria-busy')).toBe('true')
         expect(accessSubmitButton).toBeInstanceOf(HTMLButtonElement)
         expect((accessSubmitButton as HTMLButtonElement).disabled).toBe(true)
@@ -155,7 +155,7 @@ describe('PrivacyForm behavior', () => {
         expect(accessLoadingToast?.textContent).toContain('Sending Request')
         expect(accessLoadingToast?.textContent).toContain('Your request is being prepared and submitted.')
 
-        expect(elements.deleteForm.dataset.privacyState).toBe('validation')
+        expect(elements.deleteForm.dataset['privacyState']).toBe('validation')
         expect(elements.deleteEmailInput.getAttribute('aria-invalid')).toBe('true')
         expect(elements.deleteConfirmCheckbox.getAttribute('aria-invalid')).toBe('true')
 
