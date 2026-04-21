@@ -4,13 +4,9 @@ import { processWithFullPipeline } from '@lib/markdown/helpers/processors'
 
 describe('rehype-mathjax accessibility (Layer 2: Astro pipeline)', () => {
   it('adds accessible labels to inline and display MathJax SVG output', async () => {
-    const markdown = [
-      'Inline math: $$a^2 + b^2 = c^2$$.',
-      '',
-      '```math',
-      'E = mc^2',
-      '```',
-    ].join('\n')
+    const markdown = ['Inline math: $$a^2 + b^2 = c^2$$.', '', '```math', 'E = mc^2', '```'].join(
+      '\n'
+    )
 
     const html = await processWithFullPipeline(markdown)
 

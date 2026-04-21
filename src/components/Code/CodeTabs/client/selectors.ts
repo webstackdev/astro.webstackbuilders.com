@@ -1,4 +1,9 @@
-import { isCodeElement, isDivElement, isPreElement, isSpanElement } from '@components/scripts/assertions/elements'
+import {
+  isCodeElement,
+  isDivElement,
+  isPreElement,
+  isSpanElement,
+} from '@components/scripts/assertions/elements'
 
 const SELECTORS = {
   preBlocks: ':scope > pre',

@@ -21,25 +21,30 @@ const timelineItems = items.map((item: TimelineItem, index: number) => ({
   showConnector: index < items.length - 1,
 }))
 
-const ulClass = ["space-y-0", classes?.ul]
-const liClass = ["relative grid grid-cols-[1.5rem_1fr] gap-4", classes?.li]
-const emClass = ["block text-content font-bold not-italic mb-1", classes?.em]
-const wrapperClass = "mb-4"
-const iconClass = ["relative h-5 w-5 mt-0.5 rounded-full border-2 border-primary bg-page-base z-10", classes?.icon]
-const connectorClass = ["absolute left-1/2 top-[1.375rem] -bottom-1 -translate-x-1/2 w-0.5 bg-content-offset"]
+const ulClass = ['space-y-0', classes?.ul]
+const liClass = ['relative grid grid-cols-[1.5rem_1fr] gap-4', classes?.li]
+const emClass = ['block text-content font-bold not-italic mb-1', classes?.em]
+const wrapperClass = 'mb-4'
+const iconClass = [
+  'relative h-5 w-5 mt-0.5 rounded-full border-2 border-primary bg-page-base z-10',
+  classes?.icon,
+]
+const connectorClass = [
+  'absolute left-1/2 top-[1.375rem] -bottom-1 -translate-x-1/2 w-0.5 bg-content-offset',
+]
 ---
 
 <ul class:list={ulClass}>
   {
-    timelineItems.map((item) => (
+    timelineItems.map(item => (
       <li class:list={liClass}>
         <div class="relative flex h-full justify-center">
-          {item.showConnector && <span class:list={connectorClass} aria-hidden="true"></span>}
-          <span class:list={iconClass}></span>
+          {item.showConnector && <span class:list={connectorClass} aria-hidden="true" />}
+          <span class:list={iconClass} />
         </div>
-        <div class:list={[wrapperClass, !item.showConnector && "mb-0"]}>
-          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
-          <span class="text-content-offset" set:html={item.text}></span>
+        <div class:list={[wrapperClass, !item.showConnector && 'mb-0']}>
+          {item.lead && <em class:list={emClass} set:html={item.lead} />}
+          <span class="text-content-offset" set:html={item.text} />
         </div>
       </li>
     ))

@@ -44,7 +44,9 @@ describe('Layer 3: E2E - Blockquote', () => {
   it('uses semantic structure for each variant', async () => {
     const { container } = render(<MarkdownOutput html={html} />)
 
-    const attributionFigures = container.querySelectorAll('figure.blockquote:not(.blockquote-figure)')
+    const attributionFigures = container.querySelectorAll(
+      'figure.blockquote:not(.blockquote-figure)'
+    )
     expect(attributionFigures.length).toBeGreaterThan(0)
 
     attributionFigures.forEach(figure => {

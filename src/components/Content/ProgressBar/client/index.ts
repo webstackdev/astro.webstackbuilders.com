@@ -121,7 +121,7 @@ export class ReadingProgressBar extends LitElement {
 }
 
 export const registerProgressBarComponent = async (
-  tagName = ReadingProgressBar.registeredName,
+  tagName = ReadingProgressBar.registeredName
 ): Promise<void> => {
   defineCustomElement(tagName, ReadingProgressBar)
 }

@@ -209,7 +209,11 @@ function updateSuggestedSource(source: string, active: boolean): void {
   updateAllControllers()
 }
 
-function updateInstanceBlockingSource(controllerKey: string, source: string, active: boolean): void {
+function updateInstanceBlockingSource(
+  controllerKey: string,
+  source: string,
+  active: boolean
+): void {
   const existingSources = instanceBlockingPauseSources.get(controllerKey)
   const sources = existingSources ?? new Set<string>()
 

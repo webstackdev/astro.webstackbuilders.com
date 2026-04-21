@@ -46,7 +46,7 @@ describe('WebMentions web component', () => {
       facepileLimit?: number
       showFacepile?: boolean
       url?: string
-    },
+    }
   ): Promise<void> => {
     await executeRender<WebMentionsModule>({
       container,
@@ -137,12 +137,15 @@ describe('WebMentions web component', () => {
       },
     })
 
-    await runComponentRender(async ({ element }) => {
-      await flushMicrotasks()
-      await element.updateComplete
+    await runComponentRender(
+      async ({ element }) => {
+        await flushMicrotasks()
+        await element.updateComplete
 
-      expect(element.querySelector('#webmentions')).toBeNull()
-    }, { url: 'https://example.com/empty-post' })
+        expect(element.querySelector('#webmentions')).toBeNull()
+      },
+      { url: 'https://example.com/empty-post' }
+    )
   })
 
   test('fails silently and reports action result errors through the client error handler', async () => {
@@ -152,31 +155,37 @@ describe('WebMentions web component', () => {
       error: actionError,
     })
 
-    await runComponentRender(async ({ element }) => {
-      await flushMicrotasks()
-      await element.updateComplete
+    await runComponentRender(
+      async ({ element }) => {
+        await flushMicrotasks()
+        await element.updateComplete
 
-      expect(element.querySelector('#webmentions')).toBeNull()
-      expect(handleScriptErrorMock).toHaveBeenCalledWith(actionError, {
-        scriptName: 'WebMentionsElement',
-        operation: 'load',
-      })
-    }, { url: 'https://example.com/error-post' })
+        expect(element.querySelector('#webmentions')).toBeNull()
+        expect(handleScriptErrorMock).toHaveBeenCalledWith(actionError, {
+          scriptName: 'WebMentionsElement',
+          operation: 'load',
+        })
+      },
+      { url: 'https://example.com/error-post' }
+    )
   })
 
   test('fails silently and reports thrown load errors through the client error handler', async () => {
     const thrownError = new Error('Network blew up')
     webmentionsListMock.mockRejectedValue(thrownError)
 
-    await runComponentRender(async ({ element }) => {
-      await flushMicrotasks()
-      await element.updateComplete
+    await runComponentRender(
+      async ({ element }) => {
+        await flushMicrotasks()
+        await element.updateComplete
 
-      expect(element.querySelector('#webmentions')).toBeNull()
-      expect(handleScriptErrorMock).toHaveBeenCalledWith(thrownError, {
-        scriptName: 'WebMentionsElement',
-        operation: 'load',
-      })
-    }, { url: 'https://example.com/thrown-error-post' })
+        expect(element.querySelector('#webmentions')).toBeNull()
+        expect(handleScriptErrorMock).toHaveBeenCalledWith(thrownError, {
+          scriptName: 'WebMentionsElement',
+          operation: 'load',
+        })
+      },
+      { url: 'https://example.com/thrown-error-post' }
+    )
   })
 })

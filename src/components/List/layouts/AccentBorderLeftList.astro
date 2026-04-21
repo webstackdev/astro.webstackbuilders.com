@@ -14,25 +14,25 @@ export type Props = {
 
 const { items, classes }: Props = Astro.props
 
-const ulClass = "space-y-4 list-none pl-0"
-const liClass = "border-l-4 pl-4"
-const headerClass = "text-page-inverse font-semibold mb-2"
-const textClass = "text-content-offset text-sm"
+const ulClass = 'space-y-4 list-none pl-0'
+const liClass = 'border-l-4 pl-4'
+const headerClass = 'text-page-inverse font-semibold mb-2'
+const textClass = 'text-content-offset text-sm'
 ---
 
 <ul class:list={[ulClass, classes?.ul]}>
   {
-    items.map((item) => (
+    items.map(item => (
       <li class:list={[liClass, classes?.li, item.color]}>
-        {item.lead && <h4 class:list={[headerClass, classes?.em]} set:html={item.lead}></h4>}
+        {item.lead && <h4 class:list={[headerClass, classes?.em]} set:html={item.lead} />}
         {Array.isArray(item.text) ? (
           <div class="space-y-3">
-            {item.text.map((paragraph) => (
-              <p class:list={textClass} set:html={paragraph}></p>
+            {item.text.map(paragraph => (
+              <p class:list={textClass} set:html={paragraph} />
             ))}
           </div>
         ) : (
-          <p class:list={textClass} set:html={item.text}></p>
+          <p class:list={textClass} set:html={item.text} />
         )}
       </li>
     ))

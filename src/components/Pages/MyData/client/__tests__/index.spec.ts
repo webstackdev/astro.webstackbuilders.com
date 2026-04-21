@@ -15,9 +15,13 @@ type VerifyResult =
   | { status: 'deleted' }
   | { status: 'expired' }
 
-const requestDataMock = vi.fn<
-  (_input: { email: string; requestType: 'ACCESS' | 'DELETE' }) => Promise<ActionResult<{ message: string }>>
->()
+const requestDataMock =
+  vi.fn<
+    (_input: {
+      email: string
+      requestType: 'ACCESS' | 'DELETE'
+    }) => Promise<ActionResult<{ message: string }>>
+  >()
 
 const verifyDsarMock = vi.fn<(_input: { token: string }) => Promise<ActionResult<VerifyResult>>>()
 
@@ -105,11 +109,65 @@ describe('PrivacyForm behavior', () => {
         elements.accessForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
         await flushMicrotasks()
 
-        expect(requestDataMock).toHaveBeenCalledWith({ email: 'test@example.com', requestType: 'ACCESS' })
-        expect(elements.accessMessage.textContent).toBe('Access request sent.')
+        expect(requestDataMock).toHaveBeenCalledWith({
+          email: 'test@example.com',
+          requestType: 'ACCESS',
+        })
+        expect(elements.accessMessage.textContent).toContain('Request Sent')
+        expect(elements.accessMessage.textContent).toContain('Access request sent.')
         expect(elements.accessMessage.classList.contains('hidden')).toBe(false)
         expect(elements.accessMessage.classList.contains('border-success')).toBe(true)
         expect(elements.accessEmailInput.value).toBe('')
+      },
+    })
+  })
+
+  it('renders preview states from query parameters for both workflows', async () => {
+    await executeRender<PrivacyFormModule>({
+      container,
+      component: PrivacyForm,
+      moduleSpecifier: '@components/Pages/MyData/client/index',
+      args: {
+        props: {
+          content: myDataContent,
+        },
+      },
+      waitForReady: async (element: PrivacyFormElementInstance) => {
+        window.history.replaceState(
+          {},
+          '',
+          'http://localhost/privacy/my-data?accessState=loading&deleteState=validation'
+        )
+        element.initialize()
+      },
+      assert: async ({ element }) => {
+        const elements = getPrivacyFormElements(element)
+        const accessSubmitButton = elements.accessForm.querySelector('button[type="submit"]')
+
+        expect(elements.accessForm.dataset['privacyState']).toBe('loading')
+        expect(elements.accessForm.getAttribute('aria-busy')).toBe('true')
+        expect(accessSubmitButton).toBeInstanceOf(HTMLButtonElement)
+        expect((accessSubmitButton as HTMLButtonElement).disabled).toBe(true)
+
+        const accessLoadingToast = element.querySelector('#access-preview-toast-loading')
+        expect(accessLoadingToast).not.toBeNull()
+        expect(accessLoadingToast?.classList.contains('hidden')).toBe(false)
+        expect(accessLoadingToast?.textContent).toContain('Sending Request')
+        expect(accessLoadingToast?.textContent).toContain('Your request is being prepared and submitted.')
+
+        expect(elements.deleteForm.dataset['privacyState']).toBe('validation')
+        expect(elements.deleteEmailInput.getAttribute('aria-invalid')).toBe('true')
+        expect(elements.deleteConfirmCheckbox.getAttribute('aria-invalid')).toBe('true')
+
+        const deleteValidationToast = element.querySelector('#delete-preview-toast-validation')
+        expect(deleteValidationToast).not.toBeNull()
+        expect(deleteValidationToast?.classList.contains('hidden')).toBe(false)
+        expect(deleteValidationToast?.textContent).toContain('Check Your Details')
+        expect(deleteValidationToast?.textContent).toContain(
+          'Enter a valid email address and confirm the deletion request before submitting.'
+        )
+
+        expect(requestDataMock).not.toHaveBeenCalled()
       },
     })
   })
@@ -139,7 +197,10 @@ describe('PrivacyForm behavior', () => {
         await flushMicrotasks()
 
         expect(requestDataMock).not.toHaveBeenCalled()
-        expect(elements.deleteMessage.textContent).toBe('Please confirm you understand the deletion request.')
+        expect(elements.deleteMessage.textContent).toContain('Check Your Details')
+        expect(elements.deleteMessage.textContent).toContain(
+          'Please confirm you understand the deletion request.'
+        )
         expect(elements.deleteMessage.classList.contains('border-danger')).toBe(true)
       },
     })
@@ -163,8 +224,13 @@ describe('PrivacyForm behavior', () => {
         },
       },
       waitForReady: async (element: PrivacyFormElementInstance) => {
-        window.history.replaceState({}, '', 'http://localhost/privacy/my-data?token=unit-test-token')
-        ;(element as unknown as { downloadJson: typeof downloadJsonSpy }).downloadJson = downloadJsonSpy
+        window.history.replaceState(
+          {},
+          '',
+          'http://localhost/privacy/my-data?token=unit-test-token'
+        )
+        ;(element as unknown as { downloadJson: typeof downloadJsonSpy }).downloadJson =
+          downloadJsonSpy
         ;(element as unknown as { navigateTo: typeof navigateToSpy }).navigateTo = navigateToSpy
         element.initialize()
       },

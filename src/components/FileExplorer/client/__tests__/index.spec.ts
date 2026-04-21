@@ -29,7 +29,12 @@ describe('FileExplorer class behavior', () => {
       name: 'src',
       note: 'Application source files and test fixtures.',
       children: [
-        { type: 'file', name: 'index.ts', comment: 'Main entry', note: 'Primary FileExplorer implementation.' },
+        {
+          type: 'file',
+          name: 'index.ts',
+          comment: 'Main entry',
+          note: 'Primary FileExplorer implementation.',
+        },
       ],
     },
     { type: 'file', name: 'package.json' },
@@ -88,7 +93,7 @@ describe('FileExplorer class behavior', () => {
 
       const tooltips = root.querySelectorAll('[role="tooltip"]')
       expect(tooltips.length).toBe(2)
-      const tooltipTexts = Array.from(tooltips).map((tooltip) => tooltip.textContent?.trim())
+      const tooltipTexts = Array.from(tooltips).map(tooltip => tooltip.textContent?.trim())
       expect(tooltipTexts).toContain('Application source files and test fixtures.')
       expect(tooltipTexts).toContain('Primary FileExplorer implementation.')
 

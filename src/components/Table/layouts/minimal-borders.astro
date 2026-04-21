@@ -42,34 +42,54 @@ const rowClass = 'transition-colors duration-150 hover:bg-page-offset border-b b
 const hasScreenCaption = Boolean(content.caption || content.subcaption)
 ---
 
-<table class:list={[tableClass, content.thead ? 'print-table-has-head' : 'print-table-no-head', classes?.table]}>
-    {(hasScreenCaption || content.figure) && (
-      <caption class:list={[captionClass, content.figure ? 'print-table-caption' : '', !hasScreenCaption ? 'hidden' : '', classes?.caption]}>
+<table
+  class:list={[
+    tableClass,
+    content.thead ? 'print-table-has-head' : 'print-table-no-head',
+    classes?.table,
+  ]}
+>
+  {
+    (hasScreenCaption || content.figure) && (
+      <caption
+        class:list={[
+          captionClass,
+          content.figure ? 'print-table-caption' : '',
+          !hasScreenCaption ? 'hidden' : '',
+          classes?.caption,
+        ]}
+      >
         {hasScreenCaption && (
           <span class="screen-table-caption-copy">
-            {content.caption && <span class="block" set:html={content.caption}></span>}
-            {content.subcaption && <span class="block" set:html={content.subcaption}></span>}
+            {content.caption && <span class="block" set:html={content.caption} />}
+            {content.subcaption && <span class="block" set:html={content.subcaption} />}
           </span>
         )}
-        {content.figure && <span class="hidden print-table-figure-copy" set:html={content.figure}></span>}
+        {content.figure && (
+          <span class="hidden print-table-figure-copy" set:html={content.figure} />
+        )}
       </caption>
-    )}
+    )
+  }
 
-    {content.thead && (
+  {
+    content.thead && (
       <thead class:list={[theadClass, classes?.thead]}>
         <tr>
-          {content.thead.th.map((th) => (
-            <th scope="col" class:list={[headerClass, classes?.thead]} set:html={th}></th>
+          {content.thead.th.map(th => (
+            <th scope="col" class:list={[headerClass, classes?.thead]} set:html={th} />
           ))}
         </tr>
       </thead>
-    )}
+    )
+  }
 
-    <tbody class:list={[tbodyClass, classes?.tbody]}>
-      {content.tbody.tr.map((row) => (
+  <tbody class:list={[tbodyClass, classes?.tbody]}>
+    {
+      content.tbody.tr.map(row => (
         <tr class={rowClass}>
           {row.th && (
-            <th scope="row" class:list={[headerClass, classes?.tbody]} set:html={row.th}></th>
+            <th scope="row" class:list={[headerClass, classes?.tbody]} set:html={row.th} />
           )}
           {row.td.map((td, index) => (
             <td
@@ -79,18 +99,20 @@ const hasScreenCaption = Boolean(content.caption || content.subcaption)
                 classes?.tbody,
               ]}
               set:html={td}
-            ></td>
+            />
           ))}
         </tr>
-      ))}
-    </tbody>
+      ))
+    }
+  </tbody>
 
-    {content.tfoot && (
+  {
+    content.tfoot && (
       <tfoot class:list={[tfootClass, classes?.tfoot]}>
-        {content.tfoot.tr.map((row) => (
+        {content.tfoot.tr.map(row => (
           <tr class={rowClass}>
             {row.th && (
-              <th scope="row" class:list={[headerClass, classes?.tfoot]} set:html={row.th}></th>
+              <th scope="row" class:list={[headerClass, classes?.tfoot]} set:html={row.th} />
             )}
             {row.td.map((td, index) => (
               <td
@@ -100,10 +122,11 @@ const hasScreenCaption = Boolean(content.caption || content.subcaption)
                   classes?.tfoot,
                 ]}
                 set:html={td}
-              ></td>
+              />
             ))}
           </tr>
         ))}
       </tfoot>
-    )}
+    )
+  }
 </table>

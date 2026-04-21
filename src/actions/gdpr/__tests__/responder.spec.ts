@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('@actions/utils/environment/environmentActions', async (importOriginal) => {
-  const actual = (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
+vi.mock('@actions/utils/environment/environmentActions', async importOriginal => {
+  const actual =
+    (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
   return {
     ...actual,
     getPrivacyPolicyVersion: () => 'test-privacy-policy-version',

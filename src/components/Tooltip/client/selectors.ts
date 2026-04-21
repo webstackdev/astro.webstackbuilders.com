@@ -5,11 +5,12 @@ export const SELECTORS = {
   trigger: '[data-tooltip-trigger]',
   tooltip: '[data-tooltip-popup]',
   upgradeCandidates: '[data-tooltip][title]',
-  focusableDescendant:
-    'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+  focusableDescendant: 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
 } as const
 
-export const getTooltipElements = (root: ParentNode): {
+export const getTooltipElements = (
+  root: ParentNode
+): {
   trigger: HTMLSpanElement
   tooltip: HTMLSpanElement
 } => {

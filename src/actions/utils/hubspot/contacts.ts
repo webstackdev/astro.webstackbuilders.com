@@ -34,7 +34,9 @@ export async function createOrUpdateContact(
   const searchResponse = await client.crm.contacts.searchApi.doSearch({
     filterGroups: [
       {
-        filters: [{ propertyName: 'email', operator: FilterOperatorEnum.Eq, value: properties.email }],
+        filters: [
+          { propertyName: 'email', operator: FilterOperatorEnum.Eq, value: properties.email },
+        ],
       },
     ],
     properties: ['email', 'firstname', 'lastname'],
@@ -82,10 +84,7 @@ export async function createOrUpdateContact(
  * Sets the hs_marketable_status property on a contact.
  * Pass `true` to opt the contact in to marketing emails.
  */
-export async function setMarketingOptIn(
-  contactId: string,
-  optIn: boolean
-): Promise<void> {
+export async function setMarketingOptIn(contactId: string, optIn: boolean): Promise<void> {
   if (!isProd()) {
     console.log('[DEV/TEST MODE] HubSpot setMarketingOptIn:', { contactId, optIn })
     return

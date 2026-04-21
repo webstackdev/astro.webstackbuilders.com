@@ -24,7 +24,7 @@ import Copy from '@components/Copy/index.astro'
 import Diagram from '@components/Diagram/index.astro'
 import Download from '@components/CallToAction/Download/index.astro'
 import Embed from '@components/Social/Embed/index.astro'
-import FileExplorer from "@components/FileExplorer/index.astro"
+import FileExplorer from '@components/FileExplorer/index.astro'
 import Highlighter from '@components/Social/Highlighter/index.astro'
 import HighlighterIconBank from '@components/Social/Highlighter/HighlighterIconBank.astro'
 import Icon from '@components/Icon/index.astro'
@@ -188,12 +188,16 @@ const link = `https://www.webstackbuilders.com${path}`
       class={`${shouldRenderToc ? 'grid gap-8 lg:grid-cols-[1fr_250px]' : 'flex flex-col gap-8'}`}
       itemprop="articleBody"
     >
-      {shouldRenderToc && (
-        <div class="lg:col-start-2 lg:row-start-1">
-          <Toc items={tocHeadings} />
-        </div>
-      )}
-      <div class={`markdown-content__prose min-w-0 leading-relaxed ${shouldRenderToc ? 'lg:col-start-1 lg:row-start-1' : ''}`}>
+      {
+        shouldRenderToc && (
+          <div class="lg:col-start-2 lg:row-start-1">
+            <Toc items={tocHeadings} />
+          </div>
+        )
+      }
+      <div
+        class={`markdown-content__prose min-w-0 leading-relaxed ${shouldRenderToc ? 'lg:col-start-1 lg:row-start-1' : ''}`}
+      >
         <slot />
         <Content components={{ ...Components }} />
       </div>
@@ -201,7 +205,9 @@ const link = `https://www.webstackbuilders.com${path}`
       {/** SLOT: after-content, includes social shares and web mentions */}
       <slot name="after-content" />
 
-      <div class="hidden mx-24 mt-8 print:grid print:grid-cols-2 print:gap-4 print:items-center print:break-inside-avoid">
+      <div
+        class="hidden mx-24 mt-8 print:grid print:grid-cols-2 print:gap-4 print:items-center print:break-inside-avoid"
+      >
         <span class="print:break-inside-avoid">
           <Copyright publishDate={publishDate ?? new Date()} variant="print" link={link} />
         </span>

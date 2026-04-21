@@ -8,12 +8,20 @@ import { LitElement } from 'lit'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { initStickySidebar } from '@components/scripts/stickySidebar'
-import { getContactFormElements, queryContactProjectTypeSelect, queryContactStickySidebar } from './selectors'
+import {
+  getContactFormElements,
+  queryContactProjectTypeSelect,
+  queryContactStickySidebar,
+} from './selectors'
 import type { ContactFormConfig } from './@types'
 import { initCharacterCounter, initUploadPlaceholder } from './utils'
 import { initLabelHandlers, type LabelController } from './feedback'
 import { initEmailValidationHandler } from './email'
-import { applyContactPreviewState, initFormSubmission, resolveContactPreviewState } from './formSubmission'
+import {
+  applyContactPreviewState,
+  initFormSubmission,
+  resolveContactPreviewState,
+} from './formSubmission'
 import { initGenericValidation, initNameLengthHandler, initMssgLengthHandler } from './validation'
 import { defineCustomElement } from '@components/scripts/utils'
 import { isProd } from '@components/scripts/utils/environmentClient'
@@ -91,7 +99,9 @@ export class ContactFormElement extends LitElement {
       return
     }
 
-    const projectType = window.location.search ? new URLSearchParams(window.location.search).get('type') : null
+    const projectType = window.location.search
+      ? new URLSearchParams(window.location.search).get('type')
+      : null
     if (!projectType) {
       return
     }
@@ -101,7 +111,9 @@ export class ContactFormElement extends LitElement {
       return
     }
 
-    const hasOption = Array.from(projectTypeSelect.options).some(option => option.value === projectType)
+    const hasOption = Array.from(projectTypeSelect.options).some(
+      option => option.value === projectType
+    )
     if (!hasOption) {
       return
     }

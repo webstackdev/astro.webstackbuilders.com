@@ -12,7 +12,7 @@ const defaultIconComponents = import.meta.glob('../icons/*.astro', {
 
 const formatAvailableIcons = (markerComponents: IconComponentMap): string => {
   return Object.keys(markerComponents)
-    .map((path) => path.replace('../icons/', ''))
+    .map(path => path.replace('../icons/', ''))
     .sort()
     .join(', ')
 }
@@ -40,7 +40,7 @@ export const getIconComponent = (
 
     throw new Error(
       `Icon: icon file "${iconFileName}" was not found in src/components/Icon/icons/. ` +
-      `Requested icon path: "${iconPath}". Available icons: ${availableIcons || '(none)'}`
+        `Requested icon path: "${iconPath}". Available icons: ${availableIcons || '(none)'}`
     )
   }
 

@@ -168,7 +168,9 @@ describe('SearchResults web component', () => {
       const links = Array.from(
         element.querySelectorAll('[data-search-results] a')
       ) as HTMLAnchorElement[]
-      expect(links.some(link => link.getAttribute('href') === '/articles/typescript-best-practices')).toBe(true)
+      expect(
+        links.some(link => link.getAttribute('href') === '/articles/typescript-best-practices')
+      ).toBe(true)
 
       const emptyState = element.querySelector('[data-search-empty-state]')
       expect(emptyState?.classList.contains('hidden')).toBe(true)

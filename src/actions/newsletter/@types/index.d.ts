@@ -26,7 +26,11 @@ export type NewsletterSubscribeInput = {
   DataSubjectId?: string
 }
 
-export type NewsletterSubscribeOutput = { success: true; message: string; requiresConfirmation: true }
+export type NewsletterSubscribeOutput = {
+  success: true
+  message: string
+  requiresConfirmation: true
+}
 
 export type NewsletterConfirmInput = { token: string }
 

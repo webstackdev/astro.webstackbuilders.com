@@ -23,7 +23,9 @@ describe('Troubleshooter (Astro)', () => {
       const visibleHeading = region?.querySelector('h3')
       expect(visibleHeading?.textContent).toContain('Verification failed in CI')
 
-      const sectionHeadings = Array.from(region?.querySelectorAll('section[aria-labelledby] h4') ?? [])
+      const sectionHeadings = Array.from(
+        region?.querySelectorAll('section[aria-labelledby] h4') ?? []
+      )
       expect(sectionHeadings.map(heading => heading.textContent?.trim())).toEqual([
         'Symptoms',
         'Cause',

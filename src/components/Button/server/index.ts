@@ -58,12 +58,9 @@ const baseButtonClasses =
   'aria-disabled:cursor-not-allowed aria-disabled:opacity-[0.65] aria-disabled:pointer-events-none'
 
 const sizeClasses: Record<ButtonSize, string> = {
-  small:
-    'text-xs leading-4 py-1 px-2',
-  medium:
-    'text-xs leading-4 py-1.5 px-4 sm:py-3 sm:px-6 lg:px-5',
-  large:
-    'text-sm sm:text-base leading-5 sm:leading-6 py-3 px-7 sm:py-4 sm:px-8',
+  small: 'text-xs leading-4 py-1 px-2',
+  medium: 'text-xs leading-4 py-1.5 px-4 sm:py-3 sm:px-6 lg:px-5',
+  large: 'text-sm sm:text-base leading-5 sm:leading-6 py-3 px-7 sm:py-4 sm:px-8',
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -112,7 +109,7 @@ const variantClasses: Record<ButtonVariant, string> = {
     'hover:bg-warning-offset ' +
     'focus-visible:bg-warning-offset ' +
     'active:bg-warning-offset',
-  }
+}
 
 export interface ButtonClassOptions {
   variant?: ButtonVariant

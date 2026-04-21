@@ -17,32 +17,34 @@ export type Props = {
 
 const { items, classes }: Props = Astro.props
 
-const ulClass = ["space-y-4 sm:space-y-0 sm:table sm:border-separate sm:border-spacing-x-4 sm:border-spacing-y-4", classes?.ul]
-const liClass = ["flex flex-col gap-2 sm:table-row", classes?.li]
-const titleCellClass = "sm:table-cell sm:align-top"
+const ulClass = [
+  'space-y-4 sm:space-y-0 sm:table sm:border-separate sm:border-spacing-x-4 sm:border-spacing-y-4',
+  classes?.ul,
+]
+const liClass = ['flex flex-col gap-2 sm:table-row', classes?.li]
+const titleCellClass = 'sm:table-cell sm:align-top'
 const titleClass = [
-  "inline-block px-2 py-1 rounded bg-content text-page-base font-mono text-xs font-bold sm:mt-1",
+  'inline-block px-2 py-1 rounded bg-content text-page-base font-mono text-xs font-bold sm:mt-1',
   classes?.titleClass,
 ]
-const bodyClass = ["sm:table-cell sm:align-top", classes?.content]
-const emClass = ["text-content font-bold not-italic mr-2", classes?.em]
+const bodyClass = ['sm:table-cell sm:align-top', classes?.content]
+const emClass = ['text-content font-bold not-italic mr-2', classes?.em]
 ---
 
 <ul class:list={ulClass}>
   {
-    items.map((item) => (
+    items.map(item => (
       <li class:list={liClass}>
         {item.title && (
           <span class={titleCellClass}>
-            <span class:list={["list-badge", titleClass]} set:html={item.title}></span>
+            <span class:list={['list-badge', titleClass]} set:html={item.title} />
           </span>
         )}
         <span class:list={bodyClass}>
-          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
-          <span class="text-content-offset" set:html={item.text}></span>
+          {item.lead && <em class:list={emClass} set:html={item.lead} />}
+          <span class="text-content-offset" set:html={item.text} />
         </span>
       </li>
     ))
   }
 </ul>
-

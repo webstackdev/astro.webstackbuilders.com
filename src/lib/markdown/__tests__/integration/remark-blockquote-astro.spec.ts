@@ -4,10 +4,9 @@ import { processWithAstroSettings } from '@lib/markdown/helpers/processors'
 
 describe('remark-blockquote (Layer 2: With Astro Pipeline)', () => {
   it('renders attribution-only blockquotes with expected semantic elements', async () => {
-    const markdown = [
-      "> That's ~~not~~ **definitely** one small step.",
-      '> — Neil Armstrong',
-    ].join('\n')
+    const markdown = ["> That's ~~not~~ **definitely** one small step.", '> — Neil Armstrong'].join(
+      '\n'
+    )
 
     const html = await processWithAstroSettings({ markdown, plugin: remarkBlockquote })
 

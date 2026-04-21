@@ -1,7 +1,4 @@
-import {
-  isButtonElement,
-  isDivElement,
-} from '@components/scripts/assertions/elements'
+import { isButtonElement, isDivElement } from '@components/scripts/assertions/elements'
 import type { EmblaRootElement } from '../types'
 
 const SELECTORS = {

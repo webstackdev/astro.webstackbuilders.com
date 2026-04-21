@@ -18,11 +18,14 @@ export const parseContentPath = (path: string) => {
       expectedVariants: ['articles', 'deep-dive'],
     }
 
-    throw new BuildError(new Error('Content/Switcher: invalid path variant.', { cause: errorDetails }), {
-      phase: 'compilation',
-      filePath: 'src/components/Content/Switcher/server/index.ts',
-      tool: 'content-switcher',
-    })
+    throw new BuildError(
+      new Error('Content/Switcher: invalid path variant.', { cause: errorDetails }),
+      {
+        phase: 'compilation',
+        filePath: 'src/components/Content/Switcher/server/index.ts',
+        tool: 'content-switcher',
+      }
+    )
   }
 
   return {

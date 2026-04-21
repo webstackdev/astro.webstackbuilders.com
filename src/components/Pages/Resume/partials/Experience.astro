@@ -13,28 +13,30 @@ const { renderedClients } = Astro.props as Props
 ---
 
 <section id="experience">
-  <h2
-    class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10"
-  >
-    Experience
+  <h2 class="text-sm font-mono font-bold tracking-widest text-content-offset print:text-content uppercase p-3 border-2 border-dashed border-gray-400 rounded-md">
+    Past Clients
   </h2>
-  <div class="space-y-8">
+  <ul class="mt-4!">
     {
       renderedClients.map(({ client, Content }: RenderedClient, index: number) => {
         const location = splitLocation(client.data.location)
         return (
-          <div
+          <li
             id={`experienceItem-${index + 1}`}
-            class="flex flex-col gap-1.5"
+            class:list={[
+              'flex flex-col gap-1.5 print:block print:space-y-1.5 print:break-inside-auto mb-6 last:mb-0',
+              { 'print:break-before-page': index === renderedClients.length - 1 },
+            ]}
             itemprop="worksFor"
             itemscope
             itemref="resumeSubject"
             itemtype="http://schema.org/Organization"
           >
             <div class="flex flex-col md:flex-row md:items-baseline md:justify-between">
+              {/** Job Title */}
               <h3
                 id={`role-${index + 1}`}
-                class="text-xl font-bold text-content-active"
+                class="text-xl font-bold text-primary-offset"
                 itemprop="Role"
                 itemref={`experienceItem-${index + 1}`}
                 itemscope
@@ -44,7 +46,8 @@ const { renderedClients } = Astro.props as Props
                   {client.data.role ?? client.data.businessType ?? client.data.displayName}
                 </span>
               </h3>
-              <div class="text-sm font-medium text-content-offset mt-0.5 md:mt-0 flex gap-1.5 items-center">
+              {/** Start and End Dates */}
+              <div class="text-md font-medium text-content-offset mt-0.5 flex gap-1.5 items-center">
                 <time
                   itemprop="startDate"
                   itemtype="http://schema.org/startDate"
@@ -62,35 +65,38 @@ const { renderedClients } = Astro.props as Props
                 </time>
               </div>
             </div>
-            <div class="text-base font-semibold text-primary-offset flex flex-wrap items-center gap-x-2 gap-y-1 print:text-sm">
-              <span itemprop="legalName">{client.data.displayName}</span>
+            {/** Company Name and Location */}
+            <div class="text-primary-offset flex flex-wrap items-center gap-x-3 gap-y-1">
+              <a
+                class="inline-flex items-center text-danger-offset decoration-danger-offset transition-colors hover:text-danger hover:decoration-danger font-medium mb-1 print:text-content print:decoration-none"
+                href={client.data.website ?? ''}
+                itemprop="location"
+                itemscope
+                itemtype="http://schema.org/PostalAddress"
+              >
+                <span itemprop="legalName" class="font-semibold text-lg text-danger-offset">
+                  {client.data.displayName}
+                </span>
+              </a>
               {client.data.location && (
-                <>
-                  <span class="text-trim/30 select-none">&bull;</span>
-                  <a
-                    class="inline-flex items-center gap-1 hover:text-primary transition-colors text-content-offset font-medium"
-                    href={client.data.website ?? ''}
-                    itemprop="location"
-                    itemscope
-                    itemtype="http://schema.org/PostalAddress"
-                  >
-                    <Icon icon="location" color="content" size={6} />
-                    <span>
-                      <span itemprop="addressLocality">{location.locality}</span>
-                      {location.region && (
-                        <>, <span itemprop="addressRegion">{location.region}</span></>
-                      )}
-                    </span>
-                  </a>
-                </>
+                <div class="flex">
+                  <Icon icon="location" color="inherit" size={5} />
+                  <span>
+                    <span itemprop="addressLocality">{location.locality}</span>,
+                    <span itemprop="addressRegion">{location.region}</span>
+                  </span>
+                </div>
               )}
             </div>
-            <div class="experienceDetailContent mt-3" itemprop="description">
+            <div class="experienceDetailContent" itemprop="description">
               <Content components={{ List, ListItem }} />
             </div>
-          </div>
+            {index < renderedClients.length - 1 && (
+              <div aria-hidden="true" class="mt-4 border-b-2 border-dashed border-gray-400"></div>
+            )}
+          </li>
         )
       })
     }
-  </div>
+  </ul>
 </section>

@@ -64,7 +64,10 @@ export class AppBootstrap {
       initHeaderSearchSideEffects()
 
       // 3c. Setup layout position tracking (resize, View Transition events)
-      addScriptBreadcrumb({ scriptName: 'AppBootstrap', operation: 'initLayoutPositionSideEffects' })
+      addScriptBreadcrumb({
+        scriptName: 'AppBootstrap',
+        operation: 'initLayoutPositionSideEffects',
+      })
       initLayoutPositionSideEffects()
 
       // 4. Expose limited store actions for Playwright-driven E2E tests

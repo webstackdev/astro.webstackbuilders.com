@@ -107,7 +107,6 @@ const deepDiveArticlesCollection = defineCollection({
     ),
 })
 
-
 /**
  * Case Studies
  */

@@ -264,7 +264,6 @@ export const remarkGfmConfig = {
 /** remark-math plugin (parse TeX math; avoid $...$ to prevent accidental currency parsing) */
 export const remarkMathConfig = { singleDollarTextMath: false } as const
 
-
 /** remark-rehype plugin (conversion from markdown to HTML AST) */
 export const remarkRehypeConfig: RemarkRehypeOptions = {
   /** Footnote label displayed to return to reference */

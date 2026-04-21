@@ -15,11 +15,7 @@ import {
 /**
  * Helper: inject a mock element into the DOM with a specified bounding rect.
  */
-function injectElement(
-  tag: string,
-  attrs: Record<string, string>,
-  height: number,
-): HTMLElement {
+function injectElement(tag: string, attrs: Record<string, string>, height: number): HTMLElement {
   const el = document.createElement(tag)
   for (const [key, value] of Object.entries(attrs)) {
     if (key === 'class') {

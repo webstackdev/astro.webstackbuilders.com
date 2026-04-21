@@ -10,11 +10,16 @@ type PrivacyFormModule = WebComponentModule<PrivacyFormElementInstance>
 
 type ActionResult<TData> = { data?: TData; error?: { message?: string } }
 
-const requestDataMock = vi.fn<
-  (_input: { email: string; requestType: 'ACCESS' | 'DELETE' }) => Promise<ActionResult<{ message: string }>>
->()
+const requestDataMock =
+  vi.fn<
+    (_input: {
+      email: string
+      requestType: 'ACCESS' | 'DELETE'
+    }) => Promise<ActionResult<{ message: string }>>
+  >()
 
-const verifyDsarMock = vi.fn<(_input: { token: string }) => Promise<ActionResult<{ status: string }>>>()
+const verifyDsarMock =
+  vi.fn<(_input: { token: string }) => Promise<ActionResult<{ status: string }>>>()
 
 const myDataContent = {
   header: {

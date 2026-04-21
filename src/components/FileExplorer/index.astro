@@ -10,12 +10,7 @@ export type Props = {
   fullWidth?: boolean
 }
 
-const {
-  data = [],
-  figure,
-  classes = {},
-  fullWidth = true,
-} = Astro.props
+const { data = [], figure, classes = {}, fullWidth = true } = Astro.props
 
 const wrapperClass = [
   'file-explorer',
@@ -23,7 +18,9 @@ const wrapperClass = [
   'block',
   fullWidth ? 'w-full' : 'mx-auto w-fit max-w-full',
   classes.wrapper,
-].filter(Boolean).join(' ')
+]
+  .filter(Boolean)
+  .join(' ')
 ---
 
 <file-explorer class={wrapperClass} data-file-system={JSON.stringify(data)} data-figure={figure}>

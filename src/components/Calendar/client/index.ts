@@ -143,10 +143,14 @@ const createCalendarUid = (now: Date): string => {
     return cryptoApi.randomUUID()
   }
 
-  if (cryptoApi && 'getRandomValues' in cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
+  if (
+    cryptoApi &&
+    'getRandomValues' in cryptoApi &&
+    typeof cryptoApi.getRandomValues === 'function'
+  ) {
     const bytes = new Uint8Array(16)
     cryptoApi.getRandomValues(bytes)
-    return Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('')
+    return Array.from(bytes, value => value.toString(16).padStart(2, '0')).join('')
   }
 
   // Extremely old/non-browser environment fallback: unique-enough without randomness.

@@ -20,7 +20,7 @@ precacheAndRoute(self.__WB_MANIFEST)
 
 const networkOnly = new NetworkOnly()
 
-const navigationHandler: RouteHandlerCallback = async (params) => {
+const navigationHandler: RouteHandlerCallback = async params => {
   try {
     return await networkOnly.handle(params)
   } catch {

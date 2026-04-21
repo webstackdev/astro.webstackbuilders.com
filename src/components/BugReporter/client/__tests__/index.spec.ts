@@ -6,7 +6,7 @@ import type { BugReporterModalElement } from '../index'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { executeRender } from '@test/unit/helpers/litRuntime'
 
-vi.mock('@sentry/browser', async (importOriginal) => {
+vi.mock('@sentry/browser', async importOriginal => {
   const actual = (await importOriginal()) as typeof import('@sentry/browser')
   return {
     ...actual,
@@ -29,7 +29,7 @@ describe('BugReporterModalElement', () => {
       container,
       component: BugReporterFixture,
       moduleSpecifier: '@components/BugReporter/client/index',
-      waitForReady: async (element) => {
+      waitForReady: async element => {
         await element.updateComplete
       },
       assert: async ({ element, window, module, renderResult }) => {
@@ -55,7 +55,7 @@ describe('BugReporterModalElement', () => {
       container,
       component: BugReporterFixture,
       moduleSpecifier: '@components/BugReporter/client/index',
-      waitForReady: async (element) => {
+      waitForReady: async element => {
         await element.updateComplete
       },
       assert: async ({ element, window }) => {
@@ -72,7 +72,6 @@ describe('BugReporterModalElement', () => {
         const messageTextarea = (form as HTMLFormElement).querySelector('textarea[name="message"]')
         expect(messageTextarea).toBeTruthy()
         expect(messageTextarea).toBeInstanceOf(window!.HTMLTextAreaElement)
-
         ;(messageTextarea as HTMLTextAreaElement).value = 'The page crashed when I clicked Save.'
 
         form?.dispatchEvent(new window!.Event('submit', { bubbles: true, cancelable: true }))

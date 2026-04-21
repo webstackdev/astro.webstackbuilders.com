@@ -77,9 +77,8 @@ function labelFootnotesSection(section: Element): void {
     headingProperties['className'] = headingClasses.filter(className => className !== 'sr-only')
   }
 
-  const headingId = typeof headingProperties['id'] === 'string'
-    ? headingProperties['id']
-    : FOOTNOTES_HEADING_ID
+  const headingId =
+    typeof headingProperties['id'] === 'string' ? headingProperties['id'] : FOOTNOTES_HEADING_ID
 
   headingProperties['id'] = headingId
   heading.properties = headingProperties

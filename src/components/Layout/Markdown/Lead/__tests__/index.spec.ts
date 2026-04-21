@@ -7,7 +7,7 @@ import Lead from '../index.astro'
 
 const fixtureModules = import.meta.glob(
   '../../../../Avatar/server/__fixtures__/avatars/*.{jpg,jpeg,png,webp}',
-  { eager: true, import: 'default' },
+  { eager: true, import: 'default' }
 )
 
 vi.mock('@components/Avatar/server/avatarImports', () => ({
@@ -36,7 +36,9 @@ describe('Lead', () => {
     const document = dom.window.document
     const normalizeWhitespace = (value: string) => value.replace(/\s+/g, ' ').trim()
 
-    const primaryLineText = normalizeWhitespace(document.querySelector('.text-primary')?.textContent ?? '')
+    const primaryLineText = normalizeWhitespace(
+      document.querySelector('.text-primary')?.textContent ?? ''
+    )
 
     expect(html).toContain('href="/about"')
     expect(html).toContain('Kevin Brown')

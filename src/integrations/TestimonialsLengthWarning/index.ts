@@ -25,7 +25,9 @@ const TestimonialsLengthWarningOptionsSchema = z
     message: '`min` must be less than or equal to `max`',
   })
 
-export type TestimonialsLengthWarningOptions = z.infer<typeof TestimonialsLengthWarningOptionsSchema>
+export type TestimonialsLengthWarningOptions = z.infer<
+  typeof TestimonialsLengthWarningOptionsSchema
+>
 
 export type TestimonialsLengthWarningOptionsInput = z.input<
   typeof TestimonialsLengthWarningOptionsSchema
@@ -56,7 +58,10 @@ export function stripFrontmatter(raw: string): string {
     return raw
   }
 
-  return lines.slice(endIndex + 1).join('\n').trim()
+  return lines
+    .slice(endIndex + 1)
+    .join('\n')
+    .trim()
 }
 
 export function getVisibleCharacterCount(rawBody: string): number {
@@ -65,7 +70,8 @@ export function getVisibleCharacterCount(rawBody: string): number {
   return rawBody.replace(/\s+/g, ' ').trim().length
 }
 
-const isMarkdownFile = (fileName: string): boolean => fileName.endsWith('.md') || fileName.endsWith('.mdx')
+const isMarkdownFile = (fileName: string): boolean =>
+  fileName.endsWith('.md') || fileName.endsWith('.mdx')
 
 async function getTestimonialContentFiles(contentRoot: string): Promise<string[]> {
   const testimonialsRoot = join(contentRoot, 'testimonials')
@@ -154,9 +160,7 @@ export function testimonialsLengthWarning(
         if (tooShort.length > 0 || tooLong.length > 0) {
           const lines: string[] = []
 
-          lines.push(
-            `Testimonials length validation failed (min: ${min}, max: ${max}).`
-          )
+          lines.push(`Testimonials length validation failed (min: ${min}, max: ${max}).`)
           lines.push('')
 
           if (tooShort.length > 0) {

@@ -21,14 +21,28 @@ const { description, benefits, pretitle, title } = Astro.props as Props
 const visibleBenefits = benefits.slice(0, 3)
 ---
 
-<section class="bg-content rounded-2xl p-8 md:p-12 overflow-hidden relative" aria-labelledby="home-about-title">
-  <div class="absolute -top-32 -right-32 w-64 h-64 border border-page-base/10 rounded-full" aria-hidden="true"></div>
-  <div class="absolute -bottom-20 -left-20 w-48 h-48 border border-page-base/10 rounded-full" aria-hidden="true"></div>
+<section
+  class="bg-content rounded-2xl p-8 md:p-12 overflow-hidden relative"
+  aria-labelledby="home-about-title"
+>
+  <div
+    class="absolute -top-32 -right-32 w-64 h-64 border border-page-base/10 rounded-full"
+    aria-hidden="true"
+  >
+  </div>
+  <div
+    class="absolute -bottom-20 -left-20 w-48 h-48 border border-page-base/10 rounded-full"
+    aria-hidden="true"
+  >
+  </div>
 
   <div class="relative">
     <div class="text-center max-w-2xl mx-auto mb-10">
       <p class="text-xs font-bold text-spotlight uppercase tracking-widest mb-3">{pretitle}</p>
-      <h2 id="home-about-title" class="text-3xl md:text-4xl font-black text-page-base leading-tight mb-4">
+      <h2
+        id="home-about-title"
+        class="text-3xl md:text-4xl font-black text-page-base leading-tight mb-4"
+      >
         {title}
       </h2>
       <p class="text-base text-page-base/70 leading-relaxed">
@@ -37,19 +51,19 @@ const visibleBenefits = benefits.slice(0, 3)
     </div>
 
     <ul class="grid grid-cols-1 md:grid-cols-3 gap-6 list-none p-0 m-0">
-      {visibleBenefits.map((benefit) => (
-        <li class="border border-page-base/15 rounded-xl p-6 hover:border-spotlight/40 transition-colors group">
-          <div class="flex items-center gap-3 mb-4">
-            <div
-              class="w-10 h-10 rounded-lg bg-spotlight/20 flex items-center justify-center group-hover:bg-spotlight/30 transition-colors"
-            >
-              <Icon icon={benefit.icon} color="spotlight" size={5} />
+      {
+        visibleBenefits.map(benefit => (
+          <li class="border border-page-base/15 rounded-xl p-6 hover:border-spotlight/40 transition-colors group">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-lg bg-spotlight/20 flex items-center justify-center group-hover:bg-spotlight/30 transition-colors">
+                <Icon icon={benefit.icon} color="spotlight" size={5} />
+              </div>
+              <h3 class="text-base font-bold text-page-base">{benefit.title}</h3>
             </div>
-            <h3 class="text-base font-bold text-page-base">{benefit.title}</h3>
-          </div>
-          <p class="text-sm text-page-base/60 leading-relaxed">{benefit.description}</p>
-        </li>
-      ))}
+            <p class="text-sm text-page-base/60 leading-relaxed">{benefit.description}</p>
+          </li>
+        ))
+      }
     </ul>
   </div>
 </section>

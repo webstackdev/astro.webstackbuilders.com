@@ -63,12 +63,11 @@ const resumeLink = `${getSiteUrl()}/resume`
 ---
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-12 md:space-y-24">
-
   {/* ── Journey ── */}
   <section class="space-y-10" aria-labelledby="about-journey-title">
     <h2 class="text-page-inverse text-center" id="about-journey-title">
       {content.journey.header}
-      <HeadingAnchor href={"#about-journey-title"} />
+      <HeadingAnchor href={'#about-journey-title'} />
     </h2>
 
     <div class="relative max-w-3xl mx-auto">
@@ -76,36 +75,39 @@ const resumeLink = `${getSiteUrl()}/resume`
       <div
         class="absolute left-5 md:left-6 top-4 bottom-0 w-px bg-trim-offset/50"
         aria-hidden="true"
-      />
+      >
+      </div>
 
       <div class="space-y-10">
-        {content.journey.itemlist.map((item, index) => (
-          <div class="relative flex items-start gap-5 md:gap-6">
-            {/* Timeline node */}
-            <div class="relative z-(--z-raised) shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-page-inverse text-content shadow-md mt-4">
-              <Icon icon={item.icon} color="content-inverse" size={5} />
-            </div>
+        {
+          content.journey.itemlist.map((item, index) => (
+            <div class="relative flex items-start gap-5 md:gap-6">
+              {/* Timeline node */}
+              <div class="relative z-(--z-raised) shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-page-inverse text-content shadow-md mt-4">
+                <Icon icon={item.icon} color="content-inverse" size={5} />
+              </div>
 
-            {/* Card */}
-            <div class="flex-1 rounded-lg border border-trim-offset/40 bg-page-offset/40 p-5 md:p-6 shadow-sm">
-              <h3 class="text-page-inverse mb-2">{item.title}</h3>
-              <p class="text-content leading-relaxed">{item.description}</p>
-              {index === 0 && (
-                <div class="mt-3 flex justify-end print:hidden!">
-                  <Button
-                    text="View C.V."
-                    variant="page-inverse"
-                    size="small"
-                    href={resumeLink}
-                    icon="arrow-right"
-                    iconPosition="right"
-                    iconSize={4}
-                  />
-                </div>
-              )}
+              {/* Card */}
+              <div class="flex-1 rounded-lg border border-trim-offset/40 bg-page-offset/40 p-5 md:p-6 shadow-sm">
+                <h3 class="text-page-inverse mb-2">{item.title}</h3>
+                <p class="text-content leading-relaxed">{item.description}</p>
+                {index === 0 && (
+                  <div class="mt-3 flex justify-end print:hidden!">
+                    <Button
+                      text="View C.V."
+                      variant="page-inverse"
+                      size="small"
+                      href={resumeLink}
+                      icon="arrow-right"
+                      iconPosition="right"
+                      iconSize={4}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        }
       </div>
     </div>
   </section>
@@ -114,31 +116,27 @@ const resumeLink = `${getSiteUrl()}/resume`
   <section class="space-y-10" aria-labelledby="about-expertise-title">
     <h2 class="text-page-inverse text-center" id="about-expertise-title">
       {content.expertise.header}
-      <HeadingAnchor href={"#about-expertise-title"} />
+      <HeadingAnchor href={'#about-expertise-title'} />
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {content.expertise.itemlist.map((item, index) => (
-        <div
-          class="group relative rounded-lg border border-trim-offset/40 bg-page-offset/30 p-6 transition-all duration-300 hover:border-secondary/40 hover:shadow-lg"
-        >
-          {/* Accent top border on hover */}
-          <div
-            class="absolute inset-x-0 top-0 h-0.5 rounded-t-lg bg-(--color-secondary) opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            aria-hidden="true"
-          />
-          <div class="flex">
-            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-page-inverse">
-              <Icon icon={expertiseIcons[index] ?? 'gear'} color="content-inverse" size={5} />
+      {
+        content.expertise.itemlist.map((item, index) => (
+          <div class="group relative rounded-lg border border-trim-offset/40 bg-page-offset/30 p-6 transition-all duration-300 hover:border-secondary/40 hover:shadow-lg">
+            {/* Accent top border on hover */}
+            <div
+              class="absolute inset-x-0 top-0 h-0.5 rounded-t-lg bg-(--color-secondary) opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              aria-hidden="true"
+            />
+            <div class="flex">
+              <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-page-inverse">
+                <Icon icon={expertiseIcons[index] ?? 'gear'} color="content-inverse" size={5} />
+              </div>
+              <h3 class="text-lg font-semibold text-page-inverse ml-5 mt-1 mb-3">{item.title}</h3>
             </div>
-            <h3 class="text-lg font-semibold text-page-inverse ml-5 mt-1 mb-3">
-              {item.title}
-            </h3>
+            <p class="text-content leading-relaxed text-md">{item.description}</p>
           </div>
-          <p class="text-content leading-relaxed text-md">
-            {item.description}
-          </p>
-        </div>
-      ))}
+        ))
+      }
     </div>
   </section>
 
@@ -146,34 +144,40 @@ const resumeLink = `${getSiteUrl()}/resume`
   <section class="space-y-10" aria-labelledby="about-proficiency-title">
     <h2 class="text-page-inverse text-center" id="about-proficiency-title">
       {content.proficiencies.header}
-      <HeadingAnchor href={"#about-proficiency-title"} />
+      <HeadingAnchor href={'#about-proficiency-title'} />
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-      {content.proficiencies.cards.map((card) => (
-        <div class:list={[
-          "rounded-lg p-6 border border-trim-offset/40",
-          card.backgroundColor || "bg-page-offset/30",
-        ]}>
-          <h3 class:list={[
-            "text-lg font-semibold mb-5 text-center",
-            card.headerColor || "text-page-inverse",
-          ]}>
-            {card.subheader}
-          </h3>
-          <ul class="space-y-2">
-            {card.itemlist.map((item) => (
-              <li>
-                <a
-                  href={item.link}
-                  class="relative flex items-center justify-center py-2.5 px-4 rounded-lg font-medium text-content-active no-underline transition-all duration-200 hover:bg-secondary/10 hover:text-(--color-secondary) focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
-                >
-                  {item.title}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+      {
+        content.proficiencies.cards.map(card => (
+          <div
+            class:list={[
+              'rounded-lg p-6 border border-trim-offset/40',
+              card.backgroundColor || 'bg-page-offset/30',
+            ]}
+          >
+            <h3
+              class:list={[
+                'text-lg font-semibold mb-5 text-center',
+                card.headerColor || 'text-page-inverse',
+              ]}
+            >
+              {card.subheader}
+            </h3>
+            <ul class="space-y-2">
+              {card.itemlist.map(item => (
+                <li>
+                  <a
+                    href={item.link}
+                    class="relative flex items-center justify-center py-2.5 px-4 rounded-lg font-medium text-content-active no-underline transition-all duration-200 hover:bg-secondary/10 hover:text-(--color-secondary) focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-visible:after:opacity-100 focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
     </div>
   </section>
 
@@ -181,7 +185,7 @@ const resumeLink = `${getSiteUrl()}/resume`
   <section class="space-y-10" aria-labelledby="about-philosophy-title">
     <h2 class="text-page-inverse text-center" id="about-philosophy-title">
       {content.proficiencies.philosophy.subheader}
-      <HeadingAnchor href={"#about-philosophy-title"} />
+      <HeadingAnchor href={'#about-philosophy-title'} />
     </h2>
     <blockquote
       class="text-md md:text-lg italic text-center max-w-4xl mx-auto p-8 rounded-lg border-l-4 border-(--color-secondary) bg-page-offset/40 text-content leading-relaxed"
@@ -189,23 +193,17 @@ const resumeLink = `${getSiteUrl()}/resume`
       {content.proficiencies.philosophy.description}
     </blockquote>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-      {content.proficiencies.philosophy.itemlist.map((item) => (
-        <div class="text-center space-y-4 rounded-lg border border-trim-offset/40 bg-page-offset/30 p-6 transition-all duration-300 hover:shadow-lg">
-          <div class="flex items-center justify-center mx-auto mb-4 h-12 w-12 rounded-full bg-page-inverse">
-            <Icon
-              icon={item.icon}
-              color="content-inverse"
-              size={6}
-            />
+      {
+        content.proficiencies.philosophy.itemlist.map(item => (
+          <div class="text-center space-y-4 rounded-lg border border-trim-offset/40 bg-page-offset/30 p-6 transition-all duration-300 hover:shadow-lg">
+            <div class="flex items-center justify-center mx-auto mb-4 h-12 w-12 rounded-full bg-page-inverse">
+              <Icon icon={item.icon} color="content-inverse" size={6} />
+            </div>
+            <h3 class="text-lg font-semibold text-page-inverse">{item.name}</h3>
+            <p class="text-md text-content leading-relaxed">{item.text}</p>
           </div>
-          <h3 class="text-lg font-semibold text-page-inverse">
-            {item.name}
-          </h3>
-          <p class="text-md text-content leading-relaxed">
-            {item.text}
-          </p>
-        </div>
-      ))}
+        ))
+      }
     </div>
   </section>
 

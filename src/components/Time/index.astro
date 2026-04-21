@@ -48,13 +48,18 @@ const parsedDate =
 
 const isValidDate = parsedDate instanceof Date && !Number.isNaN(parsedDate.getTime())
 
-const dateStyleByFormatStyle: Record<NonNullable<Props['formatStyle']>, Intl.DateTimeFormatOptions['dateStyle']> = {
+const dateStyleByFormatStyle: Record<
+  NonNullable<Props['formatStyle']>,
+  Intl.DateTimeFormatOptions['dateStyle']
+> = {
   long: 'long',
   short: 'short',
   narrow: 'short',
 }
 
-const hasExplicitParts = Boolean(weekday || year || month || day || hour || minute || second || timeZoneName)
+const hasExplicitParts = Boolean(
+  weekday || year || month || day || hour || minute || second || timeZoneName
+)
 
 const fallbackText = (() => {
   if (!resolvedDatetimeString) {
@@ -108,5 +113,6 @@ const fallbackText = (() => {
     'time-zone': timeZone,
   }}
 >
-  {/** Closing tag must be on same line to prevent trailing space */ }
-  <slot>{fallbackText}</slot></relative-time>{timeZone ? ` (${timeZone})` : ''}
+  {/** Closing tag must be on same line to prevent trailing space */}
+  <slot>{fallbackText}</slot></relative-time
+>{timeZone ? ` (${timeZone})` : ''}

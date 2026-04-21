@@ -1,5 +1,5 @@
 ---
-import Icon from "@components/Icon/index.astro"
+import Icon from '@components/Icon/index.astro'
 
 export type Props = {
   items: {
@@ -17,30 +17,25 @@ export type Props = {
 
 const { items, classes }: Props = Astro.props
 
-const ulClass = ["space-y-3", classes?.ul]
-const liClass = ["flex items-start gap-3", classes?.li]
-const emClass = ["text-content font-semibold not-italic", classes?.em]
-const textClass = ["text-content-offset", classes?.text]
+const ulClass = ['space-y-3', classes?.ul]
+const liClass = ['flex items-start gap-3', classes?.li]
+const emClass = ['text-content font-semibold not-italic', classes?.em]
+const textClass = ['text-content-offset', classes?.text]
 ---
 
 <ul class:list={ulClass}>
   {
-    items.map((item) => (
+    items.map(item => (
       <li class:list={liClass}>
-        <Icon
-          icon="check-stylized"
-          color={item.color ?? "success"}
-          size={5}
-          classes={"mt-1"}
-        />
+        <Icon icon="check-stylized" color={item.color ?? 'success'} size={5} classes={'mt-1'} />
         <span>
           {item.lead && (
             <>
-              <em class:list={emClass} set:html={item.lead}></em>
+              <em class:list={emClass} set:html={item.lead} />
               <span class="text-content-offset/60 ml-1">—</span>
             </>
           )}
-          <span class:list={textClass} set:html={item.text}></span>
+          <span class:list={textClass} set:html={item.text} />
         </span>
       </li>
     ))

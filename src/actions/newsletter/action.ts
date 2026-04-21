@@ -13,7 +13,11 @@ import { createConsentRecord, markConsentRecordsVerified } from '@actions/gdpr/e
 import { createPendingSubscription, confirmSubscription } from '@actions/newsletter/domain'
 import { validateEmail } from '@actions/newsletter/utils'
 import { sendConfirmationEmail, sendWelcomeEmail } from '@actions/newsletter/entities/email'
-import { createOrUpdateContact, addContactToNewsletterList, setMarketingOptIn } from '@actions/utils/hubspot'
+import {
+  createOrUpdateContact,
+  addContactToNewsletterList,
+  setMarketingOptIn,
+} from '@actions/utils/hubspot'
 
 const subscribeSchema = z.object({
   email: z.string(),
@@ -152,7 +156,8 @@ export const newsletter = {
               ? context.clientAddress
               : null,
           privacyPolicyVersion: getPrivacyPolicyVersion(),
-          consentText: null,
+          consentText:
+            'I consent to Webstack Builders processing my personal data for marketing communications (unsubscribe anytime). See our Privacy Policy and Cookie Policy.',
           verified: false,
         })
 

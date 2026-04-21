@@ -17,23 +17,23 @@ export type Props = {
 
 const { items, classes, size = 2 }: Props = Astro.props
 
-const ulClass = ["list-none pl-0 text-content mt-4 mb-2 space-y-2", classes?.ul]
-const liClass = ["flex items-start", classes?.li]
-const emClass = ["not-italic font-bold", classes?.em]
+const ulClass = ['list-none pl-0 text-content mt-4 mb-2 space-y-2', classes?.ul]
+const liClass = ['flex items-start', classes?.li]
+const emClass = ['not-italic font-bold', classes?.em]
 const markerSizeInRem = `${size * 0.25}rem`
 const markerStyle = `width: ${markerSizeInRem}; height: ${markerSizeInRem};`
-const iconClass = ["rounded-full mt-2 mr-3 shrink-0", classes?.icon]
+const iconClass = ['rounded-full mt-2 mr-3 shrink-0', classes?.icon]
 const textClass = classes?.text ? [classes.text] : []
 ---
 
 <ul class:list={ulClass}>
   {
-    items.map((item) => (
+    items.map(item => (
       <li class:list={liClass}>
         <span class:list={[iconClass, item.color]} style={markerStyle} />
         <div class="flex min-w-0 flex-col items-start gap-1">
-          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
-          <span class:list={textClass} set:html={item.text}></span>
+          {item.lead && <em class:list={emClass} set:html={item.lead} />}
+          <span class:list={textClass} set:html={item.text} />
         </div>
       </li>
     ))

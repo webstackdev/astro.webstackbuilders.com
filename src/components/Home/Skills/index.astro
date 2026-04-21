@@ -32,95 +32,93 @@ const skills = await getCollection('tags', ({ data }) => data.isSkill === true)
     <div class="skills-embla relative">
       <div class="skills-embla__viewport overflow-hidden mx-16 px-5" data-skills-embla-viewport>
         <div class="skills-embla__container flex -mx-5" data-skills-embla-container>
-          {skills.map((skill, index) => (
-            <div
-              class="skills-embla__slide flex-[0_0_auto] min-w-0 pt-1 px-5"
-              data-skills-slide
-              role="group"
-              aria-roledescription="slide"
-              aria-label={`${skill.data.displayName} (${index + 1} of ${skills.length})`}
-            >
-              <a
-                href={`/tags/${skill.data.slug}`}
-                class="group relative flex flex-col items-center text-center gap-3 text-page-base/60 transition-colors no-underline hover:no-underline focus-visible:no-underline focus-visible:outline-none after:pointer-events-none after:absolute after:inset-0 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight shrink-0"
+          {
+            skills.map((skill, index) => (
+              <div
+                class="skills-embla__slide flex-[0_0_auto] min-w-0 pt-1 px-5"
+                data-skills-slide
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${skill.data.displayName} (${index + 1} of ${skills.length})`}
               >
-                {skill.data.logo && (
-                  <Image
-                    src={skill.data.logo}
-                    alt=""
-                    width={skill.data.logo.width}
-                    height={32}
-                    loading="lazy"
-                    class="h-8 w-auto object-contain"
-                  />
-                )}
-                <span class="text-sm text-content-inverse font-semibold transition-colors group-hover:text-content-offset group-focus-visible:text-content-offset">
-                  {skill.data.displayName}
-                </span>
-              </a>
-            </div>
-          ))}
+                <a
+                  href={`/tags/${skill.data.slug}`}
+                  class="group relative flex flex-col items-center text-center gap-3 text-page-base/60 transition-colors no-underline hover:no-underline focus-visible:no-underline focus-visible:outline-none after:pointer-events-none after:absolute after:inset-0 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight shrink-0"
+                >
+                  {skill.data.logo && (
+                    <Image
+                      src={skill.data.logo}
+                      alt=""
+                      width={skill.data.logo.width}
+                      height={32}
+                      loading="lazy"
+                      class="h-8 w-auto object-contain"
+                    />
+                  )}
+                  <span class="text-sm text-content-inverse font-semibold transition-colors group-hover:text-content-offset group-focus-visible:text-content-offset">
+                    {skill.data.displayName}
+                  </span>
+                </a>
+              </div>
+            ))
+          }
         </div>
       </div>
 
-      {skills.length > 1 && (
-        <>
-          {/* Intentionally not using Button component. */}
-          <button
-            type="button"
-            class="embla__button embla__button--prev absolute left-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-content hover:bg-content-active hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:bg-content-offset after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
-            data-skills-prev
-            aria-label="Previous skill"
-          >
-            <Icon
-              icon="arrow-left"
-              color="content-inverse"
-              size={6}
-            />
-          </button>
+      {
+        skills.length > 1 && (
+          <>
+            {/* Intentionally not using Button component. */}
+            <button
+              type="button"
+              class="embla__button embla__button--prev absolute left-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-content hover:bg-content-active hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:bg-content-offset after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
+              data-skills-prev
+              aria-label="Previous skill"
+            >
+              <Icon icon="arrow-left" color="content-inverse" size={6} />
+            </button>
 
-          {/* Intentionally not using Button component. */}
-          <button
-            type="button"
-            class="embla__button embla__button--next absolute right-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-content hover:bg-content-active hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:bg-content-offset after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
-            data-skills-next
-            aria-label="Next skill"
-          >
-            <Icon
-              icon="arrow-right"
-              color="content-inverse"
-              size={6}
-            />
-          </button>
-        </>
-      )}
+            {/* Intentionally not using Button component. */}
+            <button
+              type="button"
+              class="embla__button embla__button--next absolute right-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-content hover:bg-content-active hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:bg-content-offset after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
+              data-skills-next
+              aria-label="Next skill"
+            >
+              <Icon icon="arrow-right" color="content-inverse" size={6} />
+            </button>
+          </>
+        )
+      }
     </div>
   </div>
 
-  {skills.length > 1 && (
-    <div class="mt-2 flex justify-end pr-2">
-      <button
-        type="button"
-        class:list={[
-          "relative flex h-10 w-10 items-center justify-center",
-          "bg-content text-content-inverse transition-colors",
-          "rounded-full border border-trim",
-          "hover:bg-content-active",
-          "focus-visible:outline-none focus-visible:bg-content-offset after:pointer-events-none after:absolute after:-inset-1 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight"
-        ]}
-        data-skills-autoplay-toggle
-        aria-label="Pause skills"
-        aria-pressed="false"
-      >
-        <span data-skills-icon="pause">
-          <Icon icon="pause" size={6} classes="fill-content-inverse text-content-inverse" />
-        </span>
-        <span data-skills-icon="play">
-          <Icon icon="play" size={6} classes="fill-content-inverse text-content-inverse" />
-        </span>
-      </button>
-    </div>
-  )}
+  {
+    skills.length > 1 && (
+      <div class="mt-2 flex justify-end pr-2">
+        <button
+          type="button"
+          class:list={[
+            'relative flex h-10 w-10 items-center justify-center',
+            'bg-content text-content-inverse transition-colors',
+            'rounded-full border border-trim',
+            'hover:bg-content-active',
+            "focus-visible:outline-none focus-visible:bg-content-offset after:pointer-events-none after:absolute after:-inset-1 after:rounded-none after:content-[''] focus-visible:after:border-2 focus-visible:after:border-spotlight",
+          ]}
+          data-skills-autoplay-toggle
+          aria-label="Pause skills"
+          aria-pressed="false"
+        >
+          <span data-skills-icon="pause">
+            <Icon icon="pause" size={6} classes="fill-content-inverse text-content-inverse" />
+          </span>
+          <span data-skills-icon="play">
+            <Icon icon="play" size={6} classes="fill-content-inverse text-content-inverse" />
+          </span>
+        </button>
+      </div>
+    )
+  }
 </skills-carousel>
 
 <script>

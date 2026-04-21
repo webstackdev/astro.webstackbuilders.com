@@ -49,12 +49,10 @@ describe('Header collapse side effects', () => {
       }
     }
 
-    rafSpy = vi
-      .spyOn(window, 'requestAnimationFrame')
-      .mockImplementation(callback => {
-        callback(0)
-        return 0
-      })
+    rafSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      callback(0)
+      return 0
+    })
   })
 
   afterEach(() => {

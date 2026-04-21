@@ -45,7 +45,9 @@ export const getDownloadCtaPrimaryLink = (root?: SelectorRoot): HTMLAnchorElemen
   return primaryLink
 }
 
-export const getDownloadCtaUrls = (root?: SelectorRoot): {
+export const getDownloadCtaUrls = (
+  root?: SelectorRoot
+): {
   landingUrl: string
   directDownloadUrl: string
 } => {

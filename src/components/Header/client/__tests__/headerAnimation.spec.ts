@@ -82,7 +82,9 @@ function stubAnimate() {
     pause: vi.fn(),
   }
 
-  Element.prototype.animate = vi.fn().mockReturnValue(mockAnimation) as unknown as typeof Element.prototype.animate
+  Element.prototype.animate = vi
+    .fn()
+    .mockReturnValue(mockAnimation) as unknown as typeof Element.prototype.animate
   return mockAnimation
 }
 

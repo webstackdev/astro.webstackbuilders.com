@@ -7,14 +7,7 @@ import type { ConsentCheckboxProps } from '@components/Consent/Checkbox/@types'
 
 export type Props = Omit<ConsentCheckboxProps, 'variant'>
 
-const {
-  purpose,
-  privacyPolicyUrl,
-  cookiePolicyUrl,
-  name,
-  id,
-  formId,
-} = Astro.props
+const { purpose, privacyPolicyUrl, cookiePolicyUrl, name, id, formId } = Astro.props
 ---
 
 <div
@@ -39,15 +32,16 @@ const {
     <span id={`${id}-label`} class="sr-only">Consent to data processing</span>
     <span id={`${id}-description`} class="text-[10px] text-content-offset leading-tight">
       <span class="text-xs text-page-base/60 leading-relaxed">
-        --consent "I agree to data processing"
-        --<a
+        --consent "I agree to data processing" --<a
           href={privacyPolicyUrl}
           class="relative text-page-base/60 underline decoration-dotted decoration-current hover:text-(--color-page-base) transition-colors focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
-        >privacy</a>
+          >privacy</a
+        >
         --<a
           href={cookiePolicyUrl}
           class="relative text-page-base/60 underline decoration-dotted decoration-current hover:text-(--color-page-base) transition-colors focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent focus-visible:after:-inset-1 focus-visible:after:border-spotlight"
-        >cookies</a>
+          >cookies</a
+        >
       </span>
     </span>
   </label>

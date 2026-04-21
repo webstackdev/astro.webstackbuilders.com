@@ -6,11 +6,7 @@ import {
   PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN,
   PUBLIC_UPSTASH_SEARCH_REST_URL,
 } from 'astro:env/client'
-import {
-  HUBSPOT_ACCESS_TOKEN,
-  HUBSPOT_NEWSLETTER_LIST_ID,
-  RESEND_API_KEY,
-} from 'astro:env/server'
+import { HUBSPOT_ACCESS_TOKEN, HUBSPOT_NEWSLETTER_LIST_ID, RESEND_API_KEY } from 'astro:env/server'
 
 export {
   isCI,

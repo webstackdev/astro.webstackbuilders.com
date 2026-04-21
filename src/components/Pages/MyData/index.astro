@@ -3,6 +3,19 @@ import Button from '@components/Button/index.astro'
 import Icon from '@components/Icon/index.astro'
 import List from '@components/List/index.astro'
 
+/**
+ * Privacy request preview states for styling:
+ *
+ * - /privacy/my-data?accessState=loading
+ * - /privacy/my-data?accessState=success
+ * - /privacy/my-data?accessState=error
+ * - /privacy/my-data?accessState=validation
+ * - /privacy/my-data?deleteState=loading
+ * - /privacy/my-data?deleteState=success
+ * - /privacy/my-data?deleteState=error
+ * - /privacy/my-data?deleteState=validation
+ */
+
 export type Props = {
   content: {
     header: {
@@ -19,14 +32,14 @@ export type Props = {
       description: string
       label: string
       buttonText: string
-    },
-     deleteData: {
+    }
+    deleteData: {
       heading: string
       description: string
       label: string
       buttonText: string
       confirmText: string
-    },
+    }
     next: {
       heading: string
       items: {
@@ -37,10 +50,30 @@ export type Props = {
   }
 }
 
+type PreviewState = 'idle' | 'loading' | 'success' | 'error' | 'validation'
+
 const { content } = Astro.props
+
+const previewStates = new Set<PreviewState>(['idle', 'loading', 'success', 'error', 'validation'])
+
+const resolvePreviewState = (value: string | null): PreviewState => {
+  if (!value) {
+    return 'idle'
+  }
+
+  const normalizedValue = value.trim().toLowerCase()
+  return previewStates.has(normalizedValue as PreviewState) ? (normalizedValue as PreviewState) : 'idle'
+}
+
+const accessPreviewState = resolvePreviewState(Astro.url.searchParams.get('accessState'))
+const deletePreviewState = resolvePreviewState(Astro.url.searchParams.get('deleteState'))
 ---
 
-<privacy-form class="block">
+<privacy-form
+  class="block"
+  data-access-state={accessPreviewState}
+  data-delete-state={deletePreviewState}
+>
   <div class="container mx-auto px-4 pb-16 max-w-5xl space-y-10">
     <div
       id="status-message"
@@ -49,7 +82,8 @@ const { content } = Astro.props
       aria-live="polite"
       aria-atomic="true"
       class="hidden rounded-xl border px-4 py-3 text-sm"
-    ></div>
+    >
+    </div>
 
     <section
       class="flex flex-col items-center bg-page-offset border border-trim rounded-2xl p-6"
@@ -87,7 +121,14 @@ const { content } = Astro.props
           {content.accessData.description}
         </p>
 
-        <form id="access-form" class="mt-6 space-y-4" novalidate>
+        <form
+          id="access-form"
+          class="mt-6 space-y-4"
+          novalidate
+          data-privacy-request="access"
+          data-privacy-state={accessPreviewState}
+          aria-busy={accessPreviewState === 'loading' ? 'true' : 'false'}
+        >
           <div class="space-y-2">
             <label for="access-email" class="block text-content-active text-sm font-medium">
               {content.accessData.label}
@@ -98,6 +139,7 @@ const { content } = Astro.props
               name="email"
               required
               placeholder="your@email.com"
+              aria-invalid={accessPreviewState === 'validation' ? 'true' : 'false'}
               class="w-full rounded-md border border-content bg-content-inverse px-3 py-2 placeholder:text-content-active focus:border-primary transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
             />
           </div>
@@ -107,7 +149,92 @@ const { content } = Astro.props
             variant="info"
             class="mt-8 px-6 py-3"
             text={content.accessData.buttonText}
+            disabled={accessPreviewState === 'loading'}
           />
+
+          <div
+            id="access-preview-toast-success"
+            class:list={[
+              'w-full rounded-xl border border-success bg-success-inverse text-success mt-4',
+              { hidden: accessPreviewState !== 'success' },
+            ]}
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <div class="flex items-start gap-4 p-4">
+              <div class="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-success text-content-inverse mt-1">
+                <Icon icon="check-stylized" color="inherit" size={3} />
+              </div>
+              <div>
+                <h3 class="mb-2 text-lg font-semibold text-success">Request Sent</h3>
+                <p class="text-sm">We sent a verification email so you can confirm your data access request.</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="access-preview-toast-loading"
+            class:list={[
+              'w-full rounded-xl border border-info bg-info-inverse text-info mt-4',
+              { hidden: accessPreviewState !== 'loading' },
+            ]}
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <div class="flex items-start gap-4 p-4">
+              <div class="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-info text-content-inverse mt-1">
+                <Icon icon="spinner" color="inherit" size={3} />
+              </div>
+              <div>
+                <h3 class="mb-2 text-lg font-semibold text-info">Sending Request</h3>
+                <p class="text-sm">Your request is being prepared and submitted.</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="access-preview-toast-error"
+            class:list={[
+              'w-full rounded-xl border border-danger bg-danger-inverse text-danger mt-4',
+              { hidden: accessPreviewState !== 'error' },
+            ]}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div class="flex items-start gap-4 p-4">
+              <div class="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-danger text-content-inverse mt-1">
+                <Icon icon="warning" color="inherit" size={3} />
+              </div>
+              <div>
+                <h3 class="mb-2 text-lg font-semibold text-danger">Request Failed</h3>
+                <p class="text-sm">We could not submit your data access request. Try again or contact support.</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="access-preview-toast-validation"
+            class:list={[
+              'w-full rounded-xl border border-danger bg-danger-inverse text-danger mt-4',
+              { hidden: accessPreviewState !== 'validation' },
+            ]}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div class="flex items-start gap-4 p-4">
+              <div class="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-danger text-content-inverse mt-1">
+                <Icon icon="warning" color="inherit" size={3} />
+              </div>
+              <div>
+                <h3 class="mb-2 text-lg font-semibold text-danger">Check Your Details</h3>
+                <p class="text-sm">Enter a valid email address before submitting your request.</p>
+              </div>
+            </div>
+          </div>
 
           <div
             id="access-message"
@@ -116,7 +243,8 @@ const { content } = Astro.props
             aria-live="polite"
             aria-atomic="true"
             tabindex="-1"
-          ></div>
+          >
+          </div>
         </form>
       </sectionclass>
 
@@ -128,18 +256,23 @@ const { content } = Astro.props
           {content.deleteData.heading}
         </h2>
 
-        <div class="flex rounded-xl border border-warning bg-warning-inverse text-warning px-4 py-3 text-sm mb-4">
+        <div
+          class="flex rounded-xl border border-warning bg-warning-inverse text-warning px-4 py-3 text-sm mb-4"
+        >
           <span class="mt-2">
-            <Icon
-              icon="warning"
-              color="warning-offset"
-              size={6}
-            />
+            <Icon icon="warning" color="warning-offset" size={6} />
           </span>
           <span class="ml-3">{content.deleteData.description}</span>
         </div>
 
-        <form id="delete-form" class="mt-11 space-y-4" novalidate>
+        <form
+          id="delete-form"
+          class="mt-11 space-y-4"
+          novalidate
+          data-privacy-request="delete"
+          data-privacy-state={deletePreviewState}
+          aria-busy={deletePreviewState === 'loading' ? 'true' : 'false'}
+        >
           <div class="space-y-2">
             <label for="delete-email" class="block text-content-active text-sm font-medium">
               {content.deleteData.label}
@@ -150,6 +283,7 @@ const { content } = Astro.props
               name="email"
               required
               placeholder="your@email.com"
+              aria-invalid={deletePreviewState === 'validation' ? 'true' : 'false'}
               class="w-full rounded-md border border-content bg-content-inverse px-3 py-2 placeholder:text-content-active transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
             />
           </div>
@@ -159,6 +293,8 @@ const { content } = Astro.props
               type="checkbox"
               id="confirm-delete"
               required
+              aria-invalid={deletePreviewState === 'validation' ? 'true' : 'false'}
+              checked={deletePreviewState === 'success' || deletePreviewState === 'loading'}
               class="mt-1 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none"
             />
             <span class="mt-0.5">{content.deleteData.confirmText}</span>
@@ -169,7 +305,92 @@ const { content } = Astro.props
             variant="warning"
             class="px-6 py-3"
             text={content.deleteData.buttonText}
+            disabled={deletePreviewState === 'loading'}
           />
+
+          <div
+            id="delete-preview-toast-success"
+            class:list={[
+              'w-full rounded-xl border border-success bg-success-inverse text-success mt-4',
+              { hidden: deletePreviewState !== 'success' },
+            ]}
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <div class="flex items-start gap-4 p-4">
+              <div class="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-success text-content-inverse mt-1">
+                <Icon icon="check-stylized" color="inherit" size={3} />
+              </div>
+              <div>
+                <h3 class="mb-2 text-lg font-semibold text-success">Deletion Request Sent</h3>
+                <p class="text-sm">We sent a verification email so you can confirm your deletion request.</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="delete-preview-toast-loading"
+            class:list={[
+              'w-full rounded-xl border border-info bg-info-inverse text-info mt-4',
+              { hidden: deletePreviewState !== 'loading' },
+            ]}
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <div class="flex items-start gap-4 p-4">
+              <div class="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-info text-content-inverse mt-1">
+                <Icon icon="spinner" color="inherit" size={3} />
+              </div>
+              <div>
+                <h3 class="mb-2 text-lg font-semibold text-info">Sending Request</h3>
+                <p class="text-sm">Your request is being prepared pnd submitted.</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="delete-preview-toast-error"
+            class:list={[
+              'w-full rounded-xl border border-danger bg-danger-inverse text-danger mt-4',
+              { hidden: deletePreviewState !== 'error' },
+            ]}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div class="flex items-start gap-4 p-4">
+              <div class="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-danger text-content-inverse mt-1">
+                <Icon icon="warning" color="inherit" size={3} />
+              </div>
+              <div>
+                <h3 class="mb-2 text-lg font-semibold text-danger">Deletion Request Failed</h3>
+                <p class="text-sm">We could not submit your deletion request. Try again or coptact support.</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="delete-preview-toast-validation"
+            class:list={[
+              'w-full rounded-xl border border-danger bg-danger-inverse text-danger mt-4',
+              { hidden: deletePreviewState !== 'validation' },
+            ]}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div class="flex items-start gap-4 p-4">
+              <div class="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-danger text-content-inverse mt-1">
+                <Icon icon="warning" color="inherit" size={3} />
+              </div>
+              <div>
+                <h3 class="mb-2 text-lg font-semibold text-danger">Check Your Details</h3>
+                <p class="text-sm">Enter a valid email address and confirm the deletion request before submitting.</p>
+              </div>
+            </div>
+          </div>
 
           <div
             id="delete-message"
@@ -178,7 +399,8 @@ const { content } = Astro.props
             aria-live="polite"
             aria-atomic="true"
             tabindex="-1"
-          ></div>
+          >
+          </div>
         </form>
       </section>
     </div>
@@ -187,10 +409,7 @@ const { content } = Astro.props
       <h2 id="my-data-next-title" class="text-page-inverse text-xl font-semibold mb-4">
         {content.next.heading}
       </h2>
-      <List
-        variant="numbered-with-background-list"
-        items={content.next.items}
-      />
+      <List variant="numbered-with-background-list" items={content.next.items} />
     </section>
   </div>
 </privacy-form>

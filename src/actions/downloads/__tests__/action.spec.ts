@@ -4,7 +4,9 @@ type ActionConfig<Input, Output> = {
   handler: (_input: Input, _context: unknown) => Promise<Output>
 }
 
-const getMockedHandler = <Input, Output>(action: unknown): ActionConfig<Input, Output>['handler'] => {
+const getMockedHandler = <Input, Output>(
+  action: unknown
+): ActionConfig<Input, Output>['handler'] => {
   return (action as ActionConfig<Input, Output>).handler
 }
 
@@ -95,11 +97,14 @@ describe('downloads.submit.handler', () => {
       clientAddress: '203.0.113.10',
     }
 
-    const response = await getMockedHandler(downloads.submit)({
-      firstName: 'Jane',
-      lastName: 'Doe',
-      workEmail: 'jane@example.com',
-    }, context)
+    const response = await getMockedHandler(downloads.submit)(
+      {
+        firstName: 'Jane',
+        lastName: 'Doe',
+        workEmail: 'jane@example.com',
+      },
+      context
+    )
 
     expect(response).toEqual({
       success: true,

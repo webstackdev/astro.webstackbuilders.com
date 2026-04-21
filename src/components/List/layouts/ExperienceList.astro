@@ -1,4 +1,3 @@
-
 ---
 import Icon from '@components/Icon/index.astro'
 
@@ -19,22 +18,25 @@ export type Props = {
 
 const { items, classes }: Props = Astro.props
 
-const ulClass = ['ml-3 mr-1 space-y-2 text-sm text-content-offset', classes?.ul]
-const liClass = ['flex items-start gap-3', classes?.li]
-const emClass = ['not-italic font-semibold text-content', classes?.em]
-const iconClass = ['mt-0.5 shrink-0', classes?.icon]
+const ulClass = ['ml-3 mr-8 space-y-2 text-md text-content-offset', classes?.ul]
+const liClass = ['flex items-start gap-1', classes?.li]
+const emClass = ['not-italic font-medium text-primary-offset', classes?.em]
+const iconClass = ['mt-1.75 shrink-0', classes?.icon]
 ---
 
 <ul class:list={ulClass}>
   {
-    items.map((item) => (
+    items.map(item => (
       <li class:list={liClass}>
         <span class:list={iconClass} aria-hidden="true">
-          <Icon icon="chevron" color={item.color ?? 'text-primary-offset'} size={3} />
+          <Icon icon="chevron" color={item.color ?? 'text-primary-offset'} size={4} />
         </span>
-        <div class="min-w-0">
-          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
-          <span class:list={['block leading-relaxed', item.lead ? 'mt-0.5' : '', classes?.text]} set:html={item.text}></span>
+        <div class="min-w-0 leading-relaxed">
+          {item.lead && <em class:list={emClass} set:html={item.lead} />}
+          <span
+            class:list={[classes?.text]}
+            set:html={item.text}
+          />
         </div>
       </li>
     ))

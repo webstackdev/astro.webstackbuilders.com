@@ -1,5 +1,5 @@
 ---
-import Icon from "@components/Icon/index.astro"
+import Icon from '@components/Icon/index.astro'
 
 export type Props = {
   items: {
@@ -23,31 +23,35 @@ export type Props = {
 
 const { items, classes, size }: Props = Astro.props
 
-const ulClass = ["grid grid-cols-1 md:grid-cols-2 gap-6", classes?.ul].filter(Boolean).join(" ")
-const liClass = ["flex items-start gap-2", classes?.li].filter(Boolean).join(" ")
-const iconWrapper = ["shrink-0 rounded-md flex items-center justify-center p-2 mt-1", classes?.icon].filter(Boolean).join(" ")
-const contentWrapper = ["text-page-inverse mb-1 ml-2", classes?.content].filter(Boolean).join(" ")
-const headerClass = ["font-sans text-xl text-content mt-1 mb-1", classes?.header].filter(Boolean).join(" ")
-const textClass = ["text-sm text-note-offset", classes?.text].filter(Boolean).join(" ")
+const ulClass = ['grid grid-cols-1 md:grid-cols-2 gap-6', classes?.ul].filter(Boolean).join(' ')
+const liClass = ['flex items-start gap-2', classes?.li].filter(Boolean).join(' ')
+const iconWrapper = ['shrink-0 rounded-md flex items-center justify-center p-2 mt-1', classes?.icon]
+  .filter(Boolean)
+  .join(' ')
+const contentWrapper = ['text-page-inverse mb-1 ml-2', classes?.content].filter(Boolean).join(' ')
+const headerClass = ['font-sans text-xl text-content mt-1 mb-1', classes?.header]
+  .filter(Boolean)
+  .join(' ')
+const textClass = ['text-sm text-note-offset', classes?.text].filter(Boolean).join(' ')
 ---
 
 <ul class={ulClass}>
   {
-    items.map((item) => {
-      const icon = item.icon ?? "check"
+    items.map(item => {
+      const icon = item.icon ?? 'check'
 
       return (
         <li class={liClass}>
-          <div class:list={[iconWrapper, item.bgColor ? `bg-${item.bgColor}` : ""].filter(Boolean).join(" ")}>
-            <Icon
-              icon={icon}
-              color={item.color}
-              size={size ?? 6}
-            />
+          <div
+            class:list={[iconWrapper, item.bgColor ? `bg-${item.bgColor}` : '']
+              .filter(Boolean)
+              .join(' ')}
+          >
+            <Icon icon={icon} color={item.color} size={size ?? 6} />
           </div>
           <div class={contentWrapper}>
-            {item.title && <h3 class={headerClass} set:html={item.title}></h3>}
-            <p class={textClass} set:html={item.text}></p>
+            {item.title && <h3 class={headerClass} set:html={item.title} />}
+            <p class={textClass} set:html={item.text} />
           </div>
         </li>
       )

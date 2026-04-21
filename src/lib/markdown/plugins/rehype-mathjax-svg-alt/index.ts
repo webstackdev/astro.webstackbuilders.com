@@ -25,9 +25,7 @@ function findFirstElement(node: Element, tagName: string): Element | null {
 }
 
 function ensureSvgTitle(svg: Element, label: string): void {
-  const hasTitle = svg.children.some(
-    child => isElementNode(child) && child.tagName === 'title'
-  )
+  const hasTitle = svg.children.some(child => isElementNode(child) && child.tagName === 'title')
 
   if (hasTitle) {
     return

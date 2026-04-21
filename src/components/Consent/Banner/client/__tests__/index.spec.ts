@@ -185,7 +185,9 @@ describe('ConsentBannerElement', () => {
       const navigateSpy = vi.spyOn(bannerCtor, 'navigateToUrl').mockImplementation(() => {})
 
       try {
-        customizeLink!.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }))
+        customizeLink!.dispatchEvent(
+          new window.MouseEvent('click', { bubbles: true, cancelable: true })
+        )
 
         expect(navigateSpy).toHaveBeenCalledTimes(1)
         expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('/consent'))

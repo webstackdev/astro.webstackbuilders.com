@@ -12,7 +12,9 @@ type ContactSubmitOutput = {
   message: string
 }
 
-const getMockedHandler = <Input, Output>(action: unknown): ActionConfig<Input, Output>['handler'] => {
+const getMockedHandler = <Input, Output>(
+  action: unknown
+): ActionConfig<Input, Output>['handler'] => {
   return (action as ActionConfig<Input, Output>).handler
 }
 
@@ -106,7 +108,7 @@ vi.mock('@actions/utils/errors', async () => {
           ? messageOrError
           : messageOrError instanceof Error
             ? messageOrError.message
-            : options?.message ?? 'Internal server error'
+            : (options?.message ?? 'Internal server error')
       super(message)
       this.name = 'ActionsFunctionError'
       this.status = options?.status ?? 500

@@ -51,7 +51,9 @@ const isHandledDownloadsSubmitHttpError = (event: Parameters<BeforeSendHandler>[
   )
 }
 
-const isHandledNewsletterSubscribeHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+const isHandledNewsletterSubscribeHttpError = (
+  event: Parameters<BeforeSendHandler>[0]
+): boolean => {
   const requestUrl = event.request?.url
   const exception = event.exception?.values?.[0]
   const mechanismType = exception?.mechanism?.type
@@ -82,7 +84,9 @@ function scrubBreadcrumbs(
   breadcrumbs: NonNullable<Parameters<BeforeSendHandler>[0]['breadcrumbs']>
 ) {
   return breadcrumbs
-    .filter(breadcrumb => breadcrumb.category && SAFE_BREADCRUMB_CATEGORIES.has(breadcrumb.category))
+    .filter(
+      breadcrumb => breadcrumb.category && SAFE_BREADCRUMB_CATEGORIES.has(breadcrumb.category)
+    )
     .map(breadcrumb => {
       const { data: _data, ...safeBreadcrumb } = breadcrumb
 

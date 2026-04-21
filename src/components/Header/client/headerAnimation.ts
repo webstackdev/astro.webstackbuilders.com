@@ -197,7 +197,7 @@ function buildAnimations(
   elements: AnimationElements,
   from: MeasuredSnapshot,
   to: MeasuredSnapshot,
-  direction: 'collapse' | 'expand',
+  direction: 'collapse' | 'expand'
 ): Animation[] {
   const opts: KeyframeAnimationOptions = {
     duration: HEADER_TRANSITION_DURATION,
@@ -214,10 +214,10 @@ function buildAnimations(
       sizeFirstKeyframes(
         { transform: from.brandTransform },
         { transform: to.brandTransform },
-        isCollapse,
+        isCollapse
       ),
-      opts,
-    ),
+      opts
+    )
   )
 
   // -- Site header padding — position property
@@ -226,10 +226,10 @@ function buildAnimations(
       positionFirstKeyframes(
         { paddingTop: from.headerPaddingTop, paddingBottom: from.headerPaddingBottom },
         { paddingTop: to.headerPaddingTop, paddingBottom: to.headerPaddingBottom },
-        isCollapse,
+        isCollapse
       ),
-      opts,
-    ),
+      opts
+    )
   )
 
   // -- Footprint height — position property
@@ -238,10 +238,10 @@ function buildAnimations(
       positionFirstKeyframes(
         { height: from.footprintHeight },
         { height: to.footprintHeight },
-        isCollapse,
+        isCollapse
       ),
-      opts,
-    ),
+      opts
+    )
   )
 
   // -- Icons (width + height) — size property
@@ -255,10 +255,10 @@ function buildAnimations(
         sizeFirstKeyframes(
           { width: fromDim.width, height: fromDim.height },
           { width: toDim.width, height: toDim.height },
-          isCollapse,
+          isCollapse
         ),
-        opts,
-      ),
+        opts
+      )
     )
   })
 
@@ -269,14 +269,7 @@ function buildAnimations(
     if (!fromFs || !toFs) return
 
     animations.push(
-      link.animate(
-        sizeFirstKeyframes(
-          { fontSize: fromFs },
-          { fontSize: toFs },
-          isCollapse,
-        ),
-        opts,
-      ),
+      link.animate(sizeFirstKeyframes({ fontSize: fromFs }, { fontSize: toFs }, isCollapse), opts)
     )
   })
 
@@ -295,7 +288,7 @@ function buildAnimations(
 function sizeFirstKeyframes(
   from: Record<string, string>,
   to: Record<string, string>,
-  isCollapse: boolean,
+  isCollapse: boolean
 ): Keyframe[] {
   if (isCollapse) {
     return [
@@ -320,7 +313,7 @@ function sizeFirstKeyframes(
 function positionFirstKeyframes(
   from: Record<string, string>,
   to: Record<string, string>,
-  isCollapse: boolean,
+  isCollapse: boolean
 ): Keyframe[] {
   if (isCollapse) {
     // Position changes in second half

@@ -39,7 +39,10 @@ export class ConsentPreferencesElement extends LitElement {
     'hover:bg-secondary',
   ]
 
-  private static readonly saveButtonEnabledClasses = ['bg-page-inverse', 'hover:bg-secondary-offset']
+  private static readonly saveButtonEnabledClasses = [
+    'bg-page-inverse',
+    'hover:bg-secondary-offset',
+  ]
 
   private static readonly saveButtonSavingClasses = [
     'bg-secondary-offset',
@@ -246,7 +249,12 @@ export class ConsentPreferencesElement extends LitElement {
   private bindUnsavedDialogListeners(): void {
     this.removeUnsavedDialogListeners()
 
-    if (!this.unsavedDialog || !this.unsavedSaveBtn || !this.unsavedDiscardBtn || !this.unsavedStayBtn) {
+    if (
+      !this.unsavedDialog ||
+      !this.unsavedSaveBtn ||
+      !this.unsavedDiscardBtn ||
+      !this.unsavedStayBtn
+    ) {
       return
     }
 
@@ -518,7 +526,7 @@ export class ConsentPreferencesElement extends LitElement {
     this.updateSaveButtonState()
 
     try {
-      await new Promise<void>((resolve) => {
+      await new Promise<void>(resolve => {
         window.setTimeout(resolve, SAVE_PREFERENCES_DELAY_MS)
       })
 

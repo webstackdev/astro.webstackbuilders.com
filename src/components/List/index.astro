@@ -48,7 +48,15 @@ export type Props = {
   style?: Record<string, unknown>
 }
 
-const { items, size, color, startNumber, variant = 'default', classes, style } = Astro.props as Props
+const {
+  items,
+  size,
+  color,
+  startNumber,
+  variant = 'default',
+  classes,
+  style,
+} = Astro.props as Props
 const hasItemsProp = Object.prototype.hasOwnProperty.call(Astro.props, 'items')
 const hasDefaultSlot = Astro.slots.has('default')
 
@@ -90,26 +98,119 @@ const itemsWithIconAndColor = normalizedItems as Array<{
   inverseColor?: string
   bgColor?: string
 }>
-const plainIconItems = normalizedItems.filter((item): item is NonNullable<Props['items']>[number] & { icon: string } => {
-  return typeof item.icon === 'string' && item.icon.trim().length > 0
-})
+const plainIconItems = normalizedItems.filter(
+  (item): item is NonNullable<Props['items']>[number] & { icon: string } => {
+    return typeof item.icon === 'string' && item.icon.trim().length > 0
+  }
+)
 ---
 
 <div class:list={[classes?.wrapper ? classes.wrapper : 'mb-6']}>
-  {variant === 'accent-border-left-list' && <AccentBorderLeftList items={normalizedItems} {...classesProps} {...styleProps} />}
-  {variant === 'badge-list' && <BadgeList items={normalizedItems} {...classesProps} {...styleProps} />}
-  {variant === 'card-grid-list' && <CardGridList items={normalizedItems} {...classesProps} {...styleProps} />}
-  {variant === 'chat-bubbles' && <ChatBubbles items={normalizedItems} {...classesProps} {...chatBubbleSizeProps} />}
-  {variant === 'check-icons-list' && <CheckIconsList items={normalizedItems} {...classesProps} {...styleProps} />}
-  {variant === 'chevron-list' && <ChevronList items={normalizedItems} {...classesProps} {...styleProps} />}
-  {variant === 'colored-marker-list' && <ColoredMarkerList items={itemsWithColor} {...classesProps} {...numericSizeProps} {...styleProps} />}
+  {
+    variant === 'accent-border-left-list' && (
+      <AccentBorderLeftList items={normalizedItems} {...classesProps} {...styleProps} />
+    )
+  }
+  {
+    variant === 'badge-list' && (
+      <BadgeList items={normalizedItems} {...classesProps} {...styleProps} />
+    )
+  }
+  {
+    variant === 'card-grid-list' && (
+      <CardGridList items={normalizedItems} {...classesProps} {...styleProps} />
+    )
+  }
+  {
+    variant === 'chat-bubbles' && (
+      <ChatBubbles items={normalizedItems} {...classesProps} {...chatBubbleSizeProps} />
+    )
+  }
+  {
+    variant === 'check-icons-list' && (
+      <CheckIconsList items={normalizedItems} {...classesProps} {...styleProps} />
+    )
+  }
+  {
+    variant === 'chevron-list' && (
+      <ChevronList items={normalizedItems} {...classesProps} {...styleProps} />
+    )
+  }
+  {
+    variant === 'colored-marker-list' && (
+      <ColoredMarkerList
+        items={itemsWithColor}
+        {...classesProps}
+        {...numericSizeProps}
+        {...styleProps}
+      />
+    )
+  }
   {variant === 'experience-list' && <ExperienceList items={normalizedItems} {...classesProps} />}
-  {variant === 'numbered-with-background-list' && <NumberedWithBackgroundList items={normalizedItems} {...classesProps} {...colorProps} {...startNumberProps} {...styleProps} />}
-  {variant === 'plain-icon-list' && <PlainIconList items={plainIconItems} {...classesProps} {...numericSizeProps} {...styleProps} />}
-  {variant === 'side-by-side-list' && <SideBySideList items={normalizedItems} {...classesProps} {...styleProps} />}
-  {variant === 'timeline-list' && <TimelineList items={normalizedItems} {...classesProps} {...styleProps} />}
-  {variant === 'two-column-check-icons-list' && <TwoColumnCheckIconsList items={normalizedItems} {...classesProps} {...numericSizeProps} {...styleProps} />}
-  {variant === 'two-column-icon-list' && <TwoColumnIconList items={itemsWithIconAndColor} {...classesProps} {...numericSizeProps} {...styleProps} />}
-  {variant === 'three-column-icon-list' && <ThreeColumnIconList items={itemsWithIconAndColor} {...classesProps} {...numericSizeProps} {...styleProps} />}
-  {variant === 'zebra-list' && <ZebraList items={normalizedItems} {...classesProps} {...styleProps} />}
+  {
+    variant === 'numbered-with-background-list' && (
+      <NumberedWithBackgroundList
+        items={normalizedItems}
+        {...classesProps}
+        {...colorProps}
+        {...startNumberProps}
+        {...styleProps}
+      />
+    )
+  }
+  {
+    variant === 'plain-icon-list' && (
+      <PlainIconList
+        items={plainIconItems}
+        {...classesProps}
+        {...numericSizeProps}
+        {...styleProps}
+      />
+    )
+  }
+  {
+    variant === 'side-by-side-list' && (
+      <SideBySideList items={normalizedItems} {...classesProps} {...styleProps} />
+    )
+  }
+  {
+    variant === 'timeline-list' && (
+      <TimelineList items={normalizedItems} {...classesProps} {...styleProps} />
+    )
+  }
+  {
+    variant === 'two-column-check-icons-list' && (
+      <TwoColumnCheckIconsList
+        items={normalizedItems}
+        {...classesProps}
+        {...numericSizeProps}
+        {...styleProps}
+      />
+    )
+  }
+  {
+    variant === 'two-column-icon-list' && (
+      <TwoColumnIconList
+        items={itemsWithIconAndColor}
+        {...classesProps}
+        {...numericSizeProps}
+        {...styleProps}
+      />
+    )
+  }
+  {
+    variant === 'three-column-icon-list' && (
+      <ThreeColumnIconList
+        items={itemsWithIconAndColor}
+        {...classesProps}
+        {...numericSizeProps}
+        {...styleProps}
+      />
+    )
+  }
+  {
+    variant === 'zebra-list' && (
+      <ZebraList items={normalizedItems} {...classesProps} {...styleProps} />
+    )
+  }
 </div>

@@ -521,13 +521,12 @@ class EmbedInstance {
       case 'mastodon':
         return this.getMastodonOEmbedEndpoint()
 
-      case 'youtube':
-        {
-          const { width, height } = this.getYouTubeDimensions()
-          const maxwidth = encodeURIComponent(String(width))
-          const maxheight = encodeURIComponent(String(height))
-          return `https://www.youtube.com/oembed?url=${encodedUrl}&format=json&maxwidth=${maxwidth}&maxheight=${maxheight}`
-        }
+      case 'youtube': {
+        const { width, height } = this.getYouTubeDimensions()
+        const maxwidth = encodeURIComponent(String(width))
+        const maxheight = encodeURIComponent(String(height))
+        return `https://www.youtube.com/oembed?url=${encodedUrl}&format=json&maxwidth=${maxwidth}&maxheight=${maxheight}`
+      }
 
       case 'github-gist':
         // GitHub Gist doesn't have oEmbed and is loaded via JSONP

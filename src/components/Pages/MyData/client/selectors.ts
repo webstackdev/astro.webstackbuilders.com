@@ -1,6 +1,7 @@
 /**
  * Selectors for PrivacyForm component elements
  */
+import { isButtonElement } from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'
 
 type SelectorRoot = Document | DocumentFragment | Element
@@ -27,6 +28,19 @@ function queryRequiredElement<TElement extends Element>(
 }
 
 const isHtmlElement = (element: Element): element is HTMLElement => element instanceof HTMLElement
+
+type RequestType = 'ACCESS' | 'DELETE'
+type RequestPreviewState = 'loading' | 'success' | 'error' | 'validation'
+
+const previewToastStates: RequestPreviewState[] = ['success', 'loading', 'error', 'validation']
+
+const getPreviewToastSelector = (
+  requestType: RequestType,
+  previewState: RequestPreviewState
+): string => {
+  const prefix = requestType === 'ACCESS' ? 'access' : 'delete'
+  return `#${prefix}-preview-toast-${previewState}`
+}
 
 export interface PrivacyFormElements {
   statusMessage: HTMLElement | undefined
@@ -92,4 +106,29 @@ export function getPrivacyFormElements(root?: SelectorRoot): PrivacyFormElements
       root
     ),
   }
+}
+
+export function getPrivacyPreviewToastElements(
+  requestType: RequestType,
+  root?: SelectorRoot
+): HTMLElement[] {
+  const resolvedRoot = resolveRoot(root)
+
+  return previewToastStates
+    .map(previewState => resolvedRoot.querySelector(getPreviewToastSelector(requestType, previewState)))
+    .filter((element): element is HTMLElement => element instanceof HTMLElement)
+}
+
+export function getPrivacyPreviewToastElement(
+  requestType: RequestType,
+  previewState: RequestPreviewState,
+  root?: SelectorRoot
+): HTMLElement | undefined {
+  const element = resolveRoot(root).querySelector(getPreviewToastSelector(requestType, previewState))
+  return element instanceof HTMLElement ? element : undefined
+}
+
+export function getPrivacySubmitButton(form: HTMLFormElement): HTMLButtonElement | undefined {
+  const button = form.querySelector('button[type="submit"]')
+  return isButtonElement(button) ? button : undefined
 }

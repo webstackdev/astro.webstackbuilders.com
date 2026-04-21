@@ -1,5 +1,5 @@
 ---
-import Icon from "@components/Icon/index.astro"
+import Icon from '@components/Icon/index.astro'
 
 export type Props = {
   items: {
@@ -19,27 +19,33 @@ export type Props = {
 
 const { items, classes, style }: Props = Astro.props
 
-const ulClass = ["print-zebra-list border border-trim rounded-lg overflow-hidden divide-y divide-trim", classes?.ul]
-const liClass = ["print-zebra-list-item p-4 bg-page-base flex items-center justify-between group hover:bg-page-offset transition-colors", classes?.li]
-const emClass = ["text-page-inverse font-bold not-italic block mb-0.5", classes?.em]
-const textClass = ["text-content"]
+const ulClass = [
+  'print-zebra-list border border-trim rounded-lg overflow-hidden divide-y divide-trim',
+  classes?.ul,
+]
+const liClass = [
+  'print-zebra-list-item p-4 bg-page-base flex items-center justify-between group hover:bg-page-offset transition-colors',
+  classes?.li,
+]
+const emClass = ['text-page-inverse font-bold not-italic block mb-0.5', classes?.em]
+const textClass = ['text-content']
 ---
 
 <ul class:list={ulClass}>
   {
-    items.map((item) => (
+    items.map(item => (
       <li class:list={liClass}>
         <div class="pr-8">
-          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
-          <span class:list={textClass} set:html={item.text}></span>
+          {item.lead && <em class:list={emClass} set:html={item.lead} />}
+          <span class:list={textClass} set:html={item.text} />
         </div>
         {!style?.hideIcon && (
           <div class="pr-8">
             <Icon
-              icon={"info"}
-              color={"page-inverse"}
+              icon={'info'}
+              color={'page-inverse'}
               size={8}
-              classes={`group-hover:${item.color ?? "text-primary"} transition-colors`}
+              classes={`group-hover:${item.color ?? 'text-primary'} transition-colors`}
             />
           </div>
         )}

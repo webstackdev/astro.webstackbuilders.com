@@ -2,9 +2,14 @@ import { describe, it, expect } from 'vitest'
 import { remark } from 'remark'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
-import remarkBlockquote, { type RemarkBlockquoteOptions } from '@lib/markdown/plugins/remark-blockquote'
+import remarkBlockquote, {
+  type RemarkBlockquoteOptions,
+} from '@lib/markdown/plugins/remark-blockquote'
 
-async function process(markdown: string, options?: Partial<RemarkBlockquoteOptions>): Promise<string> {
+async function process(
+  markdown: string,
+  options?: Partial<RemarkBlockquoteOptions>
+): Promise<string> {
   const processor = remark()
 
   if (options) {

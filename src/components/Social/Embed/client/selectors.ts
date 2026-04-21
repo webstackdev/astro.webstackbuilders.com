@@ -76,7 +76,10 @@ export const queryStylesheetLinks = (root: ParentNode = document): HTMLLinkEleme
   ) as HTMLLinkElement[]
 }
 
-export const queryStylesheetLinkByHref = (href: string, root: ParentNode = document): HTMLLinkElement | null => {
+export const queryStylesheetLinkByHref = (
+  href: string,
+  root: ParentNode = document
+): HTMLLinkElement | null => {
   const links = queryStylesheetLinks(root)
   return links.find(link => link.getAttribute('href') === href) ?? null
 }

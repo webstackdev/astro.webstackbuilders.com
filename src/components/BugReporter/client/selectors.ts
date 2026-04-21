@@ -46,7 +46,9 @@ export const getBugReporterStatusElement = (statusId: string): HTMLElement | nul
   return status instanceof HTMLElement ? status : null
 }
 
-export const getBugReporterCloseButtonElement = (closeButtonId: string): HTMLButtonElement | null => {
+export const getBugReporterCloseButtonElement = (
+  closeButtonId: string
+): HTMLButtonElement | null => {
   if (typeof document === 'undefined') {
     return null
   }
@@ -56,7 +58,7 @@ export const getBugReporterCloseButtonElement = (closeButtonId: string): HTMLBut
 }
 
 export const getBugReporterCancelButtonElement = (
-  cancelButtonId: string,
+  cancelButtonId: string
 ): HTMLButtonElement | null => {
   if (typeof document === 'undefined') {
     return null
@@ -67,7 +69,7 @@ export const getBugReporterCancelButtonElement = (
 }
 
 export const getBugReporterMinimizeButtonElement = (
-  minimizeButtonId: string,
+  minimizeButtonId: string
 ): HTMLButtonElement | null => {
   if (typeof document === 'undefined') {
     return null
@@ -77,9 +79,7 @@ export const getBugReporterMinimizeButtonElement = (
   return minimizeButton instanceof HTMLButtonElement ? minimizeButton : null
 }
 
-export const getBugReporterMinimizedBarElement = (
-  minimizedBarId: string,
-): HTMLElement | null => {
+export const getBugReporterMinimizedBarElement = (minimizedBarId: string): HTMLElement | null => {
   if (typeof document === 'undefined') {
     return null
   }
@@ -89,7 +89,7 @@ export const getBugReporterMinimizedBarElement = (
 }
 
 export const getBugReporterRestoreButtonElement = (
-  restoreButtonId: string,
+  restoreButtonId: string
 ): HTMLButtonElement | null => {
   if (typeof document === 'undefined') {
     return null
@@ -100,7 +100,7 @@ export const getBugReporterRestoreButtonElement = (
 }
 
 export const getBugReporterMinimizedCloseButtonElement = (
-  minimizedCloseButtonId: string,
+  minimizedCloseButtonId: string
 ): HTMLButtonElement | null => {
   if (typeof document === 'undefined') {
     return null

@@ -64,7 +64,7 @@ describe('shiki transformers', () => {
 
 describe('shiki language configuration', () => {
   it('registers the custom rego grammar', () => {
-    const regoLanguage = shikiConfigOptions.langs.find((lang) => lang.name === 'rego')
+    const regoLanguage = shikiConfigOptions.langs.find(lang => lang.name === 'rego')
 
     expect(regoLanguage).toBeDefined()
     expect(regoLanguage?.scopeName).toBe('source.rego')

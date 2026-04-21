@@ -66,121 +66,123 @@ const LOGO_SVG_MARKUP = `<svg
 </svg>`
 
 export interface RenderQrCodeSvgOptions {
-	data: string
-	size?: number
+  data: string
+  size?: number
 }
 
 const parseLogoViewBox = (viewBox: null | string): { height: number; width: number } => {
-	if (!viewBox) {
-		return {
-			height: DEFAULT_LOGO_HEIGHT,
-			width: DEFAULT_LOGO_WIDTH,
-		}
-	}
+  if (!viewBox) {
+    return {
+      height: DEFAULT_LOGO_HEIGHT,
+      width: DEFAULT_LOGO_WIDTH,
+    }
+  }
 
-	const parts = viewBox
-		.trim()
-		.split(/\s+/)
-		.map(value => Number(value))
+  const parts = viewBox
+    .trim()
+    .split(/\s+/)
+    .map(value => Number(value))
 
-	const width = parts[2] ?? Number.NaN
-	const height = parts[3] ?? Number.NaN
+  const width = parts[2] ?? Number.NaN
+  const height = parts[3] ?? Number.NaN
 
-	if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-		return {
-			height: DEFAULT_LOGO_HEIGHT,
-			width: DEFAULT_LOGO_WIDTH,
-		}
-	}
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return {
+      height: DEFAULT_LOGO_HEIGHT,
+      width: DEFAULT_LOGO_WIDTH,
+    }
+  }
 
-	return { height, width }
+  return { height, width }
 }
 
 const createLogoExtension = (logoSvgMarkup: string) => {
-	return (svg: SVGElement, options: { height?: number; width?: number }) => {
-		const document = svg.ownerDocument
-		const window = document.defaultView
+  return (svg: SVGElement, options: { height?: number; width?: number }) => {
+    const document = svg.ownerDocument
+    const window = document.defaultView
 
-		if (!window) {
-			return
-		}
+    if (!window) {
+      return
+    }
 
-		const parsedLogo = new window.DOMParser().parseFromString(logoSvgMarkup, 'image/svg+xml')
-		const logoRoot = parsedLogo.documentElement
-		const { height: logoHeight, width: logoWidth } = parseLogoViewBox(logoRoot.getAttribute('viewBox'))
+    const parsedLogo = new window.DOMParser().parseFromString(logoSvgMarkup, 'image/svg+xml')
+    const logoRoot = parsedLogo.documentElement
+    const { height: logoHeight, width: logoWidth } = parseLogoViewBox(
+      logoRoot.getAttribute('viewBox')
+    )
 
-		const qrWidth = options.width ?? DEFAULT_SIZE
-		const qrHeight = options.height ?? DEFAULT_SIZE
-		const logoDisplayWidth = Math.min(qrWidth, qrHeight) * 0.24
-		const logoDisplayHeight = logoDisplayWidth * (logoHeight / logoWidth)
-		const backdropPadding = Math.min(qrWidth, qrHeight) * 0.045
-		const logoX = (qrWidth - logoDisplayWidth) / 2
-		const logoY = (qrHeight - logoDisplayHeight) / 2
+    const qrWidth = options.width ?? DEFAULT_SIZE
+    const qrHeight = options.height ?? DEFAULT_SIZE
+    const logoDisplayWidth = Math.min(qrWidth, qrHeight) * 0.24
+    const logoDisplayHeight = logoDisplayWidth * (logoHeight / logoWidth)
+    const backdropPadding = Math.min(qrWidth, qrHeight) * 0.045
+    const logoX = (qrWidth - logoDisplayWidth) / 2
+    const logoY = (qrHeight - logoDisplayHeight) / 2
 
-		const backdrop = document.createElementNS(SVG_NS, 'rect')
-		backdrop.setAttribute('x', String(logoX - backdropPadding))
-		backdrop.setAttribute('y', String(logoY - backdropPadding))
-		backdrop.setAttribute('width', String(logoDisplayWidth + backdropPadding * 2))
-		backdrop.setAttribute('height', String(logoDisplayHeight + backdropPadding * 2))
-		backdrop.setAttribute('rx', String(backdropPadding * 1.5))
-		backdrop.setAttribute('fill', LOGO_BACKDROP_COLOR)
+    const backdrop = document.createElementNS(SVG_NS, 'rect')
+    backdrop.setAttribute('x', String(logoX - backdropPadding))
+    backdrop.setAttribute('y', String(logoY - backdropPadding))
+    backdrop.setAttribute('width', String(logoDisplayWidth + backdropPadding * 2))
+    backdrop.setAttribute('height', String(logoDisplayHeight + backdropPadding * 2))
+    backdrop.setAttribute('rx', String(backdropPadding * 1.5))
+    backdrop.setAttribute('fill', LOGO_BACKDROP_COLOR)
 
-		const logoGroup = document.createElementNS(SVG_NS, 'g')
-		logoGroup.setAttribute(
-			'transform',
-			`translate(${logoX} ${logoY}) scale(${logoDisplayWidth / logoWidth} ${logoDisplayHeight / logoHeight})`
-		)
+    const logoGroup = document.createElementNS(SVG_NS, 'g')
+    logoGroup.setAttribute(
+      'transform',
+      `translate(${logoX} ${logoY}) scale(${logoDisplayWidth / logoWidth} ${logoDisplayHeight / logoHeight})`
+    )
 
-		Array.from(logoRoot.childNodes).forEach(node => {
-			logoGroup.appendChild(document.importNode(node, true))
-		})
+    Array.from(logoRoot.childNodes).forEach(node => {
+      logoGroup.appendChild(document.importNode(node, true))
+    })
 
-		svg.appendChild(backdrop)
-		svg.appendChild(logoGroup)
-	}
+    svg.appendChild(backdrop)
+    svg.appendChild(logoGroup)
+  }
 }
 
 /**
  * Render a QR code SVG string during SSR/build so pages do not need client-side hydration.
  */
 export const renderQrCodeSvg = async ({
-	data,
-	size = DEFAULT_SIZE,
+  data,
+  size = DEFAULT_SIZE,
 }: RenderQrCodeSvgOptions): Promise<string> => {
-	const qrCode = new QRCodeStyling({
-		backgroundOptions: {
-			color: QR_BACKGROUND_COLOR,
-		},
-		cornersDotOptions: {
-			color: QR_CORNER_DOT_COLOR,
-			type: 'dots',
-		},
-		cornersSquareOptions: {
-			color: QR_CORNER_COLOR,
-			type: 'dots',
-		},
-		data,
-		dotsOptions: {
-			color: QR_DOT_COLOR,
-			type: 'dots',
-		},
-		height: size,
-		jsdom: JSDOM,
-		margin: 8,
-		qrOptions: {
-			errorCorrectionLevel: 'H',
-		},
-		type: 'svg',
-		width: size,
-	})
+  const qrCode = new QRCodeStyling({
+    backgroundOptions: {
+      color: QR_BACKGROUND_COLOR,
+    },
+    cornersDotOptions: {
+      color: QR_CORNER_DOT_COLOR,
+      type: 'dots',
+    },
+    cornersSquareOptions: {
+      color: QR_CORNER_COLOR,
+      type: 'dots',
+    },
+    data,
+    dotsOptions: {
+      color: QR_DOT_COLOR,
+      type: 'dots',
+    },
+    height: size,
+    jsdom: JSDOM,
+    margin: 8,
+    qrOptions: {
+      errorCorrectionLevel: 'H',
+    },
+    type: 'svg',
+    width: size,
+  })
 
-	qrCode.applyExtension(createLogoExtension(LOGO_SVG_MARKUP))
+  qrCode.applyExtension(createLogoExtension(LOGO_SVG_MARKUP))
 
-	const svgBuffer = await qrCode.getRawData('svg')
+  const svgBuffer = await qrCode.getRawData('svg')
 
-	if (!svgBuffer) {
-		throw new Error('Failed to generate QR code SVG')
-	}
+  if (!svgBuffer) {
+    throw new Error('Failed to generate QR code SVG')
+  }
 
-	return String(svgBuffer)
+  return String(svgBuffer)
 }

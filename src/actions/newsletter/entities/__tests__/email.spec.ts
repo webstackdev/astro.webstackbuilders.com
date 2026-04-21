@@ -1,7 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-vi.mock('@actions/utils/environment/environmentActions', async (importOriginal) => {
-  const actual = (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
+vi.mock('@actions/utils/environment/environmentActions', async importOriginal => {
+  const actual =
+    (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
   return {
     ...actual,
     getResendApiKey: () => 'resend-test-key',
@@ -43,8 +44,9 @@ describe('newsletter email entity', () => {
   })
 
   it('throws ActionsFunctionError when Resend returns an error in prod', async () => {
-    vi.doMock('@actions/utils/environment/environmentActions', async (importOriginal) => {
-      const actual = (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
+    vi.doMock('@actions/utils/environment/environmentActions', async importOriginal => {
+      const actual =
+        (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
       return {
         ...actual,
         getResendApiKey: () => 'resend-test-key',
@@ -67,7 +69,9 @@ describe('newsletter email entity', () => {
     vi.resetModules()
     const { sendConfirmationEmail: prodSendConfirmationEmail } = await import('../email')
 
-    await expect(prodSendConfirmationEmail('test@example.com', 'token-1', 'Jane')).rejects.toMatchObject({
+    await expect(
+      prodSendConfirmationEmail('test@example.com', 'token-1', 'Jane')
+    ).rejects.toMatchObject({
       name: 'ActionsFunctionError',
       status: 502,
     })

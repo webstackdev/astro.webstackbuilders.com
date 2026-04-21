@@ -21,8 +21,11 @@ const formatShortDate = (date: Date) =>
   })
 
 const publishDateText = publishDate ? formatShortDate(publishDate) : null
-const shouldShowModifiedDate = Boolean(modifiedDate && publishDate && modifiedDate.getTime() !== publishDate.getTime())
-const modifiedDateText = shouldShowModifiedDate && modifiedDate ? formatShortDate(modifiedDate) : null
+const shouldShowModifiedDate = Boolean(
+  modifiedDate && publishDate && modifiedDate.getTime() !== publishDate.getTime()
+)
+const modifiedDateText =
+  shouldShowModifiedDate && modifiedDate ? formatShortDate(modifiedDate) : null
 ---
 
 <div class="mt-2 sm:mt-4 pt-2 border-t border-trim">
@@ -32,35 +35,47 @@ const modifiedDateText = shouldShowModifiedDate && modifiedDate ? formatShortDat
 
       <div class="flex flex-col justify-center text-sm">
         <div class="whitespace-nowrap text-primary">
-          {author && (
-            <a
-              href="/about"
-              class="inline-flex min-h-6 items-center align-middle font-medium no-underline hover:text-secondary focus:text-secondary"
-            >
-              {author}
-            </a>
-          )}
-          {author && publishDateText && <span class="text-content-offset">{' '}on{' '}</span>}
-          {publishDateText && (
-            <time itemprop="datePublished" datetime={publishDate?.toISOString()}>
-              {publishDateText}
-            </time>
-          )}
+          {
+            author && (
+              <a
+                href="/about"
+                class="inline-flex min-h-6 items-center align-middle font-medium no-underline hover:text-secondary focus:text-secondary"
+              >
+                {author}
+              </a>
+            )
+          }
+          {author && publishDateText && <span class="text-content-offset"> on </span>}
+          {
+            publishDateText && (
+              <time itemprop="datePublished" datetime={publishDate?.toISOString()}>
+                {publishDateText}
+              </time>
+            )
+          }
         </div>
 
-        {modifiedDateText && (
-          <time class="text-content-offset" itemprop="dateModified" datetime={modifiedDate?.toISOString()}>
-            Updated on {modifiedDateText}
-          </time>
-        )}
+        {
+          modifiedDateText && (
+            <time
+              class="text-content-offset"
+              itemprop="dateModified"
+              datetime={modifiedDate?.toISOString()}
+            >
+              Updated on {modifiedDateText}
+            </time>
+          )
+        }
 
         {readingTime && <div class="text-content-offset">{readingTime}</div>}
       </div>
     </div>
-    {tags && tags.length > 0 && (
-      <div class="hidden sm:block sm:basis-full lg:mt-1 lg:mr-1 lg:flex lg:flex-1 lg:justify-end lg:basis-auto lg:min-w-0">
-        <Tags tags={tags} />
-      </div>
-    )}
+    {
+      tags && tags.length > 0 && (
+        <div class="hidden sm:block sm:basis-full lg:mt-1 lg:mr-1 lg:flex lg:flex-1 lg:justify-end lg:basis-auto lg:min-w-0">
+          <Tags tags={tags} />
+        </div>
+      )
+    }
   </div>
 </div>

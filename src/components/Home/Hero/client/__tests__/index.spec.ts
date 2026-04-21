@@ -50,9 +50,8 @@ describe('HomeHeroElement (Lit)', () => {
         }) as unknown as MediaQueryList) as unknown as typeof window.matchMedia
       syncWindowTimers(window)
 
-      const { registerHomeHeroWebComponent, READY_TEXT: readyTextValue } = await import(
-        '@components/Home/Hero/client'
-      )
+      const { registerHomeHeroWebComponent, READY_TEXT: readyTextValue } =
+        await import('@components/Home/Hero/client')
       await registerHomeHeroWebComponent()
 
       window.document.body.innerHTML = await renderHero()
@@ -97,9 +96,8 @@ describe('HomeHeroElement (Lit)', () => {
 
       initAnimationLifecycle()
 
-      const { registerHomeHeroWebComponent, READY_TEXT: readyTextValue } = await import(
-        '@components/Home/Hero/client'
-      )
+      const { registerHomeHeroWebComponent, READY_TEXT: readyTextValue } =
+        await import('@components/Home/Hero/client')
       await registerHomeHeroWebComponent()
 
       window.document.body.innerHTML = await renderHero()

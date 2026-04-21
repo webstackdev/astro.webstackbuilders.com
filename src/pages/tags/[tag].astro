@@ -17,9 +17,15 @@ export interface Props {
 
 export async function getStaticPaths() {
   const allTags = await getCollection('tags')
-  const allArticles = await getCollection('articles', ({ data }) => isDev() || data.isDraft !== true)
+  const allArticles = await getCollection(
+    'articles',
+    ({ data }) => isDev() || data.isDraft !== true
+  )
 
-  const articleHasTag = (article: CollectionEntry<'articles'>, tagEntry: CollectionEntry<'tags'>) => {
+  const articleHasTag = (
+    article: CollectionEntry<'articles'>,
+    tagEntry: CollectionEntry<'tags'>
+  ) => {
     return article.data.tags.some((tagRef: { id: string }) => tagRef.id === tagEntry.id)
   }
 
@@ -90,33 +96,54 @@ const paginatedContent = sortedContent.slice(startIndex, endIndex)
         </div>
 
         <div class="min-w-0 sm:flex-1 sm:space-y-4 sm:ml-4 sm:mt-6">
-          <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2">
+          <div
+            class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2"
+          >
             <h1 class="text-page-inverse">
               {tagEntry.data.displayName}
             </h1>
-            <span class="inline-flex w-fit rounded-full bg-page-inverse px-3 py-1 text-sm font-semibold text-page-base whitespace-nowrap ml-2 sm:mt-2">
-              {totalItems} {totalItems === 1 ? 'article' : 'articles'}
+            <span
+              class="inline-flex w-fit rounded-full bg-page-inverse px-3 py-1 text-sm font-semibold text-page-base whitespace-nowrap ml-2 sm:mt-2"
+            >
+              {totalItems}
+              {totalItems === 1 ? 'article' : 'articles'}
             </span>
           </div>
 
-          {tagEntry.data.intro && (
-            <p class="hidden sm:block text-lg text-content leading-relaxed max-w-2xl">
-              {tagEntry.data.intro}
-            </p>
-          )}
+          {
+            tagEntry.data.intro && (
+              <p class="hidden sm:block text-lg text-content leading-relaxed max-w-2xl">
+                {tagEntry.data.intro}
+              </p>
+            )
+          }
 
-          <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-content-offset mt-2 sm:mt-0 ml-3 sm:ml-0">
-            {sortedContent.length > 0 && (
-              <span class="text-content-active">
-                Latest: <time class="font-medium text-content">{sortedContent[0]!.data.publishDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</time>
-              </span>
-            )}
+          <div
+            class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-content-offset mt-2 sm:mt-0 ml-3 sm:ml-0"
+          >
+            {
+              sortedContent.length > 0 && (
+                <span class="text-content-active">
+                  Latest:{' '}
+                  <time class="font-medium text-content">
+                    {sortedContent[0]!.data.publishDate.toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </time>
+                </span>
+              )
+            }
           </div>
         </div>
       </div>
     </header>
 
-    <section class="border border-trim rounded-xl px-6 sm:px-8 pt-4 sm:pt-6 max-w-none mb-12" aria-label="Tag description">
+    <section
+      class="border border-trim rounded-xl px-6 sm:px-8 pt-4 sm:pt-6 max-w-none mb-12"
+      aria-label="Tag description"
+    >
       <TagContent />
     </section>
 
@@ -158,9 +185,7 @@ const paginatedContent = sortedContent.slice(startIndex, endIndex)
 
                     <div class="p-6 space-y-4">
                       <div class="flex items-center gap-3 text-sm">
-                        <span
-                          class="px-3 py-1 rounded-full text-white font-medium bg-primary"
-                        >
+                        <span class="px-3 py-1 rounded-full text-white font-medium bg-primary">
                           Article
                         </span>
                         <time datetime={item.data.publishDate.toISOString()}>
@@ -246,9 +271,7 @@ const paginatedContent = sortedContent.slice(startIndex, endIndex)
               {/* Show last page */}
               {currentPage < totalPages - 2 && (
                 <>
-                  {currentPage < totalPages - 3 && (
-                    <span class="px-3 py-2 text-sm">…</span>
-                  )}
+                  {currentPage < totalPages - 3 && <span class="px-3 py-2 text-sm">…</span>}
                   <a
                     href={`/tags/${tag}?page=${totalPages}`}
                     class="px-3 py-2 text-sm font-medium bg-content-inverse border border-trim rounded-lg hover:bg-page-offset transition-colors duration-200"

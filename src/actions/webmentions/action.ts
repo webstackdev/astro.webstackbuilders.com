@@ -29,9 +29,13 @@ export const webmentions = {
     handler: async (input): Promise<WebmentionsListResult> => {
       try {
         const mentions = await fetchWebmentions(input.url)
-        const displayMentions = mentions.filter(mention => displayProperties.has(mention['wm-property']))
+        const displayMentions = mentions.filter(mention =>
+          displayProperties.has(mention['wm-property'])
+        )
         const likesCount = mentions.filter(mention => mention['wm-property'] === 'like-of').length
-        const repostsCount = mentions.filter(mention => mention['wm-property'] === 'repost-of').length
+        const repostsCount = mentions.filter(
+          mention => mention['wm-property'] === 'repost-of'
+        ).length
 
         return {
           likesCount,

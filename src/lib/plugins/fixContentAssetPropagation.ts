@@ -29,15 +29,15 @@ type TransformFn = (
   this: unknown,
   _code: string,
   _id: string,
-  _options?: { ssr?: boolean },
+  _options?: { ssr?: boolean }
 ) => unknown
 
 type TransformHook =
   | TransformFn
   | {
-    filter?: unknown
-    handler: TransformFn
-  }
+      filter?: unknown
+      handler: TransformFn
+    }
 
 const forceNonSsrTransform = (transform: TransformHook): TransformHook => {
   const wrapHandler = (handler: TransformFn): TransformFn => {
@@ -62,7 +62,7 @@ export function fixContentAssetPropagation(): PluginOption {
     configResolved(config) {
       if (config.command !== 'build') return
       const plugin = config.plugins.find(
-        (p: Plugin) => p.name === 'astro:content-asset-propagation',
+        (p: Plugin) => p.name === 'astro:content-asset-propagation'
       )
       if (!plugin?.transform) return
       const pluginRecord = plugin as unknown as Record<string, unknown>

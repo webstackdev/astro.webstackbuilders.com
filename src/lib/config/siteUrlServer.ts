@@ -2,10 +2,7 @@
  * Server-side method to determine correct URL
  */
 import { BuildError } from '../errors/BuildError'
-import {
-  isProd,
-  isVercel
-} from './environmentServer'
+import { isProd, isVercel } from './environmentServer'
 
 const devServerPort = process.env['DEV_SERVER_PORT']?.trim()
 const resolvedDevServerPort = devServerPort && devServerPort.length > 0 ? devServerPort : '4321'

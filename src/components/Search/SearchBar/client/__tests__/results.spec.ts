@@ -26,8 +26,12 @@ describe('SearchBar result helpers', () => {
 
     expect(Array.isArray(highlighted)).toBe(true)
 
-    const highlightedParts = highlighted as Array<string | { strings?: string[]; values?: unknown[] }>
-    expect(highlightedParts.some(part => typeof part === 'string' && part.includes('Introduction to '))).toBe(true)
+    const highlightedParts = highlighted as Array<
+      string | { strings?: string[]; values?: unknown[] }
+    >
+    expect(
+      highlightedParts.some(part => typeof part === 'string' && part.includes('Introduction to '))
+    ).toBe(true)
     expect(highlightedParts.some(part => typeof part !== 'string')).toBe(true)
   })
 
@@ -37,13 +41,17 @@ describe('SearchBar result helpers', () => {
     })
 
     const highlightedParts = highlighted as Array<string | { values?: unknown[] }>
-    const templatePart = highlightedParts.find(part => typeof part !== 'string') as { values?: unknown[] } | undefined
+    const templatePart = highlightedParts.find(part => typeof part !== 'string') as
+      | { values?: unknown[] }
+      | undefined
 
     expect(templatePart?.values?.[0]).toBe('bg-warning-inverse text-content')
   })
 
   it('returns plain text when there is no highlightable query term', () => {
-    expect(highlightSearchText('Introduction to Vector Search', 'v')).toBe('Introduction to Vector Search')
+    expect(highlightSearchText('Introduction to Vector Search', 'v')).toBe(
+      'Introduction to Vector Search'
+    )
   })
 
   it('highlights terms containing regex metacharacters without using regex semantics', () => {
@@ -52,7 +60,11 @@ describe('SearchBar result helpers', () => {
     expect(Array.isArray(highlighted)).toBe(true)
 
     const highlightedParts = highlighted as Array<string | { values?: unknown[] }>
-    expect(highlightedParts.some(part => typeof part === 'string' && part.includes(' patterns for teams'))).toBe(true)
+    expect(
+      highlightedParts.some(
+        part => typeof part === 'string' && part.includes(' patterns for teams')
+      )
+    ).toBe(true)
     expect(highlightedParts.some(part => typeof part !== 'string')).toBe(true)
   })
 })

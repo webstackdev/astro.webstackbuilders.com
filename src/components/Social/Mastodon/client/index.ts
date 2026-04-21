@@ -434,7 +434,9 @@ export class MastodonModalElement extends LitElement {
           class="modal-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"
           @click=${(event: Event) => this.handleBackdropClick(event)}
         ></div>
-        <div class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto rounded-xl bg-page-base shadow-2xl">
+        <div
+          class="modal-content relative w-full max-w-2xl max-h-[90vh] overflow-auto rounded-xl bg-page-base shadow-2xl"
+        >
           <div class="bg-page-inverse px-6 py-5 flex items-center justify-between">
             <div class="flex items-center gap-3 text-content-inverse">
               ${mastodonIconMarkup ? unsafeHTML(mastodonIconMarkup) : null}
@@ -458,7 +460,10 @@ export class MastodonModalElement extends LitElement {
             @submit=${(event: Event) => this.handleSubmit(event)}
           >
             <div class="flex flex-col gap-2">
-              <label for="share-text" class="text-sm font-medium text-content-offset uppercase tracking-wider">
+              <label
+                for="share-text"
+                class="text-sm font-medium text-content-offset uppercase tracking-wider"
+              >
                 Text to share
               </label>
               <div
@@ -528,7 +533,10 @@ export class MastodonModalElement extends LitElement {
                   </div>`
                 : null}
 
-              <label for="remember-instance" class="flex items-center gap-2 text-sm cursor-pointer text-content-offset">
+              <label
+                for="remember-instance"
+                class="flex items-center gap-2 text-sm cursor-pointer text-content-offset"
+              >
                 <input
                   type="checkbox"
                   id="remember-instance"

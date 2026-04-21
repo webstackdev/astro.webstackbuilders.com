@@ -8,7 +8,11 @@ import {
   getResendApiKey,
   isProd,
 } from '@actions/utils/environment/environmentActions'
-import { ActionsFunctionError, handleActionsFunctionError, throwActionError } from '@actions/utils/errors'
+import {
+  ActionsFunctionError,
+  handleActionsFunctionError,
+  throwActionError,
+} from '@actions/utils/errors'
 import { contactFormSender, contactInbox, contactReplyTo } from '@actions/utils/email/resendSenders'
 import { createConsentRecord } from '@actions/gdpr/entities/consent'
 import { createOrUpdateContact, setMarketingOptIn } from '@actions/utils/hubspot'
@@ -121,7 +125,8 @@ export const contact = {
             userAgent,
             ipAddress: ip !== 'unknown' ? ip : null,
             privacyPolicyVersion: getPrivacyPolicyVersion(),
-            consentText: null,
+            consentText:
+              'I consent to Webstack Builders processing my personal data for responding to your inquiry. See our Privacy Policy and Cookie Policy.',
             verified: true,
           })
         }
@@ -189,9 +194,13 @@ export const contact = {
           throw error
         }
 
-        throwActionError(error, { route, operation: 'submit' }, {
-          fallbackMessage: 'Failed to send email. Please try again later.',
-        })
+        throwActionError(
+          error,
+          { route, operation: 'submit' },
+          {
+            fallbackMessage: 'Failed to send email. Please try again later.',
+          }
+        )
       }
     },
   }),

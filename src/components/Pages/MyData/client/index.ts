@@ -4,10 +4,17 @@ import { addScriptBreadcrumb, ClientScriptError } from '@components/scripts/erro
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
-import { getPrivacyFormElements } from './selectors'
+import {
+  getPrivacyFormElements,
+  getPrivacyPreviewToastElement,
+  getPrivacyPreviewToastElements,
+  getPrivacySubmitButton,
+} from './selectors'
 
 type MessageType = 'success' | 'error' | 'info'
 type RequestType = 'ACCESS' | 'DELETE'
+type RequestPreviewState = 'loading' | 'success' | 'error' | 'validation'
+type RequestFormType = 'access' | 'delete'
 
 type DsarVerifyResult =
   | { status: 'download'; filename: string; json: string }
@@ -15,6 +22,15 @@ type DsarVerifyResult =
   | { status: string }
 
 type RequestDataResult = { message: string }
+
+type RequestToastTone = 'success' | 'error' | 'info'
+
+const requestPreviewStates = ['loading', 'success', 'error', 'validation'] as const
+
+const requestPreviewQueryParams: Record<RequestFormType, string> = {
+  access: 'accessState',
+  delete: 'deleteState',
+}
 
 const statusMessages: Record<string, { type: MessageType; message: string }> = {
   sent: {
@@ -58,6 +74,10 @@ export class PrivacyFormElement extends LitElement {
   private deleteConfirmCheckbox!: HTMLInputElement
   private deleteMessage!: HTMLElement
 
+  private getPreviewToastElements(requestType: RequestType): HTMLElement[] {
+    return getPrivacyPreviewToastElements(requestType, this)
+  }
+
   override connectedCallback(): void {
     super.connectedCallback()
 
@@ -89,6 +109,7 @@ export class PrivacyFormElement extends LitElement {
       this.bindEvents()
       this.isInitialized = true
 
+      this.renderRequestPreviewStatesFromQueryString()
       this.renderStatusFromQueryString()
       void this.handleVerificationToken()
     } catch (error) {
@@ -136,11 +157,192 @@ export class PrivacyFormElement extends LitElement {
     })
   }
 
-  private setMessage(target: HTMLElement, message: string, type: MessageType): void {
+  private setRequestState(
+    form: HTMLFormElement,
+    state: RequestPreviewState | 'idle',
+    requestType?: RequestType
+  ): void {
+    form.dataset['privacyState'] = state
+    form.setAttribute('aria-busy', String(state === 'loading'))
+
+    if (!requestType) {
+      return
+    }
+
+    const rootAttributeName = requestType === 'ACCESS' ? 'data-access-state' : 'data-delete-state'
+    this.setAttribute(rootAttributeName, state)
+  }
+
+  private setSubmitLoading(form: HTMLFormElement, loading: boolean): void {
+    const submitButton = getPrivacySubmitButton(form)
+    if (submitButton) {
+      submitButton.disabled = loading
+    }
+  }
+
+  private setEmailInvalid(input: HTMLInputElement, invalid: boolean): void {
+    input.setAttribute('aria-invalid', String(invalid))
+    input.classList.toggle('border-danger', invalid)
+    input.classList.toggle('focus:border-danger', invalid)
+  }
+
+  private setDeleteConfirmationInvalid(invalid: boolean): void {
+    this.deleteConfirmCheckbox.setAttribute('aria-invalid', String(invalid))
+  }
+
+  private hidePreviewToast(requestType: RequestType): void {
+    for (const el of this.getPreviewToastElements(requestType)) {
+      el.classList.add('hidden')
+    }
+  }
+
+  private resolveRequestToastConfig(
+    requestType: RequestType,
+    message: string,
+    type: RequestToastTone
+  ): {
+    title: string
+    icon: 'check-stylized' | 'warning' | 'spinner'
+    containerClasses: string[]
+    iconContainerClasses: string[]
+    titleClasses: string[]
+  } {
+    if (type === 'success') {
+      return {
+        title: requestType === 'ACCESS' ? 'Request Sent' : 'Deletion Request Sent',
+        icon: 'check-stylized',
+        containerClasses: ['border-success', 'bg-success-inverse', 'text-success'],
+        iconContainerClasses: ['bg-success', 'text-content-inverse'],
+        titleClasses: ['text-success'],
+      }
+    }
+
+    if (type === 'info') {
+      return {
+        title: 'Sending Request',
+        icon: 'spinner',
+        containerClasses: ['border-info', 'bg-info-inverse', 'text-info'],
+        iconContainerClasses: ['bg-info', 'text-content-inverse'],
+        titleClasses: ['text-info'],
+      }
+    }
+
+    const isValidationMessage =
+      message.includes('valid email') || message.includes('confirm you understand') || message.includes('confirm the deletion request')
+
+    return {
+      title: isValidationMessage
+        ? 'Check Your Details'
+        : requestType === 'ACCESS'
+          ? 'Request Failed'
+          : 'Deletion Request Failed',
+      icon: 'warning',
+      containerClasses: ['border-danger', 'bg-danger-inverse', 'text-danger'],
+      iconContainerClasses: ['bg-danger', 'text-content-inverse'],
+      titleClasses: ['text-danger'],
+    }
+  }
+
+  private renderRequestToast(target: HTMLElement, requestType: RequestType, message: string, type: RequestToastTone): void {
+    const config = this.resolveRequestToastConfig(requestType, message, type)
+
+    target.replaceChildren()
+    target.classList.remove('px-4', 'py-3', 'text-sm', 'bg-danger-offset')
+    target.classList.add('w-full', 'rounded-xl', 'border')
+    target.classList.add(...config.containerClasses)
+
+    const wrapper = document.createElement('div')
+    wrapper.className = 'flex items-start gap-4 p-6'
+
+    const iconContainer = document.createElement('div')
+    iconContainer.className = 'shrink-0 flex h-6 w-6 items-center justify-center rounded-full'
+    iconContainer.classList.add(...config.iconContainerClasses)
+
+    const icon = document.createElement('span')
+    icon.setAttribute('aria-hidden', 'true')
+    icon.textContent = config.icon === 'check-stylized' ? '✓' : config.icon === 'spinner' ? '◌' : '!'
+    iconContainer.appendChild(icon)
+
+    const content = document.createElement('div')
+
+    const title = document.createElement('h3')
+    title.className = 'mb-2 text-lg font-semibold'
+    title.classList.add(...config.titleClasses)
+    title.textContent = config.title
+
+    const body = document.createElement('p')
+    body.textContent = message
+
+    content.append(title, body)
+    wrapper.append(iconContainer, content)
+    target.appendChild(wrapper)
+  }
+
+  private resetMessage(target: HTMLElement): void {
+    target.replaceChildren()
+    target.classList.add('hidden')
+    target.classList.remove(
+      'w-full',
+      'rounded-xl',
+      'border',
+      'border-success',
+      'bg-success-inverse',
+      'text-success',
+      'border-danger',
+      'bg-danger-offset',
+      'bg-danger-inverse',
+      'text-danger',
+      'border-info',
+      'bg-info-inverse',
+      'text-info',
+      'px-4',
+      'py-3',
+      'text-sm'
+    )
+    target.classList.add('rounded-xl', 'border', 'px-4', 'py-3', 'text-sm')
+  }
+
+  private resetRequestState(requestType: RequestType): void {
+    const isAccessRequest = requestType === 'ACCESS'
+    const form = isAccessRequest ? this.accessForm : this.deleteForm
+    const emailInput = isAccessRequest ? this.accessEmailInput : this.deleteEmailInput
+    const message = isAccessRequest ? this.accessMessage : this.deleteMessage
+
+    this.hidePreviewToast(requestType)
+    this.resetMessage(message)
+    this.setRequestState(form, 'idle', requestType)
+    this.setSubmitLoading(form, false)
+    this.setEmailInvalid(emailInput, false)
+
+    if (!isAccessRequest) {
+      this.setDeleteConfirmationInvalid(false)
+    }
+  }
+
+  private setMessage(
+    target: HTMLElement,
+    message: string,
+    type: MessageType,
+    options: { focus?: boolean } = {}
+  ): void {
     target.setAttribute('role', type === 'error' ? 'alert' : 'status')
     target.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite')
-    target.textContent = message
     target.classList.remove('hidden')
+
+    const requestType =
+      target.id === 'access-message' ? 'ACCESS' : target.id === 'delete-message' ? 'DELETE' : null
+
+    if (requestType) {
+      this.renderRequestToast(target, requestType, message, type)
+
+      if (options.focus ?? true) {
+        target.focus()
+      }
+
+      return
+    }
+
+    target.textContent = message
 
     const variantClasses = [
       'border-success',
@@ -167,7 +369,66 @@ export class PrivacyFormElement extends LitElement {
       target.classList.add('border-info', 'bg-info-inverse', 'text-info')
     }
 
-    target.focus()
+    if (options.focus ?? true) {
+      target.focus()
+    }
+  }
+
+  private resolvePreviewState(
+    params: URLSearchParams,
+    requestFormType: RequestFormType
+  ): RequestPreviewState | null {
+    const previewState = params
+      .get(requestPreviewQueryParams[requestFormType])
+      ?.trim()
+      .toLowerCase()
+
+    if (!previewState) {
+      return null
+    }
+
+    return requestPreviewStates.includes(previewState as RequestPreviewState)
+      ? (previewState as RequestPreviewState)
+      : null
+  }
+
+  private applyRequestPreviewState(
+    requestType: RequestType,
+    previewState: RequestPreviewState
+  ): void {
+    const isAccessRequest = requestType === 'ACCESS'
+    const form = isAccessRequest ? this.accessForm : this.deleteForm
+    const emailInput = isAccessRequest ? this.accessEmailInput : this.deleteEmailInput
+
+    // Show only the matching static SSR preview toast; hide all others for this form.
+    for (const el of this.getPreviewToastElements(requestType)) {
+      el.classList.add('hidden')
+    }
+    getPrivacyPreviewToastElement(requestType, previewState, this)?.classList.remove('hidden')
+
+    this.setRequestState(form, previewState, requestType)
+    this.setSubmitLoading(form, previewState === 'loading')
+
+    if (previewState === 'validation') {
+      this.setEmailInvalid(emailInput, true)
+      if (!isAccessRequest) {
+        this.setDeleteConfirmationInvalid(true)
+      }
+    }
+  }
+
+  private renderRequestPreviewStatesFromQueryString(): void {
+    const params = new URLSearchParams(window.location.search)
+    const accessPreviewState = this.resolvePreviewState(params, 'access')
+    const deletePreviewState = this.resolvePreviewState(params, 'delete')
+
+    if (accessPreviewState) {
+      this.applyRequestPreviewState('ACCESS', accessPreviewState)
+    }
+
+    if (deletePreviewState) {
+      this.applyRequestPreviewState('DELETE', deletePreviewState)
+    }
   }
 
   private renderStatusFromQueryString(): void {
@@ -240,25 +501,37 @@ export class PrivacyFormElement extends LitElement {
     const formEl = requestType === 'ACCESS' ? this.accessForm : this.deleteForm
     const emailInput = requestType === 'ACCESS' ? this.accessEmailInput : this.deleteEmailInput
 
+    this.resetRequestState(requestType)
+
     if (requestType === 'DELETE' && !this.deleteConfirmCheckbox.checked) {
+      this.setRequestState(formEl, 'validation', requestType)
+      this.setDeleteConfirmationInvalid(true)
       this.setMessage(messageEl, 'Please confirm you understand the deletion request.', 'error')
       return
     }
 
     const email = emailInput.value
+    this.setRequestState(formEl, 'loading', requestType)
+    this.setSubmitLoading(formEl, true)
     this.setMessage(messageEl, 'Sending request...', 'info')
 
     try {
       const { data, error } = await actions.gdpr.requestData({ email, requestType })
       if (error || !data) {
+        this.setRequestState(formEl, 'error', requestType)
+        this.setSubmitLoading(formEl, false)
         this.setMessage(messageEl, error?.message || 'Request failed', 'error')
         return
       }
 
       const resultData = data as RequestDataResult
+      this.setRequestState(formEl, 'success', requestType)
+      this.setSubmitLoading(formEl, false)
       this.setMessage(messageEl, resultData.message, 'success')
       formEl.reset()
     } catch (error) {
+      this.setRequestState(formEl, 'error', requestType)
+      this.setSubmitLoading(formEl, false)
       this.setMessage(
         messageEl,
         error instanceof Error ? error.message : 'Network or server error',

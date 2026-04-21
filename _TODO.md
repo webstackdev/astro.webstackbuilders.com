@@ -30,9 +30,9 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 ## Contact Form
 
 - `0/2000` characters should show number of characters left instead
+- Workflow right now puts the "Success" toast under the submit button when the submit button returns to normal after a submission. It seems like the button should have some time out after a successful submission to make sure it's not hammered, like five seconds. And it just looks visually odd - maybe the button should be part of the layout of the success toast, or moved down under it.
 
 ## Newsletter / MJML Templates
 
-- We need to make sure the images point to the full production URL, not a relative import
 - Need to move the unsubscribe link into an Action and handle it entirely within our website instead of on Hubspot
 - Need to add a newsletter publishing workflow as an action, using the newsletter static segment imported from Hubspot

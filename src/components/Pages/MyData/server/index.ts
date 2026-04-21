@@ -1,4 +1,7 @@
-export const statusMessages: Record<string, { type: 'success' | 'error' | 'info'; message: string }> = {
+export const statusMessages: Record<
+  string,
+  { type: 'success' | 'error' | 'info'; message: string }
+> = {
   sent: {
     type: 'success',
     message:

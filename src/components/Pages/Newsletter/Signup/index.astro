@@ -46,7 +46,6 @@ const { content } = Astro.props
 <section class="py-12 bg-page-offset" aria-label="Newsletter sign-up">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-
       {/* Left column: what you get */}
       <div class="space-y-8">
         <div>
@@ -57,17 +56,19 @@ const { content } = Astro.props
         </div>
 
         <ul class="space-y-4">
-          {content.intro.itemList.map((item) => (
-            <li class="flex items-start gap-3">
-              <span class="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-success/15 shrink-0">
-                <Icon icon="check-stylized" color="success" size={3.5} />
-              </span>
-              <div>
-                <p class="font-semibold text-content">{item.lead}</p>
-                <p class="text-sm text-content-offset">{item.text}</p>
-              </div>
-            </li>
-          ))}
+          {
+            content.intro.itemList.map(item => (
+              <li class="flex items-start gap-3">
+                <span class="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-success/15 shrink-0">
+                  <Icon icon="check-stylized" color="success" size={3.5} />
+                </span>
+                <div>
+                  <p class="font-semibold text-content">{item.lead}</p>
+                  <p class="text-sm text-content-offset">{item.text}</p>
+                </div>
+              </li>
+            ))
+          }
         </ul>
 
         <div class="border-t border-trim pt-6">
@@ -101,15 +102,22 @@ const { content } = Astro.props
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {content.topics.itemList.map((item) => (
-        <div class="bg-page-offset border border-trim rounded-xl p-6">
-          <div class:list={["w-10 h-10 rounded-lg flex items-center justify-center mb-4", item.bgColor]} >
-            <Icon icon={item.icon} color={item.color} size={6} />
+      {
+        content.topics.itemList.map(item => (
+          <div class="bg-page-offset border border-trim rounded-xl p-6">
+            <div
+              class:list={[
+                'w-10 h-10 rounded-lg flex items-center justify-center mb-4',
+                item.bgColor,
+              ]}
+            >
+              <Icon icon={item.icon} color={item.color} size={6} />
+            </div>
+            <h3 class="font-bold text-content mb-2">{item.lead}</h3>
+            <p class="text-sm text-content-offset">{item.text}</p>
           </div>
-          <h3 class="font-bold text-content mb-2">{item.lead}</h3>
-          <p class="text-sm text-content-offset">{item.text}</p>
-        </div>
-      ))}
+        ))
+      }
     </div>
   </div>
 </section>
@@ -134,12 +142,13 @@ const { content } = Astro.props
       <div class="p-5 space-y-4 text-page-base/80">
         <p>
           <span class="text-success">##</span>
-          <span class="text-page-base font-bold">{` Deep Dive: The Kubernetes DNS Bug That Wasted 40 Hours`}</span>
+          <span class="text-page-base font-bold"
+            >{` Deep Dive: The Kubernetes DNS Bug That Wasted 40 Hours`}</span
+          >
         </p>
         <p class="text-page-base/60 text-xs leading-relaxed pl-4 border-l-2 border-page-base/20">
-          How the default ndots:5 setting caused cascading DNS failures under
-          load, the misleading metrics that sent us down the wrong path, and the
-          two-line fix that resolved it.
+          How the default ndots:5 setting caused cascading DNS failures under load, the misleading
+          metrics that sent us down the wrong path, and the two-line fix that resolved it.
         </p>
 
         <p>
@@ -147,9 +156,15 @@ const { content } = Astro.props
           <span class="text-page-base font-bold">{` Quick Wins`}</span>
         </p>
         <div class="pl-4 space-y-1 text-xs text-page-base/60">
-          <p><span class="text-spotlight">-</span> Terraform state backup one-liner before every apply</p>
-          <p><span class="text-spotlight">-</span> PromQL query to find unused Grafana dashboards</p>
-          <p><span class="text-spotlight">-</span> Pre-commit hook for secrets scanning in monorepos</p>
+          <p>
+            <span class="text-spotlight">-</span> Terraform state backup one-liner before every apply
+          </p>
+          <p>
+            <span class="text-spotlight">-</span> PromQL query to find unused Grafana dashboards
+          </p>
+          <p>
+            <span class="text-spotlight">-</span> Pre-commit hook for secrets scanning in monorepos
+          </p>
         </div>
 
         <p>
@@ -167,8 +182,8 @@ const { content } = Astro.props
           <span class="text-page-base font-bold">{` Try This Month`}</span>
         </p>
         <p class="text-page-base/60 text-xs pl-4">
-          Check your CoreDNS cache hit rate. Below 80%? You're hammering upstream
-          resolvers unnecessarily.
+          Check your CoreDNS cache hit rate. Below 80%? You're hammering upstream resolvers
+          unnecessarily.
         </p>
 
         <p class="text-page-base/40 text-xs pt-2 border-t border-page-base/10">

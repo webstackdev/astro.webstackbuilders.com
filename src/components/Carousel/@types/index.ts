@@ -55,5 +55,6 @@ export type CarouselProps =
       items: UnknownCarouselItem[]
     })
 
-export type ItemType<T extends CollectionSlug = CollectionSlug> =
-  T extends KnownCollectionSlug ? CollectionEntryMap[T] : UnknownCarouselItem
+export type ItemType<T extends CollectionSlug = CollectionSlug> = T extends KnownCollectionSlug
+  ? CollectionEntryMap[T]
+  : UnknownCarouselItem

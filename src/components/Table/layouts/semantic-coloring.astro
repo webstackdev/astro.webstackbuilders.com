@@ -74,7 +74,14 @@ const stateClasses = {
 } as const
 
 type SemanticStateName = keyof typeof stateClasses
-const allowedSemanticStates: SemanticStateName[] = ['accent', 'note', 'success', 'warning', 'danger', 'info']
+const allowedSemanticStates: SemanticStateName[] = [
+  'accent',
+  'note',
+  'success',
+  'warning',
+  'danger',
+  'info',
+]
 
 const isSemanticStateName = (value: string): value is SemanticStateName => {
   return allowedSemanticStates.includes(value as SemanticStateName)
@@ -117,7 +124,9 @@ const bodyColumnCount = hasRowHeaders
   ? (firstBodyRow?.td.length ?? 0) + 1
   : (firstBodyRow?.td.length ?? 0)
 const shouldPrependStateHeader = hasRowHeaders && content.thead?.th.length === bodyColumnCount - 1
-const headerCells = shouldPrependStateHeader ? ['State', ...(content.thead?.th ?? [])] : (content.thead?.th ?? [])
+const headerCells = shouldPrependStateHeader
+  ? ['State', ...(content.thead?.th ?? [])]
+  : (content.thead?.th ?? [])
 
 const getStateClass = (row: Props['content']['tbody']['tr'][number], rowIndex: number) => {
   if (typeof row.th === 'object' && row.th?.color && isSemanticStateName(row.th.color)) {
@@ -159,194 +168,205 @@ const getCellStateClass = (cell: string | { label: string; color?: string }) => 
 }
 ---
 
-<table class:list={[tableClass, content.thead ? 'print-table-has-head' : 'print-table-no-head', classes?.table]}>
-    {(hasScreenCaption || content.figure) && (
-      <caption class:list={[captionClass, content.figure ? 'print-table-caption' : '', !hasScreenCaption ? 'hidden' : '', classes?.caption]}>
+<table
+  class:list={[
+    tableClass,
+    content.thead ? 'print-table-has-head' : 'print-table-no-head',
+    classes?.table,
+  ]}
+>
+  {
+    (hasScreenCaption || content.figure) && (
+      <caption
+        class:list={[
+          captionClass,
+          content.figure ? 'print-table-caption' : '',
+          !hasScreenCaption ? 'hidden' : '',
+          classes?.caption,
+        ]}
+      >
         {hasScreenCaption && (
           <span class="screen-table-caption-copy">
-            {content.caption && <span class="block" set:html={content.caption}></span>}
-            {content.subcaption && <span class="block" set:html={content.subcaption}></span>}
+            {content.caption && <span class="block" set:html={content.caption} />}
+            {content.subcaption && <span class="block" set:html={content.subcaption} />}
           </span>
         )}
-        {content.figure && <span class="hidden print-table-figure-copy" set:html={content.figure}></span>}
+        {content.figure && (
+          <span class="hidden print-table-figure-copy" set:html={content.figure} />
+        )}
       </caption>
-    )}
+    )
+  }
 
-    {content.thead && (
+  {
+    content.thead && (
       <thead class:list={[theadClass, classes?.thead]}>
         <tr>
-          {headerCells.map((th) => (
-            <th scope="col" class:list={[headerClass, classes?.thead]} set:html={th}></th>
+          {headerCells.map(th => (
+            <th scope="col" class:list={[headerClass, classes?.thead]} set:html={th} />
           ))}
         </tr>
       </thead>
-    )}
+    )
+  }
 
-    <tbody class:list={[tbodyClass, classes?.tbody]}>
-      {content.tbody.tr.map((row, rowIndex) => {
+  <tbody class:list={[tbodyClass, classes?.tbody]}>
+    {
+      content.tbody.tr.map((row, rowIndex) => {
         const stateClass = getStateClass(row, rowIndex)
 
         return (
-          <tr class:list={[
-            'border-b last:border-b-0 border-trim',
-            stateClass.rowBgClass,
-          ]}>
+          <tr class:list={['border-b last:border-b-0 border-trim', stateClass.rowBgClass]}>
             <td class="px-5 py-3 font-bold relative">
-              <span class={stateClass.textClass}>
-                {getStateLabel(row)}
-              </span>
+              <span class={stateClass.textClass}>{getStateLabel(row)}</span>
             </td>
-            {row.th ? (
-              row.td.map((td, index) => (
-                <td
-                  class:list={[
-                    'px-5 py-3',
-                    index === 0 ? 'font-medium text-content' : 'text-content',
-                    classes?.tbody,
-                  ]}
-                >
-                  {(() => {
-                    const cellStateClass = getCellStateClass(td)
+            {row.th
+              ? row.td.map((td, index) => (
+                  <td
+                    class:list={[
+                      'px-5 py-3',
+                      index === 0 ? 'font-medium text-content' : 'text-content',
+                      classes?.tbody,
+                    ]}
+                  >
+                    {(() => {
+                      const cellStateClass = getCellStateClass(td)
 
-                    if (!cellStateClass) {
-                      return <span set:html={getCellLabel(td)}></span>
-                    }
+                      if (!cellStateClass) {
+                        return <span set:html={getCellLabel(td)} />
+                      }
 
-                    return (
-                      <span
-                        class:list={[
-                          'inline-flex rounded-md px-2.5 py-1 font-medium',
-                          cellStateClass.rowBgClass,
-                          cellStateClass.textClass,
-                        ]}
-                        set:html={getCellLabel(td)}
-                      ></span>
-                    )
-                  })()}
-                </td>
-              ))
-            ) : (
-              row.td.map((td, index) => (
-                <td
-                  class:list={[
-                    'px-5 py-3',
-                    index === 0 ? 'font-medium text-content' : 'text-content',
-                    classes?.tbody,
-                  ]}
-                >
-                  {(() => {
-                    const cellStateClass = getCellStateClass(td)
+                      return (
+                        <span
+                          class:list={[
+                            'inline-flex rounded-md px-2.5 py-1 font-medium',
+                            cellStateClass.rowBgClass,
+                            cellStateClass.textClass,
+                          ]}
+                          set:html={getCellLabel(td)}
+                        />
+                      )
+                    })()}
+                  </td>
+                ))
+              : row.td.map((td, index) => (
+                  <td
+                    class:list={[
+                      'px-5 py-3',
+                      index === 0 ? 'font-medium text-content' : 'text-content',
+                      classes?.tbody,
+                    ]}
+                  >
+                    {(() => {
+                      const cellStateClass = getCellStateClass(td)
 
-                    if (!cellStateClass) {
-                      return <span set:html={getCellLabel(td)}></span>
-                    }
+                      if (!cellStateClass) {
+                        return <span set:html={getCellLabel(td)} />
+                      }
 
-                    return (
-                      <span
-                        class:list={[
-                          'inline-flex rounded-md px-2.5 py-1 font-medium',
-                          cellStateClass.rowBgClass,
-                          cellStateClass.textClass,
-                        ]}
-                        set:html={getCellLabel(td)}
-                      ></span>
-                    )
-                  })()}
-                </td>
-              ))
-            )}
+                      return (
+                        <span
+                          class:list={[
+                            'inline-flex rounded-md px-2.5 py-1 font-medium',
+                            cellStateClass.rowBgClass,
+                            cellStateClass.textClass,
+                          ]}
+                          set:html={getCellLabel(td)}
+                        />
+                      )
+                    })()}
+                  </td>
+                ))}
           </tr>
         )
-      })}
-    </tbody>
+      })
+    }
+  </tbody>
 
-    {content.tfoot && (
+  {
+    content.tfoot && (
       <tfoot class:list={[tfootClass, classes?.tfoot]}>
         {content.tfoot.tr.map((row, rowIndex) => {
           const fallbackRow: Props['content']['tbody']['tr'][number] =
             row.th !== undefined
               ? {
-                th: row.th as string,
-                td: row.td,
-              }
+                  th: row.th as string,
+                  td: row.td,
+                }
               : {
-                td: row.td,
-              }
+                  td: row.td,
+                }
           const stateClass = getStateClass(fallbackRow, rowIndex)
 
           return (
-            <tr class:list={[
-              'border-b last:border-b-0 border-trim',
-              stateClass.rowBgClass,
-            ]}>
+            <tr class:list={['border-b last:border-b-0 border-trim', stateClass.rowBgClass]}>
               <td class="px-5 py-3 font-bold relative">
                 <div class:list={['absolute inset-y-0 left-0 w-1', stateClass.barClass]} />
                 <span class={stateClass.textClass}>
                   {row.th ?? (row.td[0] ? getCellLabel(row.td[0]) : '')}
                 </span>
               </td>
-              {row.th ? (
-                row.td.map((td, index) => (
-                  <td
-                    class:list={[
-                      'px-5 py-3',
-                      index === 0 ? 'font-medium text-content' : 'text-content',
-                      classes?.tfoot,
-                    ]}
-                  >
-                    {(() => {
-                      const cellStateClass = getCellStateClass(td)
+              {row.th
+                ? row.td.map((td, index) => (
+                    <td
+                      class:list={[
+                        'px-5 py-3',
+                        index === 0 ? 'font-medium text-content' : 'text-content',
+                        classes?.tfoot,
+                      ]}
+                    >
+                      {(() => {
+                        const cellStateClass = getCellStateClass(td)
 
-                      if (!cellStateClass) {
-                        return <span set:html={getCellLabel(td)}></span>
-                      }
+                        if (!cellStateClass) {
+                          return <span set:html={getCellLabel(td)} />
+                        }
 
-                      return (
-                        <span
-                          class:list={[
-                            'inline-flex rounded-md px-2.5 py-1 font-medium',
-                            cellStateClass.rowBgClass,
-                            cellStateClass.textClass,
-                          ]}
-                          set:html={getCellLabel(td)}
-                        ></span>
-                      )
-                    })()}
-                  </td>
-                ))
-              ) : (
-                row.td.map((td, index) => (
-                  <td
-                    class:list={[
-                      'px-5 py-3',
-                      index === 0 ? 'font-medium text-content' : 'text-content',
-                      classes?.tfoot,
-                    ]}
-                  >
-                    {(() => {
-                      const cellStateClass = getCellStateClass(td)
+                        return (
+                          <span
+                            class:list={[
+                              'inline-flex rounded-md px-2.5 py-1 font-medium',
+                              cellStateClass.rowBgClass,
+                              cellStateClass.textClass,
+                            ]}
+                            set:html={getCellLabel(td)}
+                          />
+                        )
+                      })()}
+                    </td>
+                  ))
+                : row.td.map((td, index) => (
+                    <td
+                      class:list={[
+                        'px-5 py-3',
+                        index === 0 ? 'font-medium text-content' : 'text-content',
+                        classes?.tfoot,
+                      ]}
+                    >
+                      {(() => {
+                        const cellStateClass = getCellStateClass(td)
 
-                      if (!cellStateClass) {
-                        return <span set:html={getCellLabel(td)}></span>
-                      }
+                        if (!cellStateClass) {
+                          return <span set:html={getCellLabel(td)} />
+                        }
 
-                      return (
-                        <span
-                          class:list={[
-                            'inline-flex rounded-md px-2.5 py-1 font-medium',
-                            cellStateClass.rowBgClass,
-                            cellStateClass.textClass,
-                          ]}
-                          set:html={getCellLabel(td)}
-                        ></span>
-                      )
-                    })()}
-                  </td>
-                ))
-              )}
+                        return (
+                          <span
+                            class:list={[
+                              'inline-flex rounded-md px-2.5 py-1 font-medium',
+                              cellStateClass.rowBgClass,
+                              cellStateClass.textClass,
+                            ]}
+                            set:html={getCellLabel(td)}
+                          />
+                        )
+                      })()}
+                    </td>
+                  ))}
             </tr>
           )
         })}
       </tfoot>
-    )}
+    )
+  }
 </table>

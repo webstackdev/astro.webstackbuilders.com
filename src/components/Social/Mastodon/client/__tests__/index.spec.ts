@@ -167,7 +167,9 @@ describe('MastodonModalElement', () => {
       expect(instanceWrapper?.className).toContain('after:border-transparent')
       expect(instanceWrapper?.className).not.toContain('after:border-spotlight')
 
-      const rememberCheckbox = element.querySelector('#remember-instance') as HTMLInputElement | null
+      const rememberCheckbox = element.querySelector(
+        '#remember-instance'
+      ) as HTMLInputElement | null
       expect(rememberCheckbox?.className).toContain('focus-visible:outline-none')
       expect(rememberCheckbox?.className).toContain('focus-visible:after:border-spotlight')
       expect(rememberCheckbox?.className).toContain('after:rounded-none')
@@ -244,7 +246,7 @@ describe('MastodonModalElement', () => {
       await flushMicrotasks()
 
       expect(mockIsMastodonInstance).toHaveBeenCalledWith('mastodon.social')
-  expect(mockBuildShareUrl).toHaveBeenCalledWith('mastodon.social', 'Updated share copy')
+      expect(mockBuildShareUrl).toHaveBeenCalledWith('mastodon.social', 'Updated share copy')
       expect(mockSaveInstance).toHaveBeenCalled()
       expect(mockSetCurrentInstance).toHaveBeenCalledWith('mastodon.social')
       expect(openSpy).toHaveBeenCalledWith(

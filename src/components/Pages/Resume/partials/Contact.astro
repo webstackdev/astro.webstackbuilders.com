@@ -8,53 +8,50 @@ export interface Props {
   email: string
 }
 
-const {
-  contactData,
-  email,
-} = Astro.props as Props
+const { contactData, email } = Astro.props as Props
 
 const resumeLocation = `${contactData.company.city}, ${contactData.company.state}`
 const resumePhoneNumber = formatPhoneNumber(contactData.company.telephoneTollFree)
 ---
 
-<dl
-  class="flex gap-2 text-sm text-content-offset font-medium"
->
+<dl class="flex ml-1 gap-6 text-sm font-medium">
+  {/** Email */}
   <a
     itemprop="email"
     href={`mailto:${email}`}
-    class="flex gap-2 hover:text-primary transition-colors duration-200"
+    class="group flex gap-2 hover:text-note-offset hover:decoration-note-offset transition-colors duration-200 print:no-underline"
   >
-    <dt aria-label="email" class="text-primary-offset">
-      <Icon icon="email-solid" color="content" size={4} />
+    <dt aria-label="email" class="text-content group-hover:text-note-offset mt-0.75">
+      <Icon icon="email-solid" color="inherit" size={4} />
     </dt>
     <dd>{email}</dd>
   </a>
+
+  {/** Location */}
   <a
     id="locationWrapper"
     itemprop="homeLocation"
     itemscope
     href={contactData.company.mapLink}
-    class="flex gap-2 hover:text-primary transition-colors duration-200"
+    class="group flex hover:text-note-offset hover:decoration-note-offset transition-colors duration-200 print:no-underline"
   >
-    <dt aria-label="location" class="text-primary-offset">
-      <Icon icon="location" color="content" size={6} />
+    <dt aria-label="location" class="text-content group-hover:text-note-offset">
+      <Icon icon="location" color="inherit" size={6} />
     </dt>
     <dd id="locationLabel" class="inline">{resumeLocation}</dd>
   </a>
+
+  {/** Telephone */}
   <a
     id="telephoneWrapper"
     itemprop="telephone"
     itemscope
     href={`tel:${contactData.company.telephoneTollFree}`}
-    class="flex gap-2 hover:text-primary transition-colors duration-200"
+    class="group flex gap-2.5 hover:text-note-offset hover:decoration-note-offset transition-colors duration-200 print:no-underline"
   >
-    <dt
-      aria-label="telephone"
-      class="text-primary-offset"
-    >
-      <Icon icon="telephone" color="content" size={6} />
+    <dt aria-label="telephone" class="text-content group-hover:text-note-offset">
+      <Icon icon="telephone" color="inherit" size={6} />
     </dt>
-    <dd id="telephoneLabel" class="inline">{resumePhoneNumber}</dd>
+    <dd id="telephoneLabel" class="inline">1 {resumePhoneNumber}</dd>
   </a>
 </dl>

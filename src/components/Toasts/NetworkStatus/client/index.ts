@@ -146,8 +146,12 @@ export class NetworkStatusToastElement extends LitElement {
         aria-atomic="true"
       >
         <div class="flex items-center space-x-2">
-          <span class="success-icon">${successIconMarkup ? unsafeHTML(successIconMarkup) : null}</span>
-          <span class="error-icon hidden">${errorIconMarkup ? unsafeHTML(errorIconMarkup) : null}</span>
+          <span class="success-icon"
+            >${successIconMarkup ? unsafeHTML(successIconMarkup) : null}</span
+          >
+          <span class="error-icon hidden"
+            >${errorIconMarkup ? unsafeHTML(errorIconMarkup) : null}</span
+          >
           <span class="toast-message">${this.message}</span>
         </div>
       </div>

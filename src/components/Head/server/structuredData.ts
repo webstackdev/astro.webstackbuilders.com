@@ -64,8 +64,16 @@ export const getSchemas = (params: StructuredDataParams): string[] => {
 }
 
 const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
-  const { astro, path, pageTitle, pageDescription, contentType, publishDate, modifiedDate, author } =
-    params
+  const {
+    astro,
+    path,
+    pageTitle,
+    pageDescription,
+    contentType,
+    publishDate,
+    modifiedDate,
+    author,
+  } = params
 
   if (!astro) {
     throw new BuildError('Astro context is required to generate structured data', {

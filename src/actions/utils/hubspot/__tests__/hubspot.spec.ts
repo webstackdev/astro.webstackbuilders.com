@@ -1,7 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-vi.mock('@actions/utils/environment/environmentActions', async (importOriginal) => {
-  const actual = (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
+vi.mock('@actions/utils/environment/environmentActions', async importOriginal => {
+  const actual =
+    (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
   return {
     ...actual,
     getHubspotAccessToken: () => 'hs-test-token',
@@ -56,15 +57,16 @@ describe('hubspot contacts', () => {
 
     await setMarketingOptIn('0', true)
 
-    expect(logSpy).toHaveBeenCalledWith(
-      '[DEV/TEST MODE] HubSpot setMarketingOptIn:',
-      { contactId: '0', optIn: true }
-    )
+    expect(logSpy).toHaveBeenCalledWith('[DEV/TEST MODE] HubSpot setMarketingOptIn:', {
+      contactId: '0',
+      optIn: true,
+    })
   })
 
   it('creates a new contact when search returns no results in prod', async () => {
-    vi.doMock('@actions/utils/environment/environmentActions', async (importOriginal) => {
-      const actual = (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
+    vi.doMock('@actions/utils/environment/environmentActions', async importOriginal => {
+      const actual =
+        (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
       return {
         ...actual,
         getHubspotAccessToken: () => 'hs-test-token',
@@ -97,8 +99,9 @@ describe('hubspot contacts', () => {
   })
 
   it('updates an existing contact when search returns a result in prod', async () => {
-    vi.doMock('@actions/utils/environment/environmentActions', async (importOriginal) => {
-      const actual = (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
+    vi.doMock('@actions/utils/environment/environmentActions', async importOriginal => {
+      const actual =
+        (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
       return {
         ...actual,
         getHubspotAccessToken: () => 'hs-test-token',
@@ -142,15 +145,15 @@ describe('hubspot newsletter', () => {
 
     await addContactToNewsletterList('42')
 
-    expect(logSpy).toHaveBeenCalledWith(
-      '[DEV/TEST MODE] HubSpot addContactToNewsletterList:',
-      { contactId: '42' }
-    )
+    expect(logSpy).toHaveBeenCalledWith('[DEV/TEST MODE] HubSpot addContactToNewsletterList:', {
+      contactId: '42',
+    })
   })
 
   it('calls membershipsApi.add in prod', async () => {
-    vi.doMock('@actions/utils/environment/environmentActions', async (importOriginal) => {
-      const actual = (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
+    vi.doMock('@actions/utils/environment/environmentActions', async importOriginal => {
+      const actual =
+        (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
       return {
         ...actual,
         getHubspotAccessToken: () => 'hs-test-token',
@@ -178,15 +181,15 @@ describe('hubspot gdpr', () => {
 
     await purgeContact('test@example.com')
 
-    expect(logSpy).toHaveBeenCalledWith(
-      '[DEV/TEST MODE] HubSpot purgeContact:',
-      { email: 'test@example.com' }
-    )
+    expect(logSpy).toHaveBeenCalledWith('[DEV/TEST MODE] HubSpot purgeContact:', {
+      email: 'test@example.com',
+    })
   })
 
   it('calls basicApi.purge in prod', async () => {
-    vi.doMock('@actions/utils/environment/environmentActions', async (importOriginal) => {
-      const actual = (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
+    vi.doMock('@actions/utils/environment/environmentActions', async importOriginal => {
+      const actual =
+        (await importOriginal()) as typeof import('@actions/utils/environment/environmentActions')
       return {
         ...actual,
         getHubspotAccessToken: () => 'hs-test-token',

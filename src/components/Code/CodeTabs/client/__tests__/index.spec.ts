@@ -148,7 +148,10 @@ describe('CodeTabs web component', () => {
       const copyIconButton = Array.from(element.querySelectorAll('button')).find(
         button => button.getAttribute('aria-label') === 'Copy "TypeScript"'
       )
-      expect(copyIconButton, 'CodeTabs should render hover copy button for single-tab label').toBeTruthy()
+      expect(
+        copyIconButton,
+        'CodeTabs should render hover copy button for single-tab label'
+      ).toBeTruthy()
 
       expect(
         singleTabLabel?.className.includes('hover:text-content-active'),
@@ -180,7 +183,10 @@ describe('CodeTabs web component', () => {
   it('does not render tabs for excluded single-language blocks', async () => {
     await renderCodeTabs({ variant: 'excluded' }, ({ element }) => {
       const anyTabButton = element.querySelector('button[data-code-tabs-button]')
-      expect(anyTabButton, 'CodeTabs should not render tab buttons for excluded languages').toBeFalsy()
+      expect(
+        anyTabButton,
+        'CodeTabs should not render tab buttons for excluded languages'
+      ).toBeFalsy()
     })
   })
 })

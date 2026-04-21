@@ -155,16 +155,18 @@ const isUppyDashboardRoot = (element: Element): element is UppyDashboardRoot => 
 }
 
 export const queryAccessibilityLabelTargets = (root: ParentNode): AccessibilityLabelTarget[] => {
-  return Array.from(root.querySelectorAll('input[type="text"], input[type="email"], textarea')).filter(
-    isAccessibilityLabelTarget
-  )
+  return Array.from(
+    root.querySelectorAll('input[type="text"], input[type="email"], textarea')
+  ).filter(isAccessibilityLabelTarget)
 }
 
 export const queryUppyDashboardRoots = (root: ParentNode): UppyDashboardRoot[] => {
   return Array.from(root.querySelectorAll('.uppy-Dashboard')).filter(isUppyDashboardRoot)
 }
 
-export const queryContactProjectTypeSelect = (root: ParentNode = document): HTMLSelectElement | null => {
+export const queryContactProjectTypeSelect = (
+  root: ParentNode = document
+): HTMLSelectElement | null => {
   const projectTypeSelect = root.querySelector('#project_type')
   return projectTypeSelect instanceof HTMLSelectElement ? projectTypeSelect : null
 }

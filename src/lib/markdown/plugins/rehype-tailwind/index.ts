@@ -117,10 +117,7 @@ export function rehypeTailwindClasses() {
             type: 'element',
             tagName: 'div',
             properties: {
-              className: [
-                'markdown-list',
-                'mb-6',
-              ],
+              className: ['markdown-list', 'mb-6'],
             },
             children: [node],
           }
@@ -272,7 +269,9 @@ export function rehypeTailwindClasses() {
           parent.properties = parent.properties || {}
 
           /** Styles for the <pre> element within a text code block */
-          parent.properties['className'] = ((parent.properties['className'] as string[]) || []).concat([
+          parent.properties['className'] = (
+            (parent.properties['className'] as string[]) || []
+          ).concat([
             'bg-[var(--shiki-background)]',
             'block',
             'max-w-full',
@@ -316,13 +315,9 @@ export function rehypeTailwindClasses() {
             child.properties = child.properties || {}
 
             /** Styles for the <pre> element within a code-tabs block */
-            child.properties['className'] = ((child.properties['className'] as string[]) || []).concat([
-              'bg-[var(--shiki-background)]',
-              'block',
-              'max-w-full',
-              'pr-3',
-              'py-3',
-            ])
+            child.properties['className'] = (
+              (child.properties['className'] as string[]) || []
+            ).concat(['bg-[var(--shiki-background)]', 'block', 'max-w-full', 'pr-3', 'py-3'])
           }
 
           if (
@@ -334,9 +329,9 @@ export function rehypeTailwindClasses() {
             child.properties = child.properties || {}
 
             /** Styles for the <code> element within a code-tabs block */
-            child.properties['className'] = ((child.properties['className'] as string[]) || []).concat([
-              'text-[var(--shiki-foreground)]',
-            ])
+            child.properties['className'] = (
+              (child.properties['className'] as string[]) || []
+            ).concat(['text-[var(--shiki-foreground)]'])
           }
         })
       }
@@ -427,10 +422,19 @@ export function rehypeTailwindClasses() {
         const existingClasses = (node.properties['className'] as string[]) || []
 
         const parent = getParent(node)
-        const isWrappedFigure = isHastElement(parent) && parent.tagName === 'figure' && hasClass(parent, 'blockquote')
-        const isCaptionFigure = isHastElement(parent) && parent.tagName === 'figure' && hasClass(parent, 'blockquote-figure')
-        const isAttributionFigure = isWrappedFigure && !isCaptionFigure && isHastElement(parent) && hasAttributionFigcaption(parent)
-        const hasInlineAttributionInCaptionedBlockquote = isCaptionFigure && hasInlineAttribution(node)
+        const isWrappedFigure =
+          isHastElement(parent) && parent.tagName === 'figure' && hasClass(parent, 'blockquote')
+        const isCaptionFigure =
+          isHastElement(parent) &&
+          parent.tagName === 'figure' &&
+          hasClass(parent, 'blockquote-figure')
+        const isAttributionFigure =
+          isWrappedFigure &&
+          !isCaptionFigure &&
+          isHastElement(parent) &&
+          hasAttributionFigcaption(parent)
+        const hasInlineAttributionInCaptionedBlockquote =
+          isCaptionFigure && hasInlineAttribution(node)
 
         // Default: plain blockquote (not wrapped by remark-blockquote)
         // Center the blockquote box and center its content.
@@ -477,7 +481,9 @@ export function rehypeTailwindClasses() {
           'leading-relaxed',
           // If we also have an inline attribution element, use the same side-by-side layout
           // as attribution-only blockquotes, but inside the bordered blockquote.
-          ...(hasInlineAttributionInCaptionedBlockquote ? ['md:flex', 'md:items-stretch', 'md:gap-8'] : []),
+          ...(hasInlineAttributionInCaptionedBlockquote
+            ? ['md:flex', 'md:items-stretch', 'md:gap-8']
+            : []),
         ]
 
         const classesToAdd = isAttributionFigure
@@ -559,7 +565,9 @@ export function rehypeTailwindClasses() {
 
           attributionLineIndex += 1
           child.properties['className'] = childClasses.concat(
-            attributionLineIndex === 1 ? ['font-bold', 'text-content'] : ['text-xs', 'text-content-offset']
+            attributionLineIndex === 1
+              ? ['font-bold', 'text-content']
+              : ['text-xs', 'text-content-offset']
           )
         })
       }
@@ -598,7 +606,9 @@ export function rehypeTailwindClasses() {
 
           attributionLineIndex += 1
           child.properties['className'] = childClasses.concat(
-            attributionLineIndex === 1 ? ['font-bold', 'text-content'] : ['text-xs', 'text-content-offset']
+            attributionLineIndex === 1
+              ? ['font-bold', 'text-content']
+              : ['text-xs', 'text-content-offset']
           )
         })
       }
@@ -609,7 +619,10 @@ export function rehypeTailwindClasses() {
         if (!isHastElement(parent) || parent.tagName !== 'blockquote') return
 
         const figure = getParent(parent as Element)
-        const isCaptionFigure = isHastElement(figure) && figure.tagName === 'figure' && hasClass(figure, 'blockquote-figure')
+        const isCaptionFigure =
+          isHastElement(figure) &&
+          figure.tagName === 'figure' &&
+          hasClass(figure, 'blockquote-figure')
         if (!isCaptionFigure) return
 
         if (!hasInlineAttribution(parent as Element)) return
