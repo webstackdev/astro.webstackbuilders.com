@@ -3,6 +3,19 @@ import Button from '@components/Button/index.astro'
 import Icon from '@components/Icon/index.astro'
 import List from '@components/List/index.astro'
 
+/**
+ * Privacy request preview states for styling:
+ *
+ * - /privacy/my-data?accessState=loading
+ * - /privacy/my-data?accessState=success
+ * - /privacy/my-data?accessState=error
+ * - /privacy/my-data?accessState=validation
+ * - /privacy/my-data?deleteState=loading
+ * - /privacy/my-data?deleteState=success
+ * - /privacy/my-data?deleteState=error
+ * - /privacy/my-data?deleteState=validation
+ */
+
 export type Props = {
   content: {
     header: {
@@ -87,7 +100,14 @@ const { content } = Astro.props
           {content.accessData.description}
         </p>
 
-        <form id="access-form" class="mt-6 space-y-4" novalidate>
+        <form
+          id="access-form"
+          class="mt-6 space-y-4"
+          novalidate
+          data-privacy-request="access"
+          data-privacy-state="idle"
+          aria-busy="false"
+        >
           <div class="space-y-2">
             <label for="access-email" class="block text-content-active text-sm font-medium">
               {content.accessData.label}
@@ -139,7 +159,14 @@ const { content } = Astro.props
           <span class="ml-3">{content.deleteData.description}</span>
         </div>
 
-        <form id="delete-form" class="mt-11 space-y-4" novalidate>
+        <form
+          id="delete-form"
+          class="mt-11 space-y-4"
+          novalidate
+          data-privacy-request="delete"
+          data-privacy-state="idle"
+          aria-busy="false"
+        >
           <div class="space-y-2">
             <label for="delete-email" class="block text-content-active text-sm font-medium">
               {content.deleteData.label}

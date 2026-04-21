@@ -8,6 +8,8 @@ import { getPrivacyFormElements } from './selectors'
 
 type MessageType = 'success' | 'error' | 'info'
 type RequestType = 'ACCESS' | 'DELETE'
+type RequestPreviewState = 'loading' | 'success' | 'error' | 'validation'
+type RequestFormType = 'access' | 'delete'
 
 type DsarVerifyResult =
   | { status: 'download'; filename: string; json: string }
@@ -15,6 +17,13 @@ type DsarVerifyResult =
   | { status: string }
 
 type RequestDataResult = { message: string }
+
+const requestPreviewStates = ['loading', 'success', 'error', 'validation'] as const
+
+const requestPreviewQueryParams: Record<RequestFormType, string> = {
+  access: 'accessState',
+  delete: 'deleteState',
+}
 
 const statusMessages: Record<string, { type: MessageType; message: string }> = {
   sent: {
@@ -89,6 +98,7 @@ export class PrivacyFormElement extends LitElement {
       this.bindEvents()
       this.isInitialized = true
 
+      this.renderRequestPreviewStatesFromQueryString()
       this.renderStatusFromQueryString()
       void this.handleVerificationToken()
     } catch (error) {
@@ -136,7 +146,66 @@ export class PrivacyFormElement extends LitElement {
     })
   }
 
-  private setMessage(target: HTMLElement, message: string, type: MessageType): void {
+  private setRequestState(form: HTMLFormElement, state: RequestPreviewState | 'idle'): void {
+    form.dataset.privacyState = state
+    form.setAttribute('aria-busy', String(state === 'loading'))
+  }
+
+  private setSubmitLoading(form: HTMLFormElement, loading: boolean): void {
+    const submitButton = form.querySelector('button[type="submit"]')
+    if (submitButton instanceof HTMLButtonElement) {
+      submitButton.disabled = loading
+    }
+  }
+
+  private setEmailInvalid(input: HTMLInputElement, invalid: boolean): void {
+    input.setAttribute('aria-invalid', String(invalid))
+    input.classList.toggle('border-danger', invalid)
+    input.classList.toggle('focus:border-danger', invalid)
+  }
+
+  private setDeleteConfirmationInvalid(invalid: boolean): void {
+    this.deleteConfirmCheckbox.setAttribute('aria-invalid', String(invalid))
+  }
+
+  private resetMessage(target: HTMLElement): void {
+    target.textContent = ''
+    target.classList.add('hidden')
+    target.classList.remove(
+      'border-success',
+      'bg-success-inverse',
+      'text-success',
+      'border-danger',
+      'bg-danger-offset',
+      'text-danger',
+      'border-info',
+      'bg-info-inverse',
+      'text-info'
+    )
+  }
+
+  private resetRequestState(requestType: RequestType): void {
+    const isAccessRequest = requestType === 'ACCESS'
+    const form = isAccessRequest ? this.accessForm : this.deleteForm
+    const emailInput = isAccessRequest ? this.accessEmailInput : this.deleteEmailInput
+    const message = isAccessRequest ? this.accessMessage : this.deleteMessage
+
+    this.resetMessage(message)
+    this.setRequestState(form, 'idle')
+    this.setSubmitLoading(form, false)
+    this.setEmailInvalid(emailInput, false)
+
+    if (!isAccessRequest) {
+      this.setDeleteConfirmationInvalid(false)
+    }
+  }
+
+  private setMessage(
+    target: HTMLElement,
+    message: string,
+    type: MessageType,
+    options: { focus?: boolean } = {}
+  ): void {
     target.setAttribute('role', type === 'error' ? 'alert' : 'status')
     target.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite')
     target.textContent = message
@@ -167,7 +236,100 @@ export class PrivacyFormElement extends LitElement {
       target.classList.add('border-info', 'bg-info-inverse', 'text-info')
     }
 
-    target.focus()
+    if (options.focus ?? true) {
+      target.focus()
+    }
+  }
+
+  private resolvePreviewState(
+    params: URLSearchParams,
+    requestFormType: RequestFormType
+  ): RequestPreviewState | null {
+    const previewState = params.get(requestPreviewQueryParams[requestFormType])?.trim().toLowerCase()
+
+    if (!previewState) {
+      return null
+    }
+
+    return requestPreviewStates.includes(previewState as RequestPreviewState)
+      ? (previewState as RequestPreviewState)
+      : null
+  }
+
+  private applyRequestPreviewState(
+    requestType: RequestType,
+    previewState: RequestPreviewState
+  ): void {
+    this.resetRequestState(requestType)
+
+    const isAccessRequest = requestType === 'ACCESS'
+    const form = isAccessRequest ? this.accessForm : this.deleteForm
+    const emailInput = isAccessRequest ? this.accessEmailInput : this.deleteEmailInput
+    const message = isAccessRequest ? this.accessMessage : this.deleteMessage
+
+    switch (previewState) {
+      case 'loading':
+        this.setRequestState(form, 'loading')
+        this.setSubmitLoading(form, true)
+        this.setMessage(message, 'Sending request...', 'info', { focus: false })
+        return
+
+      case 'success':
+        this.setRequestState(form, 'success')
+        this.setMessage(
+          message,
+          isAccessRequest
+            ? 'Data access request sent. Please check your inbox to verify the request.'
+            : 'Deletion request sent. Please check your inbox to verify the request.',
+          'success',
+          { focus: false }
+        )
+        return
+
+      case 'error':
+        this.setRequestState(form, 'error')
+        this.setMessage(
+          message,
+          isAccessRequest
+            ? 'Unable to submit your data request. Please try again.'
+            : 'Unable to submit your deletion request. Please try again.',
+          'error',
+          { focus: false }
+        )
+        return
+
+      case 'validation':
+        this.setRequestState(form, 'validation')
+        this.setEmailInvalid(emailInput, true)
+
+        if (isAccessRequest) {
+          this.setMessage(message, 'Please enter a valid email address.', 'error', { focus: false })
+          return
+        }
+
+        this.setDeleteConfirmationInvalid(true)
+        this.setMessage(
+          message,
+          'Please enter a valid email address and confirm the deletion request.',
+          'error',
+          { focus: false }
+        )
+        return
+    }
+  }
+
+  private renderRequestPreviewStatesFromQueryString(): void {
+    const params = new URLSearchParams(window.location.search)
+    const accessPreviewState = this.resolvePreviewState(params, 'access')
+    const deletePreviewState = this.resolvePreviewState(params, 'delete')
+
+    if (accessPreviewState) {
+      this.applyRequestPreviewState('ACCESS', accessPreviewState)
+    }
+
+    if (deletePreviewState) {
+      this.applyRequestPreviewState('DELETE', deletePreviewState)
+    }
   }
 
   private renderStatusFromQueryString(): void {
@@ -240,25 +402,37 @@ export class PrivacyFormElement extends LitElement {
     const formEl = requestType === 'ACCESS' ? this.accessForm : this.deleteForm
     const emailInput = requestType === 'ACCESS' ? this.accessEmailInput : this.deleteEmailInput
 
+    this.resetRequestState(requestType)
+
     if (requestType === 'DELETE' && !this.deleteConfirmCheckbox.checked) {
+      this.setRequestState(formEl, 'validation')
+      this.setDeleteConfirmationInvalid(true)
       this.setMessage(messageEl, 'Please confirm you understand the deletion request.', 'error')
       return
     }
 
     const email = emailInput.value
+    this.setRequestState(formEl, 'loading')
+    this.setSubmitLoading(formEl, true)
     this.setMessage(messageEl, 'Sending request...', 'info')
 
     try {
       const { data, error } = await actions.gdpr.requestData({ email, requestType })
       if (error || !data) {
+        this.setRequestState(formEl, 'error')
+        this.setSubmitLoading(formEl, false)
         this.setMessage(messageEl, error?.message || 'Request failed', 'error')
         return
       }
 
       const resultData = data as RequestDataResult
+      this.setRequestState(formEl, 'success')
+      this.setSubmitLoading(formEl, false)
       this.setMessage(messageEl, resultData.message, 'success')
       formEl.reset()
     } catch (error) {
+      this.setRequestState(formEl, 'error')
+      this.setSubmitLoading(formEl, false)
       this.setMessage(
         messageEl,
         error instanceof Error ? error.message : 'Network or server error',

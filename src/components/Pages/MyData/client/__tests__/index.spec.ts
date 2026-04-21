@@ -114,6 +114,47 @@ describe('PrivacyForm behavior', () => {
     })
   })
 
+  it('renders preview states from query parameters for both workflows', async () => {
+    await executeRender<PrivacyFormModule>({
+      container,
+      component: PrivacyForm,
+      moduleSpecifier: '@components/Pages/MyData/client/index',
+      args: {
+        props: {
+          content: myDataContent,
+        },
+      },
+      waitForReady: async (element: PrivacyFormElementInstance) => {
+        window.history.replaceState(
+          {},
+          '',
+          'http://localhost/privacy/my-data?accessState=loading&deleteState=validation'
+        )
+        element.initialize()
+      },
+      assert: async ({ element }) => {
+        const elements = getPrivacyFormElements(element)
+        const accessSubmitButton = elements.accessForm.querySelector('button[type="submit"]')
+
+        expect(elements.accessForm.dataset.privacyState).toBe('loading')
+        expect(elements.accessForm.getAttribute('aria-busy')).toBe('true')
+        expect(elements.accessMessage.textContent).toBe('Sending request...')
+        expect(elements.accessMessage.classList.contains('border-info')).toBe(true)
+        expect(accessSubmitButton).toBeInstanceOf(HTMLButtonElement)
+        expect((accessSubmitButton as HTMLButtonElement).disabled).toBe(true)
+
+        expect(elements.deleteForm.dataset.privacyState).toBe('validation')
+        expect(elements.deleteMessage.textContent).toBe(
+          'Please enter a valid email address and confirm the deletion request.'
+        )
+        expect(elements.deleteMessage.classList.contains('border-danger')).toBe(true)
+        expect(elements.deleteEmailInput.getAttribute('aria-invalid')).toBe('true')
+        expect(elements.deleteConfirmCheckbox.getAttribute('aria-invalid')).toBe('true')
+        expect(requestDataMock).not.toHaveBeenCalled()
+      },
+    })
+  })
+
   it('blocks delete submit when confirmation is not checked', async () => {
     requestDataMock.mockResolvedValue({ data: { message: 'Delete request sent.' } })
 
