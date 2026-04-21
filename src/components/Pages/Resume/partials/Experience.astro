@@ -16,14 +16,17 @@ const { renderedClients } = Astro.props as Props
   <h2 class="text-sm font-mono font-bold tracking-widest text-content-offset print:text-content uppercase p-3 border-2 border-dashed border-gray-400 rounded-md">
     Past Clients
   </h2>
-  <div class="mt-4!">
+  <ul class="mt-4!">
     {
       renderedClients.map(({ client, Content }: RenderedClient, index: number) => {
         const location = splitLocation(client.data.location)
         return (
-          <div
+          <li
             id={`experienceItem-${index + 1}`}
-            class="flex flex-col gap-1.5 pb-4 mb-4 border-b-2 border-dashed border-gray-400 last:border-b-0 last:pb-0 last:mb-0"
+            class:list={[
+              'flex flex-col gap-1.5 print:block print:space-y-1.5 print:break-inside-auto mb-6 last:mb-0',
+              { 'print:break-before-page': index === renderedClients.length - 1 },
+            ]}
             itemprop="worksFor"
             itemscope
             itemref="resumeSubject"
@@ -88,9 +91,12 @@ const { renderedClients } = Astro.props as Props
             <div class="experienceDetailContent" itemprop="description">
               <Content components={{ List, ListItem }} />
             </div>
-          </div>
+            {index < renderedClients.length - 1 && (
+              <div aria-hidden="true" class="mt-4 border-b-2 border-dashed border-gray-400"></div>
+            )}
+          </li>
         )
       })
     }
-  </div>
+  </ul>
 </section>
