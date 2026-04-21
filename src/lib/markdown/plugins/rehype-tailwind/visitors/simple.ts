@@ -27,22 +27,11 @@ export const htmlElements: ElementConfig[] = [
   },
   {
     tagName: 'img',
-    classes: [
-      'block',
-      'max-w-full',
-      'h-auto',
-      'mx-auto',
-      'my-4',
-      'rounded-lg',
-    ],
+    classes: ['block', 'max-w-full', 'h-auto', 'mx-auto', 'my-4', 'rounded-lg'],
   },
   {
     tagName: 'mark',
-    classes: [
-      'bg-content',
-      'px-1',
-      'text-content-inverse',
-    ],
+    classes: ['bg-content', 'px-1', 'text-content-inverse'],
   },
   {
     tagName: 'summary',
@@ -50,30 +39,15 @@ export const htmlElements: ElementConfig[] = [
   },
   {
     tagName: 'table',
-    classes: [
-      'border-collapse',
-      'mx-auto',
-      'mb-6',
-      'w-fit',
-    ],
+    classes: ['border-collapse', 'mx-auto', 'mb-6', 'w-fit'],
   },
   {
     tagName: 'th',
-    classes: [
-      'bg-page-offset',
-      'px-4',
-      'py-2',
-      'text-left',
-      'font-semibold',
-    ],
+    classes: ['bg-page-offset', 'px-4', 'py-2', 'text-left', 'font-semibold'],
   },
   {
     tagName: 'td',
-    classes: [
-      'px-4',
-      'py-2',
-      'bg-[var(--shiki-background)]',
-    ],
+    classes: ['px-4', 'py-2', 'bg-[var(--shiki-background)]'],
   },
   {
     tagName: 'video',

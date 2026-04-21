@@ -7,7 +7,9 @@ import {
   ActionConfig,
 } from '@actions/newsletter/@types'
 
-const getMockedHandler = <Input, Output>(action: unknown): ActionConfig<Input, Output>['handler'] => {
+const getMockedHandler = <Input, Output>(
+  action: unknown
+): ActionConfig<Input, Output>['handler'] => {
   return (action as ActionConfig<Input, Output>).handler
 }
 
@@ -98,14 +100,13 @@ vi.mock('@actions/utils/errors', async () => {
           },
       options?: { status?: number }
     ) {
-      const message = typeof messageOrOptions === 'string' ? messageOrOptions : messageOrOptions.message
+      const message =
+        typeof messageOrOptions === 'string' ? messageOrOptions : messageOrOptions.message
       super(message)
       this.name = 'ActionsFunctionError'
 
       const status =
-        typeof messageOrOptions === 'string'
-          ? options?.status
-          : messageOrOptions.status
+        typeof messageOrOptions === 'string' ? options?.status : messageOrOptions.status
 
       this.status = typeof status === 'number' ? status : 500
     }
@@ -206,10 +207,7 @@ describe('newsletter.subscribe.handler', () => {
 
     const response = await getMockedHandler<NewsletterSubscribeInput, NewsletterSubscribeOutput>(
       newsletter.subscribe
-    )(
-      { email: ' TEST@Example.com ', consentGiven: true },
-      context
-    )
+    )({ email: ' TEST@Example.com ', consentGiven: true }, context)
 
     expect(response).toEqual({
       success: true,
@@ -422,7 +420,8 @@ describe('newsletter.confirm.handler', () => {
     const { newsletter } = await import('../action')
     const { markConsentRecordsVerified } = await import('@actions/gdpr/entities/consent')
     const { sendWelcomeEmail } = await import('@actions/newsletter/entities/email')
-    const { createOrUpdateContact, setMarketingOptIn, addContactToNewsletterList } = await import('@actions/utils/hubspot')
+    const { createOrUpdateContact, setMarketingOptIn, addContactToNewsletterList } =
+      await import('@actions/utils/hubspot')
 
     const context = {
       request: new Request('https://example.com/_actions/newsletter/confirm', { method: 'POST' }),
@@ -439,7 +438,10 @@ describe('newsletter.confirm.handler', () => {
       '3f2d0e5a-7e8d-4b3c-9a6a-2b5d84c6f3a2'
     )
     expect(sendWelcomeEmail).toHaveBeenCalledWith('test@example.com', 'Test')
-    expect(createOrUpdateContact).toHaveBeenCalledWith({ email: 'test@example.com', firstname: 'Test' })
+    expect(createOrUpdateContact).toHaveBeenCalledWith({
+      email: 'test@example.com',
+      firstname: 'Test',
+    })
     expect(setMarketingOptIn).toHaveBeenCalledWith('42', true)
     expect(addContactToNewsletterList).toHaveBeenCalledWith('42')
 

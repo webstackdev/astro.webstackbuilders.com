@@ -5,10 +5,13 @@ import type {
   DsarRequestRecord,
   DSARRequest,
   DsarVerifyResult,
-  RequestType
+  RequestType,
 } from '@actions/gdpr/@types'
 import { deleteNewsletterConfirmationsByEmail } from '@actions/newsletter/domain'
-import { deleteConsentRecordsByEmail, findConsentRecordsByEmail } from '@actions/gdpr/entities/consent'
+import {
+  deleteConsentRecordsByEmail,
+  findConsentRecordsByEmail,
+} from '@actions/gdpr/entities/consent'
 import { handleActionsFunctionError } from '@actions/utils/errors'
 import { purgeContact } from '@actions/utils/hubspot'
 

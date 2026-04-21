@@ -27,7 +27,10 @@ interface EmblaApiMock {
 }
 
 /** Create a mock Embla API with mutable state and event handlers. */
-const createEmblaApiMock = (options: { canScrollPrev: boolean; canScrollNext: boolean }): EmblaApiMock => {
+const createEmblaApiMock = (options: {
+  canScrollPrev: boolean
+  canScrollNext: boolean
+}): EmblaApiMock => {
   let canScrollPrevValue = options.canScrollPrev
   let canScrollNextValue = options.canScrollNext
   const handlers = new Map<'select' | 'reInit', () => void>()

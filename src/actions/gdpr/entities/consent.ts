@@ -5,7 +5,7 @@ import type {
   ConsentEventRecord,
   ConsentRequest,
   CreateConsentRecordInput,
-  DbConsentRecord
+  DbConsentRecord,
 } from '@actions/gdpr/@types'
 import {
   normalizeNullableString,

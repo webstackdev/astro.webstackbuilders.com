@@ -73,8 +73,18 @@ export function getNewsletterConfirmElements(root?: SelectorRoot): NewsletterCon
       'Newsletter confirm status announcer not found',
       root
     ),
-    userEmail: queryRequiredElement('#user-email', isHtmlElement, 'Newsletter confirm email not found', root),
-    errorTitle: queryRequiredElement('#error-title', isHtmlElement, 'Newsletter confirm error title not found', root),
+    userEmail: queryRequiredElement(
+      '#user-email',
+      isHtmlElement,
+      'Newsletter confirm email not found',
+      root
+    ),
+    errorTitle: queryRequiredElement(
+      '#error-title',
+      isHtmlElement,
+      'Newsletter confirm error title not found',
+      root
+    ),
     errorMessage: queryRequiredElement(
       '#error-message',
       isHtmlElement,

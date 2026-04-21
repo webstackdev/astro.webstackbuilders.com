@@ -107,9 +107,7 @@ describe('contact responder', () => {
         { label: 'Budget', value: '$5k-$10k' },
         { label: 'Timeline', value: '2-3-months' },
       ])
-      expect(templateData.attachments).toEqual([
-        { filename: 'brief.pdf', sizeLabel: '1.21 KB' },
-      ])
+      expect(templateData.attachments).toEqual([{ filename: 'brief.pdf', sizeLabel: '1.21 KB' }])
       expect(templateData.consentGiven).toBe('Yes')
       expect(templateData.messageHtml).toContain('&lt;ASAP&gt;')
       expect(templateData.messageHtml).toContain('&amp;')

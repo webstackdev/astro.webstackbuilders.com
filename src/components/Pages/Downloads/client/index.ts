@@ -111,8 +111,7 @@ export class DownloadFormElement extends LitElement {
       const consent = consentRaw === 'true' ? true : undefined
 
       const dataSubjectIdRaw = formData.get('DataSubjectId')
-      const dataSubjectId =
-        typeof dataSubjectIdRaw === 'string' ? dataSubjectIdRaw.trim() : ''
+      const dataSubjectId = typeof dataSubjectIdRaw === 'string' ? dataSubjectIdRaw.trim() : ''
       const DataSubjectId = dataSubjectId.length > 0 ? dataSubjectId : undefined
       const jobTitle = String(formData.get('jobTitle') ?? '').trim()
       const companyName = String(formData.get('companyName') ?? '').trim()

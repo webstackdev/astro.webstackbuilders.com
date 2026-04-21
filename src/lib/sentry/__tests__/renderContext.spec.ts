@@ -1,12 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { applyRenderSentryContext } from '../renderContext'
 
-const {
-  addBreadcrumbMock,
-  isInitializedMock,
-  setContextMock,
-  setTagsMock,
-} = vi.hoisted(() => ({
+const { addBreadcrumbMock, isInitializedMock, setContextMock, setTagsMock } = vi.hoisted(() => ({
   addBreadcrumbMock: vi.fn(),
   isInitializedMock: vi.fn(),
   setContextMock: vi.fn(),

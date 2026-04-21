@@ -6,8 +6,8 @@
 export { parseFrontmatter } from './frontmatter'
 export { findComponentUsages, generateImportPatterns } from './componentFinder'
 export {
-	getContentTypeFromPath,
-	getFirstComponent,
-	extractSlugAndCollection,
-	shouldIgnoreCtaValidation,
+  getContentTypeFromPath,
+  getFirstComponent,
+  extractSlugAndCollection,
+  shouldIgnoreCtaValidation,
 } from './pathUtils'

@@ -245,7 +245,10 @@ export class PrivacyFormElement extends LitElement {
     params: URLSearchParams,
     requestFormType: RequestFormType
   ): RequestPreviewState | null {
-    const previewState = params.get(requestPreviewQueryParams[requestFormType])?.trim().toLowerCase()
+    const previewState = params
+      .get(requestPreviewQueryParams[requestFormType])
+      ?.trim()
+      .toLowerCase()
 
     if (!previewState) {
       return null

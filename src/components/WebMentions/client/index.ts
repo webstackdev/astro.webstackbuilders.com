@@ -88,7 +88,10 @@ export class WebMentionsElement extends LitElement {
       return
     }
 
-    if (normalizedUrl === this.lastLoadedUrl && (this.state === 'loading' || this.state === 'ready')) {
+    if (
+      normalizedUrl === this.lastLoadedUrl &&
+      (this.state === 'loading' || this.state === 'ready')
+    ) {
       return
     }
 
@@ -149,8 +152,14 @@ export class WebMentionsElement extends LitElement {
     })
 
     return html`
-      <section class="mt-12 pt-8 border-t border-trim" id="webmentions" aria-labelledby="webmentions-heading">
-        <header class="flex items-start justify-between mb-6 flex-wrap gap-4 flex-col sm:flex-row sm:items-center">
+      <section
+        class="mt-12 pt-8 border-t border-trim"
+        id="webmentions"
+        aria-labelledby="webmentions-heading"
+      >
+        <header
+          class="flex items-start justify-between mb-6 flex-wrap gap-4 flex-col sm:flex-row sm:items-center"
+        >
           <h3 class="text-2xl font-bold m-0" id="webmentions-heading">Webmentions</h3>
 
           ${this.likesCount > 0 || this.repostsCount > 0
@@ -163,8 +172,7 @@ export class WebMentionsElement extends LitElement {
                           title="${this.likesCount} like${this.likesCount === 1 ? '' : 's'}"
                           aria-label="${this.likesCount} like${this.likesCount === 1 ? '' : 's'}"
                         >
-                          ${heartIconMarkup ? unsafeHTML(heartIconMarkup) : null}
-                          ${this.likesCount}
+                          ${heartIconMarkup ? unsafeHTML(heartIconMarkup) : null} ${this.likesCount}
                         </span>
                       `
                     : null}
@@ -173,7 +181,9 @@ export class WebMentionsElement extends LitElement {
                         <span
                           class="inline-flex items-center gap-1.5 text-content-active text-sm font-medium"
                           title="${this.repostsCount} repost${this.repostsCount === 1 ? '' : 's'}"
-                          aria-label="${this.repostsCount} repost${this.repostsCount === 1 ? '' : 's'}"
+                          aria-label="${this.repostsCount} repost${this.repostsCount === 1
+                            ? ''
+                            : 's'}"
                         >
                           ${repostIconMarkup ? unsafeHTML(repostIconMarkup) : null}
                           ${this.repostsCount}
@@ -187,7 +197,11 @@ export class WebMentionsElement extends LitElement {
 
         ${this.showFacepile && newestMentions.length > 0
           ? html`
-              <div class="flex items-center gap-2 mb-6 p-4 bg-page-offset rounded-lg" role="group" aria-label="Recent mentions: ${newestMentions.length}">
+              <div
+                class="flex items-center gap-2 mb-6 p-4 bg-page-offset rounded-lg"
+                role="group"
+                aria-label="Recent mentions: ${newestMentions.length}"
+              >
                 ${facepileMentions.map(
                   mention => html`
                     <img
@@ -199,13 +213,18 @@ export class WebMentionsElement extends LitElement {
                       loading="lazy"
                       decoding="async"
                     />
-                  `,
+                  `
                 )}
                 ${newestMentions.length > this.facepileLimit
                   ? html`
                       <span
                         class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-offset text-content-inverse text-xs font-semibold"
-                        aria-label="${newestMentions.length - this.facepileLimit} more mention${newestMentions.length - this.facepileLimit === 1 ? '' : 's'}"
+                        aria-label="${newestMentions.length -
+                        this.facepileLimit} more mention${newestMentions.length -
+                          this.facepileLimit ===
+                        1
+                          ? ''
+                          : 's'}"
                       >
                         +${newestMentions.length - this.facepileLimit}
                       </span>
@@ -214,15 +233,19 @@ export class WebMentionsElement extends LitElement {
               </div>
             `
           : null}
-
         ${newestMentions.length > 0
           ? html`
               <ol class="list-none p-0 m-0 flex flex-col gap-6">
                 ${newestMentions.map(
                   mention => html`
                     <li class="m-0">
-                      <article class="p-4 bg-page-offset rounded-lg border border-trim h-cite" id="webmention-${mention.id}">
-                        <div class="flex items-start justify-between gap-4 mb-3 flex-wrap flex-col sm:flex-nowrap sm:flex-row sm:items-center">
+                      <article
+                        class="p-4 bg-page-offset rounded-lg border border-trim h-cite"
+                        id="webmention-${mention.id}"
+                      >
+                        <div
+                          class="flex items-start justify-between gap-4 mb-3 flex-wrap flex-col sm:flex-nowrap sm:flex-row sm:items-center"
+                        >
                           <a
                             class="inline-flex items-center gap-3 no-underline transition-colors hover:text-primary-hover p-author h-card u-url"
                             href="${mention.authorUrl}"
@@ -240,21 +263,26 @@ export class WebMentionsElement extends LitElement {
                             <strong class="font-semibold p-name">${mention.authorName}</strong>
                           </a>
 
-                          <time class="text-content-active text-sm whitespace-nowrap dt-published" datetime="${mention.published}">
+                          <time
+                            class="text-content-active text-sm whitespace-nowrap dt-published"
+                            datetime="${mention.published}"
+                          >
                             ${formatDate(mention.published)}
                           </time>
                         </div>
 
                         ${mention.contentHtml
                           ? html`
-                              <div class="leading-relaxed wrap-break-word [&_p]:my-2 [&_a]:text-primary [&_a]:underline [&_a:hover]:text-primary-hover p-content">
+                              <div
+                                class="leading-relaxed wrap-break-word [&_p]:my-2 [&_a]:text-primary [&_a]:underline [&_a:hover]:text-primary-hover p-content"
+                              >
                                 ${unsafeHTML(mention.contentHtml)}
                               </div>
                             `
                           : null}
                       </article>
                     </li>
-                  `,
+                  `
                 )}
               </ol>
             `
@@ -265,7 +293,7 @@ export class WebMentionsElement extends LitElement {
 }
 
 export const registerWebMentionsComponent = async (
-  tagName = WebMentionsElement.registeredName,
+  tagName = WebMentionsElement.registeredName
 ): Promise<void> => {
   defineCustomElement(tagName, WebMentionsElement)
 }

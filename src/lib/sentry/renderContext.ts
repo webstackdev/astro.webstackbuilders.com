@@ -18,7 +18,12 @@ const toPrimitive = (value: unknown): Primitive | Primitive[] | undefined => {
     return undefined
   }
 
-  if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (
+    value === null ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
     return value
   }
 
@@ -46,15 +51,18 @@ const toPrimitive = (value: unknown): Primitive | Primitive[] | undefined => {
 }
 
 const normalizeContext = (context: RenderContextRecord): Record<string, RenderContextValue> => {
-  return Object.entries(context).reduce<Record<string, RenderContextValue>>((accumulator, [key, value]) => {
-    const normalizedValue = toPrimitive(value)
+  return Object.entries(context).reduce<Record<string, RenderContextValue>>(
+    (accumulator, [key, value]) => {
+      const normalizedValue = toPrimitive(value)
 
-    if (normalizedValue !== undefined) {
-      accumulator[key] = normalizedValue
-    }
+      if (normalizedValue !== undefined) {
+        accumulator[key] = normalizedValue
+      }
 
-    return accumulator
-  }, {})
+      return accumulator
+    },
+    {}
+  )
 }
 
 const normalizeTags = (

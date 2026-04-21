@@ -150,11 +150,7 @@ export class NewsletterFormElement extends LitElement {
       }
 
       this.message.textContent = text
-      this.message.classList.remove(
-        'text-content-active',
-        'text-success',
-        'text-danger'
-      )
+      this.message.classList.remove('text-content-active', 'text-success', 'text-danger')
 
       if (type === 'success') {
         this.message.classList.add('text-success')

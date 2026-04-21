@@ -121,25 +121,33 @@ describe('remark-attr (Layer 1: Isolated)', () => {
 
       const splitWhitespaceBeforeAttrMarker = () => {
         return (tree: unknown) => {
-          visit(tree as never, 'text', (node: { value?: unknown }, index: number | null, parent) => {
-            if (index === null || !parent || !Array.isArray((parent as { children?: unknown }).children)) {
-              return
+          visit(
+            tree as never,
+            'text',
+            (node: { value?: unknown }, index: number | null, parent) => {
+              if (
+                index === null ||
+                !parent ||
+                !Array.isArray((parent as { children?: unknown }).children)
+              ) {
+                return
+              }
+
+              const value = typeof node.value === 'string' ? node.value : ''
+              if (!value.startsWith(' [[')) {
+                return
+              }
+
+              ;(parent as { children: unknown[] }).children.splice(
+                index,
+                1,
+                { type: 'text', value: ' ' },
+                { type: 'text', value: value.slice(1) }
+              )
+
+              return [SKIP, index + 2]
             }
-
-            const value = typeof node.value === 'string' ? node.value : ''
-            if (!value.startsWith(' [[')) {
-              return
-            }
-
-            ;(parent as { children: unknown[] }).children.splice(
-              index,
-              1,
-              { type: 'text', value: ' ' },
-              { type: 'text', value: value.slice(1) }
-            )
-
-            return [SKIP, index + 2]
-          })
+          )
         }
       }
 

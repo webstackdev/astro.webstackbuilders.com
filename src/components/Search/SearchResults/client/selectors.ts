@@ -1,4 +1,9 @@
-import { isDivElement, isInputElement, isOrderedListElement, isParagraphElement } from '@components/scripts/assertions/elements'
+import {
+  isDivElement,
+  isInputElement,
+  isOrderedListElement,
+  isParagraphElement,
+} from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'
 
 export const SELECTORS = {

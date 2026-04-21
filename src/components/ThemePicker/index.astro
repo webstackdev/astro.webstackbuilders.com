@@ -15,11 +15,7 @@ export interface Props {
 const { closeComponent = 'close' } = Astro.props
 ---
 
-<theme-picker
-  class="print:hidden!"
-  transition:name="theme-picker-island"
-  transition:persist
->
+<theme-picker class="print:hidden!" transition:name="theme-picker-island" transition:persist>
   <div
     class:list={[
       styles.themePicker,
@@ -60,16 +56,33 @@ const { closeComponent = 'close' } = Astro.props
                   class:list={[
                     'themepicker__selectBtn',
                     [
-                      'group', 'block', 'relative', 'w-full', 'bg-page-offset', 'text-center', 'p-4'
+                      'group',
+                      'block',
+                      'relative',
+                      'w-full',
+                      'bg-page-offset',
+                      'text-center',
+                      'p-4',
+                    ],
+                    ['border-3', 'border-page-inverse', 'rounded-lg'],
+                    [
+                      'after:pointer-events-none',
+                      'after:absolute',
+                      'after:content-[""]',
+                      'after:inset-0',
+                      'after:rounded-none',
+                      'after:border-2',
+                      'after:border-transparent',
+                      'after:opacity-0',
+                      'after:transition-opacity',
+                      'after:duration-150',
+                      'after:ease-out',
                     ],
                     [
-                      'border-3', 'border-page-inverse', 'rounded-lg'
-                    ],
-                    [
-                      'after:pointer-events-none', 'after:absolute', 'after:content-[""]', 'after:inset-0', 'after:rounded-none', 'after:border-2', 'after:border-transparent', 'after:opacity-0',   'after:transition-opacity', 'after:duration-150', 'after:ease-out'
-                    ],
-                    [
-                      'focus-visible:outline-none', 'focus-visible:after:opacity-100', 'focus-visible:after:-inset-1.5', 'focus-visible:after:border-spotlight'
+                      'focus-visible:outline-none',
+                      'focus-visible:after:opacity-100',
+                      'focus-visible:after:-inset-1.5',
+                      'focus-visible:after:border-spotlight',
                     ],
                   ]}
                   aria-label={`select color theme ${theme.name}`}
@@ -79,10 +92,7 @@ const { closeComponent = 'close' } = Astro.props
                     <span class="inline-block relative">
                       <span class="themepicker__themeName text-content">{theme.name}</span>
                       {theme.description && (
-                        <span
-                          class="themepicker__tooltip sr-only"
-                          data-theme-tooltip
-                        >
+                        <span class="themepicker__tooltip sr-only" data-theme-tooltip>
                           {theme.description}
                         </span>
                       )}

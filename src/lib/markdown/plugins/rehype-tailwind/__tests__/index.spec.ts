@@ -69,16 +69,7 @@ describe('htmlElements configuration', () => {
   })
 
   test('includes all expected element types', () => {
-    const expectedElements = [
-      'hr',
-      'img',
-      'mark',
-      'summary',
-      'table',
-      'th',
-      'td',
-      'video',
-    ]
+    const expectedElements = ['hr', 'img', 'mark', 'summary', 'table', 'th', 'td', 'video']
 
     expectedElements.forEach(tagName => {
       const config = htmlElements.find(c => c.tagName === tagName)
@@ -123,7 +114,11 @@ describe('applyHtmlElementClasses', () => {
     applyHtmlElementClasses(node, config)
 
     expectHasAtLeastOneValidClass(node)
-    expect(node.properties?.['className']).toEqual(['existing-class', 'test-class-a', 'test-class-b'])
+    expect(node.properties?.['className']).toEqual([
+      'existing-class',
+      'test-class-a',
+      'test-class-b',
+    ])
   })
 
   test('applies classes to node without properties object', () => {

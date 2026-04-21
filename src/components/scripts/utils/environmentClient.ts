@@ -113,7 +113,6 @@ export function getGoogleMapsApiKey(): string {
   return PUBLIC_GOOGLE_MAPS_API_KEY
 }
 
-
 /**
  * Gets the Google Maps Map ID injected at build time.
  *

@@ -1,6 +1,10 @@
 const rows = [
   { classification: 'Actionable', criteria: '≥ 80%', action: 'Keep, improve runbook' },
-  { classification: 'Noisy', criteria: '20-80%', action: 'Investigate thresholds, consider aggregation' },
+  {
+    classification: 'Noisy',
+    criteria: '20-80%',
+    action: 'Investigate thresholds, consider aggregation',
+  },
   { classification: 'Useless', criteria: '< 20%', action: 'Delete or convert to dashboard metric' },
   { classification: 'Stale', criteria: 'Not fired in 3+ months', action: 'Review for deletion' },
 ]

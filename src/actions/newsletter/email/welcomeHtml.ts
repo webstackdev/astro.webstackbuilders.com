@@ -1,5 +1,8 @@
 import welcomeTemplateContent from './welcome.mjml?raw'
-import { compileEmailTemplate, createImportedEmailTemplate } from '@actions/utils/email/templateCompiler'
+import {
+  compileEmailTemplate,
+  createImportedEmailTemplate,
+} from '@actions/utils/email/templateCompiler'
 
 const welcomeTemplate = createImportedEmailTemplate(
   'src/actions/newsletter/email/welcome.mjml',
@@ -19,19 +22,13 @@ const createWelcomeTemplateData = (firstName?: string): WelcomeTemplateData => (
 })
 
 export async function generateWelcomeEmailHtml(firstName?: string): Promise<string> {
-  const { html } = await compileEmailTemplate(
-    welcomeTemplate,
-    createWelcomeTemplateData(firstName)
-  )
+  const { html } = await compileEmailTemplate(welcomeTemplate, createWelcomeTemplateData(firstName))
 
   return html
 }
 
 export async function generateWelcomeEmailText(firstName?: string): Promise<string> {
-  const { text } = await compileEmailTemplate(
-    welcomeTemplate,
-    createWelcomeTemplateData(firstName)
-  )
+  const { text } = await compileEmailTemplate(welcomeTemplate, createWelcomeTemplateData(firstName))
 
   return text
 }

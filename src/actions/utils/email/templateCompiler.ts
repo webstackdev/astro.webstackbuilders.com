@@ -181,11 +181,11 @@ const renderTemplateString = (template: EmailTemplateSource, data: EmailTemplate
   return nunjucksTemplate.render(mergeCommonEmailTemplateData(data))
 }
 
-const normalizeTemplatePath = (templatePath: string | URL): { absolutePath: string; relativePath: string } => {
+const normalizeTemplatePath = (
+  templatePath: string | URL
+): { absolutePath: string; relativePath: string } => {
   const rawPath = templatePath instanceof URL ? fileURLToPath(templatePath) : templatePath
-  const absolutePath = isAbsolute(rawPath)
-    ? rawPath
-    : resolve(projectRoot, rawPath)
+  const absolutePath = isAbsolute(rawPath) ? rawPath : resolve(projectRoot, rawPath)
   const relativePath = relative(projectRoot, absolutePath).replace(/\\/g, '/')
 
   if (!relativePath || relativePath.startsWith('..')) {
@@ -219,7 +219,9 @@ export const createEmailTemplate = (
   }
 }
 
-const createMjmlRenderOptions = (absolutePath: string): {
+const createMjmlRenderOptions = (
+  absolutePath: string
+): {
   filePath?: string
   keepComments: boolean
 } => {
@@ -263,13 +265,8 @@ export async function compileEmailTemplate(
     const { absolutePath, relativePath } = normalizeTemplatePath(template.filePath)
     const mjmlWithData = renderTemplateString(template, data)
     const mjmlModule = await import('mjml')
-    const mjml2html = (
-      'default' in mjmlModule ? mjmlModule.default : mjmlModule
-    ) as MjmlRenderer
-    const { html, errors } = await mjml2html(
-      mjmlWithData,
-      createMjmlRenderOptions(absolutePath)
-    )
+    const mjml2html = ('default' in mjmlModule ? mjmlModule.default : mjmlModule) as MjmlRenderer
+    const { html, errors } = await mjml2html(mjmlWithData, createMjmlRenderOptions(absolutePath))
 
     if (errors.length > 0) {
       throw new ActionsFunctionError({

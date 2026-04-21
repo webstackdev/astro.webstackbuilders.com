@@ -65,8 +65,7 @@ const hasScrollTop = (element: unknown): element is HTMLElement => {
 // Also checks #scroll-viewport for cases where no event is available (e.g. resize).
 const getScrollTop = (event?: Event): number => {
   const target = event?.target
-  const targetScrollTop =
-    hasScrollTop(target) ? target.scrollTop : 0
+  const targetScrollTop = hasScrollTop(target) ? target.scrollTop : 0
   const documentScrollTop = getDocumentScrollTop()
   const windowScrollTop = typeof window.scrollY === 'number' ? window.scrollY : 0
   const viewport = getScrollViewportElement()
@@ -128,26 +127,25 @@ const createUpdateHandler = (state: HeaderCollapseState) => (nextScrollY?: numbe
   state.lastScrollY = currentScrollY
 }
 
-const createScrollHandler = (state: HeaderCollapseState, update: (_nextScrollY?: number) => void) => (
-  event?: Event,
-) => {
-  if (state.isTicking) {
-    return
+const createScrollHandler =
+  (state: HeaderCollapseState, update: (_nextScrollY?: number) => void) => (event?: Event) => {
+    if (state.isTicking) {
+      return
+    }
+
+    state.isTicking = true
+
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => {
+        state.isTicking = false
+        update(getScrollTop(event))
+      })
+      return
+    }
+
+    state.isTicking = false
+    update(getScrollTop(event))
   }
-
-  state.isTicking = true
-
-  if (typeof window.requestAnimationFrame === 'function') {
-    window.requestAnimationFrame(() => {
-      state.isTicking = false
-      update(getScrollTop(event))
-    })
-    return
-  }
-
-  state.isTicking = false
-  update(getScrollTop(event))
-}
 
 const attachHeaderCollapse = (): boolean => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {

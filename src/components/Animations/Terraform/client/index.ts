@@ -387,7 +387,8 @@ export class TerraformAnimationElement extends LitElement {
       // --- Selector groups ---
       const primaryArrows = '#tf-arrow-vpc, #tf-arrow-iam, #tf-arrow-s3'
       const crossEdges = '#tf-edge-vpc-eks, #tf-edge-iam-eks, #tf-edge-vpc-rds, #tf-edge-iam-rds'
-      const crossArrows = '#tf-arrow-vpc-eks, #tf-arrow-iam-eks, #tf-arrow-vpc-rds, #tf-arrow-iam-rds'
+      const crossArrows =
+        '#tf-arrow-vpc-eks, #tf-arrow-iam-eks, #tf-arrow-vpc-rds, #tf-arrow-iam-rds'
       const allChecks =
         '#tf-check-root, #tf-check-vpc, #tf-check-iam, #tf-check-s3, #tf-check-eks, #tf-check-rds'
       const termLines =
@@ -397,8 +398,12 @@ export class TerraformAnimationElement extends LitElement {
       // --- Initial states ---
       gsap.set(
         [
-          '#tf-node-root', '#tf-node-vpc', '#tf-node-iam', '#tf-node-s3',
-          '#tf-node-eks', '#tf-node-rds',
+          '#tf-node-root',
+          '#tf-node-vpc',
+          '#tf-node-iam',
+          '#tf-node-s3',
+          '#tf-node-eks',
+          '#tf-node-rds',
         ],
         { transformOrigin: '50% 50%' }
       )
@@ -440,15 +445,36 @@ export class TerraformAnimationElement extends LitElement {
         .to(primaryArrows, { opacity: 1, duration: 0.15 }, '-=0.1')
 
         // ===== Phase 3: Row 1 nodes pop in =====
-        .from('#tf-node-vpc', {
-          scale: 0, opacity: 0, duration: 0.5, ease: 'back(2)',
-        }, '-=0.05')
-        .from('#tf-node-iam', {
-          scale: 0, opacity: 0, duration: 0.5, ease: 'back(2)',
-        }, '-=0.3')
-        .from('#tf-node-s3', {
-          scale: 0, opacity: 0, duration: 0.5, ease: 'back(2)',
-        }, '-=0.3')
+        .from(
+          '#tf-node-vpc',
+          {
+            scale: 0,
+            opacity: 0,
+            duration: 0.5,
+            ease: 'back(2)',
+          },
+          '-=0.05'
+        )
+        .from(
+          '#tf-node-iam',
+          {
+            scale: 0,
+            opacity: 0,
+            duration: 0.5,
+            ease: 'back(2)',
+          },
+          '-=0.3'
+        )
+        .from(
+          '#tf-node-s3',
+          {
+            scale: 0,
+            opacity: 0,
+            duration: 0.5,
+            ease: 'back(2)',
+          },
+          '-=0.3'
+        )
 
         // ===== Phase 4: Cross-dependency edges fade in =====
         .to('#tf-edge-vpc-eks', { opacity: 1, duration: 0.35 }, '+=0.15')
@@ -458,12 +484,26 @@ export class TerraformAnimationElement extends LitElement {
         .to(crossArrows, { opacity: 1, duration: 0.15 }, '-=0.1')
 
         // ===== Phase 5: Row 2 nodes pop in =====
-        .from('#tf-node-eks', {
-          scale: 0, opacity: 0, duration: 0.5, ease: 'back(2)',
-        }, '-=0.05')
-        .from('#tf-node-rds', {
-          scale: 0, opacity: 0, duration: 0.5, ease: 'back(2)',
-        }, '-=0.25')
+        .from(
+          '#tf-node-eks',
+          {
+            scale: 0,
+            opacity: 0,
+            duration: 0.5,
+            ease: 'back(2)',
+          },
+          '-=0.05'
+        )
+        .from(
+          '#tf-node-rds',
+          {
+            scale: 0,
+            opacity: 0,
+            duration: 0.5,
+            ease: 'back(2)',
+          },
+          '-=0.25'
+        )
 
         // ===== Phase 6: Checkmarks cascade with green flash borders =====
         .to('#tf-check-root', { opacity: 1, duration: 0.25 }, '+=0.3')
@@ -516,9 +556,15 @@ export class TerraformAnimationElement extends LitElement {
         .to(allChecks, { opacity: 0, duration: 0.3 }, '-=0.3')
         .to('#tf-node-eks, #tf-node-rds', { opacity: 0, scale: 0.8, duration: 0.4 }, '-=0.2')
         .to('#tf-edges-cross', { opacity: 0, duration: 0.3 }, '-=0.3')
-        .to('#tf-node-vpc, #tf-node-iam, #tf-node-s3', {
-          opacity: 0, scale: 0.8, duration: 0.4,
-        }, '-=0.2')
+        .to(
+          '#tf-node-vpc, #tf-node-iam, #tf-node-s3',
+          {
+            opacity: 0,
+            scale: 0.8,
+            duration: 0.4,
+          },
+          '-=0.2'
+        )
         .to('#tf-edges-primary', { opacity: 0, duration: 0.3 }, '-=0.3')
         .to('#tf-node-root', { opacity: 0, scale: 0.8, duration: 0.3 }, '-=0.2')
     } catch (error) {

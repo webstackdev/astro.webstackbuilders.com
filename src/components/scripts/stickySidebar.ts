@@ -19,10 +19,7 @@
  * regardless of header collapse animations or transition timing.
  */
 import { handleScriptError } from '@components/scripts/errors/handler'
-import {
-  getHeaderFixedElement,
-  getProgressBarElement,
-} from '@components/scripts/store/selectors'
+import { getHeaderFixedElement, getProgressBarElement } from '@components/scripts/store/selectors'
 
 export interface StickySidebarOptions {
   /** Extra space below the fixed chrome (header + progress bar) in px. Default: 16 */
@@ -42,7 +39,7 @@ function measureChromeBottom(): number {
   const progressEl = getProgressBarElement()
   return Math.max(
     headerEl ? headerEl.getBoundingClientRect().bottom : 0,
-    progressEl ? progressEl.getBoundingClientRect().bottom : 0,
+    progressEl ? progressEl.getBoundingClientRect().bottom : 0
   )
 }
 
@@ -57,13 +54,9 @@ function measureChromeBottom(): number {
 export function initStickySidebar(
   sidebar: HTMLElement,
   container: HTMLElement,
-  options: StickySidebarOptions = {},
+  options: StickySidebarOptions = {}
 ): () => void {
-  const {
-    topPadding = 16,
-    bottomPadding = 16,
-    minWidth = 1024,
-  } = options
+  const { topPadding = 16, bottomPadding = 16, minWidth = 1024 } = options
 
   const scrollContainer = document.getElementById('scroll-viewport')
   if (!scrollContainer) {

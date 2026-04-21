@@ -49,27 +49,40 @@ const items = [
 
 <section class="space-y-6">
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-    {items.map((item) => (
-      <a href={item.link} class="group relative flex flex-col md:flex-row p-0 rounded-md border border-trim bg-page-base shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden no-underline hover:no-underline focus-visible:rounded-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spotlight">
-        <div class="absolute inset-0 bg-content-inverse"></div>
-        <div class={`w-full md:w-48 h-48 md:h-auto shrink-0 relative overflow-hidden ${item.imageClasses}`}>
-          <Image src={item.image} alt={item.title} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        </div>
-        <div class="p-6 flex flex-col justify-center grow">
-          <div class="relative flex items-center gap-4 mb-4">
-            <h2 class="inline-flex items-center gap-2 whitespace-nowrap text-xl text-page-inverse font-bold transition-colors no-underline">
-              <Icon icon={item.icon} size={6} />
-              {item.title}
-            </h2>
+    {
+      items.map(item => (
+        <a
+          href={item.link}
+          class="group relative flex flex-col md:flex-row p-0 rounded-md border border-trim bg-page-base shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden no-underline hover:no-underline focus-visible:rounded-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spotlight"
+        >
+          <div class="absolute inset-0 bg-content-inverse" />
+          <div
+            class={`w-full md:w-48 h-48 md:h-auto shrink-0 relative overflow-hidden ${item.imageClasses}`}
+          >
+            <Image
+              src={item.image}
+              alt={item.title}
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
           </div>
-          <p class="relative text-content-offset text-sm leading-relaxed no-underline">{item.text}</p>
-          <div class="relative mt-6 flex pointer-events-none">
-            <span class="text-sm font-medium text-page-inverse flex items-center gap-1 group-hover:gap-2 transition-all no-underline">
-              {item.cta} <Icon icon="arrow-right" size={4} />
-            </span>
+          <div class="p-6 flex flex-col justify-center grow">
+            <div class="relative flex items-center gap-4 mb-4">
+              <h2 class="inline-flex items-center gap-2 whitespace-nowrap text-xl text-page-inverse font-bold transition-colors no-underline">
+                <Icon icon={item.icon} size={6} />
+                {item.title}
+              </h2>
+            </div>
+            <p class="relative text-content-offset text-sm leading-relaxed no-underline">
+              {item.text}
+            </p>
+            <div class="relative mt-6 flex pointer-events-none">
+              <span class="text-sm font-medium text-page-inverse flex items-center gap-1 group-hover:gap-2 transition-all no-underline">
+                {item.cta} <Icon icon="arrow-right" size={4} />
+              </span>
+            </div>
           </div>
-        </div>
-      </a>
-    ))}
+        </a>
+      ))
+    }
   </div>
 </section>

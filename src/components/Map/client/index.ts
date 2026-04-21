@@ -1,7 +1,11 @@
 import { APILoader } from '@googlemaps/extended-component-library/api_loader.js'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
-import { getGoogleMapId, getGoogleMapsApiKey, isE2eTest } from '@components/scripts/utils/environmentClient'
+import {
+  getGoogleMapId,
+  getGoogleMapsApiKey,
+  isE2eTest,
+} from '@components/scripts/utils/environmentClient'
 import {
   getCompanyMapAddress,
   queryCompanyMapElement,
@@ -20,9 +24,7 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
   const Geocoder = (
     geocodingLibrary as unknown as {
       Geocoder: new () => {
-        geocode: (_request: {
-          address: string
-        }) => Promise<{
+        geocode: (_request: { address: string }) => Promise<{
           results?: Array<{ geometry?: { location?: { lat: () => number; lng: () => number } } }>
         }>
       }

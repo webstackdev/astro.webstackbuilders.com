@@ -16,7 +16,7 @@ const CONSENT_PREFERENCES_READY_EVENT = 'consent-preferences:ready'
 const SAVE_DELAY_SETTLE_MS = 450
 
 const waitForSaveDelay = async () => {
-  await new Promise<void>((resolve) => {
+  await new Promise<void>(resolve => {
     setTimeout(resolve, SAVE_DELAY_SETTLE_MS)
   })
 }
@@ -385,7 +385,9 @@ describe('ConsentPreferencesElement', () => {
       contactLink.href = '/contact/'
       contactLink.textContent = 'Contact'
       window.document.body.append(contactLink)
-      const discardBtn = window.document.getElementById('consent-unsaved-discard') as HTMLButtonElement | null
+      const discardBtn = window.document.getElementById(
+        'consent-unsaved-discard'
+      ) as HTMLButtonElement | null
       const dialog = window.document.getElementById('consent-unsaved-dialog') as HTMLElement | null
 
       expect(functionalCheckbox).not.toBeNull()

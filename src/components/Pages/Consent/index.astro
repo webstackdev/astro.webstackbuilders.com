@@ -42,7 +42,7 @@ export type Props = {
       save: string
       acceptAll: string
       rejectAll: string
-    },
+    }
     cookies: {
       heading: string
       description: string
@@ -126,7 +126,9 @@ const { content } = Astro.props
           <div class="bg-page-offset rounded-xl p-6">
             <div class="flex items-center justify-between mb-1">
               <div>
-                <h3 class="text-xl font-semibold text-primary-offset">{content.essential.heading}</h3>
+                <h3 class="text-xl font-semibold text-primary-offset">
+                  {content.essential.heading}
+                </h3>
               </div>
               <div class="flex items-center">
                 <span
@@ -238,7 +240,10 @@ const { content } = Astro.props
             </p>
             <p class="text-content text-md leading-relaxed">{content.functional.description}</p>
             <div class="bg-content-inverse-active rounded-lg p-4 mt-4 -mx-1">
-              <p class="text-sm text-secondary leading-relaxed" set:html={content.functional.trailer}></p>
+              <p
+                class="text-sm text-secondary leading-relaxed"
+                set:html={content.functional.trailer}
+              />
             </div>
           </div>
 
@@ -328,7 +333,7 @@ const { content } = Astro.props
         class="text-2xl md:text-3xl font-bold text-primary-offset mb-2"
       >
         {content.cookies.heading}
-        <HeadingAnchor href={"#consent-what-are-cookies-title"} />
+        <HeadingAnchor href={'#consent-what-are-cookies-title'} />
       </h2>
       <div class="py-1">
         <p class="text-content mb-4 mt-0">
@@ -339,10 +344,10 @@ const { content } = Astro.props
           items={content.cookies.types}
           size={6}
           classes={{
-            ul: "mt-6 mb-0 pl-0",
-            icon: "w-12 h-12 bg-blue-100 mr-2",
-            li: "border-2 border-page-offset p-4 rounded-xl",
-            text: "mb-0",
+            ul: 'mt-6 mb-0 pl-0',
+            icon: 'w-12 h-12 bg-blue-100 mr-2',
+            li: 'border-2 border-page-offset p-4 rounded-xl',
+            text: 'mb-0',
           }}
         />
       </div>
@@ -354,7 +359,7 @@ const { content } = Astro.props
         class="text-2xl md:text-3xl font-bold text-primary-offset mb-4"
       >
         {content.management.heading}
-        <HeadingAnchor href={"#consent-managing-cookies-title"} />
+        <HeadingAnchor href={'#consent-managing-cookies-title'} />
       </h2>
       <p class="text-content mb-6 mt-0">
         {content.management.subheading}
@@ -364,11 +369,11 @@ const { content } = Astro.props
         items={content.management.types}
         size={6}
         classes={{
-          ul: "mt-6 mb-0 pl-0",
-          icon: "w-12 h-12 bg-blue-100 mr-2",
-          li: "border-2 border-page-offset p-4 rounded-xl",
-          header: "mb-1 mt-0",
-          text: "mb-0",
+          ul: 'mt-6 mb-0 pl-0',
+          icon: 'w-12 h-12 bg-blue-100 mr-2',
+          li: 'border-2 border-page-offset p-4 rounded-xl',
+          header: 'mb-1 mt-0',
+          text: 'mb-0',
         }}
       />
     </section>
@@ -379,35 +384,31 @@ const { content } = Astro.props
         class="text-2xl md:text-3xl font-bold text-primary-offset mb-4"
       >
         {content.questions.heading}
-        <HeadingAnchor href={"#consent-contact-title"} />
+        <HeadingAnchor href={'#consent-contact-title'} />
       </h2>
       <div class="bg-gray-50 rounded-xl p-6">
         <p class="text-gray-900 mb-4 mt-0">{content.questions.subheading}</p>
         <div class="flex items-start ml-4">
-          {content.questions.methods.map((item) => {
-            return (
-              <div class="flex items-start gap-4">
-                <div
-                  class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 mt-1"
-                >
-                  <Icon
-                    icon={item.icon}
-                    color="blue-600"
-                    size={6}
-                  />
+          {
+            content.questions.methods.map(item => {
+              return (
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                    <Icon icon={item.icon} color="blue-600" size={6} />
+                  </div>
+                  <div class="ml-2">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1 mt-0">{item.lead}</h3>
+                    <a
+                      href={item.link}
+                      class="text-blue-900 underline decoration-blue-900 decoration-dotted underline-offset-4 hover:text-blue-600 hover:decoration-blue-600 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2"
+                    >
+                      {item.text}
+                    </a>
+                  </div>
                 </div>
-                <div class="ml-2">
-                  <h3 class="text-lg font-semibold text-gray-900 mb-1 mt-0">{item.lead}</h3>
-                  <a
-                    href={item.link}
-                    class="text-blue-900 underline decoration-blue-900 decoration-dotted underline-offset-4 hover:text-blue-600 hover:decoration-blue-600 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2"
-                  >
-                    {item.text}
-                  </a>
-                </div>
-              </div>
-            )
-          })}
+              )
+            })
+          }
         </div>
       </div>
     </section>

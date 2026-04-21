@@ -13,7 +13,11 @@ import { createConsentRecord, markConsentRecordsVerified } from '@actions/gdpr/e
 import { createPendingSubscription, confirmSubscription } from '@actions/newsletter/domain'
 import { validateEmail } from '@actions/newsletter/utils'
 import { sendConfirmationEmail, sendWelcomeEmail } from '@actions/newsletter/entities/email'
-import { createOrUpdateContact, addContactToNewsletterList, setMarketingOptIn } from '@actions/utils/hubspot'
+import {
+  createOrUpdateContact,
+  addContactToNewsletterList,
+  setMarketingOptIn,
+} from '@actions/utils/hubspot'
 
 const subscribeSchema = z.object({
   email: z.string(),

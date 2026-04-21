@@ -13,12 +13,7 @@ type SearchBarModule = WebComponentModule<SearchBarElementInstance>
 type ActionResult<TData> = { data?: TData; error?: { message?: string } }
 
 const searchQueryMock =
-  vi.fn<
-    (_input: {
-      q: string
-      limit?: number
-    }) => Promise<ActionResult<{ hits: SearchHit[] }>>
-  >()
+  vi.fn<(_input: { q: string; limit?: number }) => Promise<ActionResult<{ hits: SearchHit[] }>>>()
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -153,7 +148,9 @@ describe('SearchBar web component', () => {
       expect(resultsContainer.classList.contains('hidden')).toBe(false)
       expect(resultsContainer.className).toContain('bg-page-offset')
 
-      const links = Array.from(element.querySelectorAll('[data-search-results-list] a')) as HTMLAnchorElement[]
+      const links = Array.from(
+        element.querySelectorAll('[data-search-results-list] a')
+      ) as HTMLAnchorElement[]
       expect(
         links.some(
           link =>
@@ -297,7 +294,8 @@ describe('SearchBar web component', () => {
 
   it('fills the query from speech recognition when available', async () => {
     await runHeaderComponentRender(async ({ element, window }) => {
-      ;(window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition = MockSpeechRecognition as unknown
+      ;(window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition =
+        MockSpeechRecognition as unknown
       ;(window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition =
         MockSpeechRecognition as unknown
 
@@ -312,7 +310,8 @@ describe('SearchBar web component', () => {
       await flushMicrotasks()
 
       // Simulate a recognition result.
-      const recognition = (element as unknown as { speechRecognition?: MockSpeechRecognition }).speechRecognition
+      const recognition = (element as unknown as { speechRecognition?: MockSpeechRecognition })
+        .speechRecognition
       expect(recognition).toBeTruthy()
 
       recognition?.onresult?.({

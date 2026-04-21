@@ -56,7 +56,10 @@ function extractUrl(str: string): string | null {
 }
 
 function removeUrl(str: string, url: string): string {
-  return str.replace(url, '').replace(/\s{2,}/g, ' ').trim()
+  return str
+    .replace(url, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
 }
 
 function splitAttribution(attributionText: string): { name: string; meta: string | null } {
@@ -65,7 +68,10 @@ function splitAttribution(attributionText: string): { name: string; meta: string
   const openParenIndex = trimmed.lastIndexOf('(')
   const closeParenIndex = trimmed.lastIndexOf(')')
 
-  const hasTrailingParens = openParenIndex !== -1 && closeParenIndex === trimmed.length - 1 && openParenIndex < closeParenIndex
+  const hasTrailingParens =
+    openParenIndex !== -1 &&
+    closeParenIndex === trimmed.length - 1 &&
+    openParenIndex < closeParenIndex
   if (!hasTrailingParens) {
     return { name: trimmed, meta: null }
   }
@@ -274,7 +280,9 @@ export default function remarkBlockquote(options?: Partial<RemarkBlockquoteOptio
           type: 'paragraph',
           data: {
             hName: attributionContainerTagName,
-            hProperties: settings.classNameAttribution ? { className: [settings.classNameAttribution] } : {},
+            hProperties: settings.classNameAttribution
+              ? { className: [settings.classNameAttribution] }
+              : {},
             // Build desired HTML shape:
             // <figcaption class="blockquote-attribution">
             //   <div><p>Name</p><p>Date</p></div>
@@ -304,7 +312,9 @@ export default function remarkBlockquote(options?: Partial<RemarkBlockquoteOptio
           type: 'paragraph',
           data: {
             hName: 'figcaption',
-            hProperties: settings.classNameCaption ? { className: [settings.classNameCaption] } : {},
+            hProperties: settings.classNameCaption
+              ? { className: [settings.classNameCaption] }
+              : {},
           },
           children: [{ type: 'text', value: captionText }],
         }

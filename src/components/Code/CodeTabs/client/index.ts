@@ -109,7 +109,8 @@ export class CodeTabsElement extends LitElement {
       .filter((label): label is string => Boolean(label))
 
     this.isInteractiveTabs = this.codeBlocks.length >= 2
-    const shouldRenderTabs = this.isInteractiveTabs || (this.codeBlocks.length === 1 && labels.length === 1)
+    const shouldRenderTabs =
+      this.isInteractiveTabs || (this.codeBlocks.length === 1 && labels.length === 1)
 
     this.buildUi({ shouldRenderTabs, labels })
 
@@ -211,16 +212,18 @@ export class CodeTabsElement extends LitElement {
     button.setAttribute('aria-label', tooltip)
     button.title = tooltip
 
-    const copySvg = queryCodeTabsIconMarkup({
-      iconBankId: ICON_BANK_ID,
-      iconName: 'copy',
-      root: document,
-    }) ?? ''
-    const checkSvg = queryCodeTabsIconMarkup({
-      iconBankId: ICON_BANK_ID,
-      iconName: 'check',
-      root: document,
-    }) ?? ''
+    const copySvg =
+      queryCodeTabsIconMarkup({
+        iconBankId: ICON_BANK_ID,
+        iconName: 'copy',
+        root: document,
+      }) ?? ''
+    const checkSvg =
+      queryCodeTabsIconMarkup({
+        iconBankId: ICON_BANK_ID,
+        iconName: 'check',
+        root: document,
+      }) ?? ''
 
     button.innerHTML = `
       <span data-code-tabs-copy-icon="copy">${copySvg}</span>
@@ -256,16 +259,18 @@ export class CodeTabsElement extends LitElement {
     btn.setAttribute('aria-label', `Copy "${text}"`)
     btn.title = `Copy "${text}"`
 
-    const copySvg = queryCodeTabsIconMarkup({
-      iconBankId: ICON_BANK_ID,
-      iconName: 'copy',
-      root: document,
-    }) ?? ''
-    const checkSvg = queryCodeTabsIconMarkup({
-      iconBankId: ICON_BANK_ID,
-      iconName: 'check',
-      root: document,
-    }) ?? ''
+    const copySvg =
+      queryCodeTabsIconMarkup({
+        iconBankId: ICON_BANK_ID,
+        iconName: 'copy',
+        root: document,
+      }) ?? ''
+    const checkSvg =
+      queryCodeTabsIconMarkup({
+        iconBankId: ICON_BANK_ID,
+        iconName: 'check',
+        root: document,
+      }) ?? ''
 
     btn.innerHTML = `
       <span data-title-copy-icon="copy">${copySvg}</span>
@@ -278,10 +283,14 @@ export class CodeTabsElement extends LitElement {
       svg.classList.add('w-3.5', 'h-3.5')
     })
 
-    addButtonEventListeners(btn, (e) => {
-      e.stopPropagation()
-      void this.copyTitleText(btn, text)
-    }, this)
+    addButtonEventListeners(
+      btn,
+      e => {
+        e.stopPropagation()
+        void this.copyTitleText(btn, text)
+      },
+      this
+    )
 
     return btn
   }

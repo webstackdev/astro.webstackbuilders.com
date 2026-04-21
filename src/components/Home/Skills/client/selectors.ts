@@ -1,8 +1,5 @@
 import type { EmblaCarouselType } from 'embla-carousel'
-import {
-  isButtonElement,
-  isType1Element,
-} from '@components/scripts/assertions/elements'
+import { isButtonElement, isType1Element } from '@components/scripts/assertions/elements'
 import { ClientScriptError } from '@components/scripts/errors'
 
 type SkillsEmblaRootElement = HTMLElement & { __emblaApi__?: EmblaCarouselType }
@@ -33,7 +30,9 @@ export const querySkillsEmblaRoot = (scope: ParentNode): SkillsEmblaRootElement 
 export const getSkillsEmblaRoot = (scope: ParentNode): SkillsEmblaRootElement => {
   const root = querySkillsEmblaRoot(scope)
   if (!root) {
-    throw new ClientScriptError(`SkillsCarouselElement: Missing required element: ${SELECTORS.emblaRoot}`)
+    throw new ClientScriptError(
+      `SkillsCarouselElement: Missing required element: ${SELECTORS.emblaRoot}`
+    )
   }
 
   return root
@@ -51,7 +50,9 @@ export const querySkillsViewport = (scope: ParentNode): HTMLElement | null => {
 export const getSkillsViewport = (scope: ParentNode): HTMLElement => {
   const viewport = querySkillsViewport(scope)
   if (!viewport) {
-    throw new ClientScriptError(`SkillsCarouselElement: Missing required element: ${SELECTORS.viewport}`)
+    throw new ClientScriptError(
+      `SkillsCarouselElement: Missing required element: ${SELECTORS.viewport}`
+    )
   }
 
   return viewport

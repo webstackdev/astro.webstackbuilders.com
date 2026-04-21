@@ -36,8 +36,8 @@ describe('List (Astro)', () => {
 
       const definitionList = window.document.querySelector('dl')
       expect(definitionList).toBeTruthy()
-  expect(definitionList?.className).toContain('max-w-2xl')
-  expect(definitionList?.className).toContain('mx-auto')
+      expect(definitionList?.className).toContain('max-w-2xl')
+      expect(definitionList?.className).toContain('mx-auto')
 
       const questions = window.document.querySelectorAll('dt')
       const answers = window.document.querySelectorAll('dd')
@@ -227,7 +227,9 @@ describe('List (Astro)', () => {
       expect(list?.className).toContain('text-content-offset')
       expect(item?.className).toContain('flex')
       expect(svg).toBeTruthy()
-      expect(item?.textContent).toContain('Built self-service infrastructure provisioning workflows.')
+      expect(item?.textContent).toContain(
+        'Built self-service infrastructure provisioning workflows.'
+      )
     })
   })
 

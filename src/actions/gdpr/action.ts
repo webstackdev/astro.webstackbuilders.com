@@ -2,18 +2,9 @@ import emailValidator from 'email-validator'
 import { validate as uuidValidate } from 'uuid'
 import { defineAction } from 'astro:actions'
 import { z } from 'astro/zod'
-import {
-  checkRateLimit,
-  rateLimiters
-} from '@actions/utils/rateLimit'
-import {
-  buildRequestFingerprint,
-  createRateLimitIdentifier
-} from '@actions/utils/requestContext'
-import {
-  ActionsFunctionError,
-  handleActionsFunctionError
-} from '@actions/utils/errors'
+import { checkRateLimit, rateLimiters } from '@actions/utils/rateLimit'
+import { buildRequestFingerprint, createRateLimitIdentifier } from '@actions/utils/requestContext'
+import { ActionsFunctionError, handleActionsFunctionError } from '@actions/utils/errors'
 import type {
   ConsentResponse,
   DSARRequestInput,
@@ -26,10 +17,7 @@ import {
   consentDeleteSchema,
   dsarRequestSchema,
 } from '@actions/gdpr/domain'
-import {
-  buildRateLimitError,
-  mapConsentRecord,
-} from '@actions/gdpr/responder'
+import { buildRateLimitError, mapConsentRecord } from '@actions/gdpr/responder'
 import {
   createConsentRecord,
   createConsentRecordInput,

@@ -100,7 +100,9 @@ describe('compileEmailTemplate', () => {
     expect(result.html).toContain('support@webstackbuilders.com')
 
     expect(result.text).toContain('Hello, Alex!')
-    expect(result.text).toContain('Visit www.webstackbuilders.com [https://www.webstackbuilders.com].')
+    expect(result.text).toContain(
+      'Visit www.webstackbuilders.com [https://www.webstackbuilders.com].'
+    )
     expect(result.text).toContain('Contact Webstack Builders at support@webstackbuilders.com.')
   })
 

@@ -79,7 +79,10 @@ export class FileExplorerComponent extends LitElement {
     return this.getVisiblePaths().includes(path)
   }
 
-  private getVisiblePaths(nodes: FileSystemNode[] = this.fileSystemData, parentPath = ''): string[] {
+  private getVisiblePaths(
+    nodes: FileSystemNode[] = this.fileSystemData,
+    parentPath = ''
+  ): string[] {
     return nodes.flatMap((node, index) => {
       const path = this.getNodePath(parentPath, index)
       const visiblePaths = [path]
@@ -212,9 +215,20 @@ export class FileExplorerComponent extends LitElement {
 
   private renderFolderIcon(): TemplateResult {
     return html`
-      <span aria-hidden="true" class="mr-2 inline-flex items-center text-secondary transition-colors group-hover:text-page-inverse group-focus-visible:text-page-inverse node-icon folder-icon">
-        <svg aria-hidden="true" focusable="false" class="h-6 w-6 fill-current icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+      <span
+        aria-hidden="true"
+        class="mr-2 inline-flex items-center text-secondary transition-colors group-hover:text-page-inverse group-focus-visible:text-page-inverse node-icon folder-icon"
+      >
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          class="h-6 w-6 fill-current icon-svg"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+          />
         </svg>
       </span>
     `
@@ -222,9 +236,20 @@ export class FileExplorerComponent extends LitElement {
 
   private renderFileIcon(): TemplateResult {
     return html`
-      <span aria-hidden="true" class="mr-2 inline-flex items-center text-(--color-content-offset) node-icon file-icon">
-        <svg aria-hidden="true" focusable="false" class="h-6 w-6 fill-current icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+      <span
+        aria-hidden="true"
+        class="mr-2 inline-flex items-center text-(--color-content-offset) node-icon file-icon"
+      >
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          class="h-6 w-6 fill-current icon-svg"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+          />
         </svg>
       </span>
     `
@@ -240,11 +265,13 @@ export class FileExplorerComponent extends LitElement {
         <svg
           aria-hidden="true"
           focusable="false"
-          class="h-4 w-4 fill-none stroke-current transition-transform ${isCollapsed ? '' : 'rotate-90'}"
+          class="h-4 w-4 fill-none stroke-current transition-transform ${isCollapsed
+            ? ''
+            : 'rotate-90'}"
           viewBox="0 0 20 20"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path d="M7 5l6 5-6 5" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          <path d="M7 5l6 5-6 5" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
         </svg>
       </span>
     `
@@ -302,13 +329,19 @@ export class FileExplorerComponent extends LitElement {
                   aria-level="${treeItemLevel}"
                   tabindex="${treeItemTabIndex}"
                   @focus=${() => this.handleTreeItemFocus(path)}
-                  @keydown=${(event: KeyboardEvent) => this.handleTreeItemKeyDown(event, node, path)}
+                  @keydown=${(event: KeyboardEvent) =>
+                    this.handleTreeItemKeyDown(event, node, path)}
                   @click=${() => this.toggleCollapsed(path)}
                 >
-                  ${this.renderToggleIndicator(isCollapsed)}
-                  ${this.renderFolderIcon()}
-                  <span class="text-base text-(--color-content) node-name font-medium">${node.name}</span>
-                  ${node.comment ? html`<span class="ml-6 text-(--color-content-offset) italic comment"># ${node.comment}</span>` : ''}
+                  ${this.renderToggleIndicator(isCollapsed)} ${this.renderFolderIcon()}
+                  <span class="text-base text-(--color-content) node-name font-medium"
+                    >${node.name}</span
+                  >
+                  ${node.comment
+                    ? html`<span class="ml-6 text-(--color-content-offset) italic comment"
+                        ># ${node.comment}</span
+                      >`
+                    : ''}
                 </button>
                 ${node.note ? this.renderNote(node.note, path, node.name) : ''}
               </div>
@@ -322,19 +355,35 @@ export class FileExplorerComponent extends LitElement {
                   aria-level="${treeItemLevel}"
                   tabindex="${treeItemTabIndex}"
                   @focus=${() => this.handleTreeItemFocus(path)}
-                  @keydown=${(event: KeyboardEvent) => this.handleTreeItemKeyDown(event, node, path)}
+                  @keydown=${(event: KeyboardEvent) =>
+                    this.handleTreeItemKeyDown(event, node, path)}
                 >
                   ${isFolder ? this.renderFolderIcon() : this.renderFileIcon()}
-                  <span class="text-base text-(--color-content) node-name ${isFolder ? 'font-medium' : 'font-normal file-name'}">${node.name}</span>
-                  ${node.comment ? html`<span class="ml-6 text-(--color-content-offset) italic comment"># ${node.comment}</span>` : ''}
+                  <span
+                    class="text-base text-(--color-content) node-name ${isFolder
+                      ? 'font-medium'
+                      : 'font-normal file-name'}"
+                    >${node.name}</span
+                  >
+                  ${node.comment
+                    ? html`<span class="ml-6 text-(--color-content-offset) italic comment"
+                        ># ${node.comment}</span
+                      >`
+                    : ''}
                 </div>
                 ${node.note ? this.renderNote(node.note, path, node.name) : ''}
               </div>
             `}
         ${isCollapsible && !isCollapsed && node.children
           ? html`
-              <ul id="${groupId}" role="group" class="list-none p-0 m-0 pl-6 border-l border-dashed border-(--color-trim) ml-2 children">
-                ${node.children.map((child, index) => this.renderNode(child, this.getNodePath(path, index), false))}
+              <ul
+                id="${groupId}"
+                role="group"
+                class="list-none p-0 m-0 pl-6 border-l border-dashed border-(--color-trim) ml-2 children"
+              >
+                ${node.children.map((child, index) =>
+                  this.renderNode(child, this.getNodePath(path, index), false)
+                )}
               </ul>
             `
           : ''}
@@ -345,7 +394,9 @@ export class FileExplorerComponent extends LitElement {
   protected override render(): TemplateResult {
     return html`
       <figure class="block">
-        <div class="font-mono text-sm leading-relaxed p-6 bg-(--color-page-base) rounded-lg overflow-x-auto">
+        <div
+          class="font-mono text-sm leading-relaxed p-6 bg-(--color-page-base) rounded-lg overflow-x-auto"
+        >
           <ul
             id="${this.getTreeId()}"
             role="tree"
@@ -353,11 +404,18 @@ export class FileExplorerComponent extends LitElement {
             aria-labelledby="${this.figure ? this.getFigureId() : nothing}"
             class="list-none p-0 m-0 tree-root"
           >
-            ${this.fileSystemData?.map((node, index) => this.renderNode(node, this.getNodePath('', index), true))}
+            ${this.fileSystemData?.map((node, index) =>
+              this.renderNode(node, this.getNodePath('', index), true)
+            )}
           </ul>
         </div>
         ${this.figure
-          ? html`<figcaption id="${this.getFigureId()}" class="mx-auto mt-3 w-fit max-w-full text-center text-base italic">${unsafeHTML(this.figure)}</figcaption>`
+          ? html`<figcaption
+              id="${this.getFigureId()}"
+              class="mx-auto mt-3 w-fit max-w-full text-center text-base italic"
+            >
+              ${unsafeHTML(this.figure)}
+            </figcaption>`
           : ''}
       </figure>
     `

@@ -12,11 +12,7 @@ import rehypeCodeTabs from '@lib/markdown/plugins/rehype-code-tabs'
 import { unified } from 'unified'
 
 function isElementNode(node: unknown): node is Element {
-  return (
-    !!node &&
-    typeof node === 'object' &&
-    (node as Element).type === 'element'
-  )
+  return !!node && typeof node === 'object' && (node as Element).type === 'element'
 }
 
 describe('3-block code-tabs grouping', () => {
@@ -54,15 +50,17 @@ describe('3-block code-tabs grouping', () => {
       type: 'element',
       tagName: 'pre',
       properties: {},
-      children: [{
-        type: 'element',
-        tagName: 'code',
-        properties: {
-          'data-code-tabs-group': 'g1',
-          'data-code-tabs-tab': tab,
+      children: [
+        {
+          type: 'element',
+          tagName: 'code',
+          properties: {
+            'data-code-tabs-group': 'g1',
+            'data-code-tabs-tab': tab,
+          },
+          children: [{ type: 'text', value: `code for ${tab}` }],
         },
-        children: [{ type: 'text', value: `code for ${tab}` }],
-      }],
+      ],
     })
 
     const tree: Root = {
@@ -81,7 +79,10 @@ describe('3-block code-tabs grouping', () => {
 
     const elements = tree.children.filter(isElementNode)
 
-    console.log('Elements:', elements.map(e => `${e.tagName}(${e.children?.length})`))
+    console.log(
+      'Elements:',
+      elements.map(e => `${e.tagName}(${e.children?.length})`)
+    )
 
     expect(elements.length, 'Should have exactly 1 top-level element').toBe(1)
     const wrapper = elements[0]
@@ -97,16 +98,18 @@ describe('3-block code-tabs grouping', () => {
       type: 'element',
       tagName: 'pre',
       properties: {},
-      children: [{
-        type: 'element',
-        tagName: 'code',
-        properties: {
-          className: [`language-${lang}`],
-          'data-code-tabs-group': 'g1',
-          'data-code-tabs-tab': tab,
+      children: [
+        {
+          type: 'element',
+          tagName: 'code',
+          properties: {
+            className: [`language-${lang}`],
+            'data-code-tabs-group': 'g1',
+            'data-code-tabs-tab': tab,
+          },
+          children: [{ type: 'text', value: `code for ${tab}` }],
         },
-        children: [{ type: 'text', value: `code for ${tab}` }],
-      }],
+      ],
     })
 
     // Simulate remark-captions wrapping the 3rd code block in <figure>
@@ -147,9 +150,7 @@ describe('3-block code-tabs grouping', () => {
     expect(wrapper.tagName).toBe('code-tabs')
     expect(wrapper.children.length, 'code-tabs should contain all 3 pre blocks').toBe(3)
     // Verify all children are <pre> (not figure)
-    expect(wrapper.children.every(
-      c => isElementNode(c) && c.tagName === 'pre'
-    )).toBe(true)
+    expect(wrapper.children.every(c => isElementNode(c) && c.tagName === 'pre')).toBe(true)
   })
 
   it('does NOT unwrap figures containing non-grouped code blocks', async () => {
@@ -165,12 +166,14 @@ describe('3-block code-tabs grouping', () => {
               type: 'element',
               tagName: 'pre',
               properties: {},
-              children: [{
-                type: 'element',
-                tagName: 'code',
-                properties: { className: ['language-python'] },
-                children: [{ type: 'text', value: 'print(1)' }],
-              }],
+              children: [
+                {
+                  type: 'element',
+                  tagName: 'code',
+                  properties: { className: ['language-python'] },
+                  children: [{ type: 'text', value: 'print(1)' }],
+                },
+              ],
             },
             {
               type: 'element',

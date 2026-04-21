@@ -63,7 +63,8 @@ function getBuildRelease(): string | undefined {
     return undefined
   }
 
-  const releaseCandidate = getOptionalEnv('GITHUB_SHA') ||
+  const releaseCandidate =
+    getOptionalEnv('GITHUB_SHA') ||
     getOptionalEnv('VERCEL_GIT_COMMIT_SHA') ||
     getOptionalEnv('PUBLIC_VERCEL_GIT_COMMIT_SHA')
 

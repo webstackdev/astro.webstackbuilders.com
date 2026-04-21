@@ -8,18 +8,13 @@ export interface Props {
   email: string
 }
 
-const {
-  contactData,
-  email,
-} = Astro.props as Props
+const { contactData, email } = Astro.props as Props
 
 const resumeLocation = `${contactData.company.city}, ${contactData.company.state}`
 const resumePhoneNumber = formatPhoneNumber(contactData.company.telephoneTollFree)
 ---
 
-<dl
-  class="flex gap-2 text-sm text-content-offset font-medium"
->
+<dl class="flex gap-2 text-sm text-content-offset font-medium">
   <a
     itemprop="email"
     href={`mailto:${email}`}
@@ -49,10 +44,7 @@ const resumePhoneNumber = formatPhoneNumber(contactData.company.telephoneTollFre
     href={`tel:${contactData.company.telephoneTollFree}`}
     class="flex gap-2 hover:text-primary transition-colors duration-200"
   >
-    <dt
-      aria-label="telephone"
-      class="text-primary-offset"
-    >
+    <dt aria-label="telephone" class="text-primary-offset">
       <Icon icon="telephone" color="content" size={6} />
     </dt>
     <dd id="telephoneLabel" class="inline">{resumePhoneNumber}</dd>

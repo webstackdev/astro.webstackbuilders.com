@@ -93,8 +93,7 @@ describe('remark-restore-time-colons', () => {
 
   describe('multiple time strings in one paragraph', () => {
     it('preserves both times in boundary burst example', async () => {
-      const input =
-        'A client can make 95 requests at 11:59:59 and 95 more at 12:00:01.'
+      const input = 'A client can make 95 requests at 11:59:59 and 95 more at 12:00:01.'
       const output = await processToHtml(input)
       expect(output).toContain('11:59:59')
       expect(output).toContain('12:00:01')
@@ -112,17 +111,13 @@ describe('remark-restore-time-colons', () => {
 
   describe('citation page ranges', () => {
     it('corrupts citation page ranges without the fix', async () => {
-      const output = await processWithoutFix(
-        'AACN Adv Crit Care. 2013 Oct-Dec;24(4):378-86.'
-      )
+      const output = await processWithoutFix('AACN Adv Crit Care. 2013 Oct-Dec;24(4):378-86.')
       expect(output).toContain('<div></div>')
       expect(output).not.toContain('24(4):378-86')
     })
 
     it('preserves citation page ranges with the fix', async () => {
-      const output = await processToHtml(
-        'AACN Adv Crit Care. 2013 Oct-Dec;24(4):378-86.'
-      )
+      const output = await processToHtml('AACN Adv Crit Care. 2013 Oct-Dec;24(4):378-86.')
       expect(output).toContain('24(4):378-86')
       expect(output).not.toContain('<div></div>')
     })
@@ -146,8 +141,7 @@ describe('remark-restore-time-colons', () => {
 
   describe('output HTML structure', () => {
     it('produces a clean paragraph without broken elements', async () => {
-      const input =
-        'A client can make 95 requests at 11:59:59 and 95 more at 12:00:01.'
+      const input = 'A client can make 95 requests at 11:59:59 and 95 more at 12:00:01.'
       const output = await processToHtml(input)
       // Should be a single, unbroken paragraph
       expect(output).toBe(
@@ -156,12 +150,8 @@ describe('remark-restore-time-colons', () => {
     })
 
     it('wraps surrounding text correctly', async () => {
-      const output = await processToHtml(
-        'At 2:47 AM, all inter-service communication fails.'
-      )
-      expect(output).toBe(
-        '<p>At 2:47 AM, all inter-service communication fails.</p>'
-      )
+      const output = await processToHtml('At 2:47 AM, all inter-service communication fails.')
+      expect(output).toBe('<p>At 2:47 AM, all inter-service communication fails.</p>')
     })
   })
 })

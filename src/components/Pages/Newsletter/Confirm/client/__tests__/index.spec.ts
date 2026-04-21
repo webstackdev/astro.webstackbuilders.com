@@ -17,9 +17,7 @@ type ConfirmActionData = {
   message?: string
 }
 
-const confirmMock = vi.fn<
-  (_input: { token: string }) => Promise<ActionResult<ConfirmActionData>>
->()
+const confirmMock = vi.fn<(_input: { token: string }) => Promise<ActionResult<ConfirmActionData>>>()
 
 vi.mock('astro:actions', () => ({
   actions: {

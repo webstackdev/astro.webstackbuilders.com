@@ -43,8 +43,7 @@ const mockPlatforms = vi.hoisted<MockPlatform[]>(() => [
     id: 'reddit',
     ariaLabel: 'Share on Reddit',
     icon: 'reddit',
-    getShareUrl: ({ url }) =>
-      `https://social.example/reddit?url=${encodeURIComponent(url ?? '')}`,
+    getShareUrl: ({ url }) => `https://social.example/reddit?url=${encodeURIComponent(url ?? '')}`,
   },
   {
     id: 'mastodon',
@@ -177,7 +176,11 @@ describe('HighlighterElement', () => {
       expect(dialog?.getAttribute('role')).toBe('toolbar')
       expect(dialog?.querySelector('.share-dialog__text')?.textContent).toBe('Share Selection')
       expect(element.querySelectorAll('site-tooltip')).toHaveLength(mockPlatforms.length)
-      expect(Array.from(element.querySelectorAll('.share-button')).every(button => !button.hasAttribute('title'))).toBe(true)
+      expect(
+        Array.from(element.querySelectorAll('.share-button')).every(
+          button => !button.hasAttribute('title')
+        )
+      ).toBe(true)
 
       const describedBy = trigger?.getAttribute('aria-describedby')
       expect(describedBy).toBeTruthy()

@@ -46,7 +46,7 @@ export function getListItemsFromSlotMarkup(markup: string, variant: string): Lis
     )
   }
 
-  return listItemElements.map((element) => {
+  return listItemElements.map(element => {
     const lead = element.getAttribute('data-lead')
 
     return {

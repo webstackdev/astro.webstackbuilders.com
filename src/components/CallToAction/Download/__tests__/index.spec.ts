@@ -83,34 +83,37 @@ describe('Download CallToAction (Astro)', () => {
     })
   })
 
-  existingDownloadTest('renders direct and landing download URLs for the web component host', async () => {
-    if (!downloadFixture) {
-      throw new Error('Expected an existing download fixture')
+  existingDownloadTest(
+    'renders direct and landing download URLs for the web component host',
+    async () => {
+      if (!downloadFixture) {
+        throw new Error('Expected an existing download fixture')
+      }
+
+      const Download = (await import('@components/CallToAction/Download/index.astro')).default
+
+      const renderedHtml = await container.renderToString(Download, {
+        props: {
+          resource: downloadFixture.resource,
+        },
+      })
+
+      await withJsdomEnvironment(async ({ window }) => {
+        window.document.body.innerHTML = renderedHtml
+
+        const host = window.document.querySelector('download-cta')
+        const primaryLink = window.document.querySelector('[data-download-cta-primary]')
+
+        expect(host?.getAttribute('data-landing-url')).toBe(
+          `/downloads/${downloadFixture.resource}`
+        )
+        expect(host?.getAttribute('data-direct-download-url')).toBe(
+          downloadFixture.directDownloadUrl
+        )
+        expect(primaryLink?.getAttribute('href')).toBe(`/downloads/${downloadFixture.resource}`)
+      })
     }
-
-    const Download = (await import('@components/CallToAction/Download/index.astro')).default
-
-    const renderedHtml = await container.renderToString(Download, {
-      props: {
-        resource: downloadFixture.resource,
-      },
-    })
-
-    await withJsdomEnvironment(async ({ window }) => {
-      window.document.body.innerHTML = renderedHtml
-
-      const host = window.document.querySelector('download-cta')
-      const primaryLink = window.document.querySelector('[data-download-cta-primary]')
-
-      expect(host?.getAttribute('data-landing-url')).toBe(
-        `/downloads/${downloadFixture.resource}`
-      )
-      expect(host?.getAttribute('data-direct-download-url')).toBe(
-        downloadFixture.directDownloadUrl
-      )
-      expect(primaryLink?.getAttribute('href')).toBe(`/downloads/${downloadFixture.resource}`)
-    })
-  })
+  )
 
   test('supports a custom id base for aria relationships', async () => {
     const Download = (await import('@components/CallToAction/Download/index.astro')).default

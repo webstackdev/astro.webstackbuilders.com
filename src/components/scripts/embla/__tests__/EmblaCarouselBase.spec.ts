@@ -14,7 +14,9 @@ const handleScriptErrorMock = vi.hoisted(() => vi.fn())
 const createAnimationControllerMock = vi.hoisted(() => vi.fn())
 
 const emblaInstanceRef = { current: null as EmblaApiMock | null }
-const autoplayInstanceRef = { current: null as { play: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn> } | null }
+const autoplayInstanceRef = {
+  current: null as { play: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn> } | null,
+}
 
 interface EmblaApiMock {
   canScrollPrev: ReturnType<typeof vi.fn>

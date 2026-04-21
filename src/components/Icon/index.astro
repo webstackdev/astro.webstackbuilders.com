@@ -38,23 +38,23 @@ const {
   id,
   accessible = false,
   focusable = false,
-  isListMarker = false
+  isListMarker = false,
 }: Props = Astro.props
 
 const resolvedIcon = typeof icon === 'string' ? icon.trim() : ''
 
 const IconComponent = resolvedIcon
   ? getIconComponent(resolvedIcon)
-  : null as unknown as (_props: {
-  color?: string
-  inverseColor?: string
-  size?: number
-  classes?: string
-  id?: string
-  accessible?: boolean
-  focusable?: boolean
-  isListMarker?: boolean
-}) => unknown
+  : (null as unknown as (_props: {
+      color?: string
+      inverseColor?: string
+      size?: number
+      classes?: string
+      id?: string
+      accessible?: boolean
+      focusable?: boolean
+      isListMarker?: boolean
+    }) => unknown)
 
 const markerProps = {
   ...(color ? { color } : {}),

@@ -49,7 +49,9 @@ describe('contact domain validation', () => {
     if (result.success) {
       throw new Error('Expected schema validation to fail')
     }
-    expect(z.flattenError(result.error).fieldErrors['timeline']).toContain('Invalid project timeline')
+    expect(z.flattenError(result.error).fieldErrors['timeline']).toContain(
+      'Invalid project timeline'
+    )
   })
 
   it('rejects messages that appear to contain spam', () => {
@@ -65,6 +67,8 @@ describe('contact domain validation', () => {
     if (result.success) {
       throw new Error('Expected schema validation to fail')
     }
-    expect(z.flattenError(result.error).fieldErrors['message']).toContain('Message appears to contain spam')
+    expect(z.flattenError(result.error).fieldErrors['message']).toContain(
+      'Message appears to contain spam'
+    )
   })
 })

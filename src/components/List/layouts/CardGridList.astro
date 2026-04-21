@@ -16,25 +16,25 @@ export type Props = {
 
 const { items, classes }: Props = Astro.props
 
-const ulClass = ["grid grid-cols-1 md:grid-cols-2 gap-4", classes?.ul]
+const ulClass = ['grid grid-cols-1 md:grid-cols-2 gap-4', classes?.ul]
 const liClass = [
-  "bg-page-offset border border-trim rounded-lg p-5 transition-all duration-200 ease-out hover:-translate-y-1 hover:border-primary hover:bg-page-base hover:shadow-md focus-within:-translate-y-1 focus-within:border-primary focus-within:bg-page-base focus-within:shadow-md",
+  'bg-page-offset border border-trim rounded-lg p-5 transition-all duration-200 ease-out hover:-translate-y-1 hover:border-primary hover:bg-page-base hover:shadow-md focus-within:-translate-y-1 focus-within:border-primary focus-within:bg-page-base focus-within:shadow-md',
   classes?.li,
 ]
-const emClass = ["block text-page-inverse font-semibold not-italic mb-2", classes?.em]
+const emClass = ['block text-page-inverse font-semibold not-italic mb-2', classes?.em]
 ---
 
 <ul class:list={ulClass}>
   {
-    items.map((item) => (
+    items.map(item => (
       <li class:list={liClass}>
         <div class="flex">
           {item.icon && (
             <Icon icon={item.icon} color="page-inverse" size={6} classes="mr-4 -mb-2" />
           )}
-          {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
+          {item.lead && <em class:list={emClass} set:html={item.lead} />}
         </div>
-        <span class="text-content" set:html={item.text}></span>
+        <span class="text-content" set:html={item.text} />
       </li>
     ))
   }

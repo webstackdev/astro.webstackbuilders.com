@@ -277,12 +277,7 @@ export class HighlighterElement extends LitElement {
             ${this.renderPlatformIcon(platform.id)}
           </button>
         </span>
-        <span
-          data-tooltip-popup
-          role="tooltip"
-          aria-hidden="true"
-          class="${TOOLTIP_POPUP_CLASSES}"
-        >
+        <span data-tooltip-popup role="tooltip" aria-hidden="true" class="${TOOLTIP_POPUP_CLASSES}">
           ${platform.ariaLabel}
         </span>
       </site-tooltip>

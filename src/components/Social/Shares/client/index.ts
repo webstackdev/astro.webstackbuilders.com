@@ -62,11 +62,7 @@ export class SocialShareElement extends LitElement {
       .join(' ')
 
     return html`
-      <div
-        class="${containerClassList}"
-        role="group"
-        aria-label="Share this content"
-      >
+      <div class="${containerClassList}" role="group" aria-label="Share this content">
         ${this.selectedPlatforms.map(platform =>
           this.renderPlatform(platform, shareData, shareText)
         )}

@@ -75,7 +75,7 @@ export function getAnimationElements(headerShell: HTMLElement): AnimationElement
 
   const icons = Array.from(headerShell.querySelectorAll<HTMLElement>(ANIMATION_SELECTORS.icon))
   const navLinks = Array.from(
-    headerShell.querySelectorAll<HTMLElement>(ANIMATION_SELECTORS.navLink),
+    headerShell.querySelectorAll<HTMLElement>(ANIMATION_SELECTORS.navLink)
   )
 
   return { headerShell, siteHeader, brand, footprint, icons, navLinks }

@@ -44,7 +44,10 @@ function parseDiffMeta(metaRaw: string | undefined): { ins: Set<number>; del: Se
   }
 }
 
-function parseErrorWarningMeta(metaRaw: string | undefined): { error: Set<number>; warning: Set<number> } {
+function parseErrorWarningMeta(metaRaw: string | undefined): {
+  error: Set<number>
+  warning: Set<number>
+} {
   return {
     error: parseLineSet(metaRaw, errorMetaRegex),
     warning: parseLineSet(metaRaw, warningMetaRegex),

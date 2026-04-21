@@ -48,31 +48,37 @@ const visibleFeatures = features.slice(0, 4)
   <div class="lg:col-span-3 space-y-6">
     <!-- Stats row -->
     <div class="grid grid-cols-3 gap-4">
-      {visibleBenefits.map((benefit) => (
-        <div class="bg-content text-page-base rounded-xl p-4 text-center">
-          <p class="text-3xl font-black">{benefit.quantifier}</p>
-          <p class="text-xs text-page-base/70">{benefit.title}</p>
-        </div>
-      ))}
+      {
+        visibleBenefits.map(benefit => (
+          <div class="bg-content text-page-base rounded-xl p-4 text-center">
+            <p class="text-3xl font-black">{benefit.quantifier}</p>
+            <p class="text-xs text-page-base/70">{benefit.title}</p>
+          </div>
+        ))
+      }
     </div>
 
     <!-- Feature cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {visibleFeatures.map((feature) => (
-        <div class="bg-page-offset p-6 rounded-xl border border-trim">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Icon icon={feature.icon} size={5} color="primary" />
+      {
+        visibleFeatures.map(feature => (
+          <div class="bg-page-offset p-6 rounded-xl border border-trim">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Icon icon={feature.icon} size={5} color="primary" />
+              </div>
+              <span class="font-bold text-content-active">{feature.title}</span>
             </div>
-            <span class="font-bold text-content-active">{feature.title}</span>
+            <p class="text-sm text-content">{feature.description}</p>
           </div>
-          <p class="text-sm text-content">{feature.description}</p>
-        </div>
-      ))}
+        ))
+      }
     </div>
 
     <!-- CTA -->
-    <div class="bg-primary/5 border border-primary/20 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div
+      class="bg-primary/5 border border-primary/20 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+    >
       <p class="text-content font-medium">Ready to see what Backstage can do for your team?</p>
       <a
         href="/contact"

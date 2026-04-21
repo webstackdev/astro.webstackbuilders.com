@@ -699,9 +699,7 @@ export abstract class EmblaCarouselBase extends LitElement {
 
     const existingId = this._viewport.getAttribute('id')
     const nextId =
-      existingId && existingId.length > 0
-        ? existingId
-        : `${this._animationInstanceId}-viewport`
+      existingId && existingId.length > 0 ? existingId : `${this._animationInstanceId}-viewport`
 
     this._viewport.setAttribute('id', nextId)
     this._viewportId = nextId

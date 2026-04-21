@@ -13,9 +13,7 @@ describe('prepareItems', () => {
     const result = prepareItems(createItems(), 'featured', 'article-bravo')
 
     expect(result.map(item => item.id)).toEqual(['article-delta', 'article-alpha'])
-    expect(result.every(item => ('featured' in item.data ? item.data.featured : false))).toBe(
-      true
-    )
+    expect(result.every(item => ('featured' in item.data ? item.data.featured : false))).toBe(true)
     expect(result).toHaveLength(2)
   })
 

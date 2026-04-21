@@ -10,9 +10,14 @@ interface HighlightSearchTextOptions {
 }
 
 const getHighlightTerms = (query: string): string[] => {
-  return [...new Set(query.trim().split(/\s+/).filter(term => term.length >= MIN_HIGHLIGHT_TERM_LENGTH))].sort(
-    (left, right) => right.length - left.length
-  )
+  return [
+    ...new Set(
+      query
+        .trim()
+        .split(/\s+/)
+        .filter(term => term.length >= MIN_HIGHLIGHT_TERM_LENGTH)
+    ),
+  ].sort((left, right) => right.length - left.length)
 }
 
 const findNextHighlightMatch = (
@@ -29,7 +34,11 @@ const findNextHighlightMatch = (
       continue
     }
 
-    if (!nextMatch || index < nextMatch.index || (index === nextMatch.index && term.length > nextMatch.term.length)) {
+    if (
+      !nextMatch ||
+      index < nextMatch.index ||
+      (index === nextMatch.index && term.length > nextMatch.term.length)
+    ) {
       nextMatch = { index, term }
     }
   }
@@ -48,7 +57,9 @@ export const getSearchResultDisplayPath = (url: string): string => {
 
   try {
     const parsedUrl = new URL(url)
-    return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}` || SEARCH_RESULT_FALLBACK_PATH
+    return (
+      `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}` || SEARCH_RESULT_FALLBACK_PATH
+    )
   } catch {
     return SEARCH_RESULT_FALLBACK_PATH
   }

@@ -161,7 +161,9 @@ describe('ContactForm submission', () => {
       expect(context.elements.fields.email.feedback.textContent).toBe(
         'Please enter a valid email address.'
       )
-      expect(context.elements.fields.message.feedback.textContent).toBe('Please describe your project')
+      expect(context.elements.fields.message.feedback.textContent).toBe(
+        'Please describe your project'
+      )
     })
   })
 
@@ -306,7 +308,9 @@ describe('ContactForm submission', () => {
       )
 
       expect(context.elements.fields.email.feedback.classList.contains('hidden')).toBe(false)
-      expect(context.elements.fields.email.feedback.textContent).toBe('Enter a valid email address.')
+      expect(context.elements.fields.email.feedback.textContent).toBe(
+        'Enter a valid email address.'
+      )
       expect(context.elements.fields.email.input.getAttribute('aria-invalid')).toBe('true')
       expect(context.elements.fields.email.input.classList.contains('error')).toBe(true)
     })

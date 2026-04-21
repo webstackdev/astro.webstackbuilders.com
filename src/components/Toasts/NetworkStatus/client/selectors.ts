@@ -72,7 +72,9 @@ export function queryNetworkStatusIconMarkup(params: {
     return null
   }
 
-  const iconHostCandidate = iconBankCandidate.querySelector(`[data-network-status-icon="${iconName}"]`)
+  const iconHostCandidate = iconBankCandidate.querySelector(
+    `[data-network-status-icon="${iconName}"]`
+  )
   if (!isSpanElement(iconHostCandidate)) {
     return null
   }

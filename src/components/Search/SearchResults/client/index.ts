@@ -94,7 +94,8 @@ export class SearchResultsElement extends LitElement {
   }
 
   private cacheElements(): void {
-    const { form, meta, error, resultsList, emptyState, input, micBtn, clearBtn } = getSearchResultsElements(this)
+    const { form, meta, error, resultsList, emptyState, input, micBtn, clearBtn } =
+      getSearchResultsElements(this)
 
     this.form = form
     this.meta = meta
@@ -213,12 +214,10 @@ export class SearchResultsElement extends LitElement {
   }
 
   private getSpeechRecognitionCtor(): (new () => SpeechRecognition) | null {
-    const view = (this.ownerDocument?.defaultView ?? null) as
-      | {
-          SpeechRecognition?: new () => SpeechRecognition
-          webkitSpeechRecognition?: new () => SpeechRecognition
-        }
-      | null
+    const view = (this.ownerDocument?.defaultView ?? null) as {
+      SpeechRecognition?: new () => SpeechRecognition
+      webkitSpeechRecognition?: new () => SpeechRecognition
+    } | null
 
     const globalAny = globalThis as unknown as {
       SpeechRecognition?: new () => SpeechRecognition
@@ -307,7 +306,9 @@ export class SearchResultsElement extends LitElement {
   private getTranscriptFromSpeechEvent(event: SpeechRecognitionEvent): string {
     const eventAny = event as unknown as {
       resultIndex?: number
-      results?: ArrayLike<ArrayLike<{ transcript?: string } & { confidence?: number }> & { isFinal?: boolean }>
+      results?: ArrayLike<
+        ArrayLike<{ transcript?: string } & { confidence?: number }> & { isFinal?: boolean }
+      >
     }
 
     const resultIndex = eventAny.resultIndex ?? 0
@@ -326,7 +327,10 @@ export class SearchResultsElement extends LitElement {
     try {
       recognition.start()
     } catch (error) {
-      handleScriptError(error, { scriptName: 'SearchResultsElement', operation: 'speechRecognition.start' })
+      handleScriptError(error, {
+        scriptName: 'SearchResultsElement',
+        operation: 'speechRecognition.start',
+      })
     }
   }
 
@@ -340,7 +344,10 @@ export class SearchResultsElement extends LitElement {
     try {
       this.speechRecognition.stop()
     } catch (error) {
-      handleScriptError(error, { scriptName: 'SearchResultsElement', operation: 'speechRecognition.stop' })
+      handleScriptError(error, {
+        scriptName: 'SearchResultsElement',
+        operation: 'speechRecognition.stop',
+      })
     }
   }
 
@@ -569,7 +576,10 @@ export class SearchResultsElement extends LitElement {
       return
     }
 
-    this.setMeta(this.getResultsMetaMessage(query, hits), hits.length > 0 || !this.shouldSuppressMetaFeedback())
+    this.setMeta(
+      this.getResultsMetaMessage(query, hits),
+      hits.length > 0 || !this.shouldSuppressMetaFeedback()
+    )
   }
 }
 

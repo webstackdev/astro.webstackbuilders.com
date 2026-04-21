@@ -1,5 +1,5 @@
 ---
-import Icon from "@components/Icon/index.astro"
+import Icon from '@components/Icon/index.astro'
 
 export type Props = {
   items: {
@@ -16,28 +16,28 @@ export type Props = {
 
 const { items, classes }: Props = Astro.props
 
-const ulClass = ["space-y-3", classes?.ul]
-const liClass = ["group", classes?.li]
-const emClass = ["text-content font-semibold not-italic", classes?.em]
-const textClass = "block text-content-offset mt-0.5"
+const ulClass = ['space-y-3', classes?.ul]
+const liClass = ['group', classes?.li]
+const emClass = ['text-content font-semibold not-italic', classes?.em]
+const textClass = 'block text-content-offset mt-0.5'
 ---
 
 <ul class:list={ulClass}>
   {
-    items.map((item) => (
+    items.map(item => (
       <li class:list={liClass}>
         <div class="flex items-start gap-3">
           <span class="mt-1.5 shrink-0">
             <Icon
-              icon={"chevron"}
-              color={item.color ?? "text-primary"}
+              icon={'chevron'}
+              color={item.color ?? 'text-primary'}
               size={4}
               classes="transform group-hover:translate-x-1 transition-transform"
             />
           </span>
           <div>
-            {item.lead && <em class:list={emClass} set:html={item.lead}></em>}
-            <span class:list={textClass} set:html={item.text}></span>
+            {item.lead && <em class:list={emClass} set:html={item.lead} />}
+            <span class:list={textClass} set:html={item.text} />
           </div>
         </div>
       </li>

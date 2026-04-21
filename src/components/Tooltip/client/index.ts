@@ -27,7 +27,9 @@ const scheduleMicrotask = (callback: () => void): void => {
   void Promise.resolve().then(callback)
 }
 
-export const initializeTooltipHost = (host: HTMLElement): {
+export const initializeTooltipHost = (
+  host: HTMLElement
+): {
   trigger: HTMLSpanElement
   tooltip: HTMLSpanElement
 } => {

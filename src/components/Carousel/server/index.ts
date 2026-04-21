@@ -30,20 +30,14 @@ export const prepareItems = (
           // All collection types now use the consistent "featured" field
           return isFeatured(item)
         })
-        .sort(
-          (a: ItemType, b: ItemType) =>
-            getPublishDateMs(b) - getPublishDateMs(a)
-        )
+        .sort((a: ItemType, b: ItemType) => getPublishDateMs(b) - getPublishDateMs(a))
       break
 
     case 'suggested':
       // Filter out current item and get latest items (suggested mode)
       items = allItems
         .filter((item: ItemType) => (currentSlug ? item.id !== currentSlug : true))
-        .sort(
-          (a: ItemType, b: ItemType) =>
-            getPublishDateMs(b) - getPublishDateMs(a)
-        )
+        .sort((a: ItemType, b: ItemType) => getPublishDateMs(b) - getPublishDateMs(a))
       break
 
     case 'random':

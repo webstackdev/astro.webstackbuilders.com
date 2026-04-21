@@ -39,8 +39,8 @@ describe('TooltipElement', () => {
 
       initializeTooltipHost(element)
 
-        await flushMicrotasks()
-        await assertion({ element, window: window as unknown as Window })
+      await flushMicrotasks()
+      await assertion({ element, window: window as unknown as Window })
     })
   }
 

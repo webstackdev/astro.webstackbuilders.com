@@ -17,15 +17,15 @@ const socialLinkClasses = [
   'focus-visible:outline-offset-2',
   '[&_[data-icon]]:fill-content',
   '[&_[data-icon]]:stroke-content',
-  '[&_[data-icon=\'x\']_path]:stroke-none',
-  '[&_[data-icon=\'x\']_.xTile]:fill-content',
-  '[&_[data-icon=\'x\']_.xGlyph]:fill-content-inverse',
+  "[&_[data-icon='x']_path]:stroke-none",
+  "[&_[data-icon='x']_.xTile]:fill-content",
+  "[&_[data-icon='x']_.xGlyph]:fill-content-inverse",
   'focus-visible:text-secondary',
   'hover:text-secondary',
-  'focus-visible:[&_[data-icon=\'x\']_.xTile]:fill-secondary',
+  "focus-visible:[&_[data-icon='x']_.xTile]:fill-secondary",
   'focus-visible:[&_[data-icon]]:fill-secondary',
   'focus-visible:[&_[data-icon]]:stroke-secondary',
-  'hover:[&_[data-icon=\'x\']_.xTile]:fill-secondary',
+  "hover:[&_[data-icon='x']_.xTile]:fill-secondary",
   'hover:[&_[data-icon]]:fill-secondary',
   'hover:[&_[data-icon]]:stroke-secondary',
 ].join(' ')
@@ -71,9 +71,7 @@ const footerTextLinkClasses = [
       ]}
     >
       {/* Page footer company contact */}
-      <div
-        class:list={[styles.footerContact, 'mt-3 sm:mt-0 sm:flex sm:items-start sm:pt-6']}
-      >
+      <div class:list={[styles.footerContact, 'mt-3 sm:mt-0 sm:flex sm:items-start sm:pt-6']}>
         {/* Mobile: avatar and company name in same row, Desktop: avatar on left side */}
         <div class="flex items-center sm:block">
           <div class="mr-3 w-16">
@@ -139,10 +137,7 @@ const footerTextLinkClasses = [
       </div>
 
       {/* "Hire Me" block with current month and year set by script */}
-      <div class:list={[
-        styles.footerHireMe,
-        'hidden lg:block lg:self-end lg:mt-8',
-      ]}>
+      <div class:list={[styles.footerHireMe, 'hidden lg:block lg:self-end lg:mt-8']}>
         <a
           href="/contact"
           id="page-footer__hire-me-anchor"
@@ -158,18 +153,14 @@ const footerTextLinkClasses = [
       </div>
 
       {/* Page footer Social Share links */}
-      <nav class:list={["mt-5", styles.footerSocial]} aria-label="Social links">
+      <nav class:list={['mt-5', styles.footerSocial]} aria-label="Social links">
         <ul class="grid list-none gap-x-4 gap-y-3 p-0 sm:mb-0 sm:mt-0 sm:mx-0 lg:grid-cols-2">
           {
             companyContactData.social
               .sort((a, b) => a.order - b.order)
               .map(social => (
                 <li class="list-none">
-                  <a
-                    href={social.url}
-                    rel="me"
-                    class={socialLinkClasses}
-                  >
+                  <a href={social.url} rel="me" class={socialLinkClasses}>
                     <span class="flex items-center">
                       <span class="**:data-icon:h-8 **:data-icon:w-8">
                         <Icon icon={social.iconName} color="inherit" size={8} />
@@ -179,9 +170,7 @@ const footerTextLinkClasses = [
                       </span>
                     </span>
                     <span class="mt-1 leading-tight font-serif">
-                      <span class="no-underline text-content">
-                        {social.blurb}
-                      </span>
+                      <span class="no-underline text-content">{social.blurb}</span>
                     </span>
                   </a>
                 </li>
@@ -190,71 +179,51 @@ const footerTextLinkClasses = [
         </ul>
       </nav>
 
-      <div
-        class:list={[
-          styles.footerBottomRow,
-          'mt-4 px-1 pt-4 pb-3 sm:p-0',
-          'lg:pl-8',
-        ]}
-      >
+      <div class:list={[styles.footerBottomRow, 'mt-4 px-1 pt-4 pb-3 sm:p-0', 'lg:pl-8']}>
         <div class="grid grid-cols-2 gap-x-4 gap-y-3 lg:grid-cols-1">
           <div class={styles.footerBottomPrimary}>
             {/* Page footer Subscribe link */}
-            <a
-              href="/newsletter"
-              class={footerTextLinkClasses}
-            >
-              <span class="underline decoration-dotted group-focus-visible:decoration-secondary group-hover:decoration-secondary">
+            <a href="/newsletter" class={footerTextLinkClasses}>
+              <span
+                class="underline decoration-dotted group-focus-visible:decoration-secondary group-hover:decoration-secondary"
+              >
                 Mailing List
               </span>
               <span class="hidden no-underline lg:block">
-                <span class="text-content">
-                  Sign up to stay in touch and get great content
-                </span>
+                <span class="text-content"> Sign up to stay in touch and get great content </span>
               </span>
             </a>
           </div>
 
           <div class:list={[styles.footerBottomSecondary, 'flex flex-col gap-3']}>
             {/* Page footer Consent link */}
-            <a
-              href="/consent"
-              class={footerTextLinkClasses}
-            >
-              <span class="underline decoration-dotted group-focus-visible:decoration-secondary group-hover:decoration-secondary">
+            <a href="/consent" class={footerTextLinkClasses}>
+              <span
+                class="underline decoration-dotted group-focus-visible:decoration-secondary group-hover:decoration-secondary"
+              >
                 Consent
               </span>
               <span class="hidden no-underline lg:block">
-                <span class="text-content">
-                  Manage your privacy preferences and data consent
-                </span>
+                <span class="text-content"> Manage your privacy preferences and data consent </span>
               </span>
             </a>
 
             {/* Page footer Privacy Policy link */}
-            <a
-              href="/privacy"
-              class={footerTextLinkClasses}
-            >
-              <span class="underline decoration-dotted group-focus-visible:decoration-secondary group-hover:decoration-secondary">
+            <a href="/privacy" class={footerTextLinkClasses}>
+              <span
+                class="underline decoration-dotted group-focus-visible:decoration-secondary group-hover:decoration-secondary"
+              >
                 Privacy Policy
               </span>
               <span class="hidden no-underline lg:block">
-                <span class="text-content">
-                  Learn what data we collect and how we use it
-                </span>
+                <span class="text-content"> Learn what data we collect and how we use it </span>
               </span>
             </a>
           </div>
 
           <div class:list={[styles.footerBottomActions, 'flex items-center justify-center gap-4']}>
             {/* Page footer RSS link */}
-            <a
-              href="/rss.xml"
-              data-tooltip
-              title="RSS Feed"
-              class={iconButtonClasses}
-            >
+            <a href="/rss.xml" data-tooltip title="RSS Feed" class={iconButtonClasses}>
               <span class="sr-only">RSS Feed</span>
               <Icon icon="feed" color="inherit" size={8} />
             </a>

@@ -44,15 +44,15 @@ const { content } = Astro.props
 >
   <h2 class="text-2xl font-semibold text-page-inverse mb-6" id="offline-actions-title">
     {content.items.label}
-    <HeadingAnchor href={"#offline-actions-title"} />
+    <HeadingAnchor href={'#offline-actions-title'} />
   </h2>
   <List
     variant="two-column-icon-list"
     items={content.items.cards}
     classes={{
-      li: "min-w-0",
-      content: "min-w-0",
-      text: "wrap-break-word",
+      li: 'min-w-0',
+      content: 'min-w-0',
+      text: 'wrap-break-word',
     }}
   />
 </section>
@@ -64,20 +64,22 @@ const { content } = Astro.props
 >
   <h2 class="text-2xl font-semibold text-content-inverse mb-3" id="offline-company-title">
     {content.about.heading}
-    <HeadingAnchor href={"#offline-company-title"} />
+    <HeadingAnchor href={'#offline-company-title'} />
   </h2>
   <p class="text-content-inverse/70 leading-relaxed mb-6">
     {companyContactData.description}
   </p>
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-    {content.about.items.map((item) => {
-      return (
-        <div>
-          <div class="text-3xl font-bold text-secondary-offset">{item.stat}</div>
-          <div class="text-sm text-content-inverse/60">{item.area}</div>
-        </div>
-      )
-    })}
+    {
+      content.about.items.map(item => {
+        return (
+          <div>
+            <div class="text-3xl font-bold text-secondary-offset">{item.stat}</div>
+            <div class="text-sm text-content-inverse/60">{item.area}</div>
+          </div>
+        )
+      })
+    }
   </div>
 </section>
 
@@ -88,33 +90,33 @@ const { content } = Astro.props
 >
   <h2 class="text-xl font-semibold text-page-inverse mb-5" id="offline-contact-title">
     {content.close}
-    <HeadingAnchor href={"#offline-contact-title"} />
+    <HeadingAnchor href={'#offline-contact-title'} />
   </h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <div class="flex min-w-0 items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
-      <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-2">
-        <Icon
-          icon="email"
-          color="primary-offset"
-          size={6}
-        />
+      <div
+        class="shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-2"
+      >
+        <Icon icon="email" color="primary-offset" size={6} />
       </div>
       <div class="min-w-0">
         <div class="text-sm text-content-offset font-medium uppercase tracking-wide">Email</div>
-        <div class="text-md text-page-inverse font-semibold break-all">{companyContactData.email}</div>
+        <div class="text-md text-page-inverse font-semibold break-all">
+          {companyContactData.email}
+        </div>
       </div>
     </div>
     <div class="flex min-w-0 items-center gap-3 bg-content-inverse rounded-lg p-4 shadow-sm">
-      <div class="shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-2">
-        <Icon
-          icon="globe"
-          color="primary-offset"
-          size={6}
-        />
+      <div
+        class="shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-2"
+      >
+        <Icon icon="globe" color="primary-offset" size={6} />
       </div>
       <div class="min-w-0">
         <div class="text-sm text-content-offset font-medium uppercase tracking-wide">Website</div>
-        <div class="text-md text-page-inverse font-semibold break-all">{companyContactData.url.replace('https://', '')}</div>
+        <div class="text-md text-page-inverse font-semibold break-all">
+          {companyContactData.url.replace('https://', '')}
+        </div>
       </div>
     </div>
   </div>

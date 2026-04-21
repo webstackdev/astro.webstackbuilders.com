@@ -8,14 +8,7 @@ describe('TestimonialsLengthWarning', () => {
     })
 
     it('removes YAML frontmatter and trims body', () => {
-      const raw = [
-        '---',
-        'name: Test',
-        '---',
-        '',
-        'This is the body.',
-        '',
-      ].join('\n')
+      const raw = ['---', 'name: Test', '---', '', 'This is the body.', ''].join('\n')
 
       expect(stripFrontmatter(raw)).toBe('This is the body.')
     })

@@ -44,10 +44,7 @@ const remarkRestoreTimeColons: Plugin<[], Root> = () => {
     const pending: PendingRestore[] = []
 
     visit(tree, (node, index, parent) => {
-      if (
-        node.type !== 'textDirective' &&
-        node.type !== 'leafDirective'
-      ) {
+      if (node.type !== 'textDirective' && node.type !== 'leafDirective') {
         return
       }
 
@@ -65,7 +62,7 @@ const remarkRestoreTimeColons: Plugin<[], Root> = () => {
       const { parent, index, name } = entry
 
       const textNode: Text = { type: 'text', value: `:${name}` }
-      parent.children.splice(index, 1, textNode as typeof parent.children[0])
+      parent.children.splice(index, 1, textNode as (typeof parent.children)[0])
 
       // Merge with next text sibling
       const current = parent.children[index]

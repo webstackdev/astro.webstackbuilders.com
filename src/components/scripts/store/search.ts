@@ -60,7 +60,9 @@ export function toggleHeaderSearch(): void {
   setHeaderSearchExpanded(!getHeaderSearchExpanded())
 }
 
-export function subscribeHeaderSearchExpanded(listener: (_isExpanded: boolean) => void): () => void {
+export function subscribeHeaderSearchExpanded(
+  listener: (_isExpanded: boolean) => void
+): () => void {
   return $headerSearchExpanded.subscribe(listener)
 }
 

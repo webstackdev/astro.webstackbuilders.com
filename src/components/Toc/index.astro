@@ -34,7 +34,7 @@ const tocTree = buildTocTree(items)
           data-visible="false"
           aria-label="Close table of contents"
           class="fixed inset-0 z-(--z-content-scrim) bg-surface/80 opacity-0 backdrop-blur-sm pointer-events-none transition-opacity duration-300 data-[visible=true]:opacity-100 data-[visible=true]:pointer-events-auto md:hidden"
-        ></button>
+        />
 
         {/* Right-side drawer panel */}
         <div
@@ -44,8 +44,14 @@ const tocTree = buildTocTree(items)
           class="group/drawer fixed top-0 right-0 bottom-0 z-(--z-content-floating) w-[80vw] translate-x-full overflow-visible bg-page-base transition-transform duration-300 ease-out data-[state=open]:translate-x-0 lg:static lg:z-auto lg:w-auto lg:translate-x-0 lg:overflow-y-visible lg:overflow-x-visible lg:bg-transparent lg:h-full"
         >
           {/* Left border segments — split around the close button circle */}
-          <div class="absolute left-0 top-0 w-px bg-content lg:hidden" style="height: calc(50% - 2rem);"></div>
-          <div class="absolute left-0 bottom-0 w-px bg-content lg:hidden" style="height: calc(50% - 2rem);"></div>
+          <div
+            class="absolute left-0 top-0 w-px bg-content lg:hidden"
+            style="height: calc(50% - 2rem);"
+          />
+          <div
+            class="absolute left-0 bottom-0 w-px bg-content lg:hidden"
+            style="height: calc(50% - 2rem);"
+          />
 
           {/* Close button — vertically centered on the drawer's left edge.
               The icon starts as arrow-left and rotates 180° to arrow-right
@@ -75,44 +81,45 @@ const tocTree = buildTocTree(items)
               data-sticky-sidebar
               aria-labelledby="toc-heading"
             >
-            {/* Desktop heading — hidden on mobile where the drawer header shows instead */}
-            <div class="hidden lg:flex items-center justify-between gap-3">
-              <h2 id="toc-heading" class="text-content text-base font-semibold">
-                Table of Contents
-              </h2>
-              <span class="text-xs font-medium uppercase tracking-wide text-content-active">
-                Jump to section
-              </span>
-            </div>
-            <hr class="mt-4 border-dotted border-t-2 border-content-offset w-full hidden lg:block" />
-            <nav class="mt-4 lg:mt-4 toc-nav" aria-label="Table of contents">
-              <ol class="space-y-1">
-                {(() => {
-                  const renderNodes = (nodes: TocItem[]): unknown =>
-                    nodes.map(node => (
-                      <li>
-                        <a
-                          href={`#${node.slug}`}
-                          data-toc-link
-                          data-toc-slug={node.slug}
-                          class="flex min-h-6 items-center mb-2 text-sm sm:text-base text-content transition-colors hover:text-content-active data-[current=true]:text-content no-underline hover:underline"
-                        >
-                          {node.text}
-                        </a>
-                        {node.children.length > 0 && (
-                          <ol class="mt-2 ml-4 border-l border-trim pl-4 space-y-1">
-                            {renderNodes(node.children)}
-                          </ol>
-                        )}
-                      </li>
-                    ))
+              {/* Desktop heading — hidden on mobile where the drawer header shows instead */}
+              <div class="hidden lg:flex items-center justify-between gap-3">
+                <h2 id="toc-heading" class="text-content text-base font-semibold">
+                  Table of Contents
+                </h2>
+                <span class="text-xs font-medium uppercase tracking-wide text-content-active">
+                  Jump to section
+                </span>
+              </div>
+              <hr class="mt-4 border-dotted border-t-2 border-content-offset w-full hidden lg:block" />
+              <nav class="mt-4 lg:mt-4 toc-nav" aria-label="Table of contents">
+                <ol class="space-y-1">
+                  {(() => {
+                    const renderNodes = (nodes: TocItem[]): unknown =>
+                      nodes.map(node => (
+                        <li>
+                          <a
+                            href={`#${node.slug}`}
+                            data-toc-link
+                            data-toc-slug={node.slug}
+                            class="flex min-h-6 items-center mb-2 text-sm sm:text-base text-content transition-colors hover:text-content-active data-[current=true]:text-content no-underline hover:underline"
+                          >
+                            {node.text}
+                          </a>
+                          {node.children.length > 0 && (
+                            <ol class="mt-2 ml-4 border-l border-trim pl-4 space-y-1">
+                              {renderNodes(node.children)}
+                            </ol>
+                          )}
+                        </li>
+                      ))
 
-                  return renderNodes(tocTree)
-                })()}
-              </ol>
-            </nav>
-          </aside>
-          </div>{/* end scrollable inner wrapper */}
+                    return renderNodes(tocTree)
+                  })()}
+                </ol>
+              </nav>
+            </aside>
+          </div>
+          {/* end scrollable inner wrapper */}
         </div>
       </table-of-contents>
 

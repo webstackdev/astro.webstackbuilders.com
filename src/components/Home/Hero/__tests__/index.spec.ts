@@ -16,7 +16,11 @@ describe('Home Hero (Astro)', () => {
       props: {
         pretitle:
           'I turn deployment nightmares into one-click operations. Legacy migrations, CI/CD pipelines, observability stacks—built to survive production.',
-        benefits: ['Zero-downtime migrations', 'Self-healing infrastructure', 'Developer-friendly golden paths'],
+        benefits: [
+          'Zero-downtime migrations',
+          'Self-healing infrastructure',
+          'Developer-friendly golden paths',
+        ],
       },
     })
 
@@ -43,7 +47,9 @@ describe('Home Hero (Astro)', () => {
       const readyLink = window.document.querySelector('a[data-hero-ready-link]')
       expect(readyLink).toBeTruthy()
       expect(readyLink?.getAttribute('href')).toBe('/contact')
-      expect(readyLink?.getAttribute('aria-label')).toBe('Contact me about your infrastructure needs')
+      expect(readyLink?.getAttribute('aria-label')).toBe(
+        'Contact me about your infrastructure needs'
+      )
 
       const readyClass = readyLink?.getAttribute('class') || ''
       expect(readyClass).toContain('no-underline')

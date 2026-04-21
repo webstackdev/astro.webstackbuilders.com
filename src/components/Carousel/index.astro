@@ -68,7 +68,8 @@ const {
   showEmblaDots = true,
 } = props
 
-const isKnownCollectionSlug = (slug: Props['type']): slug is KnownCollectionSlug => slug !== 'unknown'
+const isKnownCollectionSlug = (slug: Props['type']): slug is KnownCollectionSlug =>
+  slug !== 'unknown'
 
 const allItems: ItemType[] = itemsOverride
   ? itemsOverride
@@ -98,7 +99,10 @@ const carouselRegionRole = carouselRegionLabelledBy ? 'region' : undefined
           <header class="text-center mb-6">
             <h2 id={`${carouselId}-title`} class="font-bold">
               {titleHref ? (
-                <a href={titleHref} class="hover:text-primary transition-colors duration-200 no-underline">
+                <a
+                  href={titleHref}
+                  class="hover:text-primary transition-colors duration-200 no-underline"
+                >
                   {title}
                 </a>
               ) : (
@@ -109,7 +113,11 @@ const carouselRegionRole = carouselRegionLabelledBy ? 'region' : undefined
         )}
 
         {/* Embla Carousel */}
-        <div class="embla relative" role={carouselRegionRole} aria-labelledby={carouselRegionLabelledBy}>
+        <div
+          class="embla relative"
+          role={carouselRegionRole}
+          aria-labelledby={carouselRegionLabelledBy}
+        >
           <div class="embla__viewport overflow-hidden p-4">
             <div class="embla__container flex -ml-4 md:-ml-6">
               {items.map((item: ItemType, index) => (
@@ -146,7 +154,9 @@ const carouselRegionRole = carouselRegionLabelledBy ? 'region' : undefined
                           {item.data.title}
                         </h3>
                         {item.data.description && (
-                          <p class="text-content-offset leading-relaxed text-sm">{item.data.description}</p>
+                          <p class="text-content-offset leading-relaxed text-sm">
+                            {item.data.description}
+                          </p>
                         )}
                         <div class="mt-4 flex items-center text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                           <span>Learn more</span>
@@ -168,15 +178,15 @@ const carouselRegionRole = carouselRegionLabelledBy ? 'region' : undefined
           <button
             type="button"
             class:list={[
-              "embla__button embla__button--prev",
-              "absolute w-12 h-12 left-0 top-1/2 -translate-y-1/2 -translate-x-4",
-              "bg-content-inverse",
-              "rounded-full border-2 border-trim shadow-lg",
-              "hover:bg-content-inverse-active hover:border-trim-offset",
-              "transition-all duration-300 flex items-center justify-center z-(--z-raised)",
-              "disabled:opacity-30 disabled:cursor-not-allowed",
-              "focus-visible:outline-none focus-visible:after:border-2 focus-visible:after:border-spotlight",
-              "after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-['']"
+              'embla__button embla__button--prev',
+              'absolute w-12 h-12 left-0 top-1/2 -translate-y-1/2 -translate-x-4',
+              'bg-content-inverse',
+              'rounded-full border-2 border-trim shadow-lg',
+              'hover:bg-content-inverse-active hover:border-trim-offset',
+              'transition-all duration-300 flex items-center justify-center z-(--z-raised)',
+              'disabled:opacity-30 disabled:cursor-not-allowed',
+              'focus-visible:outline-none focus-visible:after:border-2 focus-visible:after:border-spotlight',
+              "after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-['']",
             ]}
             aria-label="Previous slide"
             data-carousel-prev
@@ -188,15 +198,15 @@ const carouselRegionRole = carouselRegionLabelledBy ? 'region' : undefined
           <button
             type="button"
             class:list={[
-              "embla__button embla__button--next",
-              "absolute w-12 h-12 right-0 top-1/2 -translate-y-1/2 translate-x-4",
-              "bg-content-inverse",
-              "rounded-full border-2 border-trim shadow-lg",
-              "hover:bg-content-inverse-active hover:border-trim-offset",
-              "transition-all duration-300 flex items-center justify-center z-(--z-raised)",
-              "disabled:opacity-30 disabled:cursor-not-allowed",
-              "focus-visible:outline-none focus-visible:after:border-2 focus-visible:after:border-spotlight",
-              "after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-['']"
+              'embla__button embla__button--next',
+              'absolute w-12 h-12 right-0 top-1/2 -translate-y-1/2 translate-x-4',
+              'bg-content-inverse',
+              'rounded-full border-2 border-trim shadow-lg',
+              'hover:bg-content-inverse-active hover:border-trim-offset',
+              'transition-all duration-300 flex items-center justify-center z-(--z-raised)',
+              'disabled:opacity-30 disabled:cursor-not-allowed',
+              'focus-visible:outline-none focus-visible:after:border-2 focus-visible:after:border-spotlight',
+              "after:pointer-events-none after:absolute after:-inset-0.5 after:rounded-none after:content-['']",
             ]}
             aria-label="Next slide"
             data-carousel-next
@@ -226,11 +236,7 @@ const carouselRegionRole = carouselRegionLabelledBy ? 'region' : undefined
                   class="relative inline-flex items-center px-6 py-3 bg-content-active text-content-inverse font-semibold rounded-lg hover:bg-content no-underline hover:no-underline transition-all duration-200 focus-visible:outline-none after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent focus-visible:after:-inset-0.5 focus-visible:after:border-spotlight"
                 >
                   Read More Articles
-                  <Icon
-                    icon="exit-right-thin"
-                    size={6}
-                    classes="ml-2"
-                  />
+                  <Icon icon="exit-right-thin" size={6} classes="ml-2" />
                 </a>
               </span>
             ) : (

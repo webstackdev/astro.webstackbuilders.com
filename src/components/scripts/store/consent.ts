@@ -423,10 +423,7 @@ export function initConsentSideEffects(): void {
 
       const retryAfterDate = Date.parse(retryAfterHeader)
       if (!Number.isNaN(retryAfterDate)) {
-        return Math.min(
-          Math.max(0, retryAfterDate - Date.now()),
-          CONSENT_LOG_MAX_RETRY_DELAY_MS
-        )
+        return Math.min(Math.max(0, retryAfterDate - Date.now()), CONSENT_LOG_MAX_RETRY_DELAY_MS)
       }
     }
 

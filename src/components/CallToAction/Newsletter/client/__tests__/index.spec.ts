@@ -127,7 +127,9 @@ describe.each(newsletterVariants)('NewsletterFormElement web component (%s)', va
   test('builds aria relationships from the newsletter CTA id base', async () => {
     await renderNewsletter(async ({ element }) => {
       expect(element.getAttribute('aria-labelledby')).toBe('newsletter-cta-' + variant + '-title')
-      expect(element.getAttribute('aria-describedby')).toBe('newsletter-cta-' + variant + '-description')
+      expect(element.getAttribute('aria-describedby')).toBe(
+        'newsletter-cta-' + variant + '-description'
+      )
     })
   })
 

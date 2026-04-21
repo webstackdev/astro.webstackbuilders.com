@@ -17,7 +17,13 @@ import { queryContactFormGeneratedFieldError, queryContactFormGenericFields } fr
 
 export type ContactUiState = 'idle' | 'loading' | 'success' | 'error' | 'validation'
 
-export const contactPreviewStates = ['loading', 'success', 'error', 'validation', 'confetti'] as const
+export const contactPreviewStates = [
+  'loading',
+  'success',
+  'error',
+  'validation',
+  'confetti',
+] as const
 
 type ContactPreviewState = (typeof contactPreviewStates)[number]
 type ContactPreviewMode = 'confetti'

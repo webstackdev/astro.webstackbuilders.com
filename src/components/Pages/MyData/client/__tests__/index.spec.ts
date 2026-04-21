@@ -15,9 +15,13 @@ type VerifyResult =
   | { status: 'deleted' }
   | { status: 'expired' }
 
-const requestDataMock = vi.fn<
-  (_input: { email: string; requestType: 'ACCESS' | 'DELETE' }) => Promise<ActionResult<{ message: string }>>
->()
+const requestDataMock =
+  vi.fn<
+    (_input: {
+      email: string
+      requestType: 'ACCESS' | 'DELETE'
+    }) => Promise<ActionResult<{ message: string }>>
+  >()
 
 const verifyDsarMock = vi.fn<(_input: { token: string }) => Promise<ActionResult<VerifyResult>>>()
 
@@ -105,7 +109,10 @@ describe('PrivacyForm behavior', () => {
         elements.accessForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
         await flushMicrotasks()
 
-        expect(requestDataMock).toHaveBeenCalledWith({ email: 'test@example.com', requestType: 'ACCESS' })
+        expect(requestDataMock).toHaveBeenCalledWith({
+          email: 'test@example.com',
+          requestType: 'ACCESS',
+        })
         expect(elements.accessMessage.textContent).toBe('Access request sent.')
         expect(elements.accessMessage.classList.contains('hidden')).toBe(false)
         expect(elements.accessMessage.classList.contains('border-success')).toBe(true)
@@ -180,7 +187,9 @@ describe('PrivacyForm behavior', () => {
         await flushMicrotasks()
 
         expect(requestDataMock).not.toHaveBeenCalled()
-        expect(elements.deleteMessage.textContent).toBe('Please confirm you understand the deletion request.')
+        expect(elements.deleteMessage.textContent).toBe(
+          'Please confirm you understand the deletion request.'
+        )
         expect(elements.deleteMessage.classList.contains('border-danger')).toBe(true)
       },
     })
@@ -204,8 +213,13 @@ describe('PrivacyForm behavior', () => {
         },
       },
       waitForReady: async (element: PrivacyFormElementInstance) => {
-        window.history.replaceState({}, '', 'http://localhost/privacy/my-data?token=unit-test-token')
-        ;(element as unknown as { downloadJson: typeof downloadJsonSpy }).downloadJson = downloadJsonSpy
+        window.history.replaceState(
+          {},
+          '',
+          'http://localhost/privacy/my-data?token=unit-test-token'
+        )
+        ;(element as unknown as { downloadJson: typeof downloadJsonSpy }).downloadJson =
+          downloadJsonSpy
         ;(element as unknown as { navigateTo: typeof navigateToSpy }).navigateTo = navigateToSpy
         element.initialize()
       },

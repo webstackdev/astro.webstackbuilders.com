@@ -71,7 +71,7 @@ function writeCssVariables(offsets: LayoutOffsets): void {
   root.setProperty('--progress-bar-height', `${offsets.progressBarHeight}px`)
   root.setProperty(
     '--layout-top-offset',
-    `${offsets.themePickerHeight + offsets.headerHeight + offsets.progressBarHeight}px`,
+    `${offsets.themePickerHeight + offsets.headerHeight + offsets.progressBarHeight}px`
   )
 }
 
@@ -108,9 +108,7 @@ function measureThemePickerHeight(): number {
   }
 
   // Last resort: the CSS 14em target.
-  const fontSize = Number.parseFloat(
-    getComputedStyle(document.documentElement).fontSize,
-  ) || 16
+  const fontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
   return 14 * fontSize
 }
 

@@ -11,12 +11,7 @@ export type Props = {
   fullWidth?: boolean
 }
 
-const {
-  data = [],
-  figure,
-  classes = {},
-  fullWidth = true,
-} = Astro.props
+const { data = [], figure, classes = {}, fullWidth = true } = Astro.props
 
 const wrapperClass = [
   'file-explorer-print',
@@ -25,11 +20,15 @@ const wrapperClass = [
   'mx-auto',
   fullWidth ? 'w-full' : 'w-fit max-w-full',
   classes.wrapper,
-].filter(Boolean).join(' ')
+]
+  .filter(Boolean)
+  .join(' ')
 ---
 
 <figure class={wrapperClass}>
-  <div class="file-explorer-print__panel mx-auto max-w-full rounded-lg bg-(--color-page-base) p-6 font-mono text-left">
+  <div
+    class="file-explorer-print__panel mx-auto max-w-full rounded-lg bg-(--color-page-base) p-6 font-mono text-left"
+  >
     <ul class="list-none p-0 m-0 tree-root" aria-label={figure ? undefined : 'File explorer'}>
       {data.map((node, index) => <PrintNode node={node} path={`${index}`} isRoot />)}
     </ul>

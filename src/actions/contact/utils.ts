@@ -1,15 +1,11 @@
 import { z } from 'astro/zod'
-import type {
-  ContactTimeline,
-  RequiredStringOptions,
- } from '@actions/contact/@types'
+import type { ContactTimeline, RequiredStringOptions } from '@actions/contact/@types'
 import { isAllowedTimeline } from './responder'
 
-const requiredStringError = (
-  requiredMessage: string,
-  invalidTypeMessage: string
-) => (issue: { input?: unknown }): string =>
-  issue.input === undefined ? requiredMessage : invalidTypeMessage
+const requiredStringError =
+  (requiredMessage: string, invalidTypeMessage: string) =>
+  (issue: { input?: unknown }): string =>
+    issue.input === undefined ? requiredMessage : invalidTypeMessage
 
 export function escapeHtml(text: string): string {
   const map: Record<string, string> = {
@@ -39,7 +35,8 @@ export function readString(form: FormData, key: string): string {
   return typeof value === 'string' ? value : ''
 }
 
-export const trimString = (value: unknown): unknown => (typeof value === 'string' ? value.trim() : value)
+export const trimString = (value: unknown): unknown =>
+  typeof value === 'string' ? value.trim() : value
 
 export const emptyStringToUndefined = (value: unknown): unknown => {
   if (value === null) return undefined
@@ -66,8 +63,8 @@ export const requiredString = (options: RequiredStringOptions) => {
   )
 }
 
-export const isFile = (value: unknown): value is File => typeof File !== 'undefined' && value instanceof File
-
+export const isFile = (value: unknown): value is File =>
+  typeof File !== 'undefined' && value instanceof File
 
 export const optionalFile = () => z.custom<File>(isFile).optional()
 

@@ -148,7 +148,9 @@ applyRenderSentryContext({
       {/* Site header and main content */}
       <Container id="main-content">
         <Header path={path} showProgressBar={showProgressBar} />
-        {/* Scroll viewport — sole scroll container for the page.            Its scrollbar physically starts below the header. */}
+        {
+          /* Scroll viewport — sole scroll container for the page.            Its scrollbar physically starts below the header. */
+        }
         <div
           id="scroll-viewport"
           class="flex-1 min-h-0 overflow-y-auto flex flex-col"
@@ -174,12 +176,7 @@ applyRenderSentryContext({
             )
           }
 
-          <main
-            id="main"
-            class="flex flex-col flex-1"
-            role="main"
-            tabindex="-1"
-          >
+          <main id="main" class="flex flex-col flex-1" role="main" tabindex="-1">
             {/* SLOT: default (unnamed) - Main page content */}
             <slot />
           </main>
@@ -187,13 +184,15 @@ applyRenderSentryContext({
           <Footer />
         </div>
       </Container>
-      {isProd() && (
-        <>
-          <Analytics />
-          <RegisterServiceWorker />
-          <PrefetchOfflinePage />
-        </>
-      )}
+      {
+        isProd() && (
+          <>
+            <Analytics />
+            <RegisterServiceWorker />
+            <PrefetchOfflinePage />
+          </>
+        )
+      }
       <Tooltip />
     </body>
   </>

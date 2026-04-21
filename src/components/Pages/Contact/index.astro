@@ -49,11 +49,11 @@ export type Props = {
       expertise: {
         header: string
         areas: { text: string }[]
-      },
+      }
       chooseUs: {
-        header: string,
-        areas: { text: string }[],
-      },
+        header: string
+        areas: { text: string }[]
+      }
     }
     form: {
       header: string
@@ -69,7 +69,7 @@ export type Props = {
         fullNamePlaceholder: string
         phone: string
         phonePlaceholder: string
-      },
+      }
       project: {
         header: string
         description: string
@@ -86,7 +86,7 @@ export type Props = {
           value: string
         }[]
         typePlaceholder: string
-      },
+      }
       files: {
         header: string
         subheader: string
@@ -95,7 +95,7 @@ export type Props = {
         maxFileSize: string
         maxFilesText: string
         maxFiles: string
-      },
+      }
       info: {
         lead: string
         text: string
@@ -121,323 +121,321 @@ const { content, prefilledProjectType = '' } = Astro.props
     {/** Contact Form Section */}
     <section class="pt-5 pb-8 bg-page-offset" aria-label="Contact form">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start" data-sticky-container>
+        <div
+          class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start"
+          data-sticky-container
+        >
           {/** Contact Form */}
           <div class="lg:col-span-2 bg-content-inverse p-6 md:p-8 rounded-2xl shadow-lg">
-              {/** Contact FormHeader */}
-              <div class="mb-8">
-                <h2 class="text-page-inverse text-2xl md:text-3xl font-semibold mb-3">
-                  {content.form.header}
-                </h2>
-                <p class="text-content-active text-lg">{content.form.description}</p>
+            {/** Contact FormHeader */}
+            <div class="mb-8">
+              <h2 class="text-page-inverse text-2xl md:text-3xl font-semibold mb-3">
+                {content.form.header}
+              </h2>
+              <p class="text-content-active text-lg">{content.form.description}</p>
+            </div>
+
+            <form
+              class="space-y-8"
+              id="contactForm"
+              method="post"
+              enctype="multipart/form-data"
+              novalidate
+            >
+              <div
+                id="formErrorBanner"
+                class="hidden rounded-xl border border-danger bg-danger/10 text-danger px-4 py-3"
+                role="alert"
+                aria-live="assertive"
+              >
+                {content.form.formErrorMssg}
               </div>
 
-              <form
-                class="space-y-8"
-                id="contactForm"
-                method="post"
-                enctype="multipart/form-data"
-                novalidate
-              >
-                <div
-                  id="formErrorBanner"
-                  class="hidden rounded-xl border border-danger bg-danger/10 text-danger px-4 py-3"
-                  role="alert"
-                  aria-live="assertive"
-                >
-                  {content.form.formErrorMssg}
-                </div>
+              {/** Personal Information */}
+              <div class="border-b border-trim">
+                <h3 class="flex items-center text-page-inverse text-xl font-semibold mb-6">
+                  <div class="w-1 h-5 bg-page-inverse rounded-full mr-3"></div>
+                  {content.form.contact.header}
+                </h3>
 
-                {/** Personal Information */}
-                <div class="border-b border-trim">
-                  <h3 class="flex items-center text-page-inverse text-xl font-semibold mb-6">
-                    <div class="w-1 h-5 bg-page-inverse rounded-full mr-3"></div>
-                    {content.form.contact.header}
-                  </h3>
-
-                  <div class="grid grid-cols-1 md:grid-cols-2 md:gap-6 md:space-y-6">
-                    <div class="space-y-2">
-                      <label
-                        for="name"
-                        class="block text-content-active text-sm font-medium"
-                      >
-                        {content.form.contact.fullName}
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
-                        required
-                        placeholder={content.form.contact.fullNamePlaceholder}
-                        minlength="2"
-                        maxlength="100"
-                        aria-invalid="false"
-                        aria-errormessage="name-error"
-                      />
-                      <p
-                        class="hidden text-sm text-danger"
-                        data-field-error="name"
-                        aria-live="polite"
-                        id="name-error"
-                      >
-                      </p>
-                    </div>
-
-                    <div class="space-y-2">
-                      <label
-                        for="email"
-                        class="block text-content-active text-sm font-medium"
-                      >
-                        {content.form.contact.email}
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
-                        required
-                        placeholder={content.form.contact.emailPlaceholder}
-                        aria-invalid="false"
-                        aria-errormessage="email-error"
-                      />
-                      <p
-                        class="hidden text-sm text-danger"
-                        data-field-error="email"
-                        aria-live="polite"
-                        id="email-error"
-                      >
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="grid grid-cols-1 md:grid-cols-2 md:gap-6 md:space-y-6">
-                    <div class="space-y-2">
-                      <label
-                        for="company"
-                        class="block text-content-active text-sm font-medium"
-                      >
-                        {content.form.contact.company}
-                      </label>
-                      <input
-                        type="text"
-                        id="company"
-                        name="company"
-                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
-                        placeholder={content.form.contact.companyPlaceholder}
-                        maxlength="100"
-                      />
-                    </div>
-
-                    <div class="space-y-2 mt-2 md:mt-0">
-                      <label
-                        for="phone"
-                        class="block text-content-active text-sm font-medium"
-                      >
-                        {content.form.contact.phone}
-                      </label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
-                        placeholder={content.form.contact.phonePlaceholder}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/** Project Information */}
-                <div class="pb-2 border-b border-trim">
-                  <h3 class="flex items-center text-page-inverse text-xl font-semibold mb-6">
-                    <div class="w-1 h-5 bg-page-inverse rounded-full mr-3"></div>
-                    {content.form.project.header}
-                  </h3>
-
-                  <div class="grid grid-cols-1 md:grid-cols-2 md:gap-6">
-                    <div class="space-y-2">
-                      <label
-                        for="project_type"
-                        class="block text-content-active text-sm font-medium"
-                      >
-                        {content.form.project.type}
-                      </label>
-                      <select
-                        id="project_type"
-                        name="project_type"
-                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200 cursor-pointer"
-                      >
-                        {content.form.project.typeOptions.map((item) => (
-                          <option
-                            value={item.value}
-                            selected={item.value === prefilledProjectType}
-                          >
-                            {item.text}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div class="space-y-2 mt-2 sm:mt-0">
-                      <label
-                        for="timeline"
-                        class="block text-content-active text-sm font-medium"
-                      >
-                        {content.form.project.timeline}
-                      </label>
-                      <select
-                        id="timeline"
-                        name="timeline"
-                        class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200 cursor-pointer"
-                      >
-                        {content.form.project.timelineOptions.map((item) => (
-                          <option value={item.value}>{item.text}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="space-y-2 mt-4">
-                    <label
-                      for="message"
-                      class="block text-content-active text-sm font-medium"
-                    >
-                      {content.form.project.description}
+                <div class="grid grid-cols-1 md:grid-cols-2 md:gap-6 md:space-y-6">
+                  <div class="space-y-2">
+                    <label for="name" class="block text-content-active text-sm font-medium">
+                      {content.form.contact.fullName}
                     </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200 resize-vertical min-h-30"
-                      rows="6"
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
                       required
-                      placeholder={content.form.project.descriptionPlaceholder}
-                      minlength="10"
-                      maxlength="2000"
+                      placeholder={content.form.contact.fullNamePlaceholder}
+                      minlength="2"
+                      maxlength="100"
                       aria-invalid="false"
-                      aria-errormessage="message-error"></textarea>
+                      aria-errormessage="name-error"
+                    />
                     <p
                       class="hidden text-sm text-danger"
-                      data-field-error="message"
+                      data-field-error="name"
                       aria-live="polite"
-                      id="message-error"
+                      id="name-error"
                     >
                     </p>
-                    <div class="text-right text-sm text-content-active">
-                      <span id="charCount">0</span>/2000 characters
-                    </div>
                   </div>
-                </div>
 
-                {/** File Upload Section */}
-                <div>
-                  <h3 class="flex items-center text-page-inverse text-xl font-semibold mb-4">
-                    <div class="w-1 h-5 bg-page-inverse rounded-full mr-3"></div>
-                    {content.form.files.header}
-                  </h3>
-                  <p class="text-content-active text-sm mb-6">{content.form.files.subheader}</p>
-
-                  <div>
-                    <div id="uppyContainer" hidden>
-                      <div id="uppyDashboard"></div>
-                    </div>
-                    <div class="mt-4 space-y-2">
-                      <p class="text-sm text-content-active">
-                        <strong>Supported formats:</strong> {content.form.files.supportedFormats}
-                      </p>
-                      <p class="text-sm text-content-active">
-                        <strong>{content.form.files.maxFileSizeText}</strong> {content.form.files.maxFileSize} • <strong>{content.form.files.maxFilesText}</strong> {content.form.files.maxFiles}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/** GDPR Consent */}
-                <GDPRConsent
-                  purpose="responding to your inquiry"
-                  formId="contact-form"
-                  id="contact-gdpr-consent"
-                  variant="default"
-                />
-
-                {/** Data Retention Notice */}
-                <div class="text-sm text-content-active space-y-2 bg-page-offset p-4 rounded-lg border border-trim">
-                  {content.form.info.map((item) => (
-                    <p class="text-sm">
-                      <strong class="text-page-inverse">{item.lead}</strong>{item.text}
-                      {item.email && (
-                        <a href={`mailto:${item.email}`} class="text-primary hover:text-page-inverse hover:underline hover:decoration-page-inverse">{item.email}</a>
-                      )}
+                  <div class="space-y-2">
+                    <label for="email" class="block text-content-active text-sm font-medium">
+                      {content.form.contact.email}
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
+                      required
+                      placeholder={content.form.contact.emailPlaceholder}
+                      aria-invalid="false"
+                      aria-errormessage="email-error"
+                    />
+                    <p
+                      class="hidden text-sm text-danger"
+                      data-field-error="email"
+                      aria-live="polite"
+                      id="email-error"
+                    >
                     </p>
-                  ))}
-                </div>
-
-                <Confetti classes="block w-full self-end">
-                  <div class="flex justify-end">
-                    {/** Intentionally not using Button component. */}
-                    <button
-                      type="submit"
-                      class="inline-flex items-center justify-center px-8 py-4 bg-page-inverse hover:bg-content-active text-content-inverse font-semibold rounded-xl transition-all duration-200 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-50"
-                      id="submitBtn"
-                    >
-                      <span class="btn-text">{content.form.submitButtonText}</span>
-                      <span class="btn-loading hidden">
-                        <Icon icon="spinner" color="inherit" size={5} classes="mr-2" />
-                        {content.form.waitingText}
-                      </span>
-                    </button>
-                  </div>
-                </Confetti>
-              </form>
-
-              {/** Form Messages */}
-              <div id="formMessages" class="mt-8" style="display: none;">
-                <div
-                  class="message-success hidden w-full rounded-xl border border-success bg-success-inverse"
-                  role="status"
-                  aria-live="polite"
-                  aria-atomic="true"
-                >
-                  <div class="flex items-start gap-4 p-6">
-                    <div
-                      class="shrink-0 w-6 h-6 bg-success rounded-full flex items-center justify-center text-sm font-bold"
-                    >
-                      <Icon icon="check-stylized" color="white" size={3.5} />
-                    </div>
-                    <div>
-                      <h3 class="text-lg font-semibold text-success mb-2">Thank you!</h3>
-                      <p>
-                        {content.form.successText}
-                      </p>
-                    </div>
                   </div>
                 </div>
-                <div
-                  class="message-error hidden w-full rounded-xl border border-danger bg-danger-inverse text-danger"
-                  role="alert"
-                  aria-live="assertive"
-                  aria-atomic="true"
-                >
-                  <div class="flex items-start gap-4 p-6">
-                    <div
-                      class="shrink-0 w-6 h-6 bg-danger rounded-full flex items-center justify-center"
-                    >
-                      <Icon icon="warning" color="white" size={3.5} />
-                    </div>
-                    <div>
-                      <h3 class="text-lg font-semibold text-danger mb-2">Oops!</h3>
-                      <p id="errorMessage" class="text-danger">
-                        {content.form.errorText}{' '}
-                        <a
-                          href={`mailto:${content.form.errorEmail}`}
-                          class="text-danger underline decoration-current underline-offset-2"
-                        >
-                          {content.form.errorEmail}
-                        </a>
-                      </p>
-                    </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 md:gap-6 md:space-y-6">
+                  <div class="space-y-2">
+                    <label for="company" class="block text-content-active text-sm font-medium">
+                      {content.form.contact.company}
+                    </label>
+                    <input
+                      type="text"
+                      id="company"
+                      name="company"
+                      class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
+                      placeholder={content.form.contact.companyPlaceholder}
+                      maxlength="100"
+                    />
+                  </div>
+
+                  <div class="space-y-2 mt-2 md:mt-0">
+                    <label for="phone" class="block text-content-active text-sm font-medium">
+                      {content.form.contact.phone}
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200"
+                      placeholder={content.form.contact.phonePlaceholder}
+                    />
                   </div>
                 </div>
               </div>
+
+              {/** Project Information */}
+              <div class="pb-2 border-b border-trim">
+                <h3 class="flex items-center text-page-inverse text-xl font-semibold mb-6">
+                  <div class="w-1 h-5 bg-page-inverse rounded-full mr-3"></div>
+                  {content.form.project.header}
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 md:gap-6">
+                  <div class="space-y-2">
+                    <label for="project_type" class="block text-content-active text-sm font-medium">
+                      {content.form.project.type}
+                    </label>
+                    <select
+                      id="project_type"
+                      name="project_type"
+                      class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200 cursor-pointer"
+                    >
+                      {
+                        content.form.project.typeOptions.map(item => (
+                          <option value={item.value} selected={item.value === prefilledProjectType}>
+                            {item.text}
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+
+                  <div class="space-y-2 mt-2 sm:mt-0">
+                    <label for="timeline" class="block text-content-active text-sm font-medium">
+                      {content.form.project.timeline}
+                    </label>
+                    <select
+                      id="timeline"
+                      name="timeline"
+                      class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200 cursor-pointer"
+                    >
+                      {
+                        content.form.project.timelineOptions.map(item => (
+                          <option value={item.value}>{item.text}</option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                <div class="space-y-2 mt-4">
+                  <label for="message" class="block text-content-active text-sm font-medium">
+                    {content.form.project.description}
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    class="w-full px-4 py-3 border-2 border-trim rounded-xl bg-note-inverse/25 focus:border-spotlight focus:ring-0 focus:outline-none focus-visible:border-spotlight focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none transition-colors duration-200 resize-vertical min-h-30"
+                    rows="6"
+                    required
+                    placeholder={content.form.project.descriptionPlaceholder}
+                    minlength="10"
+                    maxlength="2000"
+                    aria-invalid="false"
+                    aria-errormessage="message-error"></textarea>
+                  <p
+                    class="hidden text-sm text-danger"
+                    data-field-error="message"
+                    aria-live="polite"
+                    id="message-error"
+                  >
+                  </p>
+                  <div class="text-right text-sm text-content-active">
+                    <span id="charCount">0</span>/2000 characters
+                  </div>
+                </div>
+              </div>
+
+              {/** File Upload Section */}
+              <div>
+                <h3 class="flex items-center text-page-inverse text-xl font-semibold mb-4">
+                  <div class="w-1 h-5 bg-page-inverse rounded-full mr-3"></div>
+                  {content.form.files.header}
+                </h3>
+                <p class="text-content-active text-sm mb-6">{content.form.files.subheader}</p>
+
+                <div>
+                  <div id="uppyContainer" hidden>
+                    <div id="uppyDashboard"></div>
+                  </div>
+                  <div class="mt-4 space-y-2">
+                    <p class="text-sm text-content-active">
+                      <strong>Supported formats:</strong>
+                      {content.form.files.supportedFormats}
+                    </p>
+                    <p class="text-sm text-content-active">
+                      <strong>{content.form.files.maxFileSizeText}</strong>
+                      {content.form.files.maxFileSize} • <strong
+                        >{content.form.files.maxFilesText}</strong
+                      >
+                      {content.form.files.maxFiles}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/** GDPR Consent */}
+              <GDPRConsent
+                purpose="responding to your inquiry"
+                formId="contact-form"
+                id="contact-gdpr-consent"
+                variant="default"
+              />
+
+              {/** Data Retention Notice */}
+              <div
+                class="text-sm text-content-active space-y-2 bg-page-offset p-4 rounded-lg border border-trim"
+              >
+                {
+                  content.form.info.map(item => (
+                    <p class="text-sm">
+                      <strong class="text-page-inverse">{item.lead}</strong>
+                      {item.text}
+                      {item.email && (
+                        <a
+                          href={`mailto:${item.email}`}
+                          class="text-primary hover:text-page-inverse hover:underline hover:decoration-page-inverse"
+                        >
+                          {item.email}
+                        </a>
+                      )}
+                    </p>
+                  ))
+                }
+              </div>
+
+              <Confetti classes="block w-full self-end">
+                <div class="flex justify-end">
+                  {/** Intentionally not using Button component. */}
+                  <button
+                    type="submit"
+                    class="inline-flex items-center justify-center px-8 py-4 bg-page-inverse hover:bg-content-active text-content-inverse font-semibold rounded-xl transition-all duration-200 focus-visible:outline-2 focus-visible:outline-spotlight focus-visible:outline-offset-2 focus-visible:rounded-none disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none min-w-50"
+                    id="submitBtn"
+                  >
+                    <span class="btn-text">{content.form.submitButtonText}</span>
+                    <span class="btn-loading hidden">
+                      <Icon icon="spinner" color="inherit" size={5} classes="mr-2" />
+                      {content.form.waitingText}
+                    </span>
+                  </button>
+                </div>
+              </Confetti>
+            </form>
+
+            {/** Form Messages */}
+            <div id="formMessages" class="mt-8" style="display: none;">
+              <div
+                class="message-success hidden w-full rounded-xl border border-success bg-success-inverse"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                <div class="flex items-start gap-4 p-6">
+                  <div
+                    class="shrink-0 w-6 h-6 bg-success rounded-full flex items-center justify-center text-sm font-bold"
+                  >
+                    <Icon icon="check-stylized" color="white" size={3.5} />
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-semibold text-success mb-2">Thank you!</h3>
+                    <p>
+                      {content.form.successText}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="message-error hidden w-full rounded-xl border border-danger bg-danger-inverse text-danger"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+              >
+                <div class="flex items-start gap-4 p-6">
+                  <div
+                    class="shrink-0 w-6 h-6 bg-danger rounded-full flex items-center justify-center"
+                  >
+                    <Icon icon="warning" color="white" size={3.5} />
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-semibold text-danger mb-2">Oops!</h3>
+                    <p id="errorMessage" class="text-danger">
+                      {content.form.errorText}{' '}
+                      <a
+                        href={`mailto:${content.form.errorEmail}`}
+                        class="text-danger underline decoration-current underline-offset-2"
+                      >
+                        {content.form.errorEmail}
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/** Contact Information */}
@@ -447,27 +445,29 @@ const { content, prefilledProjectType = '' } = Astro.props
           >
             <div class="space-y-8">
               <div>
-                <h3 class="text-page-inverse text-xl font-semibold mb-6">{content.contact.header}</h3>
+                <h3 class="text-page-inverse text-xl font-semibold mb-6">
+                  {content.contact.header}
+                </h3>
 
                 <div class="space-y-6">
-                  {content.contact.details.map((item) => (
-                    <div class="flex items-start gap-4">
-                      <div
-                        class="shrink-0 w-11 h-11 bg-page-inverse text-white rounded-xl flex items-center justify-center"
-                      >
-                        <Icon
-                          icon={item.icon}
-                          size={6}
-                          color="content-inverse"
-                          {...(item.iconClasses ? { classes: item.iconClasses } : {})}
-                        />
+                  {
+                    content.contact.details.map(item => (
+                      <div class="flex items-start gap-4">
+                        <div class="shrink-0 w-11 h-11 bg-page-inverse text-white rounded-xl flex items-center justify-center">
+                          <Icon
+                            icon={item.icon}
+                            size={6}
+                            color="content-inverse"
+                            {...(item.iconClasses ? { classes: item.iconClasses } : {})}
+                          />
+                        </div>
+                        <div>
+                          <h4 class="text-page-inverse text-md mb-1">{item.text}</h4>
+                          <p class="text-content-active text-sm" set:html={item.value} />
+                        </div>
                       </div>
-                      <div>
-                        <h4 class="text-page-inverse text-md mb-1">{item.text}</h4>
-                        <p class="text-content-active text-sm" set:html={item.value}></p>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  }
                 </div>
               </div>
 
@@ -479,7 +479,7 @@ const { content, prefilledProjectType = '' } = Astro.props
                   items={content.contact.expertise.areas}
                   variant="colored-marker-list"
                   classes={{
-                    icon: "bg-page-inverse",
+                    icon: 'bg-page-inverse',
                   }}
                 />
               </div>
@@ -492,7 +492,7 @@ const { content, prefilledProjectType = '' } = Astro.props
                   items={content.contact.chooseUs.areas}
                   variant="colored-marker-list"
                   classes={{
-                    icon: "bg-page-inverse",
+                    icon: 'bg-page-inverse',
                   }}
                 />
               </div>

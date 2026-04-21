@@ -2,8 +2,8 @@
 import { renderQrCodeSvg } from './server/index'
 
 interface Props {
-	data?: string
-	isHidden?: boolean
+  data?: string
+  isHidden?: boolean
 }
 
 const { data, isHidden = true } = Astro.props
@@ -11,18 +11,17 @@ const qrData = data ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url).toSt
 const qrSvg = await renderQrCodeSvg({ data: qrData })
 ---
 
-
 <figure
-	class:list={[
-		'not-prose mx-auto my-8 flex w-fit flex-col items-center print:block print:break-inside-avoid',
-		isHidden && 'hidden',
-	]}
-	data-qr-code
-	role="img"
-	aria-label={`QR code for ${qrData}`}
+  class:list={[
+    'not-prose mx-auto my-8 flex w-fit flex-col items-center print:block print:break-inside-avoid',
+    isHidden && 'hidden',
+  ]}
+  data-qr-code
+  role="img"
+  aria-label={`QR code for ${qrData}`}
 >
-	<Fragment set:html={qrSvg} />
-	<figcaption class="sr-only">
-		{qrData}
-	</figcaption>
+  <Fragment set:html={qrSvg} />
+  <figcaption class="sr-only">
+    {qrData}
+  </figcaption>
 </figure>

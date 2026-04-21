@@ -161,7 +161,10 @@ export class BugReporterModalElement extends LitElement {
   }
 
   private attachCloseButtonListener(): void {
-    const context = { scriptName: 'BugReporterModalElement', operation: 'attachCloseButtonListener' }
+    const context = {
+      scriptName: 'BugReporterModalElement',
+      operation: 'attachCloseButtonListener',
+    }
     addScriptBreadcrumb(context)
 
     try {
@@ -182,7 +185,10 @@ export class BugReporterModalElement extends LitElement {
   }
 
   private attachCancelButtonListener(): void {
-    const context = { scriptName: 'BugReporterModalElement', operation: 'attachCancelButtonListener' }
+    const context = {
+      scriptName: 'BugReporterModalElement',
+      operation: 'attachCancelButtonListener',
+    }
     addScriptBreadcrumb(context)
 
     try {
@@ -203,7 +209,10 @@ export class BugReporterModalElement extends LitElement {
   }
 
   private attachMinimizeButtonListener(): void {
-    const context = { scriptName: 'BugReporterModalElement', operation: 'attachMinimizeButtonListener' }
+    const context = {
+      scriptName: 'BugReporterModalElement',
+      operation: 'attachMinimizeButtonListener',
+    }
     addScriptBreadcrumb(context)
 
     try {
@@ -224,7 +233,10 @@ export class BugReporterModalElement extends LitElement {
   }
 
   private attachMinimizedBarListener(): void {
-    const context = { scriptName: 'BugReporterModalElement', operation: 'attachMinimizedBarListener' }
+    const context = {
+      scriptName: 'BugReporterModalElement',
+      operation: 'attachMinimizedBarListener',
+    }
     addScriptBreadcrumb(context)
 
     try {
@@ -267,7 +279,7 @@ export class BugReporterModalElement extends LitElement {
         return
       }
 
-      form.addEventListener('submit', (event) => {
+      form.addEventListener('submit', event => {
         void this.handleSubmit(event)
       })
       this.formListenerAttached = true

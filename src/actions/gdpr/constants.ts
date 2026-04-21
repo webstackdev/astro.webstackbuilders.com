@@ -1,4 +1,10 @@
-export const CONSENT_PURPOSES = ['contact', 'marketing', 'analytics', 'functional', 'downloads'] as const
+export const CONSENT_PURPOSES = [
+  'contact',
+  'marketing',
+  'analytics',
+  'functional',
+  'downloads',
+] as const
 
 export type ConsentPurpose = (typeof CONSENT_PURPOSES)[number]
 

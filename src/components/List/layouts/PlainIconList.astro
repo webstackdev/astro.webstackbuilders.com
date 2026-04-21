@@ -18,8 +18,8 @@ export type Props = {
 type PlainIconListItem = Props['items'][number]
 
 const props: Props = Astro.props
-const ulClass = ["list-none pl-0 space-y-3 mb-0 mt-2", props.classes?.ul]
-const liClass = ["flex items-start gap-3", props.classes?.li]
+const ulClass = ['list-none pl-0 space-y-3 mb-0 mt-2', props.classes?.ul]
+const liClass = ['flex items-start gap-3', props.classes?.li]
 const markerClasses = props.classes?.svg
 ---
 
@@ -29,10 +29,15 @@ const markerClasses = props.classes?.svg
       const resolvedColor = color?.trim() ? color : 'currentColor'
 
       return (
-      <li class:list={liClass}>
-        <Icon icon={icon} color={resolvedColor} size={props.size ?? 5} {...(markerClasses ? { classes: markerClasses } : {})} />
-        <span set:html={text}></span>
-      </li>
+        <li class:list={liClass}>
+          <Icon
+            icon={icon}
+            color={resolvedColor}
+            size={props.size ?? 5}
+            {...(markerClasses ? { classes: markerClasses } : {})}
+          />
+          <span set:html={text} />
+        </li>
       )
     })
   }

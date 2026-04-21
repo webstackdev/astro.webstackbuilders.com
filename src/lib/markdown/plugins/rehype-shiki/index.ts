@@ -306,7 +306,8 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
           getDataPropValue(node, 'data-shiki-meta') ??
           getDataPropValue(codeChild, 'data-shiki-meta')
 
-        const metaRaw = typeof metaValue === 'string' && metaValue.trim() ? metaValue.trim() : undefined
+        const metaRaw =
+          typeof metaValue === 'string' && metaValue.trim() ? metaValue.trim() : undefined
 
         const { title, cleaned: metaForShiki } = metaRaw
           ? extractTitle(metaRaw)
@@ -355,7 +356,11 @@ const rehypeShiki: Plugin<[RehypeShikiOptions], Root> = (options: RehypeShikiOpt
         shikiOptions['defaultColor'] = options.defaultColor
       }
 
-      if (options.transformers && Array.isArray(options.transformers) && options.transformers.length > 0) {
+      if (
+        options.transformers &&
+        Array.isArray(options.transformers) &&
+        options.transformers.length > 0
+      ) {
         shikiOptions['transformers'] = options.transformers
       }
 

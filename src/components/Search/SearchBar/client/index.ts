@@ -5,7 +5,10 @@ import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
-import { addButtonEventListeners, addWrapperEventListeners } from '@components/scripts/elementListeners'
+import {
+  addButtonEventListeners,
+  addWrapperEventListeners,
+} from '@components/scripts/elementListeners'
 import { getSearchBarElements, getSearchBarOptionalElements } from './selectors'
 import type { SearchHit } from '@actions/search/@types'
 import { getSearchResultDisplayPath, highlightSearchText } from './results'
@@ -174,7 +177,10 @@ export class SearchBarElement extends LitElement {
     }
   }
 
-  private setExpandedState(isExpanded: boolean, { updateStore = true }: { updateStore?: boolean } = {}): void {
+  private setExpandedState(
+    isExpanded: boolean,
+    { updateStore = true }: { updateStore?: boolean } = {}
+  ): void {
     this.isExpanded = isExpanded
 
     if (updateStore && this.toggleBtn) {
@@ -228,12 +234,10 @@ export class SearchBarElement extends LitElement {
   }
 
   private getSpeechRecognitionCtor(): (new () => SpeechRecognition) | null {
-    const view = (this.ownerDocument?.defaultView ?? null) as
-      | {
-          SpeechRecognition?: new () => SpeechRecognition
-          webkitSpeechRecognition?: new () => SpeechRecognition
-        }
-      | null
+    const view = (this.ownerDocument?.defaultView ?? null) as {
+      SpeechRecognition?: new () => SpeechRecognition
+      webkitSpeechRecognition?: new () => SpeechRecognition
+    } | null
 
     const globalAny = globalThis as unknown as {
       SpeechRecognition?: new () => SpeechRecognition
@@ -324,7 +328,9 @@ export class SearchBarElement extends LitElement {
     // We keep the extraction defensive so it works across implementations and in tests.
     const eventAny = event as unknown as {
       resultIndex?: number
-      results?: ArrayLike<ArrayLike<{ transcript?: string } & { confidence?: number }> & { isFinal?: boolean }>
+      results?: ArrayLike<
+        ArrayLike<{ transcript?: string } & { confidence?: number }> & { isFinal?: boolean }
+      >
     }
 
     const resultIndex = eventAny.resultIndex ?? 0
@@ -344,7 +350,10 @@ export class SearchBarElement extends LitElement {
       recognition.start()
     } catch (error) {
       // Some implementations throw if start() is called while already active.
-      handleScriptError(error, { scriptName: 'SearchBarElement', operation: 'speechRecognition.start' })
+      handleScriptError(error, {
+        scriptName: 'SearchBarElement',
+        operation: 'speechRecognition.start',
+      })
     }
   }
 
@@ -358,7 +367,10 @@ export class SearchBarElement extends LitElement {
     try {
       this.speechRecognition.stop()
     } catch (error) {
-      handleScriptError(error, { scriptName: 'SearchBarElement', operation: 'speechRecognition.stop' })
+      handleScriptError(error, {
+        scriptName: 'SearchBarElement',
+        operation: 'speechRecognition.stop',
+      })
     }
   }
 
@@ -610,21 +622,27 @@ export class SearchBarElement extends LitElement {
             href=${url}
           >
             <div class="min-w-0">
-              <div class="mb-1 truncate font-mono text-xs text-content transition-colors group-hover:text-content-active">
+              <div
+                class="mb-1 truncate font-mono text-xs text-content transition-colors group-hover:text-content-active"
+              >
                 ${displayPath}
               </div>
-              <div class="mb-1 text-body font-bold text-page-inverse transition-colors group-hover:text-content-active">
+              <div
+                class="mb-1 text-body font-bold text-page-inverse transition-colors group-hover:text-content-active"
+              >
                 ${highlightSearchText(title, query, { highlightClassName: 'bg-warning-inverse' })}
               </div>
-              ${
-                snippet
-                  ? html`
-                      <p class="line-clamp-1 text-sm text-content-offset transition-colors group-hover:text-content-active">
-                        ${highlightSearchText(snippet, query, { highlightClassName: 'bg-warning-inverse text-content' })}
-                      </p>
-                    `
-                  : nothing
-              }
+              ${snippet
+                ? html`
+                    <p
+                      class="line-clamp-1 text-sm text-content-offset transition-colors group-hover:text-content-active"
+                    >
+                      ${highlightSearchText(snippet, query, {
+                        highlightClassName: 'bg-warning-inverse text-content',
+                      })}
+                    </p>
+                  `
+                : nothing}
             </div>
             <svg
               class="h-4 w-4 shrink-0 text-content transition group-hover:translate-x-1 group-hover:text-content-active"
@@ -652,7 +670,10 @@ export class SearchBarElement extends LitElement {
     addScriptBreadcrumb(context)
 
     const requestId = ++this.latestRequestId
-    const { data, error } = await actions.search.query({ q: query, limit: HEADER_SEARCH_RESULT_LIMIT })
+    const { data, error } = await actions.search.query({
+      q: query,
+      limit: HEADER_SEARCH_RESULT_LIMIT,
+    })
 
     // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
     if (error) {
