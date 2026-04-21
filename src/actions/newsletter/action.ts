@@ -156,7 +156,8 @@ export const newsletter = {
               ? context.clientAddress
               : null,
           privacyPolicyVersion: getPrivacyPolicyVersion(),
-          consentText: null,
+          consentText:
+            'I consent to Webstack Builders processing my personal data for marketing communications (unsubscribe anytime). See our Privacy Policy and Cookie Policy.',
           verified: false,
         })
 

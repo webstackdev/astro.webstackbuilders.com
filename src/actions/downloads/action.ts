@@ -60,7 +60,8 @@ export const downloads = {
           userAgent,
           ipAddress: ip !== 'unknown' ? ip : null,
           privacyPolicyVersion: getPrivacyPolicyVersion(),
-          consentText: null,
+          consentText:
+            'I consent to Webstack Builders processing my personal data for providing your requested download. See our Privacy Policy and Cookie Policy.',
           verified: true,
         })
       }

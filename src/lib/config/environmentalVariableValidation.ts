@@ -41,12 +41,13 @@ export const environmentalVariablesConfig: AstroUserConfig['env'] = {
       optional: true,
     }),
     /**
-     * Gets the privacy policy version injected at build time via the PrivacyPolicy integration.
+     * Gets the privacy policy version injected at build time via the PrivacyPolicyVersion integration.
+     * No default is set intentionally — if the integration fails to inject this, getPrivacyPolicyVersion()
+     * will throw, surfacing the configuration error rather than silently storing an invalid epoch date.
      */
     PRIVACY_POLICY_VERSION: envField.string({
       access: 'public',
       context: 'client',
-      default: '1970-01-01',
       optional: true,
     }),
     /**
