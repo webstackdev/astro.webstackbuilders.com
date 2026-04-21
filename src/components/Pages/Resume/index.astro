@@ -13,7 +13,6 @@ import Summary from '@components/Pages/Resume/partials/Summary.astro'
 
 import '@styles/index.css'
 import '@styles/icons.css'
-import './index.css'
 
 export interface Props {
   contactData: CollectionEntry<'contactData'>['data']
@@ -35,19 +34,24 @@ const {
 ---
 
 <!doctype html>
-<html lang="en" data-theme="light" class="h-auto min-h-full overflow-y-auto">
+<html
+  lang="en"
+  data-theme="light"
+  class="h-auto min-h-full overflow-y-auto"
+>
   <head>
     <HeadContent pageTitle={pageTitle} pageDescription={pageDescription} path={path} />
   </head>
   <body
     itemtype="http://schema.org/Person"
-    class="h-auto min-h-full overflow-y-auto text-content font-sans leading-6 [font-smoothing:antialiased] bg-page-offset md:flex md:justify-center print:bg-white print:block"
+    class="h-auto min-h-full overflow-y-auto text-content font-sans leading-6 [font-smoothing:antialiased] md:flex md:justify-center print:bg-white"
   >
-    <div class="relative bg-primary-inverse mx-auto w-full max-w-4xl p-6 md:my-10 md:p-12 md:shadow-xl lg:my-14 lg:p-16">
+    {/** Use wrapper to keep resume centered on desktop */}
+    <div class="relative bg-primary-inverse mx-auto w-full max-w-4xl p-6 md:p-12 my-14 lg:p-16 md:shadow-xl print:shadow-none">
       <header
         itemscope
         itemref="resumeSubject"
-        class="relative border-b-2 border-trim/10 pb-6 mb-8"
+        class="relative mb-4!"
       >
         <div class="md:absolute md:right-0 md:top-0">
           <Controls />
@@ -61,7 +65,7 @@ const {
           />
         </div>
 
-        <div class="mt-1!">
+        <div class="mt-2!">
           <Contact
             contactData={contactData}
             email={contactData.company.email}
@@ -69,8 +73,8 @@ const {
         </div>
       </header>
 
-      <main class="space-y-8">
-        <div class="border-b-2 border-trim/10">
+      <main class="space-y-4!">
+        <div class="">
           <Summary summary={resume.summary} />
         </div>
 

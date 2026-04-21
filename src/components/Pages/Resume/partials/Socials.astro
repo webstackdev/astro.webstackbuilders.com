@@ -1,23 +1,12 @@
 ---
 import type { CollectionEntry } from 'astro:content'
-
-type SocialEntry = {
-  label: string
-  url: string
-}
+import Icon from '@components/Icon/index.astro'
 
 export interface Props {
   socials: CollectionEntry<'contactData'>['data']['company']['social']
 }
 
 const { socials } = Astro.props as Props
-
-const socialEntries: SocialEntry[] = [...socials]
-  .sort((left, right) => left.order - right.order)
-  .map(entry => ({
-    label: entry.displayName,
-    url: entry.url,
-  }))
 ---
 
 <section
@@ -27,34 +16,39 @@ const socialEntries: SocialEntry[] = [...socials]
   itemref="resumeSubject"
   itemtype="http://schema.org/ItemList"
 >
-  <h2
-    class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10 pb-2 print:border-trim/30 print:mb-3 print:pb-1"
-  >
-    SOCIAL
+  <h2 class="text-sm font-mono font-bold tracking-widest text-content-offset print:text-content uppercase p-3 border-2 border-dashed border-gray-400 rounded-md">
+    Social Profiles
   </h2>
   {
-    socialEntries.length > 0 ? (
-      <ul id="socialList" class="flex flex-col md:flex-row md:flex-wrap gap-4 md:gap-8">
-        {socialEntries.map((entry: SocialEntry) => (
+    socials.length > 0 ? (
+      <ul id="socialList" class="grid grid-cols-1 md:grid-cols-2 gap-x-2 gap-y-4 mx-4 mt-4">
+        {socials.map((entry) => (
           <li
-            class="text-sm"
             itemref="resumeSubject"
             itemscope
             itemprop="sameAs"
             itemtype="http://schema.org/WebSite"
           >
             <a
-              class="group inline-flex items-center gap-2 hover:text-primary transition-colors text-content-offset"
+              class="group flex gap-4 hover:text-primary transition-colors text-content-offset no-underline"
               itemprop="url"
-              title={entry.label}
+              title={entry.displayName}
               rel="me"
               href={entry.url}
             >
-              <span class="font-bold text-content-active group-hover:text-primary transition-colors">
-                {entry.label}
+              <span class="mt-1">
+                <Icon icon={entry.iconName} color="content" size={8} />
               </span>
-              <span class="text-trim/30 select-none">&bull;</span>
-              <span class="truncate">{entry.url.replace(/^https?:\/\//, '')}</span>
+              <span class="flex flex-col leading-5">
+                <div
+                  class="text-base font-bold text-primary-offset group-hover:text-primary transition-colors underline decoration-dotted decoration-primary-offset print:no-underline"
+                >
+                  {entry.displayName}
+                </div>
+                <div class="text-sm truncate no-underline">
+                  {entry.url.replace(/^https?:\/\//, '')}
+                </div>
+              </span>
             </a>
           </li>
         ))}

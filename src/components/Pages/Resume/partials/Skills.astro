@@ -8,26 +8,24 @@ export interface Props {
 const { skills } = Astro.props as Props
 ---
 
-<section class="mt-8" itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
-  <h2
-    class="text-xs font-bold tracking-widest text-primary uppercase mb-4 border-b-2 border-trim/10 pb-2"
-  >
+<section class="mt-6" itemscope itemref="resumeSubject" itemtype="http://schema.org/ItemList">
+  <h2 class="text-sm font-mono font-bold tracking-widest text-content-offset print:text-content uppercase p-3 border-2 border-dashed border-gray-400 rounded-md">
     Skills
   </h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+  <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mx-2 mt-4">
     {
       skills.map(skill => (
-        <div
+        <li
           class="flex flex-col"
           itemref="resumeSubject"
           itemscope
           itemprop="knowsAbout"
           itemtype="http://schema.org/knowsAbout"
         >
-          <h3 class="font-bold text-content-active text-sm mb-1">{skill.lead}</h3>
-          <p class="text-sm text-content-offset leading-relaxed print:text-xs">{skill.text}</p>
-        </div>
+          <h3 class="text-primary-offset font-bold text-content-active text-base mb-1">{skill.lead}</h3>
+          <p class="text-sm text-content-offset leading-relaxed">{skill.text}</p>
+        </li>
       ))
     }
-  </div>
+  </ul>
 </section>
