@@ -113,7 +113,8 @@ describe('PrivacyForm behavior', () => {
           email: 'test@example.com',
           requestType: 'ACCESS',
         })
-        expect(elements.accessMessage.textContent).toBe('Access request sent.')
+        expect(elements.accessMessage.textContent).toContain('Request Sent')
+        expect(elements.accessMessage.textContent).toContain('Access request sent.')
         expect(elements.accessMessage.classList.contains('hidden')).toBe(false)
         expect(elements.accessMessage.classList.contains('border-success')).toBe(true)
         expect(elements.accessEmailInput.value).toBe('')
@@ -145,18 +146,27 @@ describe('PrivacyForm behavior', () => {
 
         expect(elements.accessForm.dataset.privacyState).toBe('loading')
         expect(elements.accessForm.getAttribute('aria-busy')).toBe('true')
-        expect(elements.accessMessage.textContent).toBe('Sending request...')
-        expect(elements.accessMessage.classList.contains('border-info')).toBe(true)
         expect(accessSubmitButton).toBeInstanceOf(HTMLButtonElement)
         expect((accessSubmitButton as HTMLButtonElement).disabled).toBe(true)
 
+        const accessLoadingToast = element.querySelector('#access-preview-toast-loading')
+        expect(accessLoadingToast).not.toBeNull()
+        expect(accessLoadingToast?.classList.contains('hidden')).toBe(false)
+        expect(accessLoadingToast?.textContent).toContain('Sending Request')
+        expect(accessLoadingToast?.textContent).toContain('Your request is being prepared and submitted.')
+
         expect(elements.deleteForm.dataset.privacyState).toBe('validation')
-        expect(elements.deleteMessage.textContent).toBe(
-          'Please enter a valid email address and confirm the deletion request.'
-        )
-        expect(elements.deleteMessage.classList.contains('border-danger')).toBe(true)
         expect(elements.deleteEmailInput.getAttribute('aria-invalid')).toBe('true')
         expect(elements.deleteConfirmCheckbox.getAttribute('aria-invalid')).toBe('true')
+
+        const deleteValidationToast = element.querySelector('#delete-preview-toast-validation')
+        expect(deleteValidationToast).not.toBeNull()
+        expect(deleteValidationToast?.classList.contains('hidden')).toBe(false)
+        expect(deleteValidationToast?.textContent).toContain('Check Your Details')
+        expect(deleteValidationToast?.textContent).toContain(
+          'Enter a valid email address and confirm the deletion request before submitting.'
+        )
+
         expect(requestDataMock).not.toHaveBeenCalled()
       },
     })
@@ -187,7 +197,8 @@ describe('PrivacyForm behavior', () => {
         await flushMicrotasks()
 
         expect(requestDataMock).not.toHaveBeenCalled()
-        expect(elements.deleteMessage.textContent).toBe(
+        expect(elements.deleteMessage.textContent).toContain('Check Your Details')
+        expect(elements.deleteMessage.textContent).toContain(
           'Please confirm you understand the deletion request.'
         )
         expect(elements.deleteMessage.classList.contains('border-danger')).toBe(true)
