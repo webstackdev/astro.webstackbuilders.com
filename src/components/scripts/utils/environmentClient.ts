@@ -3,7 +3,6 @@
  * src/lib/config/environmentServer.ts for details.
  */
 import {
-  PRIVACY_POLICY_VERSION,
   PUBLIC_GOOGLE_MAPS_API_KEY,
   PUBLIC_GOOGLE_MAP_ID,
   PUBLIC_SENTRY_DSN,
@@ -90,12 +89,14 @@ export function getPackageRelease(): string {
  * @throws {ClientScriptError} If PRIVACY_POLICY_VERSION is missing
  */
 export function getPrivacyPolicyVersion(): string {
-  if (!PRIVACY_POLICY_VERSION) {
+  const privacyPolicyVersion = import.meta.env['PRIVACY_POLICY_VERSION']
+
+  if (!privacyPolicyVersion) {
     throw new ClientScriptError(
       'PRIVACY_POLICY_VERSION environment variable is not set. This should be injected by the PrivacyPolicyVersion integration.'
     )
   }
-  return PRIVACY_POLICY_VERSION
+  return privacyPolicyVersion
 }
 
 /**
