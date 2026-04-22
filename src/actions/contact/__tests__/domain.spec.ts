@@ -13,6 +13,7 @@ describe('contact domain validation', () => {
       consent: false,
       company: null,
       phone: null,
+      website_url: null,
       timeline: null,
       website: null,
       service: null,
@@ -33,6 +34,22 @@ describe('contact domain validation', () => {
     })
 
     expect(result.success).toBe(true)
+  })
+
+  it('accepts the honeypot field as an optional trimmed string', () => {
+    const result = contactFormInputSchema.safeParse({
+      name: 'Jane Doe',
+      email: 'jane@example.com',
+      message: 'This is a valid message with enough detail.',
+      website_url: ' https://spam.example ',
+    })
+
+    expect(result.success).toBe(true)
+    if (!result.success) {
+      throw new Error('Expected schema validation to pass')
+    }
+
+    expect(result.data.website_url).toBe('https://spam.example')
   })
 
   it('rejects invalid timeline values', () => {

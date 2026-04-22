@@ -159,6 +159,32 @@ beforeEach(() => {
 })
 
 describe('contact.submit.handler', () => {
+  it('silently drops submissions that fill the honeypot field', async () => {
+    const { contact } = await import('../action')
+
+    const context = {
+      request: new Request('https://example.com/_actions/contact/submit', {
+        method: 'POST',
+        headers: { 'user-agent': 'ua-bot' },
+      }),
+      cookies: {} as unknown,
+      clientAddress: '203.0.113.9',
+    }
+
+    const result = await getMockedHandler<ContactSubmitInput, ContactSubmitOutput>(contact.submit)(
+      { website_url: 'https://spam.example' },
+      context
+    )
+
+    expect(result).toEqual({
+      success: true,
+      message: 'Thank you for your message. We will get back to you soon!',
+    })
+    expect(generateEmailContentMock).not.toHaveBeenCalled()
+    expect(generateAcknowledgementEmailContentMock).not.toHaveBeenCalled()
+    expect(resendSendMock).not.toHaveBeenCalled()
+  })
+
   it('sends the admin notification and the acknowledgement email', async () => {
     const { contact } = await import('../action')
 
