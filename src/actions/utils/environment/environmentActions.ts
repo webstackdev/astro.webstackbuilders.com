@@ -1,7 +1,6 @@
 import { ActionsFunctionError } from '../errors/ActionsFunctionError'
 import {
   DEV_SERVER_PORT,
-  PRIVACY_POLICY_VERSION,
   PUBLIC_SENTRY_DSN,
   PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN,
   PUBLIC_UPSTASH_SEARCH_REST_URL,
@@ -35,12 +34,14 @@ export function getDevServerPort(): number {
 }
 
 export function getPrivacyPolicyVersion(): string {
-  if (!PRIVACY_POLICY_VERSION) {
+  const privacyPolicyVersion = import.meta.env['PRIVACY_POLICY_VERSION']
+
+  if (!privacyPolicyVersion) {
     throw new ActionsFunctionError(
       'PRIVACY_POLICY_VERSION environment variable is not set. This should be injected by the PrivacyPolicyVersion integration.'
     )
   }
-  return PRIVACY_POLICY_VERSION
+  return privacyPolicyVersion
 }
 
 export function getPackageRelease(): string {
