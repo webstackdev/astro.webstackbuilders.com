@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file -->
 # TODO
 
+## Bot Detection
+
+We added a honeypot. Further options are Cloudflare Turnstile and Google Recaptcha v3. I added notes in CONTACT_BOT_DETECTION.md for implementation.
+
 ## Chat bot tying into my phone and email
 
 Vercel AI Gateway, maybe could use for a chatbot:

@@ -25,6 +25,11 @@ import {
   parseAttachmentsFromInput,
 } from './responder'
 
+const successResponse = {
+  success: true,
+  message: 'Thank you for your message. We will get back to you soon!',
+} as const
+
 async function sendEmail(emailData: EmailData, files: FileAttachment[]): Promise<void> {
   if (!isProd()) {
     return
@@ -97,6 +102,10 @@ export const contact = {
           throw new ActionsFunctionError('Too many form submissions. Please try again later.', {
             status: 429,
           })
+        }
+
+        if (input.website_url) {
+          return successResponse
         }
 
         const formData = getFormDataFromInput(input)
@@ -181,10 +190,7 @@ export const contact = {
           }
         }
 
-        return {
-          success: true,
-          message: 'Thank you for your message. We will get back to you soon!',
-        }
+        return successResponse
       } catch (error) {
         if (error instanceof ActionError) {
           throw error
