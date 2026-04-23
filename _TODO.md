@@ -45,6 +45,30 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 
 3. Audit the homepage hydration/chunk fan-out after prerendering. The 22 JS chunks suggest too much client code is shipping for a marketing landing page.
 
+### Cache Header
+
+I addressed it by adding an explicit Vercel header rule in vercel.json for /_astro/(.*) with:
+
+Cache-Control: public, max-age=31536000, immutable
+CDN-Cache-Control: public, max-age=31536000, immutable
+Vercel-CDN-Cache-Control: public, max-age=31536000, immutable
+That is the right fix surface for this issue, because the problem appears to be deployment/header behavior, not the asset build itself.
+
+One important detail from validation: the generated Astro build output in config.json:19 still shows Astro's own _astro header route after handle: filesystem, which is exactly why I didn't rely on that generated rule. The explicit vercel.json config is meant to be applied by Vercel at deploy time, outside that Astro route ordering.
+
+So:
+
+Code/config change: done
+Local build: passed
+Local proof of final deployed header behavior: not possible from astro build output alone
+Real verification step: after deploy, run curl -I https://www.webstackbuilders.com/_astro/<some-built-asset>.js
+What you should expect after deploy:
+
+Cache-Control: public, max-age=31536000, immutable
+x-vercel-cache behavior should improve for those assets
+Vercel-CDN-Cache-Control may be consumed by Vercel and not echoed back
+If you want, once this deploy finishes I can verify a live _astro asset header and confirm whether this actually fixed production caching.
+
 ### Search page
 
 One route that is dynamic now but probably does not need to be:
