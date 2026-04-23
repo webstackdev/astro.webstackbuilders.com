@@ -1,0 +1,262 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js'
+import { Picture } from 'astro:assets'
+import BaseLayout from '@layouts/BaseLayout.astro'
+import Icon from '@components/Icon/index.astro'
+import {
+  buildTagPagePath,
+  getSortedTagContent,
+  getTagPageSlice,
+  getTagTotalPages,
+} from '@lib/tags/pagination'
+
+export interface Props {
+  tagEntry: CollectionEntry<'tags'>
+  content: Array<CollectionEntry<'articles'>>
+  currentPage: number
+  TagContent: AstroComponentFactory
+}
+
+const { tagEntry, content: allTagContent, currentPage, TagContent } = Astro.props as Props
+const tag = tagEntry.data.slug
+const totalItems = allTagContent.length
+const totalPages = getTagTotalPages(totalItems)
+const sortedContent = getSortedTagContent(allTagContent)
+const paginatedContent = getTagPageSlice(sortedContent, currentPage)
+const path = buildTagPagePath(tag, currentPage)
+---
+
+<BaseLayout
+  pageTitle={`${tagEntry.data.displayName} - Tag`}
+  pageDescription={tagEntry.data.description}
+  path={path}
+  breadcrumbTitle={tagEntry.data.displayName}
+  section="Tags"
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <header class="mb-6 sm:mb-8">
+      <div class="grid grid-cols-[auto_1fr] items-start gap-4 sm:flex sm:gap-6 sm:items-start">
+        <div class="shrink-0">
+          <div
+            class="relative w-28 sm:w-32 md:w-60 aspect-square overflow-hidden border border-trim rounded-2xl bg-page-offset p-4"
+          >
+            <Picture
+              src={tagEntry.data.cover}
+              alt={tagEntry.data.coverAlt}
+              widths={[112, 128, 240]}
+              sizes="(min-width: 768px) 240px, (min-width: 640px) 128px, 112px"
+              formats={['avif', 'webp', 'png']}
+              layout="constrained"
+              fit="contain"
+              position="center"
+              class="absolute inset-0 h-full w-full object-contain"
+              loading="eager"
+            />
+          </div>
+        </div>
+
+        <div class="min-w-0 sm:flex-1 sm:space-y-4 sm:ml-4 sm:mt-6">
+          <div
+            class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2"
+          >
+            <h1 class="text-page-inverse">
+              {tagEntry.data.displayName}
+            </h1>
+            <span
+              class="inline-flex w-fit rounded-full bg-page-inverse px-3 py-1 text-sm font-semibold text-page-base whitespace-nowrap ml-2 sm:mt-2"
+            >
+              {totalItems}
+              {totalItems === 1 ? 'article' : 'articles'}
+            </span>
+          </div>
+
+          {
+            tagEntry.data.intro && (
+              <p class="hidden sm:block text-lg text-content leading-relaxed max-w-2xl">
+                {tagEntry.data.intro}
+              </p>
+            )
+          }
+
+          <div
+            class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-content-offset mt-2 sm:mt-0 ml-3 sm:ml-0"
+          >
+            {
+              sortedContent.length > 0 && (
+                <span class="text-content-active">
+                  Latest:{' '}
+                  <time class="font-medium text-content">
+                    {sortedContent[0]!.data.publishDate.toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </time>
+                </span>
+              )
+            }
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section
+      class="border border-trim rounded-xl px-6 sm:px-8 pt-4 sm:pt-6 max-w-none mb-12"
+      aria-label="Tag description"
+    >
+      <TagContent />
+    </section>
+
+    {
+      paginatedContent.length > 0 ? (
+        <>
+          <section
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-12"
+            aria-labelledby="tagged-content-title"
+          >
+            <h2 class="sr-only" id="tagged-content-title">
+              Tagged content
+            </h2>
+            {paginatedContent.map(item => {
+              const href = `/articles/${item.id}`
+
+              return (
+                <article class="group h-full relative after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-within:after:opacity-100 focus-within:after:-inset-1.5 focus-within:after:border-spotlight">
+                  <a
+                    href={href}
+                    class="block h-full bg-content-inverse rounded-xl shadow-lg transition-all duration-300 overflow-hidden border border-trim transform hover:-translate-y-2 no-underline hover:no-underline focus-visible:no-underline focus-visible:outline-none focus-visible:shadow-none"
+                  >
+                    {item.data.cover && (
+                      <div class="relative aspect-video overflow-hidden">
+                        <Picture
+                          src={item.data.cover}
+                          alt={item.data.coverAlt}
+                          widths={[320, 640, 960, 1280]}
+                          sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+                          formats={['avif', 'webp', 'jpeg']}
+                          layout="constrained"
+                          fit="cover"
+                          position="center"
+                          class="absolute inset-0 h-full w-full"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+
+                    <div class="p-6 space-y-4">
+                      <div class="flex items-center gap-3 text-sm">
+                        <span class="px-3 py-1 rounded-full text-white font-medium bg-primary">
+                          Article
+                        </span>
+                        <time datetime={item.data.publishDate.toISOString()}>
+                          {item.data.publishDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </time>
+                      </div>
+
+                      <h2 class="text-xl font-semibold mb-3 group-hover:text-primary transition-colors">
+                        {item.data.title}
+                      </h2>
+
+                      {item.data.description && (
+                        <p class="text-content-offset leading-relaxed text-sm">
+                          {item.data.description}
+                        </p>
+                      )}
+                      <div class="mt-4 flex items-center text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span>Learn more</span>
+                        <Icon
+                          icon="exit-right-thin"
+                          size={4}
+                          classes="ml-0.5 mb-0.5 transform group-hover:translate-x-1 transition-transform"
+                        />
+                      </div>
+                    </div>
+                  </a>
+                </article>
+              )
+            })}
+          </section>
+
+          {totalPages > 1 && (
+            <nav class="flex flex-wrap justify-center items-center gap-2" aria-label="Pagination">
+              {currentPage > 1 && (
+                <a
+                  href={buildTagPagePath(tag, currentPage - 1)}
+                  class="px-4 py-2 text-sm font-medium bg-content-inverse border border-trim rounded-lg hover:bg-page-offset transition-colors duration-200"
+                >
+                  ← Previous
+                </a>
+              )}
+
+              {currentPage > 3 && (
+                <>
+                  <a
+                    href={buildTagPagePath(tag, 1)}
+                    class="px-3 py-2 text-sm font-medium bg-content-inverse border border-trim rounded-lg hover:bg-page-offset transition-colors duration-200"
+                  >
+                    1
+                  </a>
+                  {currentPage > 4 && <span class="px-3 py-2 text-sm">…</span>}
+                </>
+              )}
+
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4))
+                const page = startPage + i
+                if (page > totalPages) return null
+
+                const isCurrentPage = page === currentPage
+                return (
+                  <a
+                    href={buildTagPagePath(tag, page)}
+                    class={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                      isCurrentPage
+                        ? 'bg-spotlight text-white'
+                        : 'bg-content-inverse border border-trim hover:bg-page-offset'
+                    }`}
+                    aria-current={isCurrentPage ? 'page' : undefined}
+                  >
+                    {page}
+                  </a>
+                )
+              })}
+
+              {currentPage < totalPages - 2 && (
+                <>
+                  {currentPage < totalPages - 3 && <span class="px-3 py-2 text-sm">…</span>}
+                  <a
+                    href={buildTagPagePath(tag, totalPages)}
+                    class="px-3 py-2 text-sm font-medium bg-content-inverse border border-trim rounded-lg hover:bg-page-offset transition-colors duration-200"
+                  >
+                    {totalPages}
+                  </a>
+                </>
+              )}
+
+              {currentPage < totalPages && (
+                <a
+                  href={buildTagPagePath(tag, currentPage + 1)}
+                  class="px-4 py-2 text-sm font-medium bg-content-inverse border border-trim rounded-lg hover:bg-page-offset transition-colors duration-200"
+                >
+                  Next →
+                </a>
+              )}
+            </nav>
+          )}
+        </>
+      ) : (
+        <div class="text-center py-12">
+          <p class="text-xl mb-4">No content found for this tag.</p>
+          <a href="/tags" class="text-primary hover:underline">
+            Browse other tags
+          </a>
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>

@@ -27,6 +27,16 @@ import {
 import { $isConsentBannerVisible } from '@components/scripts/store/consentBanner'
 import * as errorHandlerModule from '@components/scripts/errors/handler'
 
+const consentCreateMock = vi.hoisted(() => vi.fn())
+
+vi.mock('astro:actions', () => ({
+  actions: {
+    gdpr: {
+      consentCreate: consentCreateMock,
+    },
+  },
+}))
+
 // Mock js-cookie
 vi.mock('js-cookie', () => ({
   default: {
@@ -81,6 +91,7 @@ describe('Cookie Consent Management', () => {
 
     // Clear mocks
     vi.clearAllMocks()
+    consentCreateMock.mockReset()
 
     // Clear localStorage
     localStorage.clear()
@@ -320,8 +331,7 @@ describe('Consent side effects', () => {
   })
 
   it('logs consent updates via the GDPR API when preferences change', async () => {
-    const fetchSpy = vi.fn().mockResolvedValue({ ok: true })
-    vi.stubGlobal('fetch', fetchSpy)
+    consentCreateMock.mockResolvedValue({ data: { success: true, record: { id: 'consent-1' } } })
 
     let consentListener:
       | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
@@ -353,16 +363,13 @@ describe('Consent side effects', () => {
     await consentListener?.(newState, oldState)
 
     await vi.waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
+      expect(consentCreateMock).toHaveBeenCalledTimes(1)
     })
-    const firstFetchCall = fetchSpy.mock.calls.at(0)
-    if (!firstFetchCall) {
-      throw new TestError('Expected consent logging fetch to be called once')
+    const firstConsentCall = consentCreateMock.mock.calls.at(0)
+    if (!firstConsentCall) {
+      throw new TestError('Expected consent logging action to be called once')
     }
-    const [url, options] = firstFetchCall
-    expect(url).toBe('/_actions/gdpr.consentCreate')
-    expect(options?.method).toBe('POST')
-    const payload = JSON.parse(options?.body as string)
+    const [payload] = firstConsentCall
     expect(payload).toMatchObject({
       DataSubjectId: validDataSubjectId,
       purposes: ['analytics'],
@@ -372,13 +379,12 @@ describe('Consent side effects', () => {
 
     await consentListener?.(newState, undefined)
     await vi.waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
+      expect(consentCreateMock).toHaveBeenCalledTimes(1)
     })
   })
 
   it('regenerates a DataSubjectId before logging when state value is missing or invalid', async () => {
-    const fetchSpy = vi.fn().mockResolvedValue({ ok: true })
-    vi.stubGlobal('fetch', fetchSpy)
+    consentCreateMock.mockResolvedValue({ data: { success: true, record: { id: 'consent-1' } } })
 
     const regeneratedId = 'regenerated-data-subject-id'
     vi.mocked(getOrCreateDataSubjectId).mockReturnValue(regeneratedId)
@@ -412,25 +418,23 @@ describe('Consent side effects', () => {
     await consentListener?.(newState, oldState)
 
     await vi.waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
+      expect(consentCreateMock).toHaveBeenCalledTimes(1)
     })
 
     expect(getOrCreateDataSubjectId).toHaveBeenCalledTimes(1)
 
-    const firstFetchCall = fetchSpy.mock.calls.at(0)
-    if (!firstFetchCall) {
-      throw new TestError('Expected consent logging fetch to be called once')
+    const firstConsentCall = consentCreateMock.mock.calls.at(0)
+    if (!firstConsentCall) {
+      throw new TestError('Expected consent logging action to be called once')
     }
-    const [, options] = firstFetchCall
-    const payload = JSON.parse(options?.body as string)
+    const [payload] = firstConsentCall
     expect(payload.DataSubjectId).toBe(regeneratedId)
 
     expect($consent.get().DataSubjectId).toBe(regeneratedId)
   })
 
   it('queues consent logging when offline and retries after reconnecting', async () => {
-    const fetchSpy = vi.fn().mockResolvedValue({ ok: true })
-    vi.stubGlobal('fetch', fetchSpy)
+    consentCreateMock.mockResolvedValue({ data: { success: true, record: { id: 'consent-1' } } })
 
     const onlineGetter = vi.spyOn(window.navigator, 'onLine', 'get')
     onlineGetter.mockReturnValue(false)
@@ -463,13 +467,13 @@ describe('Consent side effects', () => {
 
     await consentListener?.(newState, oldState)
 
-    expect(fetchSpy).not.toHaveBeenCalled()
+    expect(consentCreateMock).not.toHaveBeenCalled()
 
     onlineGetter.mockReturnValue(true)
     window.dispatchEvent(new Event('online'))
 
     await vi.waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
+      expect(consentCreateMock).toHaveBeenCalledTimes(1)
     })
 
     onlineGetter.mockRestore()
@@ -478,8 +482,7 @@ describe('Consent side effects', () => {
   it('coalesces burst consent updates into the latest payload before sending', async () => {
     vi.useFakeTimers()
 
-    const fetchSpy = vi.fn().mockResolvedValue({ ok: true })
-    vi.stubGlobal('fetch', fetchSpy)
+    consentCreateMock.mockResolvedValue({ data: { success: true, record: { id: 'consent-1' } } })
 
     let consentListener:
       | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
@@ -524,38 +527,34 @@ describe('Consent side effects', () => {
     await consentListener?.(state2, state1)
     await consentListener?.(state3, state2)
 
-    expect(fetchSpy).not.toHaveBeenCalled()
+    expect(consentCreateMock).not.toHaveBeenCalled()
 
     await vi.advanceTimersByTimeAsync(250)
 
     await vi.waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
+      expect(consentCreateMock).toHaveBeenCalledTimes(1)
     })
 
-    const firstFetchCall = fetchSpy.mock.calls.at(0)
-    if (!firstFetchCall) {
-      throw new TestError('Expected coalesced consent logging fetch to be called once')
+    const firstConsentCall = consentCreateMock.mock.calls.at(0)
+    if (!firstConsentCall) {
+      throw new TestError('Expected coalesced consent logging action to be called once')
     }
 
-    const [, options] = firstFetchCall
-    const payload = JSON.parse(options?.body as string)
+    const [payload] = firstConsentCall
     expect(payload.purposes).toEqual(['analytics', 'marketing', 'functional'])
   })
 
   it('retries consent logging after a 429 without reporting a script error', async () => {
     vi.useFakeTimers()
 
-    const fetchSpy = vi
-      .fn()
+    consentCreateMock
       .mockResolvedValueOnce({
-        ok: false,
-        status: 429,
-        statusText: 'Too Many Requests',
-        headers: { get: vi.fn(() => '1') },
-        json: vi.fn().mockResolvedValue({ error: { message: 'Try again in 1s' } }),
+        error: {
+          code: 'TOO_MANY_REQUESTS',
+          message: 'Try again in 1s',
+        },
       })
-      .mockResolvedValueOnce({ ok: true })
-    vi.stubGlobal('fetch', fetchSpy)
+      .mockResolvedValueOnce({ data: { success: true, record: { id: 'consent-1' } } })
 
     const handleScriptErrorSpy = vi.spyOn(errorHandlerModule, 'handleScriptError')
 
@@ -590,7 +589,7 @@ describe('Consent side effects', () => {
     await vi.advanceTimersByTimeAsync(250)
 
     await vi.waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
+      expect(consentCreateMock).toHaveBeenCalledTimes(1)
     })
 
     expect(handleScriptErrorSpy).not.toHaveBeenCalled()
@@ -598,7 +597,7 @@ describe('Consent side effects', () => {
     await vi.advanceTimersByTimeAsync(1_000)
 
     await vi.waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledTimes(2)
+      expect(consentCreateMock).toHaveBeenCalledTimes(2)
     })
 
     expect(handleScriptErrorSpy).not.toHaveBeenCalled()

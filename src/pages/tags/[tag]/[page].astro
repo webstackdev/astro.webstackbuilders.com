@@ -3,17 +3,18 @@ export const prerender = true
 
 import TagPage from '@components/Pages/TagPage/index.astro'
 import {
-  getFirstTagPageStaticPaths,
+  getAdditionalTagPageStaticPaths,
   renderTagContent,
   type TagPageProps,
 } from '@lib/tags/pagination'
 
 export interface Params {
   tag: string
+  page: string
 }
 
 export async function getStaticPaths() {
-  return getFirstTagPageStaticPaths()
+  return getAdditionalTagPageStaticPaths()
 }
 
 const { tagEntry, content, currentPage } = Astro.props as TagPageProps

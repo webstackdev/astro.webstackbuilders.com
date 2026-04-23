@@ -5,6 +5,7 @@ import { CONSENT_PURPOSES, CONSENT_SOURCES } from '../constants'
 describe('gdpr constants', () => {
   it('exposes expected consent purposes', () => {
     expect(CONSENT_PURPOSES).toContain('contact')
+    expect(CONSENT_PURPOSES).toContain('functional')
     expect(CONSENT_PURPOSES).toContain('downloads')
   })
 

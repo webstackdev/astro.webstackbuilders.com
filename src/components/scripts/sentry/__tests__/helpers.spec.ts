@@ -57,7 +57,7 @@ const createContactSubmitHttpErrorEvent = (): Parameters<typeof beforeSendHandle
 const createConsentRateLimitHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
   ({
     type: 'error',
-    request: { url: 'https://www.webstackbuilders.com/_actions/gdpr.consentCreate' },
+    request: { url: 'https://www.webstackbuilders.com/_actions/gdpr/consentCreate' },
     exception: {
       values: [
         {
