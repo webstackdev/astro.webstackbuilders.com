@@ -26,6 +26,21 @@ const { defaultThemeIdJson, darkThemeIdJson, metaColorsJson } = themeData()
   }}
 >
   // @ts-nocheck
+  const getResolvedThemeId = ({ defaultThemeId, darkThemeId }) => {
+    const stored = localStorage.getItem('theme')
+
+    if (stored) {
+      return stored
+    }
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    return prefersDark ? darkThemeId : defaultThemeId
+  }
+
+  const applyThemeToDocument = (targetDocument, themeId) => {
+    targetDocument.documentElement.dataset['theme'] = themeId
+  }
+
   const runThemeInit = () => {
     /**
      * This code is only for initial page load from the site. DOMContentLoaded does
@@ -40,16 +55,16 @@ const { defaultThemeIdJson, darkThemeIdJson, metaColorsJson } = themeData()
 
       /** 1. Read theme preference from localStorage (set by user's previous selection) */
       const stored = localStorage.getItem('theme')
+      const resolvedThemeId = getResolvedThemeId({ defaultThemeId, darkThemeId })
 
       if (stored && stored !== defaultThemeId) {
         /** User explicitly chose a theme - apply it immediately */
         /** <html> element */
-        document.documentElement.dataset['theme'] = stored
+        applyThemeToDocument(document, stored)
       } else if (!stored) {
         /** No stored preference - use system preference */
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
         /** <html> element */
-        document.documentElement.dataset['theme'] = prefersDark ? darkThemeId : defaultThemeId
+        applyThemeToDocument(document, resolvedThemeId)
       }
 
       /** 2. Turn <body> visible. It's set to hidden in BaseLayout.astro to avoid FOUC. Do
@@ -68,11 +83,7 @@ const { defaultThemeIdJson, darkThemeIdJson, metaColorsJson } = themeData()
         metaElement.setAttribute('content', window.metaColors[stored] || '')
       } else if (!stored && metaElement && window.metaColors) {
         /** No stored preference - use system preference */
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        metaElement.setAttribute(
-          'content',
-          window.metaColors[prefersDark ? darkThemeId : defaultThemeId] || ''
-        )
+        metaElement.setAttribute('content', window.metaColors[resolvedThemeId] || '')
       }
 
       /**
@@ -104,10 +115,12 @@ const { defaultThemeIdJson, darkThemeIdJson, metaColorsJson } = themeData()
    */
   document.addEventListener('astro:before-swap', event => {
     try {
+      const defaultThemeId = JSON.parse(defaultThemeIdJson)
+      const darkThemeId = JSON.parse(darkThemeIdJson)
       /** 1. Read theme preference from localStorage (set by user's previous selection) */
-      const stored = localStorage.getItem('theme')
+      const resolvedThemeId = getResolvedThemeId({ defaultThemeId, darkThemeId })
       /** 2. <html> element */
-      event.newDocument.documentElement.dataset['theme'] = stored
+      applyThemeToDocument(event.newDocument, resolvedThemeId)
       /** 3. Turn <body> visible. It's set to hidden in BaseLayout.astro to avoid FOUC */
       event.newDocument.body.classList.remove('invisible')
       /** 4. Success! */
