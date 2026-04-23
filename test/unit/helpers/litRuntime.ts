@@ -216,6 +216,8 @@ export const renderInJsdom = async <TModule extends WebComponentModule>(
 	const { container, component, args, moduleLoader, selector, waitForReady = defaultWaitForReady, assert } = _options
 
 	await withJsdomEnvironment(async ({ window }) => {
+		window.history.replaceState(window.history.state, '', 'http://localhost/')
+
 		const module = await moduleLoader()
 		await module.registerWebComponent(module.registeredName)
 

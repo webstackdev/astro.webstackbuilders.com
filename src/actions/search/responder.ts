@@ -1,6 +1,9 @@
 import type { DefaultSearchResult, SearchHit } from '@actions/search/@types'
 
-const MIN_RELEVANCY_SCORE = 0.4
+// Upstash reranking now returns normalized scores where strong matches commonly
+// land well below 0.4. Keep a small floor to drop near-zero noise while still
+// surfacing legitimate results.
+const MIN_RELEVANCY_SCORE = 0.01
 
 const getCanonicalResultPath = (url: string): string => {
   try {

@@ -296,4 +296,29 @@ describe('SearchResults web component', () => {
       }
     )
   })
+
+  it('seeds the initial query from the location when the rendered input starts empty', async () => {
+    searchQueryMock.mockResolvedValue({
+      data: {
+        hits: [
+          {
+            title: 'Astro Search',
+            url: '/articles/astro-search',
+            snippet: '...',
+          },
+        ],
+      },
+    })
+
+    await runComponentRender({ query: '' }, async ({ element, window }) => {
+      window.history.replaceState(window.history.state, '', '/search?q=astro')
+
+      await (element as unknown as { run: () => Promise<void> }).run()
+      await flushMicrotasks()
+
+      const input = element.querySelector('[data-search-input]') as HTMLInputElement | null
+      expect(input?.value).toBe('astro')
+      expect(searchQueryMock).toHaveBeenCalledWith({ q: 'astro', limit: 20 })
+    })
+  })
 })
