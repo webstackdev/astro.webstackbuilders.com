@@ -106,8 +106,29 @@ export class SearchResultsElement extends LitElement {
     this.micBtn = micBtn
     this.clearBtn = clearBtn
 
+    this.syncInitialQueryState()
     this.updateClearButtonVisibility()
     this.updateMicButtonVisibility()
+  }
+
+  private getInitialQuerySeed(): string {
+    return (this.query ?? '').trim() || this.getQueryFromLocation()
+  }
+
+  private syncInitialQueryState(): void {
+    const initialQuery = this.getInitialQuerySeed()
+
+    if (!initialQuery) {
+      return
+    }
+
+    if (!this.query?.trim()) {
+      this.query = initialQuery
+    }
+
+    if (this.input && this.input.value.trim().length === 0) {
+      this.input.value = initialQuery
+    }
   }
 
   private attachListeners(): void {
@@ -509,8 +530,18 @@ export class SearchResultsElement extends LitElement {
     this.startSpeechRecognition()
   }
 
-  private async run(queryOverride?: string): Promise<void> {
+  private resolveRunQuery(queryOverride?: string): string {
     const query = (queryOverride ?? this.getQuery()).trim()
+
+    if (query.length > 0 || typeof queryOverride === 'string') {
+      return query
+    }
+
+    return this.getInitialQuerySeed()
+  }
+
+  private async run(queryOverride?: string): Promise<void> {
+    const query = this.resolveRunQuery(queryOverride)
     this.query = query
     this.clearError()
     this.replaceLocationQuery(query)

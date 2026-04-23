@@ -321,14 +321,6 @@ The bigger problem on this homepage is still total shipped JS and chunk fan-out,
 
 If you want, I can next turn that into a plain-English takeaway for your _TODO.md, like: "fan-out is the main issue; dependency waterfall is present but shallow."
 
-### Search page
-
-One route that is dynamic now but probably does not need to be:
-
-/search
-
-It is currently marked prerender = false in index.astro:2, but the UI is already client-driven. index.astro:8 reads q, and the real search happens through the action in action.ts:12. That means /search can very likely be a static shell page and let the client read window.location.search and call the action. So I would not keep this dynamic unless you specifically want SSR-rendered search results for SEO.
-
 ### Tags page
 
 One caution:
@@ -340,7 +332,6 @@ It's using page for plain old server-side pagination.
 In src/pages/tags/[tag].astro, the route sets ITEMS_PER_PAGE = 12, then reads the query param here:
 
 src/pages/tags/[tag].astro
-
 
 const currentPage = parseInt(Astro.url.searchParams.get('page') || '1')
 It uses that value to:

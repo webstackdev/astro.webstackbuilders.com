@@ -51,7 +51,7 @@ describe('mapUpstashSearchResults', () => {
     const raw = [
       {
         id: 'doc-1',
-        score: 0.39,
+        score: 0.009,
         content: {
           url: '/articles/low-score',
           title: 'Low Score',
@@ -60,7 +60,7 @@ describe('mapUpstashSearchResults', () => {
       },
       {
         id: 'doc-2',
-        score: 0.4,
+        score: 0.01,
         content: {
           url: '/articles/high-enough',
           title: 'High Enough',
@@ -73,7 +73,7 @@ describe('mapUpstashSearchResults', () => {
 
     expect(hits).toHaveLength(1)
     expect(hits[0]?.title).toBe('High Enough')
-    expect(hits[0]?.score).toBe(0.4)
+    expect(hits[0]?.score).toBe(0.01)
   })
 
   it('deduplicates hits that resolve to the same canonical path', () => {
