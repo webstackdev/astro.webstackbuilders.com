@@ -110,6 +110,37 @@ test.describe('Nanostore Persistence Across Navigation', () => {
     expect(storedTheme).toBe('dark')
   })
 
+  test('@ready default theme stays light across View Transitions without stored preference', async ({
+    page: playwrightPage,
+  }) => {
+    const page = await BasePage.init(playwrightPage)
+
+    await gotoWithoutGrantingConsent(page)
+    await page.waitForHeaderComponents({ timeout: wait.navigation })
+
+    const htmlElement = page.locator('html')
+    await expect(htmlElement).toHaveAttribute('data-theme', 'light')
+    await expect.poll(async () => {
+      return await getLocalStorageItem(page, 'theme')
+    }).toBeNull()
+
+    await navigateWithViewTransitions(page, '/about')
+
+    await expect(htmlElement).toHaveAttribute('data-theme', 'light')
+    await expect.poll(
+      async () => {
+        return await page.evaluate(() => document.documentElement.getAttribute('data-theme'))
+      },
+      { timeout: wait.polling }
+    ).toBe('light')
+    await expect.poll(
+      async () => {
+        return await getLocalStorageItem(page, 'theme')
+      },
+      { timeout: wait.polling }
+    ).toBeNull()
+  })
+
   test('@ready theme picker modal state persists across View Transitions', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     // Go to homepage
