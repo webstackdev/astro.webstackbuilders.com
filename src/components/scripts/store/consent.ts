@@ -7,6 +7,7 @@ import { persistentAtom } from '@nanostores/persistent'
 import { StoreController } from '@nanostores/lit'
 import type { ReactiveControllerHost } from 'lit'
 import { validate as uuidValidate } from 'uuid'
+import type { ConsentPurpose, ConsentRequest, ConsentSource } from '@actions/gdpr/@types'
 import { getCookie, removeCookie, setCookie } from '@components/scripts/utils/cookies'
 import { ClientScriptError } from '@components/scripts/errors'
 import { handleScriptError } from '@components/scripts/errors/handler'
@@ -377,13 +378,7 @@ export function initConsentSideEffects(): void {
     scriptName: 'cookieConsent',
     operation: 'logConsentToAPI',
   } as const
-  type ConsentLogPayload = {
-    DataSubjectId: string
-    purposes: string[]
-    source: string
-    userAgent: string
-    verified: boolean
-  }
+  type ConsentLogPayload = Pick<ConsentRequest, 'DataSubjectId' | 'purposes' | 'source' | 'userAgent' | 'verified'>
   let queuedConsentLogPayload: ConsentLogPayload | null = null
   let hasConsentLoggingFailure = false
   let isConsentLogProcessing = false
@@ -564,7 +559,7 @@ export function initConsentSideEffects(): void {
       return
     }
 
-    const purposes: string[] = []
+    const purposes: ConsentPurpose[] = []
     if (consentState.analytics) purposes.push('analytics')
     if (consentState.marketing) purposes.push('marketing')
     if (consentState.functional) purposes.push('functional')
@@ -579,7 +574,7 @@ export function initConsentSideEffects(): void {
     enqueueConsentPayload({
       DataSubjectId: dataSubjectId,
       purposes,
-      source: 'cookies_modal',
+      source: 'cookies_modal' as ConsentSource,
       userAgent,
       verified: false,
     })
