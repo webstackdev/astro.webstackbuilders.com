@@ -43,19 +43,14 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 
 ## Performance Issues
 
-2. Treat `src/pages/resume/index.astro` as build-time content, not request-time content. That page should not be doing `getCollection()` plus `render()` on every request if the content is static.
-
 3. Audit the homepage hydration/chunk fan-out after prerendering. The 22 JS chunks suggest too much client code is shipping for a marketing landing page.
-
-4. Investigate why production `_astro` assets are getting `max-age=0, must-revalidate` instead of immutable caching. That looks like a deployment/adapter behavior issue worth fixing after the SSR problem.
-
-Routes that do not need to stay dynamic:
 
 ### Search page
 
 One route that is dynamic now but probably does not need to be:
 
 /search
+
 It is currently marked prerender = false in index.astro:2, but the UI is already client-driven. index.astro:8 reads q, and the real search happens through the action in action.ts:12. That means /search can very likely be a static shell page and let the client read window.location.search and call the action. So I would not keep this dynamic unless you specifically want SSR-rendered search results for SEO.
 
 ### Tags page
