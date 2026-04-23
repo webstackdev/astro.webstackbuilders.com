@@ -6,6 +6,13 @@ type BeforeSendHandler = NonNullable<BrowserOptions['beforeSend']>
 
 const SAFE_BREADCRUMB_CATEGORIES = new Set(['script', 'sentry.event'])
 
+const isConsentActionRequest = (requestUrl: string): boolean => {
+  return (
+    requestUrl.includes('/_actions/gdpr.consentCreate') ||
+    requestUrl.includes('/_actions/gdpr/consentCreate')
+  )
+}
+
 const isHandledContactSubmitHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
   const requestUrl = event.request?.url
   const exception = event.exception?.values?.[0]
@@ -29,7 +36,7 @@ const isHandledConsentRateLimitHttpError = (event: Parameters<BeforeSendHandler>
 
   return (
     typeof requestUrl === 'string' &&
-    requestUrl.includes('/_actions/gdpr.consentCreate') &&
+    isConsentActionRequest(requestUrl) &&
     mechanismType === 'auto.http.client.fetch' &&
     typeof errorMessage === 'string' &&
     errorMessage.includes('HTTP Client Error with status code: 429')

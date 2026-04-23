@@ -1,6 +1,7 @@
 /**
  * Cookie Consent State Management
  */
+import { actions } from 'astro:actions'
 import { computed, onMount } from 'nanostores'
 import { persistentAtom } from '@nanostores/persistent'
 import { StoreController } from '@nanostores/lit'
@@ -413,8 +414,8 @@ export function initConsentSideEffects(): void {
     }, delayMs)
   }
 
-  const parseRetryAfterMs = (response: Response, serverMessage?: string): number => {
-    const retryAfterHeader = response.headers.get('Retry-After')
+  const parseRetryAfterMs = (response?: Response, serverMessage?: string): number => {
+    const retryAfterHeader = response?.headers.get('Retry-After')
     if (retryAfterHeader) {
       const retryAfterSeconds = Number(retryAfterHeader)
       if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
@@ -507,45 +508,46 @@ export function initConsentSideEffects(): void {
   }
 
   const sendConsentPayload = async (payload: ConsentLogPayload) => {
-    const response = await fetch('/_actions/gdpr.consentCreate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
+    const { data, error } = await actions.gdpr.consentCreate(payload)
 
-    if (!response.ok) {
-      const responseBody = await response.json().catch(() => null)
-      const serverError =
-        responseBody && typeof responseBody === 'object' && 'error' in responseBody
-          ? (responseBody as { error: { message?: string } }).error
-          : null
-      const serverMessage =
-        serverError?.message ??
-        (responseBody && typeof (responseBody as { message?: string }).message === 'string'
-          ? (responseBody as { message: string }).message
-          : undefined)
-
-      if (response.status === 429) {
-        throw new ConsentLogRetryableError(
-          serverMessage ?? 'Consent logging is temporarily rate limited',
-          parseRetryAfterMs(response, serverMessage),
-          {
-            status: response.status,
-            statusText: response.statusText,
-            body: responseBody,
-          }
-        )
-      }
-
-      throw new ClientScriptError({
-        message: serverMessage ?? `Failed to record consent (status ${response.status})`,
-        cause: {
-          status: response.status,
-          statusText: response.statusText,
-          body: responseBody,
-        },
-      })
+    if (!error && data?.success) {
+      return
     }
+
+    const actionError = error as
+      | {
+          code?: string
+          message?: string
+          status?: number
+          statusText?: string
+        }
+      | undefined
+
+    const serverMessage =
+      typeof actionError?.message === 'string' && actionError.message.trim().length > 0
+        ? actionError.message
+        : undefined
+
+    if (actionError?.code === 'TOO_MANY_REQUESTS') {
+      throw new ConsentLogRetryableError(
+        serverMessage ?? 'Consent logging is temporarily rate limited',
+        parseRetryAfterMs(undefined, serverMessage),
+        {
+          code: actionError.code,
+          status: actionError.status,
+          statusText: actionError.statusText,
+        }
+      )
+    }
+
+    throw new ClientScriptError({
+      message: serverMessage ?? 'Failed to record consent',
+      cause: {
+        code: actionError?.code,
+        status: actionError?.status,
+        statusText: actionError?.statusText,
+      },
+    })
   }
 
   $consent.subscribe((consentState, oldConsentState) => {
