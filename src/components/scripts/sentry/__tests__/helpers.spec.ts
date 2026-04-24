@@ -71,6 +71,23 @@ const createConsentRateLimitHttpErrorEvent = (): Parameters<typeof beforeSendHan
     },
   }) as unknown as Parameters<typeof beforeSendHandler>[0]
 
+const createConsentCheckpointHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/gdpr.consentCreate' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 403',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
 const createDownloadsSubmitHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
   ({
     type: 'error',
@@ -117,6 +134,28 @@ const createConsentLogRetryErrorEvent = (): Parameters<typeof beforeSendHandler>
       values: [
         {
           value: 'Try again in 30s',
+          mechanism: {
+            type: 'generic',
+            handled: true,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createConsentCheckpointClientErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    message: '<!DOCTYPE html><title>Vercel Security Checkpoint</title>',
+    request: { url: 'https://www.webstackbuilders.com/contact' },
+    tags: {
+      scriptName: 'cookieConsent',
+      operation: 'logConsentToAPI',
+    },
+    exception: {
+      values: [
+        {
+          value: '<!DOCTYPE html><title>Vercel Security Checkpoint</title>',
           mechanism: {
             type: 'generic',
             handled: true,
@@ -186,6 +225,17 @@ describe('sentry helpers', () => {
       expect(result).toBeNull()
     })
 
+    it('drops handled consent checkpoint http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createConsentCheckpointHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
     it('drops handled downloads action http client failures', () => {
       isProdMock.mockReturnValue(true)
       getConsentSnapshotMock.mockReturnValue({ analytics: true })
@@ -213,6 +263,17 @@ describe('sentry helpers', () => {
       getConsentSnapshotMock.mockReturnValue({ analytics: true })
 
       const event = createConsentLogRetryErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled consent checkpoint client errors', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createConsentCheckpointClientErrorEvent()
 
       const result = beforeSendHandler(event, createHint())
 

@@ -38,6 +38,32 @@ const CONSENT_COOKIE_PREFIX = 'consent_'
 const CONSENT_LOG_DEBOUNCE_MS = 250
 const CONSENT_LOG_MAX_RETRY_DELAY_MS = 30_000
 
+type ConsentActionError = {
+  code?: string
+  message?: string
+  status?: number
+  statusText?: string
+  cause?: unknown
+}
+
+const createConsentActionError = (params: {
+  code?: string | undefined
+  message?: string | undefined
+  status?: number | undefined
+  statusText?: string | undefined
+  cause?: unknown
+}): ConsentActionError => {
+  const actionError: ConsentActionError = {}
+
+  if (params.code !== undefined) actionError.code = params.code
+  if (params.message !== undefined) actionError.message = params.message
+  if (params.status !== undefined) actionError.status = params.status
+  if (params.statusText !== undefined) actionError.statusText = params.statusText
+  if (params.cause !== undefined) actionError.cause = params.cause
+
+  return actionError
+}
+
 class ConsentLogRetryableError extends Error {
   readonly retryAfterMs: number
 
@@ -434,6 +460,95 @@ export function initConsentSideEffects(): void {
     return 5_000
   }
 
+  const parseStatusCode = (value: unknown): number | undefined => {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value
+    }
+
+    if (typeof value === 'string') {
+      const parsedValue = Number(value)
+      if (Number.isFinite(parsedValue)) {
+        return parsedValue
+      }
+    }
+
+    return undefined
+  }
+
+  const getErrorRecord = (value: unknown): Record<string, unknown> | undefined => {
+    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : undefined
+  }
+
+  const parseStatusCodeFromMessage = (message?: string): number | undefined => {
+    const match = message?.match(/status code:\s*(\d{3})/i)
+    if (!match?.[1]) {
+      return undefined
+    }
+
+    return parseStatusCode(match[1])
+  }
+
+  const normalizeConsentActionError = (value: unknown): ConsentActionError | undefined => {
+    if (!value) {
+      return undefined
+    }
+
+    if (typeof value === 'string') {
+      return createConsentActionError({
+        message: value,
+        status: parseStatusCodeFromMessage(value),
+        cause: value,
+      })
+    }
+
+    const errorRecord = getErrorRecord(value)
+    if (!errorRecord) {
+      return createConsentActionError({
+        message: String(value),
+        cause: value,
+      })
+    }
+
+    const causeRecord = getErrorRecord(errorRecord['cause'])
+    const message =
+      typeof errorRecord['message'] === 'string'
+        ? errorRecord['message']
+        : typeof causeRecord?.['message'] === 'string'
+          ? causeRecord['message']
+          : undefined
+
+    return createConsentActionError({
+      code: typeof errorRecord['code'] === 'string' ? errorRecord['code'] : undefined,
+      message,
+      status:
+        parseStatusCode(errorRecord['status']) ??
+        parseStatusCode(errorRecord['statusCode']) ??
+        parseStatusCode(causeRecord?.['status']) ??
+        parseStatusCode(causeRecord?.['statusCode']) ??
+        parseStatusCodeFromMessage(message),
+      statusText:
+        typeof errorRecord['statusText'] === 'string'
+          ? errorRecord['statusText']
+          : typeof causeRecord?.['statusText'] === 'string'
+            ? causeRecord['statusText']
+            : undefined,
+      cause: value,
+    })
+  }
+
+  const isSecurityCheckpointError = (error?: ConsentActionError): boolean => {
+    if (typeof error?.message !== 'string') {
+      return false
+    }
+
+    const normalizedMessage = error.message.toLowerCase()
+    const hasCheckpointMarkup =
+      normalizedMessage.includes('vercel security checkpoint') ||
+      (normalizedMessage.includes('<!doctype html') && normalizedMessage.includes('security checkpoint'))
+
+    return hasCheckpointMarkup
+  }
+
   const ensureOnlineListener = () => {
     if (typeof window === 'undefined' || onlineListener) {
       return
@@ -503,27 +618,30 @@ export function initConsentSideEffects(): void {
   }
 
   const sendConsentPayload = async (payload: ConsentLogPayload) => {
-    const { data, error } = await actions.gdpr.consentCreate(payload)
+    let actionResponse: Awaited<ReturnType<typeof actions.gdpr.consentCreate>> | undefined
+    let thrownActionError: unknown
+
+    try {
+      actionResponse = await actions.gdpr.consentCreate(payload)
+    } catch (error) {
+      thrownActionError = error
+    }
+
+    const data = actionResponse?.data
+    const error = actionResponse?.error
 
     if (!error && data?.success) {
       return
     }
 
-    const actionError = error as
-      | {
-          code?: string
-          message?: string
-          status?: number
-          statusText?: string
-        }
-      | undefined
+    const actionError = normalizeConsentActionError(error ?? thrownActionError)
 
     const serverMessage =
       typeof actionError?.message === 'string' && actionError.message.trim().length > 0
         ? actionError.message
         : undefined
 
-    if (actionError?.code === 'TOO_MANY_REQUESTS') {
+    if (actionError?.code === 'TOO_MANY_REQUESTS' || actionError?.status === 429) {
       throw new ConsentLogRetryableError(
         serverMessage ?? 'Consent logging is temporarily rate limited',
         parseRetryAfterMs(undefined, serverMessage),
@@ -533,6 +651,14 @@ export function initConsentSideEffects(): void {
           statusText: actionError.statusText,
         }
       )
+    }
+
+    if (isSecurityCheckpointError(actionError)) {
+      // Consent logging is best-effort. If Vercel blocks the action behind a
+      // checkpoint page, disable further attempts for this session without
+      // surfacing user-invisible noise to Sentry.
+      hasConsentLoggingFailure = true
+      return
     }
 
     throw new ClientScriptError({
