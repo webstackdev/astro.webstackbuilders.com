@@ -28,18 +28,19 @@ const isHandledContactSubmitHttpError = (event: Parameters<BeforeSendHandler>[0]
   )
 }
 
-const isHandledConsentRateLimitHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+const isHandledConsentHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
   const requestUrl = event.request?.url
   const exception = event.exception?.values?.[0]
   const mechanismType = exception?.mechanism?.type
   const errorMessage = exception?.value ?? event.message ?? ''
+  const statusCodeMatch = typeof errorMessage === 'string' ? errorMessage.match(/status code:\s*(\d{3})/i) : null
+  const statusCode = statusCodeMatch?.[1] ? Number(statusCodeMatch[1]) : undefined
 
   return (
     typeof requestUrl === 'string' &&
     isConsentActionRequest(requestUrl) &&
     mechanismType === 'auto.http.client.fetch' &&
-    typeof errorMessage === 'string' &&
-    errorMessage.includes('HTTP Client Error with status code: 429')
+    (statusCode === 403 || statusCode === 429)
   )
 }
 
@@ -87,6 +88,20 @@ const isHandledConsentLogRetryError = (event: Parameters<BeforeSendHandler>[0]):
   )
 }
 
+const isHandledConsentCheckpointClientError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const errorMessage = event.exception?.values?.[0]?.value ?? event.message ?? ''
+  const tags = event.tags ?? {}
+
+  return (
+    tags['scriptName'] === 'cookieConsent' &&
+    tags['operation'] === 'logConsentToAPI' &&
+    typeof errorMessage === 'string' &&
+    (errorMessage.toLowerCase().includes('vercel security checkpoint') ||
+      (errorMessage.toLowerCase().includes('<!doctype html') &&
+        errorMessage.toLowerCase().includes('security checkpoint')))
+  )
+}
+
 function scrubBreadcrumbs(
   breadcrumbs: NonNullable<Parameters<BeforeSendHandler>[0]['breadcrumbs']>
 ) {
@@ -117,9 +132,10 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
     return null
   }
 
-  // Consent logging is best-effort on the client. Rate limiting here is expected
-  // under bursty preference changes, so drop the browser-side auto-fetch event.
-  if (isHandledConsentRateLimitHttpError(event)) {
+  // Consent logging is best-effort on the client. Rate limiting and Vercel
+  // security checkpoints can block the action without any user-visible impact,
+  // so drop the browser-side auto-fetch event.
+  if (isHandledConsentHttpError(event)) {
     return null
   }
 
@@ -138,6 +154,12 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
   // Consent logging retries are best-effort and user-invisible. If a handled
   // client exception still gets emitted from this path, drop it as noise.
   if (isHandledConsentLogRetryError(event)) {
+    return null
+  }
+
+  // If a consent checkpoint response is wrapped into a handled client error,
+  // drop that duplicate event as the action itself is already filtered.
+  if (isHandledConsentCheckpointClientError(event)) {
     return null
   }
 
