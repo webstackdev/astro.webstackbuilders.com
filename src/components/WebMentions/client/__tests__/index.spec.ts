@@ -170,6 +170,28 @@ describe('WebMentions web component', () => {
     )
   })
 
+  test('treats forbidden action results as an empty state without reporting them', async () => {
+    webmentionsListMock.mockResolvedValue({
+      data: undefined,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'HTTP Client Error with status code: 403',
+        status: 403,
+      },
+    })
+
+    await runComponentRender(
+      async ({ element }) => {
+        await flushMicrotasks()
+        await element.updateComplete
+
+        expect(element.querySelector('#webmentions')).toBeNull()
+        expect(handleScriptErrorMock).not.toHaveBeenCalled()
+      },
+      { url: 'https://example.com/forbidden-post' }
+    )
+  })
+
   test('fails silently and reports thrown load errors through the client error handler', async () => {
     const thrownError = new Error('Network blew up')
     webmentionsListMock.mockRejectedValue(thrownError)
@@ -186,6 +208,21 @@ describe('WebMentions web component', () => {
         })
       },
       { url: 'https://example.com/thrown-error-post' }
+    )
+  })
+
+  test('treats forbidden thrown load errors as an empty state without reporting them', async () => {
+    webmentionsListMock.mockRejectedValue(new Error('HTTP Client Error with status code: 403'))
+
+    await runComponentRender(
+      async ({ element }) => {
+        await flushMicrotasks()
+        await element.updateComplete
+
+        expect(element.querySelector('#webmentions')).toBeNull()
+        expect(handleScriptErrorMock).not.toHaveBeenCalled()
+      },
+      { url: 'https://example.com/forbidden-thrown-post' }
     )
   })
 })

@@ -3,6 +3,10 @@ import { render } from 'lit/html.js'
 import { actions } from 'astro:actions'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import {
+  isForbiddenClientActionError,
+  normalizeClientActionError,
+} from '@components/scripts/errors/actionClient'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import {
@@ -670,38 +674,57 @@ export class SearchBarElement extends LitElement {
     addScriptBreadcrumb(context)
 
     const requestId = ++this.latestRequestId
-    const { data, error } = await actions.search.query({
-      q: query,
-      limit: HEADER_SEARCH_RESULT_LIMIT,
-    })
+    try {
+      const { data, error } = await actions.search.query({
+        q: query,
+        limit: HEADER_SEARCH_RESULT_LIMIT,
+      })
+      const actionError = normalizeClientActionError(error)
 
-    // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
-    if (error) {
+      // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
+      if (error) {
+        if (isForbiddenClientActionError(actionError)) {
+          this.clearResults()
+          this.hideResults()
+          return
+        }
+
+        handleScriptError(error, context)
+        this.clearResults()
+        this.hideResults()
+        return
+      }
+
+      if (!data) {
+        this.clearResults()
+        this.hideResults()
+        return
+      }
+
+      if (requestId !== this.latestRequestId) {
+        return
+      }
+
+      const hits = (data.hits ?? []) as SearchHit[]
+      if (hits.length === 0) {
+        this.clearResults()
+        this.hideResults()
+        return
+      }
+
+      this.renderResults(query, hits)
+      this.showResults()
+    } catch (error) {
+      if (isForbiddenClientActionError(normalizeClientActionError(error))) {
+        this.clearResults()
+        this.hideResults()
+        return
+      }
+
       handleScriptError(error, context)
       this.clearResults()
       this.hideResults()
-      return
     }
-
-    if (!data) {
-      this.clearResults()
-      this.hideResults()
-      return
-    }
-
-    if (requestId !== this.latestRequestId) {
-      return
-    }
-
-    const hits = (data.hits ?? []) as SearchHit[]
-    if (hits.length === 0) {
-      this.clearResults()
-      this.hideResults()
-      return
-    }
-
-    this.renderResults(query, hits)
-    this.showResults()
   }
 }
 

@@ -2,6 +2,10 @@ import { LitElement } from 'lit'
 import { actions } from 'astro:actions'
 import { defineCustomElement } from '@components/scripts/utils'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
+import {
+  isForbiddenClientActionError,
+  normalizeClientActionError,
+} from '@components/scripts/errors/actionClient'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
 import { addButtonEventListeners } from '@components/scripts/elementListeners'
@@ -578,39 +582,62 @@ export class SearchResultsElement extends LitElement {
     addScriptBreadcrumb(context)
     const requestId = ++this.latestRequestId
 
-    const { data, error } = await actions.search.query({ q: query, limit: this.limit })
+    try {
+      const { data, error } = await actions.search.query({ q: query, limit: this.limit })
+      const actionError = normalizeClientActionError(error)
 
-    // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
-    if (error) {
-      const message = error instanceof Error ? error.message : 'Search failed.'
+      // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
+      if (error) {
+        const message = actionError?.message ?? (error instanceof Error ? error.message : 'Search failed.')
+
+        if (isForbiddenClientActionError(actionError)) {
+          this.renderResults([])
+          this.clearMeta()
+          return
+        }
+
+        handleScriptError(error, context)
+        this.renderResults([])
+        this.clearMeta()
+        this.showError(message)
+        return
+      }
+
+      if (!data) {
+        this.renderResults([])
+        this.clearMeta()
+        return
+      }
+
+      if (requestId !== this.latestRequestId) {
+        return
+      }
+
+      const hits = (data.hits ?? []) as SearchHit[]
+      this.renderResults(hits)
+      if (hits.length === 0 && this.shouldSuppressMetaFeedback()) {
+        this.clearMeta()
+        return
+      }
+
+      this.setMeta(
+        this.getResultsMetaMessage(query, hits),
+        hits.length > 0 || !this.shouldSuppressMetaFeedback()
+      )
+    } catch (error) {
+      const actionError = normalizeClientActionError(error)
+
+      if (isForbiddenClientActionError(actionError)) {
+        this.renderResults([])
+        this.clearMeta()
+        return
+      }
+
       handleScriptError(error, context)
       this.renderResults([])
       this.clearMeta()
-      this.showError(message)
-      return
+      this.showError(actionError?.message ?? (error instanceof Error ? error.message : 'Search failed.'))
     }
-
-    if (!data) {
-      this.renderResults([])
-      this.clearMeta()
-      return
-    }
-
-    if (requestId !== this.latestRequestId) {
-      return
-    }
-
-    const hits = (data.hits ?? []) as SearchHit[]
-    this.renderResults(hits)
-    if (hits.length === 0 && this.shouldSuppressMetaFeedback()) {
-      this.clearMeta()
-      return
-    }
-
-    this.setMeta(
-      this.getResultsMetaMessage(query, hits),
-      hits.length > 0 || !this.shouldSuppressMetaFeedback()
-    )
   }
 }
 
