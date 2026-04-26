@@ -76,6 +76,98 @@ const isHandledNewsletterSubscribeHttpError = (
   )
 }
 
+const isNewsletterConfirmActionRequest = (requestUrl: string): boolean => {
+  return (
+    requestUrl.includes('/_actions/newsletter.confirm') ||
+    requestUrl.includes('/_actions/newsletter/confirm')
+  )
+}
+
+const isHandledNewsletterConfirmHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const requestUrl = event.request?.url
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  return (
+    typeof requestUrl === 'string' &&
+    isNewsletterConfirmActionRequest(requestUrl) &&
+    mechanismType === 'auto.http.client.fetch' &&
+    typeof errorMessage === 'string' &&
+    errorMessage.includes('HTTP Client Error with status code:')
+  )
+}
+
+const isSearchActionRequest = (requestUrl: string): boolean => {
+  return (
+    requestUrl.includes('/_actions/search.query') ||
+    requestUrl.includes('/_actions/search/query')
+  )
+}
+
+const isHandledSearchHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const requestUrl = event.request?.url
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  return (
+    typeof requestUrl === 'string' &&
+    isSearchActionRequest(requestUrl) &&
+    mechanismType === 'auto.http.client.fetch' &&
+    typeof errorMessage === 'string' &&
+    errorMessage.includes('HTTP Client Error with status code:')
+  )
+}
+
+const isMyDataActionRequest = (requestUrl: string): boolean => {
+  return (
+    requestUrl.includes('/_actions/gdpr.verifyDsar') ||
+    requestUrl.includes('/_actions/gdpr/verifyDsar') ||
+    requestUrl.includes('/_actions/gdpr.requestData') ||
+    requestUrl.includes('/_actions/gdpr/requestData')
+  )
+}
+
+const isHandledMyDataHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const requestUrl = event.request?.url
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  return (
+    typeof requestUrl === 'string' &&
+    isMyDataActionRequest(requestUrl) &&
+    mechanismType === 'auto.http.client.fetch' &&
+    typeof errorMessage === 'string' &&
+    errorMessage.includes('HTTP Client Error with status code:')
+  )
+}
+
+const isWebmentionsActionRequest = (requestUrl: string): boolean => {
+  return (
+    requestUrl.includes('/_actions/webmentions.list') ||
+    requestUrl.includes('/_actions/webmentions/list')
+  )
+}
+
+const isHandledWebmentionsHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const requestUrl = event.request?.url
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+  const statusCodeMatch =
+    typeof errorMessage === 'string' ? errorMessage.match(/status code:\s*(\d{3})/i) : null
+  const statusCode = statusCodeMatch?.[1] ? Number(statusCodeMatch[1]) : undefined
+
+  return (
+    typeof requestUrl === 'string' &&
+    isWebmentionsActionRequest(requestUrl) &&
+    mechanismType === 'auto.http.client.fetch' &&
+    statusCode === 403
+  )
+}
+
 const isHandledConsentLogRetryError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
   const errorMessage = event.exception?.values?.[0]?.value ?? event.message ?? ''
   const tags = event.tags ?? {}
@@ -148,6 +240,31 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
   // The newsletter form handles action failures in the UI. Drop the browser-side
   // auto-fetch event and rely on the server-side action error for diagnosis.
   if (isHandledNewsletterSubscribeHttpError(event)) {
+    return null
+  }
+
+  // Newsletter confirmation handles action failures in the UI, so the
+  // browser-side auto-fetch event is duplicate noise.
+  if (isHandledNewsletterConfirmHttpError(event)) {
+    return null
+  }
+
+  // Search handles action failures in the UI. Drop the browser-side auto-fetch
+  // event and rely on the client-side fallback behavior instead.
+  if (isHandledSearchHttpError(event)) {
+    return null
+  }
+
+  // My Data verification and request flows render their own failure states, so
+  // drop the duplicate browser-side auto-fetch event.
+  if (isHandledMyDataHttpError(event)) {
+    return null
+  }
+
+  // Webmentions are non-critical content enhancement. If the action is blocked
+  // with a 403, the component degrades to an empty state and the auto-fetch
+  // browser event becomes noise.
+  if (isHandledWebmentionsHttpError(event)) {
     return null
   }
 

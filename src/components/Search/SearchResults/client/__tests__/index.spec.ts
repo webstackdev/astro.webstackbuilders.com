@@ -7,7 +7,10 @@ import { executeRender } from '@test/unit/helpers/litRuntime'
 
 type SearchResultsModule = WebComponentModule<SearchResultsElementInstance>
 
-type ActionResult<TData> = { data?: TData; error?: { message?: string } }
+type ActionResult<TData> = {
+  data?: TData
+  error?: { code?: string; message?: string; status?: number }
+}
 
 const searchQueryMock =
   vi.fn<
@@ -16,6 +19,7 @@ const searchQueryMock =
       limit?: number
     }) => Promise<ActionResult<{ hits: { title: string; url: string; snippet?: string }[] }>>
   >()
+const handleScriptErrorMock = vi.hoisted(() => vi.fn())
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -23,6 +27,10 @@ vi.mock('astro:actions', () => ({
       query: searchQueryMock,
     },
   },
+}))
+
+vi.mock('@components/scripts/errors/handler', () => ({
+  handleScriptError: handleScriptErrorMock,
 }))
 
 const flushMicrotasks = async () => {
@@ -36,6 +44,7 @@ describe('SearchResults web component', () => {
   beforeEach(async () => {
     container = await AstroContainer.create()
     searchQueryMock.mockReset()
+    handleScriptErrorMock.mockReset()
   })
 
   const runComponentRender = async (
@@ -194,6 +203,40 @@ describe('SearchResults web component', () => {
 
       const emptyState = element.querySelector('[data-search-empty-state]')
       expect(emptyState?.classList.contains('hidden')).toBe(false)
+    })
+  })
+
+  it('silently ignores forbidden action results', async () => {
+    searchQueryMock.mockResolvedValue({
+      error: {
+        code: 'FORBIDDEN',
+        message: 'HTTP Client Error with status code: 403',
+        status: 403,
+      },
+    })
+
+    await runComponentRender({ query: 'blocked' }, async ({ element }) => {
+      await flushMicrotasks()
+
+      expect(handleScriptErrorMock).not.toHaveBeenCalled()
+      expect(element.querySelector('[data-search-results] li')).toBeNull()
+
+      const error = element.querySelector('[data-search-error]')
+      expect(error?.classList.contains('hidden')).toBe(true)
+    })
+  })
+
+  it('silently ignores forbidden thrown action errors', async () => {
+    searchQueryMock.mockRejectedValue(new Error('HTTP Client Error with status code: 403'))
+
+    await runComponentRender({ query: 'blocked' }, async ({ element }) => {
+      await flushMicrotasks()
+
+      expect(handleScriptErrorMock).not.toHaveBeenCalled()
+      expect(element.querySelector('[data-search-results] li')).toBeNull()
+
+      const error = element.querySelector('[data-search-error]')
+      expect(error?.classList.contains('hidden')).toBe(true)
     })
   })
 

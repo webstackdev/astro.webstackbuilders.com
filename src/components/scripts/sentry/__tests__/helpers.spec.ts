@@ -122,6 +122,91 @@ const createNewsletterSubscribeHttpErrorEvent = (): Parameters<typeof beforeSend
     },
   }) as unknown as Parameters<typeof beforeSendHandler>[0]
 
+const createNewsletterConfirmHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/newsletter.confirm' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 403',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createSearchQueryHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/search.query' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 403',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createMyDataVerifyHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/gdpr.verifyDsar' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 403',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createMyDataRequestHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/gdpr.requestData' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 403',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createWebmentionsHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: { url: 'https://www.webstackbuilders.com/_actions/webmentions.list' },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 403',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
 const createConsentLogRetryErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
   ({
     type: 'error',
@@ -252,6 +337,61 @@ describe('sentry helpers', () => {
       getConsentSnapshotMock.mockReturnValue({ analytics: true })
 
       const event = createNewsletterSubscribeHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled newsletter confirm http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createNewsletterConfirmHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled search http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createSearchQueryHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled my-data verify http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createMyDataVerifyHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled my-data request http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createMyDataRequestHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops handled webmentions http client failures', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createWebmentionsHttpErrorEvent()
 
       const result = beforeSendHandler(event, createHint())
 

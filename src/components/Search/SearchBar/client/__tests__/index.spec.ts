@@ -10,10 +10,14 @@ import { __resetHeaderSearchForTests } from '@components/scripts/store/search'
 
 type SearchBarModule = WebComponentModule<SearchBarElementInstance>
 
-type ActionResult<TData> = { data?: TData; error?: { message?: string } }
+type ActionResult<TData> = {
+  data?: TData
+  error?: { code?: string; message?: string; status?: number }
+}
 
 const searchQueryMock =
   vi.fn<(_input: { q: string; limit?: number }) => Promise<ActionResult<{ hits: SearchHit[] }>>>()
+const handleScriptErrorMock = vi.hoisted(() => vi.fn())
 
 vi.mock('astro:actions', () => ({
   actions: {
@@ -21,6 +25,10 @@ vi.mock('astro:actions', () => ({
       query: searchQueryMock,
     },
   },
+}))
+
+vi.mock('@components/scripts/errors/handler', () => ({
+  handleScriptError: handleScriptErrorMock,
 }))
 
 const flushMicrotasks = async () => {
@@ -53,6 +61,7 @@ describe('SearchBar web component', () => {
   beforeEach(async () => {
     container = await AstroContainer.create()
     searchQueryMock.mockReset()
+    handleScriptErrorMock.mockReset()
 
     __resetHeaderSearchForTests()
 
@@ -213,6 +222,56 @@ describe('SearchBar web component', () => {
 
       const pathRow = firstLink.querySelector('.font-mono')
       expect(pathRow?.querySelector('mark')).toBeNull()
+    })
+
+    vi.useRealTimers()
+  })
+
+  it('silently ignores forbidden action results', async () => {
+    vi.useFakeTimers()
+
+    await runComponentRender(async ({ element, window }) => {
+      searchQueryMock.mockResolvedValue({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'HTTP Client Error with status code: 403',
+          status: 403,
+        },
+      })
+
+      const input = element.querySelector('[data-search-input]') as HTMLInputElement
+      const resultsContainer = element.querySelector('[data-search-results]') as HTMLElement
+
+      input.value = 'blocked'
+      input.dispatchEvent(new window.Event('input', { bubbles: true }))
+
+      await vi.advanceTimersByTimeAsync(260)
+      await flushMicrotasks()
+
+      expect(handleScriptErrorMock).not.toHaveBeenCalled()
+      expect(resultsContainer.classList.contains('hidden')).toBe(true)
+    })
+
+    vi.useRealTimers()
+  })
+
+  it('silently ignores forbidden thrown action errors', async () => {
+    vi.useFakeTimers()
+
+    await runComponentRender(async ({ element, window }) => {
+      searchQueryMock.mockRejectedValue(new Error('HTTP Client Error with status code: 403'))
+
+      const input = element.querySelector('[data-search-input]') as HTMLInputElement
+      const resultsContainer = element.querySelector('[data-search-results]') as HTMLElement
+
+      input.value = 'blocked'
+      input.dispatchEvent(new window.Event('input', { bubbles: true }))
+
+      await vi.advanceTimersByTimeAsync(260)
+      await flushMicrotasks()
+
+      expect(handleScriptErrorMock).not.toHaveBeenCalled()
+      expect(resultsContainer.classList.contains('hidden')).toBe(true)
     })
 
     vi.useRealTimers()

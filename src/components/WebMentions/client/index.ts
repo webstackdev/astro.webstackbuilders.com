@@ -3,6 +3,10 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import { actions } from 'astro:actions'
 import { defineCustomElement } from '@components/scripts/utils'
 import { handleScriptError } from '@components/scripts/errors/handler'
+import {
+  isForbiddenClientActionError,
+  normalizeClientActionError,
+} from '@components/scripts/errors/actionClient'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import type { WebmentionDisplayItem, WebmentionsListResult } from '@actions/webmentions/@types'
 import { queryWebMentionsIconMarkup } from './selectors'
@@ -11,6 +15,11 @@ type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 
 const webmentionsCache = new Map<string, WebmentionsListResult>()
 const scriptName = 'WebMentionsElement'
+const emptyWebmentionsResult: WebmentionsListResult = {
+  likesCount: 0,
+  mentions: [],
+  repostsCount: 0,
+}
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString)
@@ -108,7 +117,15 @@ export class WebMentionsElement extends LitElement {
 
     try {
       const { data, error } = await actions.webmentions.list({ url: normalizedUrl })
+      const actionError = normalizeClientActionError(error)
+
       if (error || !data) {
+        if (isForbiddenClientActionError(actionError)) {
+          webmentionsCache.set(normalizedUrl, emptyWebmentionsResult)
+          this.applyData(emptyWebmentionsResult)
+          return
+        }
+
         handleScriptError(error ?? new Error('Failed to load WebMentions data.'), {
           scriptName,
           operation: 'load',
@@ -125,6 +142,14 @@ export class WebMentionsElement extends LitElement {
       webmentionsCache.set(normalizedUrl, data)
       this.applyData(data)
     } catch (error) {
+      const actionError = normalizeClientActionError(error)
+
+      if (isForbiddenClientActionError(actionError)) {
+        webmentionsCache.set(normalizedUrl, emptyWebmentionsResult)
+        this.applyData(emptyWebmentionsResult)
+        return
+      }
+
       handleScriptError(error, { scriptName, operation: 'load' })
 
       if (this.lastLoadedUrl === normalizedUrl) {
