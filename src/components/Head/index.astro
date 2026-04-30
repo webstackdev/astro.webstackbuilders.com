@@ -43,8 +43,6 @@ const {
 {/* hoisting issues related to <html> and <head> elements */}
 <meta charset="utf-8" />
 <title>{pageTitle}</title>
-{/* Inline script to set theme ASAP - prevents FOUC */}
-<ThemeInit />
 {/* Site <meta> tags, Open Graph social tags, and favicon, PWA manifest, */}
 {/* RSS, canonical, pingback, and webmention links  */}
 <Meta
@@ -59,6 +57,8 @@ const {
   {...section && { section }}
   {...tags && { tags }}
 />
+{/* Inline script to set the active theme before the body is parsed. */}
+<ThemeInit />
 <script>
   import { AppBootstrap } from '@components/scripts/bootstrap'
   AppBootstrap.init()
