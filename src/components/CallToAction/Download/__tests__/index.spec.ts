@@ -137,6 +137,25 @@ describe('Download CallToAction (Astro)', () => {
     })
   })
 
+  test('uses the services landing page for the default secondary link', async () => {
+    const Download = (await import('@components/CallToAction/Download/index.astro')).default
+
+    const renderedHtml = await container.renderToString(Download, {
+      props: {
+        resource: 'example-resource',
+      },
+    })
+
+    await withJsdomEnvironment(async ({ window }) => {
+      window.document.body.innerHTML = renderedHtml
+
+      const links = [...window.document.querySelectorAll('a')]
+      const secondaryLink = links.find(link => link.textContent?.trim() === 'Learn More')
+
+      expect(secondaryLink?.getAttribute('href')).toBe('/services')
+    })
+  })
+
   test('throws BuildError when resource is blank', async () => {
     const Download = (await import('@components/CallToAction/Download/index.astro')).default
 
