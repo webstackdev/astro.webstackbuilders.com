@@ -43,6 +43,65 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 
 ## Performance Issues
 
+### FOUC / Setting Theme Styling
+
+Yes, the concern is legitimate. A theme flash is real, especially when the default HTML ships as light and the user actually wants dark or a custom theme. But the current solution is too expensive: it avoids a theme flash by forcing a blank-screen flash instead, which is worse for both users and Lighthouse.
+
+The important distinction is this:
+
+Preventing the wrong theme from painting is a good goal.
+
+Hiding the entire body until DOMContentLoaded is an overcorrection.
+
+In your current setup, BaseLayout.astro:140 hides the page, and ThemeInit.astro:105 waits until DOMContentLoaded on first load before removing that hidden state. That means the browser is ready to paint, but your code tells it not to.
+
+The better pattern is to set the theme before first paint, not to suppress paint. Usually that means:
+
+- Put a very small inline script in <head>.
+- That script runs immediately, not on DOMContentLoaded.
+- It only does the minimum: read localStorage if available, fall back to matchMedia('(prefers-color-scheme: dark)'), and set document.documentElement.dataset.theme.
+- Do not touch body at all.
+- Do not wait for the DOM to finish parsing.
+
+That works because document.documentElement already exists while the head is parsing. You do not need the body to exist in order to set the theme token that your CSS reads.
+
+There are also better structural ways to reduce or eliminate mismatch:
+
+For explicit user theme choices, store the selected theme in a cookie, not only localStorage. Then the server can render the correct data-theme on the initial HTML. This is the strongest fix.
+
+For plain light/dark system preference, use CSS prefers-color-scheme where possible. That lets the browser choose the right theme without JavaScript.
+
+If you need multiple custom themes, use a hybrid:
+
+- server reads a cookie for explicit chosen theme
+- client falls back to a tiny head script for first-time visitors using system preference
+Add <meta name="color-scheme" content="light dark"> so browser UI elements align better during startup.
+
+The practical conclusion is: your concern is valid, but hiding the page is not the right tradeoff. The usual fix is a two-phase approach:
+
+- Pre-paint phase: tiny inline head script sets the html theme immediately.
+- Post-load phase: optional richer theme logic updates meta color, event listeners, analytics, stores, and transition behavior.
+
+That gives you the theme correctness you want without sacrificing first paint.
+
+If you want, I can sketch the safest refactor path next without changing code yet, or I can go implement the minimal pre-paint split directly.
+
+Implemented the pre-paint theme fix.
+
+The change is in three places. In src/components/Head/index.astro, the theme init script now runs after the head metadata is emitted but still before the body is parsed. In src/components/Head/ThemeInit.astro, the script now resolves the theme and writes data-theme to `<html>` immediately, without waiting for DOMContentLoaded and without touching body visibility. In src/layouts/BaseLayout.astro, the invisible class was removed from `<body>`.
+
+This keeps the legitimate part of the old design, setting the correct theme before first paint, but removes the blank-screen gate that was delaying FCP and LCP. The script still populates window.metaColors, still updates the theme-color meta tag on initial load, and still handles Astro view transitions.
+
+## Secondary Contributors
+
+- The page is also heavier than it needs to be on first load: Lighthouse shows 85 requests and about 676 KiB transferred. The biggest buckets are 50 script requests / 194 KiB, 25 image requests / 287 KiB, and 3 font requests / 119 KiB.
+
+- The homepage in index.astro pulls in a lot of sections at once. The report shows several carousel cover images loading during initial navigation, and those covers come from index.astro:137.
+
+- The Backstage section also ships a large homepage image from index.astro:39, and that request is the single largest network item in the report at about 120 KiB.
+
+- Fonts are not the main regression because fonts.css:40 uses font-display: swap, but they still add noticeable startup weight.
+
 ### Home page size
 
 - Audit the homepage hydration/chunk fan-out after prerendering. The 22 JS chunks suggest too much client code is shipping for a marketing landing page.
