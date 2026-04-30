@@ -404,7 +404,10 @@ export function initConsentSideEffects(): void {
     scriptName: 'cookieConsent',
     operation: 'logConsentToAPI',
   } as const
-  type ConsentLogPayload = Pick<ConsentRequest, 'DataSubjectId' | 'purposes' | 'source' | 'userAgent' | 'verified'>
+  type ConsentLogPayload = Pick<
+    ConsentRequest,
+    'DataSubjectId' | 'purposes' | 'source' | 'userAgent' | 'verified'
+  >
   let queuedConsentLogPayload: ConsentLogPayload | null = null
   let hasConsentLoggingFailure = false
   let isConsentLogProcessing = false
@@ -476,7 +479,9 @@ export function initConsentSideEffects(): void {
   }
 
   const getErrorRecord = (value: unknown): Record<string, unknown> | undefined => {
-    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : undefined
+    return typeof value === 'object' && value !== null
+      ? (value as Record<string, unknown>)
+      : undefined
   }
 
   const parseStatusCodeFromMessage = (message?: string): number | undefined => {
@@ -544,7 +549,8 @@ export function initConsentSideEffects(): void {
     const normalizedMessage = error.message.toLowerCase()
     const hasCheckpointMarkup =
       normalizedMessage.includes('vercel security checkpoint') ||
-      (normalizedMessage.includes('<!doctype html') && normalizedMessage.includes('security checkpoint'))
+      (normalizedMessage.includes('<!doctype html') &&
+        normalizedMessage.includes('security checkpoint'))
 
     return hasCheckpointMarkup
   }

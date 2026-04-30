@@ -153,7 +153,9 @@ describe('PrivacyForm behavior', () => {
         expect(accessLoadingToast).not.toBeNull()
         expect(accessLoadingToast?.classList.contains('hidden')).toBe(false)
         expect(accessLoadingToast?.textContent).toContain('Sending Request')
-        expect(accessLoadingToast?.textContent).toContain('Your request is being prepared and submitted.')
+        expect(accessLoadingToast?.textContent).toContain(
+          'Your request is being prepared and submitted.'
+        )
 
         expect(elements.deleteForm.dataset['privacyState']).toBe('validation')
         expect(elements.deleteEmailInput.getAttribute('aria-invalid')).toBe('true')

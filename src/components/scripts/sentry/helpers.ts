@@ -33,7 +33,8 @@ const isHandledConsentHttpError = (event: Parameters<BeforeSendHandler>[0]): boo
   const exception = event.exception?.values?.[0]
   const mechanismType = exception?.mechanism?.type
   const errorMessage = exception?.value ?? event.message ?? ''
-  const statusCodeMatch = typeof errorMessage === 'string' ? errorMessage.match(/status code:\s*(\d{3})/i) : null
+  const statusCodeMatch =
+    typeof errorMessage === 'string' ? errorMessage.match(/status code:\s*(\d{3})/i) : null
   const statusCode = statusCodeMatch?.[1] ? Number(statusCodeMatch[1]) : undefined
 
   return (
@@ -100,8 +101,7 @@ const isHandledNewsletterConfirmHttpError = (event: Parameters<BeforeSendHandler
 
 const isSearchActionRequest = (requestUrl: string): boolean => {
   return (
-    requestUrl.includes('/_actions/search.query') ||
-    requestUrl.includes('/_actions/search/query')
+    requestUrl.includes('/_actions/search.query') || requestUrl.includes('/_actions/search/query')
   )
 }
 
@@ -180,7 +180,9 @@ const isHandledConsentLogRetryError = (event: Parameters<BeforeSendHandler>[0]):
   )
 }
 
-const isHandledConsentCheckpointClientError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+const isHandledConsentCheckpointClientError = (
+  event: Parameters<BeforeSendHandler>[0]
+): boolean => {
   const errorMessage = event.exception?.values?.[0]?.value ?? event.message ?? ''
   const tags = event.tags ?? {}
 

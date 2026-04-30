@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  ITEMS_PER_PAGE,
-  buildTagPagePath,
-  getTagPageSlice,
-  getTagTotalPages,
-} from '../pagination'
+import { ITEMS_PER_PAGE, buildTagPagePath, getTagPageSlice, getTagTotalPages } from '../pagination'
 
 describe('tag pagination helpers', () => {
   it('builds static tag page paths without query params', () => {

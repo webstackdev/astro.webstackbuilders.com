@@ -50,17 +50,22 @@ export const contactFormInputSchema = z
     phone: optionalTrimmedString(50),
     project_type: optionalTrimmedString(50),
     website_url: optionalTrimmedString(200),
-    budget: z.preprocess(
-      value => emptyStringToUndefined(trimString(value)),
-      z.enum(['5k-10k', '10k-25k', '25k-50k', '50k+']).optional()
-    ),
+    budget: z
+      .unknown()
+      .optional()
+      .transform(value => emptyStringToUndefined(trimString(value)))
+      .pipe(z.enum(['5k-10k', '10k-25k', '25k-50k', '50k+']).optional()),
     timeline: contactTimelineSchema,
 
     /** Consent checkbox: value="true" when checked, otherwise missing. */
     consent: z.preprocess(value => (value === 'true' ? true : false), z.boolean()).optional(),
 
     /** Optional hidden field supported by the action. */
-    DataSubjectId: z.preprocess(emptyStringToUndefined, z.uuid().optional()),
+    DataSubjectId: z
+      .unknown()
+      .optional()
+      .transform(value => emptyStringToUndefined(value))
+      .pipe(z.uuid().optional()),
 
     /** Backwards-compatible optional fields (older contact forms). */
     service: optionalTrimmedString(100),

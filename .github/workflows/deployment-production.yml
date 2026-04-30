@@ -52,7 +52,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --force
+        run: npm ci
 
       - name: Install Playwright Chromium (with system deps)
         run: npx playwright install --with-deps chromium
@@ -64,7 +64,7 @@ jobs:
         run: |
           mkdir -p .vercel
           cat > .vercel/project.json <<EOF
-          {"projectId":"$VERCEL_PROJECT_ID","orgId":"$VERCEL_ORG_ID","settings":{"framework":"astro","installCommand":"npm ci --force"}}
+          {"projectId":"$VERCEL_PROJECT_ID","orgId":"$VERCEL_ORG_ID","settings":{"framework":"astro","installCommand":"npm ci"}}
           EOF
 
       - name: Vercel build (production)
@@ -102,4 +102,3 @@ jobs:
           PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
           PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
           GITHUB_DEPLOYMENT_ENV: Production
-

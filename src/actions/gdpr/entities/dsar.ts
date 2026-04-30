@@ -205,7 +205,7 @@ export async function verifyDsarToken(token: string): Promise<DsarVerifyResult> 
           howToExercise:
             'To exercise any of these rights, contact us at privacy@webstackbuilders.com. We will respond within 30 days.',
           supervisoryAuthority:
-            'You have the right to lodge a complaint with a supervisory authority. In the UK this is the Information Commissioner\'s Office (ICO): https://ico.org.uk. In the EU, contact the supervisory authority in your country of residence.',
+            "You have the right to lodge a complaint with a supervisory authority. In the UK this is the Information Commissioner's Office (ICO): https://ico.org.uk. In the EU, contact the supervisory authority in your country of residence.",
         },
         dataSource:
           'All personal data in this export was collected directly from you through first-party form submissions on webstackbuilders.com. No data has been obtained from third-party sources.',

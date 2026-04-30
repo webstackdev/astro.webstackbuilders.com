@@ -28,7 +28,11 @@ export const getSortedTagContent = (
   )
 }
 
-export const getTagPageSlice = <T>(content: T[], currentPage: number, itemsPerPage = ITEMS_PER_PAGE): T[] => {
+export const getTagPageSlice = <T>(
+  content: T[],
+  currentPage: number,
+  itemsPerPage = ITEMS_PER_PAGE
+): T[] => {
   const startIndex = (currentPage - 1) * itemsPerPage
   return content.slice(startIndex, startIndex + itemsPerPage)
 }
@@ -37,7 +41,9 @@ export const getTagTotalPages = (totalItems: number, itemsPerPage = ITEMS_PER_PA
   return Math.ceil(totalItems / itemsPerPage)
 }
 
-const getTagPageCollections = async (): Promise<Array<{ tagEntry: CollectionEntry<'tags'>; content: Array<CollectionEntry<'articles'>> }>> => {
+const getTagPageCollections = async (): Promise<
+  Array<{ tagEntry: CollectionEntry<'tags'>; content: Array<CollectionEntry<'articles'>> }>
+> => {
   const allTags = await getCollection('tags')
   const allArticles = await getCollection(
     'articles',

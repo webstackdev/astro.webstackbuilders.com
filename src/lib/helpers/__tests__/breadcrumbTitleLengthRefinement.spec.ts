@@ -43,11 +43,9 @@ describe('withBreadcrumbTitleWarning', () => {
     const { withBreadcrumbTitleWarning } = await loadHelpersModule(true)
 
     const baseSchema = z.object({ title: z.string().optional() })
-    const superRefineSpy = vi.spyOn(baseSchema, 'superRefine')
-
     const augmentedSchema = withBreadcrumbTitleWarning(baseSchema, 'downloads')
 
-    expect(superRefineSpy).toHaveBeenCalledTimes(1)
+    expect(augmentedSchema).not.toBe(baseSchema)
 
     const parseResult = augmentedSchema.safeParse({ title: LONG_TITLE })
     expect(parseResult.success).toBe(true)

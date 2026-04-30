@@ -1,4 +1,4 @@
-import type { PwaOptions } from '@vite-pwa/astro'
+import type { VitePWAOptions } from 'vite-plugin-pwa'
 import contactData from '../../content/contact.json'
 import themeConfig from '../../content/themes.json'
 
@@ -14,7 +14,7 @@ const buildThemeColor = (): string => {
 
 const manifestThemeColor = buildThemeColor()
 
-export const pwaConfig: PwaOptions = {
+export const pwaConfig = {
   mode: 'production',
   strategies: 'injectManifest',
   srcDir: 'src/lib/workbox',
@@ -69,4 +69,4 @@ export const pwaConfig: PwaOptions = {
     // ensure the offline page is always available for navigation fallback
     additionalManifestEntries: [{ url: '/offline', revision: null }],
   },
-}
+} satisfies Partial<VitePWAOptions>
