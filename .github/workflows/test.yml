@@ -51,11 +51,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6.4.0
         with:
-          node-version: '24.x'
-          cache: 'npm'
+          node-version: "24.x"
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm ci --force
+        run: npm ci
 
       # Astro build runs sync, check, and integrations including verify links
       - name: Verify green build (local DB snapshot)
@@ -66,12 +66,13 @@ jobs:
         run: npm run test:coverage
 
       - name: Report Coverage
-        if: steps.vitest.outcome == 'success' && hashFiles('coverage/coverage-summary.json') != ''
+        if: steps.vitest.outcome == 'success' &&
+          hashFiles('coverage/coverage-summary.json') != ''
         # v2.9.0
         uses: davelosert/vitest-coverage-report-action@3c50566c523e04813df28de8f7c48dd97d663f1c
         with:
-          json-summary-path: './coverage/coverage-summary.json'
-          json-final-path: './coverage/coverage-final.json'
+          json-summary-path: "./coverage/coverage-summary.json"
+          json-final-path: "./coverage/coverage-final.json"
 
       - name: Upload test coverage
         if: always() && hashFiles('coverage/coverage-summary.json') != ''
@@ -90,5 +91,5 @@ jobs:
 
     steps:
       - name: Skip testing for hotfix branch
-        run: echo "hotfix/* branch detected; skipping lint, unit, and e2e workflows but allowing deployments."
-
+        run: echo "hotfix/* branch detected; skipping lint, unit, and e2e workflows but
+          allowing deployments."

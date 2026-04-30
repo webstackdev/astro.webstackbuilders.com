@@ -16,7 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
 
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
 
     permissions:
       contents: read
@@ -78,12 +79,12 @@ jobs:
         if: steps.gate.outputs.should_migrate == 'true'
         uses: actions/setup-node@v6.4.0
         with:
-          node-version: '24.x'
-          cache: 'npm'
+          node-version: "24.x"
+          cache: "npm"
 
       - name: Install dependencies
         if: steps.gate.outputs.should_migrate == 'true'
-        run: npm ci --force
+        run: npm ci
 
       - name: Verify database schema is up to date
         id: verify
@@ -118,7 +119,8 @@ jobs:
           exit 1
 
       - name: Push database migrations (production)
-        if: steps.gate.outputs.should_migrate == 'true' && steps.verify.outputs.needs_push == 'true'
+        if: steps.gate.outputs.should_migrate == 'true' &&
+          steps.verify.outputs.needs_push == 'true'
         env:
           ASTRO_DB_REMOTE_URL: ${{ secrets.ASTRO_DB_REMOTE_URL }}
           ASTRO_DB_APP_TOKEN: ${{ secrets.ASTRO_DB_APP_TOKEN }}

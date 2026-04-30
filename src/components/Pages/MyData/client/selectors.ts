@@ -115,7 +115,9 @@ export function getPrivacyPreviewToastElements(
   const resolvedRoot = resolveRoot(root)
 
   return previewToastStates
-    .map(previewState => resolvedRoot.querySelector(getPreviewToastSelector(requestType, previewState)))
+    .map(previewState =>
+      resolvedRoot.querySelector(getPreviewToastSelector(requestType, previewState))
+    )
     .filter((element): element is HTMLElement => element instanceof HTMLElement)
 }
 
@@ -124,7 +126,9 @@ export function getPrivacyPreviewToastElement(
   previewState: RequestPreviewState,
   root?: SelectorRoot
 ): HTMLElement | undefined {
-  const element = resolveRoot(root).querySelector(getPreviewToastSelector(requestType, previewState))
+  const element = resolveRoot(root).querySelector(
+    getPreviewToastSelector(requestType, previewState)
+  )
   return element instanceof HTMLElement ? element : undefined
 }
 

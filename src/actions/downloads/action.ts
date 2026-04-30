@@ -7,14 +7,14 @@ import { getPrivacyPolicyVersion } from '@actions/utils/environment/environmentA
 import { handleActionsFunctionError } from '@actions/utils/errors'
 import { createOrUpdateContact, setMarketingOptIn } from '@actions/utils/hubspot'
 
-const optionalTrimmedString = z.preprocess(value => {
+const optionalTrimmedString = z.string().optional().transform(value => {
   if (typeof value !== 'string') {
-    return value
+    return undefined
   }
 
   const trimmedValue = value.trim()
   return trimmedValue.length > 0 ? trimmedValue : undefined
-}, z.string().optional())
+})
 
 export const inputSchema = z.object({
   firstName: z.string().trim().min(1),

@@ -228,7 +228,9 @@ export class PrivacyFormElement extends LitElement {
     }
 
     const isValidationMessage =
-      message.includes('valid email') || message.includes('confirm you understand') || message.includes('confirm the deletion request')
+      message.includes('valid email') ||
+      message.includes('confirm you understand') ||
+      message.includes('confirm the deletion request')
 
     return {
       title: isValidationMessage
@@ -243,7 +245,12 @@ export class PrivacyFormElement extends LitElement {
     }
   }
 
-  private renderRequestToast(target: HTMLElement, requestType: RequestType, message: string, type: RequestToastTone): void {
+  private renderRequestToast(
+    target: HTMLElement,
+    requestType: RequestType,
+    message: string,
+    type: RequestToastTone
+  ): void {
     const config = this.resolveRequestToastConfig(requestType, message, type)
 
     target.replaceChildren()
@@ -260,7 +267,8 @@ export class PrivacyFormElement extends LitElement {
 
     const icon = document.createElement('span')
     icon.setAttribute('aria-hidden', 'true')
-    icon.textContent = config.icon === 'check-stylized' ? '✓' : config.icon === 'spinner' ? '◌' : '!'
+    icon.textContent =
+      config.icon === 'check-stylized' ? '✓' : config.icon === 'spinner' ? '◌' : '!'
     iconContainer.appendChild(icon)
 
     const content = document.createElement('div')

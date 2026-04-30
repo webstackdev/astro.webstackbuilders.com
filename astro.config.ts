@@ -1,4 +1,3 @@
-import AstroPWA from '@vite-pwa/astro'
 import db from '@astrojs/db'
 import lit from '@semantic-ui/astro-lit'
 import mdx from '@astrojs/mdx'
@@ -11,6 +10,7 @@ import { defineConfig } from 'astro/config'
 import type { AstroUserConfig } from 'astro'
 import { fileURLToPath } from 'node:url'
 import { createLogger, type LogOptions, type PluginOption } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 /**
  * You cannot use path aliases (`@lib`, `@components`, etc.) in files that are
  * imported by astro.config.ts, because the path alias resolution happens
@@ -66,7 +66,6 @@ const shouldSuppressRollupWarning = (warning: {
 }
 
 const standardIntegrations = [
-  AstroPWA(pwaConfig),
   /** Astro DB - uses Tursa for backing store in production */
   db(),
   mdx(markdownConfig),
@@ -209,6 +208,7 @@ export default defineConfig({
     plugins: [
       fixContentAssetPropagation(),
       tailwindcss(),
+      VitePWA(pwaConfig),
       pwaDevAssetServer(),
     ] as PluginOption[],
     resolve: {

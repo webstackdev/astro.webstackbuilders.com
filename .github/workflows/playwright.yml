@@ -50,11 +50,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6.4.0
         with:
-          node-version: '24.x'
-          cache: 'npm'
+          node-version: "24.x"
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm ci --force
+        run: npm ci
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -148,7 +148,7 @@ jobs:
       - name: Run Playwright E2E tests
         run: npm run test:e2e:smoke
         env:
-          CI: '1'
+          CI: "1"
 
       - name: Stop Astro dev server
         if: always()
@@ -175,4 +175,5 @@ jobs:
 
     steps:
       - name: Skip E2E for hotfix branch
-        run: echo "hotfix/* branch detected; skipping e2e workflow but allowing deployments."
+        run: echo "hotfix/* branch detected; skipping e2e workflow but allowing
+          deployments."

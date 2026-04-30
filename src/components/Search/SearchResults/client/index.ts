@@ -588,7 +588,8 @@ export class SearchResultsElement extends LitElement {
 
       // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
       if (error) {
-        const message = actionError?.message ?? (error instanceof Error ? error.message : 'Search failed.')
+        const message =
+          actionError?.message ?? (error instanceof Error ? error.message : 'Search failed.')
 
         if (isForbiddenClientActionError(actionError)) {
           this.renderResults([])
@@ -636,7 +637,9 @@ export class SearchResultsElement extends LitElement {
       handleScriptError(error, context)
       this.renderResults([])
       this.clearMeta()
-      this.showError(actionError?.message ?? (error instanceof Error ? error.message : 'Search failed.'))
+      this.showError(
+        actionError?.message ?? (error instanceof Error ? error.message : 'Search failed.')
+      )
     }
   }
 }

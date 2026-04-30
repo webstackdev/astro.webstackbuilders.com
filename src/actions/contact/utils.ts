@@ -48,7 +48,11 @@ export const emptyStringToUndefined = (value: unknown): unknown => {
 export const optionalTrimmedString = (maxLength?: number) => {
   const base = z.string()
   const limited = typeof maxLength === 'number' ? base.max(maxLength) : base
-  return z.preprocess(emptyStringToUndefined, limited.optional())
+  return z
+    .unknown()
+    .optional()
+    .transform(value => emptyStringToUndefined(value))
+    .pipe(limited.optional())
 }
 
 export const requiredString = (options: RequiredStringOptions) => {
@@ -68,15 +72,18 @@ export const isFile = (value: unknown): value is File =>
 
 export const optionalFile = () => z.custom<File>(isFile).optional()
 
-export const contactTimelineSchema = z.preprocess(
-  emptyStringToUndefined,
-  z
-    .custom<ContactTimeline>(
-      (value): value is ContactTimeline => typeof value === 'string' && isAllowedTimeline(value),
-      { message: 'Invalid project timeline' }
-    )
-    .optional()
-)
+export const contactTimelineSchema = z
+  .unknown()
+  .optional()
+  .transform(value => emptyStringToUndefined(value))
+  .pipe(
+    z
+      .string()
+      .refine((value): value is ContactTimeline => isAllowedTimeline(value), {
+        message: 'Invalid project timeline',
+      })
+      .optional()
+  )
 
 export const spamPatterns = ['viagra', 'cialis', 'casino', 'poker', 'lottery']
 

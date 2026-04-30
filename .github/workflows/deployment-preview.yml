@@ -39,7 +39,8 @@ jobs:
       WEBMENTION_IO_TOKEN: ${{ secrets.WEBMENTION_IO_TOKEN }}
 
     # Secrets are not available to forked PRs. Also, we don't want to deploy untrusted forks.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false
+    if: github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.fork == false
 
     permissions:
       contents: read
@@ -60,7 +61,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --force
+        run: npm ci
 
       - name: Install Playwright Chromium (with system deps)
         run: npx playwright install --with-deps chromium
@@ -72,7 +73,7 @@ jobs:
         run: |
           mkdir -p .vercel
           cat > .vercel/project.json <<EOF
-          {"projectId":"$VERCEL_PROJECT_ID","orgId":"$VERCEL_ORG_ID","settings":{"framework":"astro","installCommand":"npm ci --force"}}
+          {"projectId":"$VERCEL_PROJECT_ID","orgId":"$VERCEL_ORG_ID","settings":{"framework":"astro","installCommand":"npm ci"}}
           EOF
 
       - name: Skip preview deployment when Vercel token is unavailable
@@ -100,4 +101,3 @@ jobs:
           PUBLIC_UPSTASH_SEARCH_REST_URL: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}
           PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN: ${{ vars.PUBLIC_UPSTASH_SEARCH_READONLY_TOKEN }}
           GITHUB_DEPLOYMENT_ENV: Preview
-
