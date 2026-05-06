@@ -38,7 +38,7 @@ const defaultNewsletterProps: NewsletterProps = {
   variant: 'article',
 }
 
-const newsletterVariants: NewsletterProps['variant'][] = ['article', 'home']
+const newsletterVariants: NewsletterProps['variant'][] = ['article', 'home', 'page']
 
 const getElements = (root: NewsletterFormElement) => {
   const selectElement = <T extends Element>(selector: string): T => {
@@ -55,6 +55,7 @@ const getElements = (root: NewsletterFormElement) => {
     form: selectElement<HTMLFormElement>('#newsletter-form'),
     emailLabel: selectElement<HTMLLabelElement>('#newsletter-email-label'),
     emailInput: selectElement<HTMLInputElement>('#newsletter-email'),
+    websiteUrlInput: selectElement<HTMLInputElement>('#newsletter-website_url'),
     consentCheckbox: selectElement<HTMLInputElement>('#newsletter-gdpr-consent'),
     submitButton: selectElement<HTMLButtonElement>('#newsletter-submit'),
     buttonText: selectElement<HTMLSpanElement>('#button-text'),
@@ -113,6 +114,7 @@ describe.each(newsletterVariants)('NewsletterFormElement web component (%s)', va
       expect(elements.description.id).toBe('newsletter-cta-' + variant + '-description')
       expect(elements.form.id).toBe('newsletter-form')
       expect(elements.emailInput.id).toBe('newsletter-email')
+      expect(elements.websiteUrlInput.name).toBe('website_url')
       expect(elements.consentCheckbox.id).toBe('newsletter-gdpr-consent')
 
       expect(elements.title.textContent).toContain(defaultNewsletterProps.title)
@@ -191,6 +193,27 @@ describe.each(newsletterVariants)('NewsletterFormElement web component (%s)', va
       expect(elements.buttonSpinner.classList.contains('hidden')).toBe(true)
       expect(elements.emailInput.getAttribute('aria-invalid')).toBe(null)
       expect(elements.consentCheckbox.getAttribute('aria-invalid')).toBe(null)
+    })
+  })
+
+  test('forwards the honeypot field when it is filled', async () => {
+    newsletterSubscribeMock.mockResolvedValueOnce({
+      data: { success: true, message: 'Please check your email to confirm your subscription.' },
+    })
+
+    await renderNewsletter(async ({ elements }) => {
+      elements.emailInput.value = 'test@example.com'
+      elements.websiteUrlInput.value = 'https://spam.example'
+      elements.consentCheckbox.checked = true
+
+      elements.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+      await flushPromises()
+
+      expect(newsletterSubscribeMock).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        'website_url': 'https://spam.example',
+        consentGiven: true,
+      })
     })
   })
 

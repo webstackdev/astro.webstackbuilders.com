@@ -706,6 +706,53 @@ describe('Consent side effects', () => {
     expect(handleScriptErrorSpy).not.toHaveBeenCalled()
   })
 
+  it('suppresses consent transport failures without reporting a script error', async () => {
+    vi.useFakeTimers()
+
+    consentCreateMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+    const handleScriptErrorSpy = vi.spyOn(errorHandlerModule, 'handleScriptError')
+
+    let consentListener:
+      | ((_state: ConsentState, _oldState?: ConsentState) => Promise<void> | void)
+      | undefined
+    vi.spyOn($consent, 'subscribe').mockImplementation(listener => {
+      consentListener = listener
+      return () => {}
+    })
+    vi.spyOn($isConsentBannerVisible, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation(() => () => {})
+    vi.spyOn($hasAnalyticsConsent, 'subscribe').mockImplementation(() => () => {})
+
+    initConsentSideEffects()
+
+    const oldState = {
+      analytics: false,
+      marketing: false,
+      functional: false,
+      DataSubjectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    }
+    const newState = {
+      analytics: true,
+      marketing: false,
+      functional: false,
+      DataSubjectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    }
+
+    await consentListener?.(newState, oldState)
+
+    await vi.advanceTimersByTimeAsync(250)
+
+    await vi.waitFor(() => {
+      expect(consentCreateMock).toHaveBeenCalledTimes(1)
+    })
+
+    await vi.advanceTimersByTimeAsync(30_000)
+
+    expect(consentCreateMock).toHaveBeenCalledTimes(1)
+    expect(handleScriptErrorSpy).not.toHaveBeenCalled()
+  })
+
   it('deletes the data subject id when functional consent is revoked', () => {
     let functionalListener: ((_hasConsent: boolean) => void) | undefined
     vi.spyOn($hasFunctionalConsent, 'subscribe').mockImplementation(listener => {
