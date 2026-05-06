@@ -1,6 +1,7 @@
 export type NewsletterFormData = {
   email: string
   firstName?: string
+  website_url?: string
   consentGiven?: boolean
   DataSubjectId?: string
 }
@@ -22,6 +23,7 @@ export interface PendingSubscription {
 export type NewsletterSubscribeInput = {
   email: string
   firstName?: string
+  website_url?: string
   consentGiven?: boolean
   DataSubjectId?: string
 }

@@ -138,6 +138,42 @@ beforeEach(() => {
 })
 
 describe('newsletter.subscribe.handler', () => {
+  it('silently drops submissions that fill the honeypot field', async () => {
+    const { newsletter } = await import('../action')
+    const { createConsentRecord } = await import('@actions/gdpr/entities/consent')
+    const { createPendingSubscription } = await import('@actions/newsletter/domain')
+    const { sendConfirmationEmail } = await import('@actions/newsletter/entities/email')
+
+    const context = {
+      request: new Request('https://example.com/_actions/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'user-agent': 'ua-bot' },
+      }),
+      cookies: {} as unknown,
+      clientAddress: '203.0.113.9',
+    }
+
+    const response = await getMockedHandler<NewsletterSubscribeInput, NewsletterSubscribeOutput>(
+      newsletter.subscribe
+    )(
+      {
+        email: 'test@example.com',
+        consentGiven: true,
+        website_url: 'https://spam.example',
+      },
+      context
+    )
+
+    expect(response).toEqual({
+      success: true,
+      message: 'Please check your email to confirm your subscription.',
+      requiresConfirmation: true,
+    })
+    expect(createConsentRecord).not.toHaveBeenCalled()
+    expect(createPendingSubscription).not.toHaveBeenCalled()
+    expect(sendConfirmationEmail).not.toHaveBeenCalled()
+  })
+
   it('rejects when consent is missing', async () => {
     const { newsletter } = await import('../action')
 

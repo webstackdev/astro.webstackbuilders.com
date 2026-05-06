@@ -227,6 +227,8 @@ export class NewsletterFormElement extends LitElement {
       const email = this.emailInput.value.trim()
       const formData = this.form ? new FormData(this.form) : null
       const consentGiven = formData?.get('consent') === 'true'
+      const websiteUrlRaw = formData?.get('website_url')
+      const websiteUrl = typeof websiteUrlRaw === 'string' ? websiteUrlRaw.trim() : ''
 
       const dataSubjectIdRaw = formData?.get('DataSubjectId')
       const dataSubjectId = typeof dataSubjectIdRaw === 'string' ? dataSubjectIdRaw.trim() : ''
@@ -263,6 +265,7 @@ export class NewsletterFormElement extends LitElement {
       try {
         result = await actions.newsletter.subscribe({
           email,
+          ...(websiteUrl ? { website_url: websiteUrl } : {}),
           consentGiven,
           ...(DataSubjectId ? { DataSubjectId } : {}),
         })
