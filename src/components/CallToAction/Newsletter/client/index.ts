@@ -265,7 +265,7 @@ export class NewsletterFormElement extends LitElement {
       try {
         result = await actions.newsletter.subscribe({
           email,
-          ...(websiteUrl ? { website_url: websiteUrl } : {}),
+          ...(websiteUrl ? { 'website_url': websiteUrl } : {}),
           consentGiven,
           ...(DataSubjectId ? { DataSubjectId } : {}),
         })

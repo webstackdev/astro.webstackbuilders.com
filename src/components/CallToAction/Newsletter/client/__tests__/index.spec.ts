@@ -211,7 +211,7 @@ describe.each(newsletterVariants)('NewsletterFormElement web component (%s)', va
 
       expect(newsletterSubscribeMock).toHaveBeenCalledWith({
         email: 'test@example.com',
-        website_url: 'https://spam.example',
+        'website_url': 'https://spam.example',
         consentGiven: true,
       })
     })
