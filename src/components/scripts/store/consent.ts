@@ -555,6 +555,21 @@ export function initConsentSideEffects(): void {
     return hasCheckpointMarkup
   }
 
+  const isConsentTransportError = (error?: ConsentActionError): boolean => {
+    const normalizedMessage = error?.message?.toLowerCase()
+    const causeRecord = getErrorRecord(error?.cause)
+    const causeName =
+      typeof causeRecord?.['name'] === 'string' ? causeRecord['name'].toLowerCase() : undefined
+
+    return Boolean(
+      causeName === 'aborterror' ||
+        normalizedMessage?.includes('failed to fetch') ||
+        normalizedMessage?.includes('load failed') ||
+        normalizedMessage?.includes('networkerror when attempting to fetch resource') ||
+        normalizedMessage?.includes('the internet connection appears to be offline')
+    )
+  }
+
   const ensureOnlineListener = () => {
     if (typeof window === 'undefined' || onlineListener) {
       return
@@ -664,6 +679,10 @@ export function initConsentSideEffects(): void {
       // checkpoint page, disable further attempts for this session without
       // surfacing user-invisible noise to Sentry.
       hasConsentLoggingFailure = true
+      return
+    }
+
+    if (isConsentTransportError(actionError)) {
       return
     }
 

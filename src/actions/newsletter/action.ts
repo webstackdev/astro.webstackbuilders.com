@@ -22,6 +22,7 @@ import {
 const subscribeSchema = z.object({
   email: z.string(),
   firstName: z.string().optional(),
+  website_url: z.string().trim().max(200).optional(),
   consentGiven: z.boolean().optional(),
   DataSubjectId: z.string().optional(),
 })
@@ -94,6 +95,11 @@ export const newsletter = {
       context
     ): Promise<{ success: true; message: string; requiresConfirmation: true }> => {
       const route = '/_actions/newsletter/subscribe'
+      const successResponse = {
+        success: true as const,
+        message: 'Please check your email to confirm your subscription.',
+        requiresConfirmation: true as const,
+      }
       let stage: NewsletterSubscribeStage = 'buildRequestFingerprint'
       let fingerprint: string | undefined
       let consentFunctional = false
@@ -120,6 +126,10 @@ export const newsletter = {
           const retryAfterMs = typeof reset === 'number' ? Math.max(0, reset - Date.now()) : 0
           const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000))
           throw new ActionsFunctionError(`Try again in ${retryAfterSeconds}s`, { status: 429 })
+        }
+
+        if (body.website_url) {
+          return successResponse
         }
 
         stage = 'validateEmail'
@@ -175,11 +185,7 @@ export const newsletter = {
         stage = 'sendConfirmationEmail'
         await sendConfirmationEmail(validatedEmail, token, body.firstName)
 
-        return {
-          success: true,
-          message: 'Please check your email to confirm your subscription.',
-          requiresConfirmation: true,
-        }
+        return successResponse
       } catch (error) {
         const errorContext = {
           route,
