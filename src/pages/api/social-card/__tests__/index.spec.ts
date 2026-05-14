@@ -1,11 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET } from '@pages/api/social-card'
 
-const avatarFetchMock = vi.hoisted(() => vi.fn())
-
 vi.mock('@assets/images/avatars/kevin-brown.webp', () => ({
   default: {
     src: '/_astro/kevin-brown.test.webp',
+    fsPath: '/virtual/assets/kevin-brown.webp',
   },
 }))
 
@@ -40,8 +39,6 @@ vi.mock('astro:content', () => ({
 vi.mock('astro-og-canvas', () => ({
   generateOpenGraphImage: generateOpenGraphImageMock,
 }))
-
-vi.stubGlobal('fetch', avatarFetchMock)
 
 const buildRequest = (url: string) =>
   GET({
@@ -79,11 +76,6 @@ describe('Social Card API - GET /api/social-card', () => {
   beforeEach(() => {
     generateOpenGraphImageMock.mockReset()
     generateOpenGraphImageMock.mockResolvedValue(Buffer.from('mock-image'))
-    avatarFetchMock.mockReset()
-    avatarFetchMock.mockResolvedValue({
-      ok: true,
-      arrayBuffer: async () => Uint8Array.from([1, 2, 3]).buffer,
-    })
     seedCollections()
   })
 
@@ -141,7 +133,7 @@ describe('Social Card API - GET /api/social-card', () => {
     expect(generateOpenGraphImageMock).toHaveBeenCalledWith(
       expect.objectContaining({
         logo: expect.objectContaining({
-          path: expect.stringMatching(/kevin-brown\.webp$/u),
+          path: '/virtual/assets/kevin-brown.webp',
         }),
       })
     )
