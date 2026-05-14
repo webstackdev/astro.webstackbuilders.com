@@ -1,16 +1,21 @@
-import { fileURLToPath } from 'node:url'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'
 import { generateOpenGraphImage } from 'astro-og-canvas'
+import kevinBrownAvatar from '@assets/images/avatars/kevin-brown.webp'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false
 
 const ROUTE = '/api/social-card'
-const DEFAULT_TITLE = 'Webstack Builders'
-const DEFAULT_DESCRIPTION = 'Professional Web Development Services'
-const LOGO_PATH = fileURLToPath(new URL('../../../../assets/images/site/logo.png', import.meta.url))
+const DEFAULT_TITLE = 'Platform Engineering by Kevin Brown'
+const DEFAULT_DESCRIPTION =
+  'Platform engineer helping teams harden delivery, modernize cloud platforms, and improve developer experience.'
+const AVATAR_CACHE_DIR = join(tmpdir(), 'webstackbuilders-social-card')
+const AVATAR_CACHE_PATH = join(AVATAR_CACHE_DIR, 'kevin-brown.webp')
 
 type CollectionKey = 'articles' | 'caseStudies' | 'services' | 'downloads'
 type PaletteKey = 'articles' | 'case-studies' | 'services' | 'downloads' | 'default'
@@ -54,6 +59,26 @@ const gradientPalette: Record<PaletteKey, [number, number, number][]> = {
     [2, 6, 23],
     [15, 118, 110],
   ],
+}
+
+const getAvatarUrl = (requestUrl: URL): URL => new URL(kevinBrownAvatar.src, requestUrl)
+
+const ensureAvatarFile = async (requestUrl: URL): Promise<string> => {
+  try {
+    await readFile(AVATAR_CACHE_PATH)
+    return AVATAR_CACHE_PATH
+  } catch {
+    const response = await fetch(getAvatarUrl(requestUrl))
+
+    if (!response.ok) {
+      throw new Error(`Unable to load avatar image: ${response.status} ${response.statusText}`)
+    }
+
+    const avatarBuffer = Buffer.from(await response.arrayBuffer())
+    await mkdir(AVATAR_CACHE_DIR, { recursive: true })
+    await writeFile(AVATAR_CACHE_PATH, avatarBuffer)
+    return AVATAR_CACHE_PATH
+  }
 }
 
 /** Normalize slug parameters to a consistent format */
@@ -119,6 +144,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
     const slug = normalizeSlug(url.searchParams.get('slug'))
     const titleOverride = url.searchParams.get('title')
     const descriptionOverride = url.searchParams.get('description')
+    const avatarPath = await ensureAvatarFile(url)
 
     const contentIndex = await buildContentIndex()
     const matchedEntry = contentIndex[slug]
@@ -138,8 +164,8 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
       bgGradient: gradientPalette[palette],
       padding: 80,
       logo: {
-        path: LOGO_PATH,
-        size: [180],
+        path: avatarPath,
+        size: [140, 140],
       },
       font: {
         title: {
