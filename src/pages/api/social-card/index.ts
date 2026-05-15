@@ -1,20 +1,21 @@
 import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'
 import { generateOpenGraphImage } from 'astro-og-canvas'
-import kevinBrownAvatar from '@assets/images/avatars/kevin-brown.webp'
+import { access, mkdir, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false
 
 const ROUTE = '/api/social-card'
+const PUBLIC_AVATAR_PATH = '/assets/images/kevin-brown.webp'
+const CACHED_AVATAR_DIRECTORY = join(tmpdir(), 'webstackbuilders-social-cards')
+const CACHED_AVATAR_PATH = join(CACHED_AVATAR_DIRECTORY, 'kevin-brown.webp')
 const DEFAULT_TITLE = 'Platform Engineering by Kevin Brown'
 const DEFAULT_DESCRIPTION =
   'Platform engineer helping teams harden delivery, modernize cloud platforms, and improve developer experience.'
-
-type ImageMetadataWithFsPath = typeof kevinBrownAvatar & {
-  fsPath?: string
-}
 
 type CollectionKey = 'articles' | 'caseStudies' | 'services' | 'downloads'
 type PaletteKey = 'articles' | 'case-studies' | 'services' | 'downloads' | 'default'
@@ -60,14 +61,27 @@ const gradientPalette: Record<PaletteKey, [number, number, number][]> = {
   ],
 }
 
-const getAvatarFilePath = (): string => {
-  const avatarFilePath = (kevinBrownAvatar as ImageMetadataWithFsPath).fsPath
-
-  if (!avatarFilePath) {
-    throw new Error('Kevin Brown avatar asset is missing a local file path')
+const getAvatarFilePath = async (requestUrl: string): Promise<string> => {
+  try {
+    await access(CACHED_AVATAR_PATH)
+    return CACHED_AVATAR_PATH
+  } catch {
+    // Cache miss; fetch from the public asset URL and persist locally for astro-og-canvas.
   }
 
-  return avatarFilePath
+  const avatarUrl = new URL(PUBLIC_AVATAR_PATH, requestUrl)
+  const response = await fetch(avatarUrl)
+
+  if (!response.ok) {
+    throw new Error(`Unable to fetch Kevin Brown avatar from ${avatarUrl.toString()}`)
+  }
+
+  const avatarBuffer = Buffer.from(await response.arrayBuffer())
+
+  await mkdir(CACHED_AVATAR_DIRECTORY, { recursive: true })
+  await writeFile(CACHED_AVATAR_PATH, avatarBuffer)
+
+  return CACHED_AVATAR_PATH
 }
 
 /** Normalize slug parameters to a consistent format */
@@ -133,7 +147,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
     const slug = normalizeSlug(url.searchParams.get('slug'))
     const titleOverride = url.searchParams.get('title')
     const descriptionOverride = url.searchParams.get('description')
-    const avatarPath = getAvatarFilePath()
+    const avatarPath = await getAvatarFilePath(request.url)
 
     const contentIndex = await buildContentIndex()
     const matchedEntry = contentIndex[slug]

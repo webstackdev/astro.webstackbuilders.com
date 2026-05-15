@@ -1,11 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET } from '@pages/api/social-card'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
-vi.mock('@assets/images/avatars/kevin-brown.webp', () => ({
-  default: {
-    src: '/_astro/kevin-brown.test.webp',
-    fsPath: '/virtual/assets/kevin-brown.webp',
-  },
+const accessMock = vi.hoisted(() => vi.fn())
+const mkdirMock = vi.hoisted(() => vi.fn())
+const writeFileMock = vi.hoisted(() => vi.fn())
+const fetchMock = vi.hoisted(() => vi.fn())
+
+vi.mock('node:fs/promises', () => ({
+  access: accessMock,
+  mkdir: mkdirMock,
+  writeFile: writeFileMock,
 }))
 
 type CollectionFixture = Array<{
@@ -73,9 +79,23 @@ const seedCollections = () => {
 }
 
 describe('Social Card API - GET /api/social-card', () => {
+  const expectedAvatarPath = join(tmpdir(), 'webstackbuilders-social-cards', 'kevin-brown.webp')
+
   beforeEach(() => {
     generateOpenGraphImageMock.mockReset()
     generateOpenGraphImageMock.mockResolvedValue(Buffer.from('mock-image'))
+    accessMock.mockReset()
+    mkdirMock.mockReset()
+    writeFileMock.mockReset()
+    fetchMock.mockReset()
+    accessMock.mockRejectedValue(Object.assign(new Error('missing'), { code: 'ENOENT' }))
+    mkdirMock.mockResolvedValue(undefined)
+    writeFileMock.mockResolvedValue(undefined)
+    fetchMock.mockResolvedValue({
+      ok: true,
+      arrayBuffer: vi.fn(async () => Uint8Array.from([1, 2, 3]).buffer),
+    })
+    vi.stubGlobal('fetch', fetchMock)
     seedCollections()
   })
 
@@ -133,10 +153,22 @@ describe('Social Card API - GET /api/social-card', () => {
     expect(generateOpenGraphImageMock).toHaveBeenCalledWith(
       expect.objectContaining({
         logo: expect.objectContaining({
-          path: '/virtual/assets/kevin-brown.webp',
+          path: expectedAvatarPath,
         }),
       })
     )
+
+    expect(fetchMock).toHaveBeenCalledWith(new URL('/assets/images/kevin-brown.webp', 'http://localhost/api/social-card?slug=home'))
+    expect(writeFileMock).toHaveBeenCalledWith(expectedAvatarPath, expect.any(Buffer))
+  })
+
+  it('reuses the cached avatar file when it already exists locally', async () => {
+    accessMock.mockResolvedValueOnce(undefined)
+
+    await buildRequest('http://localhost/api/social-card?slug=home')
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(writeFileMock).not.toHaveBeenCalled()
   })
 
   it('returns an error response when generation fails', async () => {
