@@ -1,12 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET } from '@pages/api/social-card'
-
-vi.mock('@assets/images/avatars/kevin-brown.webp', () => ({
-  default: {
-    src: '/_astro/kevin-brown.test.webp',
-    fsPath: '/virtual/assets/kevin-brown.webp',
-  },
-}))
+import { fileURLToPath } from 'node:url'
 
 type CollectionFixture = Array<{
   id: string
@@ -73,6 +67,10 @@ const seedCollections = () => {
 }
 
 describe('Social Card API - GET /api/social-card', () => {
+  const expectedAvatarPath = fileURLToPath(
+    new URL('../../../../assets/images/avatars/kevin-brown.webp', import.meta.url)
+  )
+
   beforeEach(() => {
     generateOpenGraphImageMock.mockReset()
     generateOpenGraphImageMock.mockResolvedValue(Buffer.from('mock-image'))
@@ -133,7 +131,7 @@ describe('Social Card API - GET /api/social-card', () => {
     expect(generateOpenGraphImageMock).toHaveBeenCalledWith(
       expect.objectContaining({
         logo: expect.objectContaining({
-          path: '/virtual/assets/kevin-brown.webp',
+          path: expectedAvatarPath,
         }),
       })
     )
