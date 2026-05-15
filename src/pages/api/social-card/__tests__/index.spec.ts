@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET } from '@pages/api/social-card'
 
+vi.mock('@assets/images/avatars/kevin-brown.webp', () => ({
+  default: {
+    src: '/_astro/kevin-brown.test.webp',
+    fsPath: '/virtual/assets/kevin-brown.webp',
+  },
+}))
+
 type CollectionFixture = Array<{
   id: string
   data: {
@@ -83,6 +90,9 @@ describe('Social Card API - GET /api/social-card', () => {
       expect.objectContaining({
         title: 'Sample Article',
         description: 'Article Description',
+        logo: expect.objectContaining({
+          size: [140, 140],
+        }),
       })
     )
 
@@ -100,6 +110,31 @@ describe('Social Card API - GET /api/social-card', () => {
       expect.objectContaining({
         title: 'Preview',
         description: 'Shared preview',
+      })
+    )
+  })
+
+  it('uses updated platform engineering defaults for the homepage slug', async () => {
+    const response = await buildRequest('http://localhost/api/social-card?slug=home')
+
+    expect(response.status).toBe(200)
+    expect(generateOpenGraphImageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Platform Engineering by Kevin Brown',
+        description:
+          'Platform engineer helping teams harden delivery, modernize cloud platforms, and improve developer experience.',
+      })
+    )
+  })
+
+  it('uses the Kevin Brown avatar file when generating a card', async () => {
+    await buildRequest('http://localhost/api/social-card?slug=home')
+
+    expect(generateOpenGraphImageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        logo: expect.objectContaining({
+          path: '/virtual/assets/kevin-brown.webp',
+        }),
       })
     )
   })

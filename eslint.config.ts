@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import type { Linter } from 'eslint'
 import eslint from '@eslint/js'
 import astroPlugin from 'eslint-plugin-astro'
-import importPlugin from 'eslint-plugin-import'
+import importLitePlugin from 'eslint-plugin-import-lite'
 import jsdocPlugin from 'eslint-plugin-jsdoc'
 import securityPlugin from 'eslint-plugin-security'
 import ymlPlugin from 'eslint-plugin-yml'
@@ -23,8 +23,7 @@ export default [
   eslint.configs.recommended,
   ...tsPlugin.configs.recommended,
   ...astroPlugin.configs.recommended,
-  ...astroPlugin.configs['jsx-a11y-strict'],
-  importPlugin.flatConfigs.recommended,
+  importLitePlugin.configs.recommended,
   jsdocPlugin.configs['flat/recommended-typescript'],
   securityPlugin.configs.recommended,
   ...ymlPlugin.configs['flat/recommended'],
@@ -35,15 +34,6 @@ export default [
           'enforce-centralized-events': enforceCentralizedEventsRule,
           'no-html-element-assertions': noHtmlElementAssertionsRule,
           'no-query-selector-outside-selectors': noQuerySelectorOutsideSelectorsRule,
-        },
-      },
-    },
-    settings: {
-      'import/resolver': {
-        typescript: {
-          alwaysTryTypes: true,
-          project: './tsconfig.json',
-          extensions: ['.ts', '.tsx', '.astro', '.d.ts', '.js', '.mjs', '.cjs'],
         },
       },
     },
@@ -93,33 +83,7 @@ export default [
       'arrow-body-style': 'off',
       'camelcase': [level],
       'curly': 'off',
-      'import/no-unresolved': [
-        level,
-        {
-          ignore: [
-            '^astro:.*',  // Ignore Astro virtual modules
-            '^virtual:pwa-register$',
-            '^\\./.*',    // Ignore relative imports (let TypeScript handle these)
-          ],
-        },
-      ],
-      'import/no-webpack-loader-syntax': level,
-      'import/extensions': [
-        level,
-        'ignorePackages', // Ignores extensions for packages
-        {
-          'js': 'never',
-          'jsx': 'always',
-          'ts': 'never',
-          'tsx': 'always',
-          'mjs': 'always',
-          'cjs': 'always',
-          'astro': 'always',
-          'json': 'always',
-          'svg': 'always',
-        },
-      ],
-      'import/order': 'off',
+      'import-lite/no-duplicates': level,
       'jsdoc/check-indentation': level,
       'jsdoc/check-line-alignment': 'off',
       'jsdoc/check-param-names': 'off',
@@ -165,19 +129,6 @@ export default [
       'semi': ['error', 'never'],
     },
   },
-  {
-    files: ['**/*.astro'],
-    rules: {
-      'import/extensions': 'off',
-    },
-  },
-  {
-    files: ['**/*.astro/*.js', '**/*.astro/*.ts', '**/*.astro/*.tsx'],
-    rules: {
-      'import/extensions': 'off',
-    },
-  },
-
   /**
    * =================================================================================================
    *
@@ -587,39 +538,20 @@ export default [
    */
   {
     files: [
-      '**/*.astro',
-      '**/*.ts',
-      '**/*.tsx',
+      'src/**/client/**/*.{astro,ts,tsx}',
+    ],
+    ignores: [
+      'src/pages/api/_environment/environmentApi.ts',
+      'src/pages/api/_logger/index.ts',
     ],
     rules: {
-      'import/no-restricted-paths': [
+      'no-restricted-imports': [
         level,
         {
-          zones: [
+          patterns: [
             {
-              target: 'src/**/client/**/*',
-              from: 'src/lib/**/*',
+              group: ['src/lib/**/*', '@lib/**/*'],
               message: 'The src/lib directory is for build-time code only.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: [
-      '**/*.astro',
-      '**/*.ts',
-      '**/*.tsx',
-    ],
-    rules: {
-      'import/no-restricted-paths': [
-        'off',
-        {
-          zones: [
-            {
-              target: 'src/**/server/**/*',
-              from: 'src/lib/**/*',
             },
           ],
         },
@@ -631,39 +563,23 @@ export default [
    */
   {
     files: [
-      '**/*.astro',
-      '**/*.ts',
-      '**/*.tsx',
+      'src/**/server/**/*.{astro,ts,tsx}',
+    ],
+    ignores: [
+      'src/pages/api/_environment/environmentApi.ts',
+      'src/pages/api/_logger/index.ts',
     ],
     rules: {
-      'import/no-restricted-paths': [
+      'no-restricted-imports': [
         level,
         {
-          zones: [
+          patterns: [
             {
-              target: 'src/**/server/**/*',
-              from: 'src/components/scripts/**/*',
+              group: [
+                'src/components/scripts/**/*',
+                '@components/scripts/**/*',
+              ],
               message: 'The src/components/scripts directory is for client bundle code only.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: [
-      '**/*.astro',
-      '**/*.ts',
-      '**/*.tsx',
-    ],
-    rules: {
-      'import/no-restricted-paths': [
-        'off',
-        {
-          zones: [
-            {
-              target: 'src/**/client/**/*',
-              from: 'src/components/scripts/**/*',
             },
           ],
         },
@@ -677,36 +593,33 @@ export default [
     files: [
       'src/**/__tests__/**/*'
     ],
+    ignores: [
+      'src/components/scripts/utils/__tests__/siteUrlClient.spec.ts',
+    ],
     rules: {
-      'import/no-restricted-paths': [
+      'no-restricted-imports': [
         level,
         {
-          zones: [
+          paths: [
             {
-              target: 'src/**/__tests__/**/*',
-              from: 'src/components/scripts/utils/environmentClient.ts',
+              name: 'src/components/scripts/utils/environmentClient.ts',
               message: 'use src/lib/config/environmentServer.ts in test files, not environmentClient.',
             },
             {
-              target: 'src/**/__tests__/**/*',
-              from: 'src/components/scripts/utils/siteUrlClient.ts',
+              name: '@components/scripts/utils/environmentClient',
+              message: 'use src/lib/config/environmentServer.ts in test files, not environmentClient.',
+            },
+            {
+              name: 'src/components/scripts/utils/siteUrlClient.ts',
+              message: 'use src/lib/config/siteUrlServer.ts in test files, not siteUrlClient.',
+            },
+            {
+              name: '@components/scripts/utils/siteUrlClient',
               message: 'use src/lib/config/siteUrlServer.ts in test files, not siteUrlClient.',
             },
           ],
         },
       ],
-    },
-  },
-  {
-    files: [
-      /** Test case for the utility is an exception to the restricted paths rule */
-      'src/components/scripts/utils/__tests__/siteUrlClient.spec.ts',
-      /** Environment file in src/pages/api is an exception to the restricted paths rule */
-      'src/pages/api/_environment/environmentApi.ts',
-      'src/pages/api/_logger/index.ts',
-    ],
-    rules: {
-      'import/no-restricted-paths': 'off',
     },
   },
 
@@ -903,14 +816,6 @@ export default [
       'test/e2e/specs/14-system/package-release.spec.ts',
       'test/e2e/specs/14-system/privacy-policy-version.spec.ts',
     ],
-    rules: {
-      'import/extensions': 'off',
-    },
-  },
-  {
-    files: ['**/*.astro'],
-    rules: {
-      'import/extensions': 'off',
-    },
+    rules: {},
   },
 ]
