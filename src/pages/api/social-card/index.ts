@@ -1,18 +1,16 @@
 import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'
 import { generateOpenGraphImage } from 'astro-og-canvas'
-import { access, mkdir, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 
 export const prerender = false
 
 const ROUTE = '/api/social-card'
-const PUBLIC_AVATAR_PATH = '/assets/images/kevin-brown.webp'
-const CACHED_AVATAR_DIRECTORY = join(tmpdir(), 'webstackbuilders-social-cards')
-const CACHED_AVATAR_PATH = join(CACHED_AVATAR_DIRECTORY, 'kevin-brown.webp')
+const AVATAR_FILE_PATH = fileURLToPath(
+  new URL('../../../assets/images/avatars/kevin-brown.webp', import.meta.url)
+)
 const DEFAULT_TITLE = 'Platform Engineering by Kevin Brown'
 const DEFAULT_DESCRIPTION =
   'Platform engineer helping teams harden delivery, modernize cloud platforms, and improve developer experience.'
@@ -59,29 +57,6 @@ const gradientPalette: Record<PaletteKey, [number, number, number][]> = {
     [2, 6, 23],
     [15, 118, 110],
   ],
-}
-
-const getAvatarFilePath = async (requestUrl: string): Promise<string> => {
-  try {
-    await access(CACHED_AVATAR_PATH)
-    return CACHED_AVATAR_PATH
-  } catch {
-    // Cache miss; fetch from the public asset URL and persist locally for astro-og-canvas.
-  }
-
-  const avatarUrl = new URL(PUBLIC_AVATAR_PATH, requestUrl)
-  const response = await fetch(avatarUrl)
-
-  if (!response.ok) {
-    throw new Error(`Unable to fetch Kevin Brown avatar from ${avatarUrl.toString()}`)
-  }
-
-  const avatarBuffer = Buffer.from(await response.arrayBuffer())
-
-  await mkdir(CACHED_AVATAR_DIRECTORY, { recursive: true })
-  await writeFile(CACHED_AVATAR_PATH, avatarBuffer)
-
-  return CACHED_AVATAR_PATH
 }
 
 /** Normalize slug parameters to a consistent format */
@@ -147,7 +122,6 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
     const slug = normalizeSlug(url.searchParams.get('slug'))
     const titleOverride = url.searchParams.get('title')
     const descriptionOverride = url.searchParams.get('description')
-    const avatarPath = await getAvatarFilePath(request.url)
 
     const contentIndex = await buildContentIndex()
     const matchedEntry = contentIndex[slug]
@@ -167,7 +141,7 @@ export const GET: APIRoute = async ({ request, clientAddress, cookies }) => {
       bgGradient: gradientPalette[palette],
       padding: 80,
       logo: {
-        path: avatarPath,
+        path: AVATAR_FILE_PATH,
         size: [140, 140],
       },
       font: {
