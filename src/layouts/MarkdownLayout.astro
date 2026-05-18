@@ -75,6 +75,8 @@ const Components = {
 export interface Props {
   /** Author name */
   author?: string
+  /** Canonical URL path when it differs from the rendered page path */
+  canonicalPath?: string
   /** Raw Markdown content from "body" property on content collection */
   collectionItem:
     | CollectionEntry<'articles'>
@@ -115,6 +117,7 @@ export interface Props {
 
 const {
   author,
+  canonicalPath,
   collectionItem,
   contentClass = '',
   contentType = 'article',
@@ -145,6 +148,7 @@ const link = `https://www.webstackbuilders.com${path}`
 <BaseLayout
   pageTitle={pageTitle}
   pageDescription={description}
+  {...canonicalPath && { canonicalPath }}
   path={path}
   contentType={contentType}
   hideBreadcrumbsOnMobile={hideBreadcrumbsOnMobile}

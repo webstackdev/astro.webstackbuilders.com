@@ -27,6 +27,9 @@ export const createStructuredDataParams = (
   if (overrides.pageDescription !== undefined) {
     params.pageDescription = overrides.pageDescription
   }
+  if (overrides.canonicalPath !== undefined) {
+    params.canonicalPath = overrides.canonicalPath
+  }
   if (overrides.contentType !== undefined) {
     params.contentType = overrides.contentType
   }

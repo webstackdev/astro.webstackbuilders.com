@@ -8,6 +8,7 @@ import ContentLayout from '@components/Content/Layout/index.astro'
 
 export interface Props {
   article: CollectionEntry<'articles'>
+  canonicalPath?: string
 }
 
 /** Generate static paths for all articles */
@@ -15,13 +16,23 @@ export async function getStaticPaths() {
   const articleEntries = await getCollection('articles', ({ data }) => {
     return isDev() || data.isDraft !== true
   })
+
+  const deepDiveEntries = await getCollection('deepDives', ({ data }) => {
+    return isDev() || data.isDraft !== true
+  })
+
+  const deepDiveIds = new Set(deepDiveEntries.map(entry => entry.id))
+
   return articleEntries.map(article => ({
     params: { slug: article.id },
-    props: { article },
+    props: {
+      article,
+      canonicalPath: deepDiveIds.has(article.id) ? `/deep-dive/${article.id}` : undefined,
+    },
   }))
 }
 
-const { article } = Astro.props
+const { article, canonicalPath } = Astro.props
 const author = await getEntry(article.data.author)
 
 const articleBody = article.body ?? ''
@@ -31,6 +42,7 @@ const readingTime = article.data.readingTime ?? getReadingTimeLabel(articleBody)
 <ContentLayout
   author={author.data.name}
   article={article}
+  {...canonicalPath && { canonicalPath }}
   path={`/articles/${article.id}`}
   section="Articles"
   {...readingTime && { readingTime }}

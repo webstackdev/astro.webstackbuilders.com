@@ -12,12 +12,17 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 import { executeRender } from '@test/unit/helpers/litRuntime'
 
 const setOverlayPauseStateMock = vi.fn()
+const handleScriptErrorMock = vi.fn()
 
 vi.mock('@components/scripts/store', () => ({
   setOverlayPauseState: setOverlayPauseStateMock,
 }))
 
-const navigateMock = vi.fn()
+vi.mock('@components/scripts/errors/handler', () => ({
+  handleScriptError: handleScriptErrorMock,
+}))
+
+const navigateMock = vi.fn(() => Promise.resolve())
 const focusTrapMock = {
   activate: vi.fn(),
   deactivate: vi.fn(),
@@ -49,6 +54,8 @@ describe('NavigationElement web component behavior', () => {
   beforeEach(async () => {
     container = await AstroContainer.create()
     navigateMock.mockClear()
+    navigateMock.mockImplementation(() => Promise.resolve())
+    handleScriptErrorMock.mockClear()
     focusTrapMock.activate.mockClear()
     focusTrapMock.deactivate.mockClear()
     setOverlayPauseStateMock.mockClear()
@@ -135,6 +142,46 @@ describe('NavigationElement web component behavior', () => {
       }
       firstLink.click()
       expect(navigateMock).toHaveBeenCalledWith(firstLink.getAttribute('href'))
+    })
+  })
+
+  test('aborted view transition navigation rejections are ignored', async () => {
+    navigateMock.mockRejectedValueOnce(
+      Object.assign(new Error('Transition was aborted because of invalid state'), {
+        name: 'InvalidStateError',
+      })
+    )
+
+    await renderNavigation(async () => {
+      const firstLink = document.querySelector('.main-nav-menu a')
+      if (!isAnchorElement(firstLink)) {
+        throw new TestError('Navigation link not found')
+      }
+
+      firstLink.click()
+      await Promise.resolve()
+
+      expect(handleScriptErrorMock).not.toHaveBeenCalled()
+    })
+  })
+
+  test('unexpected navigation rejections are reported', async () => {
+    const navigationError = new Error('Navigation failed')
+    navigateMock.mockRejectedValueOnce(navigationError)
+
+    await renderNavigation(async () => {
+      const firstLink = document.querySelector('.main-nav-menu a')
+      if (!isAnchorElement(firstLink)) {
+        throw new TestError('Navigation link not found')
+      }
+
+      firstLink.click()
+      await Promise.resolve()
+
+      expect(handleScriptErrorMock).toHaveBeenCalledWith(navigationError, {
+        scriptName: 'NavigationElement',
+        operation: 'navigate',
+      })
     })
   })
 

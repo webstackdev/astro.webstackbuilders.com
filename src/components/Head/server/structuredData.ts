@@ -21,6 +21,7 @@ const ICON_PATH = '/icon-512.png'
 type ContentType = 'article' | 'website'
 
 export interface StructuredDataProps {
+  canonicalPath?: string
   path: string
   pageTitle: string
   pageDescription?: string
@@ -66,6 +67,7 @@ export const getSchemas = (params: StructuredDataParams): string[] => {
 const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
   const {
     astro,
+    canonicalPath,
     path,
     pageTitle,
     pageDescription,
@@ -95,7 +97,8 @@ const createSchemaContext = (params: StructuredDataParams): SchemaContext => {
 
   const site = resolveSiteUrl(astro)
   const normalizedPath = normalizePath(path)
-  const canonicalUrl = astro.url?.href ?? resolveRoute(normalizedPath, site)
+  const normalizedCanonicalPath = normalizePath(canonicalPath ?? normalizedPath)
+  const canonicalUrl = resolveRoute(normalizedCanonicalPath, site)
   const pageDescriptionFallback = pageDescription ?? companyContactData.description
   const socialImageUrl = getSocialImageLink(path, site)
 

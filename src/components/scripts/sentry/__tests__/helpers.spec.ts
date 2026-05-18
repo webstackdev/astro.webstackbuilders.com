@@ -250,6 +250,24 @@ const createConsentCheckpointClientErrorEvent = (): Parameters<typeof beforeSend
     },
   }) as unknown as Parameters<typeof beforeSendHandler>[0]
 
+const createAbortedViewTransitionErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    message: 'InvalidStateError: Transition was aborted because of invalid state',
+    exception: {
+      values: [
+        {
+          type: 'DOMException',
+          value: 'InvalidStateError: Transition was aborted because of invalid state',
+          mechanism: {
+            type: 'auto.browser.global_handlers.onunhandledrejection',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
 const createHint = (): Parameters<typeof beforeSendHandler>[1] =>
   ({}) as Parameters<typeof beforeSendHandler>[1]
 
@@ -414,6 +432,17 @@ describe('sentry helpers', () => {
       getConsentSnapshotMock.mockReturnValue({ analytics: true })
 
       const event = createConsentCheckpointClientErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops aborted Astro view transition rejection noise', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createAbortedViewTransitionErrorEvent()
 
       const result = beforeSendHandler(event, createHint())
 

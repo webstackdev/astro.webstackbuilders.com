@@ -5,6 +5,8 @@ import ThemeInit from '@components/Head/ThemeInit.astro'
 export interface Props {
   /** Author name */
   author?: string
+  /** Canonical URL path when it differs from the rendered page path */
+  canonicalPath?: string
   /** Content type for OpenGraph metadata */
   contentType?: 'article' | 'website'
   /** Meta description */
@@ -27,6 +29,7 @@ export interface Props {
 
 const {
   author,
+  canonicalPath,
   contentType,
   pageDescription,
   modifiedDate,
@@ -48,6 +51,7 @@ const {
 <Meta
   pageTitle={pageTitle}
   path={path}
+  {...canonicalPath && { canonicalPath }}
   {...pageDescription && { pageDescription }}
   {...noindex && { noindex }}
   {...contentType && { contentType }}

@@ -4,6 +4,8 @@ import { getConsentSnapshot } from '@components/scripts/store/consent'
 
 type BeforeSendHandler = NonNullable<BrowserOptions['beforeSend']>
 
+const ABORTED_VIEW_TRANSITION_MESSAGE = 'Transition was aborted because of invalid state'
+
 const SAFE_BREADCRUMB_CATEGORIES = new Set(['script', 'sentry.event'])
 
 const isConsentActionRequest = (requestUrl: string): boolean => {
@@ -196,6 +198,22 @@ const isHandledConsentCheckpointClientError = (
   )
 }
 
+const isHandledAbortedViewTransitionError = (
+  event: Parameters<BeforeSendHandler>[0]
+): boolean => {
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorType = exception?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  return (
+    mechanismType === 'auto.browser.global_handlers.onunhandledrejection' &&
+    errorType === 'DOMException' &&
+    typeof errorMessage === 'string' &&
+    errorMessage.includes(ABORTED_VIEW_TRANSITION_MESSAGE)
+  )
+}
+
 function scrubBreadcrumbs(
   breadcrumbs: NonNullable<Parameters<BeforeSendHandler>[0]['breadcrumbs']>
 ) {
@@ -279,6 +297,13 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
   // If a consent checkpoint response is wrapped into a handled client error,
   // drop that duplicate event as the action itself is already filtered.
   if (isHandledConsentCheckpointClientError(event)) {
+    return null
+  }
+
+  // Astro view transitions can abort an in-flight navigation when a newer
+  // navigation supersedes it. The browser surfaces that as an unhandled
+  // DOMException rejection with no user-visible failure, so drop it as noise.
+  if (isHandledAbortedViewTransitionError(event)) {
     return null
   }
 

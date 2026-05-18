@@ -19,6 +19,8 @@ export type Props = {
   author: string
   /** Content collection entry */
   article: CollectionEntry<'articles'> | CollectionEntry<'deepDives'>
+  /** Canonical URL path when it differs from the rendered page path */
+  canonicalPath?: string
   /** Canonical URL path, e.g. '/articles/my-slug' */
   path: string
   /** Estimated reading time label */
@@ -27,11 +29,12 @@ export type Props = {
   section: string
 }
 
-const { author, article, path, readingTime, section } = Astro.props
+const { author, article, canonicalPath, path, readingTime, section } = Astro.props
 ---
 
 <MarkdownLayout
   author={author}
+  {...canonicalPath && { canonicalPath }}
   collectionItem={article}
   contentType="article"
   description={article.data.description}
