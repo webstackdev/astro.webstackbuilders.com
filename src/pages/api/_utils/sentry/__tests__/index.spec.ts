@@ -9,6 +9,7 @@ const envMocks = vi.hoisted(() => ({
   getSentryDsn: vi.fn(() => 'https://public@example.ingest.sentry.io/1'),
   getPackageRelease: vi.fn(() => 'pkg@1.0.0'),
 }))
+const consoleErrorMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@sentry/astro', () => ({
   init: sentryInitMock,
@@ -16,12 +17,21 @@ vi.mock('@sentry/astro', () => ({
 
 vi.mock('@pages/api/_utils/environment', () => envMocks)
 
+vi.stubGlobal('console', {
+  ...console,
+  error: consoleErrorMock,
+})
+
 describe('ensureApiSentry', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.clearAllMocks()
     envMocks.isProd.mockReset()
     envMocks.isProd.mockReturnValue(false)
+    envMocks.getSentryDsn.mockReset()
+    envMocks.getSentryDsn.mockReturnValue('https://public@example.ingest.sentry.io/1')
+    envMocks.getPackageRelease.mockReset()
+    envMocks.getPackageRelease.mockReturnValue('pkg@1.0.0')
   })
 
   it('skips initialization outside production', async () => {
@@ -63,5 +73,23 @@ describe('ensureApiSentry', () => {
 
     module.ensureApiSentry()
     expect(sentryInitMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('fails open when production Sentry config is unavailable', async () => {
+    envMocks.isProd.mockReturnValue(true)
+    envMocks.getSentryDsn.mockImplementation(() => {
+      throw new Error('missing dsn')
+    })
+
+    const module = await import('@pages/api/_utils/sentry')
+
+    expect(sentryInitMock).not.toHaveBeenCalled()
+    expect(consoleErrorMock).toHaveBeenCalledWith(
+      '[api] failed to initialize Sentry; continuing without telemetry',
+      expect.any(Error)
+    )
+
+    module.ensureApiSentry()
+    expect(sentryInitMock).not.toHaveBeenCalled()
   })
 })

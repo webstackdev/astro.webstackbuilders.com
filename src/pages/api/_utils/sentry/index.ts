@@ -8,23 +8,27 @@ export function ensureApiSentry(): void {
     return
   }
 
-  sentryInit({
-    dsn: getSentryDsn(),
-    release: getPackageRelease(),
-    environment: 'production',
-    tracesSampleRate: 1.0,
-    sendDefaultPii: false,
-    attachStacktrace: true,
-    maxBreadcrumbs: 100,
-    beforeSend(event) {
-      if (!isProd()) {
-        return null
-      }
-      return event
-    },
-  })
+  try {
+    sentryInit({
+      dsn: getSentryDsn(),
+      release: getPackageRelease(),
+      environment: 'production',
+      tracesSampleRate: 1.0,
+      sendDefaultPii: false,
+      attachStacktrace: true,
+      maxBreadcrumbs: 100,
+      beforeSend(event) {
+        if (!isProd()) {
+          return null
+        }
+        return event
+      },
+    })
 
-  initialized = true
+    initialized = true
+  } catch (error) {
+    console.error('[api] failed to initialize Sentry; continuing without telemetry', error)
+  }
 }
 
 ensureApiSentry()
