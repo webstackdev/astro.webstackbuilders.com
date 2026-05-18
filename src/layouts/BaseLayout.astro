@@ -25,6 +25,8 @@ export interface Props {
   author?: string
   /** Optional title override for the breadcrumbs UI */
   breadcrumbTitle?: string
+  /** Canonical URL path when it differs from the rendered page path */
+  canonicalPath?: string
   /** Hide breadcrumbs on mobile viewports (sm and below) */
   hideBreadcrumbsOnMobile?: boolean
   /** Enforce that child is passed to slot */
@@ -57,6 +59,7 @@ export interface Props {
 const {
   author,
   breadcrumbTitle,
+  canonicalPath,
   contentType,
   pageDescription,
   hideBreadcrumbsOnMobile = false,
@@ -118,6 +121,7 @@ applyRenderSentryContext({
     <head>
       <HeadContent
         pageTitle={pageTitle}
+        {...canonicalPath && { canonicalPath }}
         path={path}
         pageDescription={pageDescription}
         {...noindex && { noindex }}

@@ -35,6 +35,20 @@ export const ATTRIBUTES = {
   navOpen: 'data-nav-open',
 }
 
+const ABORTED_VIEW_TRANSITION_MESSAGE = 'Transition was aborted because of invalid state'
+
+const isAbortedViewTransitionError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) {
+    return false
+  }
+
+  return (
+    error.name === 'InvalidStateError' &&
+    typeof error.message === 'string' &&
+    error.message.includes(ABORTED_VIEW_TRANSITION_MESSAGE)
+  )
+}
+
 export class NavigationElement extends LitElement {
   static registeredName = 'site-navigation'
 
@@ -201,7 +215,16 @@ export class NavigationElement extends LitElement {
               this.toggleMenu(false)
             }
 
-            navigate(href)
+            void navigate(href).catch(error => {
+              if (isAbortedViewTransitionError(error)) {
+                return
+              }
+
+              handleScriptError(error, {
+                scriptName: SCRIPT_NAME,
+                operation: 'navigate',
+              })
+            })
           })
         } catch (error) {
           handleScriptError(error, {

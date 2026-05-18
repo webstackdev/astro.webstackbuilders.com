@@ -11,6 +11,8 @@ import StructuredData from '@components/Head/StructuredData.astro'
 export interface Props {
   /** Author name */
   author?: string
+  /** Canonical URL path when it differs from the rendered page path */
+  canonicalPath?: string
   /** Content type for OpenGraph metadata */
   contentType?: 'article' | 'website'
   /** Meta description */
@@ -33,6 +35,7 @@ export interface Props {
 
 const {
   author,
+  canonicalPath,
   contentType,
   pageDescription,
   modifiedDate,
@@ -46,6 +49,7 @@ const {
 
 const defaultTheme = getMetaThemeData()
 const site = resolveSiteUrl(Astro)
+const canonicalUrl = absoluteUrl(canonicalPath ?? path, site)
 
 applyRenderSentryContext({
   contextName: 'headMeta',
@@ -61,7 +65,7 @@ applyRenderSentryContext({
     noindex,
     contentType,
     pageDescriptionLength: (pageDescription || companyContactData.description).length,
-    canonicalUrl: Astro.url?.href,
+    canonicalUrl,
     resolvedSiteUrl: site,
   },
 })
@@ -91,6 +95,7 @@ applyRenderSentryContext({
 <StructuredData
   path={path}
   pageTitle={pageTitle}
+  {...canonicalPath && { canonicalPath }}
   {...pageDescription && { pageDescription }}
   {...contentType && { contentType }}
   {...publishDate && { publishDate }}
@@ -127,6 +132,6 @@ applyRenderSentryContext({
 {/* Webmentions */}
 <link rel="pingback" href={`https://webmention.io/www.webstackbuilders.com/xmlrpc`} />
 <link rel="webmention" href={`https://webmention.io/www.webstackbuilders.com/webmention`} />
-<link rel="canonical" href={Astro.url.href} />
+<link rel="canonical" href={canonicalUrl} />
 {/* Sitemap */}
 <link rel="sitemap" href="/sitemap-index.xml" />

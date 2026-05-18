@@ -68,7 +68,7 @@ const seedCollections = () => {
 
 describe('Social Card API - GET /api/social-card', () => {
   const expectedAvatarPath = fileURLToPath(
-    new URL('../../../../assets/images/avatars/kevin-brown.webp', import.meta.url)
+    new URL('../../../../../public/assets/images/kevin-brown.webp', import.meta.url)
   )
 
   beforeEach(() => {

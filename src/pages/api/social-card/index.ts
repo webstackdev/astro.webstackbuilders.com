@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'
 import { generateOpenGraphImage } from 'astro-og-canvas'
+import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { buildApiErrorResponse, handleApiFunctionError } from '@pages/api/_utils/errors'
 import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
@@ -8,9 +9,28 @@ import { createApiFunctionContext } from '@pages/api/_utils/requestContext'
 export const prerender = false
 
 const ROUTE = '/api/social-card'
-const AVATAR_FILE_PATH = fileURLToPath(
-  new URL('../../../assets/images/avatars/kevin-brown.webp', import.meta.url)
-)
+
+const resolveAvatarFilePath = (): string => {
+  const candidateUrls = [
+    // Vercel serverless output after build.
+    new URL('../../static/assets/images/kevin-brown.webp', import.meta.url),
+    // Local source path for dev and test runs.
+    new URL('../../../../public/assets/images/kevin-brown.webp', import.meta.url),
+    // Legacy source asset path kept as a final fallback.
+    new URL('../../../assets/images/avatars/kevin-brown.webp', import.meta.url),
+  ]
+
+  for (const candidateUrl of candidateUrls) {
+    const filePath = fileURLToPath(candidateUrl)
+    if (existsSync(filePath)) {
+      return filePath
+    }
+  }
+
+  throw new Error('Social card avatar asset could not be resolved for the current runtime')
+}
+
+const AVATAR_FILE_PATH = resolveAvatarFilePath()
 const DEFAULT_TITLE = 'Platform Engineering by Kevin Brown'
 const DEFAULT_DESCRIPTION =
   'Platform engineer helping teams harden delivery, modernize cloud platforms, and improve developer experience.'

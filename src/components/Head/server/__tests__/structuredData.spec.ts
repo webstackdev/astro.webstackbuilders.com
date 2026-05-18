@@ -35,6 +35,26 @@ describe('getSchemas', () => {
     expect(contactPage?.url).toBe('https://www.webstackbuilders.com/contact')
   })
 
+  it('uses canonicalPath for article schema urls while keeping breadcrumbs on the rendered path', () => {
+    const schemas = getSchemas(
+      createStructuredDataParams({
+        path: '/articles/example-article',
+        canonicalPath: '/deep-dive/example-article',
+        contentType: 'article',
+        publishDate: new Date('2026-01-01T00:00:00.000Z'),
+      })
+    )
+
+    const parsed = schemas.map(schema => JSON.parse(schema))
+    const article = parsed.find(schema => schema['@type'] === 'Article')
+    const breadcrumbs = parsed.find(schema => schema['@type'] === 'BreadcrumbList')
+
+    expect(article?.url).toBe('https://www.webstackbuilders.com/deep-dive/example-article')
+    expect(breadcrumbs?.itemListElement?.[1]?.item).toBe(
+      'https://www.webstackbuilders.com/articles'
+    )
+  })
+
   it('wraps serialization failures in a BuildError', () => {
     const stringifySpy = vi.spyOn(JSON, 'stringify').mockImplementationOnce(() => {
       throw new TypeError('circular structure')
