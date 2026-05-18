@@ -97,7 +97,7 @@ export const buildServiceWorkerScript = (): string => {
   ].join('\n')
 }
 
-export const GET: APIRoute = () => {
+export const GET: APIRoute = _context => {
   return new Response(buildServiceWorkerScript(), {
     headers: {
       'Content-Type': 'application/javascript; charset=utf-8',

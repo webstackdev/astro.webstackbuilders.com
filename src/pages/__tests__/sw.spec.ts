@@ -7,7 +7,7 @@ describe('/sw.js route', () => {
   })
 
   it('returns a JavaScript service worker response', async () => {
-    const response = await GET()
+    const response = await GET({} as Parameters<typeof GET>[0])
 
     expect(response.status).toBe(200)
     expect(response.headers.get('Content-Type')).toBe('application/javascript; charset=utf-8')
