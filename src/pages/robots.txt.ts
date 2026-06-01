@@ -4,9 +4,6 @@ const getRobotsTxt = (sitemapURL: URL) => `\
 User-agent: *
 Allow: /
 Disallow: /downloads/
-Disallow: /articles$
-Disallow: /case-studies$
-Disallow: /deep-dive$
 Disallow: /offline
 Disallow: /print
 Disallow: /search
