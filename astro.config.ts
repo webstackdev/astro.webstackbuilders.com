@@ -35,6 +35,7 @@ import { testimonialsLengthWarning } from './src/integrations/TestimonialsLength
 import { fixContentAssetPropagation } from './src/lib/plugins/fixContentAssetPropagation'
 import { pwaDevAssetServer } from './src/lib/plugins/pwaDevAssetServer'
 import { createSerializeFunction, pagesJsonWriter } from './src/integrations/sitemapSerialize'
+import { getDeepDiveArticleAliasPaths } from './src/integrations/sitemapSerialize/deepDiveAliases'
 
 // Ensure Vite's HMR websocket connects through the same exposed dev server port used by Astro.
 const devServerPort = Number(process.env['DEV_SERVER_PORT'] ?? 4321)
@@ -44,6 +45,7 @@ const shouldEnableSentryIntegration = Boolean(sentryAuthToken)
 const sentryReleaseName = getPackageRelease()
 const astroEnvConfig = environmentalVariablesConfig as NonNullable<AstroUserConfig['env']>
 const astroMarkdownConfig = markdownConfig as unknown as NonNullable<AstroUserConfig['markdown']>
+const deepDiveArticleAliasPaths = getDeepDiveArticleAliasPaths()
 
 const shouldSuppressViteWarning = (message: string): boolean => {
   return (
@@ -104,7 +106,18 @@ const standardIntegrations = [
   })] : []),
   sitemap({
     serialize: createSerializeFunction({
-      exclude: ['deep-dive', 'downloads', 'print', '/articles/demo', 'testing', 'hero', 'links'],
+      exclude: [
+        'downloads',
+        'offline',
+        'print',
+        '/articles/demo',
+        'search',
+        'tags',
+        'testing',
+        'hero',
+        'links',
+        ...deepDiveArticleAliasPaths,
+      ],
     }),
   }),
   /**
