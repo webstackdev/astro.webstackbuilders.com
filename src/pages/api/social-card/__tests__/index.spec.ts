@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET } from '@pages/api/social-card'
-import { fileURLToPath } from 'node:url'
 
 type CollectionFixture = Array<{
   id: string
@@ -30,9 +29,14 @@ vi.mock('astro:content', () => ({
   }),
 }))
 
-vi.mock('astro-og-canvas', () => ({
-  generateOpenGraphImage: generateOpenGraphImageMock,
-}))
+vi.mock('@pages/api/social-card/_lib', async importOriginal => {
+  const actual = await importOriginal<typeof import('@pages/api/social-card/_lib')>()
+
+  return {
+    ...actual,
+    generateOpenGraphImage: generateOpenGraphImageMock,
+  }
+})
 
 const buildRequest = (url: string) =>
   GET({
@@ -67,9 +71,7 @@ const seedCollections = () => {
 }
 
 describe('Social Card API - GET /api/social-card', () => {
-  const expectedAvatarPath = fileURLToPath(
-    new URL('../../../../../public/assets/images/kevin-brown.webp', import.meta.url)
-  )
+  const expectedAvatarUrl = 'http://localhost/assets/images/kevin-brown.webp'
 
   beforeEach(() => {
     generateOpenGraphImageMock.mockReset()
@@ -88,9 +90,7 @@ describe('Social Card API - GET /api/social-card', () => {
       expect.objectContaining({
         title: 'Sample Article',
         description: 'Article Description',
-        logo: expect.objectContaining({
-          size: [140, 140],
-        }),
+        avatarUrl: expectedAvatarUrl,
       })
     )
 
@@ -130,9 +130,7 @@ describe('Social Card API - GET /api/social-card', () => {
 
     expect(generateOpenGraphImageMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        logo: expect.objectContaining({
-          path: expectedAvatarPath,
-        }),
+        avatarUrl: expectedAvatarUrl,
       })
     )
   })
