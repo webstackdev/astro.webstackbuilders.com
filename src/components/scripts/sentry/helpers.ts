@@ -214,6 +214,16 @@ const isHandledAbortedViewTransitionError = (
   )
 }
 
+const isFailedToFetchError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const exception = event.exception?.values?.[0]
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  return (
+    typeof errorMessage === 'string' &&
+    errorMessage.includes('Failed to fetch')
+  )
+}
+
 function scrubBreadcrumbs(
   breadcrumbs: NonNullable<Parameters<BeforeSendHandler>[0]['breadcrumbs']>
 ) {
@@ -304,6 +314,12 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
   // navigation supersedes it. The browser surfaces that as an unhandled
   // DOMException rejection with no user-visible failure, so drop it as noise.
   if (isHandledAbortedViewTransitionError(event)) {
+    return null
+  }
+
+  // "Failed to fetch" usually indicates a browser networking issue (like offline mode
+  // or blocked requests / CORS), which we usually handle in the UI and adds noise to Sentry.
+  if (isFailedToFetchError(event)) {
     return null
   }
 
