@@ -1,6 +1,8 @@
 import type { VercelServerlessConfig } from '@astrojs/vercel'
 
 export const vercelConfig: VercelServerlessConfig = {
+  /** Keep CanvasKit's wasm payload available to the social-card API in serverless output. */
+  includeFiles: ['node_modules/canvaskit-wasm/bin/full/canvaskit.wasm'],
   /** Whether to use Vercel's image service */
   //imageService: true,
   /** Image service used to optimize images in dev environment */
