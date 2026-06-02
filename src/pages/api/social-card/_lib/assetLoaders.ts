@@ -66,16 +66,12 @@ class FontManager {
       hasNew = true
 
       try {
-        const fontFile = await fs.readFile(fontPath)
-        const fontData = fontFile.buffer.slice(
-          fontFile.byteOffset,
-          fontFile.byteOffset + fontFile.byteLength
-        )
+        const fontData = await loadFont(fontPath)
         this.#cache.set(fontPath, fontData)
       } catch (cause) {
         throw new SocialCardGenerationError(
           'load-fonts',
-          'Failed to load a local font file for social card generation',
+          'Failed to load a font asset for social card generation',
           {
             fontPath,
           },
@@ -91,6 +87,27 @@ class FontManager {
 export const fontManager = new FontManager()
 
 const imageCache = new Map<string, Buffer>()
+
+const isHttpUrl = (value: string): boolean => /^https?:\/\//.test(value)
+
+const loadFont = async (fontPath: string): Promise<ArrayBuffer> => {
+  if (isHttpUrl(fontPath)) {
+    const response = await fetch(fontPath)
+
+    if (!response.ok) {
+      throw new SocialCardGenerationError('load-fonts', 'Failed to fetch a social card font asset', {
+        fontPath,
+        status: response.status,
+        statusText: response.statusText,
+      })
+    }
+
+    return await response.arrayBuffer()
+  }
+
+  const fontFile = await fs.readFile(fontPath)
+  return fontFile.buffer.slice(fontFile.byteOffset, fontFile.byteOffset + fontFile.byteLength)
+}
 
 export const loadImage = async (imageUrl: string): Promise<Buffer> => {
   const cachedImage = imageCache.get(imageUrl)
