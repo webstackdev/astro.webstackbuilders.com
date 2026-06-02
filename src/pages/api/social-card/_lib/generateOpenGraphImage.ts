@@ -1,6 +1,4 @@
 import { Buffer } from 'node:buffer'
-import { existsSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 import { decodeHTMLStrict } from 'entities'
 import { getCanvasKit, fontManager, loadImage } from './assetLoaders'
 import { SocialCardGenerationError } from './SocialCardGenerationError'
@@ -35,8 +33,8 @@ export async function generateOpenGraphImage({
   bgGradient = defaultGradient,
   avatarUrl,
 }: SocialCardImageOptions): Promise<Buffer> {
-  const { titleFontPath, descriptionFontPath } = resolveFontPaths()
-  const fontMgr = await fontManager.get([titleFontPath, descriptionFontPath])
+  const { titleFontUrl, descriptionFontUrl } = resolveFontUrls(avatarUrl)
+  const fontMgr = await fontManager.get([titleFontUrl, descriptionFontUrl])
   const avatarBuffer = await loadImage(avatarUrl)
   const CanvasKit = await getCanvasKit()
   const surface = CanvasKit.MakeSurface(width, height)
@@ -185,40 +183,51 @@ const buildTextStyle = (
   heightMultiplier: style.lineHeight,
 })
 
-const resolveFontPaths = (): { descriptionFontPath: string; titleFontPath: string } => ({
-  titleFontPath: resolveLocalAssetPath(
+const resolveFontUrls = (
+  assetBaseUrl: string
+): { descriptionFontUrl: string; titleFontUrl: string } => ({
+  titleFontUrl: resolvePublicAssetUrl(
     'resolve-title-font',
-    [
-      new URL('../../../../../public/fonts/Serif-Lora/Lora-Bold.ttf', import.meta.url),
-      new URL('../../../../../public/fonts/Lora-Bold.ttf', import.meta.url),
-    ],
+    ['/fonts/Serif-Lora/Lora-Bold.ttf'],
+    assetBaseUrl,
     'title font'
   ),
-  descriptionFontPath: resolveLocalAssetPath(
+  descriptionFontUrl: resolvePublicAssetUrl(
     'resolve-description-font',
-    [
-      new URL('../../../../../public/fonts/Serif-Lora/Lora-Regular.ttf', import.meta.url),
-      new URL('../../../../../public/fonts/Lora-Regular.ttf', import.meta.url),
-    ],
+    ['/fonts/Serif-Lora/Lora-Regular.ttf'],
+    assetBaseUrl,
     'description font'
   ),
 })
 
-const resolveLocalAssetPath = (
+const resolvePublicAssetUrl = (
   stage: 'resolve-description-font' | 'resolve-title-font',
-  candidateUrls: URL[],
+  candidatePaths: string[],
+  assetBaseUrl: string,
   label: string
 ): string => {
-  const candidatePaths = candidateUrls.map(candidateUrl => fileURLToPath(candidateUrl))
+  try {
+    const baseUrl = new URL(assetBaseUrl)
+    const candidateUrls = candidatePaths.map(candidatePath => new URL(candidatePath, baseUrl).toString())
+    const [resolvedUrl] = candidateUrls
 
-  for (const candidatePath of candidatePaths) {
-    if (existsSync(candidatePath)) {
-      return candidatePath
+    if (!resolvedUrl) {
+      throw new SocialCardGenerationError(stage, `Social card ${label} could not be resolved`, {
+        candidatePaths,
+        label,
+      })
     }
-  }
 
-  throw new SocialCardGenerationError(stage, `Social card ${label} could not be resolved`, {
-    candidatePaths,
-    label,
-  })
+    return resolvedUrl
+  } catch (cause) {
+    if (cause instanceof SocialCardGenerationError) {
+      throw cause
+    }
+
+    throw new SocialCardGenerationError(stage, `Social card ${label} could not be resolved`, {
+      candidatePaths,
+      label,
+      assetBaseUrl,
+    }, { cause })
+  }
 }
