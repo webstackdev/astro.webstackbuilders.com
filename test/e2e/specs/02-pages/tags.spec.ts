@@ -21,8 +21,8 @@ test.describe('Tags Index Page', () => {
   test('@ready tag counts display', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/tags')
-    // Each tag carousel should render at least one article card link
-    await page.expectElementVisible('a[href^="/articles/"]')
+    // Each tag carousel should render at least one deep-dive card link
+    await page.expectElementVisible('a[href^="/deep-dive/"]')
   })
 
   test('@ready responsive: mobile view renders correctly', async ({ page: playwrightPage }) => {
