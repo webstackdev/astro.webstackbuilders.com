@@ -13,7 +13,7 @@ const toCategory = (tag: unknown) => {
 export async function GET() {
   const now = new Date()
   const articles = await getCollection(
-    'articles',
+    'deepDives',
     ({ data }) => !data.isDraft && data.publishDate <= now
   )
   const sortedArticles = articles.sort(
@@ -34,7 +34,7 @@ export async function GET() {
       title: article.data.title,
       pubDate: article.data.publishDate,
       description: article.data.description,
-      link: `/articles/${article.id}`,
+      link: `/deep-dive/${article.id}`,
       categories: (article.data.tags ?? [])
         .map(toCategory)
         .filter((category): category is string => Boolean(category)),

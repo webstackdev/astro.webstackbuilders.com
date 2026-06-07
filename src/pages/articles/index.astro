@@ -7,20 +7,20 @@ import PageLayout from '@layouts/PageLayout.astro'
 import Carousel from '@components/Carousel/index.astro'
 import Icon from '@components/Icon/index.astro'
 
-const allArticles = await getCollection('articles', ({ data }) => isDev() || data.isDraft !== true)
+const allDeepDives = await getCollection('deepDives', ({ data }) => isDev() || data.isDraft !== true)
 
 const allTags = await getCollection('tags')
 const featuredTags = allTags.filter(tag => tag.data.featured === true)
 
-const getArticlesForTag = (tagEntry: CollectionEntry<'tags'>) => {
-  return allArticles.filter(article => {
-    return article.data.tags.some(tagRef => tagRef.id === tagEntry.id)
+const getDeepDivesForTag = (tagEntry: CollectionEntry<'tags'>) => {
+  return allDeepDives.filter(article => {
+    return (article.data.tags as Array<{ id: string }>).some(tagRef => tagRef.id === tagEntry.id)
   })
 }
 
-const tagsWithContent = featuredTags.filter(tag => getArticlesForTag(tag).length > 0)
+const tagsWithContent = featuredTags.filter(tag => getDeepDivesForTag(tag).length > 0)
 
-const tagsWithNoContent = allTags.filter(tag => getArticlesForTag(tag).length === 0)
+const tagsWithNoContent = allTags.filter(tag => getDeepDivesForTag(tag).length === 0)
 
 for (const tag of tagsWithNoContent) {
   console.warn(
@@ -29,7 +29,7 @@ for (const tag of tagsWithNoContent) {
 }
 
 const pageTitle = 'Technical Index'
-const pageDescription = 'Browse documentation and guides structured by specific topics'
+const pageDescription = 'Browse technical deep dives structured by specific topics'
 const path = '/articles'
 ---
 
@@ -46,8 +46,8 @@ const path = '/articles'
           .sort((a, b) => a.data.displayName.localeCompare(b.data.displayName, 'en'))
           .map(tag => {
             const displayName = tag.data.displayName
-            const articlesForTag = getArticlesForTag(tag)
-            const latestDate = articlesForTag
+            const deepDivesForTag = getDeepDivesForTag(tag)
+            const latestDate = deepDivesForTag
               .map(a => a.data.publishDate)
               .sort((a, b) => b.getTime() - a.getTime())[0]
             const latestFormatted = latestDate
@@ -76,7 +76,7 @@ const path = '/articles'
                           {displayName}
                         </h2>
                         <span class="shrink-0 rounded-full bg-page-inverse px-2 py-0.5 sm:ml-1 text-xs font-medium text-page-base whitespace-nowrap transition-colors group-hover:bg-page-active group-hover:text-page-base">
-                          {articlesForTag.length} articles
+                          {deepDivesForTag.length} deep dives
                         </span>
                       </div>
                     </div>
@@ -96,9 +96,9 @@ const path = '/articles'
 
                 <Carousel
                   variant="suggested"
-                  limit={articlesForTag.length}
-                  type="articles"
-                  items={articlesForTag}
+                  limit={deepDivesForTag.length}
+                  type="deep-dive"
+                  items={deepDivesForTag}
                   showEmblaDots={false}
                   showReadMore={false}
                 />
