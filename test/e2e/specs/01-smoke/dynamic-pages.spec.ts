@@ -6,7 +6,7 @@
 import { BasePage, test, expect, setupConsoleErrorChecker, logConsoleErrors } from '@test/e2e/helpers'
 import { wait } from '@test/e2e/helpers/waitTimeouts'
 
-const articleLinkSelector = 'a[href*="/articles/"]'
+const articleLinkSelector = 'a[href*="/deep-dive/"]'
 const serviceLinkSelector = 'a[href^="/services/"]:not([href="/services/"])'
 const caseStudyLinkSelector = 'a[href*="/case-studies/"]'
 
@@ -54,8 +54,8 @@ test.describe('Dynamic Pages @smoke', () => {
     await expect(page.locator('main#main')).toBeVisible()
     await expect(page.locator('h1[id="article-title"]')).toBeVisible()
 
-    // Verify we're on an article page (URL should match pattern)
-    expect(page.getCurrentUrl()).toMatch(/\/articles\/.+/)
+    // Verify we're on a deep-dive detail page from the articles listing
+    expect(page.getCurrentUrl()).toMatch(/\/deep-dive\/.+/)
   })
 
   test('@ready service detail page loads', async ({ page: playwrightPage }) => {

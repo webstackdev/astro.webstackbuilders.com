@@ -119,3 +119,18 @@ npm run lint          # full lint suite
 ## Tech Stack
 
 Astro, TypeScript, Lit, Tailwind CSS, Turso (libSQL), Sentry, Vercel, Playwright, Vitest, MJML, Workbox, GitHub Actions
+
+test/e2e/specs/02-pages/tags.spec.ts
+test/e2e/specs/03-forms/newsletter-subscription.spec.ts
+test/e2e/specs/04-components/breadcrumbs.spec.ts
+test/e2e/specs/04-components/carousel.spec.ts
+test/e2e/specs/04-components/diagram.spec.ts
+test/e2e/specs/04-components/markdown.spec.ts
+test/e2e/specs/04-components/newsletter-confirm.spec.ts
+test/e2e/specs/04-components/theme-picker.spec.ts
+test/e2e/specs/07-metadata/open-graph.spec.ts
+test/e2e/specs/07-metadata/seo-tags.spec.ts
+test/e2e/specs/07-metadata/structured-data.spec.ts
+test/e2e/specs/11-accessibility/aria-screen-readers.spec.ts
+test/e2e/specs/11-accessibility/axe.spec.ts
+test/e2e/specs/11-accessibility/high-contrast-wcag-compliance.spec.ts

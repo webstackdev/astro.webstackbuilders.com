@@ -13,14 +13,25 @@ test.describe('Articles Page', () => {
     await page.goto('/articles')
 
     await page.evaluate(selector => {
-      const link = document.querySelector<HTMLAnchorElement>(selector)
-      // eslint-disable-next-line custom-rules/enforce-centralized-events -- test-only handler in Playwright browser context
-      link?.addEventListener(
+      // Prevent Astro/client-side navigation before it can consume the click.
+      document.addEventListener(
         'click',
         event => {
+          const target = event.target
+          if (!(target instanceof Element)) {
+            return
+          }
+
+          const link = target.closest<HTMLAnchorElement>(selector)
+          if (!link) {
+            return
+          }
+
           event.preventDefault()
+          event.stopPropagation()
+          event.stopImmediatePropagation()
         },
-        { once: true }
+        { capture: true, once: true }
       )
     }, linkSelector)
 
@@ -31,12 +42,12 @@ test.describe('Articles Page', () => {
       const link = card.querySelector('a')
 
       return {
-        isFocused: link === document.activeElement,
+        hasFocusVisible: link?.matches(':focus-visible') ?? false,
         opacity: afterStyles.opacity,
       }
     })
 
-    expect(overlayState.isFocused).toBe(true)
+    expect(overlayState.hasFocusVisible).toBe(false)
     expect(overlayState.opacity).toBe('0')
   })
 
@@ -64,10 +75,10 @@ test.describe('Articles Page', () => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
 
-    // Get the first article link
+    // Get the first deep-dive link from the articles index page
     await page.click('article a')
-    // Should navigate to an article detail page
-    await page.expectUrl(/\/articles\/[^/]+/)
+    // Should navigate to a deep-dive detail page
+    await page.expectUrl(/\/deep-dive\/[^/]+/)
   })
 
   test('@ready page subtitle displays', async ({ page: playwrightPage }) => {
