@@ -21,6 +21,8 @@ export type Props = {
   article: CollectionEntry<'articles'> | CollectionEntry<'deepDives'>
   /** Canonical URL path when it differs from the rendered page path */
   canonicalPath?: string
+  /** Explicit robots meta content when the page needs non-default indexing behavior */
+  robotsContent?: string
   /** Canonical URL path, e.g. '/articles/my-slug' */
   path: string
   /** Estimated reading time label */
@@ -29,7 +31,8 @@ export type Props = {
   section: string
 }
 
-const { author, article, canonicalPath, path, readingTime, section } = Astro.props
+const { author, article, canonicalPath, path, readingTime, robotsContent, section } = Astro.props
+const relatedContentType = path.startsWith('/deep-dive/') || canonicalPath ? 'deep-dive' : 'articles'
 ---
 
 <MarkdownLayout
@@ -41,12 +44,17 @@ const { author, article, canonicalPath, path, readingTime, section } = Astro.pro
   hideBreadcrumbsOnMobile={true}
   pageTitle={article.data.title}
   path={path}
+  {...robotsContent && { robotsContent }}
   publishDate={article.data.publishDate}
   {...article.data.modifiedDate && { modifiedDate: article.data.modifiedDate }}
   section={section}
   showProgressBar={true}
   showToc={article.data.showToc ?? true}
-  tags={article.data.tags?.map(t => (typeof t === 'string' ? t : t.id)) ?? []}
+  tags={
+    article.data.tags?.map((tagRef: string | { id: string }) =>
+      typeof tagRef === 'string' ? tagRef : tagRef.id
+    ) ?? []
+  }
   {...readingTime && { readingTime }}
 >
   {/** SLOT: breadcrumb-row */}
@@ -105,7 +113,7 @@ const { author, article, canonicalPath, path, readingTime, section } = Astro.pro
       variant="suggested"
       currentSlug={article.id}
       limit={5}
-      type="articles"
+      type={relatedContentType}
       showReadMore={false}
     />
   </section>

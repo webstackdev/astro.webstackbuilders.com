@@ -37,6 +37,7 @@ const author = await getEntry(article.data.author)
 
 const articleBody = article.body ?? ''
 const readingTime = article.data.readingTime ?? getReadingTimeLabel(articleBody)
+const robotsContent = canonicalPath ? 'noindex, follow' : undefined
 ---
 
 <ContentLayout
@@ -44,6 +45,7 @@ const readingTime = article.data.readingTime ?? getReadingTimeLabel(articleBody)
   article={article}
   {...canonicalPath && { canonicalPath }}
   path={`/articles/${article.id}`}
+  {...robotsContent && { robotsContent }}
   section="Articles"
   {...readingTime && { readingTime }}
 />

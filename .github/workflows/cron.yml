@@ -2,7 +2,7 @@ name: Cron
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -20,19 +20,19 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Setup Python
-        uses: actions/setup-python@v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: '3.13'
-          cache: 'pip'
+          python-version: "3.13"
+          cache: "pip"
 
       - name: Install Python dependencies
         run: python3 -m pip install -r requirements.txt
 
       - name: Execute keep-alive query
-        uses: './.github/actions/keep-alive'
+        uses: "./.github/actions/keep-alive"
         with:
           service: turso
           url: ${{ secrets.ASTRO_DB_REMOTE_URL }}
@@ -45,19 +45,19 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Setup Python
-        uses: actions/setup-python@v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: '3.13'
-          cache: 'pip'
+          python-version: "3.13"
+          cache: "pip"
 
       - name: Install Python dependencies
         run: python3 -m pip install -r requirements.txt
 
       - name: Execute keep-alive query
-        uses: './.github/actions/keep-alive'
+        uses: "./.github/actions/keep-alive"
         with:
           service: turso
           url: ${{ secrets.ASTRO_DB_REMOTE_URL }}
@@ -70,19 +70,19 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Setup Python
-        uses: actions/setup-python@v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: '3.13'
-          cache: 'pip'
+          python-version: "3.13"
+          cache: "pip"
 
       - name: Install Python dependencies
         run: python3 -m pip install -r requirements.txt
 
       - name: Execute keep-alive read
-        uses: './.github/actions/keep-alive'
+        uses: "./.github/actions/keep-alive"
         with:
           service: upstash
           url: ${{ vars.PUBLIC_UPSTASH_SEARCH_REST_URL }}

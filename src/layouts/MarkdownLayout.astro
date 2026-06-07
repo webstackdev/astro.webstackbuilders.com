@@ -91,6 +91,8 @@ export interface Props {
   contentType?: 'article' | 'website'
   /** Meta description */
   description: string
+  /** Explicit robots meta content when the page needs non-default indexing behavior */
+  robotsContent?: string
   /** Page title shown in <title> and H1 */
   pageTitle: string
   /** URL path component e.g. 'articles/my-article' */
@@ -128,6 +130,7 @@ const {
   path,
   publishDate,
   readingTime,
+  robotsContent,
   showProgressBar = false,
   showToc,
   subtitle,
@@ -150,6 +153,7 @@ const link = `https://www.webstackbuilders.com${path}`
   pageDescription={description}
   {...canonicalPath && { canonicalPath }}
   path={path}
+  {...robotsContent && { robotsContent }}
   contentType={contentType}
   hideBreadcrumbsOnMobile={hideBreadcrumbsOnMobile}
   showProgressBar={showProgressBar}

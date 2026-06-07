@@ -21,6 +21,8 @@ export interface Props {
   modifiedDate?: Date
   /** Whether search engines should ignore the page, default: false */
   noindex?: boolean
+  /** Explicit robots meta content when the page needs non-default indexing behavior */
+  robotsContent?: string
   /** Meta page title displayed in the browser tab and window title bar */
   pageTitle: string
   /** URL path component e.g. 'articles/my-article' */
@@ -43,6 +45,7 @@ const {
   pageTitle,
   path,
   publishDate,
+  robotsContent,
   section,
   tags,
 } = Astro.props
@@ -63,6 +66,7 @@ applyRenderSentryContext({
     path,
     pageTitle,
     noindex,
+    robotsContent,
     contentType,
     pageDescriptionLength: (pageDescription || companyContactData.description).length,
     canonicalUrl,
@@ -75,7 +79,7 @@ applyRenderSentryContext({
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="description" content={pageDescription || companyContactData.description} />
 <meta name="author" content={companyContactData.author.name} />
-<meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
+<meta name="robots" content={robotsContent ?? (noindex ? 'noindex, nofollow' : 'index, follow')} />
 <Seo
   path={path}
   {...contentType && { contentType }}

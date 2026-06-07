@@ -37,6 +37,8 @@ export interface Props {
   modifiedDate?: Date
   /** Whether search engines should ignore the page, default: false */
   noindex?: boolean
+  /** Explicit robots meta content when the page needs non-default indexing behavior */
+  robotsContent?: string
   /**
    * Meta page title displayed in the browser tab and window title bar,
    * and used in social cards and Markdown layout for the <title> element
@@ -65,6 +67,7 @@ const {
   hideBreadcrumbsOnMobile = false,
   modifiedDate,
   noindex,
+  robotsContent,
   pageTitle,
   path,
   publishDate,
@@ -125,6 +128,7 @@ applyRenderSentryContext({
         path={path}
         pageDescription={pageDescription}
         {...noindex && { noindex }}
+        {...robotsContent && { robotsContent }}
         {...contentType && { contentType }}
         {...publishDate && { publishDate }}
         {...modifiedDate && { modifiedDate }}
