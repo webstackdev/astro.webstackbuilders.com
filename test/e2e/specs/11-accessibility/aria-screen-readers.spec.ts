@@ -62,6 +62,12 @@ const getAccessibleNameCandidate = async (locator: Locator): Promise<string> => 
   })
 }
 
+const isHiddenFromAssistiveTechnology = async (locator: Locator): Promise<boolean> => {
+  return locator.evaluate((element): boolean => {
+    return Boolean(element.closest('[aria-hidden="true"], [hidden], [inert]'))
+  })
+}
+
 const normalizeAccessibleName = (name: string): string => {
   return name.replace(/\s+/g, ' ').trim().toLowerCase()
 }
@@ -205,15 +211,22 @@ describe('ARIA and Screen Readers', () => {
       const inputs = page.page.locator(visibleFormControlSelector)
       const count = await inputs.count()
 
-      expect(count).toBeGreaterThan(0)
+      let checkedCount = 0
 
       for (let i = 0; i < count; i++) {
         const input = inputs.nth(i)
+        if (await isHiddenFromAssistiveTechnology(input)) {
+          continue
+        }
+
+        checkedCount += 1
         await expect(input).toHaveAccessibleName(/\S+/)
 
         const inputName = normalizeAccessibleName(await getAccessibleNameCandidate(input))
         expect(inputName.length).toBeGreaterThan(0)
       }
+
+      expect(checkedCount).toBeGreaterThan(0)
     }, true)
   })
 

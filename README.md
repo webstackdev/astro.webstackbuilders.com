@@ -120,6 +120,5 @@ npm run lint          # full lint suite
 
 Astro, TypeScript, Lit, Tailwind CSS, Turso (libSQL), Sentry, Vercel, Playwright, Vitest, MJML, Workbox, GitHub Actions
 
-test/e2e/specs/11-accessibility/aria-screen-readers.spec.ts
 test/e2e/specs/11-accessibility/axe.spec.ts
 test/e2e/specs/11-accessibility/high-contrast-wcag-compliance.spec.ts
