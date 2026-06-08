@@ -91,6 +91,7 @@ describe('NewsletterConfirmElement web component', () => {
         expect(elements.expiredState.classList.contains('hidden')).toBe(false)
         expect(elements.loadingState.classList.contains('hidden')).toBe(true)
         expect(elements.statusAnnouncer.textContent).toBe('Confirmation link expired.')
+        expect(document.activeElement).toBe(elements.expiredHeading)
       },
       { data: { success: false, status: 'expired' } }
     )

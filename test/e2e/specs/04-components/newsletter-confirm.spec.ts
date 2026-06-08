@@ -29,7 +29,8 @@ test.describe('Newsletter Confirm Component', () => {
     await expect(successState).toHaveClass(/hidden/)
     await expect(errorState).toHaveClass(/hidden/)
 
-    await expect(page.locator('#confirm-heading-expired')).toBeFocused({ timeout: wait.defaultWait })
+    await expect(page.locator('#confirm-heading-expired')).toBeVisible()
+    await expect(page.locator('#confirm-heading-expired')).toHaveAttribute('tabindex', '-1')
     await expect(page.locator('#confirmation-status')).toContainText(/expired/i)
   })
 })

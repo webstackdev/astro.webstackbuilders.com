@@ -126,7 +126,27 @@ export class NewsletterConfirmElement extends LitElement {
   }
 
   private focusHeading(heading: HTMLElement): void {
-    heading.focus()
+    const attemptFocus = () => {
+      if (!heading.isConnected) {
+        return
+      }
+
+      heading.focus()
+    }
+
+    attemptFocus()
+
+    if (heading.ownerDocument.activeElement === heading) {
+      return
+    }
+
+    window.setTimeout(() => {
+      if (heading.ownerDocument.activeElement === heading) {
+        return
+      }
+
+      attemptFocus()
+    }, 0)
   }
 
   private hideAllStates(): void {
