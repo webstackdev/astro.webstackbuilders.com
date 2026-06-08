@@ -7,6 +7,8 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { wait } from '@test/e2e/helpers/waitTimeouts'
 
+const articleDetailLinkSelector = 'a[href^="/deep-dive/"], a[href^="/articles/"]:not([href="/articles/"])'
+
 test.describe('SEO Meta Tags', () => {
   test('@ready all pages have meta description', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
@@ -148,7 +150,7 @@ test.describe('SEO Meta Tags', () => {
   test('@ready article pages have author', async ({ page: playwrightPage }) => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
-    await page.click('a[href*="/articles/"]')
+    await page.click(articleDetailLinkSelector)
     // NOTE: Avoid strict 'networkidle' gating on WebKit/mobile-safari (can hang on long-lived requests).
     await page.waitForNetworkIdleBestEffort()
 

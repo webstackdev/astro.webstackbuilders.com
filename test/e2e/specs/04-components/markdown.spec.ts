@@ -328,7 +328,8 @@ test.describe('Markdown (MDX) fixture page', () => {
 
       const footnoteBackref = markdownPage.prose.locator('a[data-footnote-backref]').first()
       await expect(footnoteBackref).toBeVisible()
-      await expect(footnoteBackref).toHaveAttribute('title', 'Return to footnote 1')
+      await expect(footnoteBackref).toHaveAttribute('aria-label', 'Back to reference 1')
+      await expect(footnoteBackref).not.toHaveAttribute('title', /.+/)
     })
   })
 })

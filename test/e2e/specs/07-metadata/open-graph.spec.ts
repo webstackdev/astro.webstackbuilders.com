@@ -8,6 +8,7 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 const REQUIRED_META_TAGS = ['og:title', 'og:description']
+const articleDetailLinkSelector = 'a[href^="/deep-dive/"], a[href^="/articles/"]:not([href="/articles/"])'
 
 test.describe('Open Graph Metadata', () => {
   test('@ready homepage has required OG tags', async ({ page: playwrightPage }) => {
@@ -26,13 +27,13 @@ test.describe('Open Graph Metadata', () => {
     await page.goto('/articles')
 
     // Wait for articles to load
-    await page.waitForSelector('a[href*="/articles/"]', { timeout: wait.defaultWait })
+    await page.waitForSelector(articleDetailLinkSelector, { timeout: wait.defaultWait })
 
     // Get the first article URL
-    const articleUrl = await page.evaluate(() => {
-      const link = document.querySelector('a[href*="/articles/"]')
+    const articleUrl = await page.evaluate((selector) => {
+      const link = document.querySelector(selector)
       return link ? link.getAttribute('href') : null
-    })
+    }, articleDetailLinkSelector)
 
     expect(articleUrl).toBeTruthy()
 
@@ -144,13 +145,13 @@ test.describe('Open Graph Metadata', () => {
     await page.goto('/articles')
 
     // Wait for articles to load
-    await page.waitForSelector('a[href*="/articles/"]', { timeout: wait.defaultWait })
+    await page.waitForSelector(articleDetailLinkSelector, { timeout: wait.defaultWait })
 
     // Get the first article URL
-    const articleUrl = await page.evaluate(() => {
-      const link = document.querySelector('a[href*="/articles/"]')
+    const articleUrl = await page.evaluate((selector) => {
+      const link = document.querySelector(selector)
       return link ? link.getAttribute('href') : null
-    })
+    }, articleDetailLinkSelector)
 
     expect(articleUrl).toBeTruthy()
 

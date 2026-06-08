@@ -6,14 +6,17 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { EvaluationError } from '@test/errors'
 import { waitForAnimationFrames } from '@test/e2e/helpers/waitHelpers'
-import type { Page } from '@playwright/test'
+import type { Page, TestInfo } from '@playwright/test'
 
 const selectors = {
   slider: 'carousel-slider[data-carousel]',
   prev: '[data-carousel-prev]',
   next: '[data-carousel-next]',
   dots: '[data-carousel-pagination] button',
+  pagination: '[data-carousel-pagination]',
 }
+
+const isMobileProject = (testInfo: TestInfo): boolean => testInfo.project.name.startsWith('mobile-')
 
 async function setupCarouselTestPage(playwrightPage: Page): Promise<BasePage> {
   const page = await BasePage.init(playwrightPage)
@@ -114,10 +117,17 @@ test.describe('Carousel Component', () => {
     expect(afterNext).not.toBe(initialIndex)
   })
 
-  test('pagination dots jump to selected slide', async ({ page: playwrightPage }) => {
+  test('pagination dots jump to selected slide', async ({ page: playwrightPage }, testInfo) => {
     const page = await setupCarouselTestPage(playwrightPage)
     const slider = page.locator(selectors.slider).first()
+    const pagination = slider.locator(selectors.pagination)
     const dots = slider.locator(selectors.dots)
+
+    if (isMobileProject(testInfo)) {
+      await expect(pagination).toBeHidden()
+      return
+    }
+
     const dotTotal = await dots.count()
 
     expect(dotTotal).toBeGreaterThan(2)

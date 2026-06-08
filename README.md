@@ -119,3 +119,5 @@ npm run lint          # full lint suite
 ## Tech Stack
 
 Astro, TypeScript, Lit, Tailwind CSS, Turso (libSQL), Sentry, Vercel, Playwright, Vitest, MJML, Workbox, GitHub Actions
+
+test/e2e/specs/11-accessibility/high-contrast-wcag-compliance.spec.ts

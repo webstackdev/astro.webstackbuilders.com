@@ -45,6 +45,40 @@ const delay = async (delayMs: number): Promise<void> => {
   await new Promise<void>(resolve => setTimeout(resolve, delayMs))
 }
 
+const isRouteAlreadyHandledError = (error: unknown): boolean => {
+  return error instanceof Error && error.message.includes('Route is already handled')
+}
+
+const safeContinueRoute = async (
+  route: Route,
+  overrides?: Parameters<Route['continue']>[0],
+): Promise<void> => {
+  try {
+    await route.continue(overrides)
+  } catch (error) {
+    if (isRouteAlreadyHandledError(error)) {
+      return
+    }
+
+    throw error
+  }
+}
+
+const safeFulfillRoute = async (
+  route: Route,
+  overrides: Parameters<Route['fulfill']>[0],
+): Promise<void> => {
+  try {
+    await route.fulfill(overrides)
+  } catch (error) {
+    if (isRouteAlreadyHandledError(error)) {
+      return
+    }
+
+    throw error
+  }
+}
+
 const withTimeout = async (promise: Promise<void>, timeoutMs: number, timeoutMessage: string): Promise<void> => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined
   const timeoutPromise = new Promise<void>((_, reject) => {
@@ -130,13 +164,13 @@ const createFetchOverride = async (page: Page, options: OverrideOptions): Promis
     }
 
     if (options.mode === 'spy') {
-      await route.continue()
+      await safeContinueRoute(route)
       return
     }
 
     if (options.mode === 'delay') {
       await delay(options.delayMs)
-      await route.continue()
+      await safeContinueRoute(route)
       return
     }
 
@@ -145,7 +179,7 @@ const createFetchOverride = async (page: Page, options: OverrideOptions): Promis
         ...request.headers(),
         ...options.headers,
       }
-      await route.continue({ headers: mergedHeaders })
+      await safeContinueRoute(route, { headers: mergedHeaders })
       return
     }
 
@@ -159,7 +193,7 @@ const createFetchOverride = async (page: Page, options: OverrideOptions): Promis
 
       const body = typeof resolvedBody === 'string' ? resolvedBody : JSON.stringify(resolvedBody)
 
-      await route.fulfill({
+      await safeFulfillRoute(route, {
         status: options.status ?? 200,
         headers,
         body,
@@ -167,7 +201,7 @@ const createFetchOverride = async (page: Page, options: OverrideOptions): Promis
       return
     }
 
-    await route.continue()
+    await safeContinueRoute(route)
   }
 
   await page.route(urlPattern, handler)

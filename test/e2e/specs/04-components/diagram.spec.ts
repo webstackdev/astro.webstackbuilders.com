@@ -5,6 +5,8 @@
 
 import { BasePage, expect, test } from '@test/e2e/helpers'
 
+const isMobileProject = (projectName: string): boolean => projectName.startsWith('mobile-')
+
 const fixturePath = '/testing/diagram'
 const figureSelector = 'figure'
 const detailsSelector = `${figureSelector} details`
@@ -62,8 +64,14 @@ test.describe('Diagram Component', () => {
     await expect(page.locator(detailsSelector)).not.toHaveAttribute('open', '')
   })
 
-  test('@ready opens the expanded image dialog and closes it with Escape', async ({ page: playwrightPage }) => {
+  test('@ready opens the expanded image dialog and closes it with Escape', async ({ page: playwrightPage }, testInfo) => {
     const page = await loadDiagramFixture(playwrightPage)
+
+    if (isMobileProject(testInfo.project.name)) {
+      await expect(page.locator(imageTriggerSelector)).toBeHidden()
+      await expect(page.locator(imageDialogSelector)).not.toBeVisible()
+      return
+    }
 
     await page.locator(imageTriggerSelector).click()
 

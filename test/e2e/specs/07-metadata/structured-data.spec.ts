@@ -35,6 +35,8 @@ interface ContactPageSchema extends JsonLdSchema {
   url?: string
 }
 
+const articleDetailLinkSelector = 'a[href^="/deep-dive/"], a[href^="/articles/"]:not([href="/articles"])'
+
 const expectAbsoluteUrl = (value: unknown): void => {
   expect(typeof value).toBe('string')
   if (typeof value === 'string') {
@@ -90,7 +92,7 @@ test.describe('Structured Data', () => {
     const page = await HeadPage.init(playwrightPage)
     await page.goto('/articles')
 
-    const articleHref = await getFirstContentLink(page, 'a[href^="/articles/"]:not([href="/articles"])')
+    const articleHref = await getFirstContentLink(page, articleDetailLinkSelector)
     await page.goto(articleHref)
 
     await page.expectSchemaTypes(['Article'])
@@ -111,7 +113,7 @@ test.describe('Structured Data', () => {
     const page = await HeadPage.init(playwrightPage)
     await page.goto('/articles')
 
-    const articleHref = await getFirstContentLink(page, 'a[href^="/articles/"]:not([href="/articles"])')
+    const articleHref = await getFirstContentLink(page, articleDetailLinkSelector)
     await page.goto(articleHref)
 
     await page.expectSchemaTypes(['Article', 'BreadcrumbList'])

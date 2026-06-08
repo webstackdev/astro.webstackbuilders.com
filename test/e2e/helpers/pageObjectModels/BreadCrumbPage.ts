@@ -83,9 +83,9 @@ export class BreadCrumbPage extends BasePage {
   async openFirstArticleDetail(options?: { navigationMode?: 'client' | 'fresh' }): Promise<void> {
     await this.navigateToListingDetail({
       listingPath: '/articles',
-      linkSelector: 'main a[href^="/articles/"]',
+      linkSelector: 'main a[href^="/deep-dive/"], main a[href^="/articles/"]',
       minSegments: 2,
-      notFoundMessage: 'Could not find article detail link on /articles',
+      notFoundMessage: 'Could not find deep-dive or article detail link on /articles',
       ...options,
     })
   }

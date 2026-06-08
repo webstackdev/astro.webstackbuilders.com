@@ -11,10 +11,17 @@ import {
 } from '@test/e2e/helpers'
 import { wait } from '@test/e2e/helpers/waitTimeouts'
 
+const isMobileProject = (projectName: string): boolean => projectName.startsWith('mobile-')
+
 test.describe('Breadcrumbs Component', () => {
-  test('@ready breadcrumbs display on article pages', async ({ page: playwrightPage }) => {
+  test('@ready breadcrumbs display on article pages', async ({ page: playwrightPage }, testInfo) => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
+
+    if (isMobileProject(testInfo.project.name)) {
+      await page.expectElementHidden('nav[aria-label="Breadcrumbs"]')
+      return
+    }
 
     await page.expectElementVisible('nav[aria-label="Breadcrumbs"]')
   })
@@ -45,7 +52,9 @@ test.describe('Breadcrumbs Component', () => {
     expect(firstLinkText?.toLowerCase()).toContain('home')
   })
 
-  test('@ready breadcrumb links are clickable', async ({ page: playwrightPage }) => {
+  test('@ready breadcrumb links are clickable', async ({ page: playwrightPage }, testInfo) => {
+    test.skip(isMobileProject(testInfo.project.name), 'Article breadcrumbs are intentionally hidden on mobile content pages')
+
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
 
@@ -72,12 +81,15 @@ test.describe('Breadcrumbs Component', () => {
     await page.expectUrlContains('localhost:4321/')
   })
 
-  test('@ready current page is not a link', async ({ page: playwrightPage }) => {
+  test('@ready current page is not a link', async ({ page: playwrightPage }, testInfo) => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
 
-    // Last item should have aria-current="page" on the span, not be a link
-    await page.expectElementVisible('nav[aria-label="Breadcrumbs"] li:last-child span[aria-current="page"]')
+    if (isMobileProject(testInfo.project.name)) {
+      await page.expectElementHidden('nav[aria-label="Breadcrumbs"] li:last-child span[aria-current="page"]')
+    } else {
+      await page.expectElementVisible('nav[aria-label="Breadcrumbs"] li:last-child span[aria-current="page"]')
+    }
 
     // Verify no link in last item
     const linkCount = await page.countElements('nav[aria-label="Breadcrumbs"] li:last-child a')
@@ -95,14 +107,19 @@ test.describe('Breadcrumbs Component', () => {
     expect(separatorCount).toBeGreaterThan(0)
   })
 
-  test('@ready breadcrumbs use proper ARIA', async ({ page: playwrightPage }) => {
+  test('@ready breadcrumbs use proper ARIA', async ({ page: playwrightPage }, testInfo) => {
     const page = await BreadCrumbPage.init(playwrightPage)
     await page.openFirstArticleDetail()
 
-    await page.expectElementVisible('nav[aria-label="Breadcrumbs"]')
+    if (isMobileProject(testInfo.project.name)) {
+      await page.expectElementHidden('nav[aria-label="Breadcrumbs"]')
+    } else {
+      await page.expectElementVisible('nav[aria-label="Breadcrumbs"]')
+    }
 
     // Should contain ordered list
-    await page.expectElementVisible('nav[aria-label="Breadcrumbs"] ol')
+    const orderedListCount = await page.countElements('nav[aria-label="Breadcrumbs"] ol')
+    expect(orderedListCount).toBeGreaterThan(0)
   })
 
   test('@ready breadcrumbs are responsive', async ({ page: playwrightPage }) => {

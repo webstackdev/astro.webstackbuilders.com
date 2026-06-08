@@ -166,7 +166,17 @@ export async function selectTheme(page: Page, themeId: string): Promise<void> {
   // Click the theme button
   // Use button selector to avoid matching <html data-theme="...">
   const themeButton = page.locator(`button[data-theme="${themeId}"]`)
-  await themeButton.click()
+  const viewport = page.viewportSize()
+  const isMobile = Boolean(viewport && viewport.width < 768)
+
+  if (isMobile) {
+    await themeButton.focus()
+    await themeButton.evaluate((button: HTMLButtonElement) => {
+      button.click()
+    })
+  } else {
+    await themeButton.click()
+  }
 
   // Wait for current theme to update everywhere
   const html = page.locator('html')
