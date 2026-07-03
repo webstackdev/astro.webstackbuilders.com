@@ -78,3 +78,10 @@ applyTo: "**"
 - When the user asks "What would you suggest", "what do you recommend", or similar language, provide multiple options with clear explanations but do NOT begin implementation
 - Always wait for explicit permission before implementing suggested changes
 - Present suggestions as numbered options with pros/cons when applicable
+
+## Dev Server Control Policy
+
+- Do not start, stop, or restart the Astro dev server yourself.
+- Do not run workspace dev-server tasks on the user's behalf.
+- When dev server state changes are needed, notify the user and ask them to run the relevant command.
+- If verification requires a running dev server, state that requirement explicitly and pause until the user confirms server state.
