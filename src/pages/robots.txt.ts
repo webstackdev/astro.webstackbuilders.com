@@ -7,7 +7,6 @@ Disallow: /downloads/
 Disallow: /offline
 Disallow: /print
 Disallow: /search
-Disallow: /tags
 Disallow: /testing
 
 Sitemap: ${sitemapURL.href}
