@@ -10,7 +10,7 @@ import { describe, it, beforeAll, expect } from 'vitest'
 import { existsSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { markdownConfig } from '@lib/config/markdown'
+import { markdownProcessorOptions } from '@lib/config/markdown'
 
 interface TestFileMap {
   units: Set<string>
@@ -131,8 +131,8 @@ beforeAll(() => {
 function buildPluginTestCases(pluginType: 'remark' | 'rehype') {
   const plugins =
     pluginType === 'remark'
-      ? markdownConfig.remarkPlugins || []
-      : markdownConfig.rehypePlugins || []
+      ? markdownProcessorOptions.remarkPlugins || []
+      : markdownProcessorOptions.rehypePlugins || []
   const testCases: Array<{ pluginName: string; pluginNameKebab: string; isLocal: boolean }> = []
 
   for (let index = 0; index < plugins.length; index++) {
@@ -151,8 +151,8 @@ function buildPluginTestCases(pluginType: 'remark' | 'rehype') {
 function maybeAddGfmRemarkTestCase(
   testCases: Array<{ pluginName: string; pluginNameKebab: string; isLocal: boolean }>
 ) {
-  // markdownConfig.gfm enables remark-gfm internally (Astro wires it), so ensure it has coverage.
-  if (markdownConfig.gfm !== false) {
+  // markdownProcessorOptions.gfm enables remark-gfm internally (Astro wires it), so ensure it has coverage.
+  if (markdownProcessorOptions.gfm !== false) {
     testCases.push({ pluginName: 'remarkGfm', pluginNameKebab: 'remark-gfm', isLocal: false })
   }
 }
