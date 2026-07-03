@@ -70,7 +70,7 @@ const shouldSuppressRollupWarning = (warning: {
 const standardIntegrations = [
   /** Astro DB - uses Tursa for backing store in production */
   db(),
-  mdx(markdownConfig),
+  mdx(),
   /** Generate favicons and PWA icons from source SVG */
   faviconGenerator(),
   /** Verify number of call to actions included in Markdown files */

@@ -32,6 +32,7 @@ const path = buildTagPagePath(tag, currentPage)
   pageDescription={tagEntry.data.description}
   path={path}
   breadcrumbTitle={tagEntry.data.displayName}
+  robotsContent="noindex, follow"
   section="Tags"
 >
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -119,7 +120,7 @@ const path = buildTagPagePath(tag, currentPage)
               Tagged content
             </h2>
             {paginatedContent.map(item => {
-              const href = `/articles/${item.id}`
+              const href = `/deep-dive/${item.id}`
 
               return (
                 <article class="group h-full relative after:pointer-events-none after:absolute after:content-[''] after:inset-0 after:rounded-none after:border-2 after:border-transparent after:opacity-0 after:transition-opacity after:duration-150 after:ease-out focus-within:after:opacity-100 focus-within:after:-inset-1.5 focus-within:after:border-spotlight">
@@ -147,7 +148,7 @@ const path = buildTagPagePath(tag, currentPage)
                     <div class="p-6 space-y-4">
                       <div class="flex items-center gap-3 text-sm">
                         <span class="px-3 py-1 rounded-full text-white font-medium bg-primary">
-                          Article
+                          Deep Dive
                         </span>
                         <time datetime={item.data.publishDate.toISOString()}>
                           {item.data.publishDate.toLocaleDateString('en-US', {

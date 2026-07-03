@@ -4,7 +4,7 @@ import remarkSmartypants from '@lib/markdown/plugins/remark-smartypants'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
-import { markdownConfig, remarkGfmConfig } from '@lib/config/markdown'
+import { markdownProcessorOptions, remarkGfmConfig } from '@lib/config/markdown'
 
 export type ProcessStage = 'remark' | 'rehype'
 
@@ -94,7 +94,7 @@ export async function processWithAstroSettings(params: ProcessParams): Promise<s
   // then apply smartypants so it doesn't interfere with token-based replacements.
   processor.use(remarkSmartypants)
 
-  processor.use(remarkRehype, markdownConfig.remarkRehype)
+  processor.use(remarkRehype, markdownProcessorOptions.remarkRehype)
   processor.use(rehypeHeadingIds)
 
   if (stage === 'rehype') {
@@ -121,13 +121,13 @@ export async function processWithFullPipeline(content: string): Promise<string> 
 
   // Add remark plugins from markdownConfig in order. Entries may be
   // either plugin functions or [plugin, options] tuples.
-  // Respect markdownConfig.gfm (Astro enables GFM when gfm: true)
-  if (markdownConfig.gfm !== false) {
+  // Respect markdownProcessorOptions.gfm (Astro enables GFM when gfm: true)
+  if (markdownProcessorOptions.gfm !== false) {
     processor = processor.use(remarkGfm, remarkGfmConfig as never)
   }
 
-  if (markdownConfig.remarkPlugins) {
-    for (const entry of markdownConfig.remarkPlugins) {
+  if (markdownProcessorOptions.remarkPlugins) {
+    for (const entry of markdownProcessorOptions.remarkPlugins) {
       if (Array.isArray(entry)) {
         // [plugin, options]
         processor = processor.use(entry[0], entry[1])
@@ -139,12 +139,12 @@ export async function processWithFullPipeline(content: string): Promise<string> 
 
   // Insert remarkRehype conversion using the configured options
   // (this mirrors Astro's pipeline ordering)
-  processor = processor.use(remarkRehype, markdownConfig.remarkRehype)
+  processor = processor.use(remarkRehype, markdownProcessorOptions.remarkRehype)
 
   // Add rehype plugins from markdownConfig in order. Entries may be
   // either plugin functions or [plugin, options] tuples.
-  if (markdownConfig.rehypePlugins) {
-    for (const entry of markdownConfig.rehypePlugins) {
+  if (markdownProcessorOptions.rehypePlugins) {
+    for (const entry of markdownProcessorOptions.rehypePlugins) {
       if (Array.isArray(entry)) {
         processor = processor.use(entry[0], entry[1])
       } else {

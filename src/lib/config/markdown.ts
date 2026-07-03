@@ -7,7 +7,7 @@
  * NOTE: Use of path alias for markdown folder in this file causes
  * self referential compile error
  */
-import type { MdxOptions } from '@astrojs/mdx'
+import { unified, type UnifiedProcessorOptions } from '@astrojs/markdown-remark'
 import { shikiConfigOptions, shikiTransformers } from './shiki'
 import { rehypeMermaidConfig } from './mermaid'
 
@@ -298,6 +298,110 @@ export const remarkRehypeConfig: RemarkRehypeOptions = {
   },
 }
 
+const unifiedRemarkPlugins = [
+  /** GitHub Flavored Markdown (explicit, configured) */
+  [remarkGfm, remarkGfmConfig],
+  /** TeX math blocks/inline (server-rendered later by rehype-mathjax) */
+  [remarkMath, remarkMathConfig],
+  /** Define abbreviations at bottom file, and wraps their usage in <abbr> tags */
+  remarkAbbreviations,
+  /** Align blocks/paragraphs using -> / <- marker syntax */
+  remarkAlign,
+  /** Custom blocks like [[details | Summary]] */
+  [remarkCustomBlocks, remarkCustomBlocksConfig],
+  /** Subscript and superscript via ~sub~ and ^sup^ */
+  remarkSupersub,
+  /** Highlights via ==marked== */
+  remarkMarkPlus,
+  /** Captions for code, images, and tables */
+  [remarkCaptions, remarkCaptionsConfig],
+  /** Definition lists (PHP Markdown Extra style) */
+  remarkDeflist,
+  /** Parse grid tables (+---+ / |...| syntax) into standard table nodes */
+  remarkGridTables,
+  /** Tab groups via fenced code meta: ```lang [group:Tab Name] */
+  remarkCodeTabs,
+  /** Preserve remaining fenced-code meta for Shiki transformers (e.g. {1,3}, /word/, ins={...}) */
+  remarkShikiMeta,
+  /**
+   * Add HTML attributes to elements using {.class #id key=value} syntax
+   * Supports: headings, links, images, code blocks, lists, and bracketed spans
+   * Example: [text content]{.class #id attr=value} creates <span> with attributes
+   */
+  [remarkAttributes, remarkAttributesConfig],
+  /** Wrap blockquotes with caption/attribution in semantic figure markup */
+  remarkBlockquote,
+  /** Convert emoji syntax like :heart: to emoji images */
+  remarkEmoji,
+  /** Support generic directive syntax (required by remark-video) */
+  remarkDirective,
+  /** HTML5 video via MDX-safe :::video directive blocks */
+  [remarkVideo, remarkVideoConfig],
+  /** Restore numeric-only directive nodes (e.g. :59 from "11:59:59") back to text */
+  remarkRestoreTimeColons,
+  /** Automatically convert URL-like text to links */
+  remarkLinkifyRegexUrls,
+  /**
+   * Typographic replacements for arrows, fractions, and math symbols
+   * Complements smartypants (which handles quotes, dashes, ellipsis)
+   * Converts: -->, <--, <=>, 1/2, 2 x 4, +-, etc.
+   */
+  remarkReplacements,
+  /** Smart quotes, dashes, and ellipsis */
+  [remarkSmartypants, remarkSmartypantsConfig],
+] as unknown as NonNullable<UnifiedProcessorOptions['remarkPlugins']>
+
+const unifiedRehypePlugins = [
+  /** Inject heading ids before plugins that rely on them */
+  rehypeHeadingIds,
+  /** Add accessible names to emojis */
+  rehypeAccessibleEmojis,
+  /** Add target/rel to external links */
+  [rehypeExternalLinks, rehypeExternalLinksConfig],
+  /** Add title attributes to footnote backrefs */
+  [rehypeFootnotesTitle, rehypeFootnotesTitleConfig],
+  /** Add GitHub-like color swatches for inline code color literals */
+  rehypeInlineCodeColorSwatch,
+  /** Preserve original TeX source so MathJax SVG output can be labeled */
+  rehypeMathjaxSource,
+  /**
+   * Add a class and prepend an icon to heading tags that have an id attribute set.
+   * Astro uses Github Flavored Markup to add id attribute to headings like h1,
+   * using the header title text converted to kebab-case
+   */
+  rehypeAutolinkHeadings,
+  /**
+   * Render TeX math to SVG at build-time (no client-side MathJax).
+   * Keep this before rehypeTailwindClasses so math placeholders (<code>/<pre>) are
+   * replaced with <mjx-container> before Tailwind class injection.
+   */
+  rehypeMathjax,
+  /** Add accessible labels to MathJax-generated SVGs */
+  rehypeMathjaxSvgAlt,
+  /** Render Mermaid diagrams to inline SVG at build-time */
+  [rehypeMermaid, rehypeMermaidConfig],
+  /** Wrap grouped code blocks in <code-tabs> containers */
+  rehypeCodeTabs,
+  /** Highlight fenced code blocks with Shiki (owned pipeline; skips mermaid/math) */
+  [
+    rehypeShiki,
+    {
+      theme: shikiConfigOptions.theme,
+      themeRegistrations: shikiConfigOptions.themeRegistrations,
+      langs: shikiConfigOptions.langs,
+      langAlias: shikiConfigOptions.langAlias,
+      wrap: shikiConfigOptions.wrap,
+      transformers: shikiTransformers,
+      excludeLangs: shikiConfigOptions.excludeLangs,
+    },
+  ],
+  /**
+   * Automatically add Tailwind classes to markdown elements as
+   * specified in src/lib/markdown/rehype-tailwind-classes.ts
+   */
+  rehypeTailwindClasses,
+] as unknown as NonNullable<UnifiedProcessorOptions['rehypePlugins']>
+
 /**
  * ==============================================================
  *
@@ -305,119 +409,30 @@ export const remarkRehypeConfig: RemarkRehypeOptions = {
  *
  * ==============================================================
  */
-export const markdownConfig: Partial<MdxOptions> = {
+/**
+ * Unified processor options used by Astro markdown + MDX processing.
+ * This replaces deprecated top-level markdown keys like remarkPlugins/rehypePlugins/gfm.
+ */
+export const markdownProcessorOptions: UnifiedProcessorOptions = {
+  /** Disabled because we include `remarkGfm` explicitly (test coverage + custom options). */
+  gfm: false,
+  /** Disabled because we include `remarkSmartypants` explicitly (test coverage + avoid double-processing). */
+  smartypants: false,
+  remarkPlugins: unifiedRemarkPlugins,
+  rehypePlugins: unifiedRehypePlugins,
+  remarkRehype: remarkRehypeConfig,
+}
+
+/**
+ * Astro markdown config
+ */
+export const markdownConfig = {
   /**
    * IMPORTANT: If you change any plugin wiring in this file, restart the Astro
    * dev server. We've seen the dev server serve stale markdown pipeline output
    * after config edits.
    */
-  /** Disabled because we include `remarkGfm` explicitly (test coverage + custom options). */
-  gfm: false,
-  /** Disabled because we include `remarkSmartypants` explicitly (test coverage + avoid double-processing). */
-  smartypants: false,
   /** Code syntax highlighting */
   syntaxHighlight: false,
-  remarkPlugins: [
-    /** GitHub Flavored Markdown (explicit, configured) */
-    [remarkGfm, remarkGfmConfig],
-    /** TeX math blocks/inline (server-rendered later by rehype-mathjax) */
-    [remarkMath, remarkMathConfig],
-    /** Define abbreviations at bottom file, and wraps their usage in <abbr> tags */
-    remarkAbbreviations,
-    /** Align blocks/paragraphs using -> / <- marker syntax */
-    remarkAlign,
-    /** Custom blocks like [[details | Summary]] */
-    [remarkCustomBlocks, remarkCustomBlocksConfig],
-    /** Subscript and superscript via ~sub~ and ^sup^ */
-    remarkSupersub,
-    /** Highlights via ==marked== */
-    remarkMarkPlus,
-    /** Captions for code, images, and tables */
-    [remarkCaptions, remarkCaptionsConfig],
-    /** Definition lists (PHP Markdown Extra style) */
-    remarkDeflist,
-    /** Parse grid tables (+---+ / |...| syntax) into standard table nodes */
-    remarkGridTables,
-    /** Tab groups via fenced code meta: ```lang [group:Tab Name] */
-    remarkCodeTabs,
-    /** Preserve remaining fenced-code meta for Shiki transformers (e.g. {1,3}, /word/, ins={...}) */
-    remarkShikiMeta,
-    /**
-     * Add HTML attributes to elements using {.class #id key=value} syntax
-     * Supports: headings, links, images, code blocks, lists, and bracketed spans
-     * Example: [text content]{.class #id attr=value} creates <span> with attributes
-     */
-    [remarkAttributes, remarkAttributesConfig],
-    /** Wrap blockquotes with caption/attribution in semantic figure markup */
-    remarkBlockquote,
-    /** Convert emoji syntax like :heart: to emoji images */
-    remarkEmoji,
-    /** Support generic directive syntax (required by remark-video) */
-    remarkDirective,
-    /** HTML5 video via MDX-safe :::video directive blocks */
-    [remarkVideo, remarkVideoConfig],
-    /** Restore numeric-only directive nodes (e.g. :59 from "11:59:59") back to text */
-    remarkRestoreTimeColons,
-    /** Automatically convert URL-like text to links */
-    remarkLinkifyRegexUrls,
-    /**
-     * Typographic replacements for arrows, fractions, and math symbols
-     * Complements smartypants (which handles quotes, dashes, ellipsis)
-     * Converts: -->, <--, <=>, 1/2, 2 x 4, +-, etc.
-     */
-    remarkReplacements,
-    /** Smart quotes, dashes, and ellipsis */
-    [remarkSmartypants, remarkSmartypantsConfig],
-  ],
-  rehypePlugins: [
-    /** Inject heading ids before plugins that rely on them */
-    rehypeHeadingIds,
-    /** Add accessible names to emojis */
-    rehypeAccessibleEmojis,
-    /** Add target/rel to external links */
-    [rehypeExternalLinks, rehypeExternalLinksConfig],
-    /** Add title attributes to footnote backrefs */
-    [rehypeFootnotesTitle, rehypeFootnotesTitleConfig],
-    /** Add GitHub-like color swatches for inline code color literals */
-    rehypeInlineCodeColorSwatch,
-    /** Preserve original TeX source so MathJax SVG output can be labeled */
-    rehypeMathjaxSource,
-    /**
-     * Add a class and prepend an icon to heading tags that have an id attribute set.
-     * Astro uses Github Flavored Markup to add id attribute to headings like h1,
-     * using the header title text converted to kebab-case
-     */
-    rehypeAutolinkHeadings,
-    /**
-     * Render TeX math to SVG at build-time (no client-side MathJax).
-     * Keep this before rehypeTailwindClasses so math placeholders (<code>/<pre>) are
-     * replaced with <mjx-container> before Tailwind class injection.
-     */
-    rehypeMathjax,
-    /** Add accessible labels to MathJax-generated SVGs */
-    rehypeMathjaxSvgAlt,
-    /** Render Mermaid diagrams to inline SVG at build-time */
-    [rehypeMermaid, rehypeMermaidConfig],
-    /** Wrap grouped code blocks in <code-tabs> containers */
-    rehypeCodeTabs,
-    /** Highlight fenced code blocks with Shiki (owned pipeline; skips mermaid/math) */
-    [
-      rehypeShiki,
-      {
-        theme: shikiConfigOptions.theme,
-        themeRegistrations: shikiConfigOptions.themeRegistrations,
-        langs: shikiConfigOptions.langs,
-        langAlias: shikiConfigOptions.langAlias,
-        wrap: shikiConfigOptions.wrap,
-        transformers: shikiTransformers,
-        excludeLangs: shikiConfigOptions.excludeLangs,
-      },
-    ],
-    /**
-     * Automatically add Tailwind classes to markdown elements as
-     * specified in src/lib/markdown/rehype-tailwind-classes.ts
-     */
-    rehypeTailwindClasses,
-  ],
-  remarkRehype: remarkRehypeConfig,
+  processor: unified(markdownProcessorOptions),
 }
