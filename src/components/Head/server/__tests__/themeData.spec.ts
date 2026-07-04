@@ -14,19 +14,19 @@ describe('themeData', () => {
     vi.restoreAllMocks()
   })
 
-  it('serializes configured theme ids and colors into JSON-safe strings', async () => {
+  it('returns configured theme ids and colors for the inline theme bootstrap', async () => {
     const themeData = await loadThemeData()
     const data = themeData()
 
-    const defaultThemeId = JSON.parse(data.defaultThemeIdJson)
+    const defaultThemeId = data.defaultThemeId
     expect(typeof defaultThemeId).toBe('string')
     expect(defaultThemeId.length).toBeGreaterThan(0)
 
-    const darkThemeId = JSON.parse(data.darkThemeIdJson)
+    const darkThemeId = data.darkThemeId
     expect(typeof darkThemeId).toBe('string')
     expect(darkThemeId.length).toBeGreaterThan(0)
 
-    const colors = JSON.parse(data.metaColorsJson) as Record<string, string>
+    const colors = data.metaColors
     const configuredIds = themeConfig.themes.map(theme => theme.id)
 
     configuredIds.forEach(id => {

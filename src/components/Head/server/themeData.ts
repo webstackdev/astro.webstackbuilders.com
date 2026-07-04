@@ -2,9 +2,9 @@ import themeConfig from '@content/themes.json'
 import { BuildError } from '@lib/errors/BuildError'
 
 interface ThemeInitScriptData {
-  defaultThemeIdJson: string
-  darkThemeIdJson: string
-  metaColorsJson: string
+  defaultThemeId: string
+  darkThemeId: string
+  metaColors: Record<string, string>
 }
 
 type ThemeDataFunction = () => ThemeInitScriptData
@@ -39,9 +39,9 @@ export const themeData: ThemeDataFunction = () => {
     const darkThemeId = hasDarkTheme ? 'dark' : defaultThemeId
 
     return {
-      defaultThemeIdJson: JSON.stringify(defaultThemeId),
-      darkThemeIdJson: JSON.stringify(darkThemeId),
-      metaColorsJson: JSON.stringify(metaColors),
+      defaultThemeId,
+      darkThemeId,
+      metaColors,
     }
   } catch (error) {
     throw new BuildError('Failed to prepare theme initialization data.', {

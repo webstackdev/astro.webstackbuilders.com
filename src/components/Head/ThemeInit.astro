@@ -12,15 +12,15 @@
  */
 import { themeData } from './server/themeData'
 
-const { defaultThemeIdJson, darkThemeIdJson, metaColorsJson } = themeData()
+const { defaultThemeId, darkThemeId, metaColors } = themeData()
 ---
 
 <script
   is:inline
   define:vars={{
-    defaultThemeIdJson,
-    darkThemeIdJson,
-    metaColorsJson,
+    defaultThemeId,
+    darkThemeId,
+    metaColors,
   }}
 >
   // @ts-nocheck
@@ -48,10 +48,6 @@ const { defaultThemeIdJson, darkThemeIdJson, metaColorsJson } = themeData()
 
   const runThemeInit = () => {
     try {
-      const defaultThemeId = JSON.parse(defaultThemeIdJson)
-      const darkThemeId = JSON.parse(darkThemeIdJson)
-      const themeMetaColors = JSON.parse(metaColorsJson)
-
       const stored = localStorage.getItem('theme')
       const resolvedThemeId = getResolvedThemeId({ defaultThemeId, darkThemeId })
       const activeThemeId = stored && stored !== defaultThemeId ? stored : resolvedThemeId
@@ -59,7 +55,7 @@ const { defaultThemeIdJson, darkThemeIdJson, metaColorsJson } = themeData()
       applyThemeToDocument(document, activeThemeId)
 
       window.metaColors = window.metaColors || {}
-      Object.assign(window.metaColors, themeMetaColors)
+      Object.assign(window.metaColors, metaColors)
 
       applyThemeMetaColor(document, activeThemeId)
 
@@ -78,13 +74,10 @@ const { defaultThemeIdJson, darkThemeIdJson, metaColorsJson } = themeData()
    */
   document.addEventListener('astro:before-swap', event => {
     try {
-      const defaultThemeId = JSON.parse(defaultThemeIdJson)
-      const darkThemeId = JSON.parse(darkThemeIdJson)
-      const themeMetaColors = JSON.parse(metaColorsJson)
       const resolvedThemeId = getResolvedThemeId({ defaultThemeId, darkThemeId })
 
       window.metaColors = window.metaColors || {}
-      Object.assign(window.metaColors, themeMetaColors)
+      Object.assign(window.metaColors, metaColors)
 
       applyThemeToDocument(event.newDocument, resolvedThemeId)
       applyThemeMetaColor(event.newDocument, resolvedThemeId)
