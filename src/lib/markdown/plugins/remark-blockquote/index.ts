@@ -50,6 +50,10 @@ const defaultOptions: Required<
   removeCaptionPrefix: true,
 }
 
+function isEmpty(str: string | null | undefined): str is null | undefined | '' {
+  return !str || str.trim().length === 0
+}
+
 function extractUrl(str: string): string | null {
   const matches = str.match(REGEX_URL)
   return matches !== null ? matches[0] : null
@@ -84,10 +88,6 @@ function splitAttribution(attributionText: string): { name: string; meta: string
   }
 
   return { name, meta }
-}
-
-function isEmpty(str: string | null | undefined): boolean {
-  return !str || str.trim().length === 0
 }
 
 function findLineMarker(text: string, marker: string): number {
