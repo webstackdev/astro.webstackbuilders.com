@@ -268,6 +268,89 @@ const createAbortedViewTransitionErrorEvent = (): Parameters<typeof beforeSendHa
     },
   }) as unknown as Parameters<typeof beforeSendHandler>[0]
 
+const createContentPageNotFoundHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: {
+      url: 'https://www.webstackbuilders.com/deep-dive/kubernetes-pod-disruption-budget-autoscaler-node-rotation',
+    },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 404',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createContentPageServerErrorHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: {
+      url: 'https://www.webstackbuilders.com/articles/some-article',
+    },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 500',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createNonContentPageNotFoundHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    request: {
+      url: 'https://www.webstackbuilders.com/downloads/some-guide',
+    },
+    exception: {
+      values: [
+        {
+          value: 'HTTP Client Error with status code: 404',
+          mechanism: {
+            type: 'auto.http.client.fetch',
+            handled: false,
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
+const createPlaywrightBindingErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+  ({
+    type: 'error',
+    message: 'Function "autoconsentSendMessage" is not exposed',
+    exception: {
+      values: [
+        {
+          value: 'Function "autoconsentSendMessage" is not exposed',
+          mechanism: {
+            type: 'auto.browser.global_handlers.onunhandledrejection',
+            handled: false,
+          },
+          stacktrace: {
+            frames: [
+              {
+                filename:
+                  '/home/ang/coder/projects/crawl/.venv/lib/python3.12/site-packages/playwright/driver/package/lib/server/page.js',
+                function: 'PageBinding.dispatch',
+              },
+            ],
+          },
+        },
+      ],
+    },
+  }) as unknown as Parameters<typeof beforeSendHandler>[0]
+
 const createHint = (): Parameters<typeof beforeSendHandler>[1] =>
   ({}) as Parameters<typeof beforeSendHandler>[1]
 
@@ -443,6 +526,50 @@ describe('sentry helpers', () => {
       getConsentSnapshotMock.mockReturnValue({ analytics: true })
 
       const event = createAbortedViewTransitionErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('drops 404 http client failures for content page fetches', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createContentPageNotFoundHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('keeps non-404 http client failures for content page fetches', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createContentPageServerErrorHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBe(event)
+    })
+
+    it('keeps 404 http client failures for non-content page fetches', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createNonContentPageNotFoundHttpErrorEvent()
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBe(event)
+    })
+
+    it('drops automation framework binding errors from bot traffic', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createPlaywrightBindingErrorEvent()
 
       const result = beforeSendHandler(event, createHint())
 

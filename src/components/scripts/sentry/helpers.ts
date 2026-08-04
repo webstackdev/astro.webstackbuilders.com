@@ -198,6 +198,55 @@ const isHandledConsentCheckpointClientError = (
   )
 }
 
+/**
+ * Matches same-origin content page fetches. The Content Switcher prefetches the
+ * alternate article variant as a best-effort warmup, and crawlers can trigger
+ * fetches for content URLs that do not exist. A 404 from one of these GET
+ * requests is expected noise rather than an application error.
+ */
+const CONTENT_PAGE_REQUEST_PATTERN = /^https?:\/\/[^/]+\/(?:articles|deep-dive)\//
+
+const isContentPageNotFoundHttpError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const requestUrl = event.request?.url
+  const exception = event.exception?.values?.[0]
+  const mechanismType = exception?.mechanism?.type
+  const errorMessage = exception?.value ?? event.message ?? ''
+  const statusCodeMatch =
+    typeof errorMessage === 'string' ? errorMessage.match(/status code:\s*(\d{3})/i) : null
+  const statusCode = statusCodeMatch?.[1] ? Number(statusCodeMatch[1]) : undefined
+
+  return (
+    typeof requestUrl === 'string' &&
+    CONTENT_PAGE_REQUEST_PATTERN.test(requestUrl) &&
+    mechanismType === 'auto.http.client.fetch' &&
+    statusCode === 404
+  )
+}
+
+/**
+ * Matches errors produced by automation frameworks driving the page. Playwright
+ * rejects calls to page bindings that were never exposed (for example
+ * "autoconsentSendMessage" from crawler consent tooling), and those rejections
+ * surface as unhandled promise rejections in the page. Real visitors never have
+ * automation bindings or driver stack frames, so these events are bot noise.
+ */
+const PLAYWRIGHT_BINDING_ERROR_PATTERN = /Function ".*" is not exposed/
+
+const isAutomationFrameworkError = (event: Parameters<BeforeSendHandler>[0]): boolean => {
+  const exception = event.exception?.values?.[0]
+  const errorMessage = exception?.value ?? event.message ?? ''
+
+  if (typeof errorMessage === 'string' && PLAYWRIGHT_BINDING_ERROR_PATTERN.test(errorMessage)) {
+    return true
+  }
+
+  const frames = exception?.stacktrace?.frames ?? []
+
+  return frames.some(
+    frame => typeof frame.filename === 'string' && frame.filename.includes('playwright')
+  )
+}
+
 const isHandledAbortedViewTransitionError = (
   event: Parameters<BeforeSendHandler>[0]
 ): boolean => {
@@ -307,6 +356,19 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
   // If a consent checkpoint response is wrapped into a handled client error,
   // drop that duplicate event as the action itself is already filtered.
   if (isHandledConsentCheckpointClientError(event)) {
+    return null
+  }
+
+  // The Content Switcher prefetches the alternate article variant as a
+  // best-effort warmup and crawlers fetch content URLs that may not exist.
+  // A 404 from a content page fetch is expected noise, not an app error.
+  if (isContentPageNotFoundHttpError(event)) {
+    return null
+  }
+
+  // Errors raised by automation frameworks (e.g. Playwright page bindings
+  // injected by crawler consent tooling) come from bots, not real visitors.
+  if (isAutomationFrameworkError(event)) {
     return null
   }
 

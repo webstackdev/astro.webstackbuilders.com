@@ -1,5 +1,5 @@
 ---
-import { parseContentPath } from './server'
+import { contentPathHasAlternateVariant, parseContentPath } from './server'
 import { BuildError } from '@lib/errors/BuildError'
 import './index.css'
 
@@ -10,20 +10,30 @@ export type Props = {
   currentVariant?: 'overview' | 'deep-dive'
   /** Legacy slug for client rendering */
   slug?: string
+  /** Legacy override for whether the alternate variant route exists */
+  hasAlternate?: boolean
 }
 
-const { path, currentVariant: legacyCurrentVariant, slug: legacySlug = '' } = Astro.props
+const {
+  path,
+  currentVariant: legacyCurrentVariant,
+  slug: legacySlug = '',
+  hasAlternate: legacyHasAlternate,
+} = Astro.props
 
 let currentVariant: 'overview' | 'deep-dive'
 let slug: string
+let hasAlternateVariant: boolean
 
 if (path) {
   const parsed = parseContentPath(path)
   currentVariant = parsed.currentVariant === 'articles' ? 'overview' : 'deep-dive'
   slug = parsed.slug
+  hasAlternateVariant = await contentPathHasAlternateVariant(path)
 } else if (legacyCurrentVariant) {
   currentVariant = legacyCurrentVariant
   slug = legacySlug
+  hasAlternateVariant = legacyHasAlternate ?? true
 } else {
   throw new BuildError('Content/Switcher: expected either `path` or `currentVariant` prop.', {
     phase: 'compilation',
@@ -33,7 +43,11 @@ if (path) {
 }
 ---
 
-<content-switcher class="print:hidden!" current-variant={currentVariant} slug={slug}
+<content-switcher
+  class="print:hidden!"
+  current-variant={currentVariant}
+  slug={slug}
+  has-alternate={hasAlternateVariant}
 ></content-switcher>
 
 <script>
