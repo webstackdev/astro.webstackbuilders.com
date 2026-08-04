@@ -1,0 +1,82 @@
+# Cline Rules
+
+CRITICAL: Before proceeding with any task, you must read, understand, and strictly adhere to all shared LLM guidelines, coding standards, and architectural rules located in the `.vscode/instructions/` directory.
+
+These instructions are shared globally across this repository (including GitHub Copilot) and override or supplement any default behaviors. Treat the files in `.vscode/instructions/` as core system prompts for this workspace.
+
+## Terminal command execution
+
+### NEVER run interactive commands
+
+Interactive commands wait for user input and will hang the terminal forever.
+There is no stop button to break out of a hung loop.
+
+**Always** make commands non-interactive. Concretely:
+
+- **`git`**: NEVER run bare `git diff`, `git log`, `git show`, or `git blame`.
+  These invoke a pager that blocks forever.
+  ALWAYS append `--no-pager` (e.g. `git --no-pager diff`, `git --no-pager log -10`).
+  For diffs, prefer `git --no-pager diff --stat` or pipe to `cat`/`head`.
+- **`less`, `more`, `vi`, `vim`, `nano`, `emacs`**: NEVER invoke these.
+  Use `cat`, `head`, `tail`, `sed`, `awk`, or `grep` instead.
+- **`man`**: Use `--help` / `-h` flags or `command --help 2>&1 | head -50` instead.
+- **`ssh`, `scp`, `rsync` without keys**: will prompt for passwords — avoid.
+- **`sudo`**: may prompt for a password — avoid unless pre-authorized.
+- **`read` (bash builtin)**: never use; it blocks waiting for stdin.
+- **`npm install` / `npx` without non-interactive flags**: if a prompt is
+  possible, pass `--yes` / `-y` (e.g. `npx --yes <pkg>`).
+- **`gh`**: use `--no-pager` where supported and avoid interactive subcommands.
+
+### General rules for `execute_command`
+
+- Every command must be **non-interactive** and **self-terminating**.
+- Pipe paged output: `git --no-pager diff | head -100`, `jq ...`, etc.
+- Combine with `2>&1` when you need to see stderr.
+- Do NOT run `find /` or other unbounded scans without a `-maxdepth`.
+- Do NOT run `while`/`for` loops that could run forever without a bounded
+  iteration count.
+- Prefer a single combined command over spawning many shells.
+
+### Background terminal mode
+
+This workspace is configured to use Cline's **Background Exec** terminal mode
+so command output appears in the chat flow and does NOT steal focus to an
+external terminal window. Do not attempt to open a separate terminal.
+
+### Node.js / tooling locations (do NOT search for these)
+
+Node.js is managed by **nvm** and is NOT on the default PATH in fresh shells.
+Always prefix shell commands with the nvm activation snippet below before
+invoking `node`, `npm`, `npx`, or any node-based tool:
+
+```sh
+export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"; nvm use >/dev/null 2>&1
+```
+
+`nvm use` reads the repo's `.nvmrc` (`24`) and resolves to the newest
+installed v24.x (currently **v24.19.0**, satisfying the `engines.node` range
+`>=24.16.0 <25` in `package.json`). After activation, `node`, `npm`, and
+`npx` are all on PATH (`/home/kevin/.nvm/versions/node/v24.19.0/bin/`).
+
+This repo uses **npm** (`package-lock.json`, npm `workspaces`). Do NOT use
+yarn or pnpm. The `.yarnrc.yml` file is a vestigial leftover from a previous
+Yarn setup — ignore it. There is no Yarn PnP, no `.yarn/sdks`, and no
+corepack shims in this workspace.
+
+The repo has a standard `node_modules` layout, so `node_modules/.bin/`
+provides `tsc`, `astro`, `vitest`, `eslint`, and `prettier`. Invoke them via
+`npx <tool>` or `npm run <script>` after nvm activation.
+
+Known-good commands (verified in this workspace):
+
+- **Typecheck**: `npx tsc --noEmit -p tsconfig.json --pretty false`
+  (`npm run lint:tsc:check` does the same but runs `astro sync` first)
+- **Unit tests**: `npx vitest run <path>` for specific specs, e.g.
+  `npx vitest run src/lib/markdown/plugins/remark-blockquote`;
+  `npm run test:unit` for the full suite
+- **Astro check**: `npm run check`
+- **Lint**: `npm run lint:code`
+- **Dev server**: `npm run dev`
+
+Do NOT waste turns probing for `yarn`, `.yarn/sdks`, or PnP loader paths.
+They do not exist in this workspace. Use the snippets above directly.
