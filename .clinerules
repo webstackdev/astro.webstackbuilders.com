@@ -27,6 +27,16 @@ There is no stop button to break out of a hung loop.
   possible, pass `--yes` / `-y` (e.g. `npx --yes <pkg>`).
 - **`gh`**: use `--no-pager` where supported and avoid interactive subcommands.
 
+### Git is read-only for the agent
+
+NEVER run state-changing git commands: `git commit`, `git add`, `git push`,
+`git stash`, `git checkout`, `git switch`, `git restore`, `git reset`,
+`git rebase`, `git merge`, `git cherry-pick`, `git tag`, etc. The user handles
+all git mutations themselves — do not commit work, even when a task mirrors a
+previously committed step. Read-only inspection is fine, always with
+`--no-pager` per the rules above (`git status`, `git --no-pager log`,
+`git --no-pager diff`, `git --no-pager show`, `git --no-pager blame`).
+
 ### General rules for `execute_command`
 
 - Every command must be **non-interactive** and **self-terminating**.
