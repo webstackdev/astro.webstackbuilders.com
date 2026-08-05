@@ -136,7 +136,7 @@ describe('SearchBar web component', () => {
           hits: [
             {
               title: 'Introduction to Vector Search',
-              url: 'https://www.webstackbuilders.com/deep-dive/introduction-to-vector-search',
+              url: 'https://www.webstackbuilders.com/articles/introduction-to-vector-search',
               snippet: 'Learn the basics of how vector databases work.',
             },
             { title: 'Services', url: '/services' },
@@ -164,7 +164,7 @@ describe('SearchBar web component', () => {
         links.some(
           link =>
             link.getAttribute('href') ===
-            'https://www.webstackbuilders.com/deep-dive/introduction-to-vector-search'
+            'https://www.webstackbuilders.com/articles/introduction-to-vector-search'
         )
       ).toBe(true)
 
@@ -172,7 +172,7 @@ describe('SearchBar web component', () => {
       expect(firstLink?.className).toContain('no-underline')
       expect(firstLink?.className).toContain('focus-visible:no-underline')
       expect(firstLink?.querySelector('svg')).toBeTruthy()
-      expect(firstLink?.textContent).toContain('/deep-dive/introduction-to-vector-search')
+      expect(firstLink?.textContent).toContain('/articles/introduction-to-vector-search')
 
       const firstItem = firstLink?.closest('li')
       expect(firstItem?.className).toContain('hover:bg-note-inverse')
@@ -199,7 +199,7 @@ describe('SearchBar web component', () => {
           hits: [
             {
               title: 'Introduction to Vector Search',
-              url: 'https://www.webstackbuilders.com/deep-dive/introduction-to-vector-search',
+              url: 'https://www.webstackbuilders.com/articles/introduction-to-vector-search',
               snippet: 'Learn the basics of how vector databases work.',
             },
           ],

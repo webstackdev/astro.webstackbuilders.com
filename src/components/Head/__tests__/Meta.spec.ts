@@ -17,7 +17,7 @@ describe('Meta (Astro)', () => {
         pageTitle: 'Example Article',
         pageDescription: 'Example description',
         path: '/articles/example-article',
-        canonicalPath: '/deep-dive/example-article',
+        canonicalPath: '/articles/example-article-canonical',
       },
       request: new Request('https://example.com/articles/example-article'),
       partial: false,
@@ -27,7 +27,7 @@ describe('Meta (Astro)', () => {
     const document = new JSDOM(renderedHtml).window.document
 
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
-      'https://example.com/deep-dive/example-article'
+      'https://example.com/articles/example-article-canonical'
     )
   })
 
