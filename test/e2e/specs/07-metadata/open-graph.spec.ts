@@ -8,7 +8,7 @@ import { BasePage, test, expect } from '@test/e2e/helpers'
 import { wait } from '@test/e2e/helpers/waitTimeouts'
 
 const REQUIRED_META_TAGS = ['og:title', 'og:description']
-const articleDetailLinkSelector = 'a[href^="/deep-dive/"], a[href^="/articles/"]:not([href="/articles/"])'
+const articleDetailLinkSelector = 'a[href^="/articles/"]:not([href="/articles/"])'
 
 test.describe('Open Graph Metadata', () => {
   test('@ready homepage has required OG tags', async ({ page: playwrightPage }) => {

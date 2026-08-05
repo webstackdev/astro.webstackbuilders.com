@@ -75,10 +75,10 @@ test.describe('Articles Page', () => {
     const page = await BasePage.init(playwrightPage)
     await page.goto('/articles')
 
-    // Get the first deep-dive link from the articles index page
+    // Get the first article link from the articles index page
     await page.click('article a')
-    // Should navigate to a deep-dive detail page
-    await page.expectUrl(/\/deep-dive\/[^/]+/)
+    // Should navigate to an article detail page
+    await page.expectUrl(/\/articles\/[^/]+/)
   })
 
   test('@ready page subtitle displays', async ({ page: playwrightPage }) => {
