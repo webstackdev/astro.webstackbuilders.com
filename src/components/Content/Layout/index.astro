@@ -10,7 +10,6 @@ import type { CollectionEntry } from 'astro:content'
 import { Picture } from 'astro:assets'
 import MarkdownLayout from '@layouts/MarkdownLayout.astro'
 import Carousel from '@components/Carousel/index.astro'
-import ContentSwitcher from '@components/Content/Switcher/index.astro'
 import Shares from '@components/Social/Shares/index.astro'
 import WebMentions from '@components/WebMentions/index.astro'
 
@@ -57,11 +56,6 @@ const relatedContentType = path.startsWith('/deep-dive/') || canonicalPath ? 'de
   }
   {...readingTime && { readingTime }}
 >
-  {/** SLOT: breadcrumb-row */}
-  <div class="pr-4" slot="breadcrumb-row">
-    <ContentSwitcher path={path} />
-  </div>
-
   {/** SLOT: hero-image */}
   {
     article.data.cover && (
