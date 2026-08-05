@@ -17,7 +17,6 @@ const MIN_QUERY_LENGTH = 2
 const resultTypeLabels: Record<string, string> = {
   articles: 'Article',
   'case-studies': 'Case Study',
-  'deep-dive': 'Deep Dive',
   downloads: 'Download',
   newsletter: 'Newsletter',
   services: 'Service',
