@@ -1,39 +1,23 @@
 ---
 export const prerender = true
 
-import { type CollectionEntry, getCollection, getEntry } from 'astro:content'
+import { getCollection } from 'astro:content'
 import { isDev } from '@lib/config/environmentServer'
-import { getReadingTimeLabel } from '@lib/markdown/utils/readingTime'
-import ContentLayout from '@components/Content/Layout/index.astro'
 
-export interface Props {
-  article: CollectionEntry<'deepDives'>
-}
-
-/** Generate static paths for all deep-dive articles */
+/**
+ * Legacy deep-dive URLs permanently redirect to the consolidated article pages.
+ * Vercel also 301s /deep-dive/:path* to /articles/:path* at the edge via
+ * vercel.json; this stub keeps dev and preview behavior consistent. It can be
+ * deleted once the Vercel redirect is verified live.
+ */
 export async function getStaticPaths() {
-  const articleEntries = await getCollection('deepDives', ({ data }) => {
+  const articleEntries = await getCollection('articles', ({ data }) => {
     return isDev() || data.isDraft !== true
   })
   return articleEntries.map(article => ({
     params: { slug: article.id },
-    props: { article },
   }))
 }
 
-const { article } = Astro.props
-const author = await getEntry(article.data.author)
-
-const articleBody = article.body ?? ''
-const readingTime = article.data.readingTime ?? getReadingTimeLabel(articleBody)
-// If section const value is changed, update the ContentLayout usage of the value
-const section = 'Deep Dive Articles'
+return Astro.redirect(`/articles/${Astro.params.slug}`, 301)
 ---
-
-<ContentLayout
-  author={author.data.name}
-  article={article}
-  path={`/deep-dive/${article.id}`}
-  section={section}
-  {...readingTime && { readingTime }}
-/>
