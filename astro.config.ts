@@ -105,6 +105,8 @@ const standardIntegrations = [
   sitemap({
     serialize: createSerializeFunction({
       exclude: [
+        /** Legacy /deep-dive/:slug URLs are 301 redirect stub pages, not content */
+        'deep-dive',
         'downloads',
         'offline',
         'print',
