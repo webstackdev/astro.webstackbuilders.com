@@ -322,6 +322,8 @@ Code: PgBouncer configuration for a typical web application.
 
 Pool sizing isn't guesswork — it's queuing theory. Little's Law provides the foundation: $$L = \lambda \times W$$, where $$L$$ is the average number of connections in use, $$\lambda$$ is the request arrival rate (queries per second), and $$W$$ is the average time per query.
 
+<Newsletter />
+
 If your application handles 100 queries per second with an average query time of 50ms, you need $$100 \times 0.05 = 5$$ connections on average. But Little's Law uses averages, and averages deceive. Query times vary. Traffic spikes. A pool sized for average load will saturate during peaks.
 
 This is why the practical formula substitutes P99 query time for average: you want enough connections to handle 99% of queries without queueing, not just the typical case. Then double for variance and add burst capacity.

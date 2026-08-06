@@ -160,6 +160,8 @@ The key question for any change: "Will existing client code break?" If yes, it's
 
 The hardest part of API versioning isn't the mechanics - it's deciding whether a change is breaking in the first place. The core question is simple: _will existing client code still work?_ If no, it's breaking. If yes, you need to dig deeper: is the behavior meaningfully different? Will consumers notice or care?
 
+<Newsletter />
+
 Some changes are obviously breaking. Removing an endpoint returns 404 to anyone still calling it. Changing an HTTP method from POST to PUT breaks existing clients with 405 errors. Renaming a URL path parameter from `{id}` to `{serviceId}` makes existing URLs invalid. Adding a required field to requests means all existing requests fail validation. Changing a field's type from string to number breaks deserialization. These require full deprecation process, no exceptions.
 
 Some changes are obviously safe. Adding an optional request field doesn't affect existing requests. Adding a field to responses is fine if clients ignore unknown fields (they should). New endpoints don't touch existing ones. Loosening validation - accepting 200 characters where you previously accepted 100 - doesn't break anything that worked before. Performance improvements and bug fixes are safe unless someone depends on the buggy behavior (it happens).

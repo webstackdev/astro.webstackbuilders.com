@@ -203,6 +203,8 @@ Characterization tests are not about correctness — they're about documenting c
 
 Michael Feathers introduced the concept of seams in __Working Effectively with Legacy Code__, and it remains the most useful mental model for making untestable code testable. A seam is a place where you can alter program behavior without editing the code at that location. The seam itself doesn't change — you change behavior at what Feathers calls the "enabling point."
 
+<Newsletter />
+
 The distinction matters because legacy code often can't be edited safely. You don't have tests, so any edit risks breaking something. Seams let you substitute behavior for testing purposes without touching the production logic you're trying to protect.
 
 Consider a method that sends emails. The email-sending code is deep inside a 500-line method that also processes orders, updates inventory, and logs analytics. You can't easily extract the email logic — too risky without tests. But if you can find a seam, you can replace the email sender with a test double that captures what __would__ have been sent, without changing the method itself.

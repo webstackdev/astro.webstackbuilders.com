@@ -93,6 +93,8 @@ If you're proxying gRPC traffic, HTTP/2 is mandatory — gRPC requires it. Make 
 
 Timeouts are the most common source of proxy-related outages, and the defaults are almost never right for production. Nginx defaults most timeouts to 60 seconds — generous enough to hide problems during development, short enough to cause 502s when a backend occasionally takes 65 seconds. HAProxy is worse: many timeouts have __no default__, meaning connections can hang indefinitely if you don't configure them.
 
+<Newsletter />
+
 The key insight is that timeouts should match your traffic patterns, not arbitrary round numbers. A health check endpoint should respond in milliseconds; a report generation endpoint might legitimately take 5 minutes. Using the same timeout for both means either your health checks are too slow to detect failures, or your reports timeout prematurely.
 
 ### Nginx Timeout Hierarchy

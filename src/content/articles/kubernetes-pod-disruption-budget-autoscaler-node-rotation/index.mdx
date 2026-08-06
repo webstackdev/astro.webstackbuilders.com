@@ -138,6 +138,8 @@ Use `maxUnavailable` for most cases — it's easier to reason about ("at most 1 
 
 The cluster autoscaler respects PDBs during scale-down operations. Before removing an underutilized node, it checks whether evicting all pods on that node would violate any PDB. If it would, the node is skipped. This is usually the right behavior — you don't want cost optimization to cause outages — but it creates a common operational trap.
 
+<Newsletter />
+
 ### Scale-Down and PDBs
 
 Here's the scenario: you have 10 pods spread evenly across 5 nodes (2 pods per node), with a PDB requiring `minAvailable: 9`. The autoscaler identifies node-1 as underutilized and attempts scale-down. But evicting node-1's 2 pods would leave only 8 healthy pods, violating the PDB. The autoscaler tries node-2—same problem. Every node is blocked.
@@ -240,8 +242,6 @@ kubectl get pods -A --field-selector spec.nodeName=node-1
 Code: Diagnosing a stuck drain.
 
 You're looking for PDBs where the `ALLOWED DISRUPTIONS` column shows `0` — those are the ones blocking your drain. Cross-reference with the pods still on the node to identify the culprit.
-
-<Newsletter />
 
 Once you've identified the blocking PDB, you have several options depending on the situation:
 

@@ -163,6 +163,8 @@ Run deprecated API detection continuously, not just before upgrades. Pluto in CI
 
 Kubernetes components have strict version compatibility requirements. The API server can be at most one minor version ahead of the controller-manager and scheduler, which can be at most one minor version ahead of the kubelet. This means you can't upgrade everything simultaneously - there's a required sequence, and during parts of the upgrade you'll have components at different versions running together.
 
+<Newsletter />
+
 The good news: this is by design and fully supported. Kubernetes explicitly allows version skew during upgrades. If you're upgrading from 1.28 to 1.29, you'll temporarily have 1.29 API servers serving requests alongside 1.28 kubelets on worker nodes - and that's fine. Worker nodes continue operating normally while the control plane upgrades - they just can't create new pods or update existing ones until the API server is back. For HA clusters with multiple control plane nodes, you upgrade them one at a time, so at least one API server is always available (though there may be brief gaps during leader election).
 
 ### Component Upgrade Sequence

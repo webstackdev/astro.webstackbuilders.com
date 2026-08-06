@@ -164,6 +164,8 @@ Some teams enforce rebasing before merge to keep affected sets predictable. Othe
 
 Several build tools implement affected builds: Bazel pioneered the approach for polyglot monorepos, Pants offers similar capabilities with a Python-friendly design, and Gradle's build cache works well for JVM projects. In the JavaScript ecosystem, Nx and Turborepo dominate. Both implement affected builds, but they approach the problem differently. Nx uses explicit git-based comparison: it diffs against a base reference and walks the dependency graph to find affected packages. Turborepo uses content hashing: it hashes all inputs for each task and compares against cached hashes to determine what needs to run. The end result is similar, but the mechanisms have different tradeoffs.
 
+<Newsletter />
+
 ### Nx Affected Commands
 
 Nx provides an `affected` command that filters any target (build, test, lint) to run only on packages affected by changes since a base reference. The base defaults to `main` but can be any git ref.

@@ -39,6 +39,8 @@ These aren't nice-to-have resilience patterns. They're survival mechanisms for a
 
 Understanding the mechanics of cascade failures requires tracing the path from initial symptom to system-wide collapse. The pattern is predictable, which means it's also preventable.
 
+<Newsletter />
+
 Consider a typical service chain: an API gateway calls a checkout service, which calls an inventory service, which queries a database. Each layer has timeouts and retry logic configured independently. Nobody coordinated these settings because each team was responsible for their own service.
 
 The failure starts at the bottom. A database experiences momentary slowness — maybe a long-running query, maybe garbage collection, maybe a network hiccup. What happens next follows a depressingly predictable sequence:

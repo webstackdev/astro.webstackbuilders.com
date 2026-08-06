@@ -133,6 +133,8 @@ The default `ndots:5` exists because Kubernetes service names can have up to 4 d
 
 The previous section mentioned ndots several times — now let's dig into why this single option causes so much trouble. In my experience, `ndots` is the root cause of most external DNS latency in Kubernetes. Understanding exactly how it works transforms a mysterious performance problem into a straightforward configuration fix.
 
+<Newsletter />
+
 ### Understanding ndots Behavior
 
 The rule is simple: if a hostname has fewer dots than the `ndots` value, the resolver tries search domains first. With the default `ndots:5`, any hostname with 4 or fewer dots (which includes nearly every external hostname) gets the search domain treatment.

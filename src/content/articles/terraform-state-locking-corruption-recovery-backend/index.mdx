@@ -151,6 +151,8 @@ State files contain sensitive data in plaintext: database passwords, API keys, p
 
 When two engineers run `terraform apply` simultaneously against the same state, you get a race condition. Both read the same state, both calculate plans based on that state, and then both try to write their changes. The second write either overwrites the first (losing changes) or fails with a serial mismatch error. Neither outcome is good.
 
+<Newsletter />
+
 Locking prevents this by ensuring only one operation can modify state at a time. Before Terraform reads state for a plan or apply, it acquires a lock. If someone else holds the lock, Terraform waits (or fails, depending on configuration). After the operation completes — successfully or not — Terraform releases the lock.
 
 <Diagram
