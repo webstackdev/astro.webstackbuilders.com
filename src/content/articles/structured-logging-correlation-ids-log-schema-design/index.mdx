@@ -1164,6 +1164,26 @@ Set a correlation coverage target (e.g., 99% of logs must have trace IDs) and al
 
 Structured logging at scale requires discipline across three dimensions: schema consistency, correlation propagation, and noise management.
 
+<Download
+  resource="structured-logging-correlation-ids-log-schema-design"
+  title="Structured Logging: Standards That Stick at Scale"
+  description="Field naming, correlation IDs, and noise filtering that keep logs useful as volume grows."
+  listItems={[
+    {
+      text: "Log schema starter blueprint",
+    },
+    {
+      text: "Correlation propagation middleware kit",
+    },
+    {
+      text: "ECS field mapping reference",
+    },
+    {
+      text: "Logging quality CI checks",
+    },
+  ]}
+/>
+
 Adopt ECS rather than inventing a schema — it handles most use cases and enables cross-organization tooling compatibility. Implement correlation IDs at every boundary: HTTP headers for synchronous calls, message envelopes for async, and AsyncLocalStorage for automatic propagation within services. Redact sensitive data at the source, not the sink — assume logs will be accessed by anyone with read permissions.
 
 Use collector-side processing to filter noise before storage: drop health checks and debug logs, sample high-volume events, aggregate repetitive patterns. Establish schema governance early; field naming decisions made in month one will constrain querying for years.

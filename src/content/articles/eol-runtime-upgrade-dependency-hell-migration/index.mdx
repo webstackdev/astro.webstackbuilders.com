@@ -766,6 +766,26 @@ Document the conditions that trigger rollback and make sure everyone on the team
 
 EOL runtime upgrades are not version bumps. They are forced audits of your entire dependency graph, and the blockers are rarely in code you own. The transitive dependencies — packages you have never looked at, three or four levels deep in the tree — are where upgrades stall.
 
+<Download
+  resource="eol-runtime-upgrade-dependency-hell-migration"
+  title="Download the EOL Runtime Upgrade Guide"
+  description="Get the complete migration playbook for runtime upgrades, transitive blocker resolution, and staged compatibility rollout plans."
+  listItems={[
+    {
+      text: "Dependency blocker triage matrix",
+    },
+    {
+      text: "Abandoned package fallback strategies",
+    },
+    {
+      text: "Override and patch workflows",
+    },
+    {
+      text: "Incremental upgrade execution runbook",
+    },
+  ]}
+/>
+
 The approach that works: map the dependency graph before you start writing code. Identify and classify blockers by type. Sequence the work so that unblocking changes come first, core library upgrades come second, and the runtime change itself comes last. Test against both old and new runtimes in CI throughout the project. Deploy progressively with automated rollback triggers.
 
 The teams that struggle with EOL upgrades are the ones who wait until the deadline is imminent, then try to do everything at once. The teams that handle them smoothly treat upgrades as continuous maintenance — small, frequent updates rather than multi-year gaps that accumulate compounding breakage.

@@ -726,6 +726,26 @@ Common debugging issues by pattern:
 
 Private networking provides real security benefits — no public IPs to attack, traffic contained within provider boundaries, reduced attack surface. But those benefits come with operational complexity that catches teams off guard.
 
+<Download
+  resource="private-networking-dns-routing-tls-debugging"
+  title="Private Networking: DNS, Routing, and TLS Failures"
+  description="Debugging the networking issues that appear when services move to private connectivity."
+  listItems={[
+    {
+      text: "Private DNS verification checklist",
+    },
+    {
+      text: "Routing and NACL debug flow",
+    },
+    {
+      text: "TLS handshake troubleshooting guide",
+    },
+    {
+      text: "Endpoint migration preflight template",
+    },
+  ]}
+/>
+
 The core insight: private networks fail differently than public ones. DNS resolution depends on private hosted zones and VPC associations. Routing requires explicit configuration for every destination outside your subnet. TLS certificates need private hostnames that didn't exist when you were public-only.
 
 Build the debugging reflex before you need it: DNS → routing → connectivity → TLS → application. Each layer must work before the next can succeed. When something breaks at 3am, you don't want to be guessing.

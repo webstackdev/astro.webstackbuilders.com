@@ -1594,6 +1594,26 @@ Build a Grafana dashboard that shows catalog health at a glance. Include panels 
 
 A service catalog's value comes entirely from the accuracy and freshness of its metadata. Start with a minimal schema focused on your most critical use case — usually incident routing. Name, owner, tier, oncall schedule. That's enough to answer "who do I call when this breaks?" Once you've achieved high coverage with the core fields, expand to dependencies, documentation links, and domain classification.
 
+<Download
+  resource="service-catalog-metadata-schema-ownership-tracking"
+  title="Service Catalog Schema: Metadata That Gets Used"
+  description="Designing catalog schemas with ownership, lifecycle, and dependency data that stays accurate over time."
+  listItems={[
+    {
+      text: "Catalog schema design blueprint",
+    },
+    {
+      text: "Ownership role mapping template",
+    },
+    {
+      text: "Drift detection integration guide",
+    },
+    {
+      text: "Catalog health KPI dashboard",
+    },
+  ]}
+/>
+
 Ownership is the single most important field. Without knowing who owns a service, you can't route incidents, assign responsibility, or track accountability. Model ownership hierarchically (team → group → org) to survive reorgs without mass updates. Build ownership transfer workflows that enforce handoffs rather than leaving orphaned services behind. Run orphan detection on a schedule and escalate services without valid owners — they're liabilities during incidents.
 
 Dependencies require both declared sources and runtime observation. Developers declare what they __think__ they depend on; service mesh telemetry reveals what actually happens in production. When declared and observed don't match, you've found either a documentation bug or an undiscovered dependency. Both are worth investigating.

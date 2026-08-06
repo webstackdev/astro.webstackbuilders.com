@@ -1,0 +1,28 @@
+---
+/**
+ * Print-safe Highlighter variant.
+ *
+ * The interactive Highlighter is a web component that shows social sharing
+ * options on hover and is hidden from print output (`print:hidden!`). PDF
+ * rendering cannot execute web components, so this variant preserves only the
+ * highlight styling — the text emphasis survives into generated PDFs without
+ * any client-side behavior.
+ *
+ * Mirrors the Props interface of `index.astro` so the two are interchangeable
+ * in MDX component mappings (same pattern as FileExplorer/Print.astro).
+ */
+
+export interface Props {
+  /** Unused in print output; accepted for prop compatibility with Highlighter */
+  ariaLabel?: string
+  /** Additional CSS classes */
+  class?: string
+}
+
+const { class: className } = Astro.props
+---
+
+<span
+  class:list={['text-content', 'bg-warning-inverse', 'rounded', 'px-2', 'py-0.5', className]}
+  ><slot /></span
+>

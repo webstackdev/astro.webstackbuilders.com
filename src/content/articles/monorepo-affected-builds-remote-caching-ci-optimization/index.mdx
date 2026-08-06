@@ -840,6 +840,26 @@ Track CI metrics over time. A sudden drop in cache hit rate or spike in duration
 
 Monorepo CI optimization isn't a single technique — it's a stack of complementary approaches that compound. Affected builds analyze the dependency graph to skip packages that couldn't possibly be impacted by a change. Remote caching eliminates redundant work by sharing build outputs across developers and CI runners. Parallel execution runs remaining tasks concurrently. Distributed execution spreads work across multiple agents.
 
+<Download
+  resource="monorepo-affected-builds-remote-caching-ci-optimization"
+  title="Monorepo Release Engineering: Affected Builds"
+  description="Building only what changed with affected-based builds and remote caching that actually speeds up CI."
+  listItems={[
+    {
+      text: "Affected build setup checklist",
+    },
+    {
+      text: "Remote cache hardening guide",
+    },
+    {
+      text: "Cache miss debugging playbook",
+    },
+    {
+      text: "CI metrics tracking templates",
+    },
+  ]}
+/>
+
 Each level provides meaningful speedup on its own. Together, they transform CI from a 45-minute bottleneck into a 4-minute feedback loop. The exact numbers depend on your repository structure and change patterns, but order-of-magnitude improvements are typical.
 
 The implementation path is straightforward. Start with affected builds — configure Nx or Turborepo to calculate what changed and skip the rest. Add remote caching to share results across your team. Tune your input specifications to maximize cache hit rates. Then, if CI is still slower than you'd like, introduce parallelization and distribution.

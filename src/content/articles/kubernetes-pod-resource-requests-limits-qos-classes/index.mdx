@@ -802,6 +802,26 @@ Most organizations run at 20-30% resource efficiency. Moving to 50-60% can cut i
 
 Remember the 3 AM evictions from the introduction? The well-behaved pods died because they had requests without limits — Burstable QoS, middle of the eviction queue. The pods with no resource specs (BestEffort) should have been evicted first, but the eviction algorithm also considers usage relative to requests. The fix isn't complicated, but it requires understanding the model.
 
+<Download
+  resource="kubernetes-pod-resource-requests-limits-qos-classes"
+  title="Download the Pod Sizing Guide"
+  description="Get the complete resource-sizing playbook for requests, limits, QoS behavior, and node-pressure resilience."
+  listItems={[
+    {
+      text: "QoS class decision matrix",
+    },
+    {
+      text: "Request limit sizing worksheet",
+    },
+    {
+      text: "Eviction risk reduction checklist",
+    },
+    {
+      text: "Resource tuning query pack",
+    },
+  ]}
+/>
+
 Pod resource configuration comes down to two contracts: __requests__ are your promise to the scheduler about what you need, and __limits__ are your promise to the kernel about what you'll never exceed. The scheduler uses requests to place pods; the kernel uses limits to enforce boundaries. Get these wrong and you'll either waste money (over-requesting), starve neighbors (under-limiting), or face surprise evictions (wrong QoS class).
 
 QoS class — Guaranteed, Burstable, or BestEffort — is derived from your resource specs, not set directly. It determines who dies first when nodes run low. If you care about a workload surviving node pressure, you need to care about its QoS class. Guaranteed (requests equal limits) for critical services, Burstable (limits greater than requests) for everything else that matters.

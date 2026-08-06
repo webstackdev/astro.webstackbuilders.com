@@ -797,6 +797,26 @@ Beyond CI/CD and backups, a few operational practices significantly reduce state
 
 State corruption will happen. The question is whether you recover in minutes or spend days reconstructing through imports and manual investigation.
 
+<Download
+  resource="terraform-state-locking-corruption-recovery-backend"
+  title="Terraform State: Failure Modes and Recovery"
+  description="State locking, backend configuration, and recovery strategies for when state corruption happens."
+  listItems={[
+    {
+      text: "State recovery incident checklist",
+    },
+    {
+      text: "Backend hardening configuration guide",
+    },
+    {
+      text: "Import and state surgery playbook",
+    },
+    {
+      text: "Quarterly disaster drill script",
+    },
+  ]}
+/>
+
 The patterns are predictable: interrupted applies, concurrent modifications, manual edits, provider mismatches. Each has specific recovery procedures — force-unlock for stuck locks, version rollback for corruption, import for orphaned resources, state surgery for structural problems.
 
 Prevention is cheaper than recovery. Use S3 versioning with DynamoDB locking. Enable CI/CD concurrency controls. Back up state to a separate region. Pin your provider versions. Never edit state files directly.

@@ -1348,6 +1348,26 @@ The key is testing configuration syntax __before__ reloading. A syntax error dur
 
 Proxy defaults are starting points, not production configurations. Nginx's 60-second timeouts and HAProxy's unlimited defaults exist to avoid breaking things during development — they're the wrong choices for production.
 
+<Download
+  resource="nginx-haproxy-reverse-proxy-production-tuning"
+  title="Reverse Proxy Hardening: Timeouts, Buffers, Defaults"
+  description="Why default nginx and HAProxy configurations fail under load and how to tune them for production."
+  listItems={[
+    {
+      text: "Timeout baseline tuning matrix",
+    },
+    {
+      text: "Buffer sizing troubleshooting guide",
+    },
+    {
+      text: "Connection pool optimization checklist",
+    },
+    {
+      text: "Proxy metrics alerting pack",
+    },
+  ]}
+/>
+
 The tuning process follows a pattern: establish baseline metrics, identify bottlenecks, adjust configuration, measure again. Timeouts should match your traffic patterns — slow report endpoints need longer read timeouts, health checks need aggressive timeouts that fail fast. Buffers should accommodate your payloads without wasting memory. Connection pools should be sized for your request rate and backend count.
 
 The goal isn't a perfectly optimized configuration — it's a __resilient__ one. Your proxy should handle normal traffic with good performance, absorb traffic spikes without dropping connections, and shed load gracefully when backends struggle. Test under failure conditions: simulate slow backends, connection storms, and oversized payloads. The problems you find in staging won't page you at 3 AM.
