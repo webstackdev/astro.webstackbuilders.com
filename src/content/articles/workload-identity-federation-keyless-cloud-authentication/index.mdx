@@ -1,6 +1,6 @@
 ---
-title: "Eliminate Your Biggest Cloud Security Blind Spot"
-description: "Long-lived service account keys are the most common - and most preventable - cloud security vulnerability. Workload identity federation replaces static credentials with cryptographic proof of identity, eliminating an entire category of risk."
+title: "Workload Identity: Eliminating Long-Lived Keys"
+description: "Replacing service account keys with workload identity federation for secure, keyless cloud access."
 cover: "./cover.jpg"
 coverAlt: "Antique lock and key overlaid with digital timestamps representing state locking mechanism with temporal operations"
 author: "kevin-brown"
@@ -9,33 +9,61 @@ tags: ["cloud-platforms","azure","terraform","aws","kubernetes"]
 featured: true
 ---
 
-import oidcTokenDiagram from "./diagrams/oidc-token-exchange-flow-for-workload-identity-federation.jpg"
+import kubernetesDiagram from "./diagrams/kubernetes-workload-identity-token-exchange-flow.jpg"
+import longLivedKeyDiagram from "./diagrams/long-lived-key-authentication-model.jpg"
+import tokenExchangeDiagram from "./diagrams/token-exchange-sequence-from-workload-to-cloud-credentials.jpg"
+import workloadIdentityDiagram from "./diagrams/workload-identity-federation-authentication-flow.jpg"
 
-*[OIDC]: OpenID Connect
-*[JWT]: JSON Web Token
-*[STS]: Security Token Service
+*[CEL]: Common Expression Language
+*[EKS]: Elastic Kubernetes Service
+*[GCP]: Google Cloud Platform
+*[GKE]: Google Kubernetes Engine
 *[IAM]: Identity and Access Management
-*[CI]: Continuous Integration
-*[CD]: Continuous Deployment
+*[IdP]: Identity Provider
+*[JWKS]: JSON Web Key Set
+*[JWT]: JSON Web Token
+*[OIDC]: OpenID Connect
+*[STS]: Security Token Service
+*[SPIFFE]: Secure Production Identity Framework for Everyone
 
-It starts with a Slack message at 2 AM: "Why is there a $47,000 charge on our Azure bill?" You dig through the activity logs and find a cryptomining operation running in your subscription. The trail leads back to a service principal secret created eighteen months ago during a "quick proof of concept." Nobody remembers who created it. Nobody knows where else it might have been copied. And now you're explaining to leadership how a credential that was supposed to be temporary gave an attacker free rein over your infrastructure.
+If you've ever inherited a CI/CD pipeline and found service account keys created by someone who left three years ago, you know the feeling. Nobody knows where the copies are. Nobody's rotated them. You're stuck wondering whether to touch them or leave them alone because _something_ might break.
 
-This scenario plays out constantly. <Highlighter>Service account keys are the most common entry point for cloud breaches, and the attack vector is almost always the same: a static credential that was created, copied somewhere, and forgotten.</Highlighter>
+Workload identity federation offers a way out: instead of managing secrets that can be stolen, your workloads prove who they are and receive short-lived credentials that expire before anyone could misuse them.
 
-## The Hidden Risk of Long-Lived Keys
+## The Problem with Long-Lived Keys
 
-Service account keys are static credentials that live forever until explicitly rotated — which, in my experience, they almost never are. They get created during some late-night debugging session, copied to a CI variable, and then forgotten. Months later, they've proliferated to places nobody remembers.
+Service account keys are static credentials that live forever until explicitly rotated — which, in my experience, they almost never are. They're created during some late-night debugging session, copied to a CI variable, and then forgotten. Months later, they've proliferated to places nobody remembers.
 
-The security model is fundamentally broken: you're distributing secrets that grant access, then hoping nobody loses track of them. But secrets spread. They end up in git history, in Slack messages, in screenshots of terminal sessions. Each copy is a potential breach waiting to happen.
+### Key Management Failures
+
+I've seen the same pattern play out at multiple organizations. A key gets created for a specific purpose — say, deploying from a CI pipeline. It has broad permissions because scoping it properly would take extra time, and the person creating it is under pressure to ship something. Over the next year, that key gets copied to additional repos "for convenience," stored in `.env` files that eventually get committed, and shared via Slack when someone needs access quickly.
+
+The typical lifecycle looks something like this:
+
+<List
+  variant="timeline-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    { lead: "Day 0: Key created for CI pipeline deployment" },
+    { lead: "Day 30: Key copied to a second repo because someone needed the same access" },
+    { lead: "Day 90: Developer stores key in `.env` file for local testing" },
+    { lead: "Day 180: `.env` file accidentally committed to git" },
+    { lead: "Day 181: Git history rewritten, but the key remains in the reflog" },
+    { lead: "Day 365: Repository made public for an open source release" },
+    { lead: "Day 366: Automated scanners find the key in git history" },
+    { lead: "Day 367: Cryptomining instances spinning up in your account" },
+  ]}
+/>
+
+The really insidious part is that most of this happens without anyone noticing. Keys don't send notifications when they're copied. Git doesn't warn you when you're about to expose credentials in a repository you're making public.
 
 <Table
   variant="grid-and-accent-header-table"
-  classes={{
-    tbody: '!text-content',
-  }}
   content={{
     thead: {
-      th: ['Risk Scenario', 'Impact', 'Detection Difficulty'],
+      th: ['Risk', 'Impact', 'Detection Difficulty'],
     },
     tbody: {
       tr: [
@@ -65,31 +93,70 @@ The security model is fundamentally broken: you're distributing secrets that gra
         },
       ],
     },
-    figure: 'Common service account key risks and their detection difficulty.',
+    figure: 'Common service account key risks and their detectability.',
   }}
 />
 
-The typical response is "we'll rotate keys regularly." But rotation doesn't solve the fundamental problem — you're still distributing secrets that can be stolen. You're just hoping to invalidate them before an attacker uses them. That's not security; it's a race condition.
+<Callout type="danger">
+Every long-lived credential is an attack vector. Service account keys have been the root cause of major cloud breaches — including some you've probably read about in the news. Workload identity federation eliminates this entire category of risk by replacing static keys with short-lived, automatically-rotated tokens.
+</Callout>
 
-What if you could eliminate the keys entirely?
+### The Federation Alternative
 
-## How Federation Changes the Model
+Workload identity federation inverts the security model. Instead of distributing secrets that prove identity, workloads prove who they are through cryptographic assertions from a trusted identity provider — typically the platform they're already running on.
 
-Workload identity federation inverts the security model entirely. Instead of distributing secrets that prove identity, your workloads prove who they are through cryptographic assertions from platforms you already trust.
-
-Here's the core insight: your CI/CD platform already knows which repository triggered a build, which branch it's running from, and which user initiated it. Your Kubernetes cluster already knows which pod is making a request and which service account it's running as. Why create a separate secret when the platform can vouch for the workload's identity directly?
-
-The mechanism is OIDC — the same protocol that powers "Sign in with Google" on websites. Your workload requests a token from its platform (GitHub Actions, Azure Pipelines, Kubernetes), then exchanges that token with your cloud provider for short-lived credentials.
+Here's the conceptual difference. With long-lived keys, your CI runner holds a secret that grants access — and that secret can be copied, leaked, or stolen at any point in its lifetime.
 
 <Diagram
-  src={oidcTokenDiagram}
-  title="OIDC token exchange flow for workload identity federation."
-  description="Sequence diagram with three participants: Workload, Platform such as GitHub or Azure DevOps, and Cloud Provider such as Azure. The Workload requests an identity token from the Platform. The Platform returns a signed JWT containing claims. The Workload then sends that JWT to the Cloud Provider to exchange it for credentials. The Cloud Provider performs two internal checks: it verifies the JWT signature and checks the trust policy. If the token and policy checks succeed, the Cloud Provider returns short-lived credentials valid for one hour back to the Workload. The diagram shows how workload identity federation replaces static secrets with a signed identity assertion followed by temporary credentials."
+  src={longLivedKeyDiagram}
+  size="xl"
+  title="Long-lived key authentication model."
+  description="Left-to-right flowchart showing a CI Runner sending a Service Account Key directly to a Cloud API for authentication. Beneath that flow is a grouped section labeled Key Properties listing three risks: the key never expires, it must be stored somewhere, and it is unclear who may have copies of it. The diagram illustrates the core weakness of static key-based authentication: access depends on a reusable secret that can persist indefinitely and spread beyond its intended owner."
 />
 
-The JWT contains claims about the workload — which repository triggered the build, which branch, which environment. Your cloud provider verifies the signature against the platform's public keys, checks that the claims match your access policy, and issues credentials that expire in an hour or less.
+With federation, your CI runner requests a token from its platform, then exchanges that token with your cloud provider:
 
-The critical claims in a GitHub Actions token look like this:
+<Diagram
+  src={workloadIdentityDiagram}
+  size="full"
+  title="Workload identity federation authentication flow."
+  description="Top-to-bottom flowchart showing keyless authentication through workload identity federation. A CI Runner first requests an OIDC token from the CI Platform identity provider. The identity provider then issues a JWT containing claims to the Cloud STS service. Inside the Cloud STS node, three validation steps are shown: verify the JWT signature, check issuer trust, and validate claims against policy. If validation succeeds, Cloud STS issues short-lived credentials valid for one hour. Those credentials are then used to access the Cloud API. The diagram shows the replacement of static secrets with a signed identity assertion followed by temporary credentials."
+/>
+
+The JWT contains claims about the workload — which repository triggered the build, which branch, which user initiated it. Your cloud provider verifies the signature against the identity provider's public keys, checks that the claims match your access policy, and issues credentials that expire in an hour or less.
+
+There's nothing to leak. The OIDC token is only valid for a few minutes and is scoped to your specific cloud provider. The credentials your workload receives expire quickly and are never written to disk or stored anywhere persistent.
+
+## Federation Mechanics
+
+To really understand what's happening when you set up workload identity, you need to understand the token structure and exchange process. This isn't just academic — when federation breaks (and it will, at some point), you'll need to debug token claims, verify signatures, and trace through the exchange flow.
+
+### OIDC Token Anatomy
+
+The core of workload identity is a JWT — a JSON Web Token that contains claims about who's requesting access. When your GitHub Actions workflow runs, it can request an OIDC token from GitHub's identity provider. That token looks something like this when decoded:
+
+```json title="Decoded GitHub Actions OIDC token payload"
+{
+  "iss": "https://token.actions.githubusercontent.com",
+  "sub": "repo:myorg/myrepo:environment:production",
+  "aud": "sts.amazonaws.com",
+  "exp": 1706400000,
+  "iat": 1706396400,
+  "repository": "myorg/myrepo",
+  "repository_owner": "myorg",
+  "repository_visibility": "private",
+  "actor": "developer",
+  "workflow": "deploy.yml",
+  "ref": "refs/heads/main",
+  "ref_type": "branch",
+  "environment": "production",
+  "runner_environment": "github-hosted"
+}
+```
+
+Code: Standard and GitHub-specific claims in an OIDC token.
+
+The key claims for access control are:
 
 <List
   variant="zebra-list"
@@ -101,64 +168,204 @@ The critical claims in a GitHub Actions token look like this:
   items={[
     {
       lead: '<span class="font-mono">iss</span> (issuer)',
-      text: 'Where the token came from — <span class="font-mono">https://token.actions.githubusercontent.com</span>',
+      text: 'Where the token came from — GitHub\'s OIDC endpoint in this case (<span class="font-mono">https://token.actions.githubusercontent.com</span>)',
     },
     {
       lead: '<span class="font-mono">sub</span> (subject)',
-      text: 'The specific workload identity — <span class="font-mono">repo:myorg/myrepo:ref:refs/heads/main</span>',
+      text: 'The unique identifier for the workload, which varies based on context (branch, environment, pull request) — <span class="font-mono">repo:myorg/myrepo:ref:refs/heads/main</span>',
     },
     {
       lead: '<span class="font-mono">aud</span> (audience)',
       text: "Who the token is intended for — your cloud provider's token exchange endpoint",
     },
+    {
+      lead: '<span class="font-mono">repository</span> and <span class="font-mono">repository_owner:</span>',
+      text: "Which repo triggered the workflow",
+    },
+    {
+      lead: '<span class="font-mono">ref:</span>',
+      text: "The git reference (branch or tag) being built",
+    },
+    {
+      lead: '<span class="font-mono">environment:</span>',
+      text: "The GitHub Environment, if you're using environment protection rules",
+    },
   ]}
 />
 
-The entire exchange happens in milliseconds. Your workflow never sees a long-lived credential — just a token that expires in an hour and gets automatically refreshed if needed. There's nothing to rotate, nothing to leak, nothing to forget about in a CI variable.
+The token is signed with GitHub's private key. Your cloud provider fetches GitHub's public keys from their well-known JWKS endpoint and verifies the signature before trusting any claims.
 
-<Newsletter />
+### Token Exchange Flow
 
-## What Implementation Looks Like
+The exchange process involves four parties: your workload, the identity provider (GitHub), the cloud's Security Token Service, and the cloud's IAM system.
 
-Let's make this concrete with Azure. You need three things: a managed identity for your workload, a federated credential that trusts your CI platform, and a workflow that requests the token exchange.
+<Diagram
+  src={tokenExchangeDiagram}
+  title="Token exchange sequence from workload to cloud credentials."
+  description="Sequence diagram with four participants: Workload, Identity Provider, Cloud STS, and Cloud IAM. The Workload requests an OIDC token from the Identity Provider, which returns a JWT signed with the provider's key. The Workload then sends that JWT to Cloud STS to exchange it for credentials. Cloud STS fetches the identity provider's JWKS, typically from cache, and verifies the token's signature, issuer, claims, and expiry. Cloud STS then queries Cloud IAM to look up the service account and retrieve its permissions. Finally, Cloud STS returns a short-lived access token valid for one hour back to the Workload. The diagram shows the full trust chain from workload-issued identity proof to temporary cloud credentials."
+/>
 
-First, the Terraform configuration that establishes trust between Azure and GitHub Actions:
+Here's what's happening at each step:
 
-```hcl title="modules/github-oidc/main.tf"
-# User-assigned managed identity for CI/CD workloads
-resource "azurerm_user_assigned_identity" "github_deploy" {
-  name                = "github-actions-deploy"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-}
+<List
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: "Your workflow requests an OIDC token from GitHub, specifying the intended audience (your cloud provider)",
+    },
+    {
+      lead: "GitHub signs a JWT containing claims about the workflow context",
+    },
+    {
+      lead: "Your workflow sends this JWT to your cloud provider's STS endpoint",
+    },
+    {
+      lead: "STS fetches (or retrieves from cache) GitHub's public keys to verify the signature",
+    },
+    {
+      lead: "STS validates everything: signature, issuer is trusted, claims match your policy, token isn't expired",
+    },
+    {
+      lead: "STS looks up which service account this workload should assume based on attribute mappings",
+    },
+    {
+      lead: "STS returns short-lived credentials scoped to that service account's permissions",
+    },
+  ]}
+/>
 
-# Federated credential trusting GitHub Actions
-resource "azurerm_federated_identity_credential" "github_main" {
-  name                = "github-main-branch"
-  resource_group_name = azurerm_resource_group.main.name
-  parent_id           = azurerm_user_assigned_identity.github_deploy.id
+The entire exchange happens in milliseconds. Your workflow never sees a long-lived credential — just a token that expires in an hour and gets automatically refreshed if needed.
 
-  audience = ["api://AzureADTokenExchange"]
-  issuer   = "https://token.actions.githubusercontent.com"
-  subject  = "repo:myorg/myrepo:ref:refs/heads/main"
-}
+### Attribute Mapping and Conditions
 
-# Grant the identity permission to deploy
-resource "azurerm_role_assignment" "deploy_contributor" {
-  scope                = azurerm_resource_group.main.id
-  role_definition_name = "Contributor"
-  principal_id         = azurerm_user_assigned_identity.github_deploy.principal_id
+The real power of workload identity is in the attribute mapping and conditions. You can create fine-grained policies that restrict access based on any claim in the OIDC token.
+
+For AWS, you define conditions in IAM trust policies:
+
+```json title="AWS IAM trust policy condition for GitHub Actions"
+{
+  "Condition": {
+    "StringEquals": {
+      "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+      "token.actions.githubusercontent.com:sub": "repo:myorg/myrepo:environment:production"
+    }
+  }
 }
 ```
 
-Code: Terraform configuration for Azure federated identity with GitHub Actions.
+Code: Restricting role assumption to a specific repository and environment.
 
-The `subject` field is where you control access. This configuration only allows the `main` branch of a specific repository to assume this identity. A feature branch or a different repository would be rejected, even if the token is cryptographically valid.
+For GCP, you use CEL (Common Expression Language) in attribute conditions:
 
-Now the GitHub Actions workflow that uses federation:
+```cel title="GCP Workload Identity attribute condition"
+attribute.repository_owner == "myorg" &&
+attribute.repository == "myorg/production-deploy" &&
+attribute.ref == "refs/heads/main" &&
+attribute.environment == "production"
+```
+
+Code: CEL expression restricting access to main branch production deployments.
+
+This is where you prevent the "deploy key can deploy anything from anywhere" problem. With proper conditions, a workflow can only assume the production deployment role if it's running from the main branch of the correct repository, in the production environment. A pull request build or a workflow from a different repo gets denied at the STS level before it ever touches your cloud resources.
+
+## Provider Configuration
+
+Setting up workload identity federation requires configuring both sides of the trust relationship: the OIDC provider registration in your cloud account and the workflow configuration that requests tokens. Each cloud provider has slightly different terminology and resource structures, but the core concepts are the same.
+
+### AWS: IAM Roles for GitHub Actions
+
+AWS uses IAM OIDC identity providers and IAM roles with trust policies. You register GitHub as a trusted identity provider, create a role with conditions on which tokens can assume it, and attach the permissions you need.
+
+```hcl title="modules/github-oidc/main.tf"
+# Register GitHub Actions as an OIDC provider
+resource "aws_iam_openid_connect_provider" "github" {
+  url             = "https://token.actions.githubusercontent.com"
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+
+  tags = {
+    Purpose = "GitHub Actions OIDC federation"
+  }
+}
+
+# IAM role that GitHub Actions workflows can assume
+resource "aws_iam_role" "github_actions_deploy" {
+  name = "github-actions-deploy"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.github.arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          }
+          StringLike = {
+            "token.actions.githubusercontent.com:sub" = "repo:myorg/myrepo:ref:refs/heads/main"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# Attach deployment permissions to the role
+resource "aws_iam_role_policy" "deploy_permissions" {
+  name = "deploy-permissions"
+  role = aws_iam_role.github_actions_deploy.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "ECRAccess"
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:PutImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "ECSDeployment"
+        Effect = "Allow"
+        Action = [
+          "ecs:UpdateService",
+          "ecs:DescribeServices",
+          "ecs:DescribeTaskDefinition",
+          "ecs:RegisterTaskDefinition"
+        ]
+        Resource = [
+          "arn:aws:ecs:us-east-1:*:service/production-cluster/*",
+          "arn:aws:ecs:us-east-1:*:task-definition/production-*"
+        ]
+      }
+    ]
+  })
+}
+```
+
+Code: Terraform module for AWS OIDC federation with GitHub Actions.
+
+The `thumbprint_list` value is GitHub's certificate thumbprint — AWS uses this to verify it's actually talking to GitHub's OIDC endpoint. The trust policy's `Condition` block is where you restrict which workflows can assume the role. Here, only the main branch of a specific repo can assume this role.
+
+On the workflow side, you need to request the `id-token: write` permission and use the official AWS credentials action:
 
 ```yaml title=".github/workflows/deploy.yml"
-name: Deploy to Azure
+name: Deploy to AWS
+
 on:
   push:
     branches: [main]
@@ -173,45 +380,724 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: azure/login@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          role-to-assume: arn:aws:iam::<12-digit AWS Account ID>:role/github-actions-deploy
+          aws-region: us-east-1
 
-      - name: Deploy infrastructure
+      - name: Deploy to ECS
         run: |
-          az deployment group create \
-            --resource-group production \
-            --template-file infrastructure/main.bicep
+          aws ecs update-service \
+            --cluster production-cluster \
+            --service web-service \
+            --force-new-deployment
 ```
 
-Code: GitHub Actions workflow using Azure federated identity.
+Code: GitHub Actions workflow using OIDC to deploy to AWS ECS.
 
-Notice what's __not__ in this workflow: no `AZURE_CLIENT_SECRET`, no service principal key, no credential that could be extracted and reused elsewhere. The `id-token: write` permission tells GitHub to make OIDC tokens available, and the Azure login action handles the token exchange automatically.
+Notice there are no `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` secrets. The workflow requests an OIDC token, exchanges it with AWS STS, and receives temporary credentials that expire in an hour.
 
-The `client-id`, `tenant-id`, and `subscription-id` aren't secrets in the security sense — they're identifiers that tell Azure which identity to check. An attacker who obtains these values can't authenticate; they'd also need to be running in the correct GitHub repository on the correct branch.
+### GCP: Workload Identity Federation
 
-Similar patterns work for GCP (Workload Identity Federation), AWS (IAM OIDC providers), and Kubernetes clusters running on any of these platforms. The configuration details differ, but the concept is identical: replace static secrets with cryptographic proof of identity. (The full guide linked below covers Kubernetes workload identity for EKS, GKE, and AKS in detail.)
+GCP's model is slightly more complex: you create a Workload Identity Pool (a container for identity providers), add a provider to that pool, and then bind external identities to GCP service accounts.
 
-## Migration Path
+```hcl title="modules/github-workload-identity/main.tf"
+# Identity pool groups external identity providers
+resource "google_iam_workload_identity_pool" "github" {
+  project                   = var.project_id
+  workload_identity_pool_id = "github-actions-pool"
+  display_name              = "GitHub Actions Pool"
+  description               = "Identity pool for GitHub Actions workflows"
+}
 
-If you're convinced but wondering where to begin, start with your highest-risk credentials: CI/CD pipelines that deploy to production. These typically have broad permissions and are the most attractive target for attackers.
+# Add GitHub as a provider within the pool
+resource "google_iam_workload_identity_pool_provider" "github" {
+  project                            = var.project_id
+  workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
+  workload_identity_pool_provider_id = "github-provider"
+  display_name                       = "GitHub Actions Provider"
 
-The migration doesn't have to be disruptive. Configure federation alongside your existing keys, verify it works in a non-production environment, then switch production workflows over. Keep the old keys disabled (not deleted) for a week or two in case something breaks, then remove them entirely.
+  oidc {
+    issuer_uri = "https://token.actions.githubusercontent.com"
+  }
 
-<Download
-  resource="workload-identity-federation-keyless-cloud-authentication"
-  title="Workload Identity: Eliminating Long-Lived Keys"
-  description="Replacing service account keys with workload identity federation for secure, keyless cloud access."
-  listItems={[
-    { text: "OIDC federation setup blueprint" },
-    { text: "Cloud trust policy templates" },
-    { text: "Keyless migration rollout checklist" },
-    { text: "Token exchange debug playbook" }
+  # Map GitHub token claims to GCP attributes
+  attribute_mapping = {
+    "google.subject"             = "assertion.sub"
+    "attribute.actor"            = "assertion.actor"
+    "attribute.repository"       = "assertion.repository"
+    "attribute.repository_owner" = "assertion.repository_owner"
+    "attribute.ref"              = "assertion.ref"
+  }
+
+  # Only accept tokens from our organization
+  attribute_condition = "assertion.repository_owner == 'myorg'"
+}
+
+# Service account that external identities will impersonate
+resource "google_service_account" "github_actions" {
+  project      = var.project_id
+  account_id   = "github-actions-deploy"
+  display_name = "GitHub Actions Deploy"
+}
+
+# Allow specific repository to impersonate this service account
+resource "google_service_account_iam_binding" "github_actions_impersonation" {
+  service_account_id = google_service_account.github_actions.name
+  role               = "roles/iam.workloadIdentityUser"
+
+  members = [
+    "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/myorg/production-deploy"
+  ]
+}
+
+# Grant the service account permissions to deploy
+resource "google_project_iam_member" "github_actions_gke" {
+  project = var.project_id
+  role    = "roles/container.developer"
+  member  = "serviceAccount:${google_service_account.github_actions.email}"
+}
+```
+
+Code: Terraform configuration for GCP Workload Identity Federation with GitHub.
+
+The `attribute_mapping` block translates GitHub's token claims into GCP attributes that you can reference in IAM bindings. The `principalSet` member format lets you grant access based on those mapped attributes — here, any workflow from a specific repository.
+
+### Azure: Federated Identity Credentials
+
+Azure's approach uses App Registrations (also called service principals) with federated identity credentials. Each federated credential specifies exactly which external identity can authenticate as that app registration.
+
+```hcl title="modules/github-federated-identity/main.tf"
+# App registration acts as the identity for GitHub Actions
+resource "azuread_application" "github_actions" {
+  display_name = "github-actions-deploy"
+  owners       = [data.azuread_client_config.current.object_id]
+}
+
+resource "azuread_service_principal" "github_actions" {
+  client_id = azuread_application.github_actions.client_id
+  owners    = [data.azuread_client_config.current.object_id]
+}
+
+# Federated credential for main branch deployments
+resource "azuread_application_federated_identity_credential" "github_main" {
+  application_id = azuread_application.github_actions.id
+  display_name   = "github-actions-main-branch"
+  description    = "GitHub Actions federation for main branch"
+
+  audiences = ["api://AzureADTokenExchange"]
+  issuer    = "https://token.actions.githubusercontent.com"
+  subject   = "repo:myorg/myrepo:ref:refs/heads/main"
+}
+
+# Separate credential for production environment (GitHub Environments)
+resource "azuread_application_federated_identity_credential" "github_production" {
+  application_id = azuread_application.github_actions.id
+  display_name   = "github-actions-production-env"
+  description    = "GitHub Actions federation for production environment"
+
+  audiences = ["api://AzureADTokenExchange"]
+  issuer    = "https://token.actions.githubusercontent.com"
+  subject   = "repo:myorg/myrepo:environment:production"
+}
+
+# Grant permissions on the resource group
+resource "azurerm_role_assignment" "github_actions_contributor" {
+  scope                = azurerm_resource_group.production.id
+  role_definition_name = "Contributor"
+  principal_id         = azuread_service_principal.github_actions.object_id
+}
+```
+
+Code: Terraform configuration for Azure federated identity with GitHub Actions.
+
+One quirk with Azure: you need separate federated identity credentials for different subject patterns. If you want to allow both branch-based deployments and environment-based deployments, you need two credentials. This is more explicit than AWS or GCP's wildcard support, which can be either a benefit (clearer audit trail) or an annoyance (more resources to manage).
+
+### CI Platform Workflow Configuration
+
+The workflow configuration follows the same pattern across providers. Here's the complete GitHub Actions example for AWS:
+
+```yaml title=".github/workflows/deploy.yml"
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-actions-deploy
+          aws-region: us-east-1
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster production-cluster \
+            --service web-service \
+            --force-new-deployment
+```
+
+Code: GitHub Actions workflow using OIDC to deploy to AWS.
+
+The key elements are the `permissions` block requesting `id-token: write` and the provider-specific authentication action. For GCP, you'd replace the AWS action with `google-github-actions/auth@v2` and specify a `workload_identity_provider` and `service_account`. For Azure, use `azure/login@v2` with `client-id`, `tenant-id`, and `subscription-id` (identifiers, not secrets).
+
+GitLab CI supports the same pattern. The workflow configuration is slightly different:
+
+```yaml title=".gitlab-ci.yml"
+deploy:
+  image: amazon/aws-cli:latest
+  id_tokens:
+    AWS_TOKEN:
+      aud: https://gitlab.com
+  script:
+    - >
+      export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
+      $(aws sts assume-role-with-web-identity
+      --role-arn arn:aws:iam::123456789012:role/gitlab-deploy
+      --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
+      --web-identity-token $AWS_TOKEN
+      --duration-seconds 3600
+      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
+      --output text))
+    - aws ecs update-service --cluster production-cluster --service web-service --force-new-deployment
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+```
+
+Code: GitLab CI pipeline using OIDC to deploy to AWS.
+
+The `id_tokens` block requests an OIDC token with the specified audience. GitLab's token claims include `project_path`, `ref`, and `environment`, which you reference in your trust policy conditions.
+
+## Kubernetes Workload Identity
+
+CI/CD pipelines aren't the only place where workload identity matters. Applications running in Kubernetes often need to access cloud services — reading from S3, publishing to Pub/Sub, accessing secrets from a vault. Traditionally, you'd inject cloud credentials as environment variables or mount them as files. Workload identity for Kubernetes eliminates this by letting pods authenticate using their Kubernetes service account.
+
+The pattern is similar to CI/CD federation: Kubernetes issues a service account token, your pod exchanges it with the cloud provider, and receives short-lived credentials. The key difference is that Kubernetes clusters have their own OIDC identity provider built in — you register your cluster as a trusted issuer with your cloud account.
+
+### EKS Pod Identity
+
+AWS calls this IAM Roles for Service Accounts (IRSA). Each EKS cluster has an OIDC issuer URL, and you register that as an identity provider in IAM. Then you create IAM roles with trust policies that allow specific Kubernetes service accounts to assume them.
+
+```hcl title="modules/eks-irsa/main.tf"
+# Get the OIDC issuer URL from your EKS cluster
+data "aws_eks_cluster" "cluster" {
+  name = var.cluster_name
+}
+
+# Register the cluster's OIDC provider with IAM
+resource "aws_iam_openid_connect_provider" "eks" {
+  url             = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
+}
+
+# IAM role that a specific service account can assume
+resource "aws_iam_role" "app_s3_access" {
+  name = "eks-app-s3-access"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.eks.arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:production:app-service-account"
+            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:aud" = "sts.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# Attach the permissions your app needs
+resource "aws_iam_role_policy" "app_s3_access" {
+  name = "s3-access"
+  role = aws_iam_role.app_s3_access.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"]
+        Resource = ["arn:aws:s3:::app-data-bucket", "arn:aws:s3:::app-data-bucket/*"]
+      }
+    ]
+  })
+}
+```
+
+Code: Terraform configuration for EKS IAM Roles for Service Accounts (IRSA).
+
+The trust policy condition uses the service account's namespace and name (`system:serviceaccount:production:app-service-account`) as the subject. Only pods using that specific service account in that specific namespace can assume the role.
+
+On the Kubernetes side, you annotate the service account with the IAM role ARN:
+
+```yaml title="k8s/production/service-account.yaml"
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-service-account
+  namespace: production
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::<12-digit AWS Account ID>:role/eks-app-s3-access
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: production
+spec:
+  template:
+    spec:
+      serviceAccountName: app-service-account
+      containers:
+        - name: app
+          image: myapp:latest
+          env:
+            - name: AWS_REGION
+              value: us-east-1
+```
+
+Code: Kubernetes deployment using IRSA for AWS access.
+
+The AWS SDK automatically detects it's running in an EKS pod with IRSA configured. It reads the projected service account token, exchanges it with STS, and uses the resulting credentials. No `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` needed.
+
+### GKE Workload Identity
+
+GCP's Workload Identity for GKE follows the same pattern but with different terminology. You bind a Kubernetes service account to a GCP service account, and pods using that KSA can authenticate as the GSA.
+
+```hcl title="modules/gke-workload-identity/main.tf"
+# GCP service account for the application
+resource "google_service_account" "app" {
+  account_id   = "app-workload"
+  display_name = "Application Workload Identity"
+}
+
+# Allow the Kubernetes service account to impersonate this GCP service account
+resource "google_service_account_iam_binding" "workload_identity" {
+  service_account_id = google_service_account.app.name
+  role               = "roles/iam.workloadIdentityUser"
+
+  members = [
+    "serviceAccount:${var.project_id}.svc.id.goog[production/app-ksa]"
+  ]
+}
+
+# Grant the GCP service account permissions
+resource "google_project_iam_member" "app_storage" {
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_service_account.app.email}"
+}
+```
+
+Code: Terraform configuration for GKE Workload Identity.
+
+The member format `serviceAccount:PROJECT.svc.id.goog[NAMESPACE/KSA_NAME]` binds a specific Kubernetes service account to the GCP service account. This is the authorization step — it says "pods using this KSA can act as this GSA."
+
+```yaml title="k8s/production/workload-identity.yaml"
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-ksa
+  namespace: production
+  annotations:
+    iam.gke.io/gcp-service-account: app-workload@myproject.iam.gserviceaccount.com
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: production
+spec:
+  template:
+    spec:
+      serviceAccountName: app-ksa
+      nodeSelector:
+        iam.gke.io/gke-metadata-server-enabled: "true"
+      containers:
+        - name: app
+          image: gcr.io/myproject/app:latest
+```
+
+Code: Kubernetes deployment using GKE Workload Identity.
+
+The `nodeSelector` ensures your pod lands on a node with the GKE metadata server enabled — this is what intercepts metadata requests and provides the workload identity tokens. Without it, your pod would hit the underlying compute instance's metadata server instead.
+
+### AKS Workload Identity
+
+Azure Kubernetes Service uses Azure AD Workload Identity, which federates Kubernetes service account tokens with Azure AD. You create a managed identity, establish a federated credential linking it to your Kubernetes service account, and grant that identity permissions on Azure resources.
+
+```hcl title="modules/aks-workload-identity/main.tf"
+# User-assigned managed identity for the workload
+resource "azurerm_user_assigned_identity" "app" {
+  name                = "app-workload-identity"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+# Federated credential linking AKS service account to managed identity
+resource "azurerm_federated_identity_credential" "app" {
+  name                = "app-federated-credential"
+  resource_group_name = azurerm_resource_group.main.name
+  parent_id           = azurerm_user_assigned_identity.app.id
+
+  audience = ["api://AzureADTokenExchange"]
+  issuer   = azurerm_kubernetes_cluster.main.oidc_issuer_url
+  subject  = "system:serviceaccount:production:app-ksa"
+}
+
+# Grant the managed identity access to Azure resources
+resource "azurerm_role_assignment" "app_storage" {
+  scope                = azurerm_storage_account.data.id
+  role_definition_name = "Storage Blob Data Reader"
+  principal_id         = azurerm_user_assigned_identity.app.principal_id
+}
+```
+
+Code: Terraform configuration for AKS Workload Identity.
+
+The `subject` follows the Kubernetes service account format: `system:serviceaccount:NAMESPACE:SERVICE_ACCOUNT_NAME`. The cluster's OIDC issuer URL comes from enabling the OIDC issuer feature on your AKS cluster.
+
+```yaml title="k8s/production/aks-workload-identity.yaml"
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-ksa
+  namespace: production
+  annotations:
+    azure.workload.identity/client-id: "00000000-0000-0000-0000-000000000000"
+  labels:
+    azure.workload.identity/use: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: production
+spec:
+  template:
+    metadata:
+      labels:
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: app-ksa
+      containers:
+        - name: app
+          image: myacr.azurecr.io/app:latest
+```
+
+Code: Kubernetes deployment using AKS Workload Identity.
+
+The `azure.workload.identity/client-id` annotation tells the Azure Identity SDK which managed identity to authenticate as. The `azure.workload.identity/use: "true"` label on both the ServiceAccount and pod enables the workload identity webhook to inject the required environment variables and token volume.
+
+The flow inside the cluster looks like this:
+
+<Diagram
+  src={kubernetesDiagram}
+  size="full"
+  title="Kubernetes workload identity token exchange flow."
+  description="Top-to-bottom flowchart showing workload identity inside a Kubernetes cluster. In the Kubernetes Cluster group, a Pod contains a Container that requests credentials from an SDK or client library. The SDK reads a projected token from a token volume mount located at /var/run/secrets/tokens/. That token is then exchanged with Cloud IAM outside the cluster. Within Cloud IAM, the token's signature is verified and the workload binding is checked. If validation succeeds, Cloud IAM returns credentials to the SDK or client library. The diagram shows how a pod uses a projected service account token as the proof of identity, then exchanges it for temporary cloud credentials without storing static keys."
+/>
+
+The SDK reads a projected service account token from a volume mount, exchanges it with the cloud provider's STS, and receives short-lived credentials. The token is automatically rotated by the kubelet, so even if someone exfiltrates it, it's only valid for a short window.
+
+## Migration Strategy
+
+You're not going to migrate everything to workload identity in a weekend. In any organization with more than a handful of services, you've accumulated keys across CI pipelines, Kubernetes deployments, developer machines, and probably a few places nobody remembers. A successful migration requires inventory, prioritization, parallel authentication during transition, and careful retirement of old keys.
+
+### Migration Planning
+
+Start by figuring out what you have. Most cloud providers offer ways to list service account keys and their last-used timestamps. AWS has IAM credential reports; GCP has the Policy Analyzer; Azure has sign-in logs. But those only tell you _that_ a key was used, not _where_ it's being used from.
+
+For each key, you need to answer:
+
+<List
+  variant="card-grid-list"
+  items={[
+    {
+      lead: "What workload uses it?",
+      text: "CI pipeline, Kubernetes pod, application server, developer laptop?",
+    },
+    {
+      lead: "Which platform?",
+      text: "GitHub Actions, GitLab CI, Jenkins, EKS, GKE, a VM somewhere?",
+    },
+    {
+      lead: "Can it migrate?",
+      text: "Does the platform support OIDC federation? Some older CI systems don't.",
+    },
+    {
+      lead: "What's the risk?",
+      text: "How old is the key? How broad are its permissions? Is it in production?",
+    },
   ]}
 />
 
-The configuration is well-documented, the failure modes are debuggable (usually a mismatch between token claims and trust policy), and the security improvement is substantial. You're eliminating an entire category of credential that can be stolen, leaked, or forgotten.
+<Table
+  variant="numbered-review-table"
+  content={{
+    thead: {
+      th: ['Phase', 'Duration', 'Activities', 'Success Criteria'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Discovery',
+          td: ['1-2 weeks', 'Inventory all keys, identify usage, assess risk', 'Complete inventory with owner/usage mapping'],
+        },
+        {
+          th: 'Foundation',
+          td: ['2-4 weeks', 'Configure OIDC providers, create federated identities', 'Federation infrastructure deployed and tested'],
+        },
+        {
+          th: 'Pilot',
+          td: ['2-4 weeks', 'Migrate low-risk, non-production workloads', '3-5 workloads using federation successfully'],
+        },
+        {
+          th: 'Production',
+          td: ['4-8 weeks', 'Migrate production workloads systematically', 'All production workloads using federation'],
+        },
+        {
+          th: 'Retirement',
+          td: ['2-4 weeks', 'Disable then delete old keys', 'Zero active long-lived keys'],
+        },
+      ],
+    },
+    figure: 'Migration phases and timeline for workload identity adoption.',
+  }}
+/>
 
-This is also where infrastructure security is heading more broadly. Projects like SPIFFE and SPIRE are extending these patterns beyond cloud providers to service-to-service authentication across heterogeneous environments. As infrastructure becomes more dynamic — more containers, more serverless, more cross-cloud — the case for ephemeral, identity-based credentials only gets stronger. The investments you make now in federation infrastructure will pay dividends as these patterns mature.
+Prioritize based on risk. Keys that are old, overly permissioned, or used in production should migrate first — they represent the biggest exposure. Keys on platforms that don't support federation might require migrating the workload itself first (e.g., moving from Jenkins to GitHub Actions).
+
+### Dual Authentication Period
+
+Don't flip the switch all at once. Run both authentication methods in parallel during migration so you can verify federation works before removing the fallback.
+
+```yaml title=".github/workflows/deploy-migration.yml"
+name: Deploy (Migration Period)
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Try OIDC first
+      - name: Configure AWS credentials (OIDC)
+        id: oidc-auth
+        uses: aws-actions/configure-aws-credentials@v4
+        continue-on-error: true
+        with:
+          role-to-assume: arn:aws:iam::<12-digit AWS Account ID>:role/github-actions-deploy
+          aws-region: us-east-1
+
+      # Fallback to static key if OIDC fails
+      - name: Configure AWS credentials (Key Fallback)
+        if: steps.oidc-auth.outcome == 'failure'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Log authentication method
+        run: |
+          if [ "${{ steps.oidc-auth.outcome }}" == "success" ]; then
+            echo "::notice::Using OIDC federation"
+          else
+            echo "::warning::Fell back to static key — investigate OIDC failure"
+          fi
+
+      - name: Deploy
+        run: ./deploy.sh
+```
+
+Code: GitHub Actions workflow with OIDC primary and static key fallback.
+
+This pattern lets you deploy federation in production without risking downtime. If OIDC fails for any reason — misconfigured trust policy, transient GitHub outage, clock skew — the workflow falls back to the existing key. The warning annotation makes failures visible so you can investigate and fix the root cause.
+
+<Callout type="info">
+Enable CloudTrail (AWS), Cloud Audit Logs (GCP), or Azure Activity Logs to monitor which authentication method is being used. Look for `AssumeRoleWithWebIdentity` events to confirm federation is working, and track the ratio of federated vs key-based authentications over time.
+</Callout>
+
+### Key Retirement Checklist
+
+Once federation is working and you've confirmed no workloads are using the old key, don't just delete it. Disable first, monitor, then delete.
+
+The retirement sequence:
+
+<List
+  variant="numbered-with-background-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: "Verify no recent usage:",
+      text: "Check CloudTrail or equivalent for any key usage in the last 30 days",
+    },
+    {
+      lead: "Disable the key:",
+      text: "This makes it unusable but recoverable if something breaks",
+    },
+    {
+      lead: "Monitor for 7-14 days:",
+      text: "Watch for authentication failures in your workloads",
+    },
+    {
+      lead: "Delete the key:",
+      text: "Only after the monitoring period passes without issues",
+    },
+    {
+      lead: "Document the retirement:",
+      text: "Record what was retired, when, and by whom for audit purposes",
+    },
+  ]}
+/>
+
+For AWS, you can automate the monitoring with a CloudWatch alarm on `AccessDenied` errors for the disabled key. If something was still using it, you'll see failures immediately and can re-enable while you investigate.
+
+The temptation is to skip straight to deletion — after all, federation is working, why keep the key around? But I've seen cases where a forgotten cron job or an old developer script was still using a key that "nobody uses anymore." The disable-then-delete pattern catches these edge cases before they become production incidents.
+
+## Failure Modes and Troubleshooting
+
+Federation will break at some point. Maybe GitHub has an outage and your OIDC tokens can't be issued. Maybe someone renames a repository and the trust policy no longer matches. Maybe clock skew causes token validation to fail. Understanding the failure modes helps you diagnose issues quickly when they happen.
+
+### Debugging Token Claims
+
+When federation fails, your first step is to see what's actually in the token. Add a debug step to your workflow that decodes the JWT:
+
+```yaml title=".github/workflows/debug-oidc.yml"
+- name: Debug OIDC token claims
+  run: |
+    TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+      "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com")
+
+    echo "Token claims:"
+    echo "$TOKEN" | jq -r '.value' | cut -d. -f2 | base64 -d 2>/dev/null | jq .
+```
+
+Code: Workflow step to decode and display OIDC token claims.
+
+This shows you exactly what GitHub put in the token. Compare the `sub`, `aud`, `repository`, `ref`, and `environment` claims against what your trust policy expects. The mismatch is usually obvious once you see them side by side.
+
+<Callout type="warning">
+The `sub` claim format changes based on workflow context. A branch push produces `repo:owner/repo:ref:refs/heads/branch`. A tag push produces `repo:owner/repo:ref:refs/tags/v1.0.0`. A workflow using GitHub Environments produces `repo:owner/repo:environment:production`. Make sure your trust policy conditions match the actual format for your deployment pattern.
+</Callout>
+
+### Common Failure Scenarios
+
+Once you can see what's in the token, most federation failures fall into a few categories:
+
+<List
+  variant="zebra-list"
+  items={[
+    {
+      lead: "Trust policy condition mismatch",
+      text: 'The most common issue. The `sub` claim in your OIDC token doesn\'t match what your trust policy expects. This happens when:',
+    },
+    {
+      lead: 'Feature branch build',
+      text: 'You\'re building from a feature branch but the policy only allows <span class="text-mono">main</span>',
+      },
+    {
+      lead: 'Repository renamed',
+      text: 'Someone renamed the repository' },
+    {
+      lead: 'Pull request context',
+      text: 'You\'re running in a pull request context but the policy expects a branch ref',
+      },
+    {
+      lead: 'Environment name typo',
+      text: 'The GitHub Environment name has a typo',
+      },
+    {
+      lead: 'Audience mismatch',
+      text: 'Means the <span class="text-mono">aud</span> claim in your token doesn\'t match the <span class="text-mono">client_id_list</span> in your OIDC provider configuration. This typically means the workflow is requesting a token for a different audience than what you configured. Check that your workflow\'s audience parameter matches what\'s in your cloud provider\'s OIDC provider setup.',
+    },
+    {
+      lead: 'Token expiration or clock skew',
+      text: 'Causes intermittent failures. OIDC tokens have short lifetimes (usually 5-10 minutes), and if there\'s clock drift between GitHub\'s servers and your cloud provider, tokens might appear expired. This usually manifests as "works on retry" — the retry gets a fresh token that validates correctly.',
+    },
+    {
+      lead: 'OIDC provider unavailable',
+      text: 'Happens during platform outages. If GitHub\'s OIDC endpoint is down, your workflows can\'t get tokens. There\'s not much you can do except wait (or fall back to static keys if you\'re still in migration).',
+    },
+  ]}
+/>
+
+The error usually looks like `AccessDenied: Not authorized to perform sts:AssumeRoleWithWebIdentity`. Compare the decoded `sub` claim against your trust policy condition — the mismatch is usually obvious.
+
+<Table
+  variant="grid-and-accent-header-table"
+  content={{
+    thead: {
+      th: ['Error', 'Likely Cause', 'Quick Fix'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: '<span class="font-mono">InvalidIdentityToken</span>',
+          td: ['Token expired or malformed', 'Retry the workflow; check for clock skew'],
+        },
+        {
+          th: '<span class="font-mono">AccessDenied: Not authorized</span>',
+          td: ['Trust policy condition mismatch', 'Decode token, compare `sub` to policy'],
+        },
+        {
+          th: '<span class="font-mono">Audience does not match</span>',
+          td: ['Wrong audience in token request', 'Check workflow audience vs provider config'],
+        },
+        {
+          th: '<span class="font-mono">WebIdentityErr: failed to retrieve</span>',
+          td: ['OIDC endpoint unreachable', 'Check GitHub status; retry later'],
+        },
+        {
+          th: '<span class="font-mono">Service account does not exist</span>',
+          td: ['Deleted or wrong SA binding', 'Verify SA exists and binding is correct'],
+        },
+      ],
+    },
+    figure: 'Common federation errors and their resolutions.',
+  }}
+/>
+
+## Conclusion
+
+Long-lived service account keys are one of the most common — and most preventable — security vulnerabilities in cloud infrastructure. They accumulate over time, spread to places nobody tracks, and eventually show up in a breach notification or a cryptomining bill.
+
+Workload identity federation eliminates this risk category entirely. Instead of managing secrets that can be stolen, your workloads prove their identity through cryptographic assertions from platforms you already trust. The credentials they receive expire in an hour and can't be exfiltrated in any meaningful way.
+
+The setup isn't trivial — you need to configure OIDC providers, establish trust relationships, map claims to permissions, and update your CI/CD workflows. But once it's done, you have zero long-lived credentials to rotate, monitor, or accidentally expose.
+
+Start with your highest-risk credentials: CI/CD pipelines that deploy to production. Configure federation alongside your existing keys, verify it works, then disable and delete the keys. The migration path is well-documented, the failure modes are debuggable, and the security improvement is substantial.
+
+Looking ahead, workload identity is just one piece of the broader shift toward zero-trust infrastructure. Projects like SPIFFE and SPIRE are extending these patterns to service-to-service authentication, creating consistent identity frameworks across heterogeneous environments. As infrastructure becomes more dynamic — more containers, more serverless, more cross-cloud — the case for ephemeral, identity-based credentials only gets stronger. The investments you make now in federation infrastructure will pay dividends as these patterns mature.

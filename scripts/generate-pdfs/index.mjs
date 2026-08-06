@@ -4,8 +4,8 @@
  * Generate PDFs from /print/ pages using Puppeteer.
  *
  * Usage:
- * - node scripts/generate-pdfs.mjs <slug>       # single article
- * - node scripts/generate-pdfs.mjs              # all deep dive articles
+ * - node scripts/generate-pdfs/index.mjs <slug>       # single article
+ * - node scripts/generate-pdfs/index.mjs              # all articles
  * - OR npm run pdf:generate
  *
  * Requires a running server (dev or preview) at localhost:4321.
@@ -60,7 +60,7 @@ const LAYOUT_SETTLE_DELAY_MS = 500
 const collectAllSlugs = () => {
   if (!existsSync(ARTICLES_DIR)) return []
   return readdirSync(ARTICLES_DIR, { withFileTypes: true })
-    .filter(e => e.isDirectory() && existsSync(join(ARTICLES_DIR, e.name, 'pdf.mdx')))
+    .filter(e => e.isDirectory() && existsSync(join(ARTICLES_DIR, e.name, 'index.mdx')))
     .map(e => e.name)
     .sort()
 }
@@ -279,10 +279,10 @@ if (!(await checkServer())) {
 }
 
 if (slugFilter) {
-  const pdfMdx = join(ARTICLES_DIR, slugFilter, 'pdf.mdx')
-  if (!existsSync(pdfMdx)) {
-    console.error(`ERROR: No pdf.mdx found for "${slugFilter}"`)
-    console.error(`Expected: ${pdfMdx}`)
+  const indexMdx = join(ARTICLES_DIR, slugFilter, 'index.mdx')
+  if (!existsSync(indexMdx)) {
+    console.error(`ERROR: No index.mdx found for "${slugFilter}"`)
+    console.error(`Expected: ${indexMdx}`)
     process.exit(1)
   }
 }
@@ -290,7 +290,7 @@ if (slugFilter) {
 const slugs = slugFilter ? [slugFilter] : collectAllSlugs()
 
 if (slugs.length === 0) {
-  console.error('ERROR: No deep dive articles with pdf.mdx found.')
+  console.error('ERROR: No articles with index.mdx found.')
   process.exit(1)
 }
 

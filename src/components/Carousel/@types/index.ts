@@ -8,7 +8,6 @@ export type CarouselNavigationMode = 'wrap' | 'bounded'
 export const collectionMap = {
   'case-studies': 'caseStudies',
   articles: 'articles',
-  'deep-dive': 'deepDives',
 } as const
 
 export type CollectionMap = typeof collectionMap

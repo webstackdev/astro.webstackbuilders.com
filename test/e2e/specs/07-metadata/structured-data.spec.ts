@@ -35,7 +35,7 @@ interface ContactPageSchema extends JsonLdSchema {
   url?: string
 }
 
-const articleDetailLinkSelector = 'a[href^="/deep-dive/"], a[href^="/articles/"]:not([href="/articles"])'
+const articleDetailLinkSelector = 'a[href^="/articles/"]:not([href="/articles"])'
 
 const expectAbsoluteUrl = (value: unknown): void => {
   expect(typeof value).toBe('string')

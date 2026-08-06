@@ -39,7 +39,7 @@ describe('getSchemas', () => {
     const schemas = getSchemas(
       createStructuredDataParams({
         path: '/articles/example-article',
-        canonicalPath: '/deep-dive/example-article',
+        canonicalPath: '/articles/example-article-canonical',
         contentType: 'article',
         publishDate: new Date('2026-01-01T00:00:00.000Z'),
       })
@@ -49,7 +49,7 @@ describe('getSchemas', () => {
     const article = parsed.find(schema => schema['@type'] === 'Article')
     const breadcrumbs = parsed.find(schema => schema['@type'] === 'BreadcrumbList')
 
-    expect(article?.url).toBe('https://www.webstackbuilders.com/deep-dive/example-article')
+    expect(article?.url).toBe('https://www.webstackbuilders.com/articles/example-article-canonical')
     expect(breadcrumbs?.itemListElement?.[1]?.item).toBe(
       'https://www.webstackbuilders.com/articles'
     )

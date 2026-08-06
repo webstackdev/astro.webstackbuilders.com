@@ -1,5 +1,5 @@
 ---
-title: "Why Your HPA Scales Too Late (And the Tuning That Fixes It)"
+title: "HPA Autoscaling: Signals, Delays, and Traps"
 description: "Why Horizontal Pod Autoscaler often reacts too slowly and how to tune it for your traffic patterns."
 cover: "./cover.jpg"
 coverAlt: "Control room with HPA dashboards showing traffic patterns and replica counts, operators tuning stabilization and scaling parameters to minimize capacity gaps"
@@ -9,58 +9,123 @@ tags: ["cloud-platforms","kubernetes","prometheus"]
 featured: true
 ---
 
-An e-commerce team configures HPA with a 50% CPU target. During a flash sale, traffic spikes 10x in 30 seconds. HPA takes 15 seconds to detect the load, another 15 seconds for its evaluation cycle, then the stabilization window kicks in. Meanwhile, new pods need scheduling, image pulls, and readiness probes. By the time capacity catches up — 3+ minutes later — frustrated users have already left.
+import customMetricsDiagram from "./diagrams/custom-metrics-flow-from-application-to-hpa.jpg"
+import hpaDebuggingDiagram from "./diagrams/hpa-debugging-decision-tree.jpg"
+import hpaPolicyDiagram from "./diagrams/hpa-policy-selection-flow.jpg"
+import hpaScalingDiagram from "./diagrams/hpa-scaling-decision-flow.jpg"
 
-I've watched this play out repeatedly. The Horizontal Pod Autoscaler looks deceptively simple: set a target CPU percentage, and Kubernetes scales your pods automatically. In practice, teams discover that HPA reacts too slowly to traffic spikes, oscillates between scaling up and down, or scales on entirely the wrong signals.
+*[P95]: 95th Percentile
+*[P99]: 99th Percentile
+*[QPS]: Queries Per Second
+*[RPS]: Requests Per Second
+*[SLO]: Service Level Objective
+*[VPA]: Vertical Pod Autoscaler
 
-<Highlighter>The problem is that HPA is _reactive_, not predictive.</Highlighter> By the time it decides to scale, your workload is already under stress. Tuning HPA means understanding where delays come from, choosing metrics that respond quickly, and configuring behavior that matches your traffic patterns.
+The Horizontal Pod Autoscaler (HPA) looks deceptively simple: set a target CPU percentage, and Kubernetes scales your pods automatically. In practice, teams discover that HPA reacts too slowly to traffic spikes, oscillates between scaling up and down, or scales on entirely the wrong signals. The gap between "HPA works" and "HPA works well for my traffic pattern" is where most autoscaling frustration lives.
 
-## The Delay Problem
+I've watched this play out repeatedly. An e-commerce team configures HPA with a 50% CPU target. During a flash sale, traffic spikes 10x in 30 seconds. HPA takes 15 seconds to detect the load via the metrics server, another 15 seconds for the controller sync, then the stabilization window kicks in. Meanwhile, new pods need to be scheduled, images pulled, and readiness probes passed. By the time capacity catches up—3+ minutes later — frustrated users have already left. The service survived, but barely.
 
-The HPA controller runs every 15 seconds by default, querying the metrics server and calculating how many replicas are needed. That sounds fast, but the total time from "traffic spike begins" to "new capacity receives traffic" is much longer. Every step in the pipeline adds latency.
+<Callout type="warning" title="HPA Cannot Predict the Future">
+HPA responds to current conditions, not anticipated load. If your traffic can spike faster than HPA can respond (typically 30-90 seconds minimum), you need either pre-scaling for known events, higher baseline capacity, or request queuing to absorb the delay.
+</Callout>
+
+The lesson: HPA is reactive, not predictive. By the time it decides to scale, your workload is already under stress. The goal of HPA tuning is to minimize that reaction time while avoiding oscillation — a balance that requires understanding your traffic patterns, choosing the right metrics, and configuring stabilization windows that match your workload's characteristics.
+
+## HPA Fundamentals
+
+### How HPA Works
+
+The HPA controller runs a simple loop: every 15 seconds (by default), it queries the metrics server, calculates how many replicas are needed to hit the target utilization, and adjusts the deployment accordingly. The scaling formula is straightforward:
+
+$$
+\text{desiredReplicas} = \text{currentReplicas} \times \frac{\text{currentMetric}}{\text{targetMetric}}
+$$
+
+If you have 3 replicas running at 75% CPU with a target of 50%, HPA calculates $$3 \times (75/50) = 5$$ replicas. The ceiling function ensures you always round up — better to have slightly more capacity than slightly less.
+
+<Diagram
+  src={hpaScalingDiagram}
+  size="full"
+  title="HPA scaling decision flow."
+  description="Sequence diagram showing the Horizontal Pod Autoscaler control loop. The participants are HPA Controller, Metrics Server, Deployment, and Pods. Inside a loop labeled Every 15 seconds by default, the HPA Controller queries the Metrics Server for current metrics, and the Metrics Server returns CPU at 75 percent and Memory at 60 percent. The HPA Controller then calculates desired replicas internally, with a note explaining the formula desired = ceil(3 × 75/50) = 5. Next, the controller applies the stabilization window and checks scale-up or scale-down policies. It then tells the Deployment to scale to 5 replicas, and the Deployment creates 2 new pods. A note over the Pods indicates the lifecycle Scheduling to Starting to Ready. The diagram shows that HPA scaling is a repeated control loop that depends on periodic metrics collection, replica calculation, policy evaluation, and the time it takes for newly created pods to become ready."
+/>
+
+A basic HPA configuration targets CPU utilization across all pods. The `scaleTargetRef` points to the deployment you want to scale, and `minReplicas`/`maxReplicas` set the bounds:
+
+```yaml title="hpa-basic.yaml"
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-server-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-server
+
+  minReplicas: 3
+  maxReplicas: 50
+
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+```
+
+Code: Basic HPA configuration targeting 50% CPU utilization.
+
+The 50% target might seem conservative, but it's intentional. You want headroom to absorb traffic increases while HPA scales up. A target of 80% means you're already near capacity when HPA decides to act — and by the time new pods are ready, you've been overloaded for minutes.
+
+### The Delay Problem
+
+The HPA loop sounds fast—15-second intervals — but the total time from "traffic spike begins" to "new capacity receives traffic" is much longer. Every step in the pipeline adds latency.
 
 <Table
   variant="criteria-highlight-table"
   fullWidth={false}
   content={{
     thead: {
-      th: ['Delay Component', 'Typical Duration', 'Notes'],
+      th: ['Delay Component', 'Typical Duration', 'Can Reduce?', 'How'],
     },
     tbody: {
       tr: [
         {
           th: 'Metrics scrape',
-          td: ['15-60s', 'Metrics Server polls kubelets at this interval'],
+          td: ['15-60s', 'Yes', '`--metric-resolution` flag on Metrics Server'],
         },
         {
-          th: 'HPA sync',
-          td: ['15s', 'Controller evaluation cycle'],
+          th: 'HPA sync[^hpa-sync]',
+          td: ['15s', 'Yes', '`--horizontal-pod-autoscaler-sync-period` flag'],
         },
         {
           th: 'Stabilization',
-          td: ['0-300s', 'Prevents thrashing; configurable'],
+          td: ['0-300s', 'Yes', '`behavior.scaleUp.stabilizationWindowSeconds`'],
         },
         {
           th: 'Pod scheduling',
-          td: ['1-10s', 'Depends on cluster capacity'],
+          td: ['1-10s', 'Limited', 'Pre-warmed nodes, pod priority'],
         },
         {
           th: 'Pod startup',
-          td: ['5-60s+', 'Application initialization time'],
+          td: ['5-60s+', 'Yes', 'Optimize application startup time'],
         },
         {
           th: 'Readiness probe',
-          td: ['5-30s', 'Before pod receives traffic'],
+          td: ['5-30s', 'Yes', 'Tune probe timing'],
         },
       ],
     },
-    figure: 'HPA delay components.',
+    figure: 'HPA delay components and mitigation options.',
   }}
 />
 
-These delays stack. The metrics scrape and HPA sync cycles run independently — they're not synchronized. In the worst case, a CPU spike happens right after a scrape, waits nearly a full interval to be captured, then waits again for HPA to evaluate. Add kubelet collection overhead (~10 seconds), and you're looking at 85+ seconds before HPA even __decides__ to scale — before stabilization, scheduling, or startup.
+[^hpa-sync]: The HPA sync period and metrics collection interval are distinct cycles that run independently. The __metrics scrape__ interval (`--metric-resolution`, defaulting to 60 seconds in many deployments) controls how often the Metrics Server polls kubelets for fresh data. The __HPA sync__ period (`--horizontal-pod-autoscaler-sync-period`, defaulting to 15 seconds) controls how often the HPA controller evaluates the metrics API and makes scaling decisions. Since these cycles aren't synchronized, worst-case latency is the sum of both intervals plus kubelet collection overhead (~10 seconds)—meaning a CPU spike could take 85+ seconds to trigger a scale-up even before stabilization delays.
 
-With aggressive tuning and cached images, the timeline improves but still isn't instant. Here's a typical tuned scenario:
+Here's a best-case timeline for a traffic spike (assuming 15-second metrics resolution and cached images):
 
 <List
   variant="timeline-list"
@@ -74,7 +139,7 @@ With aggressive tuning and cached images, the timeline improves but still isn't 
     },
     {
       lead: "T+15s",
-      text: "Metrics server captures the load",
+      text: "Metrics server captures the new load",
     },
     {
       lead: "T+30s",
@@ -82,11 +147,11 @@ With aggressive tuning and cached images, the timeline improves but still isn't 
     },
     {
       lead: "T+45s",
-      text: "Stabilization check passes",
+      text: "Stabilization check passes (assuming aggressive config)",
     },
     {
       lead: "T+50s",
-      text: "New pods scheduled",
+      text: "New pods scheduled, images pulled (cached)",
     },
     {
       lead: "T+80s",
@@ -95,84 +160,221 @@ With aggressive tuning and cached images, the timeline improves but still isn't 
   ]}
 />
 
-That's 80+ seconds of degraded performance under __favorable__ conditions. With default settings — including a 300-second stabilization window in older Kubernetes versions — it's significantly worse.
+That's 80+ seconds of degraded performance with __aggressive__ tuning and favorable conditions. With default settings — which include a 300-second stabilization window for scale-up in older Kubernetes versions — it's even worse.
 
 <Callout type="info" title="Minimum Realistic Time to Scale Up">
-Even with aggressive tuning, expect 30-45 seconds minimum from spike to new capacity. If your traffic can increase faster than that, HPA alone won't save you. You'll need pre-scaling for known events, higher baseline capacity, or request queuing to absorb the delay.
+Even with aggressive tuning, the minimum realistic time to scale up is 30-45 seconds. If your traffic can spike faster than that, HPA alone won't save you. Consider predictive scaling, higher baseline capacity, or request queuing to absorb the delay.
 </Callout>
 
-## Choosing the Right Metric
+## Metric Selection
 
-Most teams start with CPU utilization because it's built-in. But CPU is a __lagging__ indicator: by the time CPU spikes, requests are already queuing and users are already waiting. For web services, the metric you choose determines whether HPA responds to incoming load or to damage already done.
+### CPU vs Custom Metrics
 
-__Leading indicators__ like requests per second and queue depth increase the moment traffic arrives — before your system shows stress. __Lagging indicators__ like CPU utilization and response latency rise only after work is already backing up. When possible, scale on what's coming, not what's already hurting.
+The metric you choose determines how quickly HPA reacts — and whether it reacts to the right signal at all. Most teams start with CPU utilization because it's built-in, but CPU is a __lagging__ indicator: by the time CPU spikes, requests are already queuing. For web services, requests per second or queue depth are __leading__ indicators that increase before your system shows stress.
 
 <Table
   variant="timeline-labels-table"
   fullWidth={false}
   content={{
     thead: {
-      th: ['Metric', 'Type', 'Best For'],
+      th: ['Metric Type', 'Pros', 'Cons', 'Best For'],
     },
     tbody: {
       tr: [
         {
-          th: {
-            label: 'Requests per second',
-            color: 'bg-success',
-          },
-          td: ['Leading', 'Web APIs, high-traffic services'],
+          th: 'CPU utilization',
+          td: [
+            'Built-in, no setup; predictable relationship to compute load',
+            "Lags behind actual load; doesn't reflect I/O-bound work; misleading for async processing",
+            'CPU-intensive APIs, compute workers, synchronous request processing',
+          ],
         },
         {
-          th: {
-            label: 'Queue depth',
-            color: 'bg-info',
-          },
-          td: ['Leading', 'Async workers, background job processors'],
+          th: 'Memory utilization',
+          td: [
+            'Built-in; good for memory-intensive workloads',
+            "Often doesn't correlate with traffic; stable regardless of load; slow to decrease",
+            'In-memory caches, batch processing with large datasets',
+          ],
         },
         {
-          th: {
-            label: 'CPU utilization',
-            color: 'bg-warning',
-          },
-          td: ['Lagging', 'Compute-bound workloads, synchronous processing'],
+          th: 'Requests per second',
+          td: [
+            'Directly measures load; leading indicator; application-agnostic',
+            "Requires custom metrics setup; doesn't account for request complexity",
+            'Web APIs, high-traffic services',
+          ],
         },
         {
-          th: {
-            label: 'Response latency',
-            color: 'bg-danger',
-          },
-          td: ['Lagging', 'SLO-driven scaling, user-facing services'],
+          th: 'Queue depth',
+          td: [
+            'Perfect for async workers; directly measures backlog; leading indicator',
+            'Requires custom metrics; threshold needs tuning',
+            'Queue consumers, background job processors',
+          ],
+        },
+        {
+          th: 'Response latency',
+          td: [
+            'Reflects user experience; catches overload before failure',
+            'Lagging indicator; can be noisy; requires custom metrics',
+            'SLO-driven scaling, user-facing services',
+          ],
         },
       ],
     },
-    figure: 'Scaling metrics by response type.',
+    figure: 'Metric types for HPA scaling.',
   }}
 />
 
-CPU works well for compute-bound workloads where processing time scales linearly with CPU. But for I/O-bound services — anything waiting on databases, external APIs, or message queues — CPU stays low while requests pile up. By the time CPU rises, you're already degraded.
+### Custom Metrics with Prometheus
 
-<Newsletter />
+Custom metrics let you scale on application-specific signals instead of generic resource utilization. The setup requires three components: your application exposing metrics, Prometheus scraping them, and an adapter translating Prometheus queries into the Kubernetes custom metrics API.
 
-Requests per second scales based on incoming traffic regardless of how much work each request requires. It's a direct measure of load, and it increases immediately when traffic arrives. The tradeoff is that it requires custom metrics setup through the Prometheus Adapter[^1] or KEDA[^2], but the improved responsiveness is worth the effort for most web services.
+<Diagram
+  src={customMetricsDiagram}
+  size="full"
+  title="Custom metrics flow from application to HPA."
+  description="Flowchart showing how application metrics reach the Horizontal Pod Autoscaler through Prometheus-based custom metrics. The main path starts at Application, which exposes a /metrics endpoint to Prometheus. Prometheus sends PromQL queries to Prometheus Adapter. Prometheus Adapter exposes those results through the Custom Metrics API to the HPA Controller. The HPA Controller then scales the Deployment. A separate path shows Metrics Server sending Resource Metrics API data directly to the same HPA Controller. The diagram emphasizes that HPA can consume both standard resource metrics from Metrics Server and custom application metrics translated through Prometheus and Prometheus Adapter before making scaling decisions."
+/>
 
-Queue depth is ideal for async workers. If your service pulls from a message queue, scale on how many messages are waiting. A growing backlog means you need more consumers — don't wait for CPU to tell you what the queue already knows.
+HPA supports three metric types, each suited to different scenarios:
 
-<Callout type="success" title="Leading vs Lagging">
-When possible, scale on leading indicators (RPS, queue depth) rather than lagging ones (CPU, latency). By the time CPU spikes, requests are already queuing.
-</Callout>
+<List
+  variant="three-column-icon-list"
+  classes={{
+    header: "text-page-inverse",
+    text: "text-content",
+  }}
+  items={[
+    {
+      title: "Resource metrics",
+      text: "(CPU, memory): Built-in via Metrics Server. No setup required, but limited to what kubelets report.",
+      icon: "graph",
+      color: "success",
+      bgColor: "success-inverse",
+    },
+    {
+      title: "Pod metrics",
+      text: "Custom metrics exposed by your application and scraped by Prometheus. Queried per-pod, then averaged.",
+      icon: "api",
+      color: "info",
+      bgColor: "info-inverse",
+    },
+    {
+      title: "External metrics",
+      text: "Metrics from outside Kubernetes — queue depths, SaaS API usage, database connections. Useful when scaling should respond to external systems.",
+      icon: "globe",
+      color: "warning",
+      bgColor: "warning-inverse",
+    },
+  ]}
+/>
 
-## Configuring Asymmetric Scaling
+Here's an HPA configuration using all three types. HPA evaluates each metric independently and scales to the __highest__ replica count any metric requests:
 
-The key insight for HPA behavior configuration is that scale up and scale down should be __asymmetric__. When traffic spikes, you want capacity now — waiting costs customer experience. When traffic drops, you want to wait — scaling down too fast means you'll scale right back up if traffic returns, wasting the pods you just terminated.
-
-HPA v2 provides the `behavior` field for fine-grained control. Two mechanisms work together: __stabilization windows__ prevent thrashing by requiring metrics to stay above or below thresholds for a duration before acting, and __scaling policies__ limit how many replicas can change per time period.
-
-```yaml title="hpa-asymmetric-behavior.yaml"
+```yaml title="custom-metrics-hpa.yaml"
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: api-server-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-server
+  minReplicas: 3
+  maxReplicas: 50
+  metrics:
+    # Pod metric: requests per second
+    - type: Pods
+      pods:
+        metric:
+          name: http_requests_per_second
+        target:
+          type: AverageValue
+          averageValue: "100"  # 100 RPS per pod
+
+    # Pod metric: P95 latency
+    - type: Pods
+      pods:
+        metric:
+          name: http_request_duration_p95
+        target:
+          type: AverageValue
+          averageValue: "200m"  # 200ms P95 target
+
+    # External metric: queue depth
+    - type: External
+      external:
+        metric:
+          name: rabbitmq_queue_messages
+          selector:
+            matchLabels:
+              queue: order-processing
+        target:
+          type: AverageValue
+          averageValue: "50"  # 50 messages per pod
+```
+
+Code: HPA with pod metrics (RPS, latency) and external metrics (queue depth).
+
+The Prometheus Adapter translates PromQL queries into the custom metrics API format. Each rule maps a Prometheus metric to a Kubernetes resource (namespace, pod) and defines how to query it:
+
+```yaml title="prometheus-adapter-config.yaml"
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: adapter-config
+  namespace: custom-metrics
+data:
+  config.yaml: |
+    rules:
+      # Convert http_requests_total counter to per-second rate
+      - seriesQuery: 'http_requests_total{namespace!="",pod!=""}'
+        resources:
+          overrides:
+            namespace: {resource: "namespace"}
+            pod: {resource: "pod"}
+        name:
+          matches: "^(.*)_total$"
+          as: "${1}_per_second"
+        metricsQuery: 'sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)'
+
+      # Calculate P95 from histogram buckets
+      - seriesQuery: 'http_request_duration_seconds_bucket{namespace!="",pod!=""}'
+        resources:
+          overrides:
+            namespace: {resource: "namespace"}
+            pod: {resource: "pod"}
+        name:
+          as: "http_request_duration_p95"
+        metricsQuery: 'histogram_quantile(0.95, sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (le, <<.GroupBy>>))'
+```
+
+Code: Prometheus Adapter configuration for RPS and P95 latency metrics.
+
+The `[2m]` window in the PromQL queries smooths out brief spikes. A shorter window (30 seconds) makes scaling more responsive but increases oscillation risk. A longer window (5 minutes) stabilizes scaling but delays reaction to genuine load changes. Two minutes is a reasonable starting point.
+
+<Callout type="success" title="Leading vs Lagging Indicators">
+When possible, scale on leading indicators (RPS, queue depth) rather than lagging ones (CPU, latency). By the time CPU spikes, requests are already queuing.
+</Callout>
+
+## HPA Behavior Configuration
+
+### Stabilization and Scaling Policies
+
+The `behavior` field in HPA v2 gives you fine-grained control over scaling speed. Two mechanisms work together: __stabilization windows__ prevent thrashing by requiring metrics to stay above/below thresholds for a duration before acting, and __scaling policies__ limit how many replicas can be added or removed per time period.
+
+The key insight is that scaling up and scaling down should be asymmetric. When traffic spikes, you want capacity __now__ — waiting costs customer experience. When traffic drops, you want to wait — scaling down too fast means you'll scale right back up if traffic returns, wasting the pods you just terminated.
+
+```yaml title="hpa-behavior.yaml"
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-server-hpa
+  namespace: production
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -189,61 +391,591 @@ spec:
           averageUtilization: 50
   behavior:
     scaleUp:
-      stabilizationWindowSeconds: 0
+      stabilizationWindowSeconds: 0        # Scale immediately
       policies:
         - type: Percent
-          value: 100
+          value: 100                        # Double capacity
           periodSeconds: 15
-      selectPolicy: Max
+        - type: Pods
+          value: 4                          # Or add 4 pods
+          periodSeconds: 15
+      selectPolicy: Max                     # Use whichever adds more
+
     scaleDown:
-      stabilizationWindowSeconds: 300
+      stabilizationWindowSeconds: 300       # Wait 5 minutes
       policies:
         - type: Percent
-          value: 10
+          value: 10                         # Remove 10% of pods
           periodSeconds: 60
-      selectPolicy: Min
+        - type: Pods
+          value: 2                          # Or remove 2 pods
+          periodSeconds: 60
+      selectPolicy: Min                     # Use whichever removes fewer
 ```
 
-Code: Asymmetric HPA behavior — aggressive scale up, conservative scale down.
+Code: Asymmetric HPA behavior — aggressive scale-up, conservative scale-down.
 
-The `selectPolicy` field determines how HPA chooses between multiple policies. `Max` uses the policy that results in the largest change — for scale up, this adds the most pods. `Min` uses the smallest change — for scale down, this removes the fewest pods. `Disabled` prevents scaling in that direction entirely.
+The `selectPolicy` field determines how HPA chooses between multiple policies:
 
-With zero stabilization on scale up, HPA acts on the first evaluation showing high load. A 100% policy means you can double capacity every 15 seconds — going from 5 to 10 to 20 to 40 pods in under a minute if needed.
-
-For scale down, 300 seconds of stabilization means HPA waits five minutes of consistently low metrics before removing pods. A 10% policy limits removal to one-tenth of current capacity per minute, preventing rapid scale down that you'd immediately regret.
-
-<Callout type="info" title="When in Doubt, Over-Provision">
-Over-provisioning costs money. Under-provisioning loses customers. The asymmetric pattern — aggressive scale up, conservative scale down — fits most workloads because the cost of having extra capacity is usually lower than the cost of not having enough.
-</Callout>
-
-## Putting It Together
-
-HPA tuning comes down to three things: understanding delays so you know what's realistic, choosing metrics that respond to incoming load rather than existing damage, and configuring asymmetric behavior that prioritizes availability over cost optimization.
-
-<Download
-  resource="kubernetes-hpa-autoscaling-metrics-tuning-latency"
-  title="Download the HPA Tuning Guide"
-  description="Get the complete autoscaling playbook for latency-aware metrics, behavior tuning, and resilient traffic-response strategies."
-  listItems={[
+<List
+  variant="side-by-side-list"
+  classes={{
+    wrapper: "sm:mr-18 mb-12",
+  }}
+  items={[
     {
-      text: "HPA delay budget worksheet",
+      lead: "Max:",
+      text: "Use the policy that results in the largest change. For scale-up, this means adding the most pods. Good for aggressive scaling.",
     },
     {
-      text: "Metric selection decision matrix",
+      lead: "Min:",
+      text: "Use the policy that results in the smallest change. For scale-down, this means removing the fewest pods. Good for conservative scaling.",
     },
     {
-      text: "Scale behavior tuning templates",
-    },
-    {
-      text: "Traffic profile response playbook",
+      lead: "Disabled:",
+      text: "Don't scale in this direction at all.",
     },
   ]}
 />
 
-If your traffic is predictable — business hours, scheduled events, marketing campaigns — don't rely on HPA to catch up. Pre-scale ahead of time using KEDA cron triggers or simple CronJobs. HPA's job is handling _unexpected_ variance around your baseline, not scrambling to meet traffic you knew was coming.
+<Diagram
+  src={hpaPolicyDiagram}
+  size="full"
+  title="HPA policy selection flow."
+  description="Flowchart showing how HPA decides whether and how to scale after a metric exceeds its target. The process starts at Metric exceeds target and moves to a decision asking whether the stabilization window has passed. If no, the flow goes to Wait and re-evaluate. If yes, the flow moves to Calculate replicas per each policy. From there, a decision asks for the selectPolicy setting. If the value is Max, the chart goes to Use largest increase. If the value is Min, it goes to Use smallest increase. If the value is Disabled, it goes to No scaling. The Max and Min branches both lead to Apply scale-up. The diagram shows that HPA does not act on raw metrics alone: it first waits for stabilization rules, then compares scaling policies, then applies the policy selected by the configuration."
+/>
 
-Start with defaults, observe behavior under real load, and tune based on what you see. If you're scaling too slowly, reduce stabilization windows and increase policy percentages. If you're oscillating, increase stabilization and lower your target utilization. There's no universal "best" configuration — only the configuration that matches your traffic pattern.
+### Common Behavior Patterns
 
-[^1]: The Prometheus Adapter is a Kubernetes component that queries Prometheus for metrics and exposes them through the Kubernetes custom metrics API, allowing HPA to scale on any metric Prometheus collects.
+Different traffic patterns call for different behavior configurations. The tradeoff is always between responsiveness (scale fast to handle spikes) and stability (avoid oscillation and wasted resources).
 
-[^2]: KEDA (Kubernetes Event-driven Autoscaling) extends HPA with scalers for dozens of event sources — message queues, databases, HTTP traffic, cron schedules — and enables scale-to-zero for event-driven workloads.
+<Table
+  variant="numbered-review-table"
+  content={{
+    thead: {
+      th: ['Pattern', 'Use Case', 'Scale-Up', 'Scale-Down', 'Tradeoff'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Fast response',
+          td: [
+            'Flash sales, viral content',
+            '0s stabilization, 200%/15s, Max',
+            '300s stabilization, 10%/60s, Min',
+            'May over-provision, higher cost',
+          ],
+        },
+        {
+          th: 'Stable traffic',
+          td: [
+            'Business hours, scheduled jobs',
+            '60s stabilization, 50%/60s, Max',
+            '600s stabilization, 20%/120s, Min',
+            'Slower response, more stable',
+          ],
+        },
+        {
+          th: 'Cost optimized',
+          td: [
+            'Batch processing, internal tools',
+            '60s stabilization, 2 pods/60s, Min',
+            '120s stabilization, 50%/60s, Max',
+            'May degrade during spikes, lower cost',
+          ],
+        },
+        {
+          th: 'Never scale down',
+          td: [
+            'Always-on services',
+            'Normal policies',
+            '0 pods/60s (effectively disabled)',
+            'Maximum availability, maximum cost',
+          ],
+        },
+      ],
+    },
+    figure: 'HPA behavior patterns by traffic type.',
+  }}
+/>
+
+For flash sales or viral traffic, you want the most aggressive scale-up possible. Zero stabilization means HPA acts on the first evaluation that shows high load. A 200% policy means you can double capacity every 15 seconds — going from 5 to 10 to 20 to 40 pods in under a minute if needed:
+
+```yaml title="flash-sale-behavior.yaml"
+behavior:
+  scaleUp:
+    stabilizationWindowSeconds: 0
+    policies:
+      - type: Percent
+        value: 200
+        periodSeconds: 15
+    selectPolicy: Max
+  scaleDown:
+    stabilizationWindowSeconds: 300
+    policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    selectPolicy: Min
+```
+
+Code: Aggressive scale-up for flash sale traffic.
+
+For predictable business-hours traffic, you can afford slower scaling. A 60-second stabilization window filters out brief metric noise, and a 50% scale-up rate is fast enough to handle gradual morning ramp-up without over-provisioning:
+
+```yaml title="business-hours-behavior.yaml"
+behavior:
+  scaleUp:
+    stabilizationWindowSeconds: 60
+    policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    selectPolicy: Max
+  scaleDown:
+    stabilizationWindowSeconds: 600
+    policies:
+      - type: Percent
+        value: 20
+        periodSeconds: 120
+    selectPolicy: Min
+```
+
+Code: Moderate scaling for predictable daily traffic.
+
+<Callout type="info" title="Asymmetric Scaling Is Usually Correct">
+The pattern of aggressive scale-up and conservative scale-down fits most workloads. Over-provisioning wastes money; under-provisioning loses customers. When in doubt, err on the side of too much capacity. You can always tune down the aggressiveness once you understand your traffic patterns.
+</Callout>
+
+## Tuning for Traffic Patterns
+
+The "right" HPA configuration depends entirely on your traffic. An e-commerce site with predictable business-hours traffic needs different settings than a social platform that might go viral at any moment. Generic configurations either scale too slowly for spiky traffic or waste money on stable traffic. Understanding your traffic patterns lets you tune HPA for your specific tradeoffs.
+
+### Traffic Pattern Analysis
+
+Before tuning HPA, you need to understand your traffic. Four characteristics matter most:
+
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: "Peak-to-trough ratio",
+      text: "How much does traffic vary? A 3x ratio (business hours vs night) is manageable. A 20x ratio (flash sale) requires aggressive scaling.",
+    },
+    {
+      lead: "Ramp-up time",
+      text: "How fast does traffic increase? Gradual morning ramp-up over an hour is easy. A spike in 10 seconds is hard.",
+    },
+    {
+      lead: "Predictability",
+      text: "Do you know when traffic will increase? Scheduled events can be pre-scaled. Random viral content cannot.",
+    },
+    {
+      lead: "Spike frequency",
+      text: "Rare spikes justify aggressive over-provisioning. Frequent spikes need tighter cost control.",
+    },
+  ]}
+/>
+
+These characteristics map to specific HPA strategies. The table below shows common traffic patterns and the scaling approaches that work best for each:
+
+<Table
+  variant="semantic-coloring-table"
+  fullWidth={false}
+  content={{
+    thead: {
+      th: ['Traffic Type', 'Peak:Trough', 'Ramp-Up', 'Predictable', 'Recommended Strategy'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Business hours',
+          td: ['2-5x', '1-2 hours', 'Yes', 'Scheduled pre-scaling + moderate HPA'],
+        },
+        {
+          th: 'Flash sales',
+          td: ['10-50x', 'Seconds', 'Yes', 'Aggressive pre-scaling + fast HPA'],
+        },
+        {
+          th: 'Viral content',
+          td: ['5-100x', 'Minutes', 'No', 'High baseline + aggressive HPA'],
+        },
+        {
+          th: 'Steady API',
+          td: ['1.5-2x', 'Gradual', 'N/A', 'Standard HPA, optimize for cost'],
+        },
+      ],
+    },
+    figure: 'Traffic pattern characteristics and scaling strategies.',
+  }}
+/>
+
+The key insight is that HPA alone can't handle instantaneous spikes. If traffic can increase 10x in 10 seconds, you need capacity _already running_ when the spike hits. HPA's role becomes handling the variance around your pre-provisioned baseline, not catching up from zero.
+
+### Combining HPA with Scheduled Scaling
+
+For predictable traffic patterns, combine HPA with scheduled scaling. KEDA (Kubernetes Event-Driven Autoscaling) supports cron triggers that set minimum replica counts at specific times, while HPA handles real-time adjustments within those bounds.
+
+```yaml title="keda-scheduled-scaling.yaml"
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: api-server-scaler
+  namespace: production
+spec:
+  scaleTargetRef:
+    name: api-server
+  minReplicaCount: 3
+  maxReplicaCount: 50
+  triggers:
+    # Baseline: CPU-based reactive scaling
+    - type: cpu
+      metadata:
+        type: Utilization
+        value: "50"
+
+    # Pre-scale for business hours (8 AM Mon-Fri)
+    - type: cron
+      metadata:
+        timezone: America/New_York
+        start: "0 8 * * 1-5"
+        end: "0 9 * * 1-5"
+        desiredReplicas: "10"
+
+    # Pre-scale for known flash sale (15th of month)
+    - type: cron
+      metadata:
+        timezone: America/New_York
+        start: "0 11 15 * *"
+        end: "0 15 15 * *"
+        desiredReplicas: "30"
+```
+
+Code: KEDA ScaledObject combining CPU-based HPA with scheduled pre-scaling.
+
+If you don't have KEDA, a simple CronJob can pre-scale deployments before known traffic events:
+
+```yaml title="prescale-cronjob.yaml"
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: prescale-for-business-hours
+  namespace: production
+spec:
+  schedule: "0 7 * * 1-5"  # 7 AM Mon-Fri, 1 hour before peak
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: scaler-sa  # Needs patch permissions
+          containers:
+            - name: scaler
+              image: bitnami/kubectl:latest
+              command: ["kubectl", "scale", "deployment/api-server",
+                        "--replicas=10", "-n", "production"]
+          restartPolicy: OnFailure
+```
+
+Code: CronJob for pre-scaling before business hours.
+
+The pattern is simple: pre-scale 30-60 minutes before expected traffic, then let HPA handle the actual load. If your prediction was low, HPA scales up. If your prediction was high, HPA (eventually) scales down. Either way, you're not scrambling to add capacity while users wait.
+
+<Callout type="warning" title="Don't Rely on HPA for Planned Events">
+If you know traffic is coming — a sale, a marketing campaign, a TV appearance — pre-scale. HPA's job is handling __unexpected__ variance, not catching up to traffic you knew about. The 30-90 second HPA response time is unacceptable when you could have had pods ready hours in advance.
+</Callout>
+
+## Debugging HPA Issues
+
+HPA failures are frustrating because they're often silent — you don't notice until traffic spikes and capacity doesn't follow. The good news is that HPA exposes its decision-making through `kubectl describe hpa`, and most problems fall into a few categories: metrics unavailable, scaling too slow, oscillating, or not scaling down.
+
+### Common Problems and Solutions
+
+__Problem: HPA stuck at minReplicas despite high load__
+
+This usually means HPA can't see your metrics. Check the Conditions section in `kubectl describe hpa`—look for "unable to get metrics" or "AbleToScale: False". The most common causes:
+
+<List
+  variant="colored-marker-list"
+  classes={{
+    wrapper: "sm:ml-12 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      text: "Metrics Server not running or unhealthy",
+      color: "bg-accent",
+    },
+    {
+      text: "Pods missing resource requests (HPA can't calculate utilization without knowing the baseline)",
+      color: "bg-secondary",
+    },
+    {
+      text: "Custom metrics adapter not configured for non-CPU metrics",
+      color: "bg-success",
+    },
+  ]}
+/>
+
+```bash
+# Check if metrics are available
+kubectl top pods -n production
+
+# Check metrics server health
+kubectl get apiservices | grep metrics
+
+# Verify pods have resource requests
+kubectl get pod <pod-name> -o jsonpath='{.spec.containers[*].resources.requests}'
+```
+
+Code: Diagnosing missing metrics.
+
+__Problem: HPA oscillates rapidly between replica counts__
+
+Thrashing — scaling up, then immediately scaling down, then up again — indicates either too-short stabilization windows or too-aggressive targets. Watch the replica count over time:
+
+```bash
+# Watch HPA changes in real-time
+kubectl get hpa api-server-hpa -n production -w
+
+# Check recent scaling events
+kubectl describe hpa api-server-hpa -n production | grep -A 20 "Events:"
+```
+
+Code: Monitoring HPA oscillation.
+
+Fixes: Increase `stabilizationWindowSeconds` (especially for scale-down), lower the target utilization (50% instead of 80%), or smooth your metrics with longer averaging windows in your Prometheus queries.
+
+__Problem: HPA scales too slowly for traffic spikes__
+
+If HPA is working but not fast enough, check the behavior configuration. Default stabilization windows (especially the 300-second scale-up window in older Kubernetes versions) add significant delay.
+
+```bash
+# Check current behavior configuration
+kubectl get hpa api-server-hpa -n production -o yaml | grep -A 30 "behavior:"
+
+# Check last scale time
+kubectl describe hpa api-server-hpa -n production | grep "Last Scale Time"
+```
+
+Code: Checking HPA behavior configuration.
+
+Fixes: Set `scaleUp.stabilizationWindowSeconds: 0`, increase scale-up policy percentages, optimize pod startup time, or raise `minReplicas` to maintain headroom.
+
+__Problem: HPA never scales down__
+
+Pods sitting idle waste money. If HPA won't scale down even when load is low, check whether scale-down is accidentally disabled or the stabilization window is extremely long.
+
+```bash
+# Check scale-down policies
+kubectl get hpa api-server-hpa -n production -o jsonpath='{.spec.behavior.scaleDown}' | jq .
+
+# Verify metrics are actually below target
+kubectl get hpa api-server-hpa -n production
+```
+
+Code: Diagnosing scale-down failures.
+
+Look for `selectPolicy: Disabled` in scale-down, or a policy with `value: 0` that prevents any pod removal.
+
+### Debugging Decision Tree
+
+When HPA isn't behaving as expected, work through this diagnostic flow:
+
+<Diagram
+  src={hpaDebuggingDiagram}
+  size="full"
+  title="HPA debugging decision tree."
+  description="Flowchart showing a troubleshooting path for HPA behavior problems. The process starts at HPA not scaling as expected and first asks whether kubectl describe hpa shows metrics. If no and the message says unable to get metrics, the path goes to Check Metrics Server and then asks whether kubectl top pods works. If that answer is no, the next step is Fix Metrics Server deployment. If yes, the next step is Check pod resource requests. If metrics are visible, the chart asks what the symptom is. For Not scaling up, it asks whether the current metric is above target. If no, the result is Load not high enough yet. If yes, the next step is Check scaleUp stabilization and policies. For Not scaling down, it asks whether the current metric is below target. If no, the result is Load still too high. If yes, the next step is Check scaleDown stabilization and policies. For Oscillating, the path proceeds through Increase stabilization windows, then Lower target utilization, then Smooth metrics averaging. The diagram is meant to guide an operator from a visible scaling symptom to the most likely configuration or metrics problem."
+/>
+
+### Essential Debugging Commands
+
+These commands cover most HPA debugging scenarios:
+
+```bash title="hpa-debug.sh"
+#!/bin/bash
+
+HPA="api-server-hpa"
+NS="production"
+
+# Quick status check
+kubectl get hpa $HPA -n $NS
+
+# Full details including conditions and events
+kubectl describe hpa $HPA -n $NS
+
+# Current metrics in JSON format
+kubectl get hpa $HPA -n $NS -o jsonpath='{.status.currentMetrics}' | jq .
+
+# Scaling history from events
+kubectl get events -n $NS \
+  --field-selector involvedObject.name=$HPA \
+  --sort-by='.lastTimestamp' | tail -15
+
+# Current pod resource usage
+kubectl top pods -n $NS -l app=api-server
+```
+
+Code: Essential HPA debugging commands.
+
+<Callout type="info" title="kubectl describe hpa Is Your Best Friend">
+The Conditions section of `kubectl describe hpa` tells you exactly why HPA is or isn't scaling. "AbleToScale: False" means metrics problems. "ScalingLimited" means policy or min/max constraints. "ScalingActive: True" with no changes means the current replica count already matches the target. Start there before digging deeper.
+</Callout>
+
+## Advanced Patterns
+
+Standard HPA covers most use cases, but some scenarios require more sophisticated approaches: combining multiple metrics so any bottleneck triggers scaling, scaling to zero for idle workloads, or handling event-driven architectures where traditional metrics don't apply.
+
+### Multi-Metric HPA
+
+HPA can evaluate multiple metrics simultaneously. When you configure several metrics, HPA calculates the desired replica count for each and uses the __maximum__ — the metric requiring the most replicas wins. This ensures you scale up when __any__ resource becomes constrained, not just one.
+
+```yaml title="multi-metric-hpa.yaml"
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-server-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-server
+  minReplicas: 3
+  maxReplicas: 50
+  metrics:
+    # CPU: catches compute-bound bottlenecks
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+
+    # RPS: catches request-heavy scenarios before CPU spikes
+    - type: Pods
+      pods:
+        metric:
+          name: http_requests_per_second
+        target:
+          type: AverageValue
+          averageValue: "100"
+
+    # Latency: catches degraded performance regardless of cause
+    - type: Pods
+      pods:
+        metric:
+          name: http_request_duration_p99_seconds
+        target:
+          type: AverageValue
+          averageValue: "500m"  # Scale if P99 > 500ms
+```
+
+Code: Multi-metric HPA using CPU, RPS, and latency.
+
+Here's how the calculation works. Suppose current state is 5 replicas:
+
+- __CPU metric__: 60% utilization, target 50% → $$5 \times (60/50) = 6$$ replicas
+- __RPS metric__: 120 RPS/pod, target 100 → $$5 \times (120/100) = 6$$ replicas
+- __Latency metric__: 400ms P99, target 500ms → $$5 \times (400/500) = 4$$ replicas
+
+HPA takes the maximum: 6 replicas. The latency metric calculates fewer replicas than currently running (4 < 5), which would suggest scaling down if it were the only metric — but CPU and RPS both want more capacity, so we scale up. This "max wins" behavior ensures you don't under-provision when __any__ metric indicates stress.
+
+This pattern is particularly useful for services with mixed workloads — some requests are CPU-heavy, others are I/O-heavy. A single metric might miss bottlenecks that only affect certain request types.
+
+### KEDA for Event-Driven Scaling
+
+KEDA (Kubernetes Event-Driven Autoscaling) extends HPA with two capabilities standard HPA lacks: scaling to zero, and scaling on external event sources like message queues, databases, or cloud services.
+
+For queue-based workers, KEDA scales based on queue depth rather than pod metrics. When the queue is empty, KEDA can scale to zero pods, saving resources. When messages arrive, KEDA spins up pods to process them:
+
+```yaml title="keda-queue-scaling.yaml"
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: order-processor-scaler
+  namespace: production
+spec:
+  scaleTargetRef:
+    name: order-processor
+  minReplicaCount: 1
+  maxReplicaCount: 100
+  idleReplicaCount: 0           # Scale to zero when idle
+  cooldownPeriod: 300           # Wait 5 min before scaling to zero
+  pollingInterval: 15           # Check queue every 15s
+  triggers:
+    - type: rabbitmq
+      metadata:
+        host: amqp://rabbitmq.messaging:5672
+        queueName: orders
+        mode: QueueLength
+        value: "10"             # Target 10 messages per pod
+    - type: rabbitmq
+      metadata:
+        host: amqp://rabbitmq.messaging:5672
+        queueName: orders
+        mode: MessageRate
+        value: "50"             # Also consider message arrival rate
+```
+
+Code: KEDA scaling queue workers based on RabbitMQ depth.
+
+KEDA also supports Prometheus as a trigger source, letting you scale on any metric Prometheus collects — including business metrics like active users or transaction volume:
+
+```yaml title="keda-prometheus-scaling.yaml"
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: api-scaler
+  namespace: production
+spec:
+  scaleTargetRef:
+    name: api-server
+  minReplicaCount: 3
+  maxReplicaCount: 50
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.monitoring:9090
+        threshold: "100"
+        query: sum(rate(http_requests_total{deployment="api-server"}[2m]))
+```
+
+Code: KEDA scaling on Prometheus metrics.
+
+The key difference from standard HPA with Prometheus Adapter is KEDA's native support for scale-to-zero and its simpler configuration for external sources. If you need either capability, KEDA is the standard solution.
+
+<Callout type="success" title="When to Use KEDA">
+Use KEDA when you need scale-to-zero (queue workers, batch jobs, dev environments) or when scaling on external sources (message queues, databases, cloud service metrics). For standard CPU/memory/custom-metrics scaling without scale-to-zero, native HPA is simpler and has fewer moving parts.
+</Callout>
+
+## Conclusion
+
+HPA tuning comes down to four principles:
+
+<List
+  variant="numbered-with-background-list"
+  items={[
+    {
+      lead: "Understand the delays.",
+      text: "The path from \"traffic spike\" to \"new pod serving requests\" includes metrics collection (15-60s), HPA sync (15s), stabilization windows (0-300s), pod scheduling (1-10s), container startup (5-60s), and readiness probes (5-30s). With defaults, you're looking at 90+ seconds minimum. Aggressive tuning can get you to 30-45 seconds, but no faster. If your traffic can spike harder than that, HPA alone won't save you.",
+    },
+    {
+      lead: "Choose leading indicators.",
+      text: "CPU and latency are lagging indicators — they show problems that already exist. Requests per second and queue depth are leading indicators — they spike the moment traffic arrives, before your system shows stress. Scale on what's coming, not what's already hurting.",
+    },
+    {
+      lead: "Scale up fast, scale down slow.",
+      text: "The asymmetric pattern fits most workloads: zero stabilization on scale up so you respond immediately, 5+ minute stabilization on scale down so you don't thrash. Over-provisioning costs money. Under-provisioning loses customers. When in doubt, err toward more capacity.",
+    },
+    {
+      lead: "Pre-scale for known events.",
+      text: "HPA handles unexpected variance. It shouldn't be catching up to traffic you knew about. Flash sales, marketing campaigns, scheduled batch jobs — pre-scale hours in advance with cron triggers or KEDA. Let HPA handle the variance around your pre-provisioned baseline.",
+    },
+  ]}
+/>
+
+<Callout type="info" title="The Goal Is Invisibility">
+The best HPA configuration is one you never think about. Traffic varies, capacity adjusts, users don't notice. Getting there requires measuring actual behavior — not guessing at configurations. Instrument your HPA, watch its scaling decisions under real load, and tune based on data. The article's examples are starting points, not destinations.
+</Callout>
+
+The tuning process is iterative. Start with defaults, run under real load, and watch what happens. If you're scaling too slowly, reduce stabilization windows and increase policy percentages. If you're oscillating, increase stabilization and lower your target utilization. If you're wasting money on idle pods, tighten scale-down policies or raise target utilization. There's no universal "best" configuration — only the configuration that matches your traffic pattern.

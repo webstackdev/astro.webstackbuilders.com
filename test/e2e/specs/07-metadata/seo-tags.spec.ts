@@ -7,7 +7,7 @@
 import { BasePage, test, expect } from '@test/e2e/helpers'
 import { wait } from '@test/e2e/helpers/waitTimeouts'
 
-const articleDetailLinkSelector = 'a[href^="/deep-dive/"], a[href^="/articles/"]:not([href="/articles/"])'
+const articleDetailLinkSelector = 'a[href^="/articles/"]:not([href="/articles/"])'
 
 test.describe('SEO Meta Tags', () => {
   test('@ready all pages have meta description', async ({ page: playwrightPage }) => {

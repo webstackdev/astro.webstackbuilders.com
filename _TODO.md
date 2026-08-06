@@ -24,7 +24,6 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 ## Header - "Squish" Effect
 
 - Need to improve the "squish" animation where the header reduces in size on scroll down, and returns to full size on scroll up. Maybe reduce and expand the text and search / themepicker / hamburger menu sizes in place, and then slide them horizontally.
-- Moving the scroll bar up quickly with the mouse seems to make the header logic break - the Switcher component and Breadcrumbs are hidden under the header
 - Themepicker and search icon are too big in non-squished header. Logo too - the initial presentation should be smaller.
 
 ## Resume

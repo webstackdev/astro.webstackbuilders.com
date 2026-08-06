@@ -45,7 +45,6 @@ class CollectionConfig:
 # Collections to index
 COLLECTIONS: Final[list[CollectionConfig]] = [
   CollectionConfig(name="articles", url_prefix="/articles", source_dir="articles", glob_pattern="**/index.mdx"),
-  CollectionConfig(name="deep-dive", url_prefix="/deep-dive", source_dir="articles", glob_pattern="**/pdf.mdx"),
   CollectionConfig(name="case-studies", url_prefix="/case-studies", source_dir="case-studies", glob_pattern="**/index.mdx"),
   CollectionConfig(name="services", url_prefix="/services", source_dir="services", glob_pattern="**/index.md"),
 ]

@@ -76,8 +76,7 @@ const {
   tags,
 } = Astro.props
 
-const hasBreadcrumbRowSlot = Astro.slots.has('breadcrumb-row')
-const shouldRenderBreadcrumbRow = (path !== '/' && path !== '') || hasBreadcrumbRowSlot
+const shouldRenderBreadcrumbRow = path !== '/' && path !== ''
 
 const requestUrl = Astro.url?.href
 const requestHeaders = Astro.isPrerendered ? undefined : Astro.request.headers
@@ -173,10 +172,6 @@ applyRenderSentryContext({
                 ]}
               >
                 <Breadcrumbs path={path} pageTitle={breadcrumbTitle ?? pageTitle} />
-                {/** breadcrumb-row slot is used to pass the ContentSwitcher on articles and deep-dive item view pages */}
-                <div class="shrink-0">
-                  <slot name="breadcrumb-row" />
-                </div>
               </section>
             )
           }

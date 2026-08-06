@@ -12,8 +12,8 @@ describe('SearchBar result helpers', () => {
   })
 
   it('returns the same value for an existing relative url', () => {
-    expect(getSearchResultDisplayPath('/deep-dive/introduction-to-vector-search')).toBe(
-      '/deep-dive/introduction-to-vector-search'
+    expect(getSearchResultDisplayPath('/articles/introduction-to-vector-search')).toBe(
+      '/articles/introduction-to-vector-search'
     )
   })
 

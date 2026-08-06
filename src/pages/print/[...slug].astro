@@ -47,16 +47,16 @@ const PdfComponents = {
 }
 
 export interface Props {
-  article: CollectionEntry<'deepDives'>
+  article: CollectionEntry<'articles'>
 }
 
-/** Generate static paths for all deep-dive articles */
+/** Generate static paths for all articles */
 export async function getStaticPaths() {
   if (!isDev() && !GENERATE_PDFS) {
     return []
   }
 
-  const articleEntries = await getCollection('deepDives')
+  const articleEntries = await getCollection('articles')
 
   return articleEntries.map(article => ({
     params: { slug: article.id },

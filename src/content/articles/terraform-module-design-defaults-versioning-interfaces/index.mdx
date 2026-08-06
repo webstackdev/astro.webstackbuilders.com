@@ -1,6 +1,6 @@
 ---
-title: "Terraform Module Defaults That Won't Break Your Consumers"
-description: "Design module interfaces with sensible defaults, clear breaking-change boundaries, and early validation to create modules teams actually want to use."
+title: "Terraform Module Interfaces: Defaults and Versioning"
+description: "Designing module interfaces that are easy to use, hard to misuse, and can evolve without breaking consumers."
 cover: "./cover.jpg"
 coverAlt: "Technical blueprint with version numbers, revision marks, and change annotations documenting interface evolution over time"
 author: "kevin-brown"
@@ -9,47 +9,151 @@ tags: ["cloud-platforms","terraform","aws"]
 featured: true
 ---
 
+import moduleInterfaceDiagram from "./diagrams/module-interface-separates-what-consumers-depend-on-from-implementation-details.jpg"
+
 *[HCL]: HashiCorp Configuration Language
 *[IaC]: Infrastructure as Code
+*[IAM]: Identity and Access Management
+*[RBAC]: Role-Based Access Control
+*[SemVer]: Semantic Versioning
 *[VPC]: Virtual Private Cloud
 
-I've seen production modules with 47 required variables — modules where using them meant copying a wall of configuration from the README and hoping you didn't miss anything. I've also inherited the opposite: modules with opaque defaults that worked great until someone deployed to production and discovered deletion protection was off by default.
+Terraform modules are contracts. When you publish a module — even internally — you're making promises about what inputs it accepts, what outputs it provides, and how it behaves. Break those promises carelessly and you break your consumers' infrastructure.
 
-<Highlighter>The difference between modules that teams love and modules that teams fork-and-forget comes down to interface design.</Highlighter> Specifically, how you handle defaults and what you consider a breaking change. Get these right, and your module becomes the obvious choice. Get them wrong, and you'll spend more time fielding support questions than writing infrastructure.
+The challenge is that modules need to evolve. Requirements change, providers release new features, and you learn better patterns. How do you improve a module without forcing every consumer to scramble? The answer lies in intentional interface design: choosing the right defaults, structuring inputs to guide correct usage, and versioning changes so consumers can upgrade on their own timeline.
 
-## Required vs Optional: The 80% Rule
+I've seen teams struggle with both extremes — modules with dozens of required variables that nobody wants to use, and modules with opaque defaults that work until they catastrophically don't. The sweet spot requires understanding what makes a good interface, how to communicate change through versioning, and how to test that your contracts actually hold.
 
-Most variables should have defaults. Required variables should be reserved for values the module genuinely cannot guess — your VPC ID, your environment name, your account-specific settings.
+## The Module Interface Contract
 
-Think of it this way: if 80% of your consumers will use the same value, make it the default. They can override it if needed, but they shouldn't have to specify it just to get started.
+A module's interface is everything a consumer can observe or depend on. That's more than just variables and outputs — it includes the resources created, the naming conventions used, the provider versions required, and even implicit assumptions like "this module expects a VPC with DNS support enabled."
 
-### Three Categories of Variables
+### What Constitutes a Module Interface
 
-I organize variables into three categories based on what consumers need to provide:
+Think of a module interface in five layers:
 
 <List
   variant="numbered-with-background-list"
   items={[
     {
-      lead: 'Required variables',
-      text: 'Have no default. The module cannot function without them. VPC ID is a classic example-the module has no way to know which VPC you want to deploy into. Environment is another; defaulting to "development" when someone actually wanted production would be a disaster.',
+      lead: 'Input variables',
+      text: "The parameters consumers provide. Some are required (the module can't guess your VPC ID), others have sensible defaults (instance type can default to t3.medium). The types, names, and validation rules are all part of the contract.",
     },
     {
-      lead: 'Optional with sensible default',
-      text: "Covers most settings. Instance type defaults to t3.medium because it works for most workloads. Backup retention defaults to 7 days because some retention is almost always better than none. Consumers can override these, but they don't have to think about them on day one.",
+      lead: 'Output values',
+      text: 'The data consumers reference. When someone writes <span class="font-mono">module.vpc.private_subnet_ids[0]</span>, they\'re depending on that output existing, being a list, and having at least one element. Change the output name or type and their code breaks.',
     },
     {
-      lead: 'Opt-in with null',
-      text: 'Handles features that most consumers do not need. Custom KMS keys, custom domains, advanced monitoring-these use null as the default, signaling "skip this feature" or "use platform defaults."',
+      lead: 'Resource behavior',
+      text: 'What actually gets created. If your module creates a security group that allows HTTPS traffic, consumers might depend on that. Adding or removing resources can break downstream assumptions.',
+    },
+    {
+      lead: 'Provider requirements',
+      text: 'Constrains which provider versions work with your module. If you bump the minimum AWS provider from 4.0 to 5.0, consumers on 4.x can\'t use your module until they upgrade.',
+    },
+    {
+      lead: 'Implicit contracts',
+      text: 'The undocumented assumptions. Maybe your module names resources with a specific pattern (<span class="font-mono">{environment}-{name}-{resource_type}</span>), applies a standard set of tags, or assumes the VPC has DNS hostnames enabled. Perhaps it expects certain IAM permissions to exist, or assumes subnets have internet access through a NAT gateway. These are the trickiest because they\'re easy to break without realizing it — you rename your tagging convention and suddenly a downstream cost allocation dashboard stops working.',
     },
   ]}
 />
 
-```hcl title="modules/database/variables.tf"
+<Diagram
+  src={moduleInterfaceDiagram}
+  magnifyButtonPosition="bottom-right"
+  size="full"
+  title="Module interface separates what consumers depend on from implementation details."
+  description="Top-to-bottom flowchart with three grouped sections: Module Consumer, Interface Contract, and Implementation not part of contract. In Module Consumer, one node shows a sample module block calling the vpc module with source company slash vpc slash aws, version approximately greater than 2.0, cidr_block 10.0.0.0 slash 16, and environment production. A second consumer node shows downstream usage where subnet_id is assigned from module.vpc.private_subnet_ids[0]. The consumer group connects to the Interface Contract group, which contains three contract elements: Inputs cidr_block and environment, Outputs vpc_id and private_subnet_ids, and Behavior creates VPC, subnets, and NAT. The Interface Contract group then connects to the Implementation group, which contains details such as how subnets are calculated, which availability zones are used, and internal resource naming. The diagram shows that consumers should depend on the published contract layer rather than on internal implementation details, allowing the module to evolve safely behind a stable interface."
+/>
+
+### Breaking vs Non-Breaking Changes
+
+Not all changes are equal. Some are safe to make in a minor version; others require a major version bump and migration guidance.
+
+<Table
+  variant="criteria-highlight-table"
+  content={{
+    thead: {
+      th: ['Change Type', 'Breaking?', 'Example', 'Migration Path'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Add optional input with default',
+          td: ['No', '<span class="text-mono">variable "tags" { default = {} }</span>', 'None needed'],
+        },
+        {
+          th: 'Remove input variable',
+          td: ['Yes', 'Delete <span class="text-mono">variable "legacy_flag"</span>', 'Deprecate first; document in changelog'],
+        },
+        {
+          th: 'Change input type',
+          td: ['Yes', '<span class="text-mono">string</span> → <span class="text-mono">list(string)</span>', 'Provide migration example in changelog'],
+        },
+        {
+          th: 'Add new output',
+          td: ['No', '<span class="text-mono">output "new_arn" { ... }</span>', 'None needed'],
+        },
+        {
+          th: 'Remove output',
+          td: ['Yes', 'Delete <span class="text-mono">output "old_id"</span>', 'Deprecate for one major version first'],
+        },
+        {
+          th: 'Change output type',
+          td: ['Yes', '<span class="text-mono">string</span> → <span class="text-mono">object</span>', 'Add new output; deprecate old one'],
+        },
+        {
+          th: 'Add new resource',
+          td: ['Usually no', 'Add <span class="text-mono">aws_cloudwatch_log_group</span>', 'None if no side effects'],
+        },
+        {
+          th: 'Remove resource',
+          td: ['Yes', 'Delete <span class="text-mono">aws_s3_bucket</span>', 'Document state rm commands'],
+        },
+        {
+          th: 'Rename resource',
+          td: ['Yes', '<span class="text-mono">aws_instance.main</span> → <span class="text-mono">aws_instance.primary</span>', 'Requires <span class="text-mono">moved</span> block'],
+        },
+        {
+          th: 'Change provider version',
+          td: ['Maybe', '<span class="text-mono">>= 4.0</span> → <span class="text-mono">>= 5.0</span>', 'Depends on provider changes'],
+        },
+      ],
+    },
+    figure: 'Breaking vs non-breaking changes in module interfaces.',
+  }}
+/>
+
+The key insight: __outputs are promises__. Even if you think nobody uses a particular output, removing it is a breaking change. Someone, somewhere, has probably wired it into their configuration. Deprecate outputs for at least one major version before removal, giving consumers time to migrate.
+
+<Callout type="warning">
+Resource renames are particularly dangerous because they cause Terraform to destroy and recreate the resource unless you include a `moved` block. A simple rename of `aws_instance.main` to `aws_instance.primary` could destroy a production database if you're not careful.
+</Callout>
+
+## Input Variable Design
+
+The difference between a module that's a joy to use and one that's a constant source of frustration often comes down to input variable design. Good inputs guide users toward correct usage; bad inputs let them make mistakes that only surface at apply time — or worse, in production.
+
+### Required vs Optional Variables
+
+The first decision for every variable: should the consumer be forced to provide a value, or can you supply a sensible default?
+
+Make a variable required when the module genuinely cannot guess. VPC ID is a classic example — the module has no way to know which VPC you want to deploy into. Environment is another; deploying to production with a default of "development" would be a disaster.
+
+Make a variable optional when there's a reasonable starting point. Instance type can default to t3.medium because it works for most workloads initially and is easy to change later. Backup retention can default to 7 days because _some_ retention is almost always better than none.
+
+Use `null` as a default when a feature is opt-in. Custom KMS keys, custom domains, advanced monitoring configurations — these are things most users don't need, and `null` signals "use the platform default" or "skip this feature."
+
+```hcl title="modules/application/variables.tf"
 # Required: module cannot safely guess
 variable "environment" {
   description = "Deployment environment (production, staging, development)"
   type        = string
+
+  validation {
+    condition     = contains(["production", "staging", "development"], var.environment)
+    error_message = "Environment must be production, staging, or development."
+  }
 }
 
 variable "vpc_id" {
@@ -59,156 +163,138 @@ variable "vpc_id" {
 
 # Optional with sensible default
 variable "instance_type" {
-  description = "RDS instance type"
+  description = "EC2 instance type for application servers"
   type        = string
-  default     = "db.t3.medium"
+  default     = "t3.medium"
 }
 
 variable "backup_retention_days" {
   description = "Number of days to retain automated backups"
   type        = number
   default     = 7
+
+  validation {
+    condition     = var.backup_retention_days >= 0 && var.backup_retention_days <= 35
+    error_message = "Backup retention must be between 0 and 35 days."
+  }
 }
 
-# Opt-in feature (null means skip)
-variable "custom_kms_key_arn" {
-  description = "ARN of a custom KMS key for encryption (optional)"
+# Optional with null default (opt-in feature)
+variable "custom_domain" {
+  description = "Custom domain for the application (optional)"
   type        = string
   default     = null
 }
 ```
 
-Code: Three categories of variables — required, optional with default, and opt-in with null.
+Code: Variable definitions showing required, optional with default, and opt-in patterns.
 
-When you apply this pattern consistently, consumers get module calls that look like this:
+### Default Value Principles
 
-```hcl title="environments/production/main.tf"
-module "database" {
-  source      = "company/rds/aws"
-  version     = "~> 2.0"
-  environment = "production"
-  vpc_id      = module.network.vpc_id
-}
-```
-
-Code: Minimal module call with only truly required variables.
-
-Everything else — instance type, storage size, backup retention, encryption settings — uses sensible defaults. Consumers can override them when needed, but they don't have to think about them on day one.
-
-### Default to the Safer Option
-
-When a setting affects data durability or security, default to the more protective choice. Deletion protection should default to `true`. Encryption should default to enabled. Multi-AZ for production databases should probably be on by default.
-
-```hcl title="modules/database/variables.tf"
-variable "deletion_protection" {
-  description = "Prevent accidental database deletion"
-  type        = bool
-  default     = true  # Safe by default; opt out for dev
-}
-
-variable "storage_encrypted" {
-  description = "Enable encryption at rest"
-  type        = bool
-  default     = true  # Always encrypt; no reason not to
-}
-```
-
-Code: Security-sensitive settings default to the protective option.
-
-Users can opt out for development environments; they shouldn't have to opt __in__ for production safety. The module should make the secure path the easy path.
-
-<Newsletter />
-
-## What You Can Change Without Breaking Consumers
-
-Here's where module maintenance gets tricky. You want to improve your module — fix bugs, add features, clean up technical debt. But every change risks breaking someone's deployment. Understanding which changes are safe and which require a major version bump saves you from angry Slack messages.
-
-<Table
-  variant="criteria-highlight-table"
-  fullWidth={false}
-  content={{
-    thead: {
-      th: ['Change Type', 'Breaking?', 'Migration Action'],
-    },
-    tbody: {
-      tr: [
-        {
-          th: 'Add optional input with default',
-          td: ['No', 'Ship it'],
-        },
-        {
-          th: 'Remove input variable',
-          td: ['Yes', 'Deprecate in prior version; document in changelog'],
-        },
-        {
-          th: 'Change input type',
-          td: ['Yes', 'Document migration steps in changelog'],
-        },
-        {
-          th: 'Add new output',
-          td: ['No', 'Ship it'],
-        },
-        {
-          th: 'Remove output',
-          td: ['Yes', 'Deprecate in prior version; document replacement'],
-        },
-        {
-          th: 'Rename resource',
-          td: ['Yes', 'Add `moved` block to preserve state'],
-        },
-      ],
-    },
-    figure: 'Common module changes and whether they break consumers.',
-  }}
-/>
-
-The key insight: __outputs are promises__. Even if you think nobody uses a particular output, removing it is a breaking change. Someone, somewhere, has wired it into their Terragrunt wrapper or their CI pipeline. Deprecate outputs for at least one major version before removal — add a description that says "DEPRECATED: Use xyz instead. Will be removed in v3.0" and give consumers time to migrate.
-
-<Callout type="warning">
-Resource renames are particularly dangerous. If you rename `aws_instance.main` to `aws_instance.primary` without a `moved` block, Terraform will destroy and recreate the resource. For a database, that means data loss. Always include moved blocks when renaming:
-
-```hcl
-moved {
-  from = aws_instance.main
-  to   = aws_instance.primary
-}
-```
-</Callout>
-
-### How Semantic Versioning Applies
-
-Semantic versioning tells consumers what to expect:
+Choosing good defaults is harder than it looks. A few principles help:
 
 <List
-  variant="side-by-side-list"
+  variant="zebra-list"
   classes={{
-    wrapper: "sm:ml-6 sm:mr-18 mb-6",
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+    ul: "!divide-y-0 !border-0 !overflow-visible !rounded-none space-y-4",
+    li: "!rounded-lg !border border-trim",
   }}
   items={[
     {
-      lead: 'Major version (2.0.0 → 3.0.0):',
-      text: 'Breaking changes. Consumers should read the changelog before upgrading.',
+      lead: 'Default to the safer option.',
+      text: "If a setting affects data durability or security, default to the more protective choice. Deletion protection should default to `true`. Encryption should default to enabled. Backup retention should be non-zero. Users can opt out for development environments; they shouldn't have to opt in for production safety.",
     },
     {
-      lead: 'Minor version (2.1.0 → 2.2.0):',
-      text: 'New features, backward compatible. Safe to upgrade.',
+      lead: "Default to the cheaper option when safety isn't at stake.",
+      text: 'Instance types, storage sizes, and replica counts can default to smaller values. Users will scale up when they need to; defaulting to expensive configurations just creates surprise bills.',
     },
     {
-      lead: 'Patch version (2.1.1 → 2.1.2):',
-      text: 'Bug fixes only. Always safe.',
+      lead: 'Use environment-aware defaults when behavior should differ.',
+      text: 'Some settings legitimately differ between environments — deletion protection makes sense in production but blocks rapid iteration in development. You can use `null` as a sentinel value and compute the actual default in a local:',
     },
   ]}
 />
 
-The discipline is in classifying correctly. Renaming an output feels like cleanup, but it's a breaking change. Adding a new resource with side effects (like a CloudWatch alarm that pages someone) might technically be backward compatible, but it'll still surprise your consumers.
+```hcl title="modules/database/main.tf"
+variable "deletion_protection" {
+  description = "Enable deletion protection. Defaults to true for production."
+  type        = bool
+  default     = null
+}
 
-When in doubt, it's a breaking change. Your consumers will thank you for the predictability.
+locals {
+  deletion_protection = coalesce(
+    var.deletion_protection,
+    var.environment == "production" ? true : false
+  )
+}
 
-Versioning handles changes over time. But what about catching mistakes before they ship?
+resource "aws_db_instance" "main" {
+  deletion_protection = local.deletion_protection
+}
+```
 
-## Catch Errors at Plan Time
+Code: Environment-aware defaults using coalesce with null sentinel.
 
-Good validation saves hours of debugging. When a consumer passes an invalid CIDR block, you want them to discover it in seconds — not twenty minutes into `terraform apply` when the VPC creation fails with a cryptic AWS error.
+### Complex Variable Types
+
+Terraform 1.3 introduced optional object attributes with defaults, which dramatically improves the ergonomics of complex configuration. Instead of requiring users to specify every field, you can define sensible defaults for each attribute:
+
+```hcl title="modules/database/variables.tf"
+variable "database_config" {
+  description = "Database configuration options"
+  type = object({
+    instance_class    = optional(string, "db.t3.medium")
+    allocated_storage = optional(number, 20)
+    engine_version    = optional(string, "14.7")
+    multi_az          = optional(bool, false)
+    backup_window     = optional(string, "03:00-04:00")
+
+    performance_insights = optional(object({
+      enabled          = optional(bool, true)
+      retention_period = optional(number, 7)
+    }), {})
+  })
+  default = {}
+}
+```
+
+Code: Object variable with optional attributes and nested defaults.
+
+With this definition, a consumer can call the module with just `database_config = {}` and get all the defaults, or override specific fields like `database_config = { instance_class = "db.r5.large", multi_az = true }`. The unspecified fields keep their defaults.
+
+For truly dynamic resources — where you don't know how many instances you'll need — use maps:
+
+```hcl title="modules/security-groups/variables.tf"
+variable "security_groups" {
+  description = "Map of security group configurations to create"
+  type = map(object({
+    description   = string
+    ingress_cidrs = list(string)
+    ingress_ports = list(number)
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for name, sg in var.security_groups :
+      length(name) <= 64 && can(regex("^[a-z0-9-]+$", name))
+    ])
+    error_message = "Security group names must be lowercase alphanumeric with hyphens, max 64 chars."
+  }
+}
+```
+
+Code: Map variable for dynamic resource creation with validation.
+
+### Input Validation Patterns
+
+Validation blocks catch configuration errors at plan time, before Terraform makes any API calls. This is invaluable — discovering a typo in your CIDR block during apply means waiting for the VPC creation to fail, then fixing it, then waiting again. Discovering it during plan takes seconds.
+
+<Callout type="info">
+Input validation runs during `terraform plan`, before any resources are created. Well-designed validations save users from waiting for API errors during apply. Validate everything that can be validated statically.
+</Callout>
 
 ```hcl title="modules/vpc/variables.tf"
 variable "vpc_cidr" {
@@ -221,22 +307,41 @@ variable "vpc_cidr" {
   }
 
   validation {
-    condition = (
-      tonumber(split("/", var.vpc_cidr)[1]) >= 16 &&
-      tonumber(split("/", var.vpc_cidr)[1]) <= 28
-    )
+    condition     = tonumber(split("/", var.vpc_cidr)[1]) >= 16 && tonumber(split("/", var.vpc_cidr)[1]) <= 28
     error_message = "VPC CIDR must have a prefix between /16 and /28."
+  }
+}
+
+variable "kms_key_arn" {
+  description = "ARN of a KMS key for encryption (optional)"
+  type        = string
+  default     = null
+
+  validation {
+    condition = var.kms_key_arn == null || can(regex(
+      "^arn:aws:kms:[a-z0-9-]+:[0-9]{12}:key/[a-f0-9-]+$",
+      var.kms_key_arn
+    ))
+    error_message = "KMS key ARN must be a valid AWS KMS key ARN format."
   }
 }
 ```
 
-Code: Validation blocks that catch CIDR errors at plan time.
+Code: Validation patterns for CIDR blocks and ARN formats.
 
-Validation blocks run during `terraform plan`, before any API calls. They're your first line of defense against misconfiguration. Validate CIDR blocks, ARN formats, naming conventions — anything that has a known-good pattern.
-
-For conditional requirements, use `precondition` blocks in resource lifecycles:
+For conditional requirements — where one variable depends on another — use `precondition` blocks in the resource lifecycle:
 
 ```hcl title="modules/load-balancer/main.tf"
+variable "enable_https" {
+  type    = bool
+  default = true
+}
+
+variable "certificate_arn" {
+  type    = string
+  default = null
+}
+
 resource "aws_lb_listener" "https" {
   count = var.enable_https ? 1 : 0
 
@@ -249,26 +354,661 @@ resource "aws_lb_listener" "https" {
 }
 ```
 
-Code: Precondition enforcing that HTTPS listeners require a certificate.
+Code: Precondition for conditional variable requirements.
 
-This catches the case where someone enables HTTPS but forgets to provide a certificate — before Terraform tries to create a broken listener.
+## Output Design
 
-<Download
-  resource="terraform-module-design-defaults-versioning-interfaces"
-  title="Terraform Module Interfaces: Defaults and Versioning"
-  description="Designing module interfaces that are easy to use, hard to misuse, and can evolve without breaking consumers."
-  listItems={[
-    { text: "Interface design decision framework" },
-    { text: "Versioning and migration checklist" },
-    { text: "Validation pattern code recipes" },
-    { text: "Module contract test starter" }
+Outputs are the other half of the interface contract. Every output you expose becomes a potential dependency — consumers wire them into their configurations, and changing or removing an output breaks their code. Design outputs with the same care you'd apply to a library's public API.
+
+### Output Contract Principles
+
+Think about what consumers actually need. A VPC module's consumers need the VPC ID to create resources inside it. They need subnet IDs to place instances. They need ARNs to write IAM policies. They probably don't need the internal route table associations or the NAT gateway attachment details.
+
+Output __identifiers__ that consumers will reference directly:
+
+```hcl title="modules/vpc/outputs.tf"
+output "vpc_id" {
+  description = "The ID of the VPC"
+  value       = aws_vpc.main.id
+}
+
+output "private_subnet_ids" {
+  description = "List of private subnet IDs, ordered by availability zone"
+  value       = aws_subnet.private[*].id
+}
+```
+
+Code: Basic identifier outputs for downstream resource creation.
+
+Output __ARNs__ for IAM policies. Consumers often need to grant permissions to resources your module creates, and ARNs are the currency of IAM:
+
+```hcl title="modules/database/outputs.tf"
+output "log_group_arn" {
+  description = "ARN of the CloudWatch log group for IAM policy attachment"
+  value       = aws_cloudwatch_log_group.main.arn
+}
+
+output "kms_key_arn" {
+  description = "ARN of the KMS key used for encryption"
+  value       = aws_kms_key.main.arn
+}
+```
+
+Code: ARN outputs for IAM policy construction.
+
+Output __computed values__ that would be hard to derive. NAT gateway public IPs, auto-generated hostnames, calculated CIDR blocks — anything the consumer would need to dig through state to find:
+
+```hcl title="modules/database/outputs.tf"
+output "connection_string" {
+  description = "PostgreSQL connection string (without password)"
+  value       = "postgresql://${aws_db_instance.main.username}@${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}"
+  sensitive   = false
+}
+```
+
+Code: Computed connection string output for convenience.
+
+### Stable Output Contracts
+
+The implementation of a module will change — you'll refactor from `count` to `for_each`, rename internal resources, restructure how things are organized. Good output design insulates consumers from these changes.
+
+The problem with outputs tied to implementation:
+
+```hcl
+# Fragile: breaks if you refactor from count to for_each
+output "instance_ids" {
+  value = aws_instance.app[*].id
+}
+```
+
+The stable alternative:
+
+```hcl title="modules/compute/outputs.tf"
+output "instance_ids" {
+  description = "IDs of all application instances"
+  value       = [for instance in aws_instance.app : instance.id]
+}
+```
+
+Code: Stable output using for expression instead of splat.
+
+For related values, group them into structured objects. This gives consumers a clean interface and lets you add new fields without breaking existing references:
+
+```hcl title="modules/vpc/outputs.tf"
+output "networking" {
+  description = "Network configuration for downstream modules"
+  value = {
+    vpc_id             = aws_vpc.main.id
+    vpc_cidr           = aws_vpc.main.cidr_block
+    private_subnet_ids = aws_subnet.private[*].id
+    public_subnet_ids  = aws_subnet.public[*].id
+    availability_zones = data.aws_availability_zones.available.names
+
+    security_groups = {
+      internal = aws_security_group.internal.id
+      https    = aws_security_group.https.id
+    }
+  }
+}
+```
+
+Code: Structured output grouping related network values.
+
+### Deprecating Outputs
+
+When you need to remove or rename an output, deprecate it first. Keep the old output for at least one major version, with a description that tells consumers what to migrate to:
+
+```hcl title="modules/database/outputs.tf"
+output "cluster_endpoint" {
+  description = <<-EOT
+    DEPRECATED: Use 'database.endpoint' instead.
+    This output will be removed in v3.0.0.
+  EOT
+  value = aws_rds_cluster.main.endpoint
+}
+
+output "database" {
+  description = "Database connection information"
+  value = {
+    endpoint        = aws_rds_cluster.main.endpoint
+    reader_endpoint = aws_rds_cluster.main.reader_endpoint
+    port            = aws_rds_cluster.main.port
+    database_name   = aws_rds_cluster.main.database_name
+  }
+}
+```
+
+Code: Deprecated output with migration guidance alongside replacement.
+
+The heredoc description appears in `terraform output` and in documentation generators, giving consumers advance warning. When v3.0.0 ships, you can remove `cluster_endpoint` as a documented breaking change.
+
+## Versioning Strategy
+
+Modules evolve. Requirements change, providers release new features, and you learn better patterns. Semantic versioning provides the framework for managing this evolution, but applying it to infrastructure requires understanding what constitutes a breaking change — and many changes that _feel_ minor are technically breaking.
+
+### Semantic Versioning for Modules
+
+SemVer's core principle applies directly to Terraform modules: major versions for breaking changes, minor for new features, patch for bug fixes. The tricky part is that infrastructure changes often have hidden dependencies — renaming an output feels like a minor cleanup, but it breaks every consumer who referenced that output.
+
+__Major version bumps__ are required when you change the interface contract in ways that could break existing consumers:
+
+<List
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Remove or rename an input variable',
+    },
+    {
+      lead: "Change an input variable's type",
+    },
+    {
+      lead: 'Remove an output',
+    },
+    {
+      lead: "Change an output's type or structure",
+    },
+    {
+      lead: 'Remove a resource (causes state issues for consumers)',
+    },
+    {
+      lead: 'Bump a provider minimum version that has breaking changes',
+    },
   ]}
 />
 
-## What Makes Modules Worth Using
+__Minor version bumps__ are for backward-compatible additions:
 
-The patterns here aren't complicated: default to safe values, validate inputs early, and version changes honestly. The discipline is applying them consistently.
+<List
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: 'Add a new input variable with a default value',
+    },
+    {
+      lead: 'Add a new output',
+    },
+    {
+      lead: 'Add a new resource (assuming no side effects)',
+    },
+    {
+      lead: 'Deprecate (but not remove) an input or output',
+    },
+  ]}
+/>
 
-Every required variable you add is friction. Every breaking change without a migration path is trust eroded. Every validation you skip is a support ticket waiting to happen.
+__Patch version bumps__ are for fixes that don't touch the interface:
 
-Your module's interface is the only part most consumers will ever see. When it's thoughtfully designed — easy to start with, hard to misconfigure, predictable to upgrade — it becomes infrastructure that teams reach for instead of work around.
+<List
+  variant="chevron-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    {
+      lead: "Fix a bug without changing behavior consumers depend on",
+    },
+    {
+      lead: 'Update documentation',
+    },
+    {
+      lead: "Internal refactoring that doesn't affect state",
+    },
+    {
+      lead: 'Update provider constraints within compatible ranges',
+    },
+  ]}
+/>
+
+### Version Constraints
+
+Consumers control which versions they accept through version constraints. The constraint you choose balances stability against getting updates — too loose and you risk unexpected breakage, too strict and you miss security patches.
+
+```hcl title="root-module/main.tf"
+module "vpc" {
+  source  = "company/vpc/aws"
+  version = "~> 2.0"
+}
+
+module "database" {
+  source  = "company/rds/aws"
+  version = "2.3.1"
+}
+```
+
+Code: Pessimistic constraint for most modules, exact pinning for critical infrastructure.
+
+The pessimistic constraint (`~>`) is the sweet spot for most use cases. It accepts patch and minor updates but stops at the next major version, giving you bug fixes without breaking changes. For critical infrastructure like databases, exact pinning provides maximum stability at the cost of manual updates.
+
+<Table
+  variant="criteria-highlight-table"
+  fullWidth={false}
+  content={{
+    thead: {
+      th: ['Strategy', 'Constraint', 'Use Case', 'Trade-off'],
+    },
+    tbody: {
+      tr: [
+        {
+          th: 'Pessimistic',
+          td: ['`~> 2.0`', 'Most modules', 'Gets patches automatically, no breaking changes'],
+        },
+        {
+          th: 'Exact',
+          td: ['`2.3.1`', 'Critical infrastructure', 'Maximum stability, requires manual updates'],
+        },
+        {
+          th: 'Range',
+          td: ['`>= 2.0, < 3.0`', 'Same as pessimistic', 'More explicit about intent'],
+        },
+        {
+          th: 'Minimum',
+          td: ['`>= 2.0`', 'Development only', 'Gets latest, may break unexpectedly'],
+        },
+      ],
+    },
+    figure: 'Version constraint strategies and their trade-offs.',
+  }}
+/>
+
+<Callout type="danger">
+A constraint like `>= 2.0` means Terraform will use the latest version, including major versions with breaking changes. Always specify an upper bound for production modules.
+</Callout>
+
+### Migration Paths with Moved Blocks
+
+When you need to rename or restructure resources, `moved` blocks tell Terraform how to update state without destroying and recreating infrastructure:
+
+```hcl title="modules/compute/main.tf"
+moved {
+  from = aws_instance.web
+  to   = aws_instance.application
+}
+
+resource "aws_instance" "application" {
+  for_each = toset(var.instance_names)
+}
+```
+
+Code: Moved block enabling resource rename without destruction.
+
+Moved blocks handle simple renames automatically. For complex migrations — like refactoring from `count` to `for_each` — consumers may need to run state commands. Document these in your changelog:
+
+```markdown title="CHANGELOG.md"
+## [2.0.0] - 2024-01-15
+
+### ⚠️ BREAKING CHANGES
+
+- Refactored instance resource from count to for_each
+
+### Migration Guide
+
+The instance resource now uses for_each instead of count. After upgrading,
+run these state commands to migrate existing instances:
+
+terraform state mv 'module.app.aws_instance.web[0]' \
+  'module.app.aws_instance.application["web-1"]'
+terraform state mv 'module.app.aws_instance.web[1]' \
+  'module.app.aws_instance.application["web-2"]'
+```
+
+Code: Changelog with migration instructions for breaking changes.
+
+### Changelog Discipline
+
+A good changelog tells consumers exactly what changed and what they need to do about it. Follow the [Keep a Changelog](https://keepachangelog.com/) format:
+
+<List
+  variant="side-by-side-list"
+  items={[
+    {
+      lead: 'Added',
+      text: 'Side-by-side-list new features',
+    },
+    {
+      lead: 'Changed',
+      text: 'For changes in existing functionality',
+    },
+    {
+      lead: 'Deprecated',
+      text: 'For soon-to-be removed features',
+    },
+    {
+      lead: 'Removed',
+      text: 'For removed features',
+    },
+    {
+      lead: 'Fixed',
+      text: 'For bug fixes',
+    },
+    {
+      lead: 'Security',
+      text: 'For vulnerability fixes',
+    },
+  ]}
+/>
+
+For breaking changes, include explicit upgrade instructions. Don't make consumers guess what broke — tell them exactly which lines of their configuration need to change.
+
+## Module Composition Patterns
+
+Real infrastructure rarely fits in a single module. You need VPCs that host EKS clusters that run applications. Composing modules without creating a tangled mess of dependencies requires clear boundaries and intentional output design.
+
+### Layered Module Architecture
+
+Organize modules into layers where each layer depends only on the layer below it. Foundation modules create network primitives. Platform modules build on those to create compute platforms. Application modules deploy workloads onto platforms:
+
+```hcl title="environments/production/main.tf"
+module "foundation" {
+  source  = "company/foundation/aws"
+  version = "~> 1.0"
+
+  environment = var.environment
+  vpc_cidr    = var.vpc_cidr
+}
+
+module "platform" {
+  source  = "company/eks-platform/aws"
+  version = "~> 2.0"
+
+  vpc_id             = module.foundation.vpc_id
+  private_subnet_ids = module.foundation.private_subnet_ids
+  environment        = var.environment
+}
+
+module "application" {
+  source  = "company/microservice/aws"
+  version = "~> 1.0"
+
+  cluster_name    = module.platform.cluster_name
+  namespace       = "production"
+  service_account = module.platform.application_service_account
+}
+```
+
+Code: Root module composing foundation, platform, and application layers.
+
+### Pass-Through Variables
+
+Modules can't anticipate every customization need. Pass-through variables let consumers extend resources without the module needing to expose every possible attribute:
+
+```hcl title="modules/compute/variables.tf"
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}
+
+variable "additional_security_group_ids" {
+  description = "Additional security groups to attach"
+  type        = list(string)
+  default     = []
+}
+```
+
+Code: Pass-through variables for tags and security groups.
+
+The module merges these with its own configuration:
+
+```hcl title="modules/compute/main.tf"
+resource "aws_instance" "main" {
+  instance_type = local.instance_type
+  ami           = data.aws_ami.latest.id
+
+  vpc_security_group_ids = concat(
+    [aws_security_group.default.id],
+    var.additional_security_group_ids
+  )
+
+  tags = merge(local.default_tags, var.tags)
+}
+```
+
+Code: Merging module defaults with pass-through values.
+
+This pattern lets consumers add their compliance tags or attach extra security groups without the module needing to know about every possible requirement.
+
+### Output Forwarding
+
+When a parent module uses child modules, it needs to explicitly forward relevant outputs. Never expose the entire child module object — that leaks implementation details and creates brittle dependencies:
+
+```hcl title="modules/data-tier/outputs.tf"
+# Curated output interface
+output "database" {
+  description = "Database connection information"
+  value = {
+    endpoint          = module.rds.endpoint
+    port              = module.rds.port
+    name              = module.rds.database_name
+    security_group_id = module.rds.security_group_id
+  }
+}
+
+# Aggregate outputs from multiple child modules
+output "endpoints" {
+  description = "Service endpoints for application configuration"
+  value = {
+    database = module.rds.endpoint
+    cache    = module.elasticache.endpoint
+    queue    = module.sqs.queue_url
+  }
+}
+```
+
+Code: Curated outputs exposing only what consumers need.
+
+## Testing Module Interfaces
+
+You've designed your interface. You've documented the contract. Now you need to verify it actually works — that required variables are enforced, defaults apply correctly, validation catches bad input, and outputs have the structure consumers expect.
+
+Terraform's native test framework (`.tftest.hcl` files) lets you write these checks without deploying real infrastructure. Tests run `terraform plan` or `terraform apply` against your module and assert conditions on the result.
+
+### Contract Testing
+
+Contract tests verify that your module enforces its interface correctly. Start with the basics: required variables should fail when omitted.
+
+```hcl title="tests/contract.tftest.hcl"
+run "required_variables_enforced" {
+  command = plan
+
+  variables {
+    vpc_cidr = "10.0.0.0/16"
+    # environment intentionally omitted
+  }
+
+  expect_failures = [var.environment]
+}
+```
+
+Code: Test that omitting a required variable produces the expected failure.
+
+Next, verify that default values apply when variables are not provided:
+
+```hcl title="tests/defaults.tftest.hcl"
+run "default_instance_type_applied" {
+  command = plan
+
+  variables {
+    environment = "development"
+    vpc_cidr    = "10.0.0.0/16"
+  }
+
+  assert {
+    condition     = aws_instance.main.instance_type == "t3.medium"
+    error_message = "Expected default instance_type of t3.medium"
+  }
+}
+```
+
+Code: Test that default values are applied correctly.
+
+Validation rules deserve their own tests. If you added a validation block to catch invalid CIDR notation, prove it works:
+
+```hcl title="tests/validation.tftest.hcl"
+run "invalid_cidr_rejected" {
+  command = plan
+
+  variables {
+    environment = "development"
+    vpc_cidr    = "not-a-cidr"
+  }
+
+  expect_failures = [var.vpc_cidr]
+}
+
+run "valid_cidr_accepted" {
+  command = plan
+
+  variables {
+    environment = "development"
+    vpc_cidr    = "10.0.0.0/16"
+  }
+
+  # No expect_failures means the plan should succeed
+}
+```
+
+Code: Test both the rejection and acceptance paths for validation rules.
+
+### Output Structure Testing
+
+Outputs are part of your interface contract. Test that they exist and have the expected structure. The `can()` function is particularly useful here — it returns `true` if the expression evaluates without error, letting you test for the presence of nested attributes without the test failing on missing keys:
+
+```hcl title="tests/outputs.tftest.hcl"
+run "networking_output_structure" {
+  command = apply
+
+  variables {
+    environment = "development"
+    vpc_cidr    = "10.0.0.0/16"
+  }
+
+  assert {
+    condition     = can(output.networking.vpc_id)
+    error_message = "networking output must include vpc_id"
+  }
+
+  assert {
+    condition     = length(output.networking.private_subnet_ids) > 0
+    error_message = "networking output must include at least one private subnet"
+  }
+
+  assert {
+    condition     = can(regex("^vpc-", output.networking.vpc_id))
+    error_message = "vpc_id should start with 'vpc-'"
+  }
+}
+```
+
+Code: Test output existence, structure, and format.
+
+### Upgrade Testing
+
+Before releasing a major version, verify that existing deployments won't be destroyed unexpectedly. This requires maintaining state files from previous versions to test against.
+
+The approach is to maintain a "golden" state file generated by deploying the previous version in CI. Your pipeline deploys the previous module version to a test account, captures the state file as an artifact, then runs the new version against that state. Store these golden state files alongside your module — one per supported major version — and update them when you release:
+
+```hcl title="tests/upgrade_v1_to_v2.tftest.hcl"
+run "upgrade_preserves_resources" {
+  command = plan
+
+  variables {
+    environment = "test"
+    vpc_cidr    = "10.0.0.0/16"
+  }
+
+  assert {
+    condition = length([
+      for change in plan.resource_changes : change
+      if change.change.actions == ["delete"]
+    ]) == 0
+    error_message = "Upgrade should not destroy any resources"
+  }
+}
+```
+
+Code: Test that version upgrades don't cause unexpected resource destruction.
+
+For complex migrations involving `moved` blocks, also verify that the old resource addresses no longer appear in the plan — confirming the moves were recognized:
+
+```hcl title="tests/upgrade_v1_to_v2.tftest.hcl"
+run "moved_blocks_applied" {
+  command = plan
+
+  variables {
+    environment = "test"
+    vpc_cidr    = "10.0.0.0/16"
+  }
+
+  assert {
+    condition = !contains(
+      [for change in plan.resource_changes : change.address],
+      "aws_instance.web"
+    )
+    error_message = "Old resource address should not appear after move"
+  }
+}
+```
+
+Code: Verify moved blocks successfully renamed resources in state.
+
+Run upgrade tests as part of your release process. If you support multiple major versions, maintain state files for each and test upgrades from all supported versions.
+
+### Module Repository Structure
+
+A well-organized module repository makes tests discoverable and examples easy to find. This structure works for most modules:
+
+<FileExplorer
+  figure="Recommended module repository structure."
+  data={[
+    { type: 'file', name: 'main.tf', comment: 'Primary resource logic' },
+    { type: 'file', name: 'variables.tf', comment: 'Input variable definitions' },
+    { type: 'file', name: 'outputs.tf', comment: 'Output declarations' },
+    { type: 'file', name: 'versions.tf', comment: 'Terraform and provider version constraints' },
+    { type: 'file', name: 'README.md', comment: 'Usage documentation' },
+    { type: 'file', name: 'CHANGELOG.md', comment: 'Version history and migration guides' },
+    {
+      type: 'folder',
+      name: 'examples',
+      comment: 'Working usage examples',
+      children: [
+        { type: 'folder', name: 'simple', comment: 'Minimal configuration' },
+        { type: 'folder', name: 'complete', comment: 'All features demonstrated' },
+      ],
+    },
+    {
+      type: 'folder',
+      name: 'modules',
+      comment: 'Internal sub-modules (if needed)',
+      children: [
+        { type: 'folder', name: 'networking', comment: 'Encapsulated sub-component' },
+      ],
+    },
+    {
+      type: 'folder',
+      name: 'tests',
+      comment: 'Test files',
+      children: [
+        { type: 'file', name: 'contract.tftest.hcl', comment: 'Input/output contract tests' },
+        { type: 'file', name: 'validation.tftest.hcl', comment: 'Validation rule tests' },
+        { type: 'file', name: 'defaults.tftest.hcl', comment: 'Default value tests' },
+        { type: 'file', name: 'upgrade_v1_to_v2.tftest.hcl', comment: 'Version migration tests' },
+      ],
+    },
+  ]}
+/>
+
+The `examples/` directory serves double duty: it provides documentation for consumers and test fixtures for integration tests. Point your `README.md` at these examples so consumers can see working configurations, not just variable descriptions.
+
+## Conclusion
+
+A module's interface is a contract, and contracts create trust. When consumers can rely on your inputs behaving predictably, your outputs remaining stable, and your version numbers communicating change accurately, they'll use your modules with confidence. When they can't, they'll fork your code or write their own — and you'll have lost the leverage that shared modules provide.
+
+The patterns here aren't complicated: default to safe values, validate inputs early, deprecate before removing, version honestly, and test what you promise. The discipline is in applying them consistently, release after release, even when you're tempted to "just make this one quick change." Every breaking change you avoid is a consumer who doesn't have to scramble. Every migration guide you write is trust you've earned.
+
+Your module's interface is the only part most consumers will ever see. Make it a good contract to sign.
