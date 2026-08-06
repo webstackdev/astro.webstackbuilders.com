@@ -52,6 +52,8 @@ DNS in private networks behaves differently than you'd expect. The same hostname
 
 On a standard Linux system, resolution follows a predictable path: check `/etc/hosts`, then the local cache (if enabled), then query the nameserver from `/etc/resolv.conf`. Cloud VMs complicate this. AWS VPCs get a resolver at the VPC CIDR base address plus two (so `10.0.0.2` for a `10.0.0.0/16` VPC). This resolver handles Route 53 private hosted zones and falls back to public DNS for external names. GCP uses the metadata server at `169.254.169.254`, Azure uses `168.63.129.16`.
 
+<Newsletter />
+
 Kubernetes adds another layer. CoreDNS intercepts queries and applies search domains — a request for `database` becomes `database.default.svc.cluster.local`, then `database.svc.cluster.local`, then `database.cluster.local` before falling through to the node's resolver. The `ndots` setting controls this behavior, and misconfiguring it causes subtle resolution failures.
 
 The most common private DNS failures:
@@ -157,8 +159,6 @@ The most common configuration mistake: creating a private hosted zone but forget
 ## Routing and Connectivity
 
 Once DNS resolves correctly, the next failure point is routing. Private networks require explicit route configuration — traffic doesn't magically find its way to destinations outside your immediate subnet.
-
-<Newsletter />
 
 ### VPC Routing Fundamentals
 

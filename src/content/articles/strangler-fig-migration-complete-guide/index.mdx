@@ -82,6 +82,8 @@ Strangler fig works at multiple levels of granularity, and choosing the right mi
 
 For a monolith with a REST API, the natural unit is often a __service boundary__ — a cohesive set of endpoints that share data and business logic. Authentication is one such boundary: login, logout, password reset, and token validation form a logical group. Payments might be another. The key is that endpoints within a boundary are tightly coupled to each other but loosely coupled to the rest of the system.
 
+<Newsletter />
+
 Within a service boundary, you still migrate incrementally by endpoint. Start with the simplest, lowest-traffic endpoints to learn the process. For auth, that might be password reset (clear boundaries, low frequency) before tackling login (high frequency, session management complexity).
 
 The first wave should be low-traffic, low-criticality endpoints that teach you the migration process itself — how to deploy, monitor, and roll back. You'll make mistakes, and you want those mistakes to affect the fewest users possible. Second wave takes on medium complexity. Third wave is high traffic. The final wave is core business logic and anything with deep dependencies.
@@ -105,8 +107,6 @@ Auth extraction is expert-level work. If your team hasn't extracted a service be
 ## Building the Migration Baseline
 
 Before touching any traffic, you need to know what "normal" looks like. This means instrumenting the legacy system to capture metrics, response patterns, and error rates. The baseline becomes your reference point for the entire migration — if you can't compare the new system's behavior to something concrete, you're flying blind.
-
-<Newsletter />
 
 I recommend collecting at least two weeks of baseline data before migrating any traffic. This captures weekly patterns (Monday traffic differs from Friday), edge cases, and gives you statistical confidence in your metrics.
 

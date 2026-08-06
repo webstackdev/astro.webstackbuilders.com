@@ -74,6 +74,8 @@ Race conditions are the dominant cause of flakiness. The test and application ar
 
 The telltale symptoms: the test passes locally but fails in CI, passes when you attach a debugger (which slows things down), or behaves inconsistently across different machines. The underlying issue is almost always the same — the test is asserting before the application has finished doing something.
 
+<Newsletter />
+
 Common patterns include clicking a button and immediately checking the result (before the async handler completes), interacting with an element while it's still animating, or making assertions before an API response arrives. The fix is always the same principle: __wait for the specific condition you need, not an arbitrary amount of time__.
 
 ### Environment Issues (~25% of Flakes)
@@ -150,8 +152,6 @@ Fixes depend on the dependency. For third-party APIs, mock them in tests or use 
 ## Detecting and Measuring Flakiness
 
 You can't fix what you can't measure. Before diving into specific flakes, you need infrastructure to detect them systematically and track trends over time. This means collecting test results across runs and analyzing patterns.
-
-<Newsletter />
 
 ### Building a Flake Detection System
 

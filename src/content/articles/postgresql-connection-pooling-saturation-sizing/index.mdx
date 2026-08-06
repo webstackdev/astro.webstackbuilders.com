@@ -40,6 +40,8 @@ After adding PgBouncer, properly sizing pools, and implementing connection backp
 
 PostgreSQL uses a process-per-connection model. When a client connects, the main __postgres process__ (the server daemon) forks a new __backend process__ dedicated to that client. Each backend handles all queries for its __connection__ (the TCP session between client and backend) until termination. In `pg_stat_activity`, these appear as rows with `backend_type = 'client backend'`. The fork-based model provides strong isolation — a crash in one backend doesn't affect others — but it comes with overhead.
 
+<Newsletter />
+
 Establishing a new connection involves multiple steps: TCP handshake (1ms locally, 10-100ms over network), process fork (1-5ms), authentication (1-10ms depending on method), and TLS handshake if configured (5-50ms). Total: 10-200ms for a new connection. For web applications making dozens of queries per request, creating a fresh connection each time is prohibitively expensive.
 
 Each backend process consumes resources independent of whether it's actively running queries. The base memory footprint is roughly 5-10MB per connection, plus `work_mem` allocation when executing operations (4MB default, but can be much higher for complex queries). CPU overhead comes from OS scheduler contention — more backend processes means more context switching as the kernel cycles between them, even when most are idle.
@@ -321,8 +323,6 @@ Code: PgBouncer configuration for a typical web application.
 ### Sizing Calculations
 
 Pool sizing isn't guesswork — it's queuing theory. Little's Law provides the foundation: $$L = \lambda \times W$$, where $$L$$ is the average number of connections in use, $$\lambda$$ is the request arrival rate (queries per second), and $$W$$ is the average time per query.
-
-<Newsletter />
 
 If your application handles 100 queries per second with an average query time of 50ms, you need $$100 \times 0.05 = 5$$ connections on average. But Little's Law uses averages, and averages deceive. Query times vary. Traffic spikes. A pool sized for average load will saturate during peaks.
 

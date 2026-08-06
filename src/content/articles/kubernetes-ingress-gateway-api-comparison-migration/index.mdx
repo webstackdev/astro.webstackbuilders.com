@@ -37,6 +37,8 @@ The lesson: evaluate based on your actual requirements, not industry hype. The c
 
 Before diving into features and migration, it helps to understand how these two APIs think about routing. Ingress is flat — one resource type handles everything. Gateway API is layered — different resource types for different concerns, managed by different teams.
 
+<Newsletter />
+
 ### Ingress Model
 
 Ingress uses a single resource type that combines routing rules, TLS configuration, and backend references. Everything lives in one YAML file, which makes simple cases easy but complex cases awkward. The catch is that Ingress itself only defines the _interface_ — the actual behavior depends entirely on which controller you're running. NGINX Ingress Controller interprets annotations one way; Traefik interprets them differently; some controllers ignore certain annotations entirely.
@@ -284,8 +286,6 @@ spec:
 ```
 
 Code: Header-based routing in Gateway API.
-
-<Newsletter />
 
 With Ingress, you'd need to check whether your controller supports a custom annotation for header routing — and if you ever switch controllers, that annotation likely won't transfer.
 

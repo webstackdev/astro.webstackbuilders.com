@@ -40,6 +40,8 @@ __Requests__ are what the scheduler uses for placement decisions. When you set `
 
 __Limits__ are enforcement boundaries. CPU limits throttle - if your container tries to use more than its limit, it gets slowed down but keeps running. Memory limits kill - exceed your memory limit and the kernel OOM-kills your container. Limits can exceed what's actually available on a node (overcommit), but requests cannot.
 
+<Newsletter />
+
 This distinction matters for cost because __requests determine how many nodes you need__. If every pod requests 1 CPU but only uses 0.1, you're paying for 10x the capacity you need. The scheduler sees the cluster as full when it's actually 90% idle.
 
 Kubernetes assigns a QoS class based on how you set resources. __Guaranteed__ pods (requests equal limits for all resources) get the highest priority and are evicted last under pressure. __Burstable__ pods (requests less than limits) are the common case. __BestEffort__ pods (no requests or limits) are evicted first - avoid these in production. To control your pod's QoS class, set both CPU and memory requests equal to their limits for Guaranteed, or set requests lower than limits (or omit limits) for Burstable.
@@ -102,8 +104,6 @@ The fix isn't complicated - it's just tedious. You need historical usage data, y
 ### Prometheus Queries for Usage Analysis
 
 Right-sizing requires historical usage data. You need to know what containers actually use, not what developers guessed they'd need. If you're running Prometheus with kube-state-metrics (and you should be), you already have everything you need.
-
-<Newsletter />
 
 The key metrics are P95 or P99 usage over a meaningful time window - at least 7 days to capture weekly patterns, ideally 30 days for workloads with monthly cycles. Average usage tells you what's typical, but peak usage tells you what you need to handle without degradation.
 

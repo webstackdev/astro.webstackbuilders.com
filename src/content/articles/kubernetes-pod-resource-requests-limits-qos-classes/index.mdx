@@ -64,6 +64,8 @@ CPU is a __compressible__ resource. When a pod exceeds its CPU limit, Kubernetes
 
 Under the hood, CPU limits use Linux's Completely Fair Scheduler (CFS) quotas. The kernel gives each container a time budget per scheduling period (typically 100ms). A pod with a 500m CPU limit gets 50ms of CPU time per 100ms period. Use it up and the pod waits until the next period.
 
+<Newsletter />
+
 The symptoms of CPU throttling are subtle: increased latency during traffic spikes, timeouts on CPU-bound operations, slow container startup, and health check failures. Unlike OOM kills, there's no clear error message — just degraded performance.
 
 You can detect throttling with Prometheus:
@@ -169,8 +171,6 @@ spec:
 ```
 
 Code: Guaranteed QoS configuration (requests equal limits).
-
-<Newsletter />
 
 The tricky part is that Burstable is a broad category. A pod with carefully tuned requests and limits is Burstable. A pod with only a CPU request and nothing else is also Burstable. They have the same QoS class but very different behavior.
 

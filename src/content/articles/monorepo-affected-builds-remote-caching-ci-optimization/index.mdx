@@ -37,6 +37,8 @@ Affected builds work by analyzing the dependency graph — the directed acyclic 
 
 A monorepo typically contains two categories of packages: applications (deployable artifacts) and libraries (shared code). The dependency relationships between them form a hierarchy. Applications sit at the top, depending on libraries. Libraries depend on other libraries, forming chains. At the bottom are leaf libraries with no internal dependencies.
 
+<Newsletter />
+
 Three types of dependencies matter for affected calculation. __Direct dependencies__ are explicit imports — if `app-web` imports from `@libs/ui-components`, that's a direct dependency. __Transitive dependencies__ flow through the graph — if `ui-components` depends on `design-tokens`, then `app-web` transitively depends on `design-tokens` too. __Dev dependencies__ are needed for development and testing but don't affect production builds.
 
 The impact of a change depends on where it lands in the graph. Change a leaf library like `@libs/utils` that everything depends on, and the entire monorepo rebuilds. Change a library that only one application uses, and only that application rebuilds. This is why dependency graph design matters — poorly structured dependencies create "rebuild everything" scenarios even for small changes.
@@ -163,8 +165,6 @@ Some teams enforce rebasing before merge to keep affected sets predictable. Othe
 ## Affected Build Implementation
 
 Several build tools implement affected builds: Bazel pioneered the approach for polyglot monorepos, Pants offers similar capabilities with a Python-friendly design, and Gradle's build cache works well for JVM projects. In the JavaScript ecosystem, Nx and Turborepo dominate. Both implement affected builds, but they approach the problem differently. Nx uses explicit git-based comparison: it diffs against a base reference and walks the dependency graph to find affected packages. Turborepo uses content hashing: it hashes all inputs for each task and compares against cached hashes to determine what needs to run. The end result is similar, but the mechanisms have different tradeoffs.
-
-<Newsletter />
 
 ### Nx Affected Commands
 

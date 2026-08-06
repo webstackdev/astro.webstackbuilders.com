@@ -40,6 +40,8 @@ This article covers the DNS internals you need to debug production issues: how `
 
 Understanding the DNS stack is essential for effective debugging. Kubernetes doesn't use a single DNS server. It's a layered system where your pod's `resolv.conf` configuration determines how queries are constructed, CoreDNS handles the actual resolution, and upstream servers resolve anything outside the cluster. Each layer has its own configuration and failure modes.
 
+<Newsletter />
+
 ### How DNS Resolution Works
 
 The first diagram shows internal service discovery — the fast path. When you look up a service name, the search domain gets appended, CoreDNS finds the service in the Kubernetes API, and you get an IP back immediately.
@@ -132,8 +134,6 @@ The default `ndots:5` exists because Kubernetes service names can have up to 4 d
 ## The ndots Problem
 
 The previous section mentioned ndots several times — now let's dig into why this single option causes so much trouble. In my experience, `ndots` is the root cause of most external DNS latency in Kubernetes. Understanding exactly how it works transforms a mysterious performance problem into a straightforward configuration fix.
-
-<Newsletter />
 
 ### Understanding ndots Behavior
 

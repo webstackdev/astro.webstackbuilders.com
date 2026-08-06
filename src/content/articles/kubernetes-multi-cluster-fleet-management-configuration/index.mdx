@@ -37,6 +37,8 @@ Kubernetes Federation (KubeFed) was the original attempt to solve multi-cluster 
 
 In practice, Federation never gained traction. The v1 implementation was deprecated in 2018, and KubeFed v2 saw limited adoption before being archived in 2022. The problems were fundamental: Federation tried to abstract away cluster differences, but real-world multi-cluster deployments _need_ those differences. A one-size-fits-all API couldn't handle the nuanced configuration variations between dev and production, between AWS and on-prem, between US-East and EU-West.
 
+<Newsletter />
+
 The industry moved toward a different model: GitOps-based fleet management. Instead of a control plane pushing identical configs everywhere, each cluster pulls its configuration from Git, with templating systems handling the variations. This approach — implemented by tools like ArgoCD ApplicationSets, Flux, and Rancher Fleet — provides the consistency benefits Federation promised while preserving the flexibility real deployments require.
 
 ## Multi-Cluster Architectures
@@ -147,8 +149,6 @@ Most organizations land on "layered configuration" with policy guardrails. Pure 
 ## Fleet Management Tools
 
 The fleet management landscape has matured around a few dominant approaches. All of them embrace GitOps — storing desired state in Git and reconciling clusters toward that state — but they differ in how they handle multi-cluster targeting, configuration layering, and operational visibility.
-
-<Newsletter />
 
 ### Tool Comparison
 

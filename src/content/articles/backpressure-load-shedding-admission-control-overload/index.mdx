@@ -52,6 +52,8 @@ Overload doesn't just make systems slow — it makes them _worse_. There's a vic
 
 The diagram shows three paths to failure, and they often happen simultaneously. The retry loop is the most insidious — well-intentioned client retry logic turns a temporary overload into a sustained assault. Thread pool saturation means requests that _could_ be processed sit waiting for a worker. And memory pressure from growing queues triggers garbage collection pauses that reduce your effective capacity right when you need it most.
 
+<Newsletter />
+
 This is why overload tends to get worse rather than self-correcting. Every mechanism designed for reliability under normal conditions — retries, timeouts, connection pooling — becomes a liability under overload.
 
 <Callout type="info">
@@ -130,8 +132,6 @@ Backpressure is the propagation of flow control signals from consumers back to p
 />
 
 The key principle I keep coming back to: you can't process your way out of overload. The only thing that actually reduces load is getting clients to send fewer requests. Backpressure is the mechanism that makes that happen.
-
-<Newsletter />
 
 ### Explicit vs. Implicit Backpressure
 

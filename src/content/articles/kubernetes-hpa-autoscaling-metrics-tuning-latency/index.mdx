@@ -80,6 +80,8 @@ Code: Basic HPA configuration targeting 50% CPU utilization.
 
 The 50% target might seem conservative, but it's intentional. You want headroom to absorb traffic increases while HPA scales up. A target of 80% means you're already near capacity when HPA decides to act — and by the time new pods are ready, you've been overloaded for minutes.
 
+<Newsletter />
+
 ### The Delay Problem
 
 The HPA loop sounds fast—15-second intervals — but the total time from "traffic spike begins" to "new capacity receives traffic" is much longer. Every step in the pipeline adds latency.
@@ -319,8 +321,6 @@ spec:
 ```
 
 Code: HPA with pod metrics (RPS, latency) and external metrics (queue depth).
-
-<Newsletter />
 
 The Prometheus Adapter translates PromQL queries into the custom metrics API format. Each rule maps a Prometheus metric to a Kubernetes resource (namespace, pod) and defines how to query it:
 
