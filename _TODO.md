@@ -38,7 +38,6 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 
 ## Resume
 
-- Print to PDF is breaking the page after the dotted line after the Alento Infrastructure Engineer block, so there's excessive space at the bottom of that page before the Eli Lilly Systems Analyst block
 - Need to have an Education block
 
 ## "Sticky" TOC
