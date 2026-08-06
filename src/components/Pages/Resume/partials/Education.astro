@@ -1,0 +1,80 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import Icon from '@components/Icon/index.astro'
+import List from '@components/List/index.astro'
+
+export interface Props {
+  education: CollectionEntry<'resume'>['data']['education']
+}
+
+const { education } = Astro.props as Props
+
+/** ISO month (YYYY-MM) for <time datetime>, tolerant of free-form input */
+const toIsoMonth = (value?: string): string | undefined => {
+  if (!value) return undefined
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return undefined
+  return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}`
+}
+
+const startIso = toIsoMonth(education.startDate)
+const endIso = toIsoMonth(education.graduationDate)
+const highlightItems = (education.highlights ?? []).map(text => ({ text }))
+---
+
+<section
+  id="education"
+  class="mt-6"
+  itemscope
+  itemref="resumeSubject"
+  itemtype="http://schema.org/ItemList"
+>
+  <h2
+    class="text-sm font-mono font-bold tracking-widest text-content-offset print:text-content uppercase p-3 border-2 border-dashed border-gray-400 rounded-md"
+  >
+    Education
+  </h2>
+  <div
+    class="mt-4 mx-2"
+    itemprop="alumniOf"
+    itemscope
+    itemref="resumeSubject"
+    itemtype="http://schema.org/CollegeOrUniversity"
+  >
+    {/** Degree title and dates row (mirrors the Experience role/dates row) */}
+    <div class="flex flex-col md:flex-row md:items-baseline md:justify-between">
+      <h3 class="text-xl font-bold text-primary-offset">
+        {education.degree}
+      </h3>
+      {
+        (education.startDate || education.graduationDate) && (
+          <div class="text-md font-medium text-content-offset mt-0.5 flex gap-1.5 items-center">
+            {education.startDate && <time datetime={startIso}>{education.startDate}</time>}
+            {education.startDate && education.graduationDate && (
+              <span class="text-trim/50">&mdash;</span>
+            )}
+            {education.graduationDate && <time datetime={endIso}>{education.graduationDate}</time>}
+          </div>
+        )
+      }
+    </div>
+    {/** School name and location row (mirrors the Experience company/location row) */}
+    <div class="text-primary-offset flex flex-wrap items-center gap-x-3 gap-y-1">
+      <a
+        class="inline-flex items-center text-danger-offset decoration-danger-offset transition-colors hover:text-danger hover:decoration-danger font-medium mb-1 print:text-content print:decoration-none"
+        href={education.geolocationLink}
+      >
+        <span itemprop="name" class="font-semibold text-lg text-danger-offset print:text-content">
+          {education.school}
+        </span>
+      </a>
+      <div class="flex">
+        <Icon icon="location" color="inherit" size={5} />
+        <span itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+          <span itemprop="addressLocality">{education.campus}</span>
+        </span>
+      </div>
+    </div>
+    {highlightItems.length > 0 && <List variant="experience-list" items={highlightItems} />}
+  </div>
+</section>

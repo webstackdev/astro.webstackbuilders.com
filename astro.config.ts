@@ -157,6 +157,8 @@ export default defineConfig({
   },
   redirects: {
     '/tags': '/articles',
+    /** Canonical sitemap URL tools expect; the integration emits sitemap-index.xml */
+    '/sitemap.xml': { status: 301, destination: '/sitemap-index.xml' },
   },
   /** Change URL between development and production environments */
   site: getSiteUrl(),

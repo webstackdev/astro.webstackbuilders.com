@@ -35,11 +35,3 @@ https://aws.plainenglish.io/how-to-build-a-chatbot-using-aws-lex-and-lambda-in-2
 
 - Need to move the unsubscribe link into an Action and handle it entirely within our website instead of on Hubspot
 - Need to add a newsletter publishing workflow as an action, using the newsletter static segment imported from Hubspot
-
-## Resume
-
-- Need to have an Education block
-
-## "Sticky" TOC
-
-The TOC should be sticky as the page scrolls down

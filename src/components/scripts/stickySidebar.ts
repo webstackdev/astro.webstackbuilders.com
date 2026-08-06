@@ -67,6 +67,13 @@ export function initStickySidebar(
   let prevScrollTop = scrollContainer.scrollTop
   let rafId: number | null = null
   const scroller = scrollContainer
+  /**
+   * Pin state for tall sidebars. Tracked explicitly so that when the fixed
+   * chrome moves WITHOUT a scroll event (squishy header animation finishing
+   * after the last scroll frame), a pinned sidebar re-attaches to its pin
+   * line instead of settling a few pixels off.
+   */
+  let pinMode: 'none' | 'top' | 'bottom' = 'none'
 
   /**
    * Compute and apply the correct translateY for the sidebar based on
@@ -119,16 +126,30 @@ export function initStickySidebar(
           // Scrolling DOWN: pin bottom at visibleBottom when it would go above
           if (actualBottom < visibleBottom) {
             newTranslateY = visibleBottom - sidebarHeight - naturalTop
+            pinMode = 'bottom'
           } else {
             newTranslateY = currentTranslateY
+            pinMode = 'none'
           }
         } else if (scrollDelta < 0) {
           // Scrolling UP: pin top at visibleTop when it would go below
           if (actualTop > visibleTop) {
             newTranslateY = visibleTop - naturalTop
+            pinMode = 'top'
           } else {
             newTranslateY = currentTranslateY
+            pinMode = 'none'
           }
+        } else if (pinMode !== 'none') {
+          /**
+           * No scroll movement, but the chrome may have moved (the squishy
+           * header finishes its animation after the last scroll frame).
+           * Re-attach an active pin to its line; a free sidebar stays put.
+           */
+          newTranslateY =
+            pinMode === 'bottom'
+              ? visibleBottom - sidebarHeight - naturalTop
+              : visibleTop - naturalTop
         } else {
           newTranslateY = currentTranslateY
         }
@@ -136,6 +157,7 @@ export function initStickySidebar(
 
       // Clamp: never go above natural position or below container bottom
       newTranslateY = Math.max(0, Math.min(newTranslateY, maxTranslateY))
+      if (newTranslateY === 0) pinMode = 'none'
 
       // Apply only when value changes meaningfully (avoid sub-pixel jitter)
       if (Math.abs(newTranslateY - currentTranslateY) > 0.5) {
@@ -162,12 +184,51 @@ export function initStickySidebar(
   scroller.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', onScroll, { passive: true })
 
+  /**
+   * The squishy header finishes its collapse/expand animation AFTER the last
+   * scroll frame: its size changes run via WAAPI (no transitionend fires) and
+   * its slide runs as a CSS translateY transition (no resize events fire).
+   * Without re-measuring when the animation completes, the sidebar settles a
+   * few pixels off its pin target until the next scroll or resize. Track both
+   * signals — ResizeObserver for size changes (fires per frame during WAAPI)
+   * and transitionend for the transform — and re-run the update.
+   */
+  const headerEl = getHeaderFixedElement()
+  const progressEl = getProgressBarElement()
+
+  let resizeObserver: ResizeObserver | null = null
+  const ResizeObserverCtor = typeof ResizeObserver === 'function' ? ResizeObserver : undefined
+
+  if (ResizeObserverCtor) {
+    try {
+      resizeObserver = new ResizeObserverCtor(() => onScroll())
+      if (headerEl) resizeObserver.observe(headerEl)
+      if (progressEl) resizeObserver.observe(progressEl)
+    } catch (error) {
+      /** ResizeObserver construction can fail in constrained contexts; degrade to scroll-only tracking */
+      resizeObserver = null
+      handleScriptError(error, {
+        scriptName: 'stickySidebar',
+        operation: 'observeChrome',
+      })
+    }
+  }
+
+  /** Transform transitions never resize the header box, so listen for their end directly */
+  const onChromeTransitionEnd = (event: TransitionEvent): void => {
+    if (event.target !== headerEl) return
+    onScroll()
+  }
+  headerEl?.addEventListener('transitionend', onChromeTransitionEnd)
+
   // Initial positioning
   update()
 
   return () => {
     scroller.removeEventListener('scroll', onScroll)
     window.removeEventListener('resize', onScroll)
+    resizeObserver?.disconnect()
+    headerEl?.removeEventListener('transitionend', onChromeTransitionEnd)
     if (rafId !== null) cancelAnimationFrame(rafId)
     sidebar.style.transform = ''
     currentTranslateY = 0
