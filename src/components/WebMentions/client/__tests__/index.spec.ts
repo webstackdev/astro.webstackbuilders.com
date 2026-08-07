@@ -225,4 +225,33 @@ describe('WebMentions web component', () => {
       { url: 'https://example.com/forbidden-thrown-post' }
     )
   })
+
+  test('reports empty action error messages with descriptive fallback details', async () => {
+    /** Mirrors the ActionError Astro returns for a 500 with a non-JSON body. */
+    const emptyActionError = Object.assign(new Error(''), {
+      code: 'INTERNAL_SERVER_ERROR',
+      status: 500,
+    })
+    webmentionsListMock.mockResolvedValue({
+      data: undefined,
+      error: emptyActionError,
+    })
+
+    await runComponentRender(
+      async ({ element }) => {
+        await flushMicrotasks()
+        await element.updateComplete
+
+        expect(element.querySelector('#webmentions')).toBeNull()
+        expect(handleScriptErrorMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'Failed to load WebMentions data. (INTERNAL_SERVER_ERROR, HTTP status 500)',
+            cause: emptyActionError,
+          }),
+          { scriptName: 'WebMentionsElement', operation: 'load' }
+        )
+      },
+      { url: 'https://example.com/empty-message-post' }
+    )
+  })
 })

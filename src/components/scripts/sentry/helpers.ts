@@ -166,7 +166,8 @@ const isHandledWebmentionsHttpError = (event: Parameters<BeforeSendHandler>[0]):
     typeof requestUrl === 'string' &&
     isWebmentionsActionRequest(requestUrl) &&
     mechanismType === 'auto.http.client.fetch' &&
-    statusCode === 403
+    statusCode !== undefined &&
+    (statusCode === 403 || statusCode >= 500)
   )
 }
 
@@ -291,9 +292,9 @@ export const beforeSendHandler: BeforeSendHandler = (event, _hint) => {
     return null
   }
 
-  // Webmentions are non-critical content enhancement. If the action is blocked
-  // with a 403, the component degrades to an empty state and the auto-fetch
-  // browser event becomes noise.
+  // Webmentions are a non-critical content enhancement. The component degrades
+  // to an empty state on 403s, and reports a handled ClientScriptError for
+  // server 5xx failures, so the duplicate auto-fetch browser events are noise.
   if (isHandledWebmentionsHttpError(event)) {
     return null
   }

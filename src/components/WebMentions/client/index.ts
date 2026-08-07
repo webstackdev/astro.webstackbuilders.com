@@ -6,6 +6,7 @@ import { handleScriptError } from '@components/scripts/errors/handler'
 import {
   isForbiddenClientActionError,
   normalizeClientActionError,
+  type ClientActionError,
 } from '@components/scripts/errors/actionClient'
 import type { WebComponentModule } from '@components/scripts/@types/webComponentModule'
 import type { WebmentionDisplayItem, WebmentionsListResult } from '@actions/webmentions/@types'
@@ -19,6 +20,28 @@ const emptyWebmentionsResult: WebmentionsListResult = {
   likesCount: 0,
   mentions: [],
   repostsCount: 0,
+}
+
+/**
+ * Astro's action client surfaces unexpected server failures (such as an HTTP 500
+ * with a non-JSON body) as an ActionError with an empty message, which Sentry
+ * would record as "Unknown error". Build a descriptive error from the normalized
+ * action error so handled reports stay diagnosable, keeping the original as cause.
+ */
+const toLoadReportError = (error: unknown, actionError?: ClientActionError): unknown => {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error
+  }
+
+  const details = [
+    actionError?.code,
+    actionError?.status ? `HTTP status ${actionError.status}` : undefined,
+  ]
+    .filter(Boolean)
+    .join(', ')
+  const message = `Failed to load WebMentions data.${details ? ` (${details})` : ''}`
+
+  return new Error(message, error instanceof Error ? { cause: error } : undefined)
 }
 
 const formatDate = (dateString: string): string => {
@@ -126,7 +149,7 @@ export class WebMentionsElement extends LitElement {
           return
         }
 
-        handleScriptError(error ?? new Error('Failed to load WebMentions data.'), {
+        handleScriptError(toLoadReportError(error, actionError), {
           scriptName,
           operation: 'load',
         })
@@ -150,7 +173,7 @@ export class WebMentionsElement extends LitElement {
         return
       }
 
-      handleScriptError(error, { scriptName, operation: 'load' })
+      handleScriptError(toLoadReportError(error, actionError), { scriptName, operation: 'load' })
 
       if (this.lastLoadedUrl === normalizedUrl) {
         this.lastLoadedUrl = ''

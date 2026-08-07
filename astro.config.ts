@@ -188,6 +188,26 @@ export default defineConfig({
        */
       include: ['lit', 'lit/directives/if-defined.js'],
     },
+    ssr: {
+      /**
+       * sanitize-html (CommonJS) loads its HTML parser with require(), but its
+       * dependency chain (htmlparser2 v10+, dom-serializer v3, domhandler v6,
+       * domutils v4, domelementtype v3, entities v8) is ESM-only. Vercel's
+       * serverless module loader cannot require() ES modules, which crashed
+       * POST /_actions/webmentions.list with ERR_REQUIRE_ESM in production.
+       * Bundle the sanitizer and its parser dependency chain into the ESM
+       * server output so no runtime require() of these packages occurs.
+       */
+      noExternal: [
+        'sanitize-html',
+        'htmlparser2',
+        'dom-serializer',
+        'domelementtype',
+        'domhandler',
+        'domutils',
+        'entities',
+      ],
+    },
     /**
      * Astro 6 reads `environments.client.build.sourcemap` for client bundles
      * instead of the top-level `build.sourcemap` (which only affects server).
