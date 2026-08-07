@@ -146,6 +146,8 @@ Prometheus keeps metadata for ALL active series in memory, not just samples. A s
 
 The difference between a good label and a bad one comes down to one question: can you enumerate all possible values before deployment? If you can list them exhaustively, it's probably safe. If the value set grows with your data — users, requests, sessions — it's toxic.
 
+<Newsletter />
+
 Good labels share four characteristics: bounded cardinality (you know the finite set of values), meaningful for aggregation (you'll actually `group by` or `sum by` this dimension), stable over time (values don't churn constantly), and shared across many series (the label adds structure, not just uniqueness).
 
 <Table
@@ -1037,6 +1039,26 @@ During a cardinality crisis, your first priority is restoring monitoring, not fi
 ## Conclusion
 
 High-cardinality metrics are Prometheus's most common failure mode, and they're entirely preventable. The math is unforgiving: labels multiply, not add. A metric with five labels averaging ten values each creates 100,000 potential series. Add one unbounded label — user IDs, request IDs, email addresses — and you've created a time bomb.
+
+<Download
+  resource="prometheus-high-cardinality-metrics-label-design"
+  title="High-Cardinality Metrics: Prometheus Label Horror"
+  description="What happens when unbounded label values explode your metrics storage, and how to design around it."
+  listItems={[
+    {
+      text: "Cardinality risk review checklist",
+    },
+    {
+      text: "Safe label design patterns",
+    },
+    {
+      text: "Series growth alert rules",
+    },
+    {
+      text: "OOM incident response runbook",
+    },
+  ]}
+/>
 
 The teams that run Prometheus successfully treat label design with the same rigor as database schema design. Every label must answer two questions: what bounded set of values will this have, and what aggregation does it enable? If you can't answer both, don't add the label. Use traces for high-cardinality debugging. Use exemplars to link metrics to specific requests without cardinality cost.
 

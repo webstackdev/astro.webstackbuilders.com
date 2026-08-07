@@ -40,6 +40,8 @@ Kubernetes solves specific problems: multi-service orchestration, complex networ
 
 When you adopt Kubernetes, you're not just getting container orchestration. You're signing up for an entire ecosystem of components, each with its own failure modes and operational requirements.
 
+<Newsletter />
+
 Even with managed Kubernetes (EKS, GKE, AKS), you still need to understand the control plane: how the API server handles requests, how etcd stores state, how the scheduler places pods. "Managed" means the cloud provider handles upgrades and availability, not that you can ignore how it works. When something breaks, you need to understand the system to debug it.
 
 Then there's node infrastructure. You're responsible for node provisioning and lifecycle, container runtime configuration, kubelet settings, and CNI plugin behavior. Networking alone includes pod networking (overlay or native), service networking (ClusterIP, NodePort, LoadBalancer), ingress controllers, network policies, CoreDNS, and often a service mesh. Storage adds storage classes, CSI drivers, PersistentVolume management, and backup strategies.
@@ -523,6 +525,26 @@ Some factors are critical blockers regardless of score: team size under 5 with n
 ## Conclusion
 
 Kubernetes is a powerful platform for the right use cases: many services that need independent deployment, complex networking requirements, multi-team deployments with isolation needs, and horizontal scaling that benefits from orchestration. When you have these problems, Kubernetes' complexity is justified by the problems it solves.
+
+<Download
+  resource="kubernetes-decision-framework-when-not-to-use"
+  title="Download the Kubernetes Decision Guide"
+  description="Get the complete infrastructure decision framework for evaluating Kubernetes fit, alternatives, and migration timing."
+  listItems={[
+    {
+      text: "Kubernetes fit scoring worksheet",
+    },
+    {
+      text: "Alternative architecture comparison matrix",
+    },
+    {
+      text: "Complexity cost estimation model",
+    },
+    {
+      text: "Migration timing decision guide",
+    },
+  ]}
+/>
 
 But it comes with significant operational burden that isn't justified for every workload. The complexity tax is real: ongoing operations, cluster upgrades, debugging distributed systems, and keeping skills current. For small teams, single applications, or workloads that don't need orchestration, simpler infrastructure isn't settling — it's the right engineering decision.
 

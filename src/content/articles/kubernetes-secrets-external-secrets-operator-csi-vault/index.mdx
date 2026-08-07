@@ -137,6 +137,8 @@ spec:
 ```
 Code: Native Kubernetes secrets usage.
 
+<Newsletter />
+
 When mounted as a volume, each key in the Secret becomes a separate file. In this example, the pod gets `/etc/secrets/username` and `/etc/secrets/password`—plain text files containing the decoded secret values. Your application reads these files directly.
 
 <Callout type="warning">
@@ -977,6 +979,26 @@ ESO sync success doesn't mean Vault is healthy — it means the last sync worked
 ## Conclusion
 
 Secret injection is ultimately about failure modes. ESO fails silently — your pods keep running with stale secrets until you notice sync errors in monitoring. CSI driver fails loudly — pods don't start, deployments block, and you know immediately something is wrong. Init containers fail however you code them.
+
+<Download
+  resource="kubernetes-secrets-external-secrets-operator-csi-vault"
+  title="Kubernetes Secrets: ESO vs CSI vs Init Containers"
+  description="Comparing secret injection patterns and their failure modes when connecting Vault or cloud secret managers."
+  listItems={[
+    {
+      text: "Secret pattern comparison matrix",
+    },
+    {
+      text: "ESO configuration starter templates",
+    },
+    {
+      text: "CSI failure mode runbooks",
+    },
+    {
+      text: "Rotation and audit checklist",
+    },
+  ]}
+/>
 
 For most organizations, ESO is the right default. It's operationally simple, GitOps-friendly, and its failure mode (staleness) is tolerable for the vast majority of workloads. Reserve CSI driver for applications with strict compliance requirements or real-time credential needs. Use init containers only when you need behavior that neither operator provides.
 

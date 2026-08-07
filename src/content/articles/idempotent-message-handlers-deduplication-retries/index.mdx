@@ -102,6 +102,8 @@ Why is at-least-once so common? Because the failure modes that cause redelivery 
 
 The idempotency key is the identifier your handler uses to recognize duplicate messages. Get this wrong, and either you'll fail to dedupe actual duplicates (key too specific) or you'll incorrectly skip distinct messages (key too broad). The key needs to be stable across redeliveries, unique per logical operation, and derivable from the message content.
 
+<Newsletter />
+
 ### Choosing the Right Key
 
 There are four common strategies, each with distinct tradeoffs:
@@ -900,6 +902,26 @@ Test idempotency explicitly. Send the same message multiple times and verify the
 ## Conclusion
 
 Idempotent message handling isn't a feature you bolt on later - it's a design discipline that shapes how you structure handlers from the start. The patterns in this article form a coherent approach: understand that at-least-once delivery means duplicates __will__ arrive; design idempotency keys from message content, not queue metadata; choose deduplication storage that matches your consistency requirements; prefer naturally idempotent operations where possible; and use transactional patterns like the outbox and saga state machines when you need atomicity across multiple writes.
+
+<Download
+  resource="idempotent-message-handlers-deduplication-retries"
+  title="Download the Idempotency Playbook"
+  description="Get the complete message-consumer guide for deduplication, retry safety, and side-effect-safe processing in distributed systems."
+  listItems={[
+    {
+      text: "Idempotency key design templates",
+    },
+    {
+      text: "Deduplication store decision matrix",
+    },
+    {
+      text: "Handler implementation pattern catalog",
+    },
+    {
+      text: "Retry and replay test plan",
+    },
+  ]}
+/>
 
 The most common mistake I see is relying on queue-level deduplication. SQS FIFO's five-minute window, Kafka's producer idempotency, Azure Service Bus's session deduplication - these are useful supplements, but they don't eliminate the need for handler-side idempotency. Network partitions, visibility timeouts, consumer crashes, and rebalances all create scenarios where messages get redelivered outside those protection windows.
 

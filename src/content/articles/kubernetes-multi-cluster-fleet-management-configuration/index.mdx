@@ -37,6 +37,8 @@ Kubernetes Federation (KubeFed) was the original attempt to solve multi-cluster 
 
 In practice, Federation never gained traction. The v1 implementation was deprecated in 2018, and KubeFed v2 saw limited adoption before being archived in 2022. The problems were fundamental: Federation tried to abstract away cluster differences, but real-world multi-cluster deployments _need_ those differences. A one-size-fits-all API couldn't handle the nuanced configuration variations between dev and production, between AWS and on-prem, between US-East and EU-West.
 
+<Newsletter />
+
 The industry moved toward a different model: GitOps-based fleet management. Instead of a control plane pushing identical configs everywhere, each cluster pulls its configuration from Git, with templating systems handling the variations. This approach — implemented by tools like ArgoCD ApplicationSets, Flux, and Rancher Fleet — provides the consistency benefits Federation promised while preserving the flexibility real deployments require.
 
 ## Multi-Cluster Architectures
@@ -1005,6 +1007,26 @@ Progressive rollout is essential for production fleet operations. Start with a c
 ## Conclusion
 
 The shift from Kubernetes Federation to GitOps-based fleet management reflects a fundamental insight: multi-cluster consistency isn't about making clusters identical, it's about making differences _intentional_ and _documented_. Federation failed because it tried to abstract away cluster variations. Modern fleet tools succeed because they embrace variations while providing guardrails.
+
+<Download
+  resource="kubernetes-multi-cluster-fleet-management-configuration"
+  title="Download the Multi-Cluster Fleet Guide"
+  description="Get the complete fleet-operations playbook for GitOps consistency, drift prevention, and cluster-wide change coordination."
+  listItems={[
+    {
+      text: "ArgoCD versus Flux matrix",
+    },
+    {
+      text: "Fleet drift detection runbook",
+    },
+    {
+      text: "Policy enforcement design templates",
+    },
+    {
+      text: "Progressive rollout wave strategy",
+    },
+  ]}
+/>
 
 The practical path forward has four components. First, document your fleet topology explicitly — which clusters exist, what each serves, what should be shared versus different. This documentation becomes the foundation for your templating strategy, whether you choose Kustomize overlays or Helm values hierarchies.
 

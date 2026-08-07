@@ -64,6 +64,8 @@ The phases are: announcement, active deprecation, sunset warning, read-only mode
 
 The read-only phase is optional but valuable. Disabling write operations while keeping reads working gives consumers a preview of what full removal will feel like. It also reduces the blast radius if someone has a critical read path they forgot about — they will discover it before complete removal, and you will get a support ticket instead of a production outage.
 
+<Newsletter />
+
 ### Setting Realistic Timelines
 
 The biggest mistake in deprecation planning is setting timelines based on how long you _want_ the deprecation to take rather than how long it _will_ take. Your consumers have their own release cycles, their own priorities, and their own backlogs. Your deprecation is not at the top of their list.
@@ -1190,6 +1192,26 @@ Document these lessons and apply them to the next deprecation. The goal is conti
 ## Conclusion
 
 Remember that API version I inherited, the one marked "deprecated" for two years while still handling 30% of production traffic? We eventually got it to zero. It took executive escalation for one customer, dedicated migration pairing sessions for another, and contract renegotiation for the third. The sunset date slipped by four months. But we removed it — actually removed it, not just declared it deprecated and hoped for the best.
+
+<Download
+  resource="api-deprecation-sunset-headers-consumer-migration"
+  title="Download the API Deprecation Playbook"
+  description="Get the complete deprecation framework with Sunset header patterns, enforcement timelines, and consumer migration workflows you can apply immediately."
+  listItems={[
+    {
+      text: "Sunset header implementation patterns",
+    },
+    {
+      text: "Consumer migration tracking queries",
+    },
+    {
+      text: "Graduated enforcement timeline playbook",
+    },
+    {
+      text: "Enterprise escalation communication checklist",
+    },
+  ]}
+/>
 
 API deprecation is a coordination problem disguised as a technical problem. The technical implementation — Sunset headers, 410 responses, rate limiting — is straightforward. The hard part is getting hundreds of consumers, each with their own priorities and constraints, to take action on your timeline.
 

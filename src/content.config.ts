@@ -262,7 +262,12 @@ const resumeDataCollection = defineCollection({
       degree: z.string(),
       campus: z.string(),
       geolocationLink: z.url(),
-      graduationDate: z.string(),
+      /** Free-form end of attendance, e.g. "May 1996" or "1996" */
+      graduationDate: z.string().optional(),
+      /** Free-form start of attendance, e.g. "1992" — rendered as a range with graduationDate */
+      startDate: z.string().optional(),
+      /** Bullet points rendered under the degree line */
+      highlights: z.array(z.string()).optional(),
     }),
     email: z.email(),
     firstName: z.string(),

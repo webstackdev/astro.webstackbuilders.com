@@ -128,6 +128,8 @@ The best wrappers are thin. They compose underlying tools rather than reimplemen
 
 If you've decided a wrapper is worth building, the next question is __how__ to build it so it doesn't become a liability. The core principle is transparency: your wrapper should add value without hiding what's happening. Developers should always be able to see the underlying commands, bypass the wrapper when needed, and use their existing tool knowledge.
 
+<Newsletter />
+
 ### The Transparent Wrapper Pattern
 
 The transparent wrapper pattern treats the underlying tool as the source of truth. The wrapper adds hooks for context injection, guard rails, and logging, but everything it doesn't explicitly handle passes through unchanged. Unknown flags? Pass them through. New subcommands? Pass them through. The wrapper should never be the reason a valid command fails.
@@ -922,6 +924,26 @@ When deprecating a wrapper, provide concrete alternatives for every feature. "Us
 ## Conclusion
 
 Most internal CLI wrappers shouldn't exist. Before building one, exhaust the alternatives: shell aliases, config files, documentation, training.
+
+<Download
+  resource="internal-cli-kubectl-terraform-wrapper-abstraction"
+  title="Download the Internal CLI Design Guide"
+  description="Get the complete abstraction playbook for safe wrapper design, transparent passthrough behavior, and long-term maintenance decisions."
+  listItems={[
+    {
+      text: "Wrapper decision criteria checklist",
+    },
+    {
+      text: "Transparent passthrough architecture patterns",
+    },
+    {
+      text: "Guard rail implementation templates",
+    },
+    {
+      text: "Wrapper deprecation transition plan",
+    },
+  ]}
+/>
 
 But when wrappers __are__ worth building - for genuine complexity hiding, meaningful guard rails, or critical context injection - build them well. Design for transparency: pass through unknown flags, show underlying commands, provide bypass modes. Commit to ongoing maintenance. Monitor adoption and bypass rates to catch problems early. And build with eventual deprecation in mind - the best outcome is retirement because the ecosystem caught up or your team outgrew the need.
 

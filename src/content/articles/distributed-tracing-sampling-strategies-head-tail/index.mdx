@@ -127,6 +127,8 @@ Sampling means you can't always find a specific trace by ID. If a customer repor
 
 Before diving into sampling strategies, it helps to understand where sampling fits in the distributed tracing stack. The stack has two sides: backends that store and visualize traces, and SDKs that generate them.
 
+<Newsletter />
+
 ### Trace Backends and Collectors
 
 The backend is where your traces live after collection. You have several options depending on whether you want managed services or self-hosted infrastructure.
@@ -1169,6 +1171,26 @@ Build your debugging workflow around the assumption that the specific trace you 
 ## Conclusion
 
 The premise of this article is counterintuitive: you get more value from your distributed tracing by capturing less data. At scale, 100% sampling isn't just expensive - it's counterproductive. The cost of storing and querying petabytes of routine traces overwhelms any debugging benefit. The teams that get the most from tracing are the ones that sample strategically.
+
+<Download
+  resource="distributed-tracing-sampling-strategies-head-tail"
+  title="Download the Tracing Sampling Guide"
+  description="Get the complete sampling playbook for cost control, error capture, and practical trace-debug workflows at scale."
+  listItems={[
+    {
+      text: "Head sampler configuration guide",
+    },
+    {
+      text: "Tail policy tuning matrix",
+    },
+    {
+      text: "Hybrid rollout decision framework",
+    },
+    {
+      text: "Missing trace debugging runbook",
+    },
+  ]}
+/>
 
 Head-based sampling is where most teams should start. It's simple to implement (it's built into every tracing SDK), requires no additional infrastructure, and gives you immediate cost control. Sample 10% of traffic and your tracing bill drops by 90%. The trade-off is that you're making decisions with incomplete information - you can't know at request start whether this trace will be interesting.
 

@@ -5,6 +5,7 @@ import type { WebComponentModule } from '@components/scripts/@types/webComponent
 import {
   isForbiddenClientActionError,
   normalizeClientActionError,
+  type ClientActionError,
 } from '@components/scripts/errors/actionClient'
 import { handleScriptError } from '@components/scripts/errors/handler'
 import { addScriptBreadcrumb } from '@components/scripts/errors'
@@ -13,6 +14,28 @@ import { getSearchResultsElements } from './selectors'
 import type { SearchHit } from '@actions/search/@types'
 
 const MIN_QUERY_LENGTH = 2
+
+/**
+ * The action client surfaces some server failures (e.g. an empty 500 from the
+ * function) as error objects with no message, which Sentry then reports as
+ * "Unknown error". Compose a diagnosable message from the normalized action
+ * error's code/status so production reports stay actionable.
+ */
+const toReportableSearchError = (
+  error: unknown,
+  actionError: ClientActionError | undefined
+): unknown => {
+  if (error instanceof Error && error.message) {
+    return error
+  }
+
+  const details: string[] = []
+  if (actionError?.code) details.push(`code ${actionError.code}`)
+  if (actionError?.status) details.push(`HTTP ${actionError.status}`)
+
+  const suffix = details.length > 0 ? ` (${details.join(', ')})` : ' with no error details'
+  return new Error(`Search action failed${suffix}`, { cause: error })
+}
 
 const resultTypeLabels: Record<string, string> = {
   articles: 'Article',
@@ -596,7 +619,7 @@ export class SearchResultsElement extends LitElement {
           return
         }
 
-        handleScriptError(error, context)
+        handleScriptError(toReportableSearchError(error, actionError), context)
         this.renderResults([])
         this.clearMeta()
         this.showError(message)
@@ -633,7 +656,7 @@ export class SearchResultsElement extends LitElement {
         return
       }
 
-      handleScriptError(error, context)
+      handleScriptError(toReportableSearchError(error, actionError), context)
       this.renderResults([])
       this.clearMeta()
       this.showError(

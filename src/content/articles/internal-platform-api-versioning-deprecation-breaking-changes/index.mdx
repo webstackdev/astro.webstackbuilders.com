@@ -160,6 +160,8 @@ The key question for any change: "Will existing client code break?" If yes, it's
 
 The hardest part of API versioning isn't the mechanics - it's deciding whether a change is breaking in the first place. The core question is simple: _will existing client code still work?_ If no, it's breaking. If yes, you need to dig deeper: is the behavior meaningfully different? Will consumers notice or care?
 
+<Newsletter />
+
 Some changes are obviously breaking. Removing an endpoint returns 404 to anyone still calling it. Changing an HTTP method from POST to PUT breaks existing clients with 405 errors. Renaming a URL path parameter from `{id}` to `{serviceId}` makes existing URLs invalid. Adding a required field to requests means all existing requests fail validation. Changing a field's type from string to number breaks deserialization. These require full deprecation process, no exceptions.
 
 Some changes are obviously safe. Adding an optional request field doesn't affect existing requests. Adding a field to responses is fine if clients ignore unknown fields (they should). New endpoints don't touch existing ones. Loosening validation - accepting 200 characters where you previously accepted 100 - doesn't break anything that worked before. Performance improvements and bug fixes are safe unless someone depends on the buggy behavior (it happens).
@@ -772,6 +774,26 @@ Whatever you choose, communicate it in advance. "On August 15, v1 will return 41
 ## Conclusion
 
 Remember that developer who spent a week scrambling because someone shipped a "small cleanup" without versioning? The 40 broken pipelines, the blocked security hotfix, the trust that took months to rebuild? That's what bad API versioning looks like. It's very visible.
+
+<Download
+  resource="internal-platform-api-versioning-deprecation-breaking-changes"
+  title="Download the API Versioning Guide"
+  description="Get the complete internal API playbook for breaking-change governance, deprecation workflows, and migration support operations."
+  listItems={[
+    {
+      text: "Breaking change detection checklist",
+    },
+    {
+      text: "Deprecation timeline communication templates",
+    },
+    {
+      text: "Migration support tier framework",
+    },
+    {
+      text: "Adoption funnel metrics dashboard",
+    },
+  ]}
+/>
 
 Good API versioning is invisible. Consumers barely notice migrations because they're well-communicated, well-supported, and well-timed. The new version shows up with deprecation warnings months in advance. The migration guide makes the change trivial. By the time sunset arrives, everyone's already moved on.
 

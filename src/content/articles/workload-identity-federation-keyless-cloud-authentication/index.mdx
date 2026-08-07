@@ -131,6 +131,8 @@ There's nothing to leak. The OIDC token is only valid for a few minutes and is s
 
 To really understand what's happening when you set up workload identity, you need to understand the token structure and exchange process. This isn't just academic — when federation breaks (and it will, at some point), you'll need to debug token claims, verify signatures, and trace through the exchange flow.
 
+<Newsletter />
+
 ### OIDC Token Anatomy
 
 The core of workload identity is a JWT — a JSON Web Token that contains claims about who's requesting access. When your GitHub Actions workflow runs, it can request an OIDC token from GitHub's identity provider. That token looks something like this when decoded:
@@ -1093,6 +1095,26 @@ The error usually looks like `AccessDenied: Not authorized to perform sts:Assume
 ## Conclusion
 
 Long-lived service account keys are one of the most common — and most preventable — security vulnerabilities in cloud infrastructure. They accumulate over time, spread to places nobody tracks, and eventually show up in a breach notification or a cryptomining bill.
+
+<Download
+  resource="workload-identity-federation-keyless-cloud-authentication"
+  title="Workload Identity: Eliminating Long-Lived Keys"
+  description="Replacing service account keys with workload identity federation for secure, keyless cloud access."
+  listItems={[
+    {
+      text: "OIDC federation setup blueprint",
+    },
+    {
+      text: "Cloud trust policy templates",
+    },
+    {
+      text: "Keyless migration rollout checklist",
+    },
+    {
+      text: "Token exchange debug playbook",
+    },
+  ]}
+/>
 
 Workload identity federation eliminates this risk category entirely. Instead of managing secrets that can be stolen, your workloads prove their identity through cryptographic assertions from platforms you already trust. The credentials they receive expire in an hour and can't be exfiltrated in any meaningful way.
 

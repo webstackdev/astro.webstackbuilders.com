@@ -151,6 +151,8 @@ State files contain sensitive data in plaintext: database passwords, API keys, p
 
 When two engineers run `terraform apply` simultaneously against the same state, you get a race condition. Both read the same state, both calculate plans based on that state, and then both try to write their changes. The second write either overwrites the first (losing changes) or fails with a serial mismatch error. Neither outcome is good.
 
+<Newsletter />
+
 Locking prevents this by ensuring only one operation can modify state at a time. Before Terraform reads state for a plan or apply, it acquires a lock. If someone else holds the lock, Terraform waits (or fails, depending on configuration). After the operation completes — successfully or not — Terraform releases the lock.
 
 <Diagram
@@ -794,6 +796,26 @@ Beyond CI/CD and backups, a few operational practices significantly reduce state
 ## Conclusion
 
 State corruption will happen. The question is whether you recover in minutes or spend days reconstructing through imports and manual investigation.
+
+<Download
+  resource="terraform-state-locking-corruption-recovery-backend"
+  title="Terraform State: Failure Modes and Recovery"
+  description="State locking, backend configuration, and recovery strategies for when state corruption happens."
+  listItems={[
+    {
+      text: "State recovery incident checklist",
+    },
+    {
+      text: "Backend hardening configuration guide",
+    },
+    {
+      text: "Import and state surgery playbook",
+    },
+    {
+      text: "Quarterly disaster drill script",
+    },
+  ]}
+/>
 
 The patterns are predictable: interrupted applies, concurrent modifications, manual edits, provider mismatches. Each has specific recovery procedures — force-unlock for stuck locks, version rollback for corruption, import for orphaned resources, state surgery for structural problems.
 

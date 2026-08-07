@@ -40,6 +40,8 @@ __Requests__ are what the scheduler uses for placement decisions. When you set `
 
 __Limits__ are enforcement boundaries. CPU limits throttle - if your container tries to use more than its limit, it gets slowed down but keeps running. Memory limits kill - exceed your memory limit and the kernel OOM-kills your container. Limits can exceed what's actually available on a node (overcommit), but requests cannot.
 
+<Newsletter />
+
 This distinction matters for cost because __requests determine how many nodes you need__. If every pod requests 1 CPU but only uses 0.1, you're paying for 10x the capacity you need. The scheduler sees the cluster as full when it's actually 90% idle.
 
 Kubernetes assigns a QoS class based on how you set resources. __Guaranteed__ pods (requests equal limits for all resources) get the highest priority and are evicted last under pressure. __Burstable__ pods (requests less than limits) are the common case. __BestEffort__ pods (no requests or limits) are evicted first - avoid these in production. To control your pod's QoS class, set both CPU and memory requests equal to their limits for Guaranteed, or set requests lower than limits (or omit limits) for Burstable.
@@ -453,6 +455,26 @@ With this configuration, the autoscaler first tries to scale spot pools. If spot
 ## Conclusion
 
 Kubernetes cost optimization comes down to a few straightforward practices: measure what you're actually using, right-size resources to match that usage, run stateless workloads on spot instances, and tune the autoscaler to prefer cheaper capacity.
+
+<Download
+  resource="kubernetes-cost-optimization-resource-sizing-spot-instances"
+  title="Download the Kubernetes Cost Optimization Guide"
+  description="Get the complete cost-efficiency playbook for right-sizing workloads, leveraging spot capacity, and sustaining savings over time."
+  listItems={[
+    {
+      text: "Resource right-sizing workflow guide",
+    },
+    {
+      text: "Spot adoption readiness checklist",
+    },
+    {
+      text: "Autoscaler tuning strategy matrix",
+    },
+    {
+      text: "Cost visibility dashboard templates",
+    },
+  ]}
+/>
 
 The biggest wins come from fixing over-provisioned resources - the boring work of adjusting requests to match actual usage. Teams that invest in cost visibility and right-sizing typically reduce spend by 40-60% without any architectural changes. No new services, no migration projects, just better numbers in existing deployment manifests.
 

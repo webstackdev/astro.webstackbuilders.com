@@ -139,6 +139,8 @@ For mTLS, the Extended Key Usage must include both `serverAuth` and `clientAuth`
 
 Now that we understand certificate structure, the next question is: who signs these certificates, and how do services decide which certificates to trust?
 
+<Newsletter />
+
 ### Certificate Authority Chains
 
 The CA hierarchy you choose affects every aspect of mTLS operations: how certificates are issued, how rotation works, what happens when a CA is compromised, and how difficult cross-cluster communication becomes. Getting this wrong early creates painful migrations later.
@@ -909,6 +911,26 @@ Switching to PERMISSIVE mode during an incident allows plaintext traffic, which 
 ## Conclusion
 
 Enabling mTLS is a configuration change. Operating it reliably is an ongoing commitment to understanding certificate lifecycles, building automation for rotation, monitoring for expiration failures, and having runbooks ready for when things go wrong.
+
+<Download
+  resource="mtls-certificate-rotation-service-mesh-authentication"
+  title="mTLS for Service-to-Service Communication"
+  description="Certificate rotation, trust hierarchies, and the operational footguns that make mTLS harder than it looks."
+  listItems={[
+    {
+      text: "Certificate hierarchy design patterns",
+    },
+    {
+      text: "Rotation drill runbook template",
+    },
+    {
+      text: "Handshake failure debug workflow",
+    },
+    {
+      text: "Expiry monitoring alert pack",
+    },
+  ]}
+/>
 
 The trust hierarchy you choose affects everything downstream. Two-tier is simple but offers no isolation. Three-tier provides blast radius containment but requires more coordination during rotation. Federated trust gives you full isolation between clusters at the cost of explicit trust management.
 

@@ -382,6 +382,8 @@ function validateOrder(order: Order): ValidationResult {
 ```
 Code: Using spans for I/O, events for milestones, attributes for metadata.
 
+<Newsletter />
+
 Notice that `validateOrder()` doesn't get a span — it's pure computation. The validation timing is captured as an event attribute if you need it. The database insert and payment call __do__ get spans because they're I/O operations where latency matters.
 
 <Callout type="success">
@@ -1024,6 +1026,26 @@ For batch processing: one span for the batch, events for individual failures, at
 ## Conclusion
 
 Span design is an engineering tradeoff: visibility versus overhead, granularity versus readability, detail versus cost. The goal isn't maximum spans — it's enough spans to debug problems efficiently.
+
+<Download
+  resource="opentelemetry-span-design-granularity-overhead"
+  title="Tracing Span Design: How Many Is Too Many"
+  description="Balancing trace granularity against overhead, storage, and the ability to actually read trace waterfalls."
+  listItems={[
+    {
+      text: "Span granularity decision matrix",
+    },
+    {
+      text: "Event versus span guidelines",
+    },
+    {
+      text: "Trace readability audit checklist",
+    },
+    {
+      text: "Sampling strategy comparison guide",
+    },
+  ]}
+/>
 
 Instrument service boundaries, I/O operations, and significant business logic. Use events for milestones within spans. Use attributes for metadata that helps filtering and debugging. Sample aggressively in high-throughput services — you don't need every trace, just enough to catch problems. Follow naming conventions so waterfalls tell a story at a glance.
 

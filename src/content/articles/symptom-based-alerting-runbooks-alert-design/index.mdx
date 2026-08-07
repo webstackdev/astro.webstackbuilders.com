@@ -101,6 +101,8 @@ Each additional noisy alert reduces the attention given to __all__ alerts. Fix y
 
 The most common alerting mistake is alerting on _causes_ rather than _symptoms_. High CPU, low disk space, elevated connection counts — these are causes. They _might_ affect users, or they might not. Request latency, error rates, failed transactions — these are symptoms. They tell you users are _actually_ experiencing problems right now.
 
+<Newsletter />
+
 ### The Symptom-Based Philosophy
 
 Consider three classic cause-based alerts and their symptom-based alternatives:
@@ -955,6 +957,26 @@ An alert that hasn't fired in 6 months or has &lt; 50% actionable rate should be
 ## Conclusion
 
 Alert fatigue is a design problem, not a discipline problem. The core principle is simple: wake people up for what users experience, not for what _might_ cause problems. High CPU doesn't warrant a 2 AM page; elevated error rates do. Disk filling up gets a ticket; write failures get a page. Reserve the pager for symptoms, handle causes during business hours.
+
+<Download
+  resource="symptom-based-alerting-runbooks-alert-design"
+  title="Alert Fatigue: Symptom-Based Alerting That Works"
+  description="Designing alerts that wake people up for real problems and include runbooks for resolution."
+  listItems={[
+    {
+      text: "Symptom alert design checklist",
+    },
+    {
+      text: "Burn rate threshold calculator",
+    },
+    {
+      text: "Runbook template starter pack",
+    },
+    {
+      text: "Monthly alert hygiene rubric",
+    },
+  ]}
+/>
 
 Derive thresholds from SLOs using multi-window burn rates that balance speed of detection with noise reduction. Every alert must have a runbook that answers: what's the impact, how do I diagnose, how do I fix it, when do I escalate? Route alerts appropriately: pages for user-impacting issues requiring immediate action, tickets for degradation that can wait until business hours, dashboards for awareness.
 

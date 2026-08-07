@@ -105,6 +105,8 @@ const standardIntegrations = [
   sitemap({
     serialize: createSerializeFunction({
       exclude: [
+        /** Legacy /deep-dive/:slug URLs are 301 redirect stub pages, not content */
+        'deep-dive',
         'downloads',
         'offline',
         'print',
@@ -155,6 +157,8 @@ export default defineConfig({
   },
   redirects: {
     '/tags': '/articles',
+    /** Canonical sitemap URL tools expect; the integration emits sitemap-index.xml */
+    '/sitemap.xml': { status: 301, destination: '/sitemap-index.xml' },
   },
   /** Change URL between development and production environments */
   site: getSiteUrl(),

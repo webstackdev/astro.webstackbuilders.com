@@ -134,6 +134,8 @@ Resource renames are particularly dangerous because they cause Terraform to dest
 
 The difference between a module that's a joy to use and one that's a constant source of frustration often comes down to input variable design. Good inputs guide users toward correct usage; bad inputs let them make mistakes that only surface at apply time — or worse, in production.
 
+<Newsletter />
+
 ### Required vs Optional Variables
 
 The first decision for every variable: should the consumer be forced to provide a value, or can you supply a sensible default?
@@ -1008,6 +1010,26 @@ The `examples/` directory serves double duty: it provides documentation for cons
 ## Conclusion
 
 A module's interface is a contract, and contracts create trust. When consumers can rely on your inputs behaving predictably, your outputs remaining stable, and your version numbers communicating change accurately, they'll use your modules with confidence. When they can't, they'll fork your code or write their own — and you'll have lost the leverage that shared modules provide.
+
+<Download
+  resource="terraform-module-design-defaults-versioning-interfaces"
+  title="Terraform Module Interfaces: Defaults and Versioning"
+  description="Designing module interfaces that are easy to use, hard to misuse, and can evolve without breaking consumers."
+  listItems={[
+    {
+      text: "Interface design decision framework",
+    },
+    {
+      text: "Versioning and migration checklist",
+    },
+    {
+      text: "Validation pattern code recipes",
+    },
+    {
+      text: "Module contract test starter",
+    },
+  ]}
+/>
 
 The patterns here aren't complicated: default to safe values, validate inputs early, deprecate before removing, version honestly, and test what you promise. The discipline is in applying them consistently, release after release, even when you're tempted to "just make this one quick change." Every breaking change you avoid is a consumer who doesn't have to scramble. Every migration guide you write is trust you've earned.
 

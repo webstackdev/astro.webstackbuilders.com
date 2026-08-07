@@ -1,0 +1,38 @@
+---
+title: "Download the Pod Disruption Budget Playbook"
+description: "Get the e-book: Configuring PodDisruptionBudgets that protect availability during node rotations without deadlocking autoscaler scale-downs."
+author: "kevin-brown"
+cover: "./cover.jpg"
+coverAlt: "Air traffic controller managing planes (pods) on runways (nodes) with minimum availability requirements during runway maintenance for operational continuity"
+publishDate: 2024-08-03
+isDraft: false
+fileType: "PDF"
+fileSize: "3.6 MB"
+pages: 18
+fileName: "kubernetes-pod-disruption-budget-autoscaler-node-rotation.pdf"
+---
+
+A PodDisruptionBudget that blocks every eviction doesn't protect your service — it blocks security patches, node upgrades, and capacity optimization. Platform teams discover this at 6 AM when half the cluster is stuck in "draining" state because a critical service set `minAvailable: 3` with exactly 3 replicas, all on nodes scheduled for rotation.
+
+This complete guide breaks down how PDBs actually interact with the eviction API, the cluster autoscaler, and node rotation controllers — so you can write budgets that absorb voluntary disruptions instead of preventing them.
+
+This complete guide teaches you:
+
+<List
+  variant="check-icons-list"
+  classes={{
+    wrapper: "sm:ml-6 sm:mr-12 mb-6",
+  }}
+  items={[
+    { text: "PDB fundamentals: how the eviction API checks budgets before allowing drains" },
+    { text: "minAvailable vs maxUnavailable — which mode survives replica count changes" },
+    { text: "Cluster autoscaler scale-down deadlocks: diagnosis and resolution" },
+    { text: "Node rotation strategies that respect disruption budgets" },
+    { text: "Production PDB patterns for stateful and stateless workloads" },
+    { text: "Why blocked evictions return 429 and how drains retry" },
+    { text: "kubectl debugging workflows for stuck node drains" },
+    { text: "Monitoring and alerting for PDBs that block all disruptions" },
+  ]}
+/>
+
+Download the Pod Disruption Budget Playbook now to configure budgets that keep workloads available while the cluster changes around them.

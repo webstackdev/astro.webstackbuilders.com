@@ -140,6 +140,8 @@ The difference between a useless DLQ and a useful one is metadata. Capture every
 
 The schema you choose for your DLQ messages determines what you can do with them later. Get it wrong and you're back to "I have no idea what happened." Get it right and debugging becomes straightforward.
 
+<Newsletter />
+
 ### Design Principles
 
 <List
@@ -644,6 +646,26 @@ The ecosystem tooling (Kpow, Conduktor, DLQMan) mentioned earlier fills the gap 
 ## Conclusion
 
 The difference between a DLQ that works and one that doesn't comes down to a single question: when a message fails, can you understand why and safely replay it? If the answer is no, your DLQ is just a slower path to data loss.
+
+<Download
+  resource="dead-letter-queue-design-replay-debugging"
+  title="Download the DLQ Design Guide"
+  description="Get the complete dead-letter handling playbook for failure classification, replay safety, and query-driven triage workflows."
+  listItems={[
+    {
+      text: "Failure taxonomy decision matrix",
+    },
+    {
+      text: "Context capture field checklist",
+    },
+    {
+      text: "Replay safety validation runbook",
+    },
+    {
+      text: "DLQ triage workflow templates",
+    },
+  ]}
+/>
 
 The investment required isn't enormous. Enrich messages at failure time with the context you'll need later — error details, trace IDs, failure classification, attempt history. Store them somewhere queryable so you can filter and search instead of manually inspecting messages one by one. Build simple tooling for inspection and replay, even if it's just a CLI wrapper around your storage queries. Establish a triage process so messages don't sit ignored for weeks.
 

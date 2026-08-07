@@ -93,6 +93,8 @@ If you're proxying gRPC traffic, HTTP/2 is mandatory — gRPC requires it. Make 
 
 Timeouts are the most common source of proxy-related outages, and the defaults are almost never right for production. Nginx defaults most timeouts to 60 seconds — generous enough to hide problems during development, short enough to cause 502s when a backend occasionally takes 65 seconds. HAProxy is worse: many timeouts have __no default__, meaning connections can hang indefinitely if you don't configure them.
 
+<Newsletter />
+
 The key insight is that timeouts should match your traffic patterns, not arbitrary round numbers. A health check endpoint should respond in milliseconds; a report generation endpoint might legitimately take 5 minutes. Using the same timeout for both means either your health checks are too slow to detect failures, or your reports timeout prematurely.
 
 ### Nginx Timeout Hierarchy
@@ -1345,6 +1347,26 @@ The key is testing configuration syntax __before__ reloading. A syntax error dur
 ## Conclusion
 
 Proxy defaults are starting points, not production configurations. Nginx's 60-second timeouts and HAProxy's unlimited defaults exist to avoid breaking things during development — they're the wrong choices for production.
+
+<Download
+  resource="nginx-haproxy-reverse-proxy-production-tuning"
+  title="Reverse Proxy Hardening: Timeouts, Buffers, Defaults"
+  description="Why default nginx and HAProxy configurations fail under load and how to tune them for production."
+  listItems={[
+    {
+      text: "Timeout baseline tuning matrix",
+    },
+    {
+      text: "Buffer sizing troubleshooting guide",
+    },
+    {
+      text: "Connection pool optimization checklist",
+    },
+    {
+      text: "Proxy metrics alerting pack",
+    },
+  ]}
+/>
 
 The tuning process follows a pattern: establish baseline metrics, identify bottlenecks, adjust configuration, measure again. Timeouts should match your traffic patterns — slow report endpoints need longer read timeouts, health checks need aggressive timeouts that fail fast. Buffers should accommodate your payloads without wasting memory. Connection pools should be sized for your request rate and backend count.
 

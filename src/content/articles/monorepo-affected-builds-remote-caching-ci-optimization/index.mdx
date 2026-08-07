@@ -37,6 +37,8 @@ Affected builds work by analyzing the dependency graph — the directed acyclic 
 
 A monorepo typically contains two categories of packages: applications (deployable artifacts) and libraries (shared code). The dependency relationships between them form a hierarchy. Applications sit at the top, depending on libraries. Libraries depend on other libraries, forming chains. At the bottom are leaf libraries with no internal dependencies.
 
+<Newsletter />
+
 Three types of dependencies matter for affected calculation. __Direct dependencies__ are explicit imports — if `app-web` imports from `@libs/ui-components`, that's a direct dependency. __Transitive dependencies__ flow through the graph — if `ui-components` depends on `design-tokens`, then `app-web` transitively depends on `design-tokens` too. __Dev dependencies__ are needed for development and testing but don't affect production builds.
 
 The impact of a change depends on where it lands in the graph. Change a leaf library like `@libs/utils` that everything depends on, and the entire monorepo rebuilds. Change a library that only one application uses, and only that application rebuilds. This is why dependency graph design matters — poorly structured dependencies create "rebuild everything" scenarios even for small changes.
@@ -837,6 +839,26 @@ Track CI metrics over time. A sudden drop in cache hit rate or spike in duration
 ## Conclusion
 
 Monorepo CI optimization isn't a single technique — it's a stack of complementary approaches that compound. Affected builds analyze the dependency graph to skip packages that couldn't possibly be impacted by a change. Remote caching eliminates redundant work by sharing build outputs across developers and CI runners. Parallel execution runs remaining tasks concurrently. Distributed execution spreads work across multiple agents.
+
+<Download
+  resource="monorepo-affected-builds-remote-caching-ci-optimization"
+  title="Monorepo Release Engineering: Affected Builds"
+  description="Building only what changed with affected-based builds and remote caching that actually speeds up CI."
+  listItems={[
+    {
+      text: "Affected build setup checklist",
+    },
+    {
+      text: "Remote cache hardening guide",
+    },
+    {
+      text: "Cache miss debugging playbook",
+    },
+    {
+      text: "CI metrics tracking templates",
+    },
+  ]}
+/>
 
 Each level provides meaningful speedup on its own. Together, they transform CI from a 45-minute bottleneck into a 4-minute feedback loop. The exact numbers depend on your repository structure and change patterns, but order-of-magnitude improvements are typical.
 

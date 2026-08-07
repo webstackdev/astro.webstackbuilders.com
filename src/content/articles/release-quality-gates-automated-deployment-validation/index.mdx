@@ -29,6 +29,8 @@ Within three months, the gate configuration had so many exceptions it caught not
 
 They rebuilt the system with a different philosophy: __required gates__ (critical tests, security CVEs with CVSS 9+) versus __advisory gates__ (coverage trends, performance baselines). Required gates blocked deployments. Advisory gates logged warnings and alerted, but didn't block. False positives dropped 90%, and when a required gate fired, people actually investigated because they trusted it meant something.
 
+<Newsletter />
+
 The measure of a good gate isn't how many deployments it blocks — it's how many real incidents it prevents relative to how many good deployments it delays. Quality gates are probabilistic safety nets, not deterministic guarantees. The goal isn't zero risk; it's catching the failures that matter while letting good deployments through quickly.
 
 <Callout type="warning">
@@ -824,6 +826,26 @@ Every bypass should create a paper trail. If you're bypassing gates regularly, e
 ## Conclusion
 
 Quality gates are probabilistic safety nets, not guarantees. They work by shifting the odds — making it less likely that broken code reaches production, not impossible. Accepting this framing changes how you design them.
+
+<Download
+  resource="release-quality-gates-automated-deployment-validation"
+  title="Release Health Gates Without Blocking Everything"
+  description="Automated quality gates that catch real failures without becoming a bottleneck or a source of false positives."
+  listItems={[
+    {
+      text: "Gate categorization decision framework",
+    },
+    {
+      text: "Blocking gate precision checklist",
+    },
+    {
+      text: "Advisory gate tuning playbook",
+    },
+    {
+      text: "Bypass audit trail template",
+    },
+  ]}
+/>
 
 The tension between safety and velocity is real, but it's not a trade-off you make once. It's a dial you tune continuously. The patterns in this article give you the knobs: blocking versus advisory gates, absolute versus relative thresholds, progressive rollouts with automated rollback. Use them to find the balance that fits your risk tolerance and deployment cadence.
 

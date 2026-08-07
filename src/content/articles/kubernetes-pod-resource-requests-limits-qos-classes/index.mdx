@@ -64,6 +64,8 @@ CPU is a __compressible__ resource. When a pod exceeds its CPU limit, Kubernetes
 
 Under the hood, CPU limits use Linux's Completely Fair Scheduler (CFS) quotas. The kernel gives each container a time budget per scheduling period (typically 100ms). A pod with a 500m CPU limit gets 50ms of CPU time per 100ms period. Use it up and the pod waits until the next period.
 
+<Newsletter />
+
 The symptoms of CPU throttling are subtle: increased latency during traffic spikes, timeouts on CPU-bound operations, slow container startup, and health check failures. Unlike OOM kills, there's no clear error message — just degraded performance.
 
 You can detect throttling with Prometheus:
@@ -799,6 +801,26 @@ Most organizations run at 20-30% resource efficiency. Moving to 50-60% can cut i
 ## Conclusion
 
 Remember the 3 AM evictions from the introduction? The well-behaved pods died because they had requests without limits — Burstable QoS, middle of the eviction queue. The pods with no resource specs (BestEffort) should have been evicted first, but the eviction algorithm also considers usage relative to requests. The fix isn't complicated, but it requires understanding the model.
+
+<Download
+  resource="kubernetes-pod-resource-requests-limits-qos-classes"
+  title="Download the Pod Sizing Guide"
+  description="Get the complete resource-sizing playbook for requests, limits, QoS behavior, and node-pressure resilience."
+  listItems={[
+    {
+      text: "QoS class decision matrix",
+    },
+    {
+      text: "Request limit sizing worksheet",
+    },
+    {
+      text: "Eviction risk reduction checklist",
+    },
+    {
+      text: "Resource tuning query pack",
+    },
+  ]}
+/>
 
 Pod resource configuration comes down to two contracts: __requests__ are your promise to the scheduler about what you need, and __limits__ are your promise to the kernel about what you'll never exceed. The scheduler uses requests to place pods; the kernel uses limits to enforce boundaries. Get these wrong and you'll either waste money (over-requesting), starve neighbors (under-limiting), or face surprise evictions (wrong QoS class).
 

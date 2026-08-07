@@ -45,6 +45,8 @@ A load model defines _what_ you're testing. It's the specification that turns "t
 
 Before diving into load model design, a quick note on tooling. I use k6 for load testing, integrated into CI/CD pipelines. k6 scripts are JavaScript/TypeScript, which makes them easy to version control and review alongside application code. For alternatives, Locust (Python) and Gatling (Scala) are solid choices with their own ecosystems. Artillery is another JavaScript option with good AWS integration.
 
+<Newsletter />
+
 The bigger question is where to run these tests. Quick regression checks (2-5 minutes, moderate load) can run on CI runners against ephemeral environments. But serious performance testing — the kind that finds saturation points and validates capacity — needs dedicated infrastructure. The load generators need enough resources to not become the bottleneck, and the system under test needs to match production specifications. Cloud providers offer dedicated performance testing services (AWS has Distributed Load Testing, Azure has Load Testing), or you can provision your own infrastructure with consistent instance types. The key is reproducibility: if your test environment varies between runs, your results will too.
 
 ### Anatomy of a Load Model
@@ -936,6 +938,26 @@ Compare against baselines with statistical significance, not just raw numbers. A
 ## Conclusion
 
 Trustworthy performance testing requires getting several things right simultaneously. The load model must match production — traffic patterns, endpoint distribution, think time, and arrival distribution all matter. Warmup must complete before measurement begins, or you're measuring startup behavior instead of steady-state capacity. The test environment must match production specifications closely enough that bottlenecks appear in the same places. Statistical analysis must account for the non-normal distributions that latency data always exhibits.
+
+<Download
+  resource="performance-testing-load-models-benchmark-accuracy"
+  title="Performance Tests That Do Not Lie"
+  description="Load models, warmup procedures, and result interpretation that give you performance data you can trust."
+  listItems={[
+    {
+      text: "Load model design worksheet",
+    },
+    {
+      text: "Warmup and steady-state checklist",
+    },
+    {
+      text: "Percentile reporting playbook",
+    },
+    {
+      text: "CI performance gate template",
+    },
+  ]}
+/>
 
 The mistakes that undermine benchmarks follow predictable patterns. Open-loop load generation prevents the coordinated omission trap. Tests long enough to observe garbage collection cycles and cache behavior produce stable results. Multiple runs with statistical comparison separate signal from noise. Production-equivalent environments ensure bottlenecks appear where they'll actually occur.
 

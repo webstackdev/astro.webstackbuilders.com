@@ -45,6 +45,8 @@ This article covers how to instrument API gateways so the data actually helps du
 
 Gateway observability is not the same as service observability, and treating it the same way is how you end up with dashboards that look busy but do not help.
 
+<Newsletter />
+
 The fundamental difference is scope: every request passes through the gateway. When a backend service has a problem, its own metrics show the issue clearly — error rate spikes, latency increases, throughput drops. But the gateway sees that same problem diluted across all the traffic it handles. If one of ten backends is failing, the gateway's aggregate error rate increases by 10%, which might not even trigger an alert.
 
 <Diagram
@@ -1502,6 +1504,26 @@ This also enables fan-out: send metrics to both Prometheus (for alerting) and a 
 ## Conclusion
 
 Gateway observability is not about collecting data — it is about answering questions. When something goes wrong, you need to know: Is the problem in the gateway or the backend? Is it affecting everyone or just one consumer? Is it getting worse or recovering?
+
+<Download
+  resource="api-gateway-metrics-traces-logs-debugging"
+  title="Download the API Gateway Observability Guide"
+  description="Get the complete framework for gateway metrics, trace propagation, and debugging workflows that isolate production latency failures quickly."
+  listItems={[
+    {
+      text: "Gateway RED metrics playbook",
+    },
+    {
+      text: "Latency decomposition instrumentation patterns",
+    },
+    {
+      text: "Correlation logging implementation guide",
+    },
+    {
+      text: "Incident debugging workflow templates",
+    },
+  ]}
+/>
 
 The three pillars work together. Metrics tell you that something is wrong and give you the aggregate picture. Traces show you exactly where time went for specific requests. Logs capture the detail that explains why failures happened. Without all three, you are debugging blind.
 
