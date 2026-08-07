@@ -59,14 +59,26 @@ export const normalizeClientActionError = (value: unknown): ClientActionError | 
   }
 
   if (value instanceof Error) {
-    const errorRecord = getErrorRecord(value.cause)
+    /**
+     * Astro ActionError carries code/status on the error instance itself,
+     * while wrapped errors may carry them on the cause. Check both.
+     */
+    const errorRecord = getErrorRecord(value)
+    const causeRecord = getErrorRecord(value.cause)
 
     return createClientActionError({
-      code: typeof errorRecord?.['code'] === 'string' ? errorRecord['code'] : undefined,
+      code:
+        typeof errorRecord?.['code'] === 'string'
+          ? errorRecord['code']
+          : typeof causeRecord?.['code'] === 'string'
+            ? causeRecord['code']
+            : undefined,
       message: value.message,
       status:
         parseStatusCode(errorRecord?.['status']) ??
         parseStatusCode(errorRecord?.['statusCode']) ??
+        parseStatusCode(causeRecord?.['status']) ??
+        parseStatusCode(causeRecord?.['statusCode']) ??
         parseStatusCodeFromMessage(value.message),
     })
   }

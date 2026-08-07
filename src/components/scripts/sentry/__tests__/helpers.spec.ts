@@ -190,14 +190,16 @@ const createMyDataRequestHttpErrorEvent = (): Parameters<typeof beforeSendHandle
     },
   }) as unknown as Parameters<typeof beforeSendHandler>[0]
 
-const createWebmentionsHttpErrorEvent = (): Parameters<typeof beforeSendHandler>[0] =>
+const createWebmentionsHttpErrorEvent = (
+  statusCode = 403
+): Parameters<typeof beforeSendHandler>[0] =>
   ({
     type: 'error',
     request: { url: 'https://www.webstackbuilders.com/_actions/webmentions.list' },
     exception: {
       values: [
         {
-          value: 'HTTP Client Error with status code: 403',
+          value: `HTTP Client Error with status code: ${statusCode}`,
           mechanism: {
             type: 'auto.http.client.fetch',
             handled: false,
@@ -414,6 +416,28 @@ describe('sentry helpers', () => {
       const result = beforeSendHandler(event, createHint())
 
       expect(result).toBeNull()
+    })
+
+    it('drops duplicate webmentions http client failures for server errors', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createWebmentionsHttpErrorEvent(500)
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBeNull()
+    })
+
+    it('keeps webmentions http client failures for unexpected client errors', () => {
+      isProdMock.mockReturnValue(true)
+      getConsentSnapshotMock.mockReturnValue({ analytics: true })
+
+      const event = createWebmentionsHttpErrorEvent(404)
+
+      const result = beforeSendHandler(event, createHint())
+
+      expect(result).toBe(event)
     })
 
     it('drops handled consent log retry errors', () => {
