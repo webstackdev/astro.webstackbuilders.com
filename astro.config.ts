@@ -198,6 +198,15 @@ export default defineConfig({
        * Bundle the sanitizer and its parser dependency chain into the ESM
        * server output so no runtime require() of these packages occurs.
        *
+       * The sanitizer's CommonJS runtime dependencies must be bundled for the
+       * same reason. Rolldown emits externalized require() calls through a
+       * createRequire() helper imported from a shared runtime chunk, and
+       * @vercel/nft's static analysis cannot follow that indirection across
+       * module boundaries — untraced packages are absent from the deployed
+       * function and crash every action cold start with MODULE_NOT_FOUND.
+       * Bundling the full dependency closure (launder -> dayjs, postcss ->
+       * nanoid/picocolors/source-map-js) leaves no runtime require() behind.
+       *
        * Build-only: in the dev server, Vite's SSR module runner evaluates
        * noExternal'd CommonJS packages as ESM, crashing the same action with
        * "ReferenceError: require is not defined". When the chain is
@@ -214,6 +223,16 @@ export default defineConfig({
               'domhandler',
               'domutils',
               'entities',
+              'deepmerge',
+              'escape-string-regexp',
+              'is-plain-object',
+              'launder',
+              'dayjs',
+              'parse-srcset',
+              'postcss',
+              'nanoid',
+              'picocolors',
+              'source-map-js',
             ]
           : [],
     },
