@@ -140,8 +140,7 @@ export const initUppyUpload = (elements: ContactFormElements): UploadController 
       target: dashboardTarget,
       proudlyDisplayPoweredByUppy: false,
       hideUploadButton: true,
-      hideProgressDetails: false,
-      showProgressDetails: true,
+      hideProgressDetails: false, // This already guarantees that progress details are shown
       note: `Maximum ${MAX_FILES} files. Each file up to ${MAX_FILE_SIZE_BYTES / (1024 * 1024)} MB.`,
     })
     .use(Audio)
@@ -164,7 +163,7 @@ export const initUppyUpload = (elements: ContactFormElements): UploadController 
       return uppy
         .getFiles()
         .map(file => {
-          if (!file.data) return null
+          if (!file.data || !(file.data instanceof Blob)) return null
           return toFile(file.data, file.name)
         })
         .filter(isNonNullable)
