@@ -4,9 +4,16 @@
 import fs from 'node:fs'
 import { BuildError } from '../errors/BuildError'
 
-const readFileOrThrow = (filePath: string, encoding?: BufferEncoding) => {
+const readFileOrThrow = <T extends BufferEncoding | undefined = undefined>(
+  filePath: string,
+  encoding?: T
+): T extends BufferEncoding ? string : Buffer => {
   try {
-    return fs.readFileSync(filePath, encoding)
+    if (encoding) {
+      return fs.readFileSync(filePath, { encoding }) as unknown as T extends BufferEncoding ? string : Buffer
+    }
+
+    return fs.readFileSync(filePath) as unknown as T extends BufferEncoding ? string : Buffer
   } catch (error) {
     throw new BuildError(
       new Error(`Mermaid config failed to read ${filePath}.`, { cause: error }),
