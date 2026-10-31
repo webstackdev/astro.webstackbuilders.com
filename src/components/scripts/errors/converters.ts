@@ -65,12 +65,11 @@ export const extractMetadaFromStackTrace = (stack: string | undefined): stackMet
     poppedStackArr.shift()
   }
 
-  // Can't use wrapped error here!
-  if (!isString(poppedStackArr[0])) throw new Error()
-
-  const stackLine = poppedStackArr.shift() as string
-  // Try to match both formats: (path:line:col) and "at path:line:col"
-  const match = /\((.*):(\d+):(\d+)\)$/.exec(stackLine) || /at\s+(.+):(\d+):(\d+)/.exec(stackLine)
+  const stackLine = poppedStackArr[0] ?? ''
+  const match =
+    /\((.*):(\d+):(\d+)\)$/.exec(stackLine) ||
+    /at\s+(.+):(\d+):(\d+)$/.exec(stackLine) ||
+    /@(.+):(\d+):(\d+)$/.exec(stackLine)
   return {
     fileName: match && isString(match[1]) ? match[1] : undefined,
     lineNumber: match && isString(match[2]) ? match[2] : undefined,

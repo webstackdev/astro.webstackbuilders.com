@@ -1,4 +1,5 @@
 import { init as sentryInit } from '@sentry/astro'
+import { serverSentryDataCollection } from '@lib/sentry/dataCollection'
 import {
   getPackageRelease,
   getSentryDsn,
@@ -21,7 +22,7 @@ export function ensureActionSentry(): void {
     release: getPackageRelease(),
     environment: 'production',
     tracesSampleRate: 1.0,
-    sendDefaultPii: false,
+    dataCollection: serverSentryDataCollection,
     attachStacktrace: true,
     maxBreadcrumbs: 100,
     beforeSend(event) {

@@ -54,6 +54,14 @@ describe('ensureApiSentry', () => {
       dsn: expect.any(String),
       release: 'pkg@1.0.0',
       environment: 'production',
+      dataCollection: {
+        userInfo: false,
+        cookies: false,
+        httpBodies: [],
+        databaseQueryData: false,
+        genAI: { inputs: false, outputs: false },
+        graphQL: { document: false, variables: false },
+      },
     })
 
     module.ensureApiSentry()

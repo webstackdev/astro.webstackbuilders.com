@@ -18,7 +18,6 @@ type AlignType = 'left' | 'center' | 'right'
 type AlignLayout = 'inline' | 'block' | 'blockRow'
 
 import type { Root } from 'mdast'
-import type { VFile } from 'vfile'
 import type { Plugin } from 'unified'
 import type { Data } from 'unist'
 
@@ -506,8 +505,8 @@ const remarkAlign: Plugin<[RemarkAlignOptions?], Root> = (userOptions: RemarkAli
     rightRowBlock: userOptions.rightRowBlock ?? 'flex justify-end',
   }
 
-  return (tree: Root, file: VFile) => {
-    const raw = getTextValue((file as unknown as { value?: unknown }).value)
+  return (tree, file) => {
+    const raw = getTextValue(file.value)
     processContainer(tree as unknown as MdastNode, raw, options)
   }
 }

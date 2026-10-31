@@ -109,6 +109,7 @@ export class SearchResultsElement extends LitElement {
   }
 
   override disconnectedCallback(): void {
+    this.latestRequestId++
     if (this.debounceHandle) {
       clearTimeout(this.debounceHandle)
       this.debounceHandle = null
@@ -489,6 +490,7 @@ export class SearchResultsElement extends LitElement {
   }
 
   private readonly handleInput = () => {
+    this.latestRequestId++
     this.updateClearButtonVisibility()
     const query = this.getQuery()
 
@@ -532,6 +534,7 @@ export class SearchResultsElement extends LitElement {
       return
     }
 
+    this.latestRequestId++
     if (this.debounceHandle) {
       clearTimeout(this.debounceHandle)
       this.debounceHandle = null
@@ -567,6 +570,7 @@ export class SearchResultsElement extends LitElement {
   }
 
   private async run(queryOverride?: string): Promise<void> {
+    const requestId = ++this.latestRequestId
     const query = this.resolveRunQuery(queryOverride)
     this.query = query
     this.clearError()
@@ -602,10 +606,13 @@ export class SearchResultsElement extends LitElement {
 
     const context = { scriptName: 'SearchResultsElement', operation: 'run' }
     addScriptBreadcrumb(context)
-    const requestId = ++this.latestRequestId
 
     try {
       const { data, error } = await actions.search.query({ q: query, limit: this.limit })
+      if (requestId !== this.latestRequestId) {
+        return
+      }
+
       const actionError = normalizeClientActionError(error)
 
       // @TODO: Improve this error handling to be more user friendly. Should look at the types of errors that could occur, and give the user an idea of what to do.
@@ -632,10 +639,6 @@ export class SearchResultsElement extends LitElement {
         return
       }
 
-      if (requestId !== this.latestRequestId) {
-        return
-      }
-
       const hits = (data.hits ?? []) as SearchHit[]
       this.renderResults(hits)
       if (hits.length === 0 && this.shouldSuppressMetaFeedback()) {
@@ -648,6 +651,10 @@ export class SearchResultsElement extends LitElement {
         hits.length > 0 || !this.shouldSuppressMetaFeedback()
       )
     } catch (error) {
+      if (requestId !== this.latestRequestId) {
+        return
+      }
+
       const actionError = normalizeClientActionError(error)
 
       if (isForbiddenClientActionError(actionError)) {

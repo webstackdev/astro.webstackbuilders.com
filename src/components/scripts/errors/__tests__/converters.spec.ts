@@ -33,6 +33,28 @@ describe(`extractMetadaFromStackTrace correctly pulls metadata from stack trace`
       })
     )
   })
+
+  test.each(['Error: network failure', 'Error: network failure\n    at new ClientScriptError'])(
+    'handles a stack with no remaining frames: %s',
+    stack => {
+      expect(extractMetadaFromStackTrace(stack)).toEqual({
+        fileName: undefined,
+        lineNumber: undefined,
+        columnNumber: undefined,
+      })
+      const error = new Error('network failure')
+      error.stack = stack
+      expect(new ClientScriptError(error).message).toBe('network failure')
+    }
+  )
+
+  test('extracts metadata from a Firefox-style stack', () => {
+    expect(extractMetadaFromStackTrace('load@https://example.com/app.js:42:13')).toEqual({
+      fileName: 'https://example.com/app.js',
+      lineNumber: '42',
+      columnNumber: '13',
+    })
+  })
 })
 
 describe(`Converts from Error`, () => {

@@ -1,5 +1,6 @@
 import {
   breadcrumbsIntegration,
+  consoleIntegration,
   dedupeIntegration,
   defaultStackParser,
   feedbackIntegration,
@@ -37,8 +38,8 @@ export class SentryBootstrap {
       dsn: getSentryDsn(),
       integrations: [
         // Core integrations
+        consoleIntegration(),
         breadcrumbsIntegration({
-          console: true, // Log console messages as breadcrumbs
           dom: true, // Log DOM events as breadcrumbs
           fetch: true, // Log fetch requests as breadcrumbs
           history: true, // Log navigation as breadcrumbs
@@ -82,7 +83,21 @@ export class SentryBootstrap {
        * Send PII (personally identifiable information) conditionally
        * Only send IP and user agent if user has granted analytics consent
        */
-      sendDefaultPii: hasAnalyticsConsent,
+      dataCollection: hasAnalyticsConsent
+        ? { userInfo: true }
+        : {
+            userInfo: false,
+            cookies: false,
+            httpHeaders: {
+              request: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+              response: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+            },
+            httpBodies: [],
+            urlQueryParams: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+            genAI: { inputs: false, outputs: false },
+            databaseQueryData: false,
+            graphQL: { document: false, variables: false },
+          },
 
       /**
        * Max breadcrumbs to keep (default is 100). Breadcrumbs are a trail of events

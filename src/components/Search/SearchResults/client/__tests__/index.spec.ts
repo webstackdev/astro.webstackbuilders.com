@@ -240,6 +240,100 @@ describe('SearchResults web component', () => {
     })
   })
 
+  it('reports a current network failure and shows it to the user', async () => {
+    const networkError = new TypeError('NetworkError when attempting to fetch resource.')
+    searchQueryMock.mockRejectedValue(networkError)
+
+    await runComponentRender({ query: 'typescript' }, async ({ element }) => {
+      await flushMicrotasks()
+
+      expect(handleScriptErrorMock).toHaveBeenCalledWith(networkError, {
+        scriptName: 'SearchResultsElement',
+        operation: 'run',
+      })
+      const error = element.querySelector('[data-search-error]')
+      expect(error?.classList.contains('hidden')).toBe(false)
+      expect(error?.textContent).toBe(networkError.message)
+    })
+  })
+
+  it.each(['success', 'action error', 'network error'] as const)(
+    'ignores an obsolete %s while a new query is being debounced',
+    async outcome => {
+      type Result = ActionResult<{ hits: { title: string; url: string; snippet?: string }[] }>
+      let resolveRequest!: (_result: Result) => void
+      let rejectRequest!: (_error: Error) => void
+      searchQueryMock.mockReturnValue(
+        new Promise<Result>((resolve, reject) => {
+          resolveRequest = resolve
+          rejectRequest = reject
+        })
+      )
+
+      await runComponentRender({ query: 'typescript' }, async ({ element, window }) => {
+        expect(searchQueryMock).toHaveBeenCalledTimes(1)
+        const input = element.querySelector('[data-search-input]') as HTMLInputElement
+        input.value = 'astro'
+        input.dispatchEvent(new window.Event('input', { bubbles: true }))
+
+        if (outcome === 'success') {
+          resolveRequest({ data: { hits: [{ title: 'Old result', url: '/old' }] } })
+        } else if (outcome === 'action error') {
+          resolveRequest({ error: { message: 'Old action error', status: 500 } })
+        } else {
+          rejectRequest(new TypeError('NetworkError when attempting to fetch resource.'))
+        }
+        await flushMicrotasks()
+
+        expect(handleScriptErrorMock).not.toHaveBeenCalled()
+        expect(element.querySelector('[data-search-results] li')).toBeNull()
+        expect(element.querySelector('[data-search-error]')?.classList.contains('hidden')).toBe(true)
+        expect(element.querySelector('[data-search-meta]')?.textContent).toBe('Searching…')
+      })
+    }
+  )
+
+  it('ignores a network failure after the component disconnects', async () => {
+    let rejectRequest!: (_error: Error) => void
+    searchQueryMock.mockReturnValue(
+      new Promise((_resolve, reject) => {
+        rejectRequest = reject
+      })
+    )
+
+    await runComponentRender({ query: 'typescript' }, async ({ element }) => {
+      expect(searchQueryMock).toHaveBeenCalledTimes(1)
+      element.remove()
+      rejectRequest(new TypeError('NetworkError when attempting to fetch resource.'))
+      await flushMicrotasks()
+
+      expect(handleScriptErrorMock).not.toHaveBeenCalled()
+      expect(element.querySelector('[data-search-error]')?.classList.contains('hidden')).toBe(true)
+    })
+  })
+
+  it('does not restore stale results after the query is cleared', async () => {
+    type Result = ActionResult<{ hits: { title: string; url: string; snippet?: string }[] }>
+    let resolveRequest!: (_result: Result) => void
+    searchQueryMock.mockReturnValue(
+      new Promise<Result>(resolve => {
+        resolveRequest = resolve
+      })
+    )
+
+    await runComponentRender({ query: 'typescript' }, async ({ element }) => {
+      expect(searchQueryMock).toHaveBeenCalledTimes(1)
+      const clearButton = element.querySelector('[data-search-clear]') as HTMLButtonElement
+      clearButton.click()
+      resolveRequest({ data: { hits: [{ title: 'Old result', url: '/old' }] } })
+      await flushMicrotasks()
+
+      expect(element.querySelector('[data-search-results] li')).toBeNull()
+      expect(element.querySelector('[data-search-meta]')?.textContent).toBe('')
+      expect(handleScriptErrorMock).not.toHaveBeenCalled()
+    })
+  })
+
   it('supports a custom limit without rendering the built-in empty state', async () => {
     searchQueryMock.mockResolvedValue({
       data: {

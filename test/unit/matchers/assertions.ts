@@ -15,8 +15,8 @@ interface CustomMatchers<R = unknown> {
 }
 
 declare module 'vitest' {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  interface Assertion<T = any> extends CustomMatchers<T> {
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+  interface Assertion<R extends void | Promise<void> = void, T = unknown> extends CustomMatchers<R> {
     // Add placeholder property to satisfy TypeScript interface requirements
     readonly __customMatchers: true
   }
