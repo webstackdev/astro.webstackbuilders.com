@@ -100,6 +100,12 @@ export default getViteConfig({
   },
   test: {
     mode: 'development',
+    server: {
+      deps: {
+        // Keep the test runner's Lit modules separate from Astro's server-side Lit imports.
+        inline: ['lit', 'lit-element', 'lit-html', '@lit/reactive-element'],
+      },
+    },
     include: [
       'src/**/*.spec.ts?(x)',
       'scripts/**/*.spec.ts',

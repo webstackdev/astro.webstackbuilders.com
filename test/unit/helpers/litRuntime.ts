@@ -219,6 +219,11 @@ export const renderInJsdom = async <TModule extends WebComponentModule>(
 		window.history.replaceState(window.history.state, '', 'http://localhost/')
 
 		const module = await moduleLoader()
+		if (!(module.componentCtor.prototype instanceof window.HTMLElement)) {
+			throw BuildError.fileOperation(
+				`Custom element "${module.registeredName}" was loaded with a different HTMLElement`,
+			)
+		}
 		await module.registerWebComponent(module.registeredName)
 
 		const renderedHtml: RenderResult = await container.renderToString(component, args)
@@ -241,6 +246,12 @@ export const renderInJsdom = async <TModule extends WebComponentModule>(
 		if (!registeredCtor || registeredCtor !== expectedCtor) {
 			throw BuildError.fileOperation(
 				`Custom element "${module.registeredName}" is not registered with the expected constructor`,
+			)
+		}
+
+		if (!(element instanceof expectedCtor)) {
+			throw BuildError.fileOperation(
+				`Custom element "${module.registeredName}" failed to upgrade in the JSDOM window`,
 			)
 		}
 

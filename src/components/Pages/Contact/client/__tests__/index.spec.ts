@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { withJsdomEnvironment } from '@test/unit/helpers/litRuntime'
 
+vi.mock('astro:actions', () => ({
+  actions: { contact: { submit: vi.fn() } },
+  isInputError: vi.fn(),
+}))
+
 describe('ContactForm web component module', () => {
   it('exposes metadata for registration', async () => {
     await withJsdomEnvironment(async () => {

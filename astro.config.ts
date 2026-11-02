@@ -93,13 +93,11 @@ const standardIntegrations = [
     project: 'webstack-builders-corporate-website',
     org: 'webstack-builders',
     authToken: sentryAuthToken,
-    unstable_sentryVitePluginOptions: {
-      release: {
-        name: sentryReleaseName,
-      },
-      sourcemaps: {
-        filesToDeleteAfterUpload: ['./dist/**/client/**/*.map', './dist/**/server/**/*.map'],
-      },
+    release: {
+      name: sentryReleaseName,
+    },
+    sourcemaps: {
+      filesToDeleteAfterUpload: ['./dist/**/client/**/*.map', './dist/**/server/**/*.map'],
     },
   })] : []),
   sitemap({
